@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+option go_package = "github.com/tnyim/jungletv/proto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+package jungletv;
+
+service JungleTV {
+    rpc SignIn (SignInRequest) returns (SignInResponse) {}
+    rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
+    rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
+    rpc ConsumeMedia (ConsumeMediaRequest) returns (stream NowPlayingCheckpoint) {}
+    rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
+    rpc RewardInfo (RewardInfoRequest) returns (RewardInfoResponse) {}
+
+    // moderation endpoints
+    rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
+    rpc RemoveQueueEntry(RemoveQueueEntryRequest) returns (RemoveQueueEntryResponse) {}
+}
+
+message SignInRequest {
+    string reward_address = 1;
+}
+
+message SignInResponse {
+    string auth_token = 1;
+    google.protobuf.Timestamp token_expiration = 2;
+}
+
+message EnqueueYouTubeVideoData {
+    string id = 1;
+}
+
+// EnqueueStubData allows us to prepare and confirm that polymorphism is working properly
+message EnqueueStubData {}
+
+message EnqueueMediaRequest {
+    oneof media_info {
+        EnqueueStubData stub_data = 1;
+        EnqueueYouTubeVideoData youtube_video_data = 2;
+    }
+}
+
+message EnqueueMediaResponse {
+    oneof enqueue_response {
+        EnqueueMediaTicket ticket = 1;
+        EnqueueMediaFailure failure = 2;
+    }
+}
+
+message EnqueueMediaFailure {
+    string failure_reason = 1;
+}
+
+enum EnqueueMediaTicketStatus {
+    ACTIVE = 0;
+    PAID = 1;
+    EXPIRED = 2;
+}
+
+message EnqueueMediaTicket {
+    string id = 1;
+    EnqueueMediaTicketStatus status = 2;
+    string payment_address = 3;
+    string enqueue_price = 4;
+    string play_next_price = 5;
+    string play_now_price = 6;
+    google.protobuf.Timestamp expiration = 7;
+    oneof media_info {
+        QueueYouTubeVideoData youtube_video_data = 8;
+    }
+}
+
+message MonitorTicketRequest {
+    string ticket_id = 1;
+}
+
+message ConsumeMediaRequest {
+}
+
+// NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
+message NowPlayingStubData {}
+
+message NowPlayingYouTubeVideoData {
+    string id = 1;
+}
+
+message NowPlayingCheckpoint {
+    bool media_present = 1;
+    google.protobuf.Duration current_position = 2;
+    User requested_by = 3;
+    string request_cost = 4;
+    optional string reward = 5;
+    uint32 currently_watching = 6;
+    oneof media_info {
+        NowPlayingStubData stub_data = 7;
+        NowPlayingYouTubeVideoData youtube_video_data = 8;
+    }
+}
+
+message MonitorQueueRequest {}
+
+message Queue {
+    repeated QueueEntry entries = 1;
+}
+
+message QueueYouTubeVideoData {
+    string id = 1;
+    string title = 2;
+    string thumbnail_url = 3;
+    string channel_title = 4;
+}
+
+message QueueEntry {
+    string id = 1;
+    User requested_by = 2;
+    google.protobuf.Duration length = 3;
+    oneof media_info {
+        QueueYouTubeVideoData youtube_video_data = 4;
+    }
+}
+
+message User {
+    string address = 1;
+}
+
+message RewardInfoRequest {}
+
+message RewardInfoResponse {
+    string reward_address = 1;
+}
+
+message RemoveQueueEntryRequest {
+    string id = 1;
+}
+
+message RemoveQueueEntryResponse {}
+
+enum ForcedTicketEnqueueType {
+    ENQUEUE = 0;
+    PLAY_NEXT = 1;
+    PLAY_NOW = 2;
+}
+
+message ForciblyEnqueueTicketRequest {
+    string id = 1;
+    ForcedTicketEnqueueType enqueue_type = 2;
+}
+
+message ForciblyEnqueueTicketResponse {}

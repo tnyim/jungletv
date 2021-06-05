@@ -1,0 +1,14 @@
+/app/node_modules/
+/app/public/build/
+/misc/*.key
+/misc/*.crt
+/misc/*.pem
+/misc/*.csr
+/misc/*.srl
+*.exe
+/jungletv
+__debug_bin
+secrets-debug.json
+secrets.json
+queue.json
+.DS_Store
