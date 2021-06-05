@@ -213,7 +213,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManag
 	}
 
 	return &http.Server{
-		Addr:    ":9090",
+		Addr:    ServerListenAddr,
 		Handler: http.HandlerFunc(handler),
 	}, nil
 }

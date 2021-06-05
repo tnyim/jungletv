@@ -9,9 +9,6 @@ const (
 	// SecretsPath is the default path to the file containing secrets
 	SecretsPath = "secrets-debug.json"
 
-	// MaxDBconnectionPoolSize is the maximum number of simultaneous database connections in the connection pool
-	MaxDBconnectionPoolSize = 30
-
-	// APIserverListenAddr is the address the API server will listen on
-	APIserverListenAddr = ":14000"
+	// ServerListenAddr is the address the HTTPS server will listen on
+	ServerListenAddr = ":9090"
 )
