@@ -176,7 +176,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return nil
 	}
 
-	eligible := r.getEligibleSpectatorsWithinMutex(media.RequestedBy().Address())
+	eligible := getEligibleSpectators(r.spectatorsByRemoteAddress, media.RequestedBy().Address())
 	if len(eligible) == 0 {
 		if media.RequestedBy().IsUnknown() {
 			return nil
@@ -196,11 +196,12 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	return nil
 }
 
-func (r *RewardsHandler) getEligibleSpectatorsWithinMutex(exceptAddress string) map[string]*spectator {
+func getEligibleSpectators(spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
-	for _, spectators := range r.spectatorsByRemoteAddress {
+	for k := range spectatorsByRemoteAddress {
+		spectators := spectatorsByRemoteAddress[k]
 		if len(spectators) == 0 {
 			continue
 		}
@@ -208,10 +209,10 @@ func (r *RewardsHandler) getEligibleSpectatorsWithinMutex(exceptAddress string) 
 		rand.Shuffle(len(spectators), func(i, j int) {
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
-		for _, spectator := range spectators {
+		for j := range spectators {
 			// do not reward an address that would have received a reward via another remote address already
-			if _, present := toBeRewarded[spectator.user.Address()]; !present {
-				toBeRewarded[spectator.user.Address()] = spectator
+			if _, present := toBeRewarded[spectators[j].user.Address()]; !present {
+				toBeRewarded[spectators[j].user.Address()] = spectators[j]
 				break
 			}
 		}
@@ -251,7 +252,8 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) {
 	r.receiveCollectorPending(requestCost)
 
-	for _, spectator := range eligible {
+	for k := range eligible {
+		spectator := eligible[k]
 		sendFn := func(collectorAccount *wallet.Account) {
 			blockHash, err := collectorAccount.Send(spectator.user.Address(), amountForEach.Int)
 			if err != nil {
