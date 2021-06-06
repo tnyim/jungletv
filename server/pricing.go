@@ -33,7 +33,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 
 	lengthPenalty := 0
 	switch {
-	case videoDuration.Minutes() >= 40:
+	case videoDuration.Minutes() >= 25:
 		lengthPenalty = 40
 	case videoDuration.Minutes() >= 20:
 		lengthPenalty = 20
