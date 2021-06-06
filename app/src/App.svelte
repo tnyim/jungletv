@@ -5,10 +5,10 @@
 	import { apiClient } from "./api_client";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
-import Moderate from "./Moderate.svelte";
+	import Moderate from "./Moderate.svelte";
 	import Navbar from "./Navbar.svelte";
 	import RewardsAddress from "./RewardsAddress.svelte";
-import { rewardAddress } from "./stores";
+	import { rewardAddress } from "./stores";
 
 	export let url = "";
 

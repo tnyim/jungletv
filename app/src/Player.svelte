@@ -54,6 +54,4 @@
     let player: YouTubePlayer;
 </script>
 
-<div class="h-full w-full">
-    <YouTube {videoId} id="player" class="h-full w-full" {options} bind:player />
-</div>
+<YouTube {videoId} id="player" class="h-full w-full" {options} bind:player />
