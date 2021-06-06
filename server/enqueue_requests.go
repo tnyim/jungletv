@@ -150,6 +150,14 @@ func (e *EnqueueManager) ProcessPayments() error {
 		requestedBy := request.RequestedBy()
 		if requestedBy.IsUnknown() {
 			// requested by unauthenticated user, set the user to be who paid
+
+			// we must receive pendings otherwise the history might not contain the latest tx
+			err := request.PaymentAccount().ReceivePendings()
+			if err != nil {
+				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+				continue
+			}
+
 			requestedBy, err = e.findUserWhoPaid(request.PaymentAccount())
 			if err != nil {
 				return stacktrace.Propagate(err, "")
