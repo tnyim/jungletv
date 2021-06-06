@@ -1,12 +1,16 @@
 package server
 
 import (
+	"math"
 	"math/big"
 	"time"
 )
 
 // BaseEnqueuePrice is the price to enqueue on an empty queue
 var BaseEnqueuePrice *big.Int = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(29), big.NewInt(0)) // 100000000000000000000000000000
+
+// PriceRoundingFactor is the rounding factor for enqueue prices
+var PriceRoundingFactor *big.Int = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(27), big.NewInt(0)) // 1000000000000000000000000000
 
 // RewardRoundingFactor is the rounding factor for per-user rewards
 var RewardRoundingFactor *big.Int = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(27), big.NewInt(0)) // 1000000000000000000000000000
@@ -21,15 +25,17 @@ type EnqueuePricing struct {
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
 func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
+	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is 0 for videos under 6 minutes, 1 for videos with [6, 10[ minutes, 5 for videos with [10, 14[ minutes, 12 for videos with [14, 20[ minutes, 20 for videos with [20, 25[ minutes, 40 for videos with [25, 30] minutes
-	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLength * 0.1) + (currentlyWatching * 0.01) + LengthPenalty)
-	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLength * 100 + currentlyWatching * 10 + LengthPenalty * 1000) ) / 1000
+	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.05) + LengthPenalty)
+	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 50 + LengthPenalty * 1000) ) / 1000
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
 	queueLength := mediaQueue.Length() - 1
 	if queueLength < 0 {
 		queueLength = 0
 	}
+	queueLengthFactor := int64(100.0 * math.Pow(float64(queueLength), 1.2))
 
 	lengthPenalty := 0
 	switch {
@@ -49,11 +55,14 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 
 	pricing.EnqueuePrice = Amount{new(big.Int)}
 	pricing.EnqueuePrice.Set(BaseEnqueuePrice)
-	m := big.NewInt(1000).Add(big.NewInt(1000), big.NewInt(int64(queueLength*100)))
-	m = m.Add(m, big.NewInt(int64(currentlyWatching*10)))
+	m := big.NewInt(1000).Add(big.NewInt(1000), big.NewInt(queueLengthFactor))
+	m = m.Add(m, big.NewInt(int64(currentlyWatching*50)))
 	m = m.Add(m, big.NewInt(int64(lengthPenalty*1000)))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, m)
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(1000))
+
+	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
+	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 
 	pricing.PlayNextPrice = Amount{new(big.Int)}
 	pricing.PlayNextPrice.Set(pricing.EnqueuePrice.Int)
