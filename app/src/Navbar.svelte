@@ -3,8 +3,15 @@
     import { apiClient } from "./api_client";
     import { rewardAddress, rewardReceived } from "./stores";
     import { fade, fly } from "svelte/transition";
+    import { globalHistory } from "svelte-navigator";
+    const historyStore = { subscribe: globalHistory.listen };
 
     let navbarOpen = false;
+
+    historyStore.subscribe(() => {
+        navbarOpen = false;
+    });
+
     function setNavbarOpen() {
         navbarOpen = !navbarOpen;
     }
