@@ -31,6 +31,11 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 	defer s.spectatorsMutex.Unlock()
 
 	remoteAddress := RemoteAddressFromContext(ctx)
+	ipCountry := IPCountryFromContext(ctx)
+	if ipCountry == "T1" {
+		s.log.Println("Stats not considering spectator with remote address", remoteAddress, "(Tor)")
+		return func() {}, nil
+	}
 	s.spectatorsByRemoteAddress[remoteAddress]++
 	s.log.Println("Stats considering spectator with remote address", remoteAddress)
 	return func() {

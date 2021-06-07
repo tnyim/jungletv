@@ -34,6 +34,7 @@ type Spectator interface {
 }
 
 type spectator struct {
+	isDummy         bool // dummy spectators don't actually get rewarded but make the rest of the code happy
 	user            User
 	remoteAddress   string
 	startedWatching time.Time
@@ -59,6 +60,14 @@ func NewRewardsHandler(log *log.Logger, mediaQueue *MediaQueue, wallet *wallet.W
 }
 
 func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spectator, error) {
+	ipCountry := IPCountryFromContext(ctx)
+	if ipCountry == "T1" {
+		return &spectator{
+			isDummy:    true,
+			onRewarded: event.New(),
+		}, nil
+	}
+
 	spectator := &spectator{
 		user:            user,
 		remoteAddress:   RemoteAddressFromContext(ctx),
@@ -83,6 +92,9 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 
 	// we know the type of Spectator, we just make it opaque to the consumers of RewardHandler to help prevent mistakes
 	s := sInterface.(*spectator)
+	if s.isDummy {
+		return nil
+	}
 
 	removeSpectator := func(m map[string][]*spectator) {
 		slice := m[s.remoteAddress]

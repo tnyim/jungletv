@@ -89,6 +89,12 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	}
 	ctx = context.WithValue(ctx, "RemoteAddress", remoteAddress)
 
+	ipCountry := "XX"
+	if len(md["cf-ipcountry"]) > 0 {
+		ipCountry = md["cf-ipcountry"][0]
+	}
+	ctx = context.WithValue(ctx, "IPCountry", ipCountry)
+
 	if authErr == nil {
 		if !interceptor.authorizer.IsRewardAddressAllowed(claims.RewardAddress) {
 			return ctx, status.Error(codes.PermissionDenied, "no permission to access this RPC")

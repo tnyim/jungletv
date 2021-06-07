@@ -94,3 +94,11 @@ func RemoteAddressFromContext(ctx context.Context) string {
 	}
 	return v.(string)
 }
+
+func IPCountryFromContext(ctx context.Context) string {
+	v := ctx.Value("IPCountry")
+	if v == nil {
+		return ""
+	}
+	return v.(string)
+}
