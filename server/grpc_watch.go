@@ -49,7 +49,6 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			s := v[0].(Amount).String()
 			reward = &s
 		case <-stream.Context().Done():
-			s.log.Println("ConsumeMedia done")
 			return nil
 		}
 		cp := s.produceNowPlayingCheckpoint(stream.Context())
