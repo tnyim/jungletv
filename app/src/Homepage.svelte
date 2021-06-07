@@ -19,7 +19,7 @@
 {:else}
     <div
         transition:scale|local="{{ duration: 400, start: 8, opacity: 1 }}"
-        class="right-0 fixed top-16 shadow-xl opacity-50 hover:bg-gray-700 hover:opacity-75 text-white w-10 h-10 z-10 cursor-pointer text-xl text-center flex flex-row place-content-center items-center"
+        class="right-0 fixed top-16 shadow-xl opacity-50 hover:bg-gray-700 hover:opacity-75 text-white w-10 h-10 z-10 cursor-pointer text-xl text-center flex flex-row place-content-center items-center ease-linear transition-all duration-150"
         on:click={() => (queueExpanded = true)}
     >
         <i class="fas fa-th-list" />
