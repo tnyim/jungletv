@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 
 	import { Router, Route, navigate } from "svelte-navigator";
+	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
@@ -30,6 +31,7 @@
 <div class="flex min-h-screen h-full pt-16 bg-gray-100">
 	<Router {url}>
 		<Route path="/" component={Homepage} />
+		<Route path="/about" component={About} />
 		<Route path="/enqueue" component={Enqueue} />
 		<Route path="/rewards/address" component={RewardsAddress} />
 		<Route path="/moderate" component={Moderate} />
