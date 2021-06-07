@@ -17,8 +17,18 @@
     };
 
     let consumeMediaRequest: Request;
+    let playerBecameReady = false;
+    let firstSeekTo = 0;
 
-    onMount(consumeMedia);
+    onMount(() => {
+        consumeMedia();
+        player.on("stateChange", (event) => {
+            if (!playerBecameReady && (event.data == 1)) {
+                playerBecameReady = true;
+                player.seekTo(firstSeekTo, true);
+            }
+        });
+    });
     function consumeMedia() {
         consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
             playerConnected.update(() => false);
@@ -38,6 +48,7 @@
         if (checkpoint.getMediaPresent()) {
             videoId = checkpoint.getYoutubeVideoData().getId();
             let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
+            firstSeekTo = currentTimeFromServer;
             let currentPlayerTime = await player.getCurrentTime();
             if (Math.abs(currentPlayerTime - currentTimeFromServer) > 3) {
                 player.seekTo(currentTimeFromServer, true);
