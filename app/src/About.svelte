@@ -1,14 +1,8 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
+    import AddressBox from "./AddressBox.svelte";
 
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";
-    async function copyDonationAddress() {
-        try {
-            await navigator.clipboard.writeText(donationAddress);
-        } catch (err) {
-            console.error("Failed to copy!", err);
-        }
-    }
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
@@ -46,8 +40,8 @@
     <p>
         JungleTV is a non-profit hobby project operated by
         <a href="https://twitter.com/gbl08ma/" target="_blank" rel="noopener" class="text-blue-600 hover:underline"
-            >gbl08ma#3988</a
-        >, who you can find on the
+            >gbl08ma</a
+        > (Discord tag: gbl08ma#3988), who you can find on the
         <a href="https://chat.banano.cc/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">
             Banano Discord</a
         >.
@@ -57,19 +51,8 @@
         If you would like to help support the development and operation of JungleTV, consider donating some potassium to
         the address below:
     </p>
-    <div class="mt-1 flex justify-center">
-        <div
-            class="focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2"
-        >
-            {donationAddress}
-        </div>
-        <button
-            class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
-            on:click={copyDonationAddress}
-            disabled={!navigator.clipboard}
-        >
-            <i class="fas fa-copy" />
-        </button>
+    <div class="mt-1">
+        <AddressBox address={donationAddress} allowQR={true} />
     </div>
     <p class="mt-3">
         JungleTV is open source software licensed under the Apache License 2.0. Head over to the <a

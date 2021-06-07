@@ -37,6 +37,7 @@
                         </div>
                         <div class="flex flex-col flex-grow">
                             <p>{ticket.getYoutubeVideoData().getTitle()}</p>
+                            <p class="mt-1 text-sm text-gray-600">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
                         </div>
                     </div>
                     <div class="mt-8">

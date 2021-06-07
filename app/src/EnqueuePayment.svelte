@@ -2,10 +2,10 @@
     import { apiClient } from "./api_client";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
-    import QrCode from "svelte-qrcode";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { DateTime } from "luxon";
     import { Moon } from "svelte-loading-spinners";
+    import AddressBox from "./AddressBox.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -45,14 +45,6 @@
             dispatch("ticketExpired");
         } else if (t.getStatus() == EnqueueMediaTicketStatus.PAID) {
             dispatch("ticketPaid");
-        }
-    }
-
-    async function copyAddress() {
-        try {
-            await navigator.clipboard.writeText(ticket.getPaymentAddress());
-        } catch (err) {
-            console.error("Failed to copy!", err);
         }
     }
 
@@ -104,22 +96,8 @@
                             >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
                         > is sent to the following address:
                     </p>
-                    <div class="mt-1 flex justify-center">
-                        <div
-                            class="focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2"
-                        >
-                            {ticket.getPaymentAddress()}
-                        </div>
-                        <button
-                            class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
-                            on:click={copyAddress}
-                            disabled={!navigator.clipboard}
-                        >
-                            <i class="fas fa-copy" />
-                        </button>
-                    </div>
-                    <div class="mt-4 flex justify-center">
-                        <QrCode value={"ban:" + ticket.getPaymentAddress() + "?amount=" + selectedPrice} size="150" />
+                    <div class="mt-1">
+                        <AddressBox address={ticket.getPaymentAddress()} allowQR={false} showQR={true} qrAmount={selectedPrice} />
                     </div>
                     <div class="flex mt-4 justify-center">
                         <table>
