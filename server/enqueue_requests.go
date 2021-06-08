@@ -35,6 +35,7 @@ type EnqueueManager struct {
 // EnqueueRequest is a request to create an EnqueueTicket
 type EnqueueRequest interface {
 	RequestedBy() User
+	Unskippable() bool
 	MediaInfo() MediaInfo
 }
 
@@ -78,7 +79,8 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		createdAt:     time.Now(),
 		requestedBy:   request.RequestedBy(),
 		mediaInfo:     request.MediaInfo(),
-		pricing:       ComputeEnqueuePricing(e.mediaQueue, e.statsHandler.CurrentlyWatching(ctx), request.MediaInfo().Length()),
+		unskippable:   request.Unskippable(),
+		pricing:       ComputeEnqueuePricing(e.mediaQueue, e.statsHandler.CurrentlyWatching(ctx), request.MediaInfo().Length(), request.Unskippable()),
 		account:       paymentAccount,
 		statusChanged: event.New(),
 	}
@@ -167,7 +169,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 		// user can still be nil here, in case we couldn't find it in the last 10 account blocks
 		mi := request.MediaInfo()
 		e.paymentAccountPendingWaitGroup.Add(1)
-		playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.ID()))
+		playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable(), request.ID()))
 
 		err = request.SetPaid()
 		if err != nil {
@@ -245,6 +247,7 @@ func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 type ticket struct {
 	id             string
 	paid           bool
+	unskippable    bool
 	requestedBy    User
 	createdAt      time.Time
 	mediaInfo      MediaInfo
@@ -252,6 +255,10 @@ type ticket struct {
 	pricing        EnqueuePricing
 	statusChanged  *event.Event
 	forceEnqueuing *proto.ForcedTicketEnqueueType
+}
+
+func (t *ticket) Unskippable() bool {
+	return t.unskippable
 }
 
 func (t *ticket) MediaInfo() MediaInfo {
@@ -283,6 +290,7 @@ func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 		PlayNextPrice:  t.pricing.PlayNextPrice.SerializeForAPI(),
 		PlayNowPrice:   t.pricing.PlayNowPrice.SerializeForAPI(),
 		Expiration:     timestamppb.New(t.CreatedAt().Add(TicketExpiration)),
+		Unskippable:    t.unskippable,
 	}
 	t.mediaInfo.FillAPITicketMediaInfo(serialized)
 	return serialized

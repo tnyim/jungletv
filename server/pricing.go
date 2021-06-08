@@ -23,12 +23,13 @@ type EnqueuePricing struct {
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
-func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration) EnqueuePricing {
+func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration, unskippable bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is 0 for videos under 6 minutes, 1 for videos with [6, 10[ minutes, 5 for videos with [10, 14[ minutes, 12 for videos with [14, 20[ minutes, 20 for videos with [20, 25[ minutes, 40 for videos with [25, 30] minutes
-	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.05) + LengthPenalty)
-	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 50 + LengthPenalty * 1000) ) / 1000
+	// UnskippableFactor is 19 if unskippable, else 0
+	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.05) + LengthPenalty) * UnskippableFactor
+	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 50 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
 	queueLength := mediaQueue.Length() - 1
@@ -60,6 +61,9 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	m = m.Add(m, big.NewInt(int64(lengthPenalty*1000)))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, m)
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(1000))
+	if unskippable {
+		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(19))
+	}
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)

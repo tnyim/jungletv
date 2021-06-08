@@ -6,6 +6,7 @@
     import { DateTime } from "luxon";
     import { Moon } from "svelte-loading-spinners";
     import AddressBox from "./AddressBox.svelte";
+    import WarningMessage from "./WarningMessage.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -96,10 +97,22 @@
                             >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
                         > is sent to the following address:
                     </p>
-                    <div class="mt-1">
-                        <AddressBox address={ticket.getPaymentAddress()} allowQR={false} showQR={true} qrAmount={selectedPrice} />
+                    <div class="mt-1 mb-4">
+                        <AddressBox
+                            address={ticket.getPaymentAddress()}
+                            allowQR={false}
+                            showQR={true}
+                            qrAmount={selectedPrice}
+                        />
                     </div>
-                    <div class="flex mt-4 justify-center">
+                    {#if ticket.getUnskippable()}
+                        <div class="flex justify-center text-yellow-800">
+                            <strong>
+                                Prices have been heavily increased as you wish for this video to be unskippable.
+                            </strong>
+                        </div>
+                    {/if}
+                    <div class="flex justify-center">
                         <table>
                             <tbody>
                                 <tr>
@@ -136,14 +149,20 @@
                                             on:change={() => updateSelectedPrice(ticket.getPlayNowPrice())}
                                         />
                                     </td>
-                                    <td class="text-right font-bold p-2">
+                                    <td class="text-right font-bold p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? "line-through" : ""}">
                                         Send {apiClient.formatBANPrice(ticket.getPlayNowPrice())} BAN
                                     </td>
-                                    <td class="p-2">to skip the current video and play immediately</td>
+                                    <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? "line-through" : ""}">to skip the current video and play immediately</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                    {#if ticket.getCurrentlyPlayingIsUnskippable()}
+                        <WarningMessage>
+                            The currently playing video is unskippable; even if you pay the price to play immediately,
+                            it will still be enqueued to play after the current one.
+                        </WarningMessage>
+                    {/if}
                     <p class="mt-2">Sending more BAN will increase the rewards for viewers when watching this video.</p>
                     <p class="mt-2">
                         This price and address will expire in <span class="font-bold"

@@ -84,8 +84,9 @@ class APIClient {
         //this.authNeededCallback();
     }
 
-    async enqueueYouTubeVideo(id: string): Promise<EnqueueMediaResponse> {
+    async enqueueYouTubeVideo(id: string, unskippable: boolean): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
+        request.setUnskippable(unskippable);
         let ytData = new EnqueueYouTubeVideoData()
         ytData.setId(id);
         request.setYoutubeVideoData(ytData)

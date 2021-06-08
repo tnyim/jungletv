@@ -88,6 +88,9 @@ export namespace EnqueueStubData {
 }
 
 export class EnqueueMediaRequest extends jspb.Message {
+  getUnskippable(): boolean;
+  setUnskippable(value: boolean): void;
+
   hasStubData(): boolean;
   clearStubData(): void;
   getStubData(): EnqueueStubData | undefined;
@@ -111,14 +114,15 @@ export class EnqueueMediaRequest extends jspb.Message {
 
 export namespace EnqueueMediaRequest {
   export type AsObject = {
+    unskippable: boolean,
     stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 1,
-    YOUTUBE_VIDEO_DATA = 2,
+    STUB_DATA = 2,
+    YOUTUBE_VIDEO_DATA = 3,
   }
 }
 
@@ -201,6 +205,12 @@ export class EnqueueMediaTicket extends jspb.Message {
   getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  getUnskippable(): boolean;
+  setUnskippable(value: boolean): void;
+
+  getCurrentlyPlayingIsUnskippable(): boolean;
+  setCurrentlyPlayingIsUnskippable(value: boolean): void;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -226,12 +236,14 @@ export namespace EnqueueMediaTicket {
     playNextPrice: string,
     playNowPrice: string,
     expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    unskippable: boolean,
+    currentlyPlayingIsUnskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 8,
+    YOUTUBE_VIDEO_DATA = 10,
   }
 }
 
@@ -456,6 +468,9 @@ export class QueueEntry extends jspb.Message {
   getLength(): google_protobuf_duration_pb.Duration | undefined;
   setLength(value?: google_protobuf_duration_pb.Duration): void;
 
+  getUnskippable(): boolean;
+  setUnskippable(value: boolean): void;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -477,12 +492,13 @@ export namespace QueueEntry {
     id: string,
     requestedBy?: User.AsObject,
     length?: google_protobuf_duration_pb.Duration.AsObject,
+    unskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 4,
+    YOUTUBE_VIDEO_DATA = 5,
   }
 }
 

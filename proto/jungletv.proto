@@ -37,9 +37,10 @@ message EnqueueYouTubeVideoData {
 message EnqueueStubData {}
 
 message EnqueueMediaRequest {
+    bool unskippable = 1;
     oneof media_info {
-        EnqueueStubData stub_data = 1;
-        EnqueueYouTubeVideoData youtube_video_data = 2;
+        EnqueueStubData stub_data = 2;
+        EnqueueYouTubeVideoData youtube_video_data = 3;
     }
 }
 
@@ -68,8 +69,10 @@ message EnqueueMediaTicket {
     string play_next_price = 5;
     string play_now_price = 6;
     google.protobuf.Timestamp expiration = 7;
+    bool unskippable = 8;
+    bool currently_playing_is_unskippable = 9;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 8;
+        QueueYouTubeVideoData youtube_video_data = 10;
     }
 }
 
@@ -117,8 +120,9 @@ message QueueEntry {
     string id = 1;
     User requested_by = 2;
     google.protobuf.Duration length = 3;
+    bool unskippable = 4;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 4;
+        QueueYouTubeVideoData youtube_video_data = 5;
     }
 }
 

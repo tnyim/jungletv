@@ -21,13 +21,13 @@ func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequ
 			},
 		}, nil
 	case *proto.EnqueueMediaRequest_YoutubeVideoData:
-		return s.enqueueYouTubeVideo(ctx, x.YoutubeVideoData)
+		return s.enqueueYouTubeVideo(ctx, r, x.YoutubeVideoData)
 	default:
 		return nil, stacktrace.NewError("invalid media info type")
 	}
 }
 
-func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
+func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.EnqueueMediaRequest, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
 	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails"}).Id(r.Id).MaxResults(1).Do()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -87,6 +87,7 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, r *proto.EnqueueYo
 		duration:     videoDuration.DurationApprox(),
 		donePlaying:  event.New(),
 		requestedBy:  &unknownUser{},
+		unskippable:  origReq.Unskippable,
 	}
 
 	userClaims := UserClaimsFromContext(ctx)
@@ -98,9 +99,13 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, r *proto.EnqueueYo
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+
+	resp := ticket.SerializeForAPI()
+	currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
+	resp.CurrentlyPlayingIsUnskippable = playing && currentEntry.Unskippable()
 	return &proto.EnqueueMediaResponse{
 		EnqueueResponse: &proto.EnqueueMediaResponse_Ticket{
-			Ticket: ticket.SerializeForAPI(),
+			Ticket: resp,
 		},
 	}, nil
 }
@@ -115,18 +120,29 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 		return stacktrace.Propagate(err, "")
 	}
 
+	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+
 	c := ticket.StatusChanged().Subscribe(event.AtLeastOnceGuarantee)
 	defer ticket.StatusChanged().Unsubscribe(c)
 	for {
 		select {
+		case <-onMediaChanged:
+			break
 		case <-c:
-			if err := stream.Send(ticket.SerializeForAPI()); err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-			if ticket.Status() == proto.EnqueueMediaTicketStatus_EXPIRED {
-				return nil
-			}
+			break
 		case <-stream.Context().Done():
+			return nil
+		}
+
+		response := ticket.SerializeForAPI()
+		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
+		response.CurrentlyPlayingIsUnskippable = playing && currentEntry.Unskippable()
+
+		if err := stream.Send(response); err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		if ticket.Status() == proto.EnqueueMediaTicketStatus_EXPIRED {
 			return nil
 		}
 	}

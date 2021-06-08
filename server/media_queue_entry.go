@@ -17,6 +17,7 @@ type MediaQueueEntry interface {
 	json.Unmarshaler
 	RequestedBy() User
 	RequestCost() Amount
+	Unskippable() bool
 	MediaInfo() MediaInfo
 	SerializeForAPI() *proto.QueueEntry
 	ProduceCheckpointForAPI() *proto.NowPlayingCheckpoint
@@ -34,7 +35,7 @@ type MediaInfo interface {
 	Title() string
 	ThumbnailURL() string
 	Length() time.Duration
-	ProduceMediaQueueEntry(requestedBy User, requestCost Amount, queueID string) MediaQueueEntry
+	ProduceMediaQueueEntry(requestedBy User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 }
 
@@ -45,6 +46,7 @@ type queueEntryYouTubeVideo struct {
 	channelTitle string
 	thumbnailURL string
 	duration     time.Duration
+	unskippable  bool
 
 	requestedBy    User
 	requestCost    Amount
@@ -53,9 +55,10 @@ type queueEntryYouTubeVideo struct {
 	donePlaying    *event.Event
 }
 
-func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy User, requestCost Amount, queueID string) MediaQueueEntry {
+func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry {
 	e.requestedBy = requestedBy
 	e.requestCost = requestCost
+	e.unskippable = unskippable
 	e.queueID = queueID
 	return e
 }
@@ -88,10 +91,15 @@ func (e *queueEntryYouTubeVideo) RequestCost() Amount {
 	return e.requestCost
 }
 
+func (e *queueEntryYouTubeVideo) Unskippable() bool {
+	return e.unskippable
+}
+
 func (e *queueEntryYouTubeVideo) SerializeForAPI() *proto.QueueEntry {
 	entry := &proto.QueueEntry{
-		Id:     e.queueID,
-		Length: durationpb.New(e.duration),
+		Id:          e.queueID,
+		Length:      durationpb.New(e.duration),
+		Unskippable: e.unskippable,
 		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
 				Id:           e.id,
@@ -117,6 +125,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	Duration     time.Duration
 	RequestedBy  string
 	RequestCost  *big.Int
+	Unskippable  bool
 }
 
 func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
@@ -130,6 +139,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		Duration:     e.duration,
 		RequestedBy:  e.requestedBy.Address(),
 		RequestCost:  e.requestCost.Int,
+		Unskippable:  e.unskippable,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.id)
@@ -151,6 +161,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.duration = t.Duration
 	e.requestedBy = NewAddressOnlyUser(t.RequestedBy)
 	e.requestCost = Amount{t.RequestCost}
+	e.unskippable = t.Unskippable
 	e.donePlaying = event.New()
 	return nil
 }

@@ -89,13 +89,9 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	if len(q.queue) == 0 {
-		q.queue = append(q.queue, entry)
-	} else {
-		q.playAfterNextNoMutex(entry)
-		if len(q.queue) > 1 {
-			q.queue[0].Stop()
-		}
+	q.playAfterNextNoMutex(entry)
+	if len(q.queue) > 1 && !q.queue[0].Unskippable() {
+		q.queue[0].Stop()
 	}
 
 	q.queueUpdated.Notify()
@@ -187,6 +183,15 @@ func (q *MediaQueue) playNext() {
 	}
 	q.queue = q.queue[1:]
 	q.queueUpdated.Notify()
+}
+
+func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
+	q.queueMutex.RLock()
+	defer q.queueMutex.RUnlock()
+	if len(q.queue) == 0 {
+		return nil, false
+	}
+	return q.queue[0], true
 }
 
 func (q *MediaQueue) ProduceCheckpointForAPI() *proto.NowPlayingCheckpoint {
