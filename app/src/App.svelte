@@ -28,7 +28,7 @@
 </script>
 
 <Navbar />
-<div class="flex min-h-screen h-full pt-16 bg-gray-100">
+<div class="flex justify-center min-h-screen h-full pt-16 bg-gray-100">
 	<Router {url}>
 		<Route path="/" component={Homepage} />
 		<Route path="/about" component={About} />

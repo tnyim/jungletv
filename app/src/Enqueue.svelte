@@ -25,19 +25,17 @@
     }
 </script>
 
-<div class="md:grid md:grid-cols-3 md:gap-6 m-6 flex-grow container mx-auto max-w-screen-lg">
-    {#if step == 0}
-        <EnqueueMediaSelection on:mediaSelected={onMediaSelected} on:userCanceled={() => navigate("/")} />
-    {:else if step == 1}
-        <EnqueuePayment
-            on:userCanceled={onUserCanceled}
-            on:ticketPaid={onTicketPaid}
-            on:ticketExpired={onTicketExpired}
-            bind:ticket
-        />
-    {:else if step == 2}
-        <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket />
-    {:else if step == 3}
-        <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket />
-    {/if}
-</div>
+{#if step == 0}
+    <EnqueueMediaSelection on:mediaSelected={onMediaSelected} on:userCanceled={() => navigate("/")} />
+{:else if step == 1}
+    <EnqueuePayment
+        on:userCanceled={onUserCanceled}
+        on:ticketPaid={onTicketPaid}
+        on:ticketExpired={onTicketExpired}
+        bind:ticket
+    />
+{:else if step == 2}
+    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket />
+{:else if step == 3}
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket />
+{/if}
