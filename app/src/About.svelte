@@ -1,11 +1,14 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
+    import { useFocus } from "svelte-navigator";
+    const registerFocus = useFocus();
 
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
+    <span use:registerFocus class="hidden"></span>
     <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-24" />
     <p class="mt-3">
         JungleTV is a video sharing website for the <a
