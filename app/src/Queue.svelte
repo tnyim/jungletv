@@ -60,13 +60,13 @@
 <div class="px-2 py-2 cursor-default relative">
     {#if mode != "moderation"}
         <div
-            class="left-0 absolute top-0 shadow-md bg-gray-100 hover:bg-gray-200 w-10 h-10 z-20 cursor-pointer text-xl text-center flex flex-row place-content-center items-center ease-linear transition-all duration-150"
+            class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 hover:bg-gray-200 w-10 h-10 z-20 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
             on:click={() => dispatch("collapseQueue")}
         >
             <i class="fas fa-angle-double-right" />
         </div>
     {/if}
-    <span class="font-semibold text-lg ml-10">Queue</span>
+    <span class="font-semibold text-lg lg:ml-10">Queue</span>
     {#if mode != "moderation"}
         {#if playerIsConnected}
             <span
@@ -125,7 +125,7 @@
                             style="font-size: 0.70rem;"
                             title="Click to copy: {entry.getRequestedBy().getAddress()}"
                             on:click={() => copyAddress(entry.getRequestedBy().getAddress())}
-                            >{entry.getRequestedBy().getAddress().substr(0, 16)}</span
+                            >{entry.getRequestedBy().getAddress().substr(0, 14)}</span
                         >
                     {/if}
                     {#if mode == "moderation"}

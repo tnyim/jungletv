@@ -68,7 +68,7 @@
         </a> to take a look at the source code, report issues, or to maybe even make some contributions of your own!
     </p>
     <hr class="mt-3" />
-    <div class="mt-5 flex justify-center">
+    <div class="my-5 flex justify-center">
         <a
             use:link
             href="/"
