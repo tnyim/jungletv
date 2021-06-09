@@ -102,7 +102,7 @@ func (c *jungleTVClient) ConsumeMedia(ctx context.Context, in *ConsumeMediaReque
 }
 
 type JungleTV_ConsumeMediaClient interface {
-	Recv() (*NowPlayingCheckpoint, error)
+	Recv() (*MediaConsumptionCheckpoint, error)
 	grpc.ClientStream
 }
 
@@ -110,8 +110,8 @@ type jungleTVConsumeMediaClient struct {
 	grpc.ClientStream
 }
 
-func (x *jungleTVConsumeMediaClient) Recv() (*NowPlayingCheckpoint, error) {
-	m := new(NowPlayingCheckpoint)
+func (x *jungleTVConsumeMediaClient) Recv() (*MediaConsumptionCheckpoint, error) {
+	m := new(MediaConsumptionCheckpoint)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -300,7 +300,7 @@ func _JungleTV_ConsumeMedia_Handler(srv interface{}, stream grpc.ServerStream) e
 }
 
 type JungleTV_ConsumeMediaServer interface {
-	Send(*NowPlayingCheckpoint) error
+	Send(*MediaConsumptionCheckpoint) error
 	grpc.ServerStream
 }
 
@@ -308,7 +308,7 @@ type jungleTVConsumeMediaServer struct {
 	grpc.ServerStream
 }
 
-func (x *jungleTVConsumeMediaServer) Send(m *NowPlayingCheckpoint) error {
+func (x *jungleTVConsumeMediaServer) Send(m *MediaConsumptionCheckpoint) error {
 	return x.ServerStream.SendMsg(m)
 }
 

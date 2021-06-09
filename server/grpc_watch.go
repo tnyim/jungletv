@@ -11,7 +11,7 @@ import (
 
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
 	user := UserClaimsFromContext(stream.Context())
-	err := stream.Send(s.produceNowPlayingCheckpoint(stream.Context()))
+	err := stream.Send(s.produceMediaConsumptionCheckpoint(stream.Context()))
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -51,7 +51,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		case <-stream.Context().Done():
 			return nil
 		}
-		cp := s.produceNowPlayingCheckpoint(stream.Context())
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
 		cp.Reward = reward
 		err := stream.Send(cp)
 		if err != nil {
@@ -60,7 +60,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	}
 }
 
-func (s *grpcServer) produceNowPlayingCheckpoint(ctx context.Context) *proto.NowPlayingCheckpoint {
+func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context) *proto.MediaConsumptionCheckpoint {
 	cp := s.mediaQueue.ProduceCheckpointForAPI()
 	cp.CurrentlyWatching = uint32(s.statsHandler.CurrentlyWatching(ctx))
 	return cp

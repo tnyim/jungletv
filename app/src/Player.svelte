@@ -1,7 +1,7 @@
 <script lang="ts">
     import YouTube from "./YouTube.svelte";
     import { apiClient } from "./api_client";
-    import type { NowPlayingCheckpoint } from "./proto/jungletv_pb";
+    import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
@@ -43,7 +43,7 @@
 
     let videoId = "";
 
-    async function handleCheckpoint(checkpoint: NowPlayingCheckpoint) {
+    async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
         playerConnected.update(() => true);
         if (checkpoint.getMediaPresent()) {
             videoId = checkpoint.getYoutubeVideoData().getId();

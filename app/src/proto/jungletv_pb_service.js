@@ -43,7 +43,7 @@ JungleTV.ConsumeMedia = {
   requestStream: false,
   responseStream: true,
   requestType: jungletv_pb.ConsumeMediaRequest,
-  responseType: jungletv_pb.NowPlayingCheckpoint
+  responseType: jungletv_pb.MediaConsumptionCheckpoint
 };
 
 JungleTV.MonitorQueue = {

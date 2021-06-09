@@ -319,7 +319,7 @@ export namespace NowPlayingYouTubeVideoData {
   }
 }
 
-export class NowPlayingCheckpoint extends jspb.Message {
+export class MediaConsumptionCheckpoint extends jspb.Message {
   getMediaPresent(): boolean;
   setMediaPresent(value: boolean): void;
 
@@ -354,18 +354,18 @@ export class NowPlayingCheckpoint extends jspb.Message {
   getYoutubeVideoData(): NowPlayingYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: NowPlayingYouTubeVideoData): void;
 
-  getMediaInfoCase(): NowPlayingCheckpoint.MediaInfoCase;
+  getMediaInfoCase(): MediaConsumptionCheckpoint.MediaInfoCase;
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): NowPlayingCheckpoint.AsObject;
-  static toObject(includeInstance: boolean, msg: NowPlayingCheckpoint): NowPlayingCheckpoint.AsObject;
+  toObject(includeInstance?: boolean): MediaConsumptionCheckpoint.AsObject;
+  static toObject(includeInstance: boolean, msg: MediaConsumptionCheckpoint): MediaConsumptionCheckpoint.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: NowPlayingCheckpoint, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): NowPlayingCheckpoint;
-  static deserializeBinaryFromReader(message: NowPlayingCheckpoint, reader: jspb.BinaryReader): NowPlayingCheckpoint;
+  static serializeBinaryToWriter(message: MediaConsumptionCheckpoint, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MediaConsumptionCheckpoint;
+  static deserializeBinaryFromReader(message: MediaConsumptionCheckpoint, reader: jspb.BinaryReader): MediaConsumptionCheckpoint;
 }
 
-export namespace NowPlayingCheckpoint {
+export namespace MediaConsumptionCheckpoint {
   export type AsObject = {
     mediaPresent: boolean,
     currentPosition?: google_protobuf_duration_pb.Duration.AsObject,

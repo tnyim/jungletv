@@ -11,7 +11,7 @@ service JungleTV {
     rpc SignIn (SignInRequest) returns (SignInResponse) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
     rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
-    rpc ConsumeMedia (ConsumeMediaRequest) returns (stream NowPlayingCheckpoint) {}
+    rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
     rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
     rpc RewardInfo (RewardInfoRequest) returns (RewardInfoResponse) {}
 
@@ -90,7 +90,7 @@ message NowPlayingYouTubeVideoData {
     string id = 1;
 }
 
-message NowPlayingCheckpoint {
+message MediaConsumptionCheckpoint {
     bool media_present = 1;
     google.protobuf.Duration current_position = 2;
     User requested_by = 3;

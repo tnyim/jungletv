@@ -3,7 +3,7 @@ import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, NowPlayingCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse } from "./proto/jungletv_pb";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 
 class APIClient {
@@ -93,8 +93,8 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    consumeMedia(onCheckpoint: (checkpoint: NowPlayingCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC<ConsumeMediaRequest, NowPlayingCheckpoint>(
+    consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        return this.serverStreamingRPC<ConsumeMediaRequest, MediaConsumptionCheckpoint>(
             JungleTV.ConsumeMedia,
             new ConsumeMediaRequest(),
             onCheckpoint,

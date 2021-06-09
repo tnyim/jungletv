@@ -20,7 +20,7 @@ type MediaQueueEntry interface {
 	Unskippable() bool
 	MediaInfo() MediaInfo
 	SerializeForAPI() *proto.QueueEntry
-	ProduceCheckpointForAPI() *proto.NowPlayingCheckpoint
+	ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
 	Played() bool
@@ -177,13 +177,13 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI() *proto.NowPlayingCheckpoint {
-	cp := &proto.NowPlayingCheckpoint{
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint {
+	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.PlayingFor()),
 		RequestCost:     e.requestCost.SerializeForAPI(),
 		// Reward is optionally filled outside this function
-		MediaInfo: &proto.NowPlayingCheckpoint_YoutubeVideoData{
+		MediaInfo: &proto.MediaConsumptionCheckpoint_YoutubeVideoData{
 			YoutubeVideoData: &proto.NowPlayingYouTubeVideoData{
 				Id: e.id,
 			},

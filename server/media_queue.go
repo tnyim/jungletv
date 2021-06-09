@@ -194,11 +194,11 @@ func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
 	return q.queue[0], true
 }
 
-func (q *MediaQueue) ProduceCheckpointForAPI() *proto.NowPlayingCheckpoint {
+func (q *MediaQueue) ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint {
 	q.queueMutex.RLock()
 	defer q.queueMutex.RUnlock()
 	if len(q.queue) == 0 {
-		return &proto.NowPlayingCheckpoint{}
+		return &proto.MediaConsumptionCheckpoint{}
 	}
 	return q.queue[0].ProduceCheckpointForAPI()
 }

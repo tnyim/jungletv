@@ -37,7 +37,7 @@ type JungleTVConsumeMedia = {
   readonly requestStream: false;
   readonly responseStream: true;
   readonly requestType: typeof jungletv_pb.ConsumeMediaRequest;
-  readonly responseType: typeof jungletv_pb.NowPlayingCheckpoint;
+  readonly responseType: typeof jungletv_pb.MediaConsumptionCheckpoint;
 };
 
 type JungleTVMonitorQueue = {
@@ -139,7 +139,7 @@ export class JungleTVClient {
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.EnqueueMediaResponse|null) => void
   ): UnaryResponse;
   monitorTicket(requestMessage: jungletv_pb.MonitorTicketRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.EnqueueMediaTicket>;
-  consumeMedia(requestMessage: jungletv_pb.ConsumeMediaRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.NowPlayingCheckpoint>;
+  consumeMedia(requestMessage: jungletv_pb.ConsumeMediaRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaConsumptionCheckpoint>;
   monitorQueue(requestMessage: jungletv_pb.MonitorQueueRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.Queue>;
   rewardInfo(
     requestMessage: jungletv_pb.RewardInfoRequest,
