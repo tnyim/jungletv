@@ -14,6 +14,7 @@ service JungleTV {
     rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
     rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
     rpc RewardInfo (RewardInfoRequest) returns (RewardInfoResponse) {}
+    rpc SubmitActivityChallenge (SubmitActivityChallengeRequest) returns (SubmitActivityChallengeResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -95,11 +96,12 @@ message MediaConsumptionCheckpoint {
     google.protobuf.Duration current_position = 2;
     User requested_by = 3;
     string request_cost = 4;
-    optional string reward = 5;
-    uint32 currently_watching = 6;
+    uint32 currently_watching = 5;
+    optional string reward = 6;
+    optional string activity_challenge = 7;
     oneof media_info {
-        NowPlayingStubData stub_data = 7;
-        NowPlayingYouTubeVideoData youtube_video_data = 8;
+        NowPlayingStubData stub_data = 9;
+        NowPlayingYouTubeVideoData youtube_video_data = 10;
     }
 }
 
@@ -154,3 +156,9 @@ message ForciblyEnqueueTicketRequest {
 }
 
 message ForciblyEnqueueTicketResponse {}
+
+message SubmitActivityChallengeRequest {
+    string challenge = 1;
+}
+
+message SubmitActivityChallengeResponse {}

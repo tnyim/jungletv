@@ -336,13 +336,18 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getRequestCost(): string;
   setRequestCost(value: string): void;
 
+  getCurrentlyWatching(): number;
+  setCurrentlyWatching(value: number): void;
+
   hasReward(): boolean;
   clearReward(): void;
   getReward(): string;
   setReward(value: string): void;
 
-  getCurrentlyWatching(): number;
-  setCurrentlyWatching(value: number): void;
+  hasActivityChallenge(): boolean;
+  clearActivityChallenge(): void;
+  getActivityChallenge(): string;
+  setActivityChallenge(value: string): void;
 
   hasStubData(): boolean;
   clearStubData(): void;
@@ -371,16 +376,17 @@ export namespace MediaConsumptionCheckpoint {
     currentPosition?: google_protobuf_duration_pb.Duration.AsObject,
     requestedBy?: User.AsObject,
     requestCost: string,
-    reward: string,
     currentlyWatching: number,
+    reward: string,
+    activityChallenge: string,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 7,
-    YOUTUBE_VIDEO_DATA = 8,
+    STUB_DATA = 9,
+    YOUTUBE_VIDEO_DATA = 10,
   }
 }
 
@@ -630,6 +636,42 @@ export class ForciblyEnqueueTicketResponse extends jspb.Message {
 }
 
 export namespace ForciblyEnqueueTicketResponse {
+  export type AsObject = {
+  }
+}
+
+export class SubmitActivityChallengeRequest extends jspb.Message {
+  getChallenge(): string;
+  setChallenge(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitActivityChallengeRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitActivityChallengeRequest): SubmitActivityChallengeRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitActivityChallengeRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitActivityChallengeRequest;
+  static deserializeBinaryFromReader(message: SubmitActivityChallengeRequest, reader: jspb.BinaryReader): SubmitActivityChallengeRequest;
+}
+
+export namespace SubmitActivityChallengeRequest {
+  export type AsObject = {
+    challenge: string,
+  }
+}
+
+export class SubmitActivityChallengeResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitActivityChallengeResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitActivityChallengeResponse): SubmitActivityChallengeResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitActivityChallengeResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitActivityChallengeResponse;
+  static deserializeBinaryFromReader(message: SubmitActivityChallengeResponse, reader: jspb.BinaryReader): SubmitActivityChallengeResponse;
+}
+
+export namespace SubmitActivityChallengeResponse {
   export type AsObject = {
   }
 }

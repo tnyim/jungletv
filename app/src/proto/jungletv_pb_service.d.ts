@@ -58,6 +58,15 @@ type JungleTVRewardInfo = {
   readonly responseType: typeof jungletv_pb.RewardInfoResponse;
 };
 
+type JungleTVSubmitActivityChallenge = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SubmitActivityChallengeRequest;
+  readonly responseType: typeof jungletv_pb.SubmitActivityChallengeResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -84,6 +93,7 @@ export class JungleTV {
   static readonly ConsumeMedia: JungleTVConsumeMedia;
   static readonly MonitorQueue: JungleTVMonitorQueue;
   static readonly RewardInfo: JungleTVRewardInfo;
+  static readonly SubmitActivityChallenge: JungleTVSubmitActivityChallenge;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
 }
@@ -149,6 +159,15 @@ export class JungleTVClient {
   rewardInfo(
     requestMessage: jungletv_pb.RewardInfoRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RewardInfoResponse|null) => void
+  ): UnaryResponse;
+  submitActivityChallenge(
+    requestMessage: jungletv_pb.SubmitActivityChallengeRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitActivityChallengeResponse|null) => void
+  ): UnaryResponse;
+  submitActivityChallenge(
+    requestMessage: jungletv_pb.SubmitActivityChallengeRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitActivityChallengeResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

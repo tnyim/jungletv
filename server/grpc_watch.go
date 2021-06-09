@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -10,23 +11,52 @@ import (
 )
 
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
+	// stream.Send is not safe to be called on concurrent goroutines
+	streamSendLock := sync.Mutex{}
+	send := func(cp *proto.MediaConsumptionCheckpoint) error {
+		streamSendLock.Lock()
+		defer streamSendLock.Unlock()
+		return stream.Send(cp)
+	}
+
 	user := UserClaimsFromContext(stream.Context())
 	err := stream.Send(s.produceMediaConsumptionCheckpoint(stream.Context()))
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	onRewardedC := make(<-chan []interface{})
+	errChan := make(chan error)
+
 	if user != nil {
 		spectator, err := s.rewardsHandler.RegisterSpectator(stream.Context(), user)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
-		onRewarded := spectator.OnRewarded()
-		onRewardedC = onRewarded.Subscribe(event.AtLeastOnceGuarantee)
-		defer onRewarded.Unsubscribe(onRewardedC)
+
+		// SubscribeUsingCallback returns a function that unsubscribes when called. That's the reason for the defers
+
+		defer spectator.OnRewarded().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(reward Amount) {
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			s := reward.String()
+			cp.Reward = &s
+			err := send(cp)
+			if err != nil {
+				errChan <- stacktrace.Propagate(err, "")
+			}
+		})()
+
+		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge string) {
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			cp.ActivityChallenge = &challenge
+			err := send(cp)
+			if err != nil {
+				errChan <- stacktrace.Propagate(err, "")
+			}
+		})()
+
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
 	}
+
 	statsCleanup, err := s.statsHandler.RegisterSpectator(stream.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -39,21 +69,17 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
 	for {
-		var reward *string
 		select {
 		case <-t.C:
 			break
 		case <-onMediaChanged:
 			break
-		case v := <-onRewardedC:
-			s := v[0].(Amount).String()
-			reward = &s
 		case <-stream.Context().Done():
 			return nil
+		case err := <-errChan:
+			return err
 		}
-		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
-		cp.Reward = reward
-		err := stream.Send(cp)
+		err := send(s.produceMediaConsumptionCheckpoint(stream.Context()))
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
