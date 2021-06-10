@@ -129,10 +129,12 @@ class APIClient {
         return this.unaryRPC<SubmitActivityChallengeRequest, SubmitActivityChallengeResponse>(JungleTV.SubmitActivityChallenge, request);
     }
 
-    consumeChat(onUpdate: (update: ChatUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    consumeChat(initialHistorySize: number, onUpdate: (update: ChatUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        let request = new ConsumeChatRequest();
+        request.setInitialHistorySize(initialHistorySize);
         return this.serverStreamingRPC<ConsumeChatRequest, ChatUpdate>(
             JungleTV.ConsumeChat,
-            new ConsumeChatRequest(),
+            request,
             onUpdate,
             onEnd);
     }

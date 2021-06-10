@@ -171,7 +171,9 @@ message SubmitActivityChallengeRequest {
 
 message SubmitActivityChallengeResponse {}
 
-message ConsumeChatRequest {}
+message ConsumeChatRequest {
+    uint32 initial_history_size = 1;
+}
 
 message ChatUpdate {
     oneof event {

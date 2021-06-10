@@ -6,6 +6,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
 	github.com/gbl08ma/ssoclient v0.0.0-20180119211306-11586264f66c
 	github.com/go-errors/errors v1.4.0 // indirect

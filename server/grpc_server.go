@@ -93,7 +93,7 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, &ChatStoreNoOp{})
+	s.chat, err = NewChatManager(log, NewChatStoreMemory(1000))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

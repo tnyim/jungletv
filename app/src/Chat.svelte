@@ -22,7 +22,7 @@
     onMount(consumeChat);
     function consumeChat() {
         chatEnabled = true;
-        consumeChatRequest = apiClient.consumeChat(handleChatUpdated, (code, msg) => {
+        consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {
             setTimeout(consumeChat, 5000);
         });
     }

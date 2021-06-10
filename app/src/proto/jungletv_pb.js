@@ -5395,7 +5395,7 @@ proto.jungletv.ConsumeChatRequest.prototype.toObject = function(opt_includeInsta
  */
 proto.jungletv.ConsumeChatRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    initialHistorySize: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -5432,6 +5432,10 @@ proto.jungletv.ConsumeChatRequest.deserializeBinaryFromReader = function(msg, re
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setInitialHistorySize(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5461,6 +5465,31 @@ proto.jungletv.ConsumeChatRequest.prototype.serializeBinary = function() {
  */
 proto.jungletv.ConsumeChatRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getInitialHistorySize();
+  if (f !== 0) {
+    writer.writeUint32(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint32 initial_history_size = 1;
+ * @return {number}
+ */
+proto.jungletv.ConsumeChatRequest.prototype.getInitialHistorySize = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.ConsumeChatRequest} returns this
+ */
+proto.jungletv.ConsumeChatRequest.prototype.setInitialHistorySize = function(value) {
+  return jspb.Message.setProto3IntField(this, 1, value);
 };
 
 

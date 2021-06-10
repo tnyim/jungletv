@@ -683,6 +683,9 @@ export namespace SubmitActivityChallengeResponse {
 }
 
 export class ConsumeChatRequest extends jspb.Message {
+  getInitialHistorySize(): number;
+  setInitialHistorySize(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConsumeChatRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ConsumeChatRequest): ConsumeChatRequest.AsObject;
@@ -695,6 +698,7 @@ export class ConsumeChatRequest extends jspb.Message {
 
 export namespace ConsumeChatRequest {
   export type AsObject = {
+    initialHistorySize: number,
   }
 }
 
