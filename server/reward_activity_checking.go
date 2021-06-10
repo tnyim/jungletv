@@ -30,6 +30,7 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 }
 
 func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
+	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress)
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 	if spectator.activityChallenge != "" {
@@ -42,11 +43,18 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge string) error {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge string) (err error) {
+	var spectator *spectator
+	defer func() {
+		if err == nil && spectator != nil {
+			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "solved activity challenge")
+		}
+	}()
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
-	spectator, present := r.spectatorByActivityChallenge[challenge]
+	var present bool
+	spectator, present = r.spectatorByActivityChallenge[challenge]
 	if !present {
 		return stacktrace.NewError("invalid challenge")
 	}
