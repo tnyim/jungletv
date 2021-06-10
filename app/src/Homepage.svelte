@@ -59,7 +59,7 @@
     let playerContainer: HTMLElement;
 </script>
 
-<div class="flex flex-col lg:flex-row w-full overflow-x-hidden">
+<div class="flex flex-col lg:flex-row w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
         {#if latestActivityChallenge != ""}
             <div
