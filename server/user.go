@@ -55,8 +55,13 @@ func (u *UserClaims) Address() string {
 }
 
 func (u *UserClaims) SerializeForAPI() *proto.User {
+	roles := []proto.UserRole{}
+	if permissionLevelOrder[u.PermissionLevel] >= permissionLevelOrder[AdminPermissionLevel] {
+		roles = append(roles, proto.UserRole_MODERATOR)
+	}
 	return &proto.User{
 		Address: u.RewardAddress,
+		Roles:   roles,
 	}
 }
 

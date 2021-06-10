@@ -24,6 +24,8 @@ type JungleTVClient interface {
 	MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error)
 	RewardInfo(ctx context.Context, in *RewardInfoRequest, opts ...grpc.CallOption) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
+	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
+	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -169,6 +171,47 @@ func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *Submit
 	return out, nil
 }
 
+func (c *jungleTVClient) ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[3], "/jungletv.JungleTV/ConsumeChat", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVConsumeChatClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_ConsumeChatClient interface {
+	Recv() (*ChatUpdate, error)
+	grpc.ClientStream
+}
+
+type jungleTVConsumeChatClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVConsumeChatClient) Recv() (*ChatUpdate, error) {
+	m := new(ChatUpdate)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *jungleTVClient) SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error) {
+	out := new(SendChatMessageResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SendChatMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -198,6 +241,8 @@ type JungleTVServer interface {
 	MonitorQueue(*MonitorQueueRequest, JungleTV_MonitorQueueServer) error
 	RewardInfo(context.Context, *RewardInfoRequest) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
+	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
+	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -228,6 +273,12 @@ func (UnimplementedJungleTVServer) RewardInfo(context.Context, *RewardInfoReques
 }
 func (UnimplementedJungleTVServer) SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitActivityChallenge not implemented")
+}
+func (UnimplementedJungleTVServer) ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error {
+	return status.Errorf(codes.Unimplemented, "method ConsumeChat not implemented")
+}
+func (UnimplementedJungleTVServer) SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendChatMessage not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -383,6 +434,45 @@ func _JungleTV_SubmitActivityChallenge_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ConsumeChat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConsumeChatRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).ConsumeChat(m, &jungleTVConsumeChatServer{stream})
+}
+
+type JungleTV_ConsumeChatServer interface {
+	Send(*ChatUpdate) error
+	grpc.ServerStream
+}
+
+type jungleTVConsumeChatServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVConsumeChatServer) Send(m *ChatUpdate) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_SendChatMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendChatMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SendChatMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SendChatMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SendChatMessage(ctx, req.(*SendChatMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -440,6 +530,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_SubmitActivityChallenge_Handler,
 		},
 		{
+			MethodName: "SendChatMessage",
+			Handler:    _JungleTV_SendChatMessage_Handler,
+		},
+		{
 			MethodName: "ForciblyEnqueueTicket",
 			Handler:    _JungleTV_ForciblyEnqueueTicket_Handler,
 		},
@@ -462,6 +556,11 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "MonitorQueue",
 			Handler:       _JungleTV_MonitorQueue_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ConsumeChat",
+			Handler:       _JungleTV_ConsumeChat_Handler,
 			ServerStreams: true,
 		},
 	},

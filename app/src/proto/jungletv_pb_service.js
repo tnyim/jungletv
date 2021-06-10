@@ -73,6 +73,24 @@ JungleTV.SubmitActivityChallenge = {
   responseType: jungletv_pb.SubmitActivityChallengeResponse
 };
 
+JungleTV.ConsumeChat = {
+  methodName: "ConsumeChat",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: true,
+  requestType: jungletv_pb.ConsumeChatRequest,
+  responseType: jungletv_pb.ChatUpdate
+};
+
+JungleTV.SendChatMessage = {
+  methodName: "SendChatMessage",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SendChatMessageRequest,
+  responseType: jungletv_pb.SendChatMessageResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -313,6 +331,76 @@ JungleTVClient.prototype.submitActivityChallenge = function submitActivityChalle
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SubmitActivityChallenge, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.consumeChat = function consumeChat(requestMessage, metadata) {
+  var listeners = {
+    data: [],
+    end: [],
+    status: []
+  };
+  var client = grpc.invoke(JungleTV.ConsumeChat, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onMessage: function (responseMessage) {
+      listeners.data.forEach(function (handler) {
+        handler(responseMessage);
+      });
+    },
+    onEnd: function (status, statusMessage, trailers) {
+      listeners.status.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners.end.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners = null;
+    }
+  });
+  return {
+    on: function (type, handler) {
+      listeners[type].push(handler);
+      return this;
+    },
+    cancel: function () {
+      listeners = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.sendChatMessage = function sendChatMessage(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SendChatMessage, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

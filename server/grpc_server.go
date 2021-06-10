@@ -29,6 +29,7 @@ type grpcServer struct {
 	enqueueManager *EnqueueManager
 	rewardsHandler *RewardsHandler
 	statsHandler   *StatsHandler
+	chat           *ChatManager
 
 	youtube *youtube.Service
 }
@@ -69,6 +70,11 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 	}
 
 	s.rewardsHandler, err = NewRewardsHandler(log, s.mediaQueue, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.chat, err = NewChatManager(log, &ChatStoreNoOp{})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

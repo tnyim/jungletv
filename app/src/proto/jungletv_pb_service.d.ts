@@ -67,6 +67,24 @@ type JungleTVSubmitActivityChallenge = {
   readonly responseType: typeof jungletv_pb.SubmitActivityChallengeResponse;
 };
 
+type JungleTVConsumeChat = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.ConsumeChatRequest;
+  readonly responseType: typeof jungletv_pb.ChatUpdate;
+};
+
+type JungleTVSendChatMessage = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SendChatMessageRequest;
+  readonly responseType: typeof jungletv_pb.SendChatMessageResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -94,6 +112,8 @@ export class JungleTV {
   static readonly MonitorQueue: JungleTVMonitorQueue;
   static readonly RewardInfo: JungleTVRewardInfo;
   static readonly SubmitActivityChallenge: JungleTVSubmitActivityChallenge;
+  static readonly ConsumeChat: JungleTVConsumeChat;
+  static readonly SendChatMessage: JungleTVSendChatMessage;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
 }
@@ -168,6 +188,16 @@ export class JungleTVClient {
   submitActivityChallenge(
     requestMessage: jungletv_pb.SubmitActivityChallengeRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitActivityChallengeResponse|null) => void
+  ): UnaryResponse;
+  consumeChat(requestMessage: jungletv_pb.ConsumeChatRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ChatUpdate>;
+  sendChatMessage(
+    requestMessage: jungletv_pb.SendChatMessageRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SendChatMessageResponse|null) => void
+  ): UnaryResponse;
+  sendChatMessage(
+    requestMessage: jungletv_pb.SendChatMessageRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SendChatMessageResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

@@ -512,6 +512,11 @@ export class User extends jspb.Message {
   getAddress(): string;
   setAddress(value: string): void;
 
+  clearRolesList(): void;
+  getRolesList(): Array<UserRoleMap[keyof UserRoleMap]>;
+  setRolesList(value: Array<UserRoleMap[keyof UserRoleMap]>): void;
+  addRoles(value: UserRoleMap[keyof UserRoleMap], index?: number): UserRoleMap[keyof UserRoleMap];
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): User.AsObject;
   static toObject(includeInstance: boolean, msg: User): User.AsObject;
@@ -525,6 +530,7 @@ export class User extends jspb.Message {
 export namespace User {
   export type AsObject = {
     address: string,
+    rolesList: Array<UserRoleMap[keyof UserRoleMap]>,
   }
 }
 
@@ -676,6 +682,225 @@ export namespace SubmitActivityChallengeResponse {
   }
 }
 
+export class ConsumeChatRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsumeChatRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsumeChatRequest): ConsumeChatRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsumeChatRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsumeChatRequest;
+  static deserializeBinaryFromReader(message: ConsumeChatRequest, reader: jspb.BinaryReader): ConsumeChatRequest;
+}
+
+export namespace ConsumeChatRequest {
+  export type AsObject = {
+  }
+}
+
+export class ChatUpdate extends jspb.Message {
+  hasDisabled(): boolean;
+  clearDisabled(): void;
+  getDisabled(): ChatDisabledEvent | undefined;
+  setDisabled(value?: ChatDisabledEvent): void;
+
+  hasEnabled(): boolean;
+  clearEnabled(): void;
+  getEnabled(): ChatEnabledEvent | undefined;
+  setEnabled(value?: ChatEnabledEvent): void;
+
+  hasMessageCreated(): boolean;
+  clearMessageCreated(): void;
+  getMessageCreated(): ChatMessageCreatedEvent | undefined;
+  setMessageCreated(value?: ChatMessageCreatedEvent): void;
+
+  hasMessageDeleted(): boolean;
+  clearMessageDeleted(): void;
+  getMessageDeleted(): ChatMessageDeletedEvent | undefined;
+  setMessageDeleted(value?: ChatMessageDeletedEvent): void;
+
+  getEventCase(): ChatUpdate.EventCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatUpdate.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatUpdate): ChatUpdate.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatUpdate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatUpdate;
+  static deserializeBinaryFromReader(message: ChatUpdate, reader: jspb.BinaryReader): ChatUpdate;
+}
+
+export namespace ChatUpdate {
+  export type AsObject = {
+    disabled?: ChatDisabledEvent.AsObject,
+    enabled?: ChatEnabledEvent.AsObject,
+    messageCreated?: ChatMessageCreatedEvent.AsObject,
+    messageDeleted?: ChatMessageDeletedEvent.AsObject,
+  }
+
+  export enum EventCase {
+    EVENT_NOT_SET = 0,
+    DISABLED = 1,
+    ENABLED = 2,
+    MESSAGE_CREATED = 3,
+    MESSAGE_DELETED = 4,
+  }
+}
+
+export class ChatMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  hasCreatedAt(): boolean;
+  clearCreatedAt(): void;
+  getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasAuthor(): boolean;
+  clearAuthor(): void;
+  getAuthor(): User | undefined;
+  setAuthor(value?: User): void;
+
+  getContent(): string;
+  setContent(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessage): ChatMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessage;
+  static deserializeBinaryFromReader(message: ChatMessage, reader: jspb.BinaryReader): ChatMessage;
+}
+
+export namespace ChatMessage {
+  export type AsObject = {
+    id: number,
+    createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    author?: User.AsObject,
+    content: string,
+  }
+}
+
+export class ChatDisabledEvent extends jspb.Message {
+  getReason(): ChatDisabledReasonMap[keyof ChatDisabledReasonMap];
+  setReason(value: ChatDisabledReasonMap[keyof ChatDisabledReasonMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatDisabledEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatDisabledEvent): ChatDisabledEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatDisabledEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatDisabledEvent;
+  static deserializeBinaryFromReader(message: ChatDisabledEvent, reader: jspb.BinaryReader): ChatDisabledEvent;
+}
+
+export namespace ChatDisabledEvent {
+  export type AsObject = {
+    reason: ChatDisabledReasonMap[keyof ChatDisabledReasonMap],
+  }
+}
+
+export class ChatEnabledEvent extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatEnabledEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatEnabledEvent): ChatEnabledEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatEnabledEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatEnabledEvent;
+  static deserializeBinaryFromReader(message: ChatEnabledEvent, reader: jspb.BinaryReader): ChatEnabledEvent;
+}
+
+export namespace ChatEnabledEvent {
+  export type AsObject = {
+  }
+}
+
+export class ChatMessageCreatedEvent extends jspb.Message {
+  hasMessage(): boolean;
+  clearMessage(): void;
+  getMessage(): ChatMessage | undefined;
+  setMessage(value?: ChatMessage): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessageCreatedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessageCreatedEvent): ChatMessageCreatedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessageCreatedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessageCreatedEvent;
+  static deserializeBinaryFromReader(message: ChatMessageCreatedEvent, reader: jspb.BinaryReader): ChatMessageCreatedEvent;
+}
+
+export namespace ChatMessageCreatedEvent {
+  export type AsObject = {
+    message?: ChatMessage.AsObject,
+  }
+}
+
+export class ChatMessageDeletedEvent extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessageDeletedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessageDeletedEvent): ChatMessageDeletedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessageDeletedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessageDeletedEvent;
+  static deserializeBinaryFromReader(message: ChatMessageDeletedEvent, reader: jspb.BinaryReader): ChatMessageDeletedEvent;
+}
+
+export namespace ChatMessageDeletedEvent {
+  export type AsObject = {
+    id: number,
+  }
+}
+
+export class SendChatMessageRequest extends jspb.Message {
+  getContent(): string;
+  setContent(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SendChatMessageRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SendChatMessageRequest): SendChatMessageRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SendChatMessageRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SendChatMessageRequest;
+  static deserializeBinaryFromReader(message: SendChatMessageRequest, reader: jspb.BinaryReader): SendChatMessageRequest;
+}
+
+export namespace SendChatMessageRequest {
+  export type AsObject = {
+    content: string,
+  }
+}
+
+export class SendChatMessageResponse extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SendChatMessageResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SendChatMessageResponse): SendChatMessageResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SendChatMessageResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SendChatMessageResponse;
+  static deserializeBinaryFromReader(message: SendChatMessageResponse, reader: jspb.BinaryReader): SendChatMessageResponse;
+}
+
+export namespace SendChatMessageResponse {
+  export type AsObject = {
+    id: number,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -684,6 +909,12 @@ export interface EnqueueMediaTicketStatusMap {
 
 export const EnqueueMediaTicketStatus: EnqueueMediaTicketStatusMap;
 
+export interface UserRoleMap {
+  MODERATOR: 0;
+}
+
+export const UserRole: UserRoleMap;
+
 export interface ForcedTicketEnqueueTypeMap {
   ENQUEUE: 0;
   PLAY_NEXT: 1;
@@ -691,4 +922,11 @@ export interface ForcedTicketEnqueueTypeMap {
 }
 
 export const ForcedTicketEnqueueType: ForcedTicketEnqueueTypeMap;
+
+export interface ChatDisabledReasonMap {
+  UNSPECIFIED: 0;
+  MODERATOR_NOT_PRESENT: 1;
+}
+
+export const ChatDisabledReason: ChatDisabledReasonMap;
 
