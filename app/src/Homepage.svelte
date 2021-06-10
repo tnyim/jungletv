@@ -2,9 +2,15 @@
     import Player from "./Player.svelte";
     import Queue from "./Queue.svelte";
     import { fly, scale } from "svelte/transition";
+    import watchMedia from "svelte-media";
     import { activityChallengeReceived } from "./stores";
     import { apiClient } from "./api_client";
+    import { cubicOut, linear } from "svelte/easing";
+    import waitForElementTransition from "wait-for-element-transition";
 
+    let largeScreen = false;
+    const media = watchMedia({ large: "(min-width: 1024px)" });
+    media.subscribe((obj: any) => (largeScreen = obj.large));
     let latestActivityChallenge = "";
     activityChallengeReceived.subscribe((challenge) => (latestActivityChallenge = challenge));
 
@@ -13,11 +19,48 @@
         latestActivityChallenge = "";
     }
 
+    const queueOpenCloseAnimDuration = 400;
+
+    function scaleFactor(): Number {
+        let total = playerContainer.clientWidth + 384;
+        return (total / playerContainer.clientWidth) * 100;
+    }
+
+    function queueCollapseStart() {
+        if (!largeScreen) return;
+        playerContainer.style.transitionProperty = "transform";
+        playerContainer.style.transitionDuration = queueOpenCloseAnimDuration + "ms";
+        playerContainer.style.transform = "scaleX(" + scaleFactor() + "%)";
+    }
+    function queueCollapseEnd() {
+        if (!largeScreen) return;
+        playerContainer.style.transitionProperty = "";
+        playerContainer.style.transitionDuration = "0ms";
+        playerContainer.style.transform = "";
+    }
+    async function queueOpenStart() {
+        if (!largeScreen) return;
+        playerContainer.style.transitionProperty = "";
+        playerContainer.style.transitionDuration = "0ms";
+        playerContainer.style.transform = "scaleX(" + scaleFactor() + "%)";
+        await waitForElementTransition(playerContainer);
+        playerContainer.style.transitionProperty = "transform";
+        playerContainer.style.transitionDuration = queueOpenCloseAnimDuration + "ms";
+        playerContainer.style.transform = "";
+    }
+    function queueOpenEnd() {
+        if (!largeScreen) return;
+        playerContainer.style.transitionProperty = "";
+        playerContainer.style.transitionDuration = "0ms";
+        playerContainer.style.transform = "";
+    }
+
     let queueExpanded = true;
+    let playerContainer: HTMLElement;
 </script>
 
 <div class="flex flex-col lg:flex-row w-full overflow-x-hidden">
-    <div class="lg:flex-1 player-container relative">
+    <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
         {#if latestActivityChallenge != ""}
             <div
                 class="absolute left-0 top-3/4 w-72 bg-white flex flex-row p-2 rounded-r space-x-2"
@@ -38,16 +81,20 @@
         {/if}
         <Player />
     </div>
-    {#if queueExpanded}
+    {#if queueExpanded || !largeScreen}
         <div
             class="lg:overflow-y-auto overflow-x-hidden lg:shadow-xl bg-white lg:w-96 lg:z-10"
-            transition:fly|local={{ x: 384, duration: 400 }}
+            transition:fly|local={{ x: 384, duration: queueOpenCloseAnimDuration, easing: cubicOut }}
+            on:introstart={queueOpenStart}
+            on:introend={queueOpenEnd}
+            on:outrostart={queueCollapseStart}
+            on:outroend={queueCollapseEnd}
         >
             <Queue on:collapseQueue={() => (queueExpanded = false)} />
         </div>
     {:else}
         <div
-            transition:scale|local={{ duration: 400, start: 8, opacity: 1 }}
+            transition:scale|local={{ duration: queueOpenCloseAnimDuration, start: 8, opacity: 1 }}
             class="hidden right-0 fixed top-16 shadow-xl opacity-50 hover:bg-gray-700 hover:opacity-75 text-white w-10 h-10 z-10 cursor-pointer text-xl text-center md:flex flex-row place-content-center items-center ease-linear transition-all duration-150"
             on:click={() => (queueExpanded = true)}
         >
@@ -58,6 +105,8 @@
 
 <style>
     .player-container {
+        transform-origin: center left;
+        transition-timing-function: cubic-bezier(0.21, 0.575, 0.394, 1.039);
         height: 56.25vw; /* make player 16:9 */
     }
     @media (min-width: 1024px) {
