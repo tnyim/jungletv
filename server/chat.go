@@ -151,7 +151,7 @@ type ChatDisabledReason int
 
 const (
 	ChatDisabledReasonUnspecified ChatDisabledReason = iota
-	ChatDisabledModeratorNotPresent
+	ChatDisabledReasonModeratorNotPresent
 )
 
 func (r ChatDisabledReason) SerializeForAPI() proto.ChatDisabledReason {
@@ -160,7 +160,7 @@ func (r ChatDisabledReason) SerializeForAPI() proto.ChatDisabledReason {
 		fallthrough
 	case ChatDisabledReasonUnspecified:
 		return proto.ChatDisabledReason_UNSPECIFIED
-	case ChatDisabledModeratorNotPresent:
+	case ChatDisabledReasonModeratorNotPresent:
 		return proto.ChatDisabledReason_MODERATOR_NOT_PRESENT
 	}
 }

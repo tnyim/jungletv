@@ -36,6 +36,7 @@
     "svelte-preprocess": "^4.7.3",
     "svelte-qrcode": "^1.0.0",
     "svelte-routing": "^1.6.0",
+    "svelte-textarea-autoresize": "^1.0.0",
     "svelte-youtube": "^0.0.2",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2",
     "ts-protoc-gen": "^0.15.0",
