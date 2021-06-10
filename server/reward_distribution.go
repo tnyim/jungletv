@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log"
 	"math/big"
 	"math/rand"
 	"time"
@@ -20,7 +21,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return nil
 	}
 
-	eligible := getEligibleSpectators(r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+	eligible := getEligibleSpectators(r.log, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
 	if len(eligible) == 0 {
 		if media.RequestedBy().IsUnknown() {
 			return nil
@@ -40,7 +41,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	return nil
 }
 
-func getEligibleSpectators(spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
+func getEligibleSpectators(l *log.Logger, spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -56,6 +57,7 @@ func getEligibleSpectators(spectatorsByRemoteAddress map[string][]*spectator, ex
 		for j := range spectators {
 			// do not reward an inactive spectator
 			if time.Since(spectators[j].lastActive) > spectatorInactivityTimeout+1*time.Minute {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
 				continue
 			}
 			// do not reward an address that would have received a reward via another remote address already
