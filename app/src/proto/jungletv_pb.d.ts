@@ -905,6 +905,78 @@ export namespace SendChatMessageResponse {
   }
 }
 
+export class RemoveChatMessageRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveChatMessageRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveChatMessageRequest): RemoveChatMessageRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveChatMessageRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveChatMessageRequest;
+  static deserializeBinaryFromReader(message: RemoveChatMessageRequest, reader: jspb.BinaryReader): RemoveChatMessageRequest;
+}
+
+export namespace RemoveChatMessageRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class RemoveChatMessageResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveChatMessageResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveChatMessageResponse): RemoveChatMessageResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveChatMessageResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveChatMessageResponse;
+  static deserializeBinaryFromReader(message: RemoveChatMessageResponse, reader: jspb.BinaryReader): RemoveChatMessageResponse;
+}
+
+export namespace RemoveChatMessageResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetChatSettingsRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetChatSettingsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetChatSettingsRequest): SetChatSettingsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetChatSettingsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetChatSettingsRequest;
+  static deserializeBinaryFromReader(message: SetChatSettingsRequest, reader: jspb.BinaryReader): SetChatSettingsRequest;
+}
+
+export namespace SetChatSettingsRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetChatSettingsResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetChatSettingsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetChatSettingsResponse): SetChatSettingsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetChatSettingsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetChatSettingsResponse;
+  static deserializeBinaryFromReader(message: SetChatSettingsResponse, reader: jspb.BinaryReader): SetChatSettingsResponse;
+}
+
+export namespace SetChatSettingsResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

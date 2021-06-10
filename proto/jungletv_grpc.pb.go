@@ -29,6 +29,8 @@ type JungleTVClient interface {
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
+	RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error)
+	SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error)
 }
 
 type jungleTVClient struct {
@@ -230,6 +232,24 @@ func (c *jungleTVClient) RemoveQueueEntry(ctx context.Context, in *RemoveQueueEn
 	return out, nil
 }
 
+func (c *jungleTVClient) RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error) {
+	out := new(RemoveChatMessageResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveChatMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error) {
+	out := new(SetChatSettingsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetChatSettings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -246,6 +266,8 @@ type JungleTVServer interface {
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
+	RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error)
+	SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -285,6 +307,12 @@ func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *Forci
 }
 func (UnimplementedJungleTVServer) RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveQueueEntry not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveChatMessage not implemented")
+}
+func (UnimplementedJungleTVServer) SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetChatSettings not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -509,6 +537,42 @@ func _JungleTV_RemoveQueueEntry_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_RemoveChatMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveChatMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveChatMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveChatMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveChatMessage(ctx, req.(*RemoveChatMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetChatSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetChatSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetChatSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetChatSettings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetChatSettings(ctx, req.(*SetChatSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -540,6 +604,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveQueueEntry",
 			Handler:    _JungleTV_RemoveQueueEntry_Handler,
+		},
+		{
+			MethodName: "RemoveChatMessage",
+			Handler:    _JungleTV_RemoveChatMessage_Handler,
+		},
+		{
+			MethodName: "SetChatSettings",
+			Handler:    _JungleTV_SetChatSettings_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

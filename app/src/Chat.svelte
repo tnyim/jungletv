@@ -76,6 +76,8 @@
                     chatDisabledReason = " because no moderators are available";
                     break;
             }
+        } else if (update.hasEnabled()) {
+            chatEnabled = true;
         }
     }
 
@@ -118,12 +120,19 @@
     function focusOnInit(el: HTMLElement) {
         el.focus();
     }
+
+    async function removeChatMessage(id: string) {
+        await apiClient.removeChatMessage(id);
+    }
 </script>
 
-<div class="flex flex-col chat-max-height h-full">
+<div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
     <div class="flex-grow lg:overflow-y-auto px-2 pb-2" bind:this={chatContainer}>
         {#each chatMessages as msg}
             <p class="pt-2 break-words" transition:fade|local={{ duration: 200 }}>
+                {#if mode == "moderation"}
+                    <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
+                {/if}
                 <img
                     src="https://monkey.banano.cc/api/v1/monkey/{msg.getAuthor().getAddress()}"
                     alt={msg.getAuthor().getAddress()}
@@ -146,7 +155,9 @@
                 {/each}
             </p>
         {:else}
-            <div class="px-2 py-2">No messages. {#if chatEnabled}Say something!{/if}</div>
+            <div class="px-2 py-2">
+                No messages. {#if chatEnabled}Say something!{/if}
+            </div>
         {/each}
     </div>
     <div class="border-t border-gray-300 shadow-md">

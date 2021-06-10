@@ -21,6 +21,8 @@ service JungleTV {
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
     rpc RemoveQueueEntry(RemoveQueueEntryRequest) returns (RemoveQueueEntryResponse) {}
+    rpc RemoveChatMessage(RemoveChatMessageRequest) returns (RemoveChatMessageResponse) {}
+    rpc SetChatSettings(SetChatSettingsRequest) returns (SetChatSettingsResponse) {}
 }
 
 message SignInRequest {
@@ -217,3 +219,15 @@ message SendChatMessageRequest {
 message SendChatMessageResponse {
     int64 id = 1;
 }
+
+message RemoveChatMessageRequest {
+    int64 id = 1 [jstype = JS_STRING];
+}
+
+message RemoveChatMessageResponse {}
+
+message SetChatSettingsRequest {
+    bool enabled = 1;
+}
+
+message SetChatSettingsResponse {}

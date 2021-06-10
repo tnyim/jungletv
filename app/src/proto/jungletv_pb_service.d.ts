@@ -103,6 +103,24 @@ type JungleTVRemoveQueueEntry = {
   readonly responseType: typeof jungletv_pb.RemoveQueueEntryResponse;
 };
 
+type JungleTVRemoveChatMessage = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RemoveChatMessageRequest;
+  readonly responseType: typeof jungletv_pb.RemoveChatMessageResponse;
+};
+
+type JungleTVSetChatSettings = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetChatSettingsRequest;
+  readonly responseType: typeof jungletv_pb.SetChatSettingsResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -116,6 +134,8 @@ export class JungleTV {
   static readonly SendChatMessage: JungleTVSendChatMessage;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
+  static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
+  static readonly SetChatSettings: JungleTVSetChatSettings;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -216,6 +236,24 @@ export class JungleTVClient {
   removeQueueEntry(
     requestMessage: jungletv_pb.RemoveQueueEntryRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveQueueEntryResponse|null) => void
+  ): UnaryResponse;
+  removeChatMessage(
+    requestMessage: jungletv_pb.RemoveChatMessageRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveChatMessageResponse|null) => void
+  ): UnaryResponse;
+  removeChatMessage(
+    requestMessage: jungletv_pb.RemoveChatMessageRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveChatMessageResponse|null) => void
+  ): UnaryResponse;
+  setChatSettings(
+    requestMessage: jungletv_pb.SetChatSettingsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetChatSettingsResponse|null) => void
+  ): UnaryResponse;
+  setChatSettings(
+    requestMessage: jungletv_pb.SetChatSettingsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetChatSettingsResponse|null) => void
   ): UnaryResponse;
 }
 

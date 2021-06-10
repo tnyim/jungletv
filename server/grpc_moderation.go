@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"google.golang.org/grpc/codes"
@@ -39,4 +40,34 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 	}
 	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.Username, RemoteAddressFromContext(ctx))
 	return &proto.RemoveQueueEntryResponse{}, nil
+}
+
+func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatMessageRequest) (*proto.RemoveChatMessageResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.chat.DeleteMessage(ctx, snowflake.ParseInt64(r.Id))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return &proto.RemoveChatMessageResponse{}, nil
+}
+
+func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettingsRequest) (*proto.SetChatSettingsResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.Enabled {
+		s.chat.EnableChat()
+	} else {
+		s.chat.DisableChat(ChatDisabledReasonUnspecified)
+	}
+
+	return &proto.SetChatSettingsResponse{}, nil
 }
