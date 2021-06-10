@@ -38,10 +38,7 @@ func NewChatManager(log *log.Logger, store ChatStore) (*ChatManager, error) {
 	}
 
 	rateLimiter, err := memorystore.New(&memorystore.Config{
-		// Number of tokens allowed per interval.
-		Tokens: 15,
-
-		// Interval until tokens reset.
+		Tokens:   15,
 		Interval: 30 * time.Second,
 	})
 	if err != nil {

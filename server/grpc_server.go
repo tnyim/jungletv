@@ -9,6 +9,8 @@ import (
 
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
@@ -24,6 +26,8 @@ type grpcServer struct {
 	collectorAccountQueue          chan func(*wallet.Account)
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	jwtManager                     *JWTManager
+	enqueueRequestRateLimiter      limiter.Store
+	signInRateLimiter              limiter.Store
 
 	mediaQueue     *MediaQueue
 	enqueueManager *EnqueueManager
@@ -49,6 +53,21 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		mediaQueue:                     mediaQueue,
 		collectorAccountQueue:          make(chan func(*wallet.Account), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
+	}
+
+	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   5,
+		Interval: time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   3,
+		Interval: 5 * time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	collectorAccountIdx := uint32(0)

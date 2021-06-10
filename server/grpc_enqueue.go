@@ -11,6 +11,20 @@ import (
 )
 
 func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
+	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, RemoteAddressFromContext(ctx))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return &proto.EnqueueMediaResponse{
+			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+				Failure: &proto.EnqueueMediaFailure{
+					FailureReason: "Rate limit reached",
+				},
+			},
+		}, nil
+	}
+
 	switch x := r.GetMediaInfo().(type) {
 	case *proto.EnqueueMediaRequest_StubData:
 		return &proto.EnqueueMediaResponse{

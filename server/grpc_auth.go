@@ -13,10 +13,16 @@ import (
 )
 
 func (s *grpcServer) SignIn(ctx context.Context, r *proto.SignInRequest) (*proto.SignInResponse, error) {
-	// TODO store IP address to prevent fraud, etc.
+	_, _, _, ok, err := s.signInRateLimiter.Take(ctx, RemoteAddressFromContext(ctx))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return nil, status.Errorf(codes.ResourceExhausted, "rate limit reached")
+	}
 
 	// validate reward address
-	_, err := util.AddressToPubkey(r.RewardAddress)
+	_, err = util.AddressToPubkey(r.RewardAddress)
 	if err != nil || r.RewardAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
 		return nil, status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}

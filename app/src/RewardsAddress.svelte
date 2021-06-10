@@ -42,6 +42,8 @@
             } catch (ex) {
                 if (ex === "invalid reward address") {
                     failureReason = "Invalid address for rewards. Make sure this is a valid Banano address.";
+                } else if (ex === "rate limit reached") {
+                    failureReason = "Rate limited due to too many attempts to set an address for rewards.";
                 } else {
                     failureReason = "Failed to save address due to internal error.";
                 }
