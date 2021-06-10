@@ -1,11 +1,11 @@
 <script lang="ts">
     import Player from "./Player.svelte";
-    import Queue from "./Queue.svelte";
+    import Sidebar from "./Sidebar.svelte";
     import { fly, scale } from "svelte/transition";
     import watchMedia from "svelte-media";
     import { activityChallengeReceived } from "./stores";
     import { apiClient } from "./api_client";
-    import { cubicOut, linear } from "svelte/easing";
+    import { cubicOut } from "svelte/easing";
     import waitForElementTransition from "wait-for-element-transition";
 
     let largeScreen = false;
@@ -19,43 +19,43 @@
         latestActivityChallenge = "";
     }
 
-    const queueOpenCloseAnimDuration = 400;
+    const sidebarOpenCloseAnimDuration = 400;
 
     function scaleFactor(): Number {
         let total = playerContainer.clientWidth + 384;
         return (total / playerContainer.clientWidth) * 100;
     }
 
-    function queueCollapseStart() {
+    function sidebarCollapseStart() {
         if (!largeScreen) return;
         playerContainer.style.transitionProperty = "transform";
-        playerContainer.style.transitionDuration = queueOpenCloseAnimDuration + "ms";
+        playerContainer.style.transitionDuration = sidebarOpenCloseAnimDuration + "ms";
         playerContainer.style.transform = "scaleX(" + scaleFactor() + "%)";
     }
-    function queueCollapseEnd() {
+    function sidebarCollapseEnd() {
         if (!largeScreen) return;
         playerContainer.style.transitionProperty = "";
         playerContainer.style.transitionDuration = "0ms";
         playerContainer.style.transform = "";
     }
-    async function queueOpenStart() {
+    async function sidebarOpenStart() {
         if (!largeScreen) return;
         playerContainer.style.transitionProperty = "";
         playerContainer.style.transitionDuration = "0ms";
         playerContainer.style.transform = "scaleX(" + scaleFactor() + "%)";
         await waitForElementTransition(playerContainer);
         playerContainer.style.transitionProperty = "transform";
-        playerContainer.style.transitionDuration = queueOpenCloseAnimDuration + "ms";
+        playerContainer.style.transitionDuration = sidebarOpenCloseAnimDuration + "ms";
         playerContainer.style.transform = "";
     }
-    function queueOpenEnd() {
+    function sidebarOpenEnd() {
         if (!largeScreen) return;
         playerContainer.style.transitionProperty = "";
         playerContainer.style.transitionDuration = "0ms";
         playerContainer.style.transform = "";
     }
 
-    let queueExpanded = true;
+    let sidebarExpanded = true;
     let playerContainer: HTMLElement;
 </script>
 
@@ -81,22 +81,22 @@
         {/if}
         <Player />
     </div>
-    {#if queueExpanded || !largeScreen}
+    {#if sidebarExpanded || !largeScreen}
         <div
-            class="lg:overflow-y-auto overflow-x-hidden lg:shadow-xl bg-white lg:w-96 lg:z-10"
-            transition:fly|local={{ x: 384, duration: queueOpenCloseAnimDuration, easing: cubicOut }}
-            on:introstart={queueOpenStart}
-            on:introend={queueOpenEnd}
-            on:outrostart={queueCollapseStart}
-            on:outroend={queueCollapseEnd}
+            class="flex flex-col overflow-hidden lg:shadow-xl bg-white lg:w-96 lg:z-10"
+            transition:fly|local={{ x: 384, duration: sidebarOpenCloseAnimDuration, easing: cubicOut }}
+            on:introstart={sidebarOpenStart}
+            on:introend={sidebarOpenEnd}
+            on:outrostart={sidebarCollapseStart}
+            on:outroend={sidebarCollapseEnd}
         >
-            <Queue on:collapseQueue={() => (queueExpanded = false)} />
+            <Sidebar on:collapseSidebar={() => (sidebarExpanded = false)} />
         </div>
     {:else}
         <div
-            transition:scale|local={{ duration: queueOpenCloseAnimDuration, start: 8, opacity: 1 }}
+            transition:scale|local={{ duration: sidebarOpenCloseAnimDuration, start: 8, opacity: 1 }}
             class="hidden right-0 fixed top-16 shadow-xl opacity-50 hover:bg-gray-700 hover:opacity-75 text-white w-10 h-10 z-10 cursor-pointer text-xl text-center md:flex flex-row place-content-center items-center ease-linear transition-all duration-150"
-            on:click={() => (queueExpanded = true)}
+            on:click={() => (sidebarExpanded = true)}
         >
             <i class="fas fa-th-list" />
         </div>

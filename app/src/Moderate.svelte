@@ -1,7 +1,6 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import { ForcedTicketEnqueueType } from "./proto/jungletv_pb";
-
     import Queue from "./Queue.svelte";
 
     let ticketID = "";
@@ -46,6 +45,7 @@
         </div>
     </div>
     <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">Queue</p>
         <Queue mode="moderation" />
     </div>
 </div>
