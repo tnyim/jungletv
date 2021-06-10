@@ -748,8 +748,8 @@ export namespace ChatUpdate {
 }
 
 export class ChatMessage extends jspb.Message {
-  getId(): number;
-  setId(value: number): void;
+  getId(): string;
+  setId(value: string): void;
 
   hasCreatedAt(): boolean;
   clearCreatedAt(): void;
@@ -776,7 +776,7 @@ export class ChatMessage extends jspb.Message {
 
 export namespace ChatMessage {
   export type AsObject = {
-    id: number,
+    id: string,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     author?: User.AsObject,
     content: string,
@@ -842,8 +842,8 @@ export namespace ChatMessageCreatedEvent {
 }
 
 export class ChatMessageDeletedEvent extends jspb.Message {
-  getId(): number;
-  setId(value: number): void;
+  getId(): string;
+  setId(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatMessageDeletedEvent.AsObject;
@@ -857,7 +857,7 @@ export class ChatMessageDeletedEvent extends jspb.Message {
 
 export namespace ChatMessageDeletedEvent {
   export type AsObject = {
-    id: number,
+    id: string,
   }
 }
 

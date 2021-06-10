@@ -183,7 +183,7 @@ message ChatUpdate {
 }
 
 message ChatMessage {
-    int64 id = 1;
+    int64 id = 1 [jstype = JS_STRING];
     google.protobuf.Timestamp created_at = 2;
     User author = 3;
     string content = 4;
@@ -205,7 +205,7 @@ message ChatMessageCreatedEvent {
 }
 
 message ChatMessageDeletedEvent {
-    int64 id = 1;
+    int64 id = 1 [jstype = JS_STRING];
 }
 
 message SendChatMessageRequest {

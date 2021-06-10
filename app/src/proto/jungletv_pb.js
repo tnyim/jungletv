@@ -5828,7 +5828,7 @@ proto.jungletv.ChatMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.jungletv.ChatMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    id: jspb.Message.getFieldWithDefault(msg, 1, "0"),
     createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     author: (f = msg.getAuthor()) && proto.jungletv.User.toObject(includeInstance, f),
     content: jspb.Message.getFieldWithDefault(msg, 4, "")
@@ -5869,7 +5869,7 @@ proto.jungletv.ChatMessage.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setId(value);
       break;
     case 2:
@@ -5916,8 +5916,8 @@ proto.jungletv.ChatMessage.prototype.serializeBinary = function() {
 proto.jungletv.ChatMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       1,
       f
     );
@@ -5950,19 +5950,19 @@ proto.jungletv.ChatMessage.serializeBinaryToWriter = function(message, writer) {
 
 /**
  * optional int64 id = 1;
- * @return {number}
+ * @return {string}
  */
 proto.jungletv.ChatMessage.prototype.getId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, "0"));
 };
 
 
 /**
- * @param {number} value
+ * @param {string} value
  * @return {!proto.jungletv.ChatMessage} returns this
  */
 proto.jungletv.ChatMessage.prototype.setId = function(value) {
-  return jspb.Message.setProto3IntField(this, 1, value);
+  return jspb.Message.setProto3StringIntField(this, 1, value);
 };
 
 
@@ -6472,7 +6472,7 @@ proto.jungletv.ChatMessageDeletedEvent.prototype.toObject = function(opt_include
  */
 proto.jungletv.ChatMessageDeletedEvent.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, 0)
+    id: jspb.Message.getFieldWithDefault(msg, 1, "0")
   };
 
   if (includeInstance) {
@@ -6510,7 +6510,7 @@ proto.jungletv.ChatMessageDeletedEvent.deserializeBinaryFromReader = function(ms
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setId(value);
       break;
     default:
@@ -6543,8 +6543,8 @@ proto.jungletv.ChatMessageDeletedEvent.prototype.serializeBinary = function() {
 proto.jungletv.ChatMessageDeletedEvent.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       1,
       f
     );
@@ -6554,19 +6554,19 @@ proto.jungletv.ChatMessageDeletedEvent.serializeBinaryToWriter = function(messag
 
 /**
  * optional int64 id = 1;
- * @return {number}
+ * @return {string}
  */
 proto.jungletv.ChatMessageDeletedEvent.prototype.getId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, "0"));
 };
 
 
 /**
- * @param {number} value
+ * @param {string} value
  * @return {!proto.jungletv.ChatMessageDeletedEvent} returns this
  */
 proto.jungletv.ChatMessageDeletedEvent.prototype.setId = function(value) {
-  return jspb.Message.setProto3IntField(this, 1, value);
+  return jspb.Message.setProto3StringIntField(this, 1, value);
 };
 
 

@@ -19,6 +19,7 @@ require (
 	github.com/rickb777/date v1.15.3
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/satori/go.uuid v1.2.0
+	github.com/sethvargo/go-limiter v0.6.0 // indirect
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0

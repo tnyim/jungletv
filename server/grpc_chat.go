@@ -7,6 +7,8 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.JungleTV_ConsumeChatServer) error {
@@ -19,7 +21,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onMessageCreated := s.chat.messageCreated.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.chat.messageCreated.Unsubscribe(onMessageCreated)
 
-	onMessageDeleted := s.chat.messageCreated.Subscribe(event.AtLeastOnceGuarantee)
+	onMessageDeleted := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.chat.messageCreated.Unsubscribe(onMessageDeleted)
 
 	chatEnabled, disabledReason := s.chat.Enabled()
@@ -97,6 +99,16 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 
 func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessageRequest) (*proto.SendChatMessageResponse, error) {
 	user := UserClaimsFromContext(ctx)
+	if user == nil {
+		return nil, stacktrace.NewError("user claims unexpectedly missing")
+	}
+	if len(r.Content) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "message empty")
+	}
+	if len(r.Content) > 512 {
+		return nil, status.Error(codes.InvalidArgument, "message too long")
+	}
+
 	m, err := s.chat.CreateMessage(ctx, user, r.Content)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
