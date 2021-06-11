@@ -16,7 +16,9 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 
 	r.log.Printf("Rewarding users for \"%s\"", media.MediaInfo().Title())
 
-	if media.RequestCost().Cmp(big.NewInt(0)) == 0 {
+	rewardBudget := media.RequestCost()
+
+	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
 		r.log.Println("Request cost was 0, nothing to reward")
 		return nil
 	}
@@ -27,17 +29,20 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 			return nil
 		}
 		// reimburse who added to queue
-		go r.reimburseRequester(ctx, media.RequestedBy().Address(), media.RequestCost())
+		go r.reimburseRequester(ctx, media.RequestedBy().Address(), rewardBudget)
 		return nil
 	}
 
-	amountForEach := ComputeReward(media.RequestCost(), len(eligible))
+	amountForEach := ComputeReward(rewardBudget, len(eligible))
 	if amountForEach.Int.Cmp(big.NewInt(0)) <= 0 {
 		r.log.Printf("Not rewarding because the amount for each user would be zero")
 		return nil
 	}
 
-	go r.rewardEligible(ctx, eligible, media.RequestCost(), amountForEach)
+	go func() {
+		r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
+		r.rewardsDistributed.Notify(rewardBudget)
+	}()
 	return nil
 }
 

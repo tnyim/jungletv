@@ -760,14 +760,17 @@ export class ChatMessage extends jspb.Message {
   getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  hasAuthor(): boolean;
-  clearAuthor(): void;
-  getAuthor(): User | undefined;
-  setAuthor(value?: User): void;
+  hasUserMessage(): boolean;
+  clearUserMessage(): void;
+  getUserMessage(): UserChatMessage | undefined;
+  setUserMessage(value?: UserChatMessage): void;
 
-  getContent(): string;
-  setContent(value: string): void;
+  hasSystemMessage(): boolean;
+  clearSystemMessage(): void;
+  getSystemMessage(): SystemChatMessage | undefined;
+  setSystemMessage(value?: SystemChatMessage): void;
 
+  getMessageCase(): ChatMessage.MessageCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatMessage.AsObject;
   static toObject(includeInstance: boolean, msg: ChatMessage): ChatMessage.AsObject;
@@ -782,7 +785,59 @@ export namespace ChatMessage {
   export type AsObject = {
     id: string,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    userMessage?: UserChatMessage.AsObject,
+    systemMessage?: SystemChatMessage.AsObject,
+  }
+
+  export enum MessageCase {
+    MESSAGE_NOT_SET = 0,
+    USER_MESSAGE = 3,
+    SYSTEM_MESSAGE = 4,
+  }
+}
+
+export class UserChatMessage extends jspb.Message {
+  hasAuthor(): boolean;
+  clearAuthor(): void;
+  getAuthor(): User | undefined;
+  setAuthor(value?: User): void;
+
+  getContent(): string;
+  setContent(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserChatMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: UserChatMessage): UserChatMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserChatMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserChatMessage;
+  static deserializeBinaryFromReader(message: UserChatMessage, reader: jspb.BinaryReader): UserChatMessage;
+}
+
+export namespace UserChatMessage {
+  export type AsObject = {
     author?: User.AsObject,
+    content: string,
+  }
+}
+
+export class SystemChatMessage extends jspb.Message {
+  getContent(): string;
+  setContent(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SystemChatMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: SystemChatMessage): SystemChatMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SystemChatMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SystemChatMessage;
+  static deserializeBinaryFromReader(message: SystemChatMessage, reader: jspb.BinaryReader): SystemChatMessage;
+}
+
+export namespace SystemChatMessage {
+  export type AsObject = {
     content: string,
   }
 }

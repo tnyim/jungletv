@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"sync"
 	"time"
@@ -12,6 +14,7 @@ import (
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 )
@@ -158,6 +161,42 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}()
 
 	go s.mediaQueue.ProcessQueueWorker(ctx)
+
+	go func() {
+		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
+
+		rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
+
+		for {
+			select {
+			case v := <-mediaChangedC:
+				var err error
+				if v[0] == nil {
+					_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
+				} else {
+					title := v[0].(MediaQueueEntry).MediaInfo().Title()
+					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_Now playing:_ %s", title))
+				}
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
+				}
+			case v := <-rewardsDistributedC:
+				amount := v[0].(Amount)
+				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
+				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
+
+				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_**%s BAN** distributed among spectators._", banStr))
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
+				}
+			case <-ctx.Done():
+				s.log.Println("Chat system message sender done")
+				return
+			}
+		}
+	}()
 
 	for {
 		select {

@@ -189,8 +189,19 @@ message ChatUpdate {
 message ChatMessage {
     int64 id = 1 [jstype = JS_STRING];
     google.protobuf.Timestamp created_at = 2;
-    User author = 3;
-    string content = 4;
+    oneof message {
+        UserChatMessage user_message = 3;
+        SystemChatMessage system_message = 4;
+    }
+}
+
+message UserChatMessage {
+    User author = 1;
+    string content = 2;
+}
+
+message SystemChatMessage {
+    string content = 1;
 }
 
 enum ChatDisabledReason {

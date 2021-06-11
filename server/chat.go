@@ -91,6 +91,20 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 	return m, nil
 }
 
+func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (*ChatMessage, error) {
+	m := &ChatMessage{
+		ID:        c.idNode.Generate(),
+		CreatedAt: time.Now(),
+		Content:   content,
+	}
+	err := c.store.StoreMessage(ctx, m)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to store chat message")
+	}
+	c.messageCreated.Notify(m)
+	return m, nil
+}
+
 func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) error {
 	err := c.store.DeleteMessage(ctx, id)
 	if err != nil {
@@ -138,12 +152,25 @@ type ChatMessage struct {
 }
 
 func (m *ChatMessage) SerializeForAPI() *proto.ChatMessage {
-	return &proto.ChatMessage{
+	msg := &proto.ChatMessage{
 		Id:        m.ID.Int64(),
 		CreatedAt: timestamppb.New(m.CreatedAt),
-		Author:    m.Author.SerializeForAPI(),
-		Content:   m.Content,
 	}
+	if m.Author != nil {
+		msg.Message = &proto.ChatMessage_UserMessage{
+			UserMessage: &proto.UserChatMessage{
+				Author:  m.Author.SerializeForAPI(),
+				Content: m.Content,
+			},
+		}
+	} else {
+		msg.Message = &proto.ChatMessage_SystemMessage{
+			SystemMessage: &proto.SystemChatMessage{
+				Content: m.Content,
+			},
+		}
+	}
+	return msg
 }
 
 // ChatDisabledReason specifies the reason why chat is disabled

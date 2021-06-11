@@ -21,6 +21,8 @@ type RewardsHandler struct {
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
 
+	rewardsDistributed *event.Event
+
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
 	// spectatorsByRewardAddress maps a reward address to a set of spectators
@@ -64,6 +66,8 @@ func NewRewardsHandler(log *log.Logger, mediaQueue *MediaQueue, wallet *wallet.W
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
+
+		rewardsDistributed: event.New(),
 
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
 		spectatorsByRewardAddress:    make(map[string][]*spectator),
