@@ -28,7 +28,7 @@
 </script>
 
 <Navbar />
-<div class="flex justify-center lg:h-screen pt-16 bg-gray-100">
+<div class="flex justify-center lg:min-h-screen pt-16 bg-gray-100">
 	<Router {url}>
 		<Route path="/" component={Homepage} />
 		<Route path="/about" component={About} />

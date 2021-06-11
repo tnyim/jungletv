@@ -59,7 +59,7 @@
     let playerContainer: HTMLElement;
 </script>
 
-<div class="flex flex-col lg:flex-row w-full overflow-x-hidden bg-black">
+<div class="flex flex-col lg:flex-row lg-screen-height-minus-top-padding w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
         {#if latestActivityChallenge != ""}
             <div
@@ -110,6 +110,9 @@
         height: 56.25vw; /* make player 16:9 */
     }
     @media (min-width: 1024px) {
+        .lg-screen-height-minus-top-padding {
+            height: calc(100vh - 4rem);
+        }
         .player-container {
             height: auto;
             min-height: 100%;

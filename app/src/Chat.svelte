@@ -8,6 +8,7 @@
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { rewardAddress } from "./stores";
+    import { DateTime } from "luxon";
 
     export let mode = "sidebar";
 
@@ -18,6 +19,7 @@
     let chatMessages: ChatMessage[] = [];
     let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
+    let composeTextArea: HTMLTextAreaElement;
 
     onMount(consumeChat);
     function consumeChat() {
@@ -39,25 +41,33 @@
     });
 
     let shouldAutoScroll = false;
+    let mustAutoScroll = false;
+    let sentMsgFlag = false;
     beforeUpdate(() => {
         shouldAutoScroll =
             chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
     });
     afterUpdate(() => {
-        if (shouldAutoScroll)
+        if (shouldAutoScroll || mustAutoScroll) {
+            mustAutoScroll = false;
             chatContainer.scrollTo({
                 top: chatContainer.scrollHeight,
                 behavior: "smooth",
             });
+        }
     });
 
-    function handleChatUpdated(update: ChatUpdate) {
+    function handleChatUpdated(update: ChatUpdate): void {
         if (update.hasMessageCreated()) {
             chatMessages.push(update.getMessageCreated().getMessage());
             // this sort has millisecond precision. we can do nanosecond precision if we really need to, but this is easier
             chatMessages.sort(
                 (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
             );
+            if (sentMsgFlag) {
+                sentMsgFlag = false;
+                mustAutoScroll = true;
+            }
             chatMessages = chatMessages; // this triggers Svelte's reactivity
         } else if (update.hasMessageDeleted()) {
             for (var i = chatMessages.length - 1; i >= 0; i--) {
@@ -81,18 +91,50 @@
         }
     }
 
+    function shouldShowTimeSeparator(curIdx: number): boolean {
+        if (curIdx == 0) {
+            return true;
+        }
+        let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
+        let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate());
+        return !thisMsgDate.hasSame(prevMsgDate, "minute");
+    }
+
+    function shouldAddAdditionalPadding(curIdx: number): boolean {
+        if (curIdx == 0 || shouldShowTimeSeparator(curIdx)) {
+            return false;
+        }
+        let thisMsgAuthor = chatMessages[curIdx].getAuthor().getAddress();
+        let prevMsgAuthor = chatMessages[curIdx - 1].getAuthor().getAddress();
+        return thisMsgAuthor != prevMsgAuthor;
+    }
+
+    function formatMessageCreatedAtForSeparator(curIdx: number): string {
+        let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
+        let needsDate: boolean;
+        if (curIdx > 0) {
+            let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate()).toLocal();
+            needsDate = !thisMsgDate.hasSame(prevMsgDate, "day");
+        } else {
+            needsDate = !DateTime.now().toLocal().hasSame(thisMsgDate, "day");
+        }
+        return thisMsgDate.toLocaleString(needsDate ? DateTime.DATETIME_SHORT : DateTime.TIME_SIMPLE);
+    }
+
     async function sendMessage() {
         let msg = composedMessage;
         if (msg == "") {
             return;
         }
         composedMessage = "";
+        sentMsgFlag = true;
         try {
             await apiClient.sendChatMessage(msg);
         } catch (ex) {
             sendError = true;
             setTimeout(() => (sendError = false), 5000);
         }
+        composeTextArea.focus();
     }
     async function handleEnter(event: KeyboardEvent) {
         let ta = event.target as HTMLTextAreaElement;
@@ -127,9 +169,16 @@
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
-    <div class="flex-grow lg:overflow-y-auto px-2 pb-2" bind:this={chatContainer}>
-        {#each chatMessages as msg}
-            <p class="pt-2 break-words" transition:fade|local={{ duration: 200 }}>
+    <div class="flex-grow overflow-y-auto px-2 pb-2" bind:this={chatContainer}>
+        {#each chatMessages as msg, idx}
+            {#if shouldShowTimeSeparator(idx)}
+                <div class="pt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
+                    <hr class="flex-1 ml-8" />
+                    <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
+                    <hr class="flex-1 mr-8" />
+                </div>
+            {/if}
+            <p class="{shouldAddAdditionalPadding(idx) ? "pt-1.5" : "pb-0.5"} break-words" transition:fade|local={{ duration: 200 }}>
                 {#if mode == "moderation"}
                     <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                 {/if}
@@ -178,6 +227,7 @@
             <div class="flex flex-row">
                 <textarea
                     use:autoresize
+                    bind:this={composeTextArea}
                     bind:value={composedMessage}
                     on:keydown={handleEnter}
                     use:focusOnInit
@@ -187,7 +237,7 @@
                 />
 
                 <button
-                    class="text-purple-700 h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                    class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
                     on:click={sendMessage}
                 >
                     <i class="fas fa-paper-plane" />
@@ -199,7 +249,7 @@
 
 <style>
     .chat-max-height {
-        max-height: 90vh;
+        max-height: calc(100vh - 12rem);
     }
     @media (min-width: 1024px) {
         .chat-max-height {
