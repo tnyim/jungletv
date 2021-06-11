@@ -33,6 +33,7 @@
     let chatEnabled = true;
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
+    let seenMessageIDs: { [id: string]: boolean } = {};
     let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
@@ -75,7 +76,12 @@
 
     function handleChatUpdated(update: ChatUpdate): void {
         if (update.hasMessageCreated()) {
-            chatMessages.push(update.getMessageCreated().getMessage());
+            let msg = update.getMessageCreated().getMessage();
+            if (seenMessageIDs[msg.getId()]) {
+                return;
+            }
+            seenMessageIDs[msg.getId()] = true;
+            chatMessages.push(msg);
             // this sort has millisecond precision. we can do nanosecond precision if we really need to, but this is easier
             chatMessages.sort(
                 (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
