@@ -4,11 +4,27 @@
     import { link } from "svelte-navigator";
     import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { autoresize } from "svelte-textarea-autoresize";
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { rewardAddress } from "./stores";
     import { DateTime } from "luxon";
+    import marked from "marked/lib/marked.esm.js";
+
+    // @ts-ignore no type info available
+    import { autoresize } from "svelte-textarea-autoresize";
+
+    const tokenizer = {
+        tag: () => { },
+        link: () => { },
+        reflink: () => { },
+        autolink: () => { },
+        url: () => { },
+    };
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+    });
+    marked.use({ tokenizer });
 
     export let mode = "sidebar";
 
@@ -178,7 +194,10 @@
                     <hr class="flex-1 mr-8" />
                 </div>
             {/if}
-            <p class="{shouldAddAdditionalPadding(idx) ? "pt-1.5" : "pb-0.5"} break-words" transition:fade|local={{ duration: 200 }}>
+            <p
+                class="{shouldAddAdditionalPadding(idx) ? 'pt-1.5' : 'pb-0.5'} break-words"
+                transition:fade|local={{ duration: 200 }}
+            >
                 {#if mode == "moderation"}
                     <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                 {/if}
@@ -196,12 +215,7 @@
                     on:click={() => copyAddress(msg.getAuthor().getAddress())}
                     >{msg.getAuthor().getAddress().substr(0, 14)}</span
                 >:
-                {#each msg.getContent().split("\n") as line, i}
-                    {line}
-                    {#if i < msg.getContent().split("\n").length}
-                        <br />
-                    {/if}
-                {/each}
+                {@html marked.parseInline(msg.getContent())}
             </p>
         {:else}
             <div class="px-2 py-2">
