@@ -53,7 +53,10 @@
                     alt="{entry.getYoutubeVideoData().getTitle()} thumbnail"
                 />
                 <div class="thumbnail-length-overlay text-white relative pr-2">
-                    <div class="absolute bottom-0.5 right-2.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm" style="font-size: 0.7rem; line-height: 0.8rem;">
+                    <div
+                        class="absolute bottom-0.5 right-2.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+                        style="font-size: 0.7rem; line-height: 0.8rem;"
+                    >
                         {formatDuration(entry.getLength())}
                     </div>
                 </div>
@@ -89,6 +92,8 @@
                             on:click={() => copyAddress(entry.getRequestedBy().getAddress())}
                             >{entry.getRequestedBy().getAddress().substr(0, 14)}</span
                         >
+                    {:else}
+                        Added by JungleTV (no reward)
                     {/if}
                     {#if mode == "moderation"}
                         | <span
