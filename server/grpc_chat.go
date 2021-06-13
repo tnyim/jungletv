@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
@@ -23,6 +24,9 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 
 	onMessageDeleted := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.chat.messageCreated.Unsubscribe(onMessageDeleted)
+
+	heartbeatC := time.NewTicker(5 * time.Second).C
+	var seq uint32
 
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
@@ -92,6 +96,15 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 					},
 				},
 			})
+		case <-heartbeatC:
+			err = stream.Send(&proto.ChatUpdate{
+				Event: &proto.ChatUpdate_Heartbeat{
+					Heartbeat: &proto.ChatHeartbeatEvent{
+						Sequence: seq,
+					},
+				},
+			})
+			seq++
 		case <-stream.Context().Done():
 			return nil
 		}

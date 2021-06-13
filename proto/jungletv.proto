@@ -183,6 +183,7 @@ message ChatUpdate {
         ChatEnabledEvent enabled = 2;
         ChatMessageCreatedEvent message_created = 3;
         ChatMessageDeletedEvent message_deleted = 4;
+        ChatHeartbeatEvent heartbeat = 5;
     }
 }
 
@@ -221,6 +222,10 @@ message ChatMessageCreatedEvent {
 
 message ChatMessageDeletedEvent {
     int64 id = 1 [jstype = JS_STRING];
+}
+
+message ChatHeartbeatEvent {
+    uint32 sequence = 1;
 }
 
 message SendChatMessageRequest {

@@ -723,6 +723,11 @@ export class ChatUpdate extends jspb.Message {
   getMessageDeleted(): ChatMessageDeletedEvent | undefined;
   setMessageDeleted(value?: ChatMessageDeletedEvent): void;
 
+  hasHeartbeat(): boolean;
+  clearHeartbeat(): void;
+  getHeartbeat(): ChatHeartbeatEvent | undefined;
+  setHeartbeat(value?: ChatHeartbeatEvent): void;
+
   getEventCase(): ChatUpdate.EventCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatUpdate.AsObject;
@@ -740,6 +745,7 @@ export namespace ChatUpdate {
     enabled?: ChatEnabledEvent.AsObject,
     messageCreated?: ChatMessageCreatedEvent.AsObject,
     messageDeleted?: ChatMessageDeletedEvent.AsObject,
+    heartbeat?: ChatHeartbeatEvent.AsObject,
   }
 
   export enum EventCase {
@@ -748,6 +754,7 @@ export namespace ChatUpdate {
     ENABLED = 2,
     MESSAGE_CREATED = 3,
     MESSAGE_DELETED = 4,
+    HEARTBEAT = 5,
   }
 }
 
@@ -917,6 +924,26 @@ export class ChatMessageDeletedEvent extends jspb.Message {
 export namespace ChatMessageDeletedEvent {
   export type AsObject = {
     id: string,
+  }
+}
+
+export class ChatHeartbeatEvent extends jspb.Message {
+  getSequence(): number;
+  setSequence(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatHeartbeatEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatHeartbeatEvent): ChatHeartbeatEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatHeartbeatEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatHeartbeatEvent;
+  static deserializeBinaryFromReader(message: ChatHeartbeatEvent, reader: jspb.BinaryReader): ChatHeartbeatEvent;
+}
+
+export namespace ChatHeartbeatEvent {
+  export type AsObject = {
+    sequence: number,
   }
 }
 
