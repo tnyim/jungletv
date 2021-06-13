@@ -211,13 +211,13 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
 
-		wait := time.Duration(30+rand.Intn(120)) * time.Second
+		wait := time.Duration(90+rand.Intn(180)) * time.Second
 		t := time.NewTimer(wait)
 		for {
 			select {
 			case v := <-mediaChangedC:
 				if v[0] == nil {
-					wait = time.Duration(30+rand.Intn(120)) * time.Second
+					wait = time.Duration(90+rand.Intn(180)) * time.Second
 					t.Reset(wait)
 				}
 			case <-t.C:
