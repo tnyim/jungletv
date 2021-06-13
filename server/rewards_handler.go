@@ -16,6 +16,7 @@ import (
 type RewardsHandler struct {
 	log                            *log.Logger
 	mediaQueue                     *MediaQueue
+	ipReputationChecker            *IPAddressReputationChecker
 	wallet                         *wallet.Wallet
 	collectorAccountQueue          chan func(*wallet.Account)
 	paymentAccountPendingWaitGroup *sync.WaitGroup
@@ -59,10 +60,11 @@ func (s *spectator) OnActivityChallenge() *event.Event {
 }
 
 // NewRewardsHandler creates a new RewardsHandler
-func NewRewardsHandler(log *log.Logger, mediaQueue *MediaQueue, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account), paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
+func NewRewardsHandler(log *log.Logger, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account), paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		mediaQueue:                     mediaQueue,
+		ipReputationChecker:            ipReputationChecker,
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
@@ -101,6 +103,8 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 
 	r.spectatorsByRemoteAddress[spectator.remoteAddress] = append(r.spectatorsByRemoteAddress[spectator.remoteAddress], spectator)
 	r.spectatorsByRewardAddress[spectator.user.Address()] = append(r.spectatorsByRewardAddress[spectator.user.Address()], spectator)
+
+	r.ipReputationChecker.EnqueueAddressForChecking(spectator.remoteAddress)
 
 	r.log.Printf("Registered spectator with reward address %s and remote address %s", spectator.user.Address(), spectator.remoteAddress)
 	go spectatorActivityWatchdog(spectator, r)

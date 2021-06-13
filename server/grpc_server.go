@@ -35,6 +35,7 @@ type grpcServer struct {
 	jwtManager                     *JWTManager
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
+	ipReputationChecker            *IPAddressReputationChecker
 
 	autoEnqueueVideos        bool
 	autoEnqueueVideoListFile string
@@ -65,6 +66,7 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
 		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
+		ipReputationChecker:            NewIPAddressReputationChecker(log),
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -100,7 +102,8 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.rewardsHandler, err = NewRewardsHandler(log, s.mediaQueue, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
+	s.rewardsHandler, err = NewRewardsHandler(
+		log, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -170,6 +173,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}()
 
 	go s.mediaQueue.ProcessQueueWorker(ctx)
+	go s.ipReputationChecker.Worker(ctx)
 
 	go func() {
 		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)

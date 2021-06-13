@@ -23,7 +23,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return nil
 	}
 
-	eligible := getEligibleSpectators(r.log, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+	eligible := getEligibleSpectators(r.log, r.ipReputationChecker, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
 	if len(eligible) == 0 {
 		if media.RequestedBy().IsUnknown() {
 			return nil
@@ -46,11 +46,15 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	return nil
 }
 
-func getEligibleSpectators(l *log.Logger, spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
+func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
 	for k := range spectatorsByRemoteAddress {
+		if canReceive := c.CanReceiveRewards(k); !canReceive {
+			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
+			continue
+		}
 		spectators := spectatorsByRemoteAddress[k]
 		if len(spectators) == 0 {
 			continue
