@@ -199,44 +199,45 @@
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
     <div class="flex-grow overflow-y-auto px-2 pb-2" bind:this={chatContainer}>
         {#each chatMessages as msg, idx}
-            {#if shouldShowTimeSeparator(idx)}
-                <div class="pt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
-                    <hr class="flex-1 ml-8" />
-                    <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
-                    <hr class="flex-1 mr-8" />
-                </div>
-            {/if}
-            {#if msg.hasUserMessage()}
-                <p
-                    class="{shouldAddAdditionalPadding(idx) ? 'pt-1.5' : 'pb-0.5'} break-words"
-                    transition:fade|local={{ duration: 200 }}
-                >
-                    {#if mode == "moderation"}
-                        <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
-                    {/if}
-                    <img
-                        src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
-                        alt={msg.getUserMessage().getAuthor().getAddress()}
-                        title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
-                        class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                        on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
-                    />
-                    <span
-                        class="font-mono cursor-pointer"
-                        style="font-size: 0.70rem;"
-                        title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
-                        on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
-                        >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
-                    >:
-                    {@html marked.parseInline(msg.getUserMessage().getContent())}
-                </p>
+            <div transition:fade|local={{ duration: 200 }}>
+                {#if shouldShowTimeSeparator(idx)}
+                    <div class="pt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
+                        <hr class="flex-1 ml-8" />
+                        <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
+                        <hr class="flex-1 mr-8" />
+                    </div>
+                {/if}
+                {#if msg.hasUserMessage()}
+                    <p class="{shouldAddAdditionalPadding(idx) ? 'pt-1.5' : 'pb-0.5'} break-words">
+                        {#if mode == "moderation"}
+                            <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
+                        {/if}
+                        <img
+                            src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
+                            alt={msg.getUserMessage().getAuthor().getAddress()}
+                            title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
+                            class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
+                            on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
+                        />
+                        <span
+                            class="font-mono cursor-pointer"
+                            style="font-size: 0.70rem;"
+                            title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
+                            on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
+                            >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                        >:
+                        {@html marked.parseInline(msg.getUserMessage().getContent())}
+                    </p>
                 {:else if msg.hasSystemMessage()}
-                <div class="pt-1 flex flex-row text-xs justify-center items-center">
-                    <div class="flex-1" />
-                    <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm">{@html marked.parseInline(msg.getSystemMessage().getContent())}</div>
-                    <div class="flex-1" />
-                </div>
-            {/if}
+                    <div class="pt-1 flex flex-row text-xs justify-center items-center">
+                        <div class="flex-1" />
+                        <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm">
+                            {@html marked.parseInline(msg.getSystemMessage().getContent())}
+                        </div>
+                        <div class="flex-1" />
+                    </div>
+                {/if}
+            </div>
         {:else}
             <div class="px-2 py-2">
                 No messages. {#if chatEnabled}Say something!{/if}
