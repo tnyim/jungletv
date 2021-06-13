@@ -32,6 +32,7 @@
     function consumeMedia() {
         consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
             playerConnected.update(() => false);
+            activityChallengeReceived.update((_) => "");
             setTimeout(consumeMedia, 5000);
         });
     }
@@ -39,6 +40,7 @@
         if (consumeMediaRequest !== undefined) {
             consumeMediaRequest.close();
         }
+        activityChallengeReceived.update((_) => "");
     });
 
     let videoId = "";
