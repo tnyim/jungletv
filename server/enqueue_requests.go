@@ -150,7 +150,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 		e.log.Printf("Ticket %s meets requirements for enqueuing", reqID)
 
 		requestedBy := request.RequestedBy()
-		if requestedBy.IsUnknown() {
+		if requestedBy.IsUnknown() && balance.Cmp(big.NewInt(0)) > 0 {
 			// requested by unauthenticated user, set the user to be who paid
 
 			// we must receive pendings otherwise the history might not contain the latest tx

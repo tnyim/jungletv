@@ -74,7 +74,7 @@
                     >
                 </p>
                 <p class="text-xs">
-                    {#if entry.getRequestedBy().getAddress() != ""}
+                    {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
                         Requested by <img
                             src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}"
                             alt={entry.getRequestedBy().getAddress()}

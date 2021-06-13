@@ -68,22 +68,27 @@ func main() {
 
 	certFile, present := secrets.Get("certFile")
 	if !present {
-		mainLog.Fatalln("cert file path not present in keybox")
+		mainLog.Fatalln("Cert file path not present in keybox")
 	}
 
 	keyFile, present := secrets.Get("keyFile")
 	if !present {
-		mainLog.Fatalln("key file path not present in keybox")
+		mainLog.Fatalln("Key file path not present in keybox")
 	}
 
 	queueFile, present := secrets.Get("queueFile")
 	if !present {
-		mainLog.Println("queue file path not present in keybox, will not persist queue")
+		mainLog.Println("Queue file path not present in keybox, will not persist queue")
+	}
+
+	autoEnqueueVideoListFile, present := secrets.Get("autoEnqueueVideosFile")
+	if !present {
+		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
 	}
 
 	websiteURL, present = secrets.Get("websiteURL")
 	if !present {
-		mainLog.Fatalln("website URL not present in keybox")
+		mainLog.Fatalln("Website URL not present in keybox")
 	}
 
 	ssoKeybox, present := secrets.GetBox("sso")
@@ -130,7 +135,7 @@ func main() {
 	}
 
 	jwtManager = server.NewJWTManager(jwtKey)
-	apiServer, err := server.NewServer(ctx, apiLog, wallet, youtubeAPIkey, jwtManager, queueFile, repAddress)
+	apiServer, err := server.NewServer(ctx, apiLog, wallet, youtubeAPIkey, jwtManager, queueFile, autoEnqueueVideoListFile, repAddress)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

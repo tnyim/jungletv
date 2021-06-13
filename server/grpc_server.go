@@ -3,14 +3,18 @@ package server
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/big"
+	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
@@ -32,6 +36,9 @@ type grpcServer struct {
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
 
+	autoEnqueueVideos        bool
+	autoEnqueueVideoListFile string
+
 	mediaQueue     *MediaQueue
 	enqueueManager *EnqueueManager
 	rewardsHandler *RewardsHandler
@@ -43,7 +50,7 @@ type grpcServer struct {
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *JWTManager, queueFile, repAddress string) (*grpcServer, error) {
+	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string) (*grpcServer, error) {
 	mediaQueue, err := NewMediaQueue(ctx, log, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -56,6 +63,8 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		mediaQueue:                     mediaQueue,
 		collectorAccountQueue:          make(chan func(*wallet.Account), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
+		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
+		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -198,6 +207,34 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		}
 	}()
 
+	go func() {
+		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
+
+		wait := time.Duration(30+rand.Intn(120)) * time.Second
+		t := time.NewTimer(wait)
+		for {
+			select {
+			case v := <-mediaChangedC:
+				if v[0] == nil {
+					wait = time.Duration(30+rand.Intn(120)) * time.Second
+					t.Reset(wait)
+				}
+			case <-t.C:
+				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos {
+					for attempt := 0; attempt < 3; attempt++ {
+						err := s.autoEnqueueNewVideo(ctx)
+						if err != nil {
+							errChan <- stacktrace.Propagate(err, "")
+						} else {
+							break
+						}
+					}
+				}
+			}
+		}
+	}()
+
 	for {
 		select {
 		case err := <-errChan:
@@ -206,4 +243,97 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			return
 		}
 	}
+}
+
+func (s *grpcServer) autoEnqueueNewVideo(ctx context.Context) error {
+	videoID, err := s.getRandomVideoForAutoEnqueue()
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, videoID, false)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	if result != youTubeVideoEnqueueRequestCreationSucceeded {
+		return stacktrace.NewError("enqueue request for video %s creation failed due to video characteristics", videoID)
+	}
+
+	ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	ticket.ForceEnqueuing(proto.ForcedTicketEnqueueType_ENQUEUE)
+	s.log.Printf("Auto-enqueued video with ID %s", videoID)
+	return nil
+}
+
+func (s *grpcServer) getRandomVideoForAutoEnqueue() (string, error) {
+	b, err := ioutil.ReadFile(s.autoEnqueueVideoListFile)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "error reading auto enqueue videos from file: %v", err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(b)), "\n")
+	line := lines[rand.Intn(len(lines))]
+	id := strings.TrimSpace(strings.Split(line, " ")[0])
+	return id, nil
+}
+
+type youTubeVideoEnqueueRequestCreationResult int
+
+const (
+	youTubeVideoEnqueueRequestCreationSucceeded youTubeVideoEnqueueRequestCreationResult = iota
+	youTubeVideoEnqueueRequestCreationFailed
+	youTubeVideoEnqueueRequestCreationVideoNotFound
+	youTubeVideoEnqueueRequestCreationVideoAgeRestricted
+	youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast
+	youTubeVideoEnqueueRequestCreationVideoIsTooLong
+)
+
+func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
+	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails"}).Id(videoID).MaxResults(1).Do()
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+
+	if len(response.Items) == 0 {
+		return nil, youTubeVideoEnqueueRequestCreationVideoNotFound, nil
+	}
+
+	videoItem := response.Items[0]
+	if videoItem.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
+		return nil, youTubeVideoEnqueueRequestCreationVideoAgeRestricted, nil
+	}
+
+	if videoItem.Snippet.LiveBroadcastContent != "none" {
+		return nil, youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast, nil
+	}
+
+	videoDuration, err := period.Parse(videoItem.ContentDetails.Duration)
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
+	}
+
+	if videoDuration.DurationApprox() > 30*time.Minute {
+		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
+	}
+
+	request := &queueEntryYouTubeVideo{
+		id:           videoID,
+		title:        videoItem.Snippet.Title,
+		channelTitle: videoItem.Snippet.ChannelTitle,
+		thumbnailURL: videoItem.Snippet.Thumbnails.Default.Url,
+		duration:     videoDuration.DurationApprox(),
+		donePlaying:  event.New(),
+		requestedBy:  &unknownUser{},
+		unskippable:  unskippable,
+	}
+
+	userClaims := UserClaimsFromContext(ctx)
+	if userClaims != nil {
+		request.requestedBy = userClaims
+	}
+
+	return request, youTubeVideoEnqueueRequestCreationSucceeded, nil
 }
