@@ -24,6 +24,7 @@ require (
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0
+	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 

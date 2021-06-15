@@ -4,12 +4,15 @@ import (
 	"context"
 	"log"
 	"sync"
+
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // StatsHandler handles statistics
 type StatsHandler struct {
-	log        *log.Logger
-	mediaQueue *MediaQueue
+	log         *log.Logger
+	mediaQueue  *MediaQueue
+	statsClient *statsd.Client
 
 	// spectatorsByRemoteAddress is a set of remote addresses
 	spectatorsByRemoteAddress map[string]int
@@ -17,10 +20,12 @@ type StatsHandler struct {
 }
 
 // NewStatsHandler creates a new StatsHandler
-func NewStatsHandler(log *log.Logger, mediaQueue *MediaQueue) (*StatsHandler, error) {
+func NewStatsHandler(log *log.Logger, mediaQueue *MediaQueue, statsClient *statsd.Client) (*StatsHandler, error) {
+	go statsClient.Gauge("spectators", 0)
 	return &StatsHandler{
-		log:        log,
-		mediaQueue: mediaQueue,
+		log:         log,
+		mediaQueue:  mediaQueue,
+		statsClient: statsClient,
 
 		spectatorsByRemoteAddress: make(map[string]int),
 	}, nil
@@ -38,6 +43,7 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 	}
 	s.spectatorsByRemoteAddress[remoteAddress]++
 	s.log.Println("Stats considering spectator with remote address", remoteAddress)
+	go s.statsClient.Gauge("spectators", len(s.spectatorsByRemoteAddress))
 	return func() {
 		s.spectatorsMutex.Lock()
 		defer s.spectatorsMutex.Unlock()
@@ -46,6 +52,7 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 			delete(s.spectatorsByRemoteAddress, remoteAddress)
 		}
 		s.log.Println("Stats no longer considering spectator with remote address", remoteAddress)
+		go s.statsClient.Gauge("spectators", len(s.spectatorsByRemoteAddress))
 	}, nil
 }
 

@@ -10,11 +10,13 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/utils/event"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // RewardsHandler handles reward distribution among spectators
 type RewardsHandler struct {
 	log                            *log.Logger
+	statsClient                    *statsd.Client
 	mediaQueue                     *MediaQueue
 	ipReputationChecker            *IPAddressReputationChecker
 	wallet                         *wallet.Wallet
@@ -60,9 +62,10 @@ func (s *spectator) OnActivityChallenge() *event.Event {
 }
 
 // NewRewardsHandler creates a new RewardsHandler
-func NewRewardsHandler(log *log.Logger, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account), paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
+func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account), paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
+		statsClient:                    statsClient,
 		mediaQueue:                     mediaQueue,
 		ipReputationChecker:            ipReputationChecker,
 		wallet:                         wallet,

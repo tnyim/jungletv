@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 type grpcServer struct {
@@ -28,6 +29,7 @@ type grpcServer struct {
 	proto.UnsafeJungleTVServer // disabling forward compatibility is exactly what we want in order to get compilation errors when we forget to implement a server method
 
 	log                            *log.Logger
+	statsClient                    *statsd.Client
 	wallet                         *wallet.Wallet
 	collectorAccount               *wallet.Account
 	collectorAccountQueue          chan func(*wallet.Account)
@@ -50,9 +52,9 @@ type grpcServer struct {
 }
 
 // NewServer returns a new JungleTVServer
-func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
+func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
 	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string) (*grpcServer, error) {
-	mediaQueue, err := NewMediaQueue(ctx, log, queueFile)
+	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -60,6 +62,7 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 	s := &grpcServer{
 		log:                            log,
 		wallet:                         w,
+		statsClient:                    statsClient,
 		jwtManager:                     jwtManager,
 		mediaQueue:                     mediaQueue,
 		collectorAccountQueue:          make(chan func(*wallet.Account), 10000),
@@ -91,24 +94,24 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.statsHandler, err = NewStatsHandler(log, s.mediaQueue)
+	s.statsHandler, err = NewStatsHandler(log, s.mediaQueue, s.statsClient)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.enqueueManager, err = NewEnqueueManager(log, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
+	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
 		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.rewardsHandler, err = NewRewardsHandler(
-		log, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
+		log, statsClient, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, NewChatStoreMemory(1000))
+	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(1000))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -126,7 +129,7 @@ func NewServer(ctx context.Context, log *log.Logger, w *wallet.Wallet,
 
 func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	errChan := make(chan error)
-	go func() {
+	go func(ctx context.Context) {
 		for {
 			s.log.Println("Payments processor starting/restarting")
 			err := s.enqueueManager.ProcessPaymentsWorker(ctx, 10*time.Second)
@@ -141,9 +144,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			default:
 			}
 		}
-	}()
+	}(ctx)
 
-	go func() {
+	go func(ctx context.Context) {
 		for {
 			s.log.Println("Rewards handler starting/restarting")
 			err := s.rewardsHandler.Worker(ctx)
@@ -158,9 +161,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			default:
 			}
 		}
-	}()
+	}(ctx)
 
-	go func() {
+	go func(ctx context.Context) {
 		for {
 			select {
 			case f := <-s.collectorAccountQueue:
@@ -170,7 +173,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				return
 			}
 		}
-	}()
+	}(ctx)
 
 	go s.mediaQueue.ProcessQueueWorker(ctx)
 	go s.ipReputationChecker.Worker(ctx)

@@ -14,11 +14,13 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // ChatManager handles the chat system
 type ChatManager struct {
 	log         *log.Logger
+	statsClient *statsd.Client
 	store       ChatStore
 	idNode      *snowflake.Node
 	rateLimiter limiter.Store
@@ -31,7 +33,7 @@ type ChatManager struct {
 	messageDeleted *event.Event
 }
 
-func NewChatManager(log *log.Logger, store ChatStore) (*ChatManager, error) {
+func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore) (*ChatManager, error) {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
@@ -46,6 +48,7 @@ func NewChatManager(log *log.Logger, store ChatStore) (*ChatManager, error) {
 	}
 	return &ChatManager{
 		log:         log,
+		statsClient: statsClient,
 		store:       store,
 		idNode:      node,
 		rateLimiter: rateLimiter,
@@ -88,6 +91,7 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		return nil, stacktrace.Propagate(err, "failed to store chat message")
 	}
 	c.messageCreated.Notify(m)
+	go c.statsClient.Count("chat_message_created", 1)
 	return m, nil
 }
 

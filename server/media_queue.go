@@ -12,13 +12,15 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // MediaQueue queues media for synced broadcast
 type MediaQueue struct {
-	log        *log.Logger
-	queue      []MediaQueueEntry
-	queueMutex sync.RWMutex
+	log         *log.Logger
+	statsClient *statsd.Client
+	queue       []MediaQueueEntry
+	queueMutex  sync.RWMutex
 
 	queueUpdated *event.Event
 	mediaChanged *event.Event
@@ -28,9 +30,10 @@ type MediaQueue struct {
 	deepEntryRemoved *event.Event
 }
 
-func NewMediaQueue(ctx context.Context, log *log.Logger, persistenceFile string) (*MediaQueue, error) {
+func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string) (*MediaQueue, error) {
 	q := &MediaQueue{
 		log:              log,
+		statsClient:      statsClient,
 		queueUpdated:     event.New(),
 		mediaChanged:     event.New(),
 		deepEntryRemoved: event.New(),
@@ -64,6 +67,7 @@ func (q *MediaQueue) Enqueue(entry MediaQueueEntry) {
 	defer q.queueMutex.Unlock()
 
 	q.queue = append(q.queue, entry)
+	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 }
 
@@ -82,6 +86,7 @@ func (q *MediaQueue) PlayAfterNext(entry MediaQueueEntry) {
 	defer q.queueMutex.Unlock()
 
 	q.playAfterNextNoMutex(entry)
+	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 }
 
@@ -94,6 +99,7 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 		q.queue[0].Stop()
 	}
 
+	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 }
 
@@ -114,6 +120,7 @@ func (q *MediaQueue) RemoveEntry(entryID string) error {
 		if entryID == entry.QueueID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
 			q.deepEntryRemoved.Notify(entry)
+			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify()
 			return nil
 		}
@@ -182,6 +189,7 @@ func (q *MediaQueue) playNext() {
 		return
 	}
 	q.queue = q.queue[1:]
+	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 }
 
@@ -247,6 +255,7 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 	for i := range entries {
 		q.queue[i] = entries[i]
 	}
+	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 	return nil
 }

@@ -18,12 +18,14 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 
 	rewardBudget := media.RequestCost()
 
+	eligible := getEligibleSpectators(r.log, r.ipReputationChecker, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+	go r.statsClient.Gauge("eligible", len(eligible))
+
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
 		r.log.Println("Request cost was 0, nothing to reward")
 		return nil
 	}
 
-	eligible := getEligibleSpectators(r.log, r.ipReputationChecker, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
 	if len(eligible) == 0 {
 		if media.RequestedBy().IsUnknown() {
 			return nil
@@ -34,13 +36,19 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	}
 
 	amountForEach := ComputeReward(rewardBudget, len(eligible))
+	go func() {
+		r.statsClient.Gauge("reward_per_spectator",
+			float64(new(big.Int).Div(amountForEach.Int, RewardRoundingFactor).Int64())/100.0)
+	}()
 	if amountForEach.Int.Cmp(big.NewInt(0)) <= 0 {
 		r.log.Printf("Not rewarding because the amount for each user would be zero")
 		return nil
 	}
 
 	go func() {
+		t := r.statsClient.NewTiming()
 		r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
+		t.Send("reward_distribution")
 		r.rewardsDistributed.Notify(rewardBudget)
 	}()
 	return nil

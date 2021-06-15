@@ -47,6 +47,12 @@ func main() {
 	}
 	mainLog.Println("Keybox opened")
 
+	statsClient, err := buildStatsClient()
+	if err != nil {
+		mainLog.Fatalln(err)
+	}
+	defer statsClient.Close()
+
 	wallet, err := buildWallet(secrets)
 	if err != nil {
 		mainLog.Fatalln(err)
@@ -135,7 +141,8 @@ func main() {
 	}
 
 	jwtManager = server.NewJWTManager(jwtKey)
-	apiServer, err := server.NewServer(ctx, apiLog, wallet, youtubeAPIkey, jwtManager, queueFile, autoEnqueueVideoListFile, repAddress)
+	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
+		queueFile, autoEnqueueVideoListFile, repAddress)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

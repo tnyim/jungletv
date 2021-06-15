@@ -14,12 +14,14 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 const TicketExpiration = 2 * time.Minute
 
 // EnqueueManager manages requests for enqueuing that are pending payment
 type EnqueueManager struct {
+	statsClient                    *statsd.Client
 	mediaQueue                     *MediaQueue
 	wallet                         *wallet.Wallet
 	paymentAccountPool             *PaymentAccountPool
@@ -56,9 +58,10 @@ type EnqueueTicket interface {
 }
 
 // NewEnqueueManager returns a new EnqueueManager
-func NewEnqueueManager(log *log.Logger, mediaQueue *MediaQueue, wallet *wallet.Wallet, paymentAccountPool *PaymentAccountPool, paymentAccountPendingWaitGroup *sync.WaitGroup, statsHandler *StatsHandler, collectorAccountAddress string) (*EnqueueManager, error) {
+func NewEnqueueManager(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, wallet *wallet.Wallet, paymentAccountPool *PaymentAccountPool, paymentAccountPendingWaitGroup *sync.WaitGroup, statsHandler *StatsHandler, collectorAccountAddress string) (*EnqueueManager, error) {
 	return &EnqueueManager{
 		log:                            log,
+		statsClient:                    statsClient,
 		mediaQueue:                     mediaQueue,
 		wallet:                         wallet,
 		paymentAccountPool:             paymentAccountPool,
@@ -106,6 +109,8 @@ func (e *EnqueueManager) ProcessPayments() error {
 		}
 	}()
 
+	go e.statsClient.Gauge("active_enqueue_tickets", len(requestCopy))
+
 	if len(requestCopy) == 0 {
 		return nil
 	}
@@ -126,6 +131,8 @@ func (e *EnqueueManager) ProcessPayments() error {
 			continue
 		}
 		e.log.Printf("Checking ticket %s", reqID)
+		t := e.statsClient.NewTiming()
+		defer t.Send("check_enqueue_ticket")
 
 		balance, pending, err := request.PaymentAccount().Balance()
 		if err != nil {
@@ -148,6 +155,9 @@ func (e *EnqueueManager) ProcessPayments() error {
 			continue
 		}
 		e.log.Printf("Ticket %s meets requirements for enqueuing", reqID)
+
+		t2 := e.statsClient.NewTiming()
+		defer t2.Send("enqueue_ticket")
 
 		requestedBy := request.RequestedBy()
 		if requestedBy.IsUnknown() && balance.Cmp(big.NewInt(0)) > 0 {
@@ -179,6 +189,8 @@ func (e *EnqueueManager) ProcessPayments() error {
 		e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s", reqID, mi.Title(), mi.Length().String())
 
 		go func(reqID string, request EnqueueTicket) {
+			t := e.statsClient.NewTiming()
+			defer t.Send("enqueue_ticket_final_operations")
 			err := request.PaymentAccount().ReceivePendings()
 			if err != nil {
 				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)

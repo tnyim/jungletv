@@ -94,8 +94,8 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 					c.reputationLock.Lock()
 					defer c.reputationLock.Unlock()
 					c.reputation[addressToCheck] = float32(badActorConfidence)
-					c.log.Printf("Bad Actor Confidence for IP %v is %v", addressToCheck, badActorConfidence)
 				}()
+				c.log.Printf("Bad Actor Confidence for IP %v is %v", addressToCheck, badActorConfidence)
 			}
 		case <-ctx.Done():
 			return
