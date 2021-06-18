@@ -159,7 +159,12 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager)
+	listenAddr, present := secrets.Get("listenAddress")
+	if !present {
+		listenAddr = ServerListenAddr
+	}
+
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, listenAddr)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -206,7 +211,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager, listenAddr string) (*http.Server, error) {
 	authInterceptor := server.NewAuthInterceptor(jwtManager, &authorizer{})
 
 	grpcServer := grpc.NewServer(
@@ -237,7 +242,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManag
 	}
 
 	return &http.Server{
-		Addr:    ServerListenAddr,
+		Addr:    listenAddr,
 		Handler: http.HandlerFunc(handler),
 	}, nil
 }
