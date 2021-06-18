@@ -3698,7 +3698,8 @@ proto.jungletv.Queue.prototype.toObject = function(opt_includeInstance) {
 proto.jungletv.Queue.toObject = function(includeInstance, msg) {
   var f, obj = {
     entriesList: jspb.Message.toObjectList(msg.getEntriesList(),
-    proto.jungletv.QueueEntry.toObject, includeInstance)
+    proto.jungletv.QueueEntry.toObject, includeInstance),
+    isHeartbeat: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -3740,6 +3741,10 @@ proto.jungletv.Queue.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.jungletv.QueueEntry.deserializeBinaryFromReader);
       msg.addEntries(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsHeartbeat(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3775,6 +3780,13 @@ proto.jungletv.Queue.serializeBinaryToWriter = function(message, writer) {
       1,
       f,
       proto.jungletv.QueueEntry.serializeBinaryToWriter
+    );
+  }
+  f = message.getIsHeartbeat();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
     );
   }
 };
@@ -3815,6 +3827,24 @@ proto.jungletv.Queue.prototype.addEntries = function(opt_value, opt_index) {
  */
 proto.jungletv.Queue.prototype.clearEntriesList = function() {
   return this.setEntriesList([]);
+};
+
+
+/**
+ * optional bool is_heartbeat = 2;
+ * @return {boolean}
+ */
+proto.jungletv.Queue.prototype.getIsHeartbeat = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.Queue} returns this
+ */
+proto.jungletv.Queue.prototype.setIsHeartbeat = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 

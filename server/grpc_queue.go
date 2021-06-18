@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
@@ -26,17 +28,25 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		return stacktrace.Propagate(err, "")
 	}
 
+	heartbeatC := time.NewTicker(5 * time.Second).C
+
 	for {
+		var err error
 		select {
 		case <-onQueueChanged:
-			err := stream.Send(&proto.Queue{
-				Entries: getEntries(),
+			err = stream.Send(&proto.Queue{
+				IsHeartbeat: false,
+				Entries:     getEntries(),
 			})
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
+		case <-heartbeatC:
+			err = stream.Send(&proto.Queue{
+				IsHeartbeat: true,
+			})
 		case <-stream.Context().Done():
 			return nil
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "")
 		}
 	}
 }

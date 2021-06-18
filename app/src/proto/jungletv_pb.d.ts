@@ -412,6 +412,9 @@ export class Queue extends jspb.Message {
   setEntriesList(value: Array<QueueEntry>): void;
   addEntries(value?: QueueEntry, index?: number): QueueEntry;
 
+  getIsHeartbeat(): boolean;
+  setIsHeartbeat(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Queue.AsObject;
   static toObject(includeInstance: boolean, msg: Queue): Queue.AsObject;
@@ -425,6 +428,7 @@ export class Queue extends jspb.Message {
 export namespace Queue {
   export type AsObject = {
     entriesList: Array<QueueEntry.AsObject>,
+    isHeartbeat: boolean,
   }
 }
 

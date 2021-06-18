@@ -24,7 +24,9 @@
     });
 
     function handleQueueUpdated(queue: Queue) {
-        queueEntries = queue.getEntriesList();
+        if (!queue.getIsHeartbeat()) {
+            queueEntries = queue.getEntriesList();
+        }
     }
 
     function formatDuration(duration: google_protobuf_duration_pb.Duration): string {
