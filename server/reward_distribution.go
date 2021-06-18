@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/big"
 	"math/rand"
+	"net"
 	"time"
 
 	"github.com/hectorchu/gonano/wallet"
@@ -58,16 +59,23 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
+	spectatorsByUniquifiedRemoteAddress := make(map[string][]*spectator)
 	for k := range spectatorsByRemoteAddress {
-		if canReceive := c.CanReceiveRewards(k); !canReceive {
-			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
-			continue
-		}
 		spectators := spectatorsByRemoteAddress[k]
 		if len(spectators) == 0 {
 			continue
 		}
-		// pick a random spectator to reward within this remote address
+		if canReceive := c.CanReceiveRewards(k); !canReceive {
+			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
+			continue
+		}
+		uniquifiedIP := getUniquifiedIP(k)
+		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
+	}
+
+	for k := range spectatorsByUniquifiedRemoteAddress {
+		spectators := spectatorsByUniquifiedRemoteAddress[k]
+		// pick a random spectator to reward within this uniquified remote address
 		rand.Shuffle(len(spectators), func(i, j int) {
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
@@ -86,6 +94,20 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 	}
 	delete(toBeRewarded, exceptAddress)
 	return toBeRewarded
+}
+
+func getUniquifiedIP(remoteAddress string) string {
+	ip := net.ParseIP(remoteAddress)
+	if ip == nil {
+		return remoteAddress
+	}
+	if ip.To4() != nil || len(ip) != net.IPv6len {
+		return remoteAddress
+	}
+	for i := net.IPv6len / 2; i < net.IPv6len; i++ {
+		ip[i] = 0
+	}
+	return ip.String()
 }
 
 func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
