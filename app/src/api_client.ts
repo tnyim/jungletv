@@ -11,6 +11,7 @@ class APIClient {
 
     private host: string;
     private authNeededCallback = () => { };
+    private previouslySeenAPIVersion: string;
 
     private constructor(host: string) {
         this.host = host;
@@ -28,6 +29,15 @@ class APIClient {
         return APIClient.instance;
     }
 
+    private handleVersionHeader(version: string) {
+        if (this.previouslySeenAPIVersion === undefined) {
+            this.previouslySeenAPIVersion = version;
+        } else if (version != this.previouslySeenAPIVersion) {
+            console.log("Reloading due to different API version");
+            location.reload();
+        }
+    }
+
     public setAuthNeededCallback(cb: () => void) {
         this.authNeededCallback = cb;
     }
@@ -38,6 +48,11 @@ class APIClient {
                 request: request,
                 host: this.host,
                 metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
+                onHeaders: (headers: grpc.Metadata): void => {
+                    if (headers.has("X-API-Version")) {
+                        this.handleVersionHeader(headers.get("X-API-Version")[0])
+                    }
+                },
                 onMessage: (message: TResponse) => resolve(message),
                 onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
                     if (code == grpc.Code.Unauthenticated) {
@@ -61,6 +76,11 @@ class APIClient {
             request: request,
             host: this.host,
             metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
+            onHeaders: (headers: grpc.Metadata): void => {
+                if (headers.has("X-API-Version")) {
+                    this.handleVersionHeader(headers.get("X-API-Version")[0])
+                }
+            },
             onMessage: onMessage,
             onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
                 if (code == grpc.Code.Unauthenticated) {

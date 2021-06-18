@@ -14,6 +14,7 @@ import (
 	"github.com/gbl08ma/ssoclient"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -212,11 +213,14 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 }
 
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager, listenAddr string) (*http.Server, error) {
+	versionInterceptor := server.NewVersionInterceptor(BuildDate + GitCommit)
 	authInterceptor := server.NewAuthInterceptor(jwtManager, &authorizer{})
 
+	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
+	streamInterceptor := grpc_middleware.ChainStreamServer(versionInterceptor.Stream(), authInterceptor.Stream())
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(authInterceptor.Unary()),
-		grpc.StreamInterceptor(authInterceptor.Stream()))
+		grpc.UnaryInterceptor(unaryInterceptor),
+		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
 	router := mux.NewRouter().StrictSlash(true)
