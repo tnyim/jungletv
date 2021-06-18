@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gbl08ma/keybox"
 	"github.com/gbl08ma/ssoclient"
@@ -140,9 +142,19 @@ func main() {
 		mainLog.Fatalln("Representative address not present in keybox")
 	}
 
+	ticketCheckPeriodMillis, present := secrets.Get("ticketCheckPeriod")
+	ticketCheckPeriod := 10 * time.Second
+	if present {
+		period, err := strconv.Atoi(ticketCheckPeriodMillis)
+		if err != nil {
+			mainLog.Fatalln("invalid ticketCheckPeriod:", err)
+		}
+		ticketCheckPeriod = time.Duration(period) * time.Millisecond
+	}
+
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, autoEnqueueVideoListFile, repAddress)
+		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

@@ -41,6 +41,7 @@ type grpcServer struct {
 
 	autoEnqueueVideos        bool
 	autoEnqueueVideoListFile string
+	ticketCheckPeriod        time.Duration
 
 	mediaQueue     *MediaQueue
 	enqueueManager *EnqueueManager
@@ -53,7 +54,8 @@ type grpcServer struct {
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string) (*grpcServer, error) {
+	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string,
+	ticketCheckPeriod time.Duration) (*grpcServer, error) {
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -70,6 +72,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
 		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
 		ipReputationChecker:            NewIPAddressReputationChecker(log),
+		ticketCheckPeriod:              ticketCheckPeriod,
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -132,7 +135,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	go func(ctx context.Context) {
 		for {
 			s.log.Println("Payments processor starting/restarting")
-			err := s.enqueueManager.ProcessPaymentsWorker(ctx, 10*time.Second)
+			err := s.enqueueManager.ProcessPaymentsWorker(ctx, s.ticketCheckPeriod)
 			if err == nil {
 				return
 			}
