@@ -92,6 +92,8 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		t.statusChanged.Notify()
 	}()
 
+	e.log.Printf("Registered ticket %s", t.id)
+
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
 	e.requests[t.ID()] = t
@@ -130,7 +132,6 @@ func (e *EnqueueManager) ProcessPayments() error {
 			e.log.Printf("Purged ticket %s", reqID)
 			continue
 		}
-		e.log.Printf("Checking ticket %s", reqID)
 		t := e.statsClient.NewTiming()
 		defer t.Send("check_enqueue_ticket")
 
