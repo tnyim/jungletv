@@ -18,7 +18,9 @@
         }
         let videoID = videoURL.replace("https://", "").replace("http://", "");
         videoID = videoID.replace("www.youtube.com/watch?v=", "");
+        videoID = videoID.replace("m.youtube.com/watch?v=", "");
         videoID = videoID.replace("youtu.be/", "");
+        videoID = videoID.split("&")[0];
 
         let response = await apiClient.enqueueYouTubeVideo(videoID, unskippable);
         switch (response.getEnqueueResponseCase()) {
