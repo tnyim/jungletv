@@ -118,8 +118,8 @@
             return true;
         }
         let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
-        let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate());
-        return (thisMsgDate.toMillis() % (5 * 60 * 1000)) != (prevMsgDate.toMillis() % (5 * 60 * 1000));
+        let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate()).toLocal();
+        return Math.floor(thisMsgDate.toMillis() / (5 * 60 * 1000)) != Math.floor(prevMsgDate.toMillis() / (5 * 60 * 1000));
     }
 
     function shouldAddAdditionalPadding(curIdx: number): boolean {
