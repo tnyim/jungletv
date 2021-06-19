@@ -185,6 +185,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
 
+		entryAddedC := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.mediaQueue.entryAdded.Unsubscribe(entryAddedC)
+
 		rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
 
@@ -200,6 +203,23 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				}
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
+				}
+			case v := <-entryAddedC:
+				var err error
+				t := v[0].(string)
+				entry := v[1].(MediaQueueEntry)
+				if !entry.RequestedBy().IsUnknown() {
+					switch t {
+					case "enqueue":
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+					case "play_after_next":
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just set_ %s _to play after the current video_", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+					case "play_now":
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
+					}
+					if err != nil {
+						errChan <- stacktrace.Propagate(err, "")
+					}
 				}
 			case v := <-rewardsDistributedC:
 				amount := v[0].(Amount)

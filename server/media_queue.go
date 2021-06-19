@@ -24,6 +24,7 @@ type MediaQueue struct {
 
 	queueUpdated *event.Event
 	mediaChanged *event.Event
+	entryAdded   *event.Event
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
@@ -36,6 +37,7 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		statsClient:      statsClient,
 		queueUpdated:     event.New(),
 		mediaChanged:     event.New(),
+		entryAdded:       event.New(),
 		deepEntryRemoved: event.New(),
 	}
 	if persistenceFile != "" {
@@ -69,6 +71,7 @@ func (q *MediaQueue) Enqueue(entry MediaQueueEntry) {
 	q.queue = append(q.queue, entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
+	q.entryAdded.Notify("enqueue", entry)
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry MediaQueueEntry) {
@@ -88,6 +91,7 @@ func (q *MediaQueue) PlayAfterNext(entry MediaQueueEntry) {
 	q.playAfterNextNoMutex(entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
+	q.entryAdded.Notify("play_after_next", entry)
 }
 
 func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
@@ -101,6 +105,7 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
+	q.entryAdded.Notify("play_now", entry)
 }
 
 func (q *MediaQueue) RemoveEntry(entryID string) error {
