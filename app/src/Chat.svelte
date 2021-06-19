@@ -119,7 +119,7 @@
         }
         let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
         let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate());
-        return !thisMsgDate.hasSame(prevMsgDate, "minute");
+        return (thisMsgDate.toMillis() % (5 * 60 * 1000)) != (prevMsgDate.toMillis() % (5 * 60 * 1000));
     }
 
     function shouldAddAdditionalPadding(curIdx: number): boolean {
