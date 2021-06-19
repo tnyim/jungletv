@@ -73,6 +73,8 @@
             <div class="flex flex-col flex-grow">
                 <p class="queue-entry-title break-words">
                     {entry.getYoutubeVideoData().getTitle()}
+                    {#if mode == "moderation"}
+                        | <a href="https://www.youtube.com/watch?v={entry.getYoutubeVideoData().getId()}" target="_blank">Watch on YouTube</a>{/if}
                     <br />
                     <span class="text-xs text-gray-600 font-semibold"
                         >{entry.getYoutubeVideoData().getChannelTitle()}</span
