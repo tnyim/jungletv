@@ -39,7 +39,7 @@ func (c *IPAddressReputationChecker) CanReceiveRewards(remoteAddress string) boo
 		c.EnqueueAddressForChecking(remoteAddress)
 		return true // let's be generous and reward until they're checked
 	}
-	return badActorConfidence < 0.9
+	return badActorConfidence < 0.95
 }
 
 func (c *IPAddressReputationChecker) EnqueueAddressForChecking(remoteAddress string) {
