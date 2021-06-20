@@ -318,11 +318,12 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoNotFound
 	youTubeVideoEnqueueRequestCreationVideoAgeRestricted
 	youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast
+	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 )
 
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
-	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails"}).Id(videoID).MaxResults(1).Do()
+	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status"}).Id(videoID).MaxResults(1).Do()
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -334,6 +335,10 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 	videoItem := response.Items[0]
 	if videoItem.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
 		return nil, youTubeVideoEnqueueRequestCreationVideoAgeRestricted, nil
+	}
+
+	if !videoItem.Status.Embeddable {
+		return nil, youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable, nil
 	}
 
 	if videoItem.Snippet.LiveBroadcastContent != "none" {
