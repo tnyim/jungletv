@@ -2,7 +2,7 @@
     import { apiClient } from "./api_client";
     import { onDestroy, onMount, beforeUpdate, afterUpdate } from "svelte";
     import { link } from "svelte-navigator";
-    import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
+    import { ChatDisabledReason, ChatMessage, ChatUpdate, User, UserRole } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
@@ -225,7 +225,8 @@
                             title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
                             on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
                             >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
-                        >:
+                        >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+                        <i class="fas fa-shield-alt text-xs ml-1 text-purple-700" title="Chat moderator"></i>{/if}:
                         {@html marked.parseInline(msg.getUserMessage().getContent())}
                     </p>
                 {:else if msg.hasSystemMessage()}
