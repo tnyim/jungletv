@@ -29,6 +29,7 @@
     export let mode = "sidebar";
 
     let composedMessage = "";
+    let replyingToMessage: ChatMessage;
     let sendError = false;
     let chatEnabled = true;
     let chatDisabledReason = "";
@@ -92,8 +93,12 @@
             }
             chatMessages = chatMessages; // this triggers Svelte's reactivity
         } else if (update.hasMessageDeleted()) {
+            let deletedId = update.getMessageDeleted().getId();
             for (var i = chatMessages.length - 1; i >= 0; i--) {
-                if (chatMessages[i].getId() == update.getMessageDeleted().getId()) {
+                if (chatMessages[i].hasReference() && chatMessages[i].getReference().getId() == deletedId) {
+                    chatMessages[i].clearReference();
+                }
+                if (chatMessages[i].getId() == deletedId) {
                     chatMessages.splice(i, 1);
                 }
             }
@@ -119,7 +124,9 @@
         }
         let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
         let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate()).toLocal();
-        return Math.floor(thisMsgDate.toMillis() / (5 * 60 * 1000)) != Math.floor(prevMsgDate.toMillis() / (5 * 60 * 1000));
+        return (
+            Math.floor(thisMsgDate.toMillis() / (5 * 60 * 1000)) != Math.floor(prevMsgDate.toMillis() / (5 * 60 * 1000))
+        );
     }
 
     function shouldAddAdditionalPadding(curIdx: number): boolean {
@@ -155,9 +162,11 @@
             return;
         }
         composedMessage = "";
+        let refMsg = replyingToMessage;
+        clearReplyToMessage();
         sentMsgFlag = true;
         try {
-            await apiClient.sendChatMessage(msg);
+            await apiClient.sendChatMessage(msg, refMsg);
         } catch (ex) {
             sendError = true;
             setTimeout(() => (sendError = false), 5000);
@@ -180,12 +189,23 @@
         return true;
     }
 
-    async function copyAddress(address: string) {
-        try {
-            await navigator.clipboard.writeText(address);
-        } catch (err) {
-            console.error("Failed to copy!", err);
+    function replyToMessage(message: ChatMessage) {
+        replyingToMessage = message;
+    }
+    function clearReplyToMessage() {
+        replyingToMessage = undefined;
+    }
+    function highlightMessage(message: ChatMessage) {
+        let msgElement = document.getElementById("chat-message-" + message.getId());
+        if (msgElement == null) {
+            return;
         }
+        chatContainer.scrollTo({
+            top: msgElement.offsetTop,
+            behavior: "smooth",
+        });
+        msgElement.classList.add("bg-yellow-100");
+        setTimeout(() => msgElement.classList.remove("bg-yellow-100"), 2000);
     }
     function focusOnInit(el: HTMLElement) {
         el.focus();
@@ -197,42 +217,54 @@
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
-    <div class="flex-grow overflow-y-auto px-2 pb-2" bind:this={chatContainer}>
+    <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
         {#each chatMessages as msg, idx}
-            <div transition:fade|local={{ duration: 200 }}>
+            <div transition:fade|local={{ duration: 200 }} id="chat-message-{msg.getId()}" class="transition-colors ease-in-out duration-1000">
                 {#if shouldShowTimeSeparator(idx)}
-                    <div class="pt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
+                    <div class="mt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
                         <hr class="flex-1 ml-8" />
                         <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
                         <hr class="flex-1 mr-8" />
                     </div>
                 {/if}
                 {#if msg.hasUserMessage()}
-                    <p class="{shouldAddAdditionalPadding(idx) ? 'pt-1.5' : 'pb-0.5'} break-words">
+                    {#if msg.hasReference()}
+                        <p
+                            class="text-gray-600 text-xs mt-1 h-4 overflow-hidden cursor-pointer"
+                            on:click={() => highlightMessage(msg.getReference())}
+                        >
+                            <i class="fas fa-reply" />
+                            <span class="font-mono" style="font-size: 0.70rem;"
+                                >{msg.getReference().getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                            >:
+                            {@html marked.parseInline(msg.getReference().getUserMessage().getContent())}
+                        </p>
+                    {/if}
+                    <p class="{shouldAddAdditionalPadding(idx) ? 'mt-1.5' : 'mb-0.5'} break-words">
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                         {/if}
                         <img
                             src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
                             alt={msg.getUserMessage().getAuthor().getAddress()}
-                            title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
+                            title="Click to reply"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                            on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
+                            on:click={() => replyToMessage(msg)}
                         />
                         <span
                             class="font-mono cursor-pointer"
                             style="font-size: 0.70rem;"
-                            title="Click to copy: {msg.getUserMessage().getAuthor().getAddress()}"
-                            on:click={() => copyAddress(msg.getUserMessage().getAuthor().getAddress())}
+                            title="Click to reply"
+                            on:click={() => replyToMessage(msg)}
                             >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-                        <i class="fas fa-shield-alt text-xs ml-1 text-purple-700" title="Chat moderator"></i>{/if}:
+                            <i class="fas fa-shield-alt text-xs ml-1 text-purple-700" title="Chat moderator" />{/if}:
                         {@html marked.parseInline(msg.getUserMessage().getContent())}
                     </p>
                 {:else if msg.hasSystemMessage()}
-                    <div class="pt-1 flex flex-row text-xs justify-center items-center">
+                    <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
                         <div class="flex-1" />
-                        <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm">
+                        <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm text-center">
                             {@html marked.parseInline(msg.getSystemMessage().getContent())}
                         </div>
                         <div class="flex-1" />
@@ -260,6 +292,26 @@
                     <ErrorMessage>Failed to send your message. Please try again.</ErrorMessage>
                 </div>
             {/if}
+            {#if replyingToMessage !== undefined}
+                <div class="flex flex-row">
+                    <div class="flex-grow px-2 text-xs">
+                        Replying to
+                        <span class="font-mono" style="font-size: 0.70rem;"
+                            >{replyingToMessage.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                        >
+                        <div class="text-gray-600 overflow-hidden h-4">
+                            {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
+                        </div>
+                    </div>
+                    <button
+                        title="Stop replying"
+                        class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                        on:click={clearReplyToMessage}
+                    >
+                        <i class="fas fa-times-circle" />
+                    </button>
+                </div>
+            {/if}
             <div class="flex flex-row">
                 <textarea
                     use:autoresize
@@ -273,6 +325,7 @@
                 />
 
                 <button
+                    title="Send message"
                     class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
                     on:click={sendMessage}
                 >

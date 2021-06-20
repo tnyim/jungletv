@@ -63,7 +63,7 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 
 var newlineReducingRegexp = regexp.MustCompile("\n\n\n+")
 
-func (c *ChatManager) CreateMessage(ctx context.Context, author User, content string) (*ChatMessage, error) {
+func (c *ChatManager) CreateMessage(ctx context.Context, author User, content string, reference *ChatMessage) (*ChatMessage, error) {
 	if !c.enabled {
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
@@ -85,6 +85,7 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		CreatedAt: time.Now(),
 		Author:    author,
 		Content:   content,
+		Reference: reference,
 	}
 	err = c.store.StoreMessage(ctx, m)
 	if err != nil {
@@ -128,6 +129,11 @@ func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, num int) ([]*Ch
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
+func (c *ChatManager) LoadMessage(ctx context.Context, id snowflake.ID) (*ChatMessage, error) {
+	messages, err := c.store.LoadMessage(ctx, id)
+	return messages, stacktrace.Propagate(err, "could not load chat messages")
+}
+
 func (c *ChatManager) Enabled() (bool, ChatDisabledReason) {
 	return c.enabled, c.disabledReason
 }
@@ -153,6 +159,7 @@ type ChatMessage struct {
 	CreatedAt time.Time
 	Author    User
 	Content   string
+	Reference *ChatMessage // may be nil
 }
 
 func (m *ChatMessage) SerializeForAPI() *proto.ChatMessage {
@@ -173,6 +180,9 @@ func (m *ChatMessage) SerializeForAPI() *proto.ChatMessage {
 				Content: m.Content,
 			},
 		}
+	}
+	if m.Reference != nil {
+		msg.Reference = m.Reference.SerializeForAPI()
 	}
 	return msg
 }

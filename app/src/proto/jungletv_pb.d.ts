@@ -781,6 +781,11 @@ export class ChatMessage extends jspb.Message {
   getSystemMessage(): SystemChatMessage | undefined;
   setSystemMessage(value?: SystemChatMessage): void;
 
+  hasReference(): boolean;
+  clearReference(): void;
+  getReference(): ChatMessage | undefined;
+  setReference(value?: ChatMessage): void;
+
   getMessageCase(): ChatMessage.MessageCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatMessage.AsObject;
@@ -798,6 +803,7 @@ export namespace ChatMessage {
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     userMessage?: UserChatMessage.AsObject,
     systemMessage?: SystemChatMessage.AsObject,
+    reference?: ChatMessage.AsObject,
   }
 
   export enum MessageCase {
@@ -955,6 +961,11 @@ export class SendChatMessageRequest extends jspb.Message {
   getContent(): string;
   setContent(value: string): void;
 
+  hasReplyReferenceId(): boolean;
+  clearReplyReferenceId(): void;
+  getReplyReferenceId(): string;
+  setReplyReferenceId(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SendChatMessageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SendChatMessageRequest): SendChatMessageRequest.AsObject;
@@ -968,6 +979,7 @@ export class SendChatMessageRequest extends jspb.Message {
 export namespace SendChatMessageRequest {
   export type AsObject = {
     content: string,
+    replyReferenceId: string,
   }
 }
 

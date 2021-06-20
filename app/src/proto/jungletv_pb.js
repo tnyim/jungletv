@@ -6123,7 +6123,8 @@ proto.jungletv.ChatMessage.toObject = function(includeInstance, msg) {
     id: jspb.Message.getFieldWithDefault(msg, 1, "0"),
     createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     userMessage: (f = msg.getUserMessage()) && proto.jungletv.UserChatMessage.toObject(includeInstance, f),
-    systemMessage: (f = msg.getSystemMessage()) && proto.jungletv.SystemChatMessage.toObject(includeInstance, f)
+    systemMessage: (f = msg.getSystemMessage()) && proto.jungletv.SystemChatMessage.toObject(includeInstance, f),
+    reference: (f = msg.getReference()) && proto.jungletv.ChatMessage.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6178,6 +6179,11 @@ proto.jungletv.ChatMessage.deserializeBinaryFromReader = function(msg, reader) {
       var value = new proto.jungletv.SystemChatMessage;
       reader.readMessage(value,proto.jungletv.SystemChatMessage.deserializeBinaryFromReader);
       msg.setSystemMessage(value);
+      break;
+    case 5:
+      var value = new proto.jungletv.ChatMessage;
+      reader.readMessage(value,proto.jungletv.ChatMessage.deserializeBinaryFromReader);
+      msg.setReference(value);
       break;
     default:
       reader.skipField();
@@ -6237,6 +6243,14 @@ proto.jungletv.ChatMessage.serializeBinaryToWriter = function(message, writer) {
       4,
       f,
       proto.jungletv.SystemChatMessage.serializeBinaryToWriter
+    );
+  }
+  f = message.getReference();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.jungletv.ChatMessage.serializeBinaryToWriter
     );
   }
 };
@@ -6368,6 +6382,43 @@ proto.jungletv.ChatMessage.prototype.clearSystemMessage = function() {
  */
 proto.jungletv.ChatMessage.prototype.hasSystemMessage = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional ChatMessage reference = 5;
+ * @return {?proto.jungletv.ChatMessage}
+ */
+proto.jungletv.ChatMessage.prototype.getReference = function() {
+  return /** @type{?proto.jungletv.ChatMessage} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.ChatMessage, 5));
+};
+
+
+/**
+ * @param {?proto.jungletv.ChatMessage|undefined} value
+ * @return {!proto.jungletv.ChatMessage} returns this
+*/
+proto.jungletv.ChatMessage.prototype.setReference = function(value) {
+  return jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.ChatMessage} returns this
+ */
+proto.jungletv.ChatMessage.prototype.clearReference = function() {
+  return this.setReference(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ChatMessage.prototype.hasReference = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -7356,7 +7407,8 @@ proto.jungletv.SendChatMessageRequest.prototype.toObject = function(opt_includeI
  */
 proto.jungletv.SendChatMessageRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    content: jspb.Message.getFieldWithDefault(msg, 1, "")
+    content: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    replyReferenceId: jspb.Message.getFieldWithDefault(msg, 2, "0")
   };
 
   if (includeInstance) {
@@ -7397,6 +7449,10 @@ proto.jungletv.SendChatMessageRequest.deserializeBinaryFromReader = function(msg
       var value = /** @type {string} */ (reader.readString());
       msg.setContent(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readInt64String());
+      msg.setReplyReferenceId(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -7433,6 +7489,13 @@ proto.jungletv.SendChatMessageRequest.serializeBinaryToWriter = function(message
       f
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeInt64String(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -7451,6 +7514,42 @@ proto.jungletv.SendChatMessageRequest.prototype.getContent = function() {
  */
 proto.jungletv.SendChatMessageRequest.prototype.setContent = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional int64 reply_reference_id = 2;
+ * @return {string}
+ */
+proto.jungletv.SendChatMessageRequest.prototype.getReplyReferenceId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, "0"));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.SendChatMessageRequest} returns this
+ */
+proto.jungletv.SendChatMessageRequest.prototype.setReplyReferenceId = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.SendChatMessageRequest} returns this
+ */
+proto.jungletv.SendChatMessageRequest.prototype.clearReplyReferenceId = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.SendChatMessageRequest.prototype.hasReplyReferenceId = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

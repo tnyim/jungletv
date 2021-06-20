@@ -195,6 +195,7 @@ message ChatMessage {
         UserChatMessage user_message = 3;
         SystemChatMessage system_message = 4;
     }
+    optional ChatMessage reference = 5;
 }
 
 message UserChatMessage {
@@ -231,6 +232,7 @@ message ChatHeartbeatEvent {
 
 message SendChatMessageRequest {
     string content = 1;
+    optional int64 reply_reference_id = 2 [jstype = JS_STRING];
 }
 
 message SendChatMessageResponse {

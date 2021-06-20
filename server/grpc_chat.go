@@ -126,7 +126,21 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		return nil, status.Error(codes.InvalidArgument, "message too long")
 	}
 
-	m, err := s.chat.CreateMessage(ctx, user, r.Content)
+	var messageReference *ChatMessage
+	if r.ReplyReferenceId != nil {
+		message, err := s.chat.LoadMessage(ctx, snowflake.ParseInt64(*r.ReplyReferenceId))
+		if err == nil {
+			// use a copy of the referenced message without its reference in order to avoid long chains
+			messageReference = &ChatMessage{
+				ID:        message.ID,
+				CreatedAt: message.CreatedAt,
+				Author:    message.Author,
+				Content:   message.Content,
+			}
+		}
+	}
+
+	m, err := s.chat.CreateMessage(ctx, user, r.Content, messageReference)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
