@@ -230,7 +230,7 @@
                 {#if msg.hasUserMessage()}
                     {#if msg.hasReference()}
                         <p
-                            class="text-gray-600 text-xs mt-1 h-4 overflow-hidden cursor-pointer"
+                            class="text-gray-600 text-xs {shouldAddAdditionalPadding(idx) ? 'mt-2' : 'mt-1'} h-4 overflow-hidden cursor-pointer"
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
@@ -240,7 +240,7 @@
                             {@html marked.parseInline(msg.getReference().getUserMessage().getContent())}
                         </p>
                     {/if}
-                    <p class="{shouldAddAdditionalPadding(idx) ? 'mt-1.5' : 'mb-0.5'} break-words">
+                    <p class="{shouldAddAdditionalPadding(idx) && !msg.hasReference() ? 'mt-1.5' : 'mt-0.5'} break-words">
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                         {/if}
