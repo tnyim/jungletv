@@ -27,11 +27,22 @@ func (s *grpcServer) SignIn(ctx context.Context, r *proto.SignInRequest) (*proto
 		return nil, status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}
 
+	user := UserClaimsFromContext(ctx)
+	var jwtToken string
 	expiry := time.Now().Add(30 * 24 * time.Hour)
-	jwtToken, err := s.jwtManager.Generate(&userInfo{
-		RewardAddress:   r.RewardAddress,
-		PermissionLevel: UserPermissionLevel,
-	}, expiry)
+	if user != nil && permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[UserPermissionLevel] {
+		// keep permissions of authenticated user
+		jwtToken, err = s.jwtManager.Generate(&userInfo{
+			RewardAddress:   r.RewardAddress,
+			PermissionLevel: user.PermissionLevel,
+			Username:        user.Username,
+		}, expiry)
+	} else {
+		jwtToken, err = s.jwtManager.Generate(&userInfo{
+			RewardAddress:   r.RewardAddress,
+			PermissionLevel: UserPermissionLevel,
+		}, expiry)
+	}
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
