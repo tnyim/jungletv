@@ -320,6 +320,7 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
+	youTubeVideoEnqueueRequestPaymentSubsystemUnavailable
 )
 
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
@@ -352,6 +353,12 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 
 	if videoDuration.DurationApprox() > 30*time.Minute {
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
+	}
+
+	// check wallet liveliness before letting people proceed to payment
+	_, _, _, err = s.wallet.RPC.BlockCount()
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestPaymentSubsystemUnavailable, nil
 	}
 
 	request := &queueEntryYouTubeVideo{
