@@ -11,6 +11,14 @@
     let unskippable: boolean = false;
     let failureReason: string = "";
 
+    async function handleEnter(event: KeyboardEvent) {
+        if (event.key === "Enter") {
+            await submit();
+            return false;
+        }
+        return true;
+    }
+
     async function submit() {
         if (videoURL == "") {
             failureReason = "A video URL must be provided";
@@ -57,6 +65,7 @@
         <div class="mt-1 flex rounded-md shadow-sm">
             <input
                 on:input={() => (failureReason = "")}
+                on:keydown={handleEnter}
                 type="text"
                 name="youtube_video_link"
                 id="youtube_video_link"
