@@ -42,6 +42,7 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 		// avoid keeping around old challenges for the same spectator
 		delete(r.spectatorByActivityChallenge, spectator.activityChallenge)
 	}
+	spectator.activityChallengeAt = time.Now()
 	spectator.activityChallenge = uuid.NewV4().String()
 
 	r.spectatorByActivityChallenge[spectator.activityChallenge] = spectator
@@ -69,6 +70,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 	spectator.lastActive = time.Now()
 	spectator.activityCheckTimer.Stop()
 	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
+	spectator.activityChallengeAt = time.Time{}
 	spectator.activityChallenge = ""
 
 	delete(r.spectatorByActivityChallenge, challenge)
