@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -10,7 +11,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 )
 
-var spectatorInactivityTimeout = 10 * time.Minute
+var activityChallengeTolerance = 1 * time.Minute
 
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
 	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge)
@@ -27,6 +28,10 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 			return
 		}
 	}
+}
+
+func durationUntilNextActivityChallenge() time.Duration {
+	return 8*time.Minute + time.Duration(rand.Intn(360))*time.Second
 }
 
 func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
@@ -63,7 +68,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 	}
 	spectator.lastActive = time.Now()
 	spectator.activityCheckTimer.Stop()
-	spectator.activityCheckTimer.Reset(spectatorInactivityTimeout)
+	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
 	spectator.activityChallenge = ""
 
 	delete(r.spectatorByActivityChallenge, challenge)

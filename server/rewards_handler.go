@@ -50,6 +50,7 @@ type spectator struct {
 	onRewarded          *event.Event
 	onDisconnected      *event.Event
 	onActivityChallenge *event.Event
+	activityChallengeAt time.Time
 	activityChallenge   string
 }
 
@@ -99,7 +100,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 		onActivityChallenge: event.New(),
 	}
 	spectator.lastActive = time.Now() // TODO unless this is an automatic reconnect, in which case it shouldn't count
-	spectator.activityCheckTimer = time.NewTimer(spectatorInactivityTimeout - time.Since(spectator.lastActive))
+	spectator.activityCheckTimer = time.NewTimer(durationUntilNextActivityChallenge())
 
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()

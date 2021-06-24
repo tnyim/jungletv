@@ -81,7 +81,7 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 		})
 		for j := range spectators {
 			// do not reward an inactive spectator
-			if time.Since(spectators[j].lastActive) > spectatorInactivityTimeout+1*time.Minute {
+			if spectators[j].activityChallenge != "" && time.Since(spectators[j].activityChallengeAt) > activityChallengeTolerance {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
 				continue
 			}
