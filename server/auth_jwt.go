@@ -23,7 +23,8 @@ func (manager *JWTManager) Generate(user *userInfo, tokenExpiration time.Time) (
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: tokenExpiration.Unix(),
 		},
-		userInfo: *user,
+		userInfo:      *user,
+		ClaimsVersion: 1,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -42,6 +43,7 @@ func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration t
 			PermissionLevel: AdminPermissionLevel,
 			Username:        username,
 		},
+		ClaimsVersion: 1,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

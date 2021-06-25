@@ -42,6 +42,7 @@ func (u *addressOnlyUser) IsUnknown() bool {
 type UserClaims struct {
 	jwt.StandardClaims
 	userInfo
+	ClaimsVersion int `json:"claims_version"`
 }
 
 type userInfo struct {
