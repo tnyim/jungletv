@@ -42,7 +42,7 @@ export default {
 	plugins: [
 		replace({
 			globalThis: JSON.stringify({
-				API_HOST: production ? "https://jungletv.tny.im" : "use-origin"
+				API_HOST: production ? "https://jungletv.live" : "use-origin"
 			}),
 		}),
 		replace({
