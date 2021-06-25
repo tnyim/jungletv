@@ -257,6 +257,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 						if err != nil {
 							errChan <- stacktrace.Propagate(err, "")
 						} else {
+							wait = time.Duration(90+rand.Intn(180)) * time.Second
+							t.Reset(wait)
 							break
 						}
 					}
