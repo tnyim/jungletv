@@ -2,13 +2,16 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"math/big"
 	"math/rand"
 	"net"
 	"time"
 
+	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
+	"github.com/palantir/stacktrace"
 )
 
 func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry) error {
@@ -128,6 +131,23 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 			r.log.Println("Waiting for payment accounts to send their balance to the collector account")
 			r.paymentAccountPendingWaitGroup.Wait()
 			r.log.Println("Payment accounts done sending their balance to the collector account")
+
+			balance, pending, err := collectorAccount.Balance()
+			if err != nil {
+				r.log.Printf("Error checking balance of collector account: %v", err)
+				return
+			}
+			balance.Add(balance, pending)
+
+			if balance.Cmp(minExpectedBalance.Int) < 0 {
+				// oh boy. let's go through all ever-used accounts, see if anything got stuck in them and send to the collector account
+				r.log.Println("Funds still not enough, desperately trying to find more")
+				err = r.desperatelyTryToFindFundsStuckInPaymentAccounts()
+				if err != nil {
+					r.log.Printf("Error desperately trying to find funds: %v", err)
+					return
+				}
+			}
 		}
 
 		err = collectorAccount.ReceivePendings()
@@ -174,6 +194,47 @@ func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string,
 			r.log.Printf("Error reimbursing %s with %v: %v", address, amount.Int, err)
 		} else {
 			r.log.Printf("Reimbursed %s with %v, block hash %s", address, amount.Int, blockHash.String())
+		}
+	}
+}
+
+func (r *RewardsHandler) desperatelyTryToFindFundsStuckInPaymentAccounts() error {
+	for accountIdx := uint32(1); ; accountIdx++ {
+		r.log.Printf("Attempting to find lost funds in account %d", accountIdx)
+		account, err := r.wallet.NewAccount(&accountIdx)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		r.log.Printf("Attempting to receive pendings in account %s", account.Address())
+		history, _, err := r.wallet.RPC.AccountHistory(account.Address(), 10, nil)
+		if err != nil {
+			if _, ok := err.(*json.UnmarshalTypeError); !ok {
+				return stacktrace.Propagate(err, "failed to retrieve history for account %v", account.Address())
+			}
+			history = []rpc.AccountHistory{}
+		}
+		if len(history) == 0 {
+			r.log.Println("Account has no history, which means there are no funds beyond here, giving up")
+			return nil
+		}
+		err = account.ReceivePendings()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		balance, _, err := account.Balance()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		if balance.Cmp(big.NewInt(0)) == 0 {
+			r.log.Printf("No balance in account %s, continuing to next account", account.Address())
+			continue
+		}
+		r.log.Printf("Sending all balance in account %s to collector account", account.Address())
+		r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+			_, err = account.Send(collectorAccount.Address(), balance)
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "")
 		}
 	}
 }

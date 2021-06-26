@@ -187,17 +187,27 @@ func (e *EnqueueManager) ProcessPayments() error {
 			return stacktrace.Propagate(err, "failed to set ticket %v as paid", request.ID())
 		}
 
-		e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s", reqID, mi.Title(), mi.Length().String())
+		requestedByStr := "unknown"
+		if requestedBy != nil {
+			requestedByStr = requestedBy.Address()
+		}
+
+		e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
+			reqID,
+			mi.Title(),
+			mi.Length().String(),
+			requestedByStr,
+			balance.String())
 
 		go func(reqID string, request EnqueueTicket) {
 			t := e.statsClient.NewTiming()
 			defer t.Send("enqueue_ticket_final_operations")
 			err := request.PaymentAccount().ReceivePendings()
+			e.paymentAccountPendingWaitGroup.Done()
 			if err != nil {
 				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
 				return
 			}
-			e.paymentAccountPendingWaitGroup.Done()
 
 			if balance.Cmp(big.NewInt(0)) > 0 {
 				_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
