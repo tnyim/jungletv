@@ -199,28 +199,38 @@ func (e *EnqueueManager) ProcessPayments() error {
 			requestedByStr,
 			balance.String())
 
+		e.requestsLock.Lock()
+		defer e.requestsLock.Unlock()
+		delete(e.requests, reqID)
+
 		go func(reqID string, request EnqueueTicket) {
 			t := e.statsClient.NewTiming()
 			defer t.Send("enqueue_ticket_final_operations")
-			err := request.PaymentAccount().ReceivePendings()
-			e.paymentAccountPendingWaitGroup.Done()
-			if err != nil {
-				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
-				return
-			}
 
-			if balance.Cmp(big.NewInt(0)) > 0 {
-				_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
+			retry := 0
+			for ; retry < 3; retry++ {
+				err := request.PaymentAccount().ReceivePendings()
 				if err != nil {
-					e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
-					return
+					e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+					time.Sleep(1 * time.Second)
+					continue
 				}
+				if balance.Cmp(big.NewInt(0)) > 0 {
+					_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
+					if err != nil {
+						e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
+						time.Sleep(1 * time.Second)
+						continue
+					}
+				}
+				break
 			}
+			e.paymentAccountPendingWaitGroup.Done()
 
-			e.requestsLock.Lock()
-			defer e.requestsLock.Unlock()
-			delete(e.requests, reqID)
-			e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
+			if retry < 3 {
+				// only reuse the account if no funds got stuck there
+				e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
+			}
 		}(reqID, request)
 	}
 
