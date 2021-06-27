@@ -117,123 +117,130 @@ func (e *EnqueueManager) ProcessPayments() error {
 		return nil
 	}
 
-	now := time.Now()
 	for reqID, request := range requestCopy {
-		if request.Status() == proto.EnqueueMediaTicketStatus_PAID {
-			continue
-		}
-		if now.After(request.CreatedAt().Add(TicketExpiration).Add(1 * time.Minute)) {
-			func() {
-				e.requestsLock.Lock()
-				defer e.requestsLock.Unlock()
-				delete(e.requests, reqID)
-			}()
-			e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-			e.log.Printf("Purged ticket %s", reqID)
-			continue
-		}
-		t := e.statsClient.NewTiming()
-		defer t.Send("check_enqueue_ticket")
-
-		balance, pending, err := request.PaymentAccount().Balance()
+		err := processPaymentForTicket(reqID, request)
 		if err != nil {
-			return stacktrace.Propagate(err, "failed to check balance for account %v", request.PaymentAccount().Address())
+			stacktrace.Propagate(err, "")
 		}
-		balance.Add(balance, pending)
+	}
 
-		pricing := request.RequestPricing()
-		forceEnqueuing, forcedEnqueuingType := request.EnqueuingForced()
+	return nil
+}
 
-		var playFn func(MediaQueueEntry)
-		if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
-			playFn = e.mediaQueue.PlayNow
-		} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
-			playFn = e.mediaQueue.PlayAfterNext
-		} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
-			playFn = e.mediaQueue.Enqueue
-		} else {
-			// yet to receive enough money
-			continue
+func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTicket) error {
+	if request.Status() == proto.EnqueueMediaTicketStatus_PAID {
+		return nil
+	}
+	if time.Now().After(request.CreatedAt().Add(TicketExpiration).Add(1 * time.Minute)) {
+		func() {
+			e.requestsLock.Lock()
+			defer e.requestsLock.Unlock()
+			delete(e.requests, reqID)
+		}()
+		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
+		e.log.Printf("Purged ticket %s", reqID)
+		return nil
+	}
+	t := e.statsClient.NewTiming()
+	defer t.Send("check_enqueue_ticket")
+
+	balance, pending, err := request.PaymentAccount().Balance()
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to check balance for account %v", request.PaymentAccount().Address())
+	}
+	balance.Add(balance, pending)
+
+	pricing := request.RequestPricing()
+	forceEnqueuing, forcedEnqueuingType := request.EnqueuingForced()
+
+	var playFn func(MediaQueueEntry)
+	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
+		playFn = e.mediaQueue.PlayNow
+	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
+		playFn = e.mediaQueue.PlayAfterNext
+	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
+		playFn = e.mediaQueue.Enqueue
+	} else {
+		// yet to receive enough money
+		return nil
+	}
+	e.log.Printf("Ticket %s meets requirements for enqueuing", reqID)
+
+	t2 := e.statsClient.NewTiming()
+	defer t2.Send("enqueue_ticket")
+
+	requestedBy := request.RequestedBy()
+	if requestedBy.IsUnknown() && balance.Cmp(big.NewInt(0)) > 0 {
+		// requested by unauthenticated user, set the user to be who paid
+
+		// we must receive pendings otherwise the history might not contain the latest tx
+		err := request.PaymentAccount().ReceivePendings()
+		if err != nil {
+			e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+			return nil
 		}
-		e.log.Printf("Ticket %s meets requirements for enqueuing", reqID)
 
-		t2 := e.statsClient.NewTiming()
-		defer t2.Send("enqueue_ticket")
+		requestedBy, err = e.findUserWhoPaid(request.PaymentAccount())
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
 
-		requestedBy := request.RequestedBy()
-		if requestedBy.IsUnknown() && balance.Cmp(big.NewInt(0)) > 0 {
-			// requested by unauthenticated user, set the user to be who paid
+	// user can still be nil here, in case we couldn't find it in the last 10 account blocks
+	mi := request.MediaInfo()
+	e.paymentAccountPendingWaitGroup.Add(1)
+	playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable(), request.ID()))
 
-			// we must receive pendings otherwise the history might not contain the latest tx
+	err = request.SetPaid()
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to set ticket %v as paid", request.ID())
+	}
+
+	requestedByStr := "unknown"
+	if requestedBy != nil {
+		requestedByStr = requestedBy.Address()
+	}
+
+	e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
+		reqID,
+		mi.Title(),
+		mi.Length().String(),
+		requestedByStr,
+		balance.String())
+
+	e.requestsLock.Lock()
+	defer e.requestsLock.Unlock()
+	delete(e.requests, reqID)
+
+	go func(reqID string, request EnqueueTicket) {
+		t := e.statsClient.NewTiming()
+		defer t.Send("enqueue_ticket_final_operations")
+
+		retry := 0
+		for ; retry < 3; retry++ {
 			err := request.PaymentAccount().ReceivePendings()
 			if err != nil {
 				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+				time.Sleep(1 * time.Second)
 				continue
 			}
-
-			requestedBy, err = e.findUserWhoPaid(request.PaymentAccount())
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-		}
-
-		// user can still be nil here, in case we couldn't find it in the last 10 account blocks
-		mi := request.MediaInfo()
-		e.paymentAccountPendingWaitGroup.Add(1)
-		playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable(), request.ID()))
-
-		err = request.SetPaid()
-		if err != nil {
-			return stacktrace.Propagate(err, "failed to set ticket %v as paid", request.ID())
-		}
-
-		requestedByStr := "unknown"
-		if requestedBy != nil {
-			requestedByStr = requestedBy.Address()
-		}
-
-		e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
-			reqID,
-			mi.Title(),
-			mi.Length().String(),
-			requestedByStr,
-			balance.String())
-
-		e.requestsLock.Lock()
-		defer e.requestsLock.Unlock()
-		delete(e.requests, reqID)
-
-		go func(reqID string, request EnqueueTicket) {
-			t := e.statsClient.NewTiming()
-			defer t.Send("enqueue_ticket_final_operations")
-
-			retry := 0
-			for ; retry < 3; retry++ {
-				err := request.PaymentAccount().ReceivePendings()
+			if balance.Cmp(big.NewInt(0)) > 0 {
+				_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
 				if err != nil {
-					e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+					e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
 					time.Sleep(1 * time.Second)
 					continue
 				}
-				if balance.Cmp(big.NewInt(0)) > 0 {
-					_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
-					if err != nil {
-						e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
-						time.Sleep(1 * time.Second)
-						continue
-					}
-				}
-				break
 			}
-			e.paymentAccountPendingWaitGroup.Done()
+			break
+		}
+		e.paymentAccountPendingWaitGroup.Done()
 
-			if retry < 3 {
-				// only reuse the account if no funds got stuck there
-				e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-			}
-		}(reqID, request)
-	}
-
+		if retry < 3 {
+			// only reuse the account if no funds got stuck there
+			e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
+		}
+	}(reqID, request)
 	return nil
 }
 
