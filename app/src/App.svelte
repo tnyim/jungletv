@@ -8,7 +8,7 @@
 	import Homepage from "./Homepage.svelte";
 	import Moderate from "./Moderate.svelte";
 	import Navbar from "./Navbar.svelte";
-	import RewardsAddress from "./RewardsAddress.svelte";
+	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import { rewardAddress } from "./stores";
 
 	export let url = "";
@@ -33,7 +33,7 @@
 		<Route path="/" component={Homepage} />
 		<Route path="/about" component={About} />
 		<Route path="/enqueue" component={Enqueue} />
-		<Route path="/rewards/address" component={RewardsAddress} />
+		<Route path="/rewards/address" component={SetRewardsAddress} />
 		<Route path="/moderate" component={Moderate} />
 	</Router>
 </div>

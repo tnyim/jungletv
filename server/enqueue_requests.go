@@ -118,9 +118,9 @@ func (e *EnqueueManager) ProcessPayments() error {
 	}
 
 	for reqID, request := range requestCopy {
-		err := processPaymentForTicket(reqID, request)
+		err := e.processPaymentForTicket(reqID, request)
 		if err != nil {
-			stacktrace.Propagate(err, "")
+			return stacktrace.Propagate(err, "")
 		}
 	}
 

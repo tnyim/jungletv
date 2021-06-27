@@ -7,6 +7,8 @@ import (
 	"github.com/palantir/stacktrace"
 )
 
+const CurrentTokenVersion = 2
+
 // JWTManager generates and verifies access tokens
 type JWTManager struct {
 	secretKey []byte
@@ -24,7 +26,7 @@ func (manager *JWTManager) Generate(user *userInfo, tokenExpiration time.Time) (
 			ExpiresAt: tokenExpiration.Unix(),
 		},
 		userInfo:      *user,
-		ClaimsVersion: 1,
+		ClaimsVersion: CurrentTokenVersion,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -43,7 +45,7 @@ func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration t
 			PermissionLevel: AdminPermissionLevel,
 			Username:        username,
 		},
-		ClaimsVersion: 1,
+		ClaimsVersion: CurrentTokenVersion,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -71,6 +73,10 @@ func (manager *JWTManager) Verify(accessToken string) (*UserClaims, error) {
 	claims, ok := token.Claims.(*UserClaims)
 	if !ok {
 		return nil, stacktrace.NewError("invalid token claims")
+	}
+
+	if claims.ClaimsVersion != CurrentTokenVersion {
+		return nil, stacktrace.NewError("token claims version is outdated")
 	}
 
 	return claims, nil

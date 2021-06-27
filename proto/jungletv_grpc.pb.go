@@ -17,7 +17,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JungleTVClient interface {
-	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
+	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error)
 	EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error)
 	MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error)
 	ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error)
@@ -41,13 +41,36 @@ func NewJungleTVClient(cc grpc.ClientConnInterface) JungleTVClient {
 	return &jungleTVClient{cc}
 }
 
-func (c *jungleTVClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
-	out := new(SignInResponse)
-	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SignIn", in, out, opts...)
+func (c *jungleTVClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[0], "/jungletv.JungleTV/SignIn", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &jungleTVSignInClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_SignInClient interface {
+	Recv() (*SignInProgress, error)
+	grpc.ClientStream
+}
+
+type jungleTVSignInClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVSignInClient) Recv() (*SignInProgress, error) {
+	m := new(SignInProgress)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error) {
@@ -60,7 +83,7 @@ func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaReque
 }
 
 func (c *jungleTVClient) MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[0], "/jungletv.JungleTV/MonitorTicket", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[1], "/jungletv.JungleTV/MonitorTicket", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +115,7 @@ func (x *jungleTVMonitorTicketClient) Recv() (*EnqueueMediaTicket, error) {
 }
 
 func (c *jungleTVClient) ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[1], "/jungletv.JungleTV/ConsumeMedia", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[2], "/jungletv.JungleTV/ConsumeMedia", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +147,7 @@ func (x *jungleTVConsumeMediaClient) Recv() (*MediaConsumptionCheckpoint, error)
 }
 
 func (c *jungleTVClient) MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[2], "/jungletv.JungleTV/MonitorQueue", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[3], "/jungletv.JungleTV/MonitorQueue", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +197,7 @@ func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *Submit
 }
 
 func (c *jungleTVClient) ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[3], "/jungletv.JungleTV/ConsumeChat", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +277,7 @@ func (c *jungleTVClient) SetChatSettings(ctx context.Context, in *SetChatSetting
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
 type JungleTVServer interface {
-	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
+	SignIn(*SignInRequest, JungleTV_SignInServer) error
 	EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error)
 	MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error
 	ConsumeMedia(*ConsumeMediaRequest, JungleTV_ConsumeMediaServer) error
@@ -275,8 +298,8 @@ type JungleTVServer interface {
 type UnimplementedJungleTVServer struct {
 }
 
-func (UnimplementedJungleTVServer) SignIn(context.Context, *SignInRequest) (*SignInResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
+func (UnimplementedJungleTVServer) SignIn(*SignInRequest, JungleTV_SignInServer) error {
+	return status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
 func (UnimplementedJungleTVServer) EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnqueueMedia not implemented")
@@ -327,22 +350,25 @@ func RegisterJungleTVServer(s grpc.ServiceRegistrar, srv JungleTVServer) {
 	s.RegisterService(&_JungleTV_serviceDesc, srv)
 }
 
-func _JungleTV_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SignInRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _JungleTV_SignIn_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SignInRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(JungleTVServer).SignIn(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/jungletv.JungleTV/SignIn",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JungleTVServer).SignIn(ctx, req.(*SignInRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(JungleTVServer).SignIn(m, &jungleTVSignInServer{stream})
+}
+
+type JungleTV_SignInServer interface {
+	Send(*SignInProgress) error
+	grpc.ServerStream
+}
+
+type jungleTVSignInServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVSignInServer) Send(m *SignInProgress) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _JungleTV_EnqueueMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -578,10 +604,6 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*JungleTVServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SignIn",
-			Handler:    _JungleTV_SignIn_Handler,
-		},
-		{
 			MethodName: "EnqueueMedia",
 			Handler:    _JungleTV_EnqueueMedia_Handler,
 		},
@@ -615,6 +637,11 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SignIn",
+			Handler:       _JungleTV_SignIn_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "MonitorTicket",
 			Handler:       _JungleTV_MonitorTicket_Handler,

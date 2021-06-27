@@ -25,6 +25,74 @@ export namespace SignInRequest {
   }
 }
 
+export class SignInProgress extends jspb.Message {
+  hasVerification(): boolean;
+  clearVerification(): void;
+  getVerification(): SignInVerification | undefined;
+  setVerification(value?: SignInVerification): void;
+
+  hasResponse(): boolean;
+  clearResponse(): void;
+  getResponse(): SignInResponse | undefined;
+  setResponse(value?: SignInResponse): void;
+
+  hasExpired(): boolean;
+  clearExpired(): void;
+  getExpired(): SignInVerificationExpired | undefined;
+  setExpired(value?: SignInVerificationExpired): void;
+
+  getStepCase(): SignInProgress.StepCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignInProgress.AsObject;
+  static toObject(includeInstance: boolean, msg: SignInProgress): SignInProgress.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignInProgress, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignInProgress;
+  static deserializeBinaryFromReader(message: SignInProgress, reader: jspb.BinaryReader): SignInProgress;
+}
+
+export namespace SignInProgress {
+  export type AsObject = {
+    verification?: SignInVerification.AsObject,
+    response?: SignInResponse.AsObject,
+    expired?: SignInVerificationExpired.AsObject,
+  }
+
+  export enum StepCase {
+    STEP_NOT_SET = 0,
+    VERIFICATION = 1,
+    RESPONSE = 2,
+    EXPIRED = 3,
+  }
+}
+
+export class SignInVerification extends jspb.Message {
+  getVerificationRepresentativeAddress(): string;
+  setVerificationRepresentativeAddress(value: string): void;
+
+  hasExpiration(): boolean;
+  clearExpiration(): void;
+  getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignInVerification.AsObject;
+  static toObject(includeInstance: boolean, msg: SignInVerification): SignInVerification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignInVerification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignInVerification;
+  static deserializeBinaryFromReader(message: SignInVerification, reader: jspb.BinaryReader): SignInVerification;
+}
+
+export namespace SignInVerification {
+  export type AsObject = {
+    verificationRepresentativeAddress: string,
+    expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
 export class SignInResponse extends jspb.Message {
   getAuthToken(): string;
   setAuthToken(value: string): void;
@@ -48,6 +116,22 @@ export namespace SignInResponse {
   export type AsObject = {
     authToken: string,
     tokenExpiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class SignInVerificationExpired extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignInVerificationExpired.AsObject;
+  static toObject(includeInstance: boolean, msg: SignInVerificationExpired): SignInVerificationExpired.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignInVerificationExpired, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignInVerificationExpired;
+  static deserializeBinaryFromReader(message: SignInVerificationExpired, reader: jspb.BinaryReader): SignInVerificationExpired;
+}
+
+export namespace SignInVerificationExpired {
+  export type AsObject = {
   }
 }
 

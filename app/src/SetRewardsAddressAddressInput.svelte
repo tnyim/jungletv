@@ -1,13 +1,14 @@
 <script lang="ts">
-    import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
-    import { navigate, link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import { createEventDispatcher } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
+    import Wizard from "./Wizard.svelte";
     import { rewardAddress } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
-    import Wizard from "./Wizard.svelte";
 
-    let failureReason: string = "";
+    const dispatch = createEventDispatcher();
+
+    export let failureReason: string = "";
     let successful = false;
     let rewardsAddress: string = "";
 
@@ -23,36 +24,27 @@
         }
     })();
 
-    let submitPromise = (async () => {})();
-
-    function submit() {
-        failureReason = "";
-        successful = false;
-        submitPromise = (async () => {
-            if (rewardsAddress === "") {
-                apiClient.signOut();
-                successful = true;
-                rewardAddress.update((_) => rewardsAddress);
-                return;
-            }
-            try {
-                await apiClient.signIn(rewardsAddress);
-                successful = true;
-                rewardAddress.update((_) => rewardsAddress);
-            } catch (ex) {
-                if (ex === "invalid reward address") {
-                    failureReason = "Invalid address for rewards. Make sure this is a valid Banano address.";
-                } else if (ex === "rate limit reached") {
-                    failureReason = "Rate limited due to too many attempts to set an address for rewards.";
-                } else {
-                    failureReason = "Failed to save address due to internal error.";
-                }
-            }
-        })();
+    async function handleEnter(event: KeyboardEvent) {
+        if (event.key === "Enter") {
+            await submit();
+            return false;
+        }
+        return true;
     }
 
-    function closeRewards() {
-        navigate("/");
+    async function submit() {
+        if (rewardsAddress === "") {
+            apiClient.signOut();
+            successful = true;
+            rewardAddress.update((_) => rewardsAddress);
+            return;
+        }
+
+        dispatch("addressInput", rewardsAddress);
+    }
+
+    function cancel() {
+        dispatch("userCanceled");
     }
 </script>
 
@@ -84,6 +76,7 @@
                         failureReason = "";
                         successful = false;
                     }}
+                    on:keydown={handleEnter}
                     type="text"
                     name="rewards_address"
                     id="rewards_address"
@@ -102,40 +95,25 @@
                     <SuccessMessage>
                         Successfully removed rewards address. You won't receive rewards anymore.
                     </SuccessMessage>
-                {:else}
-                    <SuccessMessage>
-                        Successfully updated rewards address. If you are watching JungleTV in another window or tab,
-                        please refresh it to ensure you'll be rewarded.<br />
-                        <a use:link href="/" class="text-blue-600 hover:underline">Begin watching</a>
-                    </SuccessMessage>
                 {/if}
             {/if}
+            <p class="text-sm text-gray-700 mt-2">Setting an address will also allow you to chat with other users.</p>
         {/await}
     </div>
     <div slot="buttons">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={closeRewards}
+            on:click={cancel}
         >
-            Close
+            Cancel
         </button>
-        {#await submitPromise}
-            <button
-                disabled
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
-            >
-                <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="1s" /></span>
-                Saving
-            </button>
-        {:then}
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-                on:click={submit}
-            >
-                Save
-            </button>
-        {/await}
+        <button
+            type="submit"
+            class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
+            on:click={submit}
+        >
+            Next
+        </button>
     </div>
 </Wizard>

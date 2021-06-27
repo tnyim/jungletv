@@ -8,9 +8,9 @@ type JungleTVSignIn = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
-  readonly responseStream: false;
+  readonly responseStream: true;
   readonly requestType: typeof jungletv_pb.SignInRequest;
-  readonly responseType: typeof jungletv_pb.SignInResponse;
+  readonly responseType: typeof jungletv_pb.SignInProgress;
 };
 
 type JungleTVEnqueueMedia = {
@@ -170,15 +170,7 @@ export class JungleTVClient {
   readonly serviceHost: string;
 
   constructor(serviceHost: string, options?: grpc.RpcOptions);
-  signIn(
-    requestMessage: jungletv_pb.SignInRequest,
-    metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SignInResponse|null) => void
-  ): UnaryResponse;
-  signIn(
-    requestMessage: jungletv_pb.SignInRequest,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SignInResponse|null) => void
-  ): UnaryResponse;
+  signIn(requestMessage: jungletv_pb.SignInRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.SignInProgress>;
   enqueueMedia(
     requestMessage: jungletv_pb.EnqueueMediaRequest,
     metadata: grpc.Metadata,

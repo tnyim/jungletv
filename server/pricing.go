@@ -10,7 +10,7 @@ import (
 var BananoUnit *big.Int = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(29), big.NewInt(0)) // 100000000000000000000000000000
 
 // BaseEnqueuePrice is the price to enqueue on an empty queue
-var BaseEnqueuePrice *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(1))
+var BaseEnqueuePrice *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(4))
 
 // PriceRoundingFactor is the rounding factor for enqueue prices
 var PriceRoundingFactor *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(100))
@@ -31,8 +31,8 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is 0 for videos under 6 minutes, 1 for videos with [6, 10[ minutes, 5 for videos with [10, 14[ minutes, 12 for videos with [14, 20[ minutes, 20 for videos with [20, 25[ minutes, 40 for videos with [25, 30] minutes
 	// UnskippableFactor is 19 if unskippable, else 0
-	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.05) + LengthPenalty) * UnskippableFactor
-	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 50 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
+	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.06) + LengthPenalty) * UnskippableFactor
+	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 60 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
 	queueLength := mediaQueue.Length() - 1

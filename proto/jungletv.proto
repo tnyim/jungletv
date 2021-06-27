@@ -8,7 +8,7 @@ import "google/protobuf/duration.proto";
 package jungletv;
 
 service JungleTV {
-    rpc SignIn (SignInRequest) returns (SignInResponse) {}
+    rpc SignIn (SignInRequest) returns (stream SignInProgress) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
     rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
     rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
@@ -29,10 +29,25 @@ message SignInRequest {
     string reward_address = 1;
 }
 
+message SignInProgress {
+    oneof step {
+        SignInVerification verification = 1;
+        SignInResponse response = 2;
+        SignInVerificationExpired expired = 3;
+    }
+}
+
+message SignInVerification {
+    string verification_representative_address = 1;
+    google.protobuf.Timestamp expiration = 2;
+}
+
 message SignInResponse {
     string auth_token = 1;
     google.protobuf.Timestamp token_expiration = 2;
 }
+
+message SignInVerificationExpired {}
 
 message EnqueueYouTubeVideoData {
     string id = 1;
