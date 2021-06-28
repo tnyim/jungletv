@@ -83,7 +83,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
-		Tokens:   3,
+		Tokens:   5,
 		Interval: 5 * time.Minute,
 	})
 	if err != nil {
