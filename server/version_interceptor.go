@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -11,15 +9,13 @@ import (
 
 // VersionInterceptor intercepts gRPC requests to add a header with the API version
 type VersionInterceptor struct {
-	versionHash string
+	version string
 }
 
 // NewVersionInterceptor returns a new VersionInterceptor
 func NewVersionInterceptor(version string) *VersionInterceptor {
-	h := sha256.New()
-	h.Write([]byte(version))
 	return &VersionInterceptor{
-		versionHash: base64.StdEncoding.EncodeToString(h.Sum(nil))[:10],
+		version: version,
 	}
 }
 
@@ -31,7 +27,7 @@ func (interceptor *VersionInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		err := grpc.SetHeader(ctx, metadata.Pairs("X-API-Version", interceptor.versionHash))
+		err := grpc.SetHeader(ctx, metadata.Pairs("X-API-Version", interceptor.version))
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +43,7 @@ func (interceptor *VersionInterceptor) Stream() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		err := grpc.SetHeader(stream.Context(), metadata.Pairs("X-API-Version", interceptor.versionHash))
+		err := grpc.SetHeader(stream.Context(), metadata.Pairs("X-API-Version", interceptor.version))
 		if err != nil {
 			return err
 		}

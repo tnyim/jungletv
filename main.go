@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -30,6 +33,7 @@ var (
 
 	mainLog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	apiLog  = log.New(os.Stdout, "api ", log.Ldate|log.Ltime)
+	webLog  = log.New(os.Stdout, "web ", log.Ldate|log.Ltime)
 	authLog = log.New(os.Stdout, "auth ", log.Ldate|log.Ltime)
 
 	jwtManager *server.JWTManager
@@ -38,6 +42,8 @@ var (
 	GitCommit = "???"
 	// BuildDate is provided by govvv at compile-time
 	BuildDate = "???"
+
+	versionHash = ""
 )
 
 func main() {
@@ -182,6 +188,9 @@ func main() {
 }
 
 func init() {
+	h := sha256.New()
+	h.Write([]byte(BuildDate + GitCommit))
+	versionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
 	grpclog.SetLogger(apiLog)
 }
 
@@ -213,7 +222,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 }
 
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager, listenAddr string) (*http.Server, error) {
-	versionInterceptor := server.NewVersionInterceptor(BuildDate + GitCommit)
+	versionInterceptor := server.NewVersionInterceptor(versionHash)
 	authInterceptor := server.NewAuthInterceptor(jwtManager, &authorizer{})
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
@@ -258,6 +267,8 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 }
 
 func configureRouter(router *mux.Router) {
+	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
+
 	router.HandleFunc("/admin/signin", authInitHandler)
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
@@ -267,6 +278,14 @@ func configureRouter(router *mux.Router) {
 	router.PathPrefix("/apple-icon.png").Handler(http.FileServer(http.Dir("app/public/")))
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "app/public/index.html")
+		err := webtemplate.ExecuteTemplate(w, "index.template", struct {
+			VersionHash string
+		}{
+			VersionHash: versionHash,
+		})
+		if err != nil {
+			webLog.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}))
 }
