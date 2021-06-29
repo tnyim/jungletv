@@ -73,7 +73,10 @@
             <strong
                 >Setting your representative is a free operation that does not allow JungleTV - or anyone - to steal
                 your Banano or do anything nefarious with your address.</strong
-            >
+            > This is a temporary representative change that we will instruct you to undo immediately after
+            verification is complete.
+        </p>
+        <p class="mt-2">
             If in doubt, please ask for help in the
             <a href="https://chat.banano.cc" target="_blank" rel="noopener" class="text-blue-600 hover:underline"
                 >Banano Discord</a

@@ -19,11 +19,11 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600">
-            :(
+            ⏲💥😞
         </p>
     </div>
     <div slot="main-content">
-        <div class="mt-8">
+        <div>
             <ErrorMessage>
                 Verification not completed in time. Please try again.
             </ErrorMessage>

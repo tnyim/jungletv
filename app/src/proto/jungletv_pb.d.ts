@@ -41,6 +41,11 @@ export class SignInProgress extends jspb.Message {
   getExpired(): SignInVerificationExpired | undefined;
   setExpired(value?: SignInVerificationExpired): void;
 
+  hasAccountUnopened(): boolean;
+  clearAccountUnopened(): void;
+  getAccountUnopened(): SignInAccountUnopened | undefined;
+  setAccountUnopened(value?: SignInAccountUnopened): void;
+
   getStepCase(): SignInProgress.StepCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SignInProgress.AsObject;
@@ -57,6 +62,7 @@ export namespace SignInProgress {
     verification?: SignInVerification.AsObject,
     response?: SignInResponse.AsObject,
     expired?: SignInVerificationExpired.AsObject,
+    accountUnopened?: SignInAccountUnopened.AsObject,
   }
 
   export enum StepCase {
@@ -64,6 +70,7 @@ export namespace SignInProgress {
     VERIFICATION = 1,
     RESPONSE = 2,
     EXPIRED = 3,
+    ACCOUNT_UNOPENED = 4,
   }
 }
 
@@ -90,6 +97,22 @@ export namespace SignInVerification {
   export type AsObject = {
     verificationRepresentativeAddress: string,
     expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class SignInAccountUnopened extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignInAccountUnopened.AsObject;
+  static toObject(includeInstance: boolean, msg: SignInAccountUnopened): SignInAccountUnopened.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignInAccountUnopened, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignInAccountUnopened;
+  static deserializeBinaryFromReader(message: SignInAccountUnopened, reader: jspb.BinaryReader): SignInAccountUnopened;
+}
+
+export namespace SignInAccountUnopened {
+  export type AsObject = {
   }
 }
 

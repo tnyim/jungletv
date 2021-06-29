@@ -34,6 +34,7 @@ message SignInProgress {
         SignInVerification verification = 1;
         SignInResponse response = 2;
         SignInVerificationExpired expired = 3;
+        SignInAccountUnopened account_unopened = 4;
     }
 }
 
@@ -41,6 +42,8 @@ message SignInVerification {
     string verification_representative_address = 1;
     google.protobuf.Timestamp expiration = 2;
 }
+
+message SignInAccountUnopened {}
 
 message SignInResponse {
     string auth_token = 1;

@@ -56,10 +56,32 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 
 	expiration := time.Now().Add(5 * time.Minute)
 
-	err = stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_Verification{Verification: &proto.SignInVerification{
-		VerificationRepresentativeAddress: verifRep.Address(),
-		Expiration:                        timestamppb.New(expiration),
-	}}})
+	accountOpened := true
+	_, err = s.wallet.RPC.AccountRepresentative(r.RewardAddress)
+	if err != nil {
+		if err.Error() == "Account not found" {
+			accountOpened = false
+		} else {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	sendVerification := func() error {
+		return stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_Verification{Verification: &proto.SignInVerification{
+			VerificationRepresentativeAddress: verifRep.Address(),
+			Expiration:                        timestamppb.New(expiration),
+		}}})
+	}
+	sendAccountUnopened := func() error {
+		return stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_AccountUnopened{AccountUnopened: &proto.SignInAccountUnopened{}}})
+	}
+
+	if accountOpened {
+		err = sendVerification()
+	} else {
+		err = sendAccountUnopened()
+	}
+
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -79,6 +101,13 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		}
 		representative, err := s.wallet.RPC.AccountRepresentative(r.RewardAddress)
 		if err != nil {
+			if err.Error() == "Account not found" {
+				err = sendAccountUnopened()
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				continue
+			}
 			return stacktrace.Propagate(err, "")
 		}
 
@@ -96,6 +125,10 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 				return stacktrace.Propagate(err, "")
 			}
 			return nil
+		}
+		err = sendVerification()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
 		}
 	}
 

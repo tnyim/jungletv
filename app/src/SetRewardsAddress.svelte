@@ -6,6 +6,7 @@
     import SetRewardsAddressAddressInput from "./SetRewardsAddressAddressInput.svelte";
     import SetRewardsAddressVerification from "./SetRewardsAddressVerification.svelte";
     import SetRewardsAddressSuccess from "./SetRewardsAddressSuccess.svelte";
+    import SetRewardsAddressUnopenedAccount from "./SetRewardsAddressUnopenedAccount.svelte";
     import { rewardAddress } from "./stores";
     import { setCookie } from "./cookie_utils";
     import type { SignInProgress, SignInVerification } from "./proto/jungletv_pb";
@@ -22,6 +23,9 @@
     }
     function onUserCanceled() {
         step = 0;
+        if (monitorTicketRequest !== undefined) {
+            monitorTicketRequest.close();
+        }
     }
 
     onDestroy(() => {
@@ -33,7 +37,7 @@
 
     function monitorVerification() {
         monitorTicketRequest = apiClient.signIn(rewardsAddress, handleUpdate, (code, msg) => {
-            if (code == 0) {
+            if (code == 0 || step == 3 || step == 2) {
                 return;
             }
             step = 0;
@@ -53,10 +57,18 @@
             step = 1;
         } else if (p.hasExpired()) {
             step = 3;
+            if (monitorTicketRequest !== undefined) {
+                monitorTicketRequest.close();
+            }
         } else if (p.hasResponse()) {
             setCookie("auth-token", p.getResponse().getAuthToken(), p.getResponse().getTokenExpiration().toDate());
             rewardAddress.update((_) => rewardsAddress);
             step = 2;
+            if (monitorTicketRequest !== undefined) {
+                monitorTicketRequest.close();
+            }
+        } else if (p.hasAccountUnopened()) {
+            step = 4;
         }
     }
 </script>
@@ -73,4 +85,6 @@
     <SetRewardsAddressSuccess bind:rewardsAddress />
 {:else if step == 3}
     <SetRewardsAddressFailure on:tryAgain={onUserCanceled} />
+{:else if step == 4}
+    <SetRewardsAddressUnopenedAccount on:userCanceled={onUserCanceled} />
 {/if}

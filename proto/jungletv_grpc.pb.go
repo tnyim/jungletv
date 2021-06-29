@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // JungleTVClient is the client API for JungleTV service.
@@ -42,7 +43,7 @@ func NewJungleTVClient(cc grpc.ClientConnInterface) JungleTVClient {
 }
 
 func (c *jungleTVClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[0], "/jungletv.JungleTV/SignIn", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[0], "/jungletv.JungleTV/SignIn", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaReque
 }
 
 func (c *jungleTVClient) MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[1], "/jungletv.JungleTV/MonitorTicket", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[1], "/jungletv.JungleTV/MonitorTicket", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,7 @@ func (x *jungleTVMonitorTicketClient) Recv() (*EnqueueMediaTicket, error) {
 }
 
 func (c *jungleTVClient) ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[2], "/jungletv.JungleTV/ConsumeMedia", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[2], "/jungletv.JungleTV/ConsumeMedia", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (x *jungleTVConsumeMediaClient) Recv() (*MediaConsumptionCheckpoint, error)
 }
 
 func (c *jungleTVClient) MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[3], "/jungletv.JungleTV/MonitorQueue", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[3], "/jungletv.JungleTV/MonitorQueue", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *Submit
 }
 
 func (c *jungleTVClient) ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +348,7 @@ type UnsafeJungleTVServer interface {
 }
 
 func RegisterJungleTVServer(s grpc.ServiceRegistrar, srv JungleTVServer) {
-	s.RegisterService(&_JungleTV_serviceDesc, srv)
+	s.RegisterService(&JungleTV_ServiceDesc, srv)
 }
 
 func _JungleTV_SignIn_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -599,7 +600,10 @@ func _JungleTV_SetChatSettings_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-var _JungleTV_serviceDesc = grpc.ServiceDesc{
+// JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var JungleTV_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
 	Methods: []grpc.MethodDesc{
