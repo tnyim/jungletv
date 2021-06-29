@@ -338,7 +338,7 @@
 
 <style>
     .chat-max-height {
-        max-height: calc(100vh - 12rem);
+        max-height: max(250px, calc(100vh - 56.25vw - 4rem - 48px));
     }
     @media (min-width: 1024px) {
         .chat-max-height {
