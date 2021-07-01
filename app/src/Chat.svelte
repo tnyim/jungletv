@@ -214,12 +214,24 @@
     async function removeChatMessage(id: string) {
         await apiClient.removeChatMessage(id);
     }
+
+    async function copyToClipboard(content: string) {
+        try {
+            await navigator.clipboard.writeText(content);
+        } catch (err) {
+            console.error("Failed to copy!", err);
+        }
+    }
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
     <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
         {#each chatMessages as msg, idx}
-            <div transition:fade|local={{ duration: 200 }} id="chat-message-{msg.getId()}" class="transition-colors ease-in-out duration-1000">
+            <div
+                transition:fade|local={{ duration: 200 }}
+                id="chat-message-{msg.getId()}"
+                class="transition-colors ease-in-out duration-1000"
+            >
                 {#if shouldShowTimeSeparator(idx)}
                     <div class="mt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
                         <hr class="flex-1 ml-8" />
@@ -230,7 +242,9 @@
                 {#if msg.hasUserMessage()}
                     {#if msg.hasReference()}
                         <p
-                            class="text-gray-600 text-xs {shouldAddAdditionalPadding(idx) ? 'mt-2' : 'mt-1'} h-4 overflow-hidden cursor-pointer"
+                            class="text-gray-600 text-xs {shouldAddAdditionalPadding(idx)
+                                ? 'mt-2'
+                                : 'mt-1'} h-4 overflow-hidden cursor-pointer"
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
@@ -240,7 +254,11 @@
                             {@html marked.parseInline(msg.getReference().getUserMessage().getContent())}
                         </p>
                     {/if}
-                    <p class="{shouldAddAdditionalPadding(idx) && !msg.hasReference() ? 'mt-1.5' : 'mt-0.5'} break-words">
+                    <p
+                        class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
+                            ? 'mt-1.5'
+                            : 'mt-0.5'} break-words"
+                    >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                         {/if}
@@ -296,8 +314,18 @@
                 <div class="flex flex-row">
                     <div class="flex-grow px-2 text-xs">
                         Replying to
-                        <span class="font-mono" style="font-size: 0.70rem;"
+                        <span
+                            class="font-mono cursor-pointer"
+                            style="font-size: 0.70rem;"
+                            on:click={() =>
+                                copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
                             >{replyingToMessage.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                        >
+                        <span
+                            class="cursor-pointer text-gray-600"
+                            on:click={() =>
+                                copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
+                            >(click to copy address)</span
                         >
                         <div class="text-gray-600 overflow-hidden h-4">
                             {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
