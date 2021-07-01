@@ -30,7 +30,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 
 	user := UserClaimsFromContext(ctx)
 	var jwtToken string
-	expiry := time.Now().Add(30 * 24 * time.Hour)
+	expiry := time.Now().Add(180 * 24 * time.Hour)
 	if user != nil && permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[UserPermissionLevel] {
 		// keep permissions of authenticated user
 		jwtToken, err = s.jwtManager.Generate(&userInfo{
