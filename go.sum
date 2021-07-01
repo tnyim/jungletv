@@ -94,8 +94,8 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
-github.com/gbl08ma/gonano v0.1.16-0.20210522003405-90c1c1073110 h1:cUePH9PMvNXrB8enEqHfsQ7PYalgGbhI6YDdOC+w5ZI=
-github.com/gbl08ma/gonano v0.1.16-0.20210522003405-90c1c1073110/go.mod h1:W1N2kKmGAapnszg4Xof2YanS08rhy295cwiWeaCky/Y=
+github.com/gbl08ma/gonano v0.1.16-0.20210701214812-98f88a461f24 h1:d3NsWRY3i2464JKZRw7atJcWg4sEHFz+21abx4t91I0=
+github.com/gbl08ma/gonano v0.1.16-0.20210701214812-98f88a461f24/go.mod h1:W1N2kKmGAapnszg4Xof2YanS08rhy295cwiWeaCky/Y=
 github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87 h1:gFBfc6p+RorhDnkOjxTV39rlNBe91D/K8iXFw1g6haM=
 github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87/go.mod h1:D2JIFk6K7zwpu+7NQeg5EeFTuTtO0ush2qN2qH8bcww=
 github.com/gbl08ma/ssoclient v0.0.0-20180119211306-11586264f66c h1:nhfCEnG0RypK1xfd30Hp8EOftslW+94Uj2gg3SixeKQ=

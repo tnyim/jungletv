@@ -30,7 +30,9 @@
 
     onDestroy(() => {
         if (monitorTicketRequest !== undefined) {
-            monitorTicketRequest.close();
+            try {
+                monitorTicketRequest.close();
+            } catch {}
         }
     });
     let monitorTicketRequest: Request;

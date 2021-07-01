@@ -161,22 +161,25 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) {
 	r.receiveCollectorPending(requestCost)
 
-	for k := range eligible {
-		spectator := eligible[k]
-		sendFn := func(collectorAccount *wallet.Account) {
-			blockHash, err := collectorAccount.Send(spectator.user.Address(), amountForEach.Int)
-			if err != nil {
-				r.log.Printf("Error rewarding %s with %v: %v", spectator.user.Address(), amountForEach, err)
-			} else {
-				r.log.Printf("Rewarded %s with %v, block hash %s", spectator.user.Address(), amountForEach, blockHash.String())
-				spectator.onRewarded.Notify(amountForEach)
-			}
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+		destinations := []wallet.SendDestination{}
+		spectators := []*spectator{}
+		for k := range eligible {
+			spectator := eligible[k]
+			destinations = append(destinations, wallet.SendDestination{
+				Account: spectator.user.Address(),
+				Amount:  amountForEach.Int,
+			})
+			spectators = append(spectators, spectator)
 		}
-		select {
-		case r.collectorAccountQueue <- sendFn:
-			continue
-		case <-ctx.Done():
-			return
+		blockHashes, err := collectorAccount.SendMultiple(destinations)
+		if err != nil {
+			r.log.Printf("Error rewarding spectators: %v", err)
+		} else {
+			for i, hash := range blockHashes {
+				r.log.Printf("Rewarded %s with %v, block hash %s", spectators[i].user.Address(), amountForEach, hash.String())
+				spectators[i].onRewarded.Notify(amountForEach)
+			}
 		}
 	}
 }
