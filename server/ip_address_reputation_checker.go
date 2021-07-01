@@ -63,6 +63,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 	for {
 		select {
 		case addressToCheck := <-c.checkQueue:
+			time.Sleep(5 * time.Second) // "There's a rate limit 15 requests / minute"
 			url := fmt.Sprintf("http://check.getipintel.net/check.php?ip=%s&contact=gabriel@tny.im", addressToCheck)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
