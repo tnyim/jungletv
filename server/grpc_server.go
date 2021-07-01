@@ -324,6 +324,7 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
+	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
 	youTubeVideoEnqueueRequestPaymentSubsystemUnavailable
 	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
@@ -341,6 +342,15 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
+
+	for _, entry := range s.mediaQueue.Entries() {
+		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
+			if ytEntry.id == videoID {
+				return nil, youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
+			}
+		}
+	}
+
 	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status"}).Id(videoID).MaxResults(1).Do()
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")

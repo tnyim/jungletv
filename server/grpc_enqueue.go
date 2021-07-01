@@ -72,6 +72,8 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.Enq
 		failureReason = "Video can't be played outside of YouTube"
 	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:
 		failureReason = "Video is longer than 30 minutes"
+	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
+		failureReason = "Video is already in the queue"
 	case youTubeVideoEnqueueRequestPaymentSubsystemUnavailable:
 		failureReason = "The JungleTV payment subsystem is unavailable"
 	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:
