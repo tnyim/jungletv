@@ -257,7 +257,8 @@
                     <p
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
-                            : 'mt-0.5'} break-words"
+                            : 'mt-0.5'} break-words
+                            {msg.getUserMessage().getAuthor().getAddress() == rAddress ? 'bg-gray-100' : ''}"
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
