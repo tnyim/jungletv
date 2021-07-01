@@ -51,9 +51,10 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 
 func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge string) (err error) {
 	var spectator *spectator
+	var timeUntilChallengeSolved time.Duration
 	defer func() {
 		if err == nil && spectator != nil {
-			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "solved activity challenge")
+			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "solved activity challenge after", timeUntilChallengeSolved)
 		}
 	}()
 	r.spectatorsMutex.Lock()
@@ -70,6 +71,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 	spectator.lastActive = time.Now()
 	spectator.activityCheckTimer.Stop()
 	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
+	timeUntilChallengeSolved = time.Since(spectator.activityChallengeAt)
 	spectator.activityChallengeAt = time.Time{}
 	spectator.activityChallenge = ""
 
