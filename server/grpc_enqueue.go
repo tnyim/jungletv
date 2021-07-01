@@ -74,6 +74,10 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.Enq
 		failureReason = "Video is longer than 30 minutes"
 	case youTubeVideoEnqueueRequestPaymentSubsystemUnavailable:
 		failureReason = "The JungleTV payment subsystem is unavailable"
+	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:
+		failureReason = "Video enqueuing is currently disabled due to upcoming maintenance"
+	case youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly:
+		failureReason = "At this moment, only JungleTV staff can enqueue videos"
 	}
 
 	return &proto.EnqueueMediaResponse{

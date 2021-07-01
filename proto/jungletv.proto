@@ -23,6 +23,7 @@ service JungleTV {
     rpc RemoveQueueEntry(RemoveQueueEntryRequest) returns (RemoveQueueEntryResponse) {}
     rpc RemoveChatMessage(RemoveChatMessageRequest) returns (RemoveChatMessageResponse) {}
     rpc SetChatSettings(SetChatSettingsRequest) returns (SetChatSettingsResponse) {}
+    rpc SetVideoEnqueuingEnabled(SetVideoEnqueuingEnabledRequest) returns (SetVideoEnqueuingEnabledResponse) {}
 }
 
 message SignInRequest {
@@ -268,3 +269,15 @@ message SetChatSettingsRequest {
 }
 
 message SetChatSettingsResponse {}
+
+enum AllowedVideoEnqueuingType {
+    DISABLED = 0;
+    STAFF_ONLY = 1;
+    ENABLED = 2;
+}
+
+message SetVideoEnqueuingEnabledRequest {
+    AllowedVideoEnqueuingType allowed = 1;
+}
+
+message SetVideoEnqueuingEnabledResponse {}

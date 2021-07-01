@@ -32,6 +32,7 @@ type JungleTVClient interface {
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
 	RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error)
 	SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error)
+	SetVideoEnqueuingEnabled(ctx context.Context, in *SetVideoEnqueuingEnabledRequest, opts ...grpc.CallOption) (*SetVideoEnqueuingEnabledResponse, error)
 }
 
 type jungleTVClient struct {
@@ -274,6 +275,15 @@ func (c *jungleTVClient) SetChatSettings(ctx context.Context, in *SetChatSetting
 	return out, nil
 }
 
+func (c *jungleTVClient) SetVideoEnqueuingEnabled(ctx context.Context, in *SetVideoEnqueuingEnabledRequest, opts ...grpc.CallOption) (*SetVideoEnqueuingEnabledResponse, error) {
+	out := new(SetVideoEnqueuingEnabledResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetVideoEnqueuingEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -292,6 +302,7 @@ type JungleTVServer interface {
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
 	RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error)
 	SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error)
+	SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -337,6 +348,9 @@ func (UnimplementedJungleTVServer) RemoveChatMessage(context.Context, *RemoveCha
 }
 func (UnimplementedJungleTVServer) SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetChatSettings not implemented")
+}
+func (UnimplementedJungleTVServer) SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetVideoEnqueuingEnabled not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -600,6 +614,24 @@ func _JungleTV_SetChatSettings_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetVideoEnqueuingEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetVideoEnqueuingEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetVideoEnqueuingEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetVideoEnqueuingEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetVideoEnqueuingEnabled(ctx, req.(*SetVideoEnqueuingEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -638,6 +670,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetChatSettings",
 			Handler:    _JungleTV_SetChatSettings_Handler,
+		},
+		{
+			MethodName: "SetVideoEnqueuingEnabled",
+			Handler:    _JungleTV_SetVideoEnqueuingEnabled_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -71,3 +71,15 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 
 	return &proto.SetChatSettingsResponse{}, nil
 }
+
+func (s *grpcServer) SetVideoEnqueuingEnabled(ctx context.Context, r *proto.SetVideoEnqueuingEnabledRequest) (*proto.SetVideoEnqueuingEnabledResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.allowVideoEnqueuing = r.Allowed
+
+	return &proto.SetVideoEnqueuingEnabledResponse{}, nil
+}

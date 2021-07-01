@@ -121,6 +121,15 @@ type JungleTVSetChatSettings = {
   readonly responseType: typeof jungletv_pb.SetChatSettingsResponse;
 };
 
+type JungleTVSetVideoEnqueuingEnabled = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetVideoEnqueuingEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetVideoEnqueuingEnabledResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -136,6 +145,7 @@ export class JungleTV {
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
   static readonly SetChatSettings: JungleTVSetChatSettings;
+  static readonly SetVideoEnqueuingEnabled: JungleTVSetVideoEnqueuingEnabled;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -246,6 +256,15 @@ export class JungleTVClient {
   setChatSettings(
     requestMessage: jungletv_pb.SetChatSettingsRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetChatSettingsResponse|null) => void
+  ): UnaryResponse;
+  setVideoEnqueuingEnabled(
+    requestMessage: jungletv_pb.SetVideoEnqueuingEnabledRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetVideoEnqueuingEnabledResponse|null) => void
+  ): UnaryResponse;
+  setVideoEnqueuingEnabled(
+    requestMessage: jungletv_pb.SetVideoEnqueuingEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetVideoEnqueuingEnabledResponse|null) => void
   ): UnaryResponse;
 }
 

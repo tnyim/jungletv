@@ -39,6 +39,7 @@ type grpcServer struct {
 	signInRateLimiter              limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
 
+	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
@@ -71,6 +72,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
 		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
+		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            NewIPAddressReputationChecker(log),
 		ticketCheckPeriod:              ticketCheckPeriod,
 	}
@@ -251,7 +253,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					t.Reset(wait)
 				}
 			case <-t.C:
-				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos {
+				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := s.autoEnqueueNewVideo(ctx)
 						if err != nil {
@@ -323,9 +325,22 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestPaymentSubsystemUnavailable
+	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
+	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
 
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
+	isAdmin := false
+	user := UserClaimsFromContext(ctx)
+	if user != nil {
+		isAdmin = permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[AdminPermissionLevel]
+	}
+	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
+		return nil, youTubeVideoEnqueueRequestVideoEnqueuingDisabled, nil
+	}
+	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
+	}
 	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status"}).Id(videoID).MaxResults(1).Do()
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")

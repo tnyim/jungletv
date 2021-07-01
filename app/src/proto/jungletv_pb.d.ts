@@ -1182,6 +1182,42 @@ export namespace SetChatSettingsResponse {
   }
 }
 
+export class SetVideoEnqueuingEnabledRequest extends jspb.Message {
+  getAllowed(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
+  setAllowed(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetVideoEnqueuingEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetVideoEnqueuingEnabledRequest): SetVideoEnqueuingEnabledRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetVideoEnqueuingEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetVideoEnqueuingEnabledRequest;
+  static deserializeBinaryFromReader(message: SetVideoEnqueuingEnabledRequest, reader: jspb.BinaryReader): SetVideoEnqueuingEnabledRequest;
+}
+
+export namespace SetVideoEnqueuingEnabledRequest {
+  export type AsObject = {
+    allowed: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap],
+  }
+}
+
+export class SetVideoEnqueuingEnabledResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetVideoEnqueuingEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetVideoEnqueuingEnabledResponse): SetVideoEnqueuingEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetVideoEnqueuingEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetVideoEnqueuingEnabledResponse;
+  static deserializeBinaryFromReader(message: SetVideoEnqueuingEnabledResponse, reader: jspb.BinaryReader): SetVideoEnqueuingEnabledResponse;
+}
+
+export namespace SetVideoEnqueuingEnabledResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -1210,4 +1246,12 @@ export interface ChatDisabledReasonMap {
 }
 
 export const ChatDisabledReason: ChatDisabledReasonMap;
+
+export interface AllowedVideoEnqueuingTypeMap {
+  DISABLED: 0;
+  STAFF_ONLY: 1;
+  ENABLED: 2;
+}
+
+export const AllowedVideoEnqueuingType: AllowedVideoEnqueuingTypeMap;
 

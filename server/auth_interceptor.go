@@ -35,10 +35,11 @@ func NewAuthInterceptor(jwtManager *JWTManager, authorizer UserAuthorizer) *Auth
 			"/jungletv.JungleTV/RewardInfo":      UserPermissionLevel,
 			"/jungletv.JungleTV/SendChatMessage": UserPermissionLevel,
 
-			"/jungletv.JungleTV/ForciblyEnqueueTicket": AdminPermissionLevel,
-			"/jungletv.JungleTV/RemoveQueueEntry":      AdminPermissionLevel,
-			"/jungletv.JungleTV/RemoveChatMessage":     AdminPermissionLevel,
-			"/jungletv.JungleTV/SetChatSettings":       AdminPermissionLevel,
+			"/jungletv.JungleTV/ForciblyEnqueueTicket":    AdminPermissionLevel,
+			"/jungletv.JungleTV/RemoveQueueEntry":         AdminPermissionLevel,
+			"/jungletv.JungleTV/RemoveChatMessage":        AdminPermissionLevel,
+			"/jungletv.JungleTV/SetChatSettings":          AdminPermissionLevel,
+			"/jungletv.JungleTV/SetVideoEnqueuingEnabled": AdminPermissionLevel,
 		},
 		authorizer,
 	}
