@@ -78,3 +78,18 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 	delete(r.spectatorByActivityChallenge, challenge)
 	return nil
 }
+
+func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context, address string) {
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
+
+	spectators := r.spectatorsByRewardAddress[address]
+	for i := range spectators {
+		spectator := spectators[i]
+		if spectator.activityChallenge == "" {
+			spectator.lastActive = time.Now()
+			spectator.activityCheckTimer.Stop()
+			spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
+		}
+	}
+}
