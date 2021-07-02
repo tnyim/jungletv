@@ -128,8 +128,8 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 		return nil
 	}
 
-	removeSpectator := func(m map[string][]*spectator) {
-		slice := m[s.remoteAddress]
+	removeSpectator := func(m map[string][]*spectator, key string) {
+		slice := m[key]
 		newSlice := []*spectator{}
 		for i := range slice {
 			if slice[i] != s {
@@ -137,15 +137,15 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 			}
 		}
 		if len(newSlice) > 0 {
-			m[s.remoteAddress] = newSlice
+			m[key] = newSlice
 		} else {
-			delete(m, s.remoteAddress)
+			delete(m, key)
 		}
 	}
 
 	s.onDisconnected.Notify()
-	removeSpectator(r.spectatorsByRemoteAddress)
-	removeSpectator(r.spectatorsByRewardAddress)
+	removeSpectator(r.spectatorsByRemoteAddress, s.remoteAddress)
+	removeSpectator(r.spectatorsByRewardAddress, s.user.Address())
 	if s.activityChallenge != "" {
 		delete(r.spectatorByActivityChallenge, s.activityChallenge)
 	}
