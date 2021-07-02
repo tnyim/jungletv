@@ -191,6 +191,7 @@
 
     function replyToMessage(message: ChatMessage) {
         replyingToMessage = message;
+        composeTextArea.focus();
     }
     function clearReplyToMessage() {
         replyingToMessage = undefined;
