@@ -25,11 +25,6 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		return stacktrace.Propagate(err, "")
 	}
 
-	powTaskChan := make(<-chan WorkRequest)
-	if r.ParticipateInPow {
-		powTaskChan = s.workGenerator.TaskChannel()
-	}
-
 	errChan := make(chan error)
 
 	if user != nil {
@@ -73,8 +68,13 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+	lastPowTask := time.Time{}
 	for {
 		var powTask *WorkRequest
+		powTaskChan := make(<-chan WorkRequest)
+		if r.ParticipateInPow && time.Since(lastPowTask) > 30*time.Second {
+			powTaskChan = s.workGenerator.TaskChannel()
+		}
 		select {
 		case <-t.C:
 			break
@@ -86,6 +86,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			return err
 		case t := <-powTaskChan:
 			powTask = &t
+			lastPowTask = time.Now()
 			break
 		}
 		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
