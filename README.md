@@ -24,7 +24,7 @@ Feel free to take a look at the source code, report issues, or to maybe even mak
 # :moneybag: Donations
 If you would like to help support the development and operation of JungleTV, consider donating some potassium to the address below:
 
-![](https://github.com/tnyim/jungletv/raw/master/docs/assets/donation_qr.png)
+<img src="https://github.com/tnyim/jungletv/raw/master/docs/assets/donation_qr.png" width="200">
 
 ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
 
