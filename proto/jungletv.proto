@@ -132,7 +132,7 @@ message MediaConsumptionCheckpoint {
 }
 
 message ProofOfWorkTask {
-    fixed64 target = 1;
+    bytes target = 1;
     bytes previous = 2;
 }
 
@@ -159,7 +159,6 @@ message QueueEntry {
         QueueYouTubeVideoData youtube_video_data = 5;
     }
 }
-
 
 enum UserRole {
     MODERATOR = 0;

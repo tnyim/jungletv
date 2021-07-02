@@ -508,8 +508,10 @@ export namespace MediaConsumptionCheckpoint {
 }
 
 export class ProofOfWorkTask extends jspb.Message {
-  getTarget(): number;
-  setTarget(value: number): void;
+  getTarget(): Uint8Array | string;
+  getTarget_asU8(): Uint8Array;
+  getTarget_asB64(): string;
+  setTarget(value: Uint8Array | string): void;
 
   getPrevious(): Uint8Array | string;
   getPrevious_asU8(): Uint8Array;
@@ -528,7 +530,7 @@ export class ProofOfWorkTask extends jspb.Message {
 
 export namespace ProofOfWorkTask {
   export type AsObject = {
-    target: number,
+    target: Uint8Array | string,
     previous: Uint8Array | string,
   }
 }

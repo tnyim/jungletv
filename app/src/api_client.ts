@@ -3,7 +3,7 @@ import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap } from "./proto/jungletv_pb";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, SubmitProofOfWorkResponse, SubmitProofOfWorkRequest } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 
 class APIClient {
@@ -209,6 +209,13 @@ class APIClient {
         let request = new SetVideoEnqueuingEnabledRequest();
         request.setAllowed(allowed);
         return this.unaryRPC<SetVideoEnqueuingEnabledRequest, SetVideoEnqueuingEnabledResponse>(JungleTV.SetVideoEnqueuingEnabled, request);
+    }
+
+    async submitProofOfWork(previous: Uint8Array, work: Uint8Array): Promise<SubmitProofOfWorkResponse> {
+        let request = new SubmitProofOfWorkRequest();
+        request.setPrevious(previous);
+        request.setWork(work);
+        return this.unaryRPC<SubmitProofOfWorkRequest, SubmitProofOfWorkResponse>(JungleTV.SubmitProofOfWork, request);
     }
 
     formatBANPrice(raw: string): string {

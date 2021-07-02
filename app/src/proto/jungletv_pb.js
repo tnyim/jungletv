@@ -4584,7 +4584,7 @@ proto.jungletv.ProofOfWorkTask.prototype.toObject = function(opt_includeInstance
  */
 proto.jungletv.ProofOfWorkTask.toObject = function(includeInstance, msg) {
   var f, obj = {
-    target: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    target: msg.getTarget_asB64(),
     previous: msg.getPrevious_asB64()
   };
 
@@ -4623,7 +4623,7 @@ proto.jungletv.ProofOfWorkTask.deserializeBinaryFromReader = function(msg, reade
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readFixed64());
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setTarget(value);
       break;
     case 2:
@@ -4659,9 +4659,9 @@ proto.jungletv.ProofOfWorkTask.prototype.serializeBinary = function() {
  */
 proto.jungletv.ProofOfWorkTask.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getTarget();
-  if (f !== 0) {
-    writer.writeFixed64(
+  f = message.getTarget_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
       1,
       f
     );
@@ -4677,20 +4677,44 @@ proto.jungletv.ProofOfWorkTask.serializeBinaryToWriter = function(message, write
 
 
 /**
- * optional fixed64 target = 1;
- * @return {number}
+ * optional bytes target = 1;
+ * @return {!(string|Uint8Array)}
  */
 proto.jungletv.ProofOfWorkTask.prototype.getTarget = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /**
- * @param {number} value
+ * optional bytes target = 1;
+ * This is a type-conversion wrapper around `getTarget()`
+ * @return {string}
+ */
+proto.jungletv.ProofOfWorkTask.prototype.getTarget_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getTarget()));
+};
+
+
+/**
+ * optional bytes target = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getTarget()`
+ * @return {!Uint8Array}
+ */
+proto.jungletv.ProofOfWorkTask.prototype.getTarget_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getTarget()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
  * @return {!proto.jungletv.ProofOfWorkTask} returns this
  */
 proto.jungletv.ProofOfWorkTask.prototype.setTarget = function(value) {
-  return jspb.Message.setProto3IntField(this, 1, value);
+  return jspb.Message.setProto3BytesField(this, 1, value);
 };
 
 

@@ -25,7 +25,7 @@ type WorkGenerator struct {
 // WorkRequest is a single work task
 type WorkRequest struct {
 	Data   rpc.BlockHash
-	Target uint64
+	Target [8]byte
 }
 
 // NewWorkGenerator returns a new initialized WorkGenerator
@@ -56,9 +56,14 @@ func (w *WorkGenerator) DeliverWork(forPrevious [32]byte, work [8]byte) error {
 
 	// validate work
 	hash, _ := blake2b.New(8, nil)
-	hash.Write(work[:])
+	var workForValidation [8]byte
+	copy(workForValidation[:], work[:])
+	for i, j := 0, len(work)-1; i < j; i, j = i+1, j-1 {
+		workForValidation[i], workForValidation[j] = workForValidation[j], workForValidation[i]
+	}
+	hash.Write(workForValidation[:])
 	hash.Write(forPrevious[:])
-	if binary.LittleEndian.Uint64(hash.Sum(nil)) < task.Target {
+	if binary.LittleEndian.Uint64(hash.Sum(nil)) < binary.LittleEndian.Uint64(task.Target[:]) {
 		return stacktrace.NewError("invalid work")
 	}
 
@@ -68,7 +73,7 @@ func (w *WorkGenerator) DeliverWork(forPrevious [32]byte, work [8]byte) error {
 	return nil
 }
 
-func (w *WorkGenerator) requestWork(forPrevious [32]byte, target uint64) {
+func (w *WorkGenerator) requestWork(forPrevious [32]byte, target [8]byte) {
 	task := WorkRequest{
 		Data:   forPrevious[:],
 		Target: target,
@@ -94,7 +99,8 @@ func (w *WorkGenerator) SendMultiple(RPC rpc.Client, RPCWork rpc.Client, a *wall
 	if err != nil {
 		return
 	}
-	target := binary.BigEndian.Uint64(networkCurrent)
+	var target [8]byte
+	copy(target[:], networkCurrent)
 
 	for i := range blocks {
 		if len(blocks[i].Previous) != 32 {
@@ -105,7 +111,7 @@ func (w *WorkGenerator) SendMultiple(RPC rpc.Client, RPCWork rpc.Client, a *wall
 		w.requestWork(previous, target)
 	}
 
-	timeout := time.NewTimer(10 * time.Second)
+	timeout := time.NewTimer(15 * time.Second)
 	workDelivered := w.workDelivered.Subscribe(event.AtLeastOnceGuarantee)
 	defer w.workDelivered.Unsubscribe(workDelivered)
 	for {

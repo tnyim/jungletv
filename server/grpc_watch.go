@@ -93,7 +93,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		if powTask != nil {
 			cp.PowTask = &proto.ProofOfWorkTask{
 				Previous: powTask.Data,
-				Target:   powTask.Target,
+				Target:   powTask.Target[:],
 			}
 		}
 		err := send(cp)
