@@ -20,6 +20,7 @@ type WorkGenerator struct {
 	work          map[[32]byte][8]byte
 	workMutex     sync.RWMutex
 	workDelivered *event.Event
+	sendMutex     sync.Mutex
 }
 
 // WorkRequest is a single work task
@@ -90,6 +91,15 @@ func (w *WorkGenerator) requestWork(forPrevious [32]byte, target [8]byte) {
 
 // SendMultiple sends multiple amounts to multiple accounts. The caller must guarantee that no new blocks are created for this account until this function returns
 func (w *WorkGenerator) SendMultiple(RPC rpc.Client, RPCWork rpc.Client, a *wallet.Account, destinations []wallet.SendDestination) (hashes []rpc.BlockHash, err error) {
+	w.sendMutex.Lock()
+	defer func() {
+		w.workMutex.Lock()
+		defer w.workMutex.Unlock()
+		w.work = make(map[[32]byte][8]byte)
+		w.activeTasks = make(map[[32]byte]WorkRequest)
+		w.sendMutex.Unlock()
+	}()
+
 	blocks, err := a.SendBlocks(destinations)
 	if err != nil {
 		return
@@ -140,8 +150,8 @@ func (w *WorkGenerator) SendMultiple(RPC rpc.Client, RPCWork rpc.Client, a *wall
 		var previousArray [32]byte
 		copy(previousArray[:], previous)
 		w.workMutex.RLock()
-		defer w.workMutex.RUnlock()
 		work, ok := w.work[previousArray]
+		w.workMutex.RUnlock()
 		if ok {
 			return work[:], nil
 		}
