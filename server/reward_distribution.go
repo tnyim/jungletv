@@ -115,7 +115,7 @@ func getUniquifiedIP(remoteAddress string) string {
 
 func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 	done := make(chan struct{})
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
 		defer func() { done <- struct{}{} }()
 		balance, pending, err := collectorAccount.Balance()
 		if err != nil {
@@ -161,7 +161,7 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) {
 	r.receiveCollectorPending(requestCost)
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
 		destinations := []wallet.SendDestination{}
 		spectators := []*spectator{}
 		for k := range eligible {
@@ -172,7 +172,7 @@ func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string
 			})
 			spectators = append(spectators, spectator)
 		}
-		blockHashes, err := collectorAccount.SendMultiple(destinations)
+		blockHashes, err := r.workGenerator.SendMultiple(RPC, RPCWork, collectorAccount, destinations)
 		if err != nil {
 			r.log.Printf("Error rewarding spectators: %v", err)
 		} else {
@@ -191,7 +191,7 @@ func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string,
 		return
 	}
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
 		blockHash, err := collectorAccount.Send(address, amount.Int)
 		if err != nil {
 			r.log.Printf("Error reimbursing %s with %v: %v", address, amount.Int, err)
@@ -233,7 +233,7 @@ func (r *RewardsHandler) desperatelyTryToFindFundsStuckInPaymentAccounts() error
 			continue
 		}
 		r.log.Printf("Sending all balance in account %s to collector account", account.Address())
-		r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+		r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
 			_, err = account.Send(collectorAccount.Address(), balance)
 		}
 		if err != nil {

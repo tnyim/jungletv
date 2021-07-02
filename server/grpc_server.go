@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/rickb777/date/period"
@@ -32,7 +33,7 @@ type grpcServer struct {
 	statsClient                    *statsd.Client
 	wallet                         *wallet.Wallet
 	collectorAccount               *wallet.Account
-	collectorAccountQueue          chan func(*wallet.Account)
+	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	jwtManager                     *JWTManager
 	enqueueRequestRateLimiter      limiter.Store
@@ -49,6 +50,7 @@ type grpcServer struct {
 	rewardsHandler *RewardsHandler
 	statsHandler   *StatsHandler
 	chat           *ChatManager
+	workGenerator  *WorkGenerator
 
 	youtube *youtube.Service
 }
@@ -68,7 +70,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		statsClient:                    statsClient,
 		jwtManager:                     jwtManager,
 		mediaQueue:                     mediaQueue,
-		collectorAccountQueue:          make(chan func(*wallet.Account), 10000),
+		workGenerator:                  NewWorkGenerator(),
+		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
 		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
@@ -111,7 +114,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	s.rewardsHandler, err = NewRewardsHandler(
-		log, statsClient, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
+		log, statsClient, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue,
+		s.workGenerator, s.paymentAccountPendingWaitGroup)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -172,7 +176,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case f := <-s.collectorAccountQueue:
-				f(s.collectorAccount)
+				f(s.collectorAccount, s.wallet.RPC, s.wallet.RPCWork)
 			case <-ctx.Done():
 				s.log.Println("Collector account worker done")
 				return

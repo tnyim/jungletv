@@ -85,6 +85,15 @@ type JungleTVSendChatMessage = {
   readonly responseType: typeof jungletv_pb.SendChatMessageResponse;
 };
 
+type JungleTVSubmitProofOfWork = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SubmitProofOfWorkRequest;
+  readonly responseType: typeof jungletv_pb.SubmitProofOfWorkResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -141,6 +150,7 @@ export class JungleTV {
   static readonly SubmitActivityChallenge: JungleTVSubmitActivityChallenge;
   static readonly ConsumeChat: JungleTVConsumeChat;
   static readonly SendChatMessage: JungleTVSendChatMessage;
+  static readonly SubmitProofOfWork: JungleTVSubmitProofOfWork;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -220,6 +230,15 @@ export class JungleTVClient {
   sendChatMessage(
     requestMessage: jungletv_pb.SendChatMessageRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SendChatMessageResponse|null) => void
+  ): UnaryResponse;
+  submitProofOfWork(
+    requestMessage: jungletv_pb.SubmitProofOfWorkRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitProofOfWorkResponse|null) => void
+  ): UnaryResponse;
+  submitProofOfWork(
+    requestMessage: jungletv_pb.SubmitProofOfWorkRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitProofOfWorkResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

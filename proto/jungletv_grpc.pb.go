@@ -27,6 +27,7 @@ type JungleTVClient interface {
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
 	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
+	SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -239,6 +240,15 @@ func (c *jungleTVClient) SendChatMessage(ctx context.Context, in *SendChatMessag
 	return out, nil
 }
 
+func (c *jungleTVClient) SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error) {
+	out := new(SubmitProofOfWorkResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SubmitProofOfWork", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -297,6 +307,7 @@ type JungleTVServer interface {
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
 	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
+	SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -336,6 +347,9 @@ func (UnimplementedJungleTVServer) ConsumeChat(*ConsumeChatRequest, JungleTV_Con
 }
 func (UnimplementedJungleTVServer) SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendChatMessage not implemented")
+}
+func (UnimplementedJungleTVServer) SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitProofOfWork not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -542,6 +556,24 @@ func _JungleTV_SendChatMessage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SubmitProofOfWork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitProofOfWorkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SubmitProofOfWork(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SubmitProofOfWork",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SubmitProofOfWork(ctx, req.(*SubmitProofOfWorkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -654,6 +686,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendChatMessage",
 			Handler:    _JungleTV_SendChatMessage_Handler,
+		},
+		{
+			MethodName: "SubmitProofOfWork",
+			Handler:    _JungleTV_SubmitProofOfWork_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

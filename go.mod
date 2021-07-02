@@ -21,6 +21,7 @@ require (
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/sethvargo/go-limiter v0.6.0
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0

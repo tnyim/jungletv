@@ -375,6 +375,9 @@ export namespace MonitorTicketRequest {
 }
 
 export class ConsumeMediaRequest extends jspb.Message {
+  getParticipateInPow(): boolean;
+  setParticipateInPow(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConsumeMediaRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ConsumeMediaRequest): ConsumeMediaRequest.AsObject;
@@ -387,6 +390,7 @@ export class ConsumeMediaRequest extends jspb.Message {
 
 export namespace ConsumeMediaRequest {
   export type AsObject = {
+    participateInPow: boolean,
   }
 }
 
@@ -456,6 +460,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getActivityChallenge(): string;
   setActivityChallenge(value: string): void;
 
+  hasPowTask(): boolean;
+  clearPowTask(): void;
+  getPowTask(): ProofOfWorkTask | undefined;
+  setPowTask(value?: ProofOfWorkTask): void;
+
   hasStubData(): boolean;
   clearStubData(): void;
   getStubData(): NowPlayingStubData | undefined;
@@ -486,6 +495,7 @@ export namespace MediaConsumptionCheckpoint {
     currentlyWatching: number,
     reward: string,
     activityChallenge: string,
+    powTask?: ProofOfWorkTask.AsObject,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
   }
@@ -494,6 +504,32 @@ export namespace MediaConsumptionCheckpoint {
     MEDIA_INFO_NOT_SET = 0,
     STUB_DATA = 9,
     YOUTUBE_VIDEO_DATA = 10,
+  }
+}
+
+export class ProofOfWorkTask extends jspb.Message {
+  getTarget(): number;
+  setTarget(value: number): void;
+
+  getPrevious(): Uint8Array | string;
+  getPrevious_asU8(): Uint8Array;
+  getPrevious_asB64(): string;
+  setPrevious(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ProofOfWorkTask.AsObject;
+  static toObject(includeInstance: boolean, msg: ProofOfWorkTask): ProofOfWorkTask.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ProofOfWorkTask, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ProofOfWorkTask;
+  static deserializeBinaryFromReader(message: ProofOfWorkTask, reader: jspb.BinaryReader): ProofOfWorkTask;
+}
+
+export namespace ProofOfWorkTask {
+  export type AsObject = {
+    target: number,
+    previous: Uint8Array | string,
   }
 }
 
@@ -1214,6 +1250,50 @@ export class SetVideoEnqueuingEnabledResponse extends jspb.Message {
 }
 
 export namespace SetVideoEnqueuingEnabledResponse {
+  export type AsObject = {
+  }
+}
+
+export class SubmitProofOfWorkRequest extends jspb.Message {
+  getPrevious(): Uint8Array | string;
+  getPrevious_asU8(): Uint8Array;
+  getPrevious_asB64(): string;
+  setPrevious(value: Uint8Array | string): void;
+
+  getWork(): Uint8Array | string;
+  getWork_asU8(): Uint8Array;
+  getWork_asB64(): string;
+  setWork(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitProofOfWorkRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitProofOfWorkRequest): SubmitProofOfWorkRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitProofOfWorkRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitProofOfWorkRequest;
+  static deserializeBinaryFromReader(message: SubmitProofOfWorkRequest, reader: jspb.BinaryReader): SubmitProofOfWorkRequest;
+}
+
+export namespace SubmitProofOfWorkRequest {
+  export type AsObject = {
+    previous: Uint8Array | string,
+    work: Uint8Array | string,
+  }
+}
+
+export class SubmitProofOfWorkResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitProofOfWorkResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitProofOfWorkResponse): SubmitProofOfWorkResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitProofOfWorkResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitProofOfWorkResponse;
+  static deserializeBinaryFromReader(message: SubmitProofOfWorkResponse, reader: jspb.BinaryReader): SubmitProofOfWorkResponse;
+}
+
+export namespace SubmitProofOfWorkResponse {
   export type AsObject = {
   }
 }

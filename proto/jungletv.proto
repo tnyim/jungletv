@@ -17,6 +17,7 @@ service JungleTV {
     rpc SubmitActivityChallenge (SubmitActivityChallengeRequest) returns (SubmitActivityChallengeResponse) {}
     rpc ConsumeChat (ConsumeChatRequest) returns (stream ChatUpdate) {}
     rpc SendChatMessage (SendChatMessageRequest) returns (SendChatMessageResponse) {}
+    rpc SubmitProofOfWork (SubmitProofOfWorkRequest) returns (SubmitProofOfWorkResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -105,6 +106,7 @@ message MonitorTicketRequest {
 }
 
 message ConsumeMediaRequest {
+    bool participate_in_pow = 1;
 }
 
 // NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
@@ -122,10 +124,16 @@ message MediaConsumptionCheckpoint {
     uint32 currently_watching = 5;
     optional string reward = 6;
     optional string activity_challenge = 7;
+    optional ProofOfWorkTask pow_task = 8;
     oneof media_info {
         NowPlayingStubData stub_data = 9;
         NowPlayingYouTubeVideoData youtube_video_data = 10;
     }
+}
+
+message ProofOfWorkTask {
+    fixed64 target = 1;
+    bytes previous = 2;
 }
 
 message MonitorQueueRequest {}
@@ -281,3 +289,11 @@ message SetVideoEnqueuingEnabledRequest {
 }
 
 message SetVideoEnqueuingEnabledResponse {}
+
+message SubmitProofOfWorkRequest {
+    bytes previous = 1;
+    bytes work = 2;
+}
+
+message SubmitProofOfWorkResponse {
+}

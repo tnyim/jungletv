@@ -30,7 +30,7 @@
         });
     });
     function consumeMedia() {
-        consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
+        consumeMediaRequest = apiClient.consumeMedia(false, handleCheckpoint, (code, msg) => {
             playerConnected.update(() => false);
             activityChallengeReceived.update((_) => "");
             setTimeout(consumeMedia, 5000);

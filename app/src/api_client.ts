@@ -123,10 +123,12 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    consumeMedia(participateInPOW: boolean, onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        let request = new ConsumeMediaRequest();
+        request.setParticipateInPow(participateInPOW);
         return this.serverStreamingRPC<ConsumeMediaRequest, MediaConsumptionCheckpoint>(
             JungleTV.ConsumeMedia,
-            new ConsumeMediaRequest(),
+            request,
             onCheckpoint,
             onEnd);
     }

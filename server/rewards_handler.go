@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/utils/event"
@@ -20,7 +21,8 @@ type RewardsHandler struct {
 	mediaQueue                     *MediaQueue
 	ipReputationChecker            *IPAddressReputationChecker
 	wallet                         *wallet.Wallet
-	collectorAccountQueue          chan func(*wallet.Account)
+	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
+	workGenerator                  *WorkGenerator
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
 
@@ -63,7 +65,7 @@ func (s *spectator) OnActivityChallenge() *event.Event {
 }
 
 // NewRewardsHandler creates a new RewardsHandler
-func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account), paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
+func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client), workGenerator *WorkGenerator, paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -71,6 +73,7 @@ func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *
 		ipReputationChecker:            ipReputationChecker,
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
+		workGenerator:                  workGenerator,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
 
 		rewardsDistributed: event.New(),
