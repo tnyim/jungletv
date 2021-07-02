@@ -83,7 +83,7 @@
     </div>
     {#if sidebarExpanded || !largeScreen}
         <div
-            class="flex flex-col overflow-hidden lg:shadow-xl bg-white lg:w-96 lg:z-10"
+            class="flex flex-col overflow-hidden lg:shadow-xl bg-white dark:bg-gray-900 dark:text-white lg:w-96 lg:z-10"
             transition:fly|local={{ x: 384, duration: sidebarOpenCloseAnimDuration, easing: cubicOut }}
             on:introstart={sidebarOpenStart}
             on:introend={sidebarOpenEnd}

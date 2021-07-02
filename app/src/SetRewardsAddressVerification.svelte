@@ -46,12 +46,12 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Receive rewards</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             We will provide better instructions for this step in the future. If you get stuck, please ask for help in
             the Banano Discord.
         </p>
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             For now, a few hints:<br />
             To do this in <strong>Kalium</strong>, start by selecting the right account, then open the side bar and
             select <strong>Change Representative</strong>.<br />

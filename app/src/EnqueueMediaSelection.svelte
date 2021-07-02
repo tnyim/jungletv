@@ -49,19 +49,19 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Enqueue a video</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             You can add most YouTube videos to the JungleTV programming. There is a minimum price to enqueue each video,
             which depends on its length, the number of videos in queue, and the current JungleTV viewership.
         </p>
-        <p class="mt-1 text-sm text-gray-600">Longer videos suffer an increasing price penalty.</p>
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Longer videos suffer an increasing price penalty.</p>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             The amount you pay will be distributed among eligible spectators by the time your video ends. If none are
             around by then, you will be reimbursed.
         </p>
     </div>
     <div slot="main-content">
-        <label for="youtube_video_link" class="block text-sm font-medium text-gray-700"> YouTube video URL </label>
+        <label for="youtube_video_link" class="block text-sm font-medium text-gray-700 dark:text-gray-300"> YouTube video URL </label>
         <div class="mt-1 flex rounded-md shadow-sm">
             <input
                 on:input={() => (failureReason = "")}
@@ -69,7 +69,7 @@
                 type="text"
                 name="youtube_video_link"
                 id="youtube_video_link"
-                class="focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border {failureReason !==
+                class="dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border {failureReason !==
                 ''
                     ? 'border-red-600'
                     : 'border-gray-300'} p-2"
@@ -91,11 +91,11 @@
                         name="unskippable"
                         type="checkbox"
                         bind:checked={unskippable}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded"
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
                     />
                 </div>
                 <div class="ml-3 text-sm">
-                    <label for="unskippable" class="font-medium text-gray-700"> Make video unskippable </label>
+                    <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300"> Make video unskippable</label>
                     <p class="text-gray-500">
                         Prevent this video from being skipped even if users pay enough to do so.<br />
                         <span class="font-semibold">

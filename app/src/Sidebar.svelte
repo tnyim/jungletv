@@ -25,7 +25,7 @@
 
 <div class="px-2 pt-1 pb-2 cursor-default relative">
     <div
-        class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 hover:bg-gray-200 w-10 h-10 z-20 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+        class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-20 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={() => dispatch("collapseSidebar")}
     >
         <i class="fas fa-angle-double-right" />

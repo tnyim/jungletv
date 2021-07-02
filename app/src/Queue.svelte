@@ -48,7 +48,7 @@
 
 <div class="lg:overflow-y-auto">
     {#each queueEntries as entry, i}
-        <div class="px-2 py-1 flex flex-row text-sm hover:bg-gray-200 cursor-default">
+        <div class="px-2 py-1 flex flex-row text-sm hover:bg-gray-200 dark:hover:bg-gray-800 cursor-default">
             <div class="w-32 flex-shrink-0 thumbnail">
                 <img
                     src={entry.getYoutubeVideoData().getThumbnailUrl()}

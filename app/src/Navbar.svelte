@@ -42,7 +42,7 @@
 <nav
     class="top-0 fixed z-50 {navbarOpen
         ? 'h-auto'
-        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow"
+        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
 >
     <div class="container max-w-none w-full px-4 mx-auto flex flex-wrap items-center justify-between">
         <div class="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
@@ -106,7 +106,7 @@
             <ul class="flex flex-col lg:flex-row list-none lg:ml-auto">
                 <li class="flex items-center">
                     <a
-                        class="text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-gray-900 dark:text-gray-300 text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/about"
                     >
@@ -117,7 +117,7 @@
 
                 <li class="flex items-center">
                     <a
-                        class="text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-gray-900 dark:text-purple-500 text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/rewards/address"
                     >
@@ -128,7 +128,7 @@
 
                 <li class="flex items-center">
                     <a
-                        class="bg-yellow-400 text-white text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-500 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-yellow-600 bg-yellow-400 text-white text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/enqueue"
                     >

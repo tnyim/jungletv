@@ -50,21 +50,21 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Receive rewards</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             At the end of every video, the amount paid to enqueue the video is distributed evenly among eligible users.
         </p>
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Some videos have e.g. regional restrictions and may not display for you. You will still be rewarded as long
             as you keep the JungleTV page open throughout the duration of the video.
         </p>
-        <p class="mt-1 text-sm text-gray-600">Fraud prevention measures apply.</p>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Fraud prevention measures apply.</p>
     </div>
     <div slot="main-content">
         {#await rewardInfoPromise}
             <p>Loading...</p>
         {:then}
-            <label for="rewards_address" class="block text-sm font-medium text-gray-700">
+            <label for="rewards_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Banano address for rewards
                 {#if rewardsAddress != ""}
                     (leave blank to stop receiving rewards)
@@ -80,7 +80,7 @@
                     type="text"
                     name="rewards_address"
                     id="rewards_address"
-                    class="focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border {failureReason !==
+                    class="dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border {failureReason !==
                     ''
                         ? 'border-red-600'
                         : 'border-gray-300'} p-2"
@@ -97,7 +97,7 @@
                     </SuccessMessage>
                 {/if}
             {/if}
-            <p class="text-sm text-gray-700 mt-2">Setting an address will also allow you to chat with other users.</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">Setting an address will also allow you to chat with other users.</p>
         {/await}
     </div>
     <div slot="buttons">

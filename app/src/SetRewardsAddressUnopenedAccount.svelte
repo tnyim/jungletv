@@ -12,11 +12,11 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Receive rewards</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             In Banano, accounts (addresses) must receive a transaction before they are "opened" and their representative can be changed.
         </p>
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             After you open the account, JungleTV will ask you to temporarily change its representative to a random address it will specify, in order to prove that you own this account.
         </p>
     </div>

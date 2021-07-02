@@ -9,13 +9,24 @@
 	import Moderate from "./Moderate.svelte";
 	import Navbar from "./Navbar.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
-	import { rewardAddress } from "./stores";
+	import { darkMode, rewardAddress } from "./stores";
 
 	export let url = "";
 
 	apiClient.setAuthNeededCallback(() => {
 		//navigate("/auth/login");
 	});
+
+	darkMode.subscribe((enabled) => {
+		if (enabled) {
+			document.documentElement.classList.add('dark');
+			document.documentElement.classList.add('bg-gray-900');
+		} else {
+			document.documentElement.classList.remove('dark');
+			document.documentElement.classList.remove('bg-gray-900');
+		}
+		localStorage.darkMode = enabled;
+	})
 
 	onMount(async () => {
 		try {
@@ -28,7 +39,7 @@
 </script>
 
 <Navbar />
-<div class="flex justify-center lg:min-h-screen pt-16 bg-gray-100">
+<div class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900 dark:text-gray-300">
 	<Router {url}>
 		<Route path="/" component={Homepage} />
 		<Route path="/about" component={About} />

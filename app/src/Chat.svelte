@@ -6,7 +6,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import { rewardAddress } from "./stores";
+    import { darkMode, rewardAddress } from "./stores";
     import { DateTime } from "luxon";
     import marked from "marked/lib/marked.esm.js";
 
@@ -162,6 +162,10 @@
             return;
         }
         composedMessage = "";
+        if (msg == "/lightsout") {
+            darkMode.update(v => !v);
+            return;
+        }
         let refMsg = replyingToMessage;
         clearReplyToMessage();
         sentMsgFlag = true;
@@ -206,7 +210,11 @@
             behavior: "smooth",
         });
         msgElement.classList.add("bg-yellow-100");
-        setTimeout(() => msgElement.classList.remove("bg-yellow-100"), 2000);
+        msgElement.classList.add("dark:bg-yellow-800");
+        setTimeout(() => {
+            msgElement.classList.remove("bg-yellow-100");
+            msgElement.classList.remove("dark:bg-yellow-800");
+        }, 2000);
     }
     function focusOnInit(el: HTMLElement) {
         el.focus();
@@ -234,7 +242,7 @@
                 class="transition-colors ease-in-out duration-1000"
             >
                 {#if shouldShowTimeSeparator(idx)}
-                    <div class="mt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
+                    <div class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center">
                         <hr class="flex-1 ml-8" />
                         <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
                         <hr class="flex-1 mr-8" />
@@ -243,7 +251,7 @@
                 {#if msg.hasUserMessage()}
                     {#if msg.hasReference()}
                         <p
-                            class="text-gray-600 text-xs {shouldAddAdditionalPadding(idx)
+                            class="text-gray-600 dark:text-gray-400 text-xs {shouldAddAdditionalPadding(idx)
                                 ? 'mt-2'
                                 : 'mt-1'} h-4 overflow-hidden cursor-pointer"
                             on:click={() => highlightMessage(msg.getReference())}
@@ -259,7 +267,7 @@
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
                             : 'mt-0.5'} break-words
-                            {msg.getUserMessage().getAuthor().getAddress() == rAddress ? 'bg-gray-100' : ''}"
+                            {msg.getUserMessage().getAuthor().getAddress() == rAddress ? 'bg-gray-100 dark:bg-gray-800' : ''}"
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
@@ -278,13 +286,13 @@
                             on:click={() => replyToMessage(msg)}
                             >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-                            <i class="fas fa-shield-alt text-xs ml-1 text-purple-700" title="Chat moderator" />{/if}:
+                            <i class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500" title="Chat moderator" />{/if}:
                         {@html marked.parseInline(msg.getUserMessage().getContent())}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
                         <div class="flex-1" />
-                        <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm text-center">
+                        <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded-sm text-center">
                             {@html marked.parseInline(msg.getSystemMessage().getContent())}
                         </div>
                         <div class="flex-1" />
@@ -299,11 +307,11 @@
     </div>
     <div class="border-t border-gray-300 shadow-md">
         {#if rAddress == ""}
-            <div class="p-2 text-gray-600">
+            <div class="p-2 text-gray-600 dark:text-gray-400">
                 <a href="/rewards/address" use:link class="text-blue-600 hover:underline">Set a reward address</a> to chat.
             </div>
         {:else if !chatEnabled}
-            <div class="p-2 text-gray-600">
+            <div class="p-2 text-gray-600 dark:text-gray-400">
                 Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
             </div>
         {:else}
@@ -324,18 +332,18 @@
                             >{replyingToMessage.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >
                         <span
-                            class="cursor-pointer text-gray-600"
+                            class="cursor-pointer text-gray-600 dark:text-gray-400"
                             on:click={() =>
                                 copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
                             >(click to copy address)</span
                         >
-                        <div class="text-gray-600 overflow-hidden h-4">
+                        <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-4">
                             {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
                         </div>
                     </div>
                     <button
                         title="Stop replying"
-                        class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                        class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ease-linear transition-all duration-150"
                         on:click={clearReplyToMessage}
                     >
                         <i class="fas fa-times-circle" />
@@ -349,14 +357,14 @@
                     bind:value={composedMessage}
                     on:keydown={handleEnter}
                     use:focusOnInit
-                    class="flex-grow p-2 resize-none max-h-32 focus:outline-none"
+                    class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
                     placeholder="Say something..."
                     maxlength="512"
                 />
 
                 <button
                     title="Send message"
-                    class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                    class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
                     on:click={sendMessage}
                 >
                     <i class="fas fa-paper-plane" />

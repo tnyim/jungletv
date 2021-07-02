@@ -19,8 +19,8 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Enqueue a video</h3>
-        <p class="mt-1 text-sm text-gray-600">You just made JungleTV more interesting!</p>
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">You just made JungleTV more interesting!</p>
     </div>
     <div slot="main-content">
         <div class="px-2 py-1 flex flex-row space-x-1 shadow-sm rounded-md border border-gray-300">
@@ -32,7 +32,7 @@
             </div>
             <div class="flex flex-col flex-grow">
                 <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
             </div>
         </div>
         <p class="mt-8">Video enqueued successfully! Thank you!</p>

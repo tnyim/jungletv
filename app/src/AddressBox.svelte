@@ -23,21 +23,21 @@
 
 <div class="flex justify-center">
     <div
-        class="bg-white focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2 overflow-auto"
+        class="bg-white dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2 overflow-auto"
         on:click={selectAddress}
     >
         {address}
     </div>
     {#if allowQR}
         <button
-            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
             on:click={() => {showQR = !showQR}}
         >
             <i class="fas fa-qrcode" />
         </button>
     {/if}
     <button
-        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
         on:click={copyAddress}
         disabled={!navigator.clipboard}
     >
