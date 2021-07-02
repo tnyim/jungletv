@@ -1,4 +1,7 @@
-# :tv: JungleTV :banana:
+# Welcome to JungleTV 
+
+![](https://jungletv.live/assets/brand/logo.svg)
+
 ![GitHub top language](https://img.shields.io/github/languages/top/tnyim/jungletv?style=plastic)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/tnyim/jungletv?style=plastic)
 ![GitHub](https://img.shields.io/github/license/tnyim/jungletv?style=plastic)
@@ -21,7 +24,8 @@ Feel free to take a look at the source code, report issues, or to maybe even mak
 # :moneybag: Donations
 If you would like to help support the development and operation of JungleTV, consider donating some potassium to the address below:
 
-![](./assets/Donation_QR.png)
+![](https://jungletv.live/assets/brand/Donation_QR.png)
+
 ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
 
 
