@@ -1,9 +1,10 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { rewardAddress, rewardReceived } from "./stores";
+    import { darkMode, rewardAddress, rewardReceived } from "./stores";
     import { fade, fly } from "svelte/transition";
     import { globalHistory } from "svelte-navigator";
+    import Toggle from "svelte-toggle";
     const historyStore = { subscribe: globalHistory.listen };
 
     let navbarOpen = false;
@@ -104,6 +105,19 @@
                 </li>
             </ul>
             <ul class="flex flex-col lg:flex-row list-none lg:ml-auto">
+                <li class="flex items-center">
+                    <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
+                        <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
+                        <Toggle
+                            bind:toggled={$darkMode}
+                            hideLabel
+                            label="Toggle dark mode"
+                            toggledColor="#6b7280"
+                            untoggledColor="#6b7280"
+                        />
+                        <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
+                    </div>
+                </li>
                 <li class="flex items-center">
                     <a
                         class="dark:bg-gray-900 dark:text-gray-300 text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"

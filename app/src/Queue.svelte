@@ -80,7 +80,7 @@
                             target="_blank">Watch on YouTube</a
                         >{/if}
                     <br />
-                    <span class="text-xs text-gray-600 font-semibold"
+                    <span class="text-xs text-gray-600 dark:text-gray-300 font-semibold"
                         >{entry.getYoutubeVideoData().getChannelTitle()}</span
                     >
                 </p>
