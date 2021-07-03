@@ -145,6 +145,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	s.log.Printf("Chat message from %s %s: %s", m.Author.Address(), RemoteAddressFromContext(ctx), m.Content)
 	return &proto.SendChatMessageResponse{
 		Id: m.ID.Int64(),
 	}, nil
