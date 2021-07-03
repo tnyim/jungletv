@@ -63,12 +63,12 @@
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
         {#if latestActivityChallenge != ""}
             <div
-                class="absolute left-0 top-3/4 w-72 bg-white flex flex-row p-2 rounded-r space-x-2"
+                class="absolute left-0 top-3/4 w-72 bg-white dark:bg-gray-900 flex flex-row p-2 rounded-r space-x-2"
                 transition:fly|local={{ x: -384, duration: 400 }}
             >
                 <div>
                     <h3>Are you still watching?</h3>
-                    <p class="text-xs text-gray-600">To receive rewards, confirm you're still watching.</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">To receive rewards, confirm you're still watching.</p>
                 </div>
                 <button
                     type="submit"
