@@ -69,6 +69,8 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 		s.chat.DisableChat(ChatDisabledReasonUnspecified)
 	}
 
+	s.chat.SetSlowModeEnabled(r.Slowmode)
+
 	return &proto.SetChatSettingsResponse{}, nil
 }
 

@@ -1188,6 +1188,9 @@ export class SetChatSettingsRequest extends jspb.Message {
   getEnabled(): boolean;
   setEnabled(value: boolean): void;
 
+  getSlowmode(): boolean;
+  setSlowmode(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SetChatSettingsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SetChatSettingsRequest): SetChatSettingsRequest.AsObject;
@@ -1201,6 +1204,7 @@ export class SetChatSettingsRequest extends jspb.Message {
 export namespace SetChatSettingsRequest {
   export type AsObject = {
     enabled: boolean,
+    slowmode: boolean,
   }
 }
 

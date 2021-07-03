@@ -199,9 +199,10 @@ class APIClient {
         return this.unaryRPC<RemoveChatMessageRequest, RemoveChatMessageResponse>(JungleTV.RemoveChatMessage, request);
     }
 
-    async setChatSettings(enabled: boolean): Promise<SetChatSettingsResponse> {
+    async setChatSettings(enabled: boolean, slowmode: boolean): Promise<SetChatSettingsResponse> {
         let request = new SetChatSettingsRequest();
         request.setEnabled(enabled);
+        request.setSlowmode(slowmode);
         return this.unaryRPC<SetChatSettingsRequest, SetChatSettingsResponse>(JungleTV.SetChatSettings, request);
     }
 

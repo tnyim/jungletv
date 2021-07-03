@@ -31,6 +31,7 @@
     let composedMessage = "";
     let replyingToMessage: ChatMessage;
     let sendError = false;
+    let sendErrorIsRateLimit = false;
     let chatEnabled = true;
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
@@ -173,6 +174,7 @@
             await apiClient.sendChatMessage(msg, refMsg);
         } catch (ex) {
             sendError = true;
+            sendErrorIsRateLimit = (ex instanceof Error && (ex as Error).toString().includes("rate limit reached"));
             setTimeout(() => (sendError = false), 5000);
         }
         composeTextArea.focus();
@@ -317,7 +319,13 @@
         {:else}
             {#if sendError}
                 <div class="px-2 text-xs">
-                    <ErrorMessage>Failed to send your message. Please try again.</ErrorMessage>
+                    <ErrorMessage>
+                        {#if sendErrorIsRateLimit}
+                        Failed to send your message. Please try again.
+                        {:else}
+                        You're going too fast. Slow down.
+                        {/if}
+                    </ErrorMessage>
                 </div>
             {/if}
             {#if replyingToMessage !== undefined}

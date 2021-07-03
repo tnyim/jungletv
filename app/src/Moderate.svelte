@@ -16,8 +16,8 @@
         await apiClient.forciblyEnqueueTicket(ticketID, ForcedTicketEnqueueType.PLAY_NOW);
     }
 
-    async function setChatEnabled(enabled: boolean) {
-        await apiClient.setChatSettings(enabled);
+    async function setChatEnabled(enabled: boolean, slowmode: boolean) {
+        await apiClient.setChatSettings(enabled, slowmode);
     }
 
     async function setVideoEnqueuingEnabled() {
@@ -91,18 +91,25 @@
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Chat</p>
-        <div class="px-2 grid grid-cols-2 gap-6">
+        <div class="px-2 grid grid-cols-3 gap-6">
             <button
                 type="submit"
                 class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => setChatEnabled(true)}
+                on:click={() => setChatEnabled(true, false)}
             >
                 Enable chat
             </button>
             <button
                 type="submit"
                 class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => setChatEnabled(false)}
+                on:click={() => setChatEnabled(true, true)}
+            >
+                Enable with slowmode
+            </button>
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => setChatEnabled(false, false)}
             >
                 Disable chat
             </button>

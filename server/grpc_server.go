@@ -345,7 +345,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 	isAdmin := false
 	user := UserClaimsFromContext(ctx)
 	if user != nil {
-		isAdmin = permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[AdminPermissionLevel]
+		isAdmin = permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[AdminPermissionLevel]
 	}
 	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingDisabled, nil

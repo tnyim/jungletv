@@ -9149,7 +9149,8 @@ proto.jungletv.SetChatSettingsRequest.prototype.toObject = function(opt_includeI
  */
 proto.jungletv.SetChatSettingsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    enabled: jspb.Message.getBooleanFieldWithDefault(msg, 1, false)
+    enabled: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+    slowmode: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -9190,6 +9191,10 @@ proto.jungletv.SetChatSettingsRequest.deserializeBinaryFromReader = function(msg
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEnabled(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSlowmode(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -9226,6 +9231,13 @@ proto.jungletv.SetChatSettingsRequest.serializeBinaryToWriter = function(message
       f
     );
   }
+  f = message.getSlowmode();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -9244,6 +9256,24 @@ proto.jungletv.SetChatSettingsRequest.prototype.getEnabled = function() {
  */
 proto.jungletv.SetChatSettingsRequest.prototype.setEnabled = function(value) {
   return jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional bool slowmode = 2;
+ * @return {boolean}
+ */
+proto.jungletv.SetChatSettingsRequest.prototype.getSlowmode = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.SetChatSettingsRequest} returns this
+ */
+proto.jungletv.SetChatSettingsRequest.prototype.setSlowmode = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 

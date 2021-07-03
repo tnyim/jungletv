@@ -41,9 +41,9 @@ func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration t
 			ExpiresAt: tokenExpiration.Unix(),
 		},
 		userInfo: userInfo{
-			RewardAddress:   "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt",
-			PermissionLevel: AdminPermissionLevel,
-			Username:        username,
+			RewardAddress: "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt",
+			PermLevel:     AdminPermissionLevel,
+			Username:      username,
 		},
 		ClaimsVersion: CurrentTokenVersion,
 	}

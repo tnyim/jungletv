@@ -19,13 +19,15 @@ import (
 
 // ChatManager handles the chat system
 type ChatManager struct {
-	log         *log.Logger
-	statsClient *statsd.Client
-	store       ChatStore
-	idNode      *snowflake.Node
-	rateLimiter limiter.Store
+	log                 *log.Logger
+	statsClient         *statsd.Client
+	store               ChatStore
+	idNode              *snowflake.Node
+	rateLimiter         limiter.Store
+	slowmodeRateLimiter limiter.Store
 
 	enabled        bool
+	slowmode       bool
 	disabledReason ChatDisabledReason
 	chatEnabled    *event.Event
 	chatDisabled   *event.Event
@@ -46,13 +48,23 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create rate limiter")
 	}
+
+	slowmodeRateLimiter, err := memorystore.New(&memorystore.Config{
+		Tokens:   1,
+		Interval: 20 * time.Second,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
+	}
+
 	return &ChatManager{
-		log:         log,
-		statsClient: statsClient,
-		store:       store,
-		idNode:      node,
-		rateLimiter: rateLimiter,
-		enabled:     true,
+		log:                 log,
+		statsClient:         statsClient,
+		store:               store,
+		idNode:              node,
+		rateLimiter:         rateLimiter,
+		slowmodeRateLimiter: slowmodeRateLimiter,
+		enabled:             true,
 
 		chatEnabled:    event.New(),
 		chatDisabled:   event.New(),
@@ -68,7 +80,14 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
 
-	_, _, _, ok, err := c.rateLimiter.Take(ctx, author.Address())
+	var ok bool
+	var err error
+	if c.slowmode && permissionLevelOrder[author.PermissionLevel()] < permissionLevelOrder[AdminPermissionLevel] {
+		_, _, _, ok, err = c.slowmodeRateLimiter.Take(ctx, author.Address())
+	} else {
+		_, _, _, ok, err = c.rateLimiter.Take(ctx, author.Address())
+	}
+
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -151,6 +170,10 @@ func (c *ChatManager) DisableChat(reason ChatDisabledReason) {
 		c.disabledReason = reason
 		c.chatDisabled.Notify(reason)
 	}
+}
+
+func (c *ChatManager) SetSlowModeEnabled(enabled bool) {
+	c.slowmode = enabled
 }
 
 // ChatMessage represents a single chat message

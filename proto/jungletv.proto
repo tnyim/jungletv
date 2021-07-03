@@ -273,6 +273,7 @@ message RemoveChatMessageResponse {}
 
 message SetChatSettingsRequest {
     bool enabled = 1;
+    bool slowmode = 2;
 }
 
 message SetChatSettingsResponse {}

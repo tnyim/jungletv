@@ -122,7 +122,7 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 		return ctx, authErr
 	}
 
-	if permissionLevelOrder[minPermissionLevel] > permissionLevelOrder[claims.PermissionLevel] {
+	if permissionLevelOrder[minPermissionLevel] > permissionLevelOrder[claims.PermLevel] {
 		return ctx, status.Errorf(codes.PermissionDenied, "no permission to access this RPC")
 	}
 
