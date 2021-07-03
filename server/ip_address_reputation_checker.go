@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 
@@ -19,15 +19,21 @@ type IPAddressReputationChecker struct {
 	reputation     map[string]float32
 	reputationLock sync.RWMutex
 
+	endpoint  string
+	authToken string
+
 	checkQueue chan string
 }
 
 // NewIPAddressReputationChecker initializes and returns a new IPAddressReputationChecker
-func NewIPAddressReputationChecker(log *log.Logger) *IPAddressReputationChecker {
+func NewIPAddressReputationChecker(log *log.Logger, endpoint, authToken string) *IPAddressReputationChecker {
 	return &IPAddressReputationChecker{
 		log:        log,
 		reputation: make(map[string]float32),
 		checkQueue: make(chan string, 1000),
+
+		endpoint:  endpoint,
+		authToken: authToken,
 	}
 }
 
@@ -63,13 +69,14 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 	for {
 		select {
 		case addressToCheck := <-c.checkQueue:
-			time.Sleep(5 * time.Second) // "There's a rate limit 15 requests / minute"
-			url := fmt.Sprintf("http://check.getipintel.net/check.php?ip=%s&contact=gabriel@tny.im", addressToCheck)
+			time.Sleep(5 * time.Second) // TODO this rate limit might not be needed anymore
+			url := fmt.Sprintf(c.endpoint, addressToCheck)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
 				c.log.Println("error building http request:", stacktrace.Propagate(err, ""))
 				continue
 			}
+			req.Header.Add("Authorization", "Bearer "+c.authToken)
 			resp, err := httpClient.Do(req)
 			if err != nil {
 				c.log.Println("error checking IP reputation:", stacktrace.Propagate(err, ""))
@@ -84,19 +91,26 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 				c.log.Println("error reading response body:", stacktrace.Propagate(err, ""))
 				continue
 			}
-			badActorConfidence, err := strconv.ParseFloat(string(body), 32)
+
+			var response struct {
+				Privacy struct {
+					Proxy bool `json:"proxy"`
+				} `json:"privacy"`
+			}
+
+			err = json.Unmarshal(body, &response)
 			if err != nil {
-				c.log.Println("error parsing confidence:", stacktrace.Propagate(err, ""))
+				c.log.Println("error parsing response:", stacktrace.Propagate(err, ""))
 				continue
 			}
 
-			if badActorConfidence >= 0 {
+			if response.Privacy.Proxy {
 				func() {
 					c.reputationLock.Lock()
 					defer c.reputationLock.Unlock()
-					c.reputation[addressToCheck] = float32(badActorConfidence)
+					c.reputation[addressToCheck] = 1.0
 				}()
-				c.log.Printf("Bad Actor Confidence for IP %v is %v", addressToCheck, badActorConfidence)
+				c.log.Printf("IP %v is bad actor", addressToCheck)
 			}
 		case <-ctx.Done():
 			return

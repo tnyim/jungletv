@@ -159,9 +159,19 @@ func main() {
 		ticketCheckPeriod = time.Duration(period) * time.Millisecond
 	}
 
+	ipCheckEndpoint, present := secrets.Get("ipCheckEndpoint")
+	if !present {
+		mainLog.Fatalln("IP check endpoint not present in keybox")
+	}
+
+	ipCheckToken, present := secrets.Get("ipCheckToken")
+	if !present {
+		mainLog.Fatalln("IP check token not present in keybox")
+	}
+
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod)
+		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod, ipCheckEndpoint, ipCheckToken)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
