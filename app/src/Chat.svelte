@@ -91,7 +91,7 @@
                 sentMsgFlag = false;
                 mustAutoScroll = true;
             }
-            chatMessages = chatMessages; // this triggers Svelte's reactivity
+            chatMessages = chatMessages.slice(Math.max(0, chatMessages.length - 250)); // this triggers Svelte's reactivity and removes old messages
         } else if (update.hasMessageDeleted()) {
             let deletedId = update.getMessageDeleted().getId();
             for (var i = chatMessages.length - 1; i >= 0; i--) {
