@@ -173,6 +173,7 @@
         try {
             await apiClient.sendChatMessage(msg, refMsg);
         } catch (ex) {
+            composedMessage = msg;
             sendError = true;
             sendErrorIsRateLimit = (ex instanceof Error && (ex as Error).toString().includes("rate limit reached"));
             setTimeout(() => (sendError = false), 5000);
