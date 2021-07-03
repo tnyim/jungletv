@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -119,7 +120,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
-	if len(r.Content) == 0 {
+	if len(strings.TrimSpace(r.Content)) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "message empty")
 	}
 	if len(r.Content) > 512 {

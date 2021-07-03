@@ -157,7 +157,7 @@
     }
 
     async function sendMessage() {
-        let msg = composedMessage;
+        let msg = composedMessage.trim();
         if (msg == "") {
             return;
         }
