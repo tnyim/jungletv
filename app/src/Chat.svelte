@@ -234,6 +234,15 @@
             console.error("Failed to copy!", err);
         }
     }
+
+    function getBackgroundColorForMessage(msg: ChatMessage): string {
+        if (msg.getUserMessage().getAuthor().getAddress() == rAddress) {
+            return 'bg-gray-100 dark:bg-gray-800';
+        } else if(msg.hasReference() && msg.getReference().getUserMessage().getAuthor().getAddress() == rAddress) {
+            return 'bg-yellow-100 dark:bg-yellow-800';
+        }
+        return "";
+    }
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
@@ -256,7 +265,8 @@
                         <p
                             class="text-gray-600 dark:text-gray-400 text-xs {shouldAddAdditionalPadding(idx)
                                 ? 'mt-2'
-                                : 'mt-1'} h-4 overflow-hidden cursor-pointer"
+                                : 'mt-1'} h-4 overflow-hidden cursor-pointer
+                                {getBackgroundColorForMessage(msg)}"
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
@@ -269,8 +279,8 @@
                     <p
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
-                            : 'mt-0.5'} break-words
-                            {msg.getUserMessage().getAuthor().getAddress() == rAddress ? 'bg-gray-100 dark:bg-gray-800' : ''}"
+                            : (msg.hasReference() ? 'pt-0.5' : 'mt-0.5')} break-words
+                            {getBackgroundColorForMessage(msg)}"
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
