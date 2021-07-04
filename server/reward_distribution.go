@@ -23,7 +23,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	rewardBudget := media.RequestCost()
 
 	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
-		r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.MediaInfo().Length())
 	go r.statsClient.Gauge("eligible", len(eligible))
 
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
@@ -64,7 +64,8 @@ func getEligibleSpectators(ctx context.Context,
 	c *IPAddressReputationChecker,
 	moderationStore ModerationStore,
 	spectatorsByRemoteAddress map[string][]*spectator,
-	exceptAddress string) map[string]*spectator {
+	exceptAddress string,
+	videoLength time.Duration) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -86,6 +87,8 @@ func getEligibleSpectators(ctx context.Context,
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
 
+	minAcceptableDuration := ((videoLength * 40) / 100)
+
 	for k := range spectatorsByUniquifiedRemoteAddress {
 		spectators := spectatorsByUniquifiedRemoteAddress[k]
 		// pick a random spectator to reward within this uniquified remote address
@@ -93,6 +96,11 @@ func getEligibleSpectators(ctx context.Context,
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
 		for j := range spectators {
+			// do not reward spectators who didn't watch at least 40% of the video
+			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
+				continue
+			}
 			// do not reward an inactive spectator
 			if spectators[j].activityChallenge != "" && time.Since(spectators[j].activityChallengeAt) > activityChallengeTolerance {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
