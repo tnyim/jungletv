@@ -7,5 +7,8 @@ type Amount struct {
 }
 
 func (a Amount) SerializeForAPI() string {
+	if a.Int == nil {
+		return "0"
+	}
 	return a.String()
 }

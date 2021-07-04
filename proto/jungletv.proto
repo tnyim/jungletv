@@ -155,10 +155,11 @@ message QueueYouTubeVideoData {
 message QueueEntry {
     string id = 1;
     User requested_by = 2;
-    google.protobuf.Duration length = 3;
-    bool unskippable = 4;
+    string request_cost = 3;
+    google.protobuf.Duration length = 4;
+    bool unskippable = 5;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 5;
+        QueueYouTubeVideoData youtube_video_data = 6;
     }
 }
 

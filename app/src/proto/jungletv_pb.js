@@ -5368,14 +5368,14 @@ proto.jungletv.QueueYouTubeVideoData.prototype.setChannelTitle = function(value)
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.QueueEntry.oneofGroups_ = [[5]];
+proto.jungletv.QueueEntry.oneofGroups_ = [[6]];
 
 /**
  * @enum {number}
  */
 proto.jungletv.QueueEntry.MediaInfoCase = {
   MEDIA_INFO_NOT_SET: 0,
-  YOUTUBE_VIDEO_DATA: 5
+  YOUTUBE_VIDEO_DATA: 6
 };
 
 /**
@@ -5418,8 +5418,9 @@ proto.jungletv.QueueEntry.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
     requestedBy: (f = msg.getRequestedBy()) && proto.jungletv.User.toObject(includeInstance, f),
+    requestCost: jspb.Message.getFieldWithDefault(msg, 3, ""),
     length: (f = msg.getLength()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    unskippable: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
+    unskippable: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.QueueYouTubeVideoData.toObject(includeInstance, f)
   };
 
@@ -5467,15 +5468,19 @@ proto.jungletv.QueueEntry.deserializeBinaryFromReader = function(msg, reader) {
       msg.setRequestedBy(value);
       break;
     case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRequestCost(value);
+      break;
+    case 4:
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setLength(value);
       break;
-    case 4:
+    case 5:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setUnskippable(value);
       break;
-    case 5:
+    case 6:
       var value = new proto.jungletv.QueueYouTubeVideoData;
       reader.readMessage(value,proto.jungletv.QueueYouTubeVideoData.deserializeBinaryFromReader);
       msg.setYoutubeVideoData(value);
@@ -5524,10 +5529,17 @@ proto.jungletv.QueueEntry.serializeBinaryToWriter = function(message, writer) {
       proto.jungletv.User.serializeBinaryToWriter
     );
   }
+  f = message.getRequestCost();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getLength();
   if (f != null) {
     writer.writeMessage(
-      3,
+      4,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
@@ -5535,14 +5547,14 @@ proto.jungletv.QueueEntry.serializeBinaryToWriter = function(message, writer) {
   f = message.getUnskippable();
   if (f) {
     writer.writeBool(
-      4,
+      5,
       f
     );
   }
   f = message.getYoutubeVideoData();
   if (f != null) {
     writer.writeMessage(
-      5,
+      6,
       f,
       proto.jungletv.QueueYouTubeVideoData.serializeBinaryToWriter
     );
@@ -5606,12 +5618,30 @@ proto.jungletv.QueueEntry.prototype.hasRequestedBy = function() {
 
 
 /**
- * optional google.protobuf.Duration length = 3;
+ * optional string request_cost = 3;
+ * @return {string}
+ */
+proto.jungletv.QueueEntry.prototype.getRequestCost = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.QueueEntry} returns this
+ */
+proto.jungletv.QueueEntry.prototype.setRequestCost = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration length = 4;
  * @return {?proto.google.protobuf.Duration}
  */
 proto.jungletv.QueueEntry.prototype.getLength = function() {
   return /** @type{?proto.google.protobuf.Duration} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 4));
 };
 
 
@@ -5620,7 +5650,7 @@ proto.jungletv.QueueEntry.prototype.getLength = function() {
  * @return {!proto.jungletv.QueueEntry} returns this
 */
 proto.jungletv.QueueEntry.prototype.setLength = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+  return jspb.Message.setWrapperField(this, 4, value);
 };
 
 
@@ -5638,16 +5668,16 @@ proto.jungletv.QueueEntry.prototype.clearLength = function() {
  * @return {boolean}
  */
 proto.jungletv.QueueEntry.prototype.hasLength = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
 /**
- * optional bool unskippable = 4;
+ * optional bool unskippable = 5;
  * @return {boolean}
  */
 proto.jungletv.QueueEntry.prototype.getUnskippable = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
 };
 
 
@@ -5656,17 +5686,17 @@ proto.jungletv.QueueEntry.prototype.getUnskippable = function() {
  * @return {!proto.jungletv.QueueEntry} returns this
  */
 proto.jungletv.QueueEntry.prototype.setUnskippable = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 4, value);
+  return jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
 /**
- * optional QueueYouTubeVideoData youtube_video_data = 5;
+ * optional QueueYouTubeVideoData youtube_video_data = 6;
  * @return {?proto.jungletv.QueueYouTubeVideoData}
  */
 proto.jungletv.QueueEntry.prototype.getYoutubeVideoData = function() {
   return /** @type{?proto.jungletv.QueueYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 5));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 6));
 };
 
 
@@ -5675,7 +5705,7 @@ proto.jungletv.QueueEntry.prototype.getYoutubeVideoData = function() {
  * @return {!proto.jungletv.QueueEntry} returns this
 */
 proto.jungletv.QueueEntry.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 5, proto.jungletv.QueueEntry.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 6, proto.jungletv.QueueEntry.oneofGroups_[0], value);
 };
 
 
@@ -5693,7 +5723,7 @@ proto.jungletv.QueueEntry.prototype.clearYoutubeVideoData = function() {
  * @return {boolean}
  */
 proto.jungletv.QueueEntry.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

@@ -100,6 +100,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI() *proto.QueueEntry {
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
 		Unskippable: e.unskippable,
+		RequestCost: e.requestCost.SerializeForAPI(),
 		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
 				Id:           e.id,

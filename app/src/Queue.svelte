@@ -78,7 +78,8 @@
                             class="text-blue-600 hover:underline"
                             href="https://www.youtube.com/watch?v={entry.getYoutubeVideoData().getId()}"
                             target="_blank">Watch on YouTube</a
-                        >{/if}
+                        >
+                    {/if}
                     <br />
                     <span class="text-xs text-gray-600 dark:text-gray-300 font-semibold"
                         >{entry.getYoutubeVideoData().getChannelTitle()}</span
@@ -104,7 +105,8 @@
                         Added by JungleTV (no reward)
                     {/if}
                     {#if mode == "moderation"}
-                        | <span
+                        | Request cost: {apiClient.formatBANPrice(entry.getRequestCost())} BAN |
+                        <span
                             class="text-blue-600 hover:underline cursor-pointer"
                             on:click={() => removeEntry(entry.getId())}>Remove</span
                         >
