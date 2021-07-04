@@ -164,7 +164,7 @@
         }
         composedMessage = "";
         if (msg == "/lightsout") {
-            darkMode.update(v => !v);
+            darkMode.update((v) => !v);
             return;
         }
         let refMsg = replyingToMessage;
@@ -175,7 +175,7 @@
         } catch (ex) {
             composedMessage = msg;
             sendError = true;
-            sendErrorIsRateLimit = (ex instanceof Error && (ex as Error).toString().includes("rate limit reached"));
+            sendErrorIsRateLimit = ex instanceof Error && (ex as Error).toString().includes("rate limit reached");
             setTimeout(() => (sendError = false), 5000);
         }
         composeTextArea.focus();
@@ -237,9 +237,9 @@
 
     function getBackgroundColorForMessage(msg: ChatMessage): string {
         if (msg.getUserMessage().getAuthor().getAddress() == rAddress) {
-            return 'bg-gray-100 dark:bg-gray-800';
-        } else if(msg.hasReference() && msg.getReference().getUserMessage().getAuthor().getAddress() == rAddress) {
-            return 'bg-yellow-100 dark:bg-yellow-800';
+            return "bg-gray-100 dark:bg-gray-800";
+        } else if (msg.hasReference() && msg.getReference().getUserMessage().getAuthor().getAddress() == rAddress) {
+            return "bg-yellow-100 dark:bg-yellow-800";
         }
         return "";
     }
@@ -254,7 +254,9 @@
                 class="transition-colors ease-in-out duration-1000"
             >
                 {#if shouldShowTimeSeparator(idx)}
-                    <div class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center">
+                    <div
+                        class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center"
+                    >
                         <hr class="flex-1 ml-8" />
                         <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
                         <hr class="flex-1 mr-8" />
@@ -279,7 +281,9 @@
                     <p
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
-                            : (msg.hasReference() ? 'pt-0.5' : 'mt-0.5')} break-words
+                            : msg.hasReference()
+                            ? 'pt-0.5'
+                            : 'mt-0.5'} break-words
                             {getBackgroundColorForMessage(msg)}"
                     >
                         {#if mode == "moderation"}
@@ -299,8 +303,18 @@
                             on:click={() => replyToMessage(msg)}
                             >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-                            <i class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500" title="Chat moderator" />{/if}:
-                        {@html marked.parseInline(msg.getUserMessage().getContent())}
+                            <i
+                                class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
+                                title="Chat moderator"
+                            />{/if}:
+                        {@html marked
+                            .parseInline(
+                                msg.getUserMessage().getContent(),
+                                msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
+                                    ? { tokenizer: undefined }
+                                    : {}
+                            )
+                            .replace("<a ", '<a class="text-blue-600 hover:underline"')}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
@@ -332,9 +346,9 @@
                 <div class="px-2 text-xs">
                     <ErrorMessage>
                         {#if sendErrorIsRateLimit}
-                        Failed to send your message. Please try again.
+                            Failed to send your message. Please try again.
                         {:else}
-                        You're going too fast. Slow down.
+                            You're going too fast. Slow down.
                         {/if}
                     </ErrorMessage>
                 </div>
