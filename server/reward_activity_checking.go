@@ -55,8 +55,9 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string) (err error) {
 	var spectator *spectator
 	var timeUntilChallengeSolved time.Duration
+	var captchaValid bool
 	defer func() {
-		if err == nil && spectator != nil {
+		if err == nil && spectator != nil && captchaValid {
 			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "solved activity challenge after", timeUntilChallengeSolved)
 		}
 	}()
@@ -72,13 +73,16 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		return stacktrace.NewError("mismatched remote address")
 	}
 
-	valid, err := r.captchaResponseValid(ctx, hCaptchaResponse)
+	captchaValid, err = r.captchaResponseValid(ctx, hCaptchaResponse)
 	if err != nil {
 		r.log.Println("Error verifying captcha:", err)
 	}
-	if valid && err == nil {
+	if captchaValid && err == nil {
 		spectator.lastActive = time.Now()
-	} // if not valid, do everything except mark the spectator as active.
+	} else if err == nil {
+		// if not valid, do everything except mark the spectator as active.
+		r.log.Println("Activity challenge captcha verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeSolved)
+	}
 	// this way, they'll stop receiving rewards until the next challenge
 	spectator.activityCheckTimer.Stop()
 	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())

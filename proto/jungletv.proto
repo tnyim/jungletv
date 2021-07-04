@@ -25,6 +25,8 @@ service JungleTV {
     rpc RemoveChatMessage(RemoveChatMessageRequest) returns (RemoveChatMessageResponse) {}
     rpc SetChatSettings(SetChatSettingsRequest) returns (SetChatSettingsResponse) {}
     rpc SetVideoEnqueuingEnabled(SetVideoEnqueuingEnabledRequest) returns (SetVideoEnqueuingEnabledResponse) {}
+    rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
+    rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
 }
 
 message SignInRequest {
@@ -278,6 +280,26 @@ message SetChatSettingsRequest {
 }
 
 message SetChatSettingsResponse {}
+
+message BanUserRequest {
+    string address = 1;
+    string remote_address = 2;
+    bool chat_banned = 3;
+    bool enqueuing_banned = 4;
+    bool rewards_banned = 5;
+    string reason = 6;
+}
+
+message BanUserResponse {
+    repeated string ban_ids = 1;
+}
+
+message RemoveBanRequest {
+    string ban_id = 1;
+    string reason = 2;
+}
+
+message RemoveBanResponse {}
 
 enum AllowedVideoEnqueuingType {
     DISABLED = 0;

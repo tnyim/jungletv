@@ -29,6 +29,7 @@ type EnqueueManager struct {
 	statsHandler                   *StatsHandler
 	collectorAccountAddress        string
 	log                            *log.Logger
+	moderationStore                ModerationStore
 
 	requests     map[string]EnqueueTicket
 	requestsLock sync.RWMutex
@@ -58,7 +59,15 @@ type EnqueueTicket interface {
 }
 
 // NewEnqueueManager returns a new EnqueueManager
-func NewEnqueueManager(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, wallet *wallet.Wallet, paymentAccountPool *PaymentAccountPool, paymentAccountPendingWaitGroup *sync.WaitGroup, statsHandler *StatsHandler, collectorAccountAddress string) (*EnqueueManager, error) {
+func NewEnqueueManager(log *log.Logger,
+	statsClient *statsd.Client,
+	mediaQueue *MediaQueue,
+	wallet *wallet.Wallet,
+	paymentAccountPool *PaymentAccountPool,
+	paymentAccountPendingWaitGroup *sync.WaitGroup,
+	statsHandler *StatsHandler,
+	collectorAccountAddress string,
+	moderationStore ModerationStore) (*EnqueueManager, error) {
 	return &EnqueueManager{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -69,6 +78,7 @@ func NewEnqueueManager(log *log.Logger, statsClient *statsd.Client, mediaQueue *
 		statsHandler:                   statsHandler,
 		collectorAccountAddress:        collectorAccountAddress,
 		requests:                       make(map[string]EnqueueTicket),
+		moderationStore:                moderationStore,
 	}, nil
 }
 
@@ -100,7 +110,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 	return t, nil
 }
 
-func (e *EnqueueManager) ProcessPayments() error {
+func (e *EnqueueManager) ProcessPayments(ctx context.Context) error {
 	// create a copy of the map so we don't hold the lock for so long
 	requestCopy := make(map[string]EnqueueTicket)
 	func() {
@@ -118,7 +128,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 	}
 
 	for reqID, request := range requestCopy {
-		err := e.processPaymentForTicket(reqID, request)
+		err := e.processPaymentForTicket(ctx, reqID, request)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
@@ -127,7 +137,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 	return nil
 }
 
-func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTicket) error {
+func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID string, request EnqueueTicket) error {
 	if request.Status() == proto.EnqueueMediaTicketStatus_PAID {
 		return nil
 	}
@@ -199,6 +209,10 @@ func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTi
 	requestedByStr := "unknown"
 	if requestedBy != nil {
 		requestedByStr = requestedBy.Address()
+
+		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
+			return nil
+		}
 	}
 
 	e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
@@ -268,7 +282,7 @@ func (e *EnqueueManager) ProcessPaymentsWorker(ctx context.Context, interval tim
 	for {
 		select {
 		case <-t.C:
-			err := e.ProcessPayments()
+			err := e.ProcessPayments(ctx)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

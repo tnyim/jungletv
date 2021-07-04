@@ -1228,6 +1228,108 @@ export namespace SetChatSettingsResponse {
   }
 }
 
+export class BanUserRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getRemoteAddress(): string;
+  setRemoteAddress(value: string): void;
+
+  getChatBanned(): boolean;
+  setChatBanned(value: boolean): void;
+
+  getEnqueuingBanned(): boolean;
+  setEnqueuingBanned(value: boolean): void;
+
+  getRewardsBanned(): boolean;
+  setRewardsBanned(value: boolean): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BanUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: BanUserRequest): BanUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BanUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BanUserRequest;
+  static deserializeBinaryFromReader(message: BanUserRequest, reader: jspb.BinaryReader): BanUserRequest;
+}
+
+export namespace BanUserRequest {
+  export type AsObject = {
+    address: string,
+    remoteAddress: string,
+    chatBanned: boolean,
+    enqueuingBanned: boolean,
+    rewardsBanned: boolean,
+    reason: string,
+  }
+}
+
+export class BanUserResponse extends jspb.Message {
+  clearBanIdsList(): void;
+  getBanIdsList(): Array<string>;
+  setBanIdsList(value: Array<string>): void;
+  addBanIds(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BanUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: BanUserResponse): BanUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BanUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BanUserResponse;
+  static deserializeBinaryFromReader(message: BanUserResponse, reader: jspb.BinaryReader): BanUserResponse;
+}
+
+export namespace BanUserResponse {
+  export type AsObject = {
+    banIdsList: Array<string>,
+  }
+}
+
+export class RemoveBanRequest extends jspb.Message {
+  getBanId(): string;
+  setBanId(value: string): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveBanRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveBanRequest): RemoveBanRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveBanRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveBanRequest;
+  static deserializeBinaryFromReader(message: RemoveBanRequest, reader: jspb.BinaryReader): RemoveBanRequest;
+}
+
+export namespace RemoveBanRequest {
+  export type AsObject = {
+    banId: string,
+    reason: string,
+  }
+}
+
+export class RemoveBanResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveBanResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveBanResponse): RemoveBanResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveBanResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveBanResponse;
+  static deserializeBinaryFromReader(message: RemoveBanResponse, reader: jspb.BinaryReader): RemoveBanResponse;
+}
+
+export namespace RemoveBanResponse {
+  export type AsObject = {
+  }
+}
+
 export class SetVideoEnqueuingEnabledRequest extends jspb.Message {
   getAllowed(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
   setAllowed(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;

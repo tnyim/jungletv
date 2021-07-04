@@ -33,6 +33,8 @@ type JungleTVClient interface {
 	RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error)
 	SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(ctx context.Context, in *SetVideoEnqueuingEnabledRequest, opts ...grpc.CallOption) (*SetVideoEnqueuingEnabledResponse, error)
+	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
+	RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error)
 }
 
 type jungleTVClient struct {
@@ -293,6 +295,24 @@ func (c *jungleTVClient) SetVideoEnqueuingEnabled(ctx context.Context, in *SetVi
 	return out, nil
 }
 
+func (c *jungleTVClient) BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error) {
+	out := new(BanUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/BanUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error) {
+	out := new(RemoveBanResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveBan", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -313,6 +333,8 @@ type JungleTVServer interface {
 	RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error)
 	SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error)
+	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -364,6 +386,12 @@ func (UnimplementedJungleTVServer) SetChatSettings(context.Context, *SetChatSett
 }
 func (UnimplementedJungleTVServer) SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetVideoEnqueuingEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BanUser not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBan not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -663,6 +691,42 @@ func _JungleTV_SetVideoEnqueuingEnabled_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_BanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BanUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).BanUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/BanUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).BanUser(ctx, req.(*BanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RemoveBan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveBanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveBan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveBan",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveBan(ctx, req.(*RemoveBanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -706,6 +770,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetVideoEnqueuingEnabled",
 			Handler:    _JungleTV_SetVideoEnqueuingEnabled_Handler,
+		},
+		{
+			MethodName: "BanUser",
+			Handler:    _JungleTV_BanUser_Handler,
+		},
+		{
+			MethodName: "RemoveBan",
+			Handler:    _JungleTV_RemoveBan_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

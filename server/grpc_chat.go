@@ -29,13 +29,15 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	heartbeatC := time.NewTicker(5 * time.Second).C
 	var seq uint32
 
+	user := UserClaimsFromContext(stream.Context())
+
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
 		initialHistorySize := r.InitialHistorySize
 		if initialHistorySize > 1000 {
 			initialHistorySize = 1000
 		}
-		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), int(initialHistorySize))
+		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), user, int(initialHistorySize))
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}
@@ -82,13 +84,16 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				},
 			})
 		case v := <-onMessageCreated:
-			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_MessageCreated{
-					MessageCreated: &proto.ChatMessageCreatedEvent{
-						Message: v[0].(*ChatMessage).SerializeForAPI(),
+			msg := v[0].(*ChatMessage)
+			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
+				err = stream.Send(&proto.ChatUpdate{
+					Event: &proto.ChatUpdate_MessageCreated{
+						MessageCreated: &proto.ChatMessageCreatedEvent{
+							Message: msg.SerializeForAPI(),
+						},
 					},
-				},
-			})
+				})
+			}
 		case v := <-onMessageDeleted:
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageDeleted{

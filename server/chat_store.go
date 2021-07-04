@@ -18,8 +18,8 @@ var ErrChatMessageNotFound = errors.New("chat message not found")
 type ChatStore interface {
 	StoreMessage(context.Context, *ChatMessage) error
 	DeleteMessage(context.Context, snowflake.ID) error
-	LoadMessagesSince(context.Context, time.Time) ([]*ChatMessage, error)
-	LoadNumLatestMessages(context.Context, int) ([]*ChatMessage, error)
+	LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error)
+	LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error)
 	LoadMessage(context.Context, snowflake.ID) (*ChatMessage, error)
 }
 
@@ -34,11 +34,11 @@ func (*ChatStoreNoOp) DeleteMessage(context.Context, snowflake.ID) error {
 	return nil
 }
 
-func (*ChatStoreNoOp) LoadMessagesSince(context.Context, time.Time) ([]*ChatMessage, error) {
+func (*ChatStoreNoOp) LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error) {
 	return []*ChatMessage{}, nil
 }
 
-func (*ChatStoreNoOp) LoadNumLatestMessages(context.Context, int) ([]*ChatMessage, error) {
+func (*ChatStoreNoOp) LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error) {
 	return []*ChatMessage{}, nil
 }
 
@@ -93,7 +93,7 @@ func (s *ChatStoreMemory) DeleteMessage(_ context.Context, id snowflake.ID) erro
 	}
 }
 
-func (s *ChatStoreMemory) LoadMessagesSince(_ context.Context, since time.Time) ([]*ChatMessage, error) {
+func (s *ChatStoreMemory) LoadMessagesSince(_ context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {
 	s.l.RLock()
 	defer s.l.RUnlock()
 
@@ -102,7 +102,9 @@ func (s *ChatStoreMemory) LoadMessagesSince(_ context.Context, since time.Time) 
 	for it.End(); it.Prev(); {
 		m := it.Value().(*ChatMessage)
 		if m.CreatedAt.After(since) {
-			messages = append(messages, m)
+			if !m.Shadowbanned || (m.Author != nil && includeShadowbanned != nil && m.Author.Address() == includeShadowbanned.Address()) {
+				messages = append(messages, m)
+			}
 		} else {
 			// IDs are snowflakes and therefore sorted by time
 			break
@@ -111,16 +113,19 @@ func (s *ChatStoreMemory) LoadMessagesSince(_ context.Context, since time.Time) 
 	return messages, nil
 }
 
-func (s *ChatStoreMemory) LoadNumLatestMessages(_ context.Context, num int) ([]*ChatMessage, error) {
+func (s *ChatStoreMemory) LoadNumLatestMessages(_ context.Context, includeShadowbanned User, num int) ([]*ChatMessage, error) {
 	s.l.RLock()
 	defer s.l.RUnlock()
 
 	messages := []*ChatMessage{}
 	it := s.msgMap.Iterator()
 	i := 0
-	for it.End(); it.Prev() && i < num; i++ {
+	for it.End(); it.Prev() && i < num; {
 		m := it.Value().(*ChatMessage)
-		messages = append(messages, m)
+		if !m.Shadowbanned || (m.Author != nil && includeShadowbanned != nil && m.Author.Address() == includeShadowbanned.Address()) {
+			messages = append(messages, m)
+			i++
+		}
 	}
 	return messages, nil
 }

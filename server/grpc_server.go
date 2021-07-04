@@ -45,12 +45,13 @@ type grpcServer struct {
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
 
-	mediaQueue     *MediaQueue
-	enqueueManager *EnqueueManager
-	rewardsHandler *RewardsHandler
-	statsHandler   *StatsHandler
-	chat           *ChatManager
-	workGenerator  *WorkGenerator
+	mediaQueue      *MediaQueue
+	enqueueManager  *EnqueueManager
+	rewardsHandler  *RewardsHandler
+	statsHandler    *StatsHandler
+	chat            *ChatManager
+	workGenerator   *WorkGenerator
+	moderationStore ModerationStore
 
 	youtube *youtube.Service
 }
@@ -78,6 +79,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
+		moderationStore:                NewModerationStoreMemory(),
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -108,19 +110,19 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address())
+		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address(), s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		log, statsClient, s.mediaQueue, s.ipReputationChecker, hCaptchaSecret, w, s.collectorAccountQueue,
-		s.workGenerator, s.paymentAccountPendingWaitGroup)
+		s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(1000))
+	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(1000), s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -344,8 +346,14 @@ const (
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
 	user := UserClaimsFromContext(ctx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, RemoteAddressFromContext(ctx)); err == nil && banned {
+		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
+	}
 	if user != nil {
 		isAdmin = permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[AdminPermissionLevel]
+		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
+			return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
+		}
 	}
 	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingDisabled, nil

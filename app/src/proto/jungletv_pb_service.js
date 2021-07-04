@@ -145,6 +145,24 @@ JungleTV.SetVideoEnqueuingEnabled = {
   responseType: jungletv_pb.SetVideoEnqueuingEnabledResponse
 };
 
+JungleTV.BanUser = {
+  methodName: "BanUser",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.BanUserRequest,
+  responseType: jungletv_pb.BanUserResponse
+};
+
+JungleTV.RemoveBan = {
+  methodName: "RemoveBan",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveBanRequest,
+  responseType: jungletv_pb.RemoveBanResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -631,6 +649,68 @@ JungleTVClient.prototype.setVideoEnqueuingEnabled = function setVideoEnqueuingEn
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetVideoEnqueuingEnabled, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.banUser = function banUser(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.BanUser, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeBan = function removeBan(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveBan, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

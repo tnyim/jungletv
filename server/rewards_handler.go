@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/big"
 	"net/http"
@@ -28,6 +29,7 @@ type RewardsHandler struct {
 	lastMedia                      MediaQueueEntry
 	hCaptchaSecret                 string
 	hCaptchaHTTPClient             http.Client
+	moderationStore                ModerationStore
 
 	rewardsDistributed *event.Event
 
@@ -76,7 +78,8 @@ func NewRewardsHandler(log *log.Logger,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
 	workGenerator *WorkGenerator,
-	paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
+	paymentAccountPendingWaitGroup *sync.WaitGroup,
+	moderationStore ModerationStore) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -90,6 +93,7 @@ func NewRewardsHandler(log *log.Logger,
 		hCaptchaHTTPClient: http.Client{
 			Timeout: 10 * time.Second,
 		},
+		moderationStore: moderationStore,
 
 		rewardsDistributed: event.New(),
 
@@ -165,7 +169,11 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 		delete(r.spectatorByActivityChallenge, s.activityChallenge)
 	}
 
-	r.log.Printf("Unregistered spectator with reward address %s and remote address %s", s.user.Address(), s.remoteAddress)
+	activityChallengeInfo := ""
+	if s.activityChallenge != "" {
+		activityChallengeInfo = fmt.Sprintf(" (had activity challenge since %v)", s.activityChallengeAt)
+	}
+	r.log.Printf("Unregistered spectator with reward address %s and remote address %s%s", s.user.Address(), s.remoteAddress, activityChallengeInfo)
 
 	return nil
 }
@@ -226,4 +234,17 @@ func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueE
 	// reimburse who added to queue
 	go r.reimburseRequester(ctx, removed.RequestedBy().Address(), removed.RequestCost())
 	return nil
+}
+
+func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAddress string) []string {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	result := []string{}
+
+	spectators := r.spectatorsByRewardAddress[rewardAddress]
+	for _, s := range spectators {
+		result = append(result, s.remoteAddress)
+	}
+	return result
 }

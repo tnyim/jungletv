@@ -85,3 +85,67 @@ func (s *grpcServer) SetVideoEnqueuingEnabled(ctx context.Context, r *proto.SetV
 
 	return &proto.SetVideoEnqueuingEnabledResponse{}, nil
 }
+
+func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*proto.BanUserResponse, error) {
+	moderator := UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.Address == "" {
+		return nil, status.Error(codes.InvalidArgument, "missing reward address")
+	}
+	if !r.ChatBanned && !r.EnqueuingBanned && !r.RewardsBanned {
+		return nil, status.Error(codes.InvalidArgument, "must ban from something")
+	}
+
+	remoteAddresses := []string{}
+	if r.RemoteAddress != "" {
+		remoteAddresses = []string{r.RemoteAddress}
+	}
+
+	additionalRemoteAddresses := s.rewardsHandler.RemoteAddressesForRewardAddress(ctx, r.Address)
+	remoteAddresses = append(remoteAddresses, additionalRemoteAddresses...)
+
+	if len(remoteAddresses) == 0 {
+		// this way we'll add a single ban entry that only bans by reward address, but better than nothing
+		remoteAddresses = []string{""}
+	}
+
+	banIDs := []string{}
+	for _, remoteAddress := range remoteAddresses {
+		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned, r.Address, remoteAddress, r.Reason, moderator)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+
+		s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+		banIDs = append(banIDs, banID)
+	}
+
+	return &proto.BanUserResponse{
+		BanIds: banIDs,
+	}, nil
+}
+
+func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (*proto.RemoveBanResponse, error) {
+	moderator := UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.BanId == "" {
+		return nil, status.Error(codes.InvalidArgument, "missing ban ID")
+	}
+
+	err := s.moderationStore.RemoveBan(ctx, r.BanId, r.Reason, moderator)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+
+	return &proto.RemoveBanResponse{}, nil
+}

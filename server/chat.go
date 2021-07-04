@@ -25,6 +25,7 @@ type ChatManager struct {
 	idNode              *snowflake.Node
 	rateLimiter         limiter.Store
 	slowmodeRateLimiter limiter.Store
+	moderationStore     ModerationStore
 
 	enabled        bool
 	slowmode       bool
@@ -35,7 +36,7 @@ type ChatManager struct {
 	messageDeleted *event.Event
 }
 
-func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore) (*ChatManager, error) {
+func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore, moderationStore ModerationStore) (*ChatManager, error) {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
@@ -65,6 +66,7 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 		rateLimiter:         rateLimiter,
 		slowmodeRateLimiter: slowmodeRateLimiter,
 		enabled:             true,
+		moderationStore:     moderationStore,
 
 		chatEnabled:    event.New(),
 		chatDisabled:   event.New(),
@@ -80,9 +82,13 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
 
+	banned, err := c.moderationStore.LoadUserBannedFromChat(ctx, author.Address(), RemoteAddressFromContext(ctx))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	var ok bool
-	var err error
-	if c.slowmode && permissionLevelOrder[author.PermissionLevel()] < permissionLevelOrder[AdminPermissionLevel] {
+	if (c.slowmode || banned) && permissionLevelOrder[author.PermissionLevel()] < permissionLevelOrder[AdminPermissionLevel] {
 		_, _, _, ok, err = c.slowmodeRateLimiter.Take(ctx, author.Address())
 	} else {
 		_, _, _, ok, err = c.rateLimiter.Take(ctx, author.Address())
@@ -100,11 +106,12 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 	content = newlineReducingRegexp.ReplaceAllString(content, "\n\n")
 
 	m := &ChatMessage{
-		ID:        c.idNode.Generate(),
-		CreatedAt: time.Now(),
-		Author:    author,
-		Content:   content,
-		Reference: reference,
+		ID:           c.idNode.Generate(),
+		CreatedAt:    time.Now(),
+		Author:       author,
+		Content:      content,
+		Reference:    reference,
+		Shadowbanned: banned,
 	}
 	err = c.store.StoreMessage(ctx, m)
 	if err != nil {
@@ -138,13 +145,13 @@ func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) error 
 	return nil
 }
 
-func (c *ChatManager) LoadMessagesSince(ctx context.Context, since time.Time) ([]*ChatMessage, error) {
-	messages, err := c.store.LoadMessagesSince(ctx, since)
+func (c *ChatManager) LoadMessagesSince(ctx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {
+	messages, err := c.store.LoadMessagesSince(ctx, includeShadowbanned, since)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
-func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, num int) ([]*ChatMessage, error) {
-	messages, err := c.store.LoadNumLatestMessages(ctx, num)
+func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, includeShadowbanned User, num int) ([]*ChatMessage, error) {
+	messages, err := c.store.LoadNumLatestMessages(ctx, includeShadowbanned, num)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
@@ -178,11 +185,12 @@ func (c *ChatManager) SetSlowModeEnabled(enabled bool) {
 
 // ChatMessage represents a single chat message
 type ChatMessage struct {
-	ID        snowflake.ID
-	CreatedAt time.Time
-	Author    User
-	Content   string
-	Reference *ChatMessage // may be nil
+	ID           snowflake.ID
+	CreatedAt    time.Time
+	Author       User
+	Content      string
+	Reference    *ChatMessage // may be nil
+	Shadowbanned bool
 }
 
 func (m *ChatMessage) SerializeForAPI() *proto.ChatMessage {

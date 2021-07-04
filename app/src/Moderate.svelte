@@ -1,8 +1,11 @@
 <script lang="ts">
+    import { each } from "svelte/internal";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
+    import ErrorMessage from "./ErrorMessage.svelte";
     import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
+    import SuccessMessage from "./SuccessMessage.svelte";
 
     let ticketID = "";
 
@@ -29,36 +32,79 @@
     async function setVideoEnqueuingDisabled() {
         await apiClient.setVideoEnqueuingEnabled(AllowedVideoEnqueuingType.DISABLED);
     }
+
+    let banRewardAddress = "";
+    let banRemoteAddress = "";
+    let banFromChat = false;
+    let banFromEnqueuing = false;
+    let banFromRewards = false;
+    let banReason = "";
+    let banIDs: string[] = [];
+    let banError = "";
+    async function createBan() {
+        try {
+            let response = await apiClient.banUser(
+                banRewardAddress,
+                banRemoteAddress,
+                banFromChat,
+                banFromEnqueuing,
+                banFromRewards,
+                banReason
+            );
+            banIDs = response.getBanIdsList();
+            banError = "";
+        } catch (e) {
+            banIDs = [];
+            banError = e;
+        }
+    }
+
+    let removeBanID = "";
+    let removeBanReason = "";
+    let removeBanError = "";
+    let removeBanSuccessful = false;
+    async function removeBan() {
+        try {
+            await apiClient.removeBan(removeBanID, removeBanReason);
+            removeBanError = "";
+            removeBanSuccessful = true;
+        } catch (e) {
+            removeBanError = e;
+            removeBanSuccessful = false;
+        }
+    }
 </script>
 
 <div class="flex-grow min-h-full">
-    <div class="px-2 py-2">
-        <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
-        <div class="grid grid-cols-6 gap-6">
-            <input class="col-span-3" type="text" placeholder="ticket ID" bind:value={ticketID} />
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={enqueue}
-            >
-                Enqueue
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={playNext}
-            >
-                Play next
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={playNow}
-            >
-                Play now
-            </button>
+    {#if !globalThis.PRODUCTION_BUILD}
+        <div class="px-2 py-2">
+            <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
+            <div class="grid grid-cols-6 gap-6">
+                <input class="col-span-3" type="text" placeholder="ticket ID" bind:value={ticketID} />
+                <button
+                    type="submit"
+                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    on:click={enqueue}
+                >
+                    Enqueue
+                </button>
+                <button
+                    type="submit"
+                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    on:click={playNext}
+                >
+                    Play next
+                </button>
+                <button
+                    type="submit"
+                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    on:click={playNow}
+                >
+                    Play now
+                </button>
+            </div>
         </div>
-    </div>
+    {/if}
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Queue</p>
         <Queue mode="moderation" />
@@ -87,6 +133,114 @@
             >
                 Disable video enqueuing
             </button>
+        </div>
+    </div>
+    <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">
+        <div>
+            <p class="px-2 font-semibold text-lg">Create ban</p>
+            <div class="px-2 grid grid-rows-5 grid-cols-3 gap-6 max-w-screen-sm">
+                <input
+                    class="col-span-3 dark:text-black"
+                    type="text"
+                    placeholder="Banano address"
+                    bind:value={banRewardAddress}
+                />
+                <input
+                    class="col-span-3 dark:text-black"
+                    type="text"
+                    placeholder="IP address (leave empty if unknown)"
+                    bind:value={banRemoteAddress}
+                />
+                <div>
+                    <input
+                        id="banFromChat"
+                        name="banFromChat"
+                        type="checkbox"
+                        bind:checked={banFromChat}
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                    />
+                    <label for="banFromChat" class="font-medium text-gray-700 dark:text-gray-300">
+                        Ban from chat
+                    </label>
+                </div>
+                <div>
+                    <input
+                        id="banFromEnqueuing"
+                        name="banFromEnqueuing"
+                        type="checkbox"
+                        bind:checked={banFromEnqueuing}
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                    />
+                    <label for="banFromEnqueuing" class="font-medium text-gray-700 dark:text-gray-300">
+                        Ban from enqueuing
+                    </label>
+                </div>
+                <div>
+                    <input
+                        id="banFromRewards"
+                        name="banFromRewards"
+                        type="checkbox"
+                        bind:checked={banFromRewards}
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                    />
+                    <label for="banFromRewards" class="font-medium text-gray-700 dark:text-gray-300">
+                        Ban from receiving rewards
+                    </label>
+                </div>
+                <input
+                    class="col-span-3 dark:text-black"
+                    type="text"
+                    placeholder="Reason for ban"
+                    bind:value={banReason}
+                />
+                <button
+                    type="submit"
+                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    on:click={createBan}
+                >
+                    Create ban
+                </button>
+                <div class="col-span-3">
+                    {#if banIDs.length > 0}
+                        Take note of the following ban IDs:
+                        <ul>
+                            {#each banIDs as banID}
+                                <li>{banID}</li>
+                            {/each}
+                        </ul>
+                    {/if}
+                    {#if banError != ""}
+                        <ErrorMessage>{banError}</ErrorMessage>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        <div>
+            <p class="px-2 font-semibold text-lg">Remove ban</p>
+            <div class="px-2 grid grid-rows-3 grid-cols-1 gap-6 max-w-screen-sm">
+                <input class="col-span-3 dark:text-black" type="text" placeholder="Ban ID" bind:value={removeBanID} />
+                <input
+                    class="col-span-3 dark:text-black"
+                    type="text"
+                    placeholder="Reason for unban"
+                    bind:value={removeBanReason}
+                />
+                <button
+                    type="submit"
+                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    on:click={removeBan}
+                >
+                    Remove ban
+                </button>
+                <div class="col-span-3">
+                    {#if removeBanSuccessful}
+                        <SuccessMessage>Ban removed successfully</SuccessMessage>
+                    {/if}
+                    {#if removeBanError != ""}
+                        <ErrorMessage>{removeBanError}</ErrorMessage>
+                    {/if}
+                </div>
+            </div>
         </div>
     </div>
     <div class="mt-10">

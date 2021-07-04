@@ -22,7 +22,8 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 
 	rewardBudget := media.RequestCost()
 
-	eligible := getEligibleSpectators(r.log, r.ipReputationChecker, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
+		r.spectatorsByRemoteAddress, media.RequestedBy().Address())
 	go r.statsClient.Gauge("eligible", len(eligible))
 
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
@@ -58,7 +59,12 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	return nil
 }
 
-func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
+func getEligibleSpectators(ctx context.Context,
+	l *log.Logger,
+	c *IPAddressReputationChecker,
+	moderationStore ModerationStore,
+	spectatorsByRemoteAddress map[string][]*spectator,
+	exceptAddress string) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -70,6 +76,10 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 		}
 		if canReceive := c.CanReceiveRewards(k); !canReceive {
 			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
+			continue
+		}
+		if banned, err := moderationStore.LoadRemoteAddressBannedFromRewards(ctx, k); err == nil && banned {
+			l.Println("Skipped rewarding remote address", k, "due to ban")
 			continue
 		}
 		uniquifiedIP := getUniquifiedIP(k)
@@ -86,6 +96,11 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 			// do not reward an inactive spectator
 			if spectators[j].activityChallenge != "" && time.Since(spectators[j].activityChallengeAt) > activityChallengeTolerance {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
+				continue
+			}
+			// do not reward a banned spectator
+			if banned, err := moderationStore.LoadPaymentAddressBannedFromRewards(ctx, spectators[j].user.Address()); err == nil && banned {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
 				continue
 			}
 			// do not reward an address that would have received a reward via another remote address already
