@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { each } from "svelte/internal";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
     import ErrorMessage from "./ErrorMessage.svelte";

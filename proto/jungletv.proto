@@ -18,6 +18,7 @@ service JungleTV {
     rpc ConsumeChat (ConsumeChatRequest) returns (stream ChatUpdate) {}
     rpc SendChatMessage (SendChatMessageRequest) returns (SendChatMessageResponse) {}
     rpc SubmitProofOfWork (SubmitProofOfWorkRequest) returns (SubmitProofOfWorkResponse) {}
+    rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -320,4 +321,16 @@ message SubmitProofOfWorkRequest {
 }
 
 message SubmitProofOfWorkResponse {
+}
+
+message UserPermissionLevelRequest {}
+
+enum PermissionLevel {
+    UNAUTHENTICATED = 0;
+    USER = 1;
+    ADMIN = 2;
+}
+
+message UserPermissionLevelResponse {
+    PermissionLevel permission_level = 1;
 }

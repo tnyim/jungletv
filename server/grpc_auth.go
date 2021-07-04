@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -132,4 +133,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		}
 	}
 
+}
+
+func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	level := proto.PermissionLevel_UNAUTHENTICATED
+	if user != nil {
+		switch user.PermissionLevel() {
+		case UserPermissionLevel:
+			level = proto.PermissionLevel_USER
+		case AdminPermissionLevel:
+			level = proto.PermissionLevel_ADMIN
+		}
+	}
+	return &proto.UserPermissionLevelResponse{
+		PermissionLevel: level,
+	}, nil
 }

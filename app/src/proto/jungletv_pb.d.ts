@@ -1414,6 +1414,42 @@ export namespace SubmitProofOfWorkResponse {
   }
 }
 
+export class UserPermissionLevelRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserPermissionLevelRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserPermissionLevelRequest): UserPermissionLevelRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserPermissionLevelRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserPermissionLevelRequest;
+  static deserializeBinaryFromReader(message: UserPermissionLevelRequest, reader: jspb.BinaryReader): UserPermissionLevelRequest;
+}
+
+export namespace UserPermissionLevelRequest {
+  export type AsObject = {
+  }
+}
+
+export class UserPermissionLevelResponse extends jspb.Message {
+  getPermissionLevel(): PermissionLevelMap[keyof PermissionLevelMap];
+  setPermissionLevel(value: PermissionLevelMap[keyof PermissionLevelMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserPermissionLevelResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserPermissionLevelResponse): UserPermissionLevelResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserPermissionLevelResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserPermissionLevelResponse;
+  static deserializeBinaryFromReader(message: UserPermissionLevelResponse, reader: jspb.BinaryReader): UserPermissionLevelResponse;
+}
+
+export namespace UserPermissionLevelResponse {
+  export type AsObject = {
+    permissionLevel: PermissionLevelMap[keyof PermissionLevelMap],
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -1450,4 +1486,12 @@ export interface AllowedVideoEnqueuingTypeMap {
 }
 
 export const AllowedVideoEnqueuingType: AllowedVideoEnqueuingTypeMap;
+
+export interface PermissionLevelMap {
+  UNAUTHENTICATED: 0;
+  USER: 1;
+  ADMIN: 2;
+}
+
+export const PermissionLevel: PermissionLevelMap;
 

@@ -94,6 +94,15 @@ type JungleTVSubmitProofOfWork = {
   readonly responseType: typeof jungletv_pb.SubmitProofOfWorkResponse;
 };
 
+type JungleTVUserPermissionLevel = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UserPermissionLevelRequest;
+  readonly responseType: typeof jungletv_pb.UserPermissionLevelResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -169,6 +178,7 @@ export class JungleTV {
   static readonly ConsumeChat: JungleTVConsumeChat;
   static readonly SendChatMessage: JungleTVSendChatMessage;
   static readonly SubmitProofOfWork: JungleTVSubmitProofOfWork;
+  static readonly UserPermissionLevel: JungleTVUserPermissionLevel;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -259,6 +269,15 @@ export class JungleTVClient {
   submitProofOfWork(
     requestMessage: jungletv_pb.SubmitProofOfWorkRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitProofOfWorkResponse|null) => void
+  ): UnaryResponse;
+  userPermissionLevel(
+    requestMessage: jungletv_pb.UserPermissionLevelRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserPermissionLevelResponse|null) => void
+  ): UnaryResponse;
+  userPermissionLevel(
+    requestMessage: jungletv_pb.UserPermissionLevelRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserPermissionLevelResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
