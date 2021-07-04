@@ -104,7 +104,8 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 
 			var response struct {
 				Privacy struct {
-					Proxy bool `json:"proxy"`
+					Proxy   bool `json:"proxy"`
+					Hosting bool `json:"hosting"`
 				} `json:"privacy"`
 			}
 
@@ -114,7 +115,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 				continue
 			}
 
-			if response.Privacy.Proxy {
+			if response.Privacy.Proxy || response.Privacy.Hosting {
 				func() {
 					c.reputationLock.Lock()
 					defer c.reputationLock.Unlock()
