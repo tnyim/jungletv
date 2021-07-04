@@ -314,7 +314,7 @@
                                     ? { tokenizer: undefined }
                                     : {}
                             )
-                            .replace("<a ", '<a class="text-blue-600 hover:underline"')}
+                            .replace("<a ", '<a class="text-blue-600 hover:underline" target="_blank" rel="noopener" ')}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
