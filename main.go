@@ -96,6 +96,11 @@ func main() {
 		mainLog.Println("Queue file path not present in keybox, will not persist queue")
 	}
 
+	bansFile, present := secrets.Get("bansFile")
+	if !present {
+		mainLog.Println("Bans file path not present in keybox, will not persist moderation decisions")
+	}
+
 	autoEnqueueVideoListFile, present := secrets.Get("autoEnqueueVideosFile")
 	if !present {
 		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
@@ -176,7 +181,8 @@ func main() {
 
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod, ipCheckEndpoint, ipCheckToken, hCaptchaSecret)
+		queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

@@ -11,4 +11,5 @@ __debug_bin
 secrets-debug.json
 secrets.json
 queue.json
+bans.json
 .DS_Store

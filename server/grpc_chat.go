@@ -37,7 +37,11 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if initialHistorySize > 1000 {
 			initialHistorySize = 1000
 		}
-		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), user, int(initialHistorySize))
+		var u User = &unknownUser{}
+		if user != nil {
+			u = user
+		}
+		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), u, int(initialHistorySize))
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}

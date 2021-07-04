@@ -58,7 +58,7 @@ type grpcServer struct {
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string,
+	youtubeAPIkey string, jwtManager *JWTManager, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
 	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string) (*grpcServer, error) {
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
@@ -79,7 +79,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
-		moderationStore:                NewModerationStoreMemory(),
+		moderationStore:                NewModerationStoreMemory(bansFile),
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{

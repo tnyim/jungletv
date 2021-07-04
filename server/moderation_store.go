@@ -2,6 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/palantir/stacktrace"
@@ -77,10 +81,12 @@ type ModerationStoreMemory struct {
 
 	// maps ban ID -> moderationDecision
 	decisions map[string]moderationDecision
+
+	persistenceFile string
 }
 
-func NewModerationStoreMemory() ModerationStore {
-	return &ModerationStoreMemory{
+func NewModerationStoreMemory(persistenceFile string) ModerationStore {
+	m := &ModerationStoreMemory{
 		bannedFromChat:                     make(map[string]struct{}),
 		remoteAddressesBannedFromChat:      make(map[string]struct{}),
 		bannedFromEnqueuing:                make(map[string]struct{}),
@@ -88,7 +94,13 @@ func NewModerationStoreMemory() ModerationStore {
 		bannedFromRewards:                  make(map[string]struct{}),
 		remoteAddressesBannedFromRewards:   make(map[string]struct{}),
 		decisions:                          make(map[string]moderationDecision),
+		persistenceFile:                    persistenceFile,
 	}
+
+	if m.persistenceFile != "" {
+		_ = m.restoreDecisionsFromFile(m.persistenceFile)
+	}
+	return m
 }
 
 func (m *ModerationStoreMemory) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
@@ -144,6 +156,13 @@ func (m *ModerationStoreMemory) BanUser(ctx context.Context, fromChat, fromEnque
 
 	m.recomputeBanMapsInMutex()
 
+	if m.persistenceFile != "" {
+		err := m.persistDecisions(ctx, m.persistenceFile)
+		if err != nil {
+			return id, stacktrace.Propagate(err, "")
+		}
+	}
+
 	return id, nil
 }
 
@@ -184,6 +203,39 @@ func (m *ModerationStoreMemory) RemoveBan(ctx context.Context, banID, reason str
 		return stacktrace.NewError("ban not found")
 	}
 	delete(m.decisions, banID)
+	m.recomputeBanMapsInMutex()
+	if m.persistenceFile != "" {
+		err := m.persistDecisions(ctx, m.persistenceFile)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+	return nil
+}
+
+func (m *ModerationStoreMemory) persistDecisions(ctx context.Context, file string) error {
+	marshalled, err := json.Marshal(m.decisions)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	return stacktrace.Propagate(ioutil.WriteFile(file, marshalled, 0644), "")
+}
+
+func (m *ModerationStoreMemory) restoreDecisionsFromFile(file string) error {
+	b, err := ioutil.ReadFile(file)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return stacktrace.Propagate(err, "error reading bans from file: %v", err)
+	}
+	m.l.Lock()
+	defer m.l.Unlock()
+
+	err = json.Unmarshal(b, &m.decisions)
+	if err != nil {
+		return stacktrace.Propagate(err, "error decoding bans from file: %v", err)
+	}
 	m.recomputeBanMapsInMutex()
 	return nil
 }
