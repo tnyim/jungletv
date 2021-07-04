@@ -14,6 +14,7 @@
     />
 
 	<script defer src='/build/bundle.js?v={{ .VersionHash }}'></script>
+	<script src="https://hcaptcha.com/1/api.js&render=explicit" async defer></script>
 </head>
 
 <body>

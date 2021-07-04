@@ -169,9 +169,14 @@ func main() {
 		mainLog.Fatalln("IP check token not present in keybox")
 	}
 
+	hCaptchaSecret, present := secrets.Get("hCaptchaSecret")
+	if !present {
+		mainLog.Fatalln("hCaptcha secret not present in keybox")
+	}
+
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod, ipCheckEndpoint, ipCheckToken)
+		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod, ipCheckEndpoint, ipCheckToken, hCaptchaSecret)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

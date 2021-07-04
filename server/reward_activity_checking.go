@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"math/rand"
+	"net/url"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -14,7 +17,7 @@ import (
 var activityChallengeTolerance = 1 * time.Minute
 
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge)
+	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse)
 }
 
 func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
@@ -49,7 +52,7 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge string) (err error) {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string) (err error) {
 	var spectator *spectator
 	var timeUntilChallengeSolved time.Duration
 	defer func() {
@@ -68,7 +71,15 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 	if RemoteAddressFromContext(ctx) != spectator.remoteAddress {
 		return stacktrace.NewError("mismatched remote address")
 	}
-	spectator.lastActive = time.Now()
+
+	valid, err := r.captchaResponseValid(ctx, hCaptchaResponse)
+	if err != nil {
+		r.log.Println("Error verifying captcha:", err)
+	}
+	if valid && err == nil {
+		spectator.lastActive = time.Now()
+	} // if not valid, do everything except mark the spectator as active.
+	// this way, they'll stop receiving rewards until the next challenge
 	spectator.activityCheckTimer.Stop()
 	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
 	timeUntilChallengeSolved = time.Since(spectator.activityChallengeAt)
@@ -77,6 +88,43 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge s
 
 	delete(r.spectatorByActivityChallenge, challenge)
 	return nil
+}
+
+func (r *RewardsHandler) captchaResponseValid(ctx context.Context, hCaptchaResponse string) (bool, error) {
+	if hCaptchaResponse == "" {
+		return false, nil
+	}
+
+	resp, err := r.hCaptchaHTTPClient.PostForm("https://hcaptcha.com/siteverify",
+		url.Values{
+			"secret":   {r.hCaptchaSecret},
+			"response": {hCaptchaResponse},
+		},
+	)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	type Response struct {
+		ChallengeTS string   `json:"challenge_ts"`
+		Hostname    string   `json:"hostname"`
+		ErrorCodes  []string `json:"error-codes,omitempty"`
+		Success     bool     `json:"success"`
+		Credit      bool     `json:"credit,omitempty"`
+	}
+	var response Response
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+	return response.Success, nil
 }
 
 func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context, address string) {

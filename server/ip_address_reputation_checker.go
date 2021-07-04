@@ -18,6 +18,7 @@ type IPAddressReputationChecker struct {
 	log            *log.Logger
 	reputation     map[string]float32
 	reputationLock sync.RWMutex
+	httpClient     http.Client
 
 	endpoint  string
 	authToken string
@@ -31,6 +32,9 @@ func NewIPAddressReputationChecker(log *log.Logger, endpoint, authToken string) 
 		log:        log,
 		reputation: make(map[string]float32),
 		checkQueue: make(chan string, 1000),
+		httpClient: http.Client{
+			Timeout: 10 * time.Second,
+		},
 
 		endpoint:  endpoint,
 		authToken: authToken,
@@ -63,12 +67,18 @@ func (c *IPAddressReputationChecker) EnqueueAddressForChecking(remoteAddress str
 }
 
 func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
-	httpClient := http.Client{
-		Timeout: 10 * time.Second,
-	}
 	for {
 		select {
 		case addressToCheck := <-c.checkQueue:
+			addressAlreadyChecked := false
+			func() {
+				c.reputationLock.RLock()
+				defer c.reputationLock.RUnlock()
+				_, addressAlreadyChecked = c.reputation[addressToCheck]
+			}()
+			if addressAlreadyChecked {
+				continue
+			}
 			time.Sleep(5 * time.Second) // TODO this rate limit might not be needed anymore
 			url := fmt.Sprintf(c.endpoint, addressToCheck)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -77,7 +87,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 				continue
 			}
 			req.Header.Add("Authorization", "Bearer "+c.authToken)
-			resp, err := httpClient.Do(req)
+			resp, err := c.httpClient.Do(req)
 			if err != nil {
 				c.log.Println("error checking IP reputation:", stacktrace.Propagate(err, ""))
 				continue

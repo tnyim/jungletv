@@ -799,6 +799,9 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
   getChallenge(): string;
   setChallenge(value: string): void;
 
+  getCaptchaResponse(): string;
+  setCaptchaResponse(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SubmitActivityChallengeRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SubmitActivityChallengeRequest): SubmitActivityChallengeRequest.AsObject;
@@ -812,6 +815,7 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
 export namespace SubmitActivityChallengeRequest {
   export type AsObject = {
     challenge: string,
+    captchaResponse: string,
   }
 }
 

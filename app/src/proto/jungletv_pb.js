@@ -6552,7 +6552,8 @@ proto.jungletv.SubmitActivityChallengeRequest.prototype.toObject = function(opt_
  */
 proto.jungletv.SubmitActivityChallengeRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    challenge: jspb.Message.getFieldWithDefault(msg, 1, "")
+    challenge: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    captchaResponse: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -6593,6 +6594,10 @@ proto.jungletv.SubmitActivityChallengeRequest.deserializeBinaryFromReader = func
       var value = /** @type {string} */ (reader.readString());
       msg.setChallenge(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCaptchaResponse(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -6629,6 +6634,13 @@ proto.jungletv.SubmitActivityChallengeRequest.serializeBinaryToWriter = function
       f
     );
   }
+  f = message.getCaptchaResponse();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -6647,6 +6659,24 @@ proto.jungletv.SubmitActivityChallengeRequest.prototype.getChallenge = function(
  */
 proto.jungletv.SubmitActivityChallengeRequest.prototype.setChallenge = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string captcha_response = 2;
+ * @return {string}
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.getCaptchaResponse = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.SubmitActivityChallengeRequest} returns this
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.setCaptchaResponse = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

@@ -196,6 +196,7 @@ message ForciblyEnqueueTicketResponse {}
 
 message SubmitActivityChallengeRequest {
     string challenge = 1;
+    string captcha_response = 2;
 }
 
 message SubmitActivityChallengeResponse {}

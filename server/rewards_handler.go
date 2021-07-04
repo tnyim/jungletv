@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math/big"
+	"net/http"
 	"sync"
 	"time"
 
@@ -25,6 +26,8 @@ type RewardsHandler struct {
 	workGenerator                  *WorkGenerator
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
+	hCaptchaSecret                 string
+	hCaptchaHTTPClient             http.Client
 
 	rewardsDistributed *event.Event
 
@@ -65,7 +68,15 @@ func (s *spectator) OnActivityChallenge() *event.Event {
 }
 
 // NewRewardsHandler creates a new RewardsHandler
-func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, ipReputationChecker *IPAddressReputationChecker, wallet *wallet.Wallet, collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client), workGenerator *WorkGenerator, paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
+func NewRewardsHandler(log *log.Logger,
+	statsClient *statsd.Client,
+	mediaQueue *MediaQueue,
+	ipReputationChecker *IPAddressReputationChecker,
+	hCaptchaSecret string,
+	wallet *wallet.Wallet,
+	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
+	workGenerator *WorkGenerator,
+	paymentAccountPendingWaitGroup *sync.WaitGroup) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -75,6 +86,10 @@ func NewRewardsHandler(log *log.Logger, statsClient *statsd.Client, mediaQueue *
 		collectorAccountQueue:          collectorAccountQueue,
 		workGenerator:                  workGenerator,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
+		hCaptchaSecret:                 hCaptchaSecret,
+		hCaptchaHTTPClient: http.Client{
+			Timeout: 10 * time.Second,
+		},
 
 		rewardsDistributed: event.New(),
 
