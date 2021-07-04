@@ -54,7 +54,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		t := r.statsClient.NewTiming()
 		r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
 		t.Send("reward_distribution")
-		r.rewardsDistributed.Notify(rewardBudget)
+		r.rewardsDistributed.Notify(rewardBudget, len(eligible))
 	}()
 	return nil
 }

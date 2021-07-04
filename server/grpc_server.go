@@ -231,10 +231,11 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				}
 			case v := <-rewardsDistributedC:
 				amount := v[0].(Amount)
+				eligibleCount := v[1].(int)
 				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
-				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_**%s BAN** distributed among spectators._", banStr))
+				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
 				}
