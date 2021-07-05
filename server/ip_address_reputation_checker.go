@@ -31,7 +31,7 @@ func NewIPAddressReputationChecker(log *log.Logger, endpoint, authToken string) 
 	return &IPAddressReputationChecker{
 		log:        log,
 		reputation: make(map[string]float32),
-		checkQueue: make(chan string, 1000),
+		checkQueue: make(chan string, 10000),
 		httpClient: http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -47,7 +47,7 @@ func (c *IPAddressReputationChecker) CanReceiveRewards(remoteAddress string) boo
 	badActorConfidence, present := c.reputation[remoteAddress]
 	if !present {
 		c.EnqueueAddressForChecking(remoteAddress)
-		return true // let's be generous and reward until they're checked
+		return false // do not be generous and don't reward until they're checked
 	}
 	return badActorConfidence < 0.95
 }
@@ -79,7 +79,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			if addressAlreadyChecked {
 				continue
 			}
-			time.Sleep(5 * time.Second) // TODO this rate limit might not be needed anymore
+			time.Sleep(1 * time.Second) // rate limit
 			url := fmt.Sprintf(c.endpoint, addressToCheck)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
@@ -90,15 +90,30 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			resp, err := c.httpClient.Do(req)
 			if err != nil {
 				c.log.Println("error checking IP reputation:", stacktrace.Propagate(err, ""))
+				func() {
+					c.reputationLock.Lock()
+					defer c.reputationLock.Unlock()
+					c.reputation[addressToCheck] = 0.5
+				}()
 				continue
 			}
 			if resp.StatusCode != http.StatusOK {
 				c.log.Println("non-200 status code when checking IP reputation for address", addressToCheck)
+				func() {
+					c.reputationLock.Lock()
+					defer c.reputationLock.Unlock()
+					c.reputation[addressToCheck] = 0.5
+				}()
 				continue
 			}
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				c.log.Println("error reading response body:", stacktrace.Propagate(err, ""))
+				func() {
+					c.reputationLock.Lock()
+					defer c.reputationLock.Unlock()
+					c.reputation[addressToCheck] = 0.5
+				}()
 				continue
 			}
 
@@ -115,14 +130,18 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 				continue
 			}
 
+			r := float32(0.0)
 			if response.Privacy.Proxy || response.Privacy.Hosting {
-				func() {
-					c.reputationLock.Lock()
-					defer c.reputationLock.Unlock()
-					c.reputation[addressToCheck] = 1.0
-				}()
+				r = 1.0
 				c.log.Printf("IP %v is bad actor", addressToCheck)
+			} else {
+				c.log.Printf("IP %v seems good", addressToCheck)
 			}
+			func() {
+				c.reputationLock.Lock()
+				defer c.reputationLock.Unlock()
+				c.reputation[addressToCheck] = r
+			}()
 		case <-ctx.Done():
 			return
 		}
