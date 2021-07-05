@@ -26,7 +26,8 @@
     "svelte-loading-spinners": "^0.1.5",
     "svelte-media": "^0.1.4",
     "svelte-toggle": "^3.0.0",
-    "tailwindcss": "^2.2.4"
+    "tailwindcss": "^2.2.4",
+    "typescript": "^4.3.5"
   },
   "dependencies": {
     "@improbable-eng/grpc-web": "^0.14.0",
