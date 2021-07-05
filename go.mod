@@ -18,6 +18,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/rickb777/date v1.15.3
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/satori/go.uuid v1.2.0

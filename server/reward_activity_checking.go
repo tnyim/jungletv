@@ -14,10 +14,8 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 )
 
-var activityChallengeTolerance = 1 * time.Minute
-
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse)
+	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted)
 }
 
 func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
@@ -33,34 +31,40 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 	}
 }
 
-func durationUntilNextActivityChallenge() time.Duration {
-	return 8*time.Minute + time.Duration(rand.Intn(360))*time.Second
+func durationUntilNextActivityChallenge(first bool) time.Duration {
+	if first {
+		return 30*time.Second + time.Duration(rand.Intn(120))*time.Second
+	}
+	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second
 }
 
 func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress)
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
-	if spectator.activityChallenge != "" {
+	if spectator.activityChallenge != nil {
 		// avoid keeping around old challenges for the same spectator
-		delete(r.spectatorByActivityChallenge, spectator.activityChallenge)
+		delete(r.spectatorByActivityChallenge, spectator.activityChallenge.ID)
 	}
-	spectator.activityChallengeAt = time.Now()
-	spectator.activityChallenge = uuid.NewV4().String()
+	spectator.activityChallenge = &activityChallenge{
+		ID:           uuid.NewV4().String(),
+		ChallengedAt: time.Now(),
+		Type:         "button",
+		Tolerance:    1 * time.Minute,
+	}
+	if spectator.hardChallengesSolved == 0 || int(time.Since(spectator.startedWatching).Hours()) > spectator.hardChallengesSolved-1 {
+		spectator.activityChallenge.Type = "hCaptcha"
+		spectator.activityChallenge.Tolerance = 2 * time.Minute
+	}
 
-	r.spectatorByActivityChallenge[spectator.activityChallenge] = spectator
+	r.spectatorByActivityChallenge[spectator.activityChallenge.ID] = spectator
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string) (err error) {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool) (err error) {
 	var spectator *spectator
 	var timeUntilChallengeSolved time.Duration
 	var captchaValid bool
-	defer func() {
-		if err == nil && spectator != nil && captchaValid {
-			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "solved activity challenge after", timeUntilChallengeSolved)
-		}
-	}()
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -73,24 +77,39 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		return stacktrace.NewError("mismatched remote address")
 	}
 
-	captchaValid, err = r.captchaResponseValid(ctx, hCaptchaResponse)
-	if err != nil {
-		r.log.Println("Error verifying captcha:", err)
+	newLegitimate := trusted
+	if spectator.activityChallenge.Type == "hCaptcha" {
+		captchaValid, err = r.captchaResponseValid(ctx, hCaptchaResponse)
+		if err != nil {
+			r.log.Println("Error verifying captcha:", err)
+		}
+		newLegitimate = err == nil && captchaValid && trusted
+		if !captchaValid && err == nil {
+			// if not valid, do everything except mark the spectator as legitimate.
+			// this way, they'll stop receiving rewards until the next challenge
+			r.log.Println("Activity challenge captcha verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeSolved)
+		} else if captchaValid {
+			spectator.hardChallengesSolved++
+		}
 	}
-	if captchaValid && err == nil {
-		spectator.lastActive = time.Now()
-	} else if err == nil {
-		// if not valid, do everything except mark the spectator as active.
-		r.log.Println("Activity challenge captcha verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeSolved)
+
+	timeUntilChallengeSolved = time.Since(spectator.activityChallenge.ChallengedAt)
+	if newLegitimate {
+		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress,
+			"solved", spectator.activityChallenge.Type,
+			"activity challenge after", timeUntilChallengeSolved)
+	} else if spectator.legitimate && !newLegitimate {
+		spectator.legitimate = false
+		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "considered not legitimate")
 	}
-	// this way, they'll stop receiving rewards until the next challenge
-	spectator.activityCheckTimer.Stop()
-	spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
-	timeUntilChallengeSolved = time.Since(spectator.activityChallengeAt)
-	spectator.activityChallengeAt = time.Time{}
-	spectator.activityChallenge = ""
+
+	d := durationUntilNextActivityChallenge(false)
+	spectator.nextActivityCheckTime = time.Now().Add(d)
+	spectator.activityCheckTimer.Reset(d)
+	spectator.activityChallenge = nil
 
 	delete(r.spectatorByActivityChallenge, challenge)
+
 	return nil
 }
 
@@ -138,10 +157,23 @@ func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context,
 	spectators := r.spectatorsByRewardAddress[address]
 	for i := range spectators {
 		spectator := spectators[i]
-		if spectator.activityChallenge == "" {
-			spectator.lastActive = time.Now()
+		if spectator.activityChallenge == nil {
 			spectator.activityCheckTimer.Stop()
-			spectator.activityCheckTimer.Reset(durationUntilNextActivityChallenge())
+			d := durationUntilNextActivityChallenge(false)
+			spectator.nextActivityCheckTime = time.Now().Add(d)
+			spectator.activityCheckTimer.Reset(d)
 		}
+	}
+}
+
+func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address string) {
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
+
+	spectators := r.spectatorsByRewardAddress[address]
+	for i := range spectators {
+		spectator := spectators[i]
+		spectator.legitimate = false
+		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
 	}
 }

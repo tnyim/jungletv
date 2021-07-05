@@ -126,12 +126,17 @@ message MediaConsumptionCheckpoint {
     string request_cost = 4;
     uint32 currently_watching = 5;
     optional string reward = 6;
-    optional string activity_challenge = 7;
+    optional ActivityChallenge activity_challenge = 7;
     optional ProofOfWorkTask pow_task = 8;
     oneof media_info {
         NowPlayingStubData stub_data = 9;
         NowPlayingYouTubeVideoData youtube_video_data = 10;
     }
+}
+
+message ActivityChallenge {
+    string id = 1;
+    string type = 2;
 }
 
 message ProofOfWorkTask {
@@ -201,6 +206,7 @@ message ForciblyEnqueueTicketResponse {}
 message SubmitActivityChallengeRequest {
     string challenge = 1;
     string captcha_response = 2;
+    bool trusted = 3;
 }
 
 message SubmitActivityChallengeResponse {}
@@ -263,7 +269,8 @@ message ChatHeartbeatEvent {
 
 message SendChatMessageRequest {
     string content = 1;
-    optional int64 reply_reference_id = 2 [jstype = JS_STRING];
+    bool trusted = 2;
+    optional int64 reply_reference_id = 3 [jstype = JS_STRING];
 }
 
 message SendChatMessageResponse {

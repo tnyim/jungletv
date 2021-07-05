@@ -155,6 +155,14 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.log.Printf("Chat message from %s %s: %s", m.Author.Address(), RemoteAddressFromContext(ctx), m.Content)
+	go func() {
+		if r.Trusted {
+			s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, user.Address())
+		} else {
+			s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
+		}
+	}()
+
 	return &proto.SendChatMessageResponse{
 		Id: m.ID.Int64(),
 	}, nil

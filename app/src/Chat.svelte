@@ -157,7 +157,7 @@
         return thisMsgDate.toLocaleString(needsDate ? DateTime.DATETIME_SHORT : DateTime.TIME_SIMPLE);
     }
 
-    async function sendMessage() {
+    async function sendMessage(event: Event) {
         let msg = composedMessage.trim();
         if (msg == "") {
             return;
@@ -171,7 +171,7 @@
         clearReplyToMessage();
         sentMsgFlag = true;
         try {
-            await apiClient.sendChatMessage(msg, refMsg);
+            await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
         } catch (ex) {
             composedMessage = msg;
             sendError = true;
@@ -189,7 +189,7 @@
                 return true;
             }
             event.preventDefault();
-            await sendMessage();
+            await sendMessage(event);
             autoresize(ta);
             return false;
         }

@@ -276,13 +276,6 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		}
 	}()
 
-	unsubscribe := s.chat.messageCreated.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(message *ChatMessage) {
-		if message.Author != nil && !message.Author.IsUnknown() {
-			s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, message.Author.Address())
-		}
-	})
-	defer unsubscribe()
-
 	for {
 		select {
 		case err := <-errChan:

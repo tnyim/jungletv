@@ -1,28 +1,53 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import { fly } from "svelte/transition";
-    import { onMount } from "svelte";
+    import type { ActivityChallenge } from "./proto/jungletv_pb";
+    import { afterUpdate, onMount } from "svelte";
 
-    export let activityChallenge = "";
+    export let activityChallenge: ActivityChallenge;
 
     let captchaWidgetID: string;
+    let clicked = false;
+    let trusted = false;
+    let top = 0;
 
-    async function stillWatching() {
-        (window as any).hcaptcha.execute(captchaWidgetID);
+    async function stillWatching(event: MouseEvent) {
+        clicked = true;
+        trusted = event.isTrusted;
+        if (activityChallenge.getType() == "hCaptcha") {
+            (window as any).hcaptcha.execute(captchaWidgetID);
+        } else {
+            try {
+                await apiClient.submitActivityChallenge(activityChallenge.getId(), "", event.isTrusted);
+            } catch {}
+            activityChallenge = null;
+        }
     }
 
     (window as any).activityCaptchaOnSubmit = async function (token: string) {
-        await apiClient.submitActivityChallenge(activityChallenge, token);
-        activityChallenge = "";
+        try {
+            await apiClient.submitActivityChallenge(activityChallenge.getId(), token, trusted);
+        } catch {
+            alert("An error occurred when submitting the captcha solution. The page will now reload.");
+            location.reload();
+        }
+        activityChallenge = null;
     };
 
     onMount(() => {
-        captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {});
+        top = (0.25+Math.random()/2)*100;
+    })
+
+    afterUpdate(() => {
+        if (captchaWidgetID === undefined && activityChallenge !== null && activityChallenge.getType() == "hCaptcha") {
+            captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {});
+        }
     });
 </script>
 
 <div
-    class="absolute left-0 top-3/4 bg-white dark:bg-gray-900 flex flex-col p-2 rounded-r"
+    class="absolute left-0 bg-white dark:bg-gray-900 flex flex-col p-2 rounded-r"
+    style="top: {top}%"
     transition:fly|local={{ x: -384, duration: 400 }}
 >
     <div class="flex flex-row space-x-2">
@@ -34,10 +59,19 @@
         </div>
         <button
             type="submit"
-            class="inline-flex w-20 float-right items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
+            class="inline-flex w-20 float-right items-center justify-center py-2 px-4
+            border border-transparent shadow-sm text-sm font-medium rounded-md text-white
+            {clicked
+                ? 'animate-pulse bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
+                : 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'}
+            focus:outline-none focus:ring-2 focus:ring-offset-2  hover:shadow ease-linear transition-all duration-150"
             on:click={stillWatching}
         >
-            Still watching
+            {#if clicked}
+                Awaiting captcha...
+            {:else}
+                Still watching
+            {/if}
         </button>
     </div>
     <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
@@ -50,11 +84,13 @@
             >Terms</a
         >
     </div>
-    <div
-        id="activity-captcha"
-        class="h-captcha"
-        data-callback="activityCaptchaOnSubmit"
-        data-size="invisible"
-        data-sitekey="2b033fe2-e4ae-402d-a6cb-23094e84876d"
-    />
+    {#if activityChallenge != null && activityChallenge.getType() == "hCaptcha"}
+        <div
+            id="activity-captcha"
+            class="h-captcha"
+            data-callback="activityCaptchaOnSubmit"
+            data-size="invisible"
+            data-sitekey="2b033fe2-e4ae-402d-a6cb-23094e84876d"
+        />
+    {/if}
 </div>

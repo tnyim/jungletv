@@ -155,10 +155,11 @@ class APIClient {
         return this.unaryRPC<RewardInfoRequest, RewardInfoResponse>(JungleTV.RewardInfo, new RewardInfoRequest());
     }
 
-    async submitActivityChallenge(challenge: string, captchaResponse: string): Promise<SubmitActivityChallengeResponse> {
+    async submitActivityChallenge(challenge: string, captchaResponse: string, trusted: boolean): Promise<SubmitActivityChallengeResponse> {
         let request = new SubmitActivityChallengeRequest();
         request.setChallenge(challenge);
         request.setCaptchaResponse(captchaResponse);
+        request.setTrusted(trusted);
         return this.unaryRPC<SubmitActivityChallengeRequest, SubmitActivityChallengeResponse>(JungleTV.SubmitActivityChallenge, request);
     }
 
@@ -172,9 +173,10 @@ class APIClient {
             onEnd);
     }
 
-    async sendChatMessage(message: string, reference?: ChatMessage): Promise<SendChatMessageResponse> {
+    async sendChatMessage(message: string, trusted: boolean, reference?: ChatMessage): Promise<SendChatMessageResponse> {
         let request = new SendChatMessageRequest();
         request.setContent(message);
+        request.setTrusted(trusted);
         if (typeof reference !== 'undefined') {
             request.setReplyReferenceId(reference.getId());
         }

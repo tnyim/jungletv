@@ -102,8 +102,13 @@ func getEligibleSpectators(ctx context.Context,
 				continue
 			}
 			// do not reward an inactive spectator
-			if spectators[j].activityChallenge != "" && time.Since(spectators[j].activityChallengeAt) > activityChallengeTolerance {
+			if spectators[j].activityChallenge != nil && time.Since(spectators[j].activityChallenge.ChallengedAt) > spectators[j].activityChallenge.Tolerance {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
+				continue
+			}
+			// do not reward an illegitimate spectator
+			if !spectators[j].legitimate {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "because it is not considered legitimate")
 				continue
 			}
 			// do not reward a banned spectator

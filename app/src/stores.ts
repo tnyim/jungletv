@@ -1,9 +1,10 @@
 import { writable } from 'svelte/store';
+import type { ActivityChallenge } from './proto/jungletv_pb';
 
 export const playerConnected = writable(false);
 export const rewardAddress = writable("");
 export const rewardReceived = writable("");
-export const activityChallengeReceived = writable("");
+export const activityChallengeReceived = writable(null as ActivityChallenge);
 export const currentlyWatching = writable(0);
 export const sidebarMode = writable("queue");
 export const darkMode = writable((() => {

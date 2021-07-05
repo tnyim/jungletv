@@ -457,8 +457,8 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
 
   hasActivityChallenge(): boolean;
   clearActivityChallenge(): void;
-  getActivityChallenge(): string;
-  setActivityChallenge(value: string): void;
+  getActivityChallenge(): ActivityChallenge | undefined;
+  setActivityChallenge(value?: ActivityChallenge): void;
 
   hasPowTask(): boolean;
   clearPowTask(): void;
@@ -494,7 +494,7 @@ export namespace MediaConsumptionCheckpoint {
     requestCost: string,
     currentlyWatching: number,
     reward: string,
-    activityChallenge: string,
+    activityChallenge?: ActivityChallenge.AsObject,
     powTask?: ProofOfWorkTask.AsObject,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
@@ -504,6 +504,30 @@ export namespace MediaConsumptionCheckpoint {
     MEDIA_INFO_NOT_SET = 0,
     STUB_DATA = 9,
     YOUTUBE_VIDEO_DATA = 10,
+  }
+}
+
+export class ActivityChallenge extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getType(): string;
+  setType(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ActivityChallenge.AsObject;
+  static toObject(includeInstance: boolean, msg: ActivityChallenge): ActivityChallenge.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ActivityChallenge, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ActivityChallenge;
+  static deserializeBinaryFromReader(message: ActivityChallenge, reader: jspb.BinaryReader): ActivityChallenge;
+}
+
+export namespace ActivityChallenge {
+  export type AsObject = {
+    id: string,
+    type: string,
   }
 }
 
@@ -806,6 +830,9 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
   getCaptchaResponse(): string;
   setCaptchaResponse(value: string): void;
 
+  getTrusted(): boolean;
+  setTrusted(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SubmitActivityChallengeRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SubmitActivityChallengeRequest): SubmitActivityChallengeRequest.AsObject;
@@ -820,6 +847,7 @@ export namespace SubmitActivityChallengeRequest {
   export type AsObject = {
     challenge: string,
     captchaResponse: string,
+    trusted: boolean,
   }
 }
 
@@ -1114,6 +1142,9 @@ export class SendChatMessageRequest extends jspb.Message {
   getContent(): string;
   setContent(value: string): void;
 
+  getTrusted(): boolean;
+  setTrusted(value: boolean): void;
+
   hasReplyReferenceId(): boolean;
   clearReplyReferenceId(): void;
   getReplyReferenceId(): string;
@@ -1132,6 +1163,7 @@ export class SendChatMessageRequest extends jspb.Message {
 export namespace SendChatMessageRequest {
   export type AsObject = {
     content: string,
+    trusted: boolean,
     replyReferenceId: string,
   }
 }

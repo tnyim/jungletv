@@ -45,9 +45,12 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
-		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge string) {
+		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *activityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
-			cp.ActivityChallenge = &challenge
+			cp.ActivityChallenge = &proto.ActivityChallenge{
+				Id:   challenge.ID,
+				Type: challenge.Type,
+			}
 			err := send(cp)
 			if err != nil {
 				errChan <- stacktrace.Propagate(err, "")

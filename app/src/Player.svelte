@@ -38,7 +38,7 @@
     function consumeMedia() {
         consumeMediaRequest = apiClient.consumeMedia(shouldDoWorkGeneration(), handleCheckpoint, (code, msg) => {
             playerConnected.update(() => false);
-            activityChallengeReceived.update((_) => "");
+            activityChallengeReceived.update((_) => null);
             setTimeout(consumeMedia, 5000);
         });
     }
@@ -46,7 +46,7 @@
         if (consumeMediaRequest !== undefined) {
             consumeMediaRequest.close();
         }
-        activityChallengeReceived.update((_) => "");
+        activityChallengeReceived.update((_) => null);
         if (workers !== undefined && workers.length > 0) {
             try {
                 pow_terminate(workers);
@@ -95,7 +95,7 @@
         if (checkpoint.getReward() !== "") {
             rewardReceived.update((_) => checkpoint.getReward());
         }
-        if (checkpoint.getActivityChallenge() !== "") {
+        if (checkpoint.hasActivityChallenge()) {
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());
         }
         if (checkpoint.hasPowTask()) {
