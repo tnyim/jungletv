@@ -10,9 +10,7 @@
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
-    media.subscribe((obj: any) => (largeScreen = obj.large));
-    let latestActivityChallenge = "";
-    activityChallengeReceived.subscribe((challenge) => (latestActivityChallenge = challenge));
+    media.subscribe((obj: any) => largeScreen = obj.large);
 
     const sidebarOpenCloseAnimDuration = 400;
 
@@ -56,8 +54,8 @@
 
 <div class="flex flex-col lg:flex-row lg-screen-height-minus-top-padding w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
-        {#if latestActivityChallenge != ""}
-            <ActivityChallenge bind:activityChallenge={latestActivityChallenge} />
+        {#if $activityChallengeReceived !== null}
+            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} />
         {/if}
         <Player />
     </div>
