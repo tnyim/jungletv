@@ -158,7 +158,9 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if !m.Shadowbanned {
 		go func() {
 			if r.Trusted {
-				s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, user.Address())
+				if len(m.Content) >= 10 || m.Reference != nil {
+					s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, user.Address())
+				}
 			} else {
 				s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
 			}
