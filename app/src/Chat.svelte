@@ -46,6 +46,14 @@
         consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {
             setTimeout(consumeChat, 5000);
         });
+        document.addEventListener("visibilitychange", function() {
+            if(!document.hidden) {
+                chatContainer.scrollTo({
+                    top: chatContainer.scrollHeight,
+                    behavior: "smooth",
+                });
+            }
+        })
     }
     onDestroy(() => {
         if (consumeChatRequest !== undefined) {
