@@ -25,7 +25,7 @@ type MediaQueueEntry interface {
 	Stop()
 	Played() bool
 	Playing() bool
-	PlayingFor() time.Duration
+	PlayedFor() time.Duration
 	DonePlaying() *event.Event
 
 	QueueID() string
@@ -51,6 +51,7 @@ type queueEntryYouTubeVideo struct {
 	requestedBy    User
 	requestCost    Amount
 	startedPlaying time.Time
+	stoppedPlaying time.Time
 	played         bool
 	donePlaying    *event.Event
 }
@@ -181,7 +182,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
-		CurrentPosition: durationpb.New(e.PlayingFor()),
+		CurrentPosition: durationpb.New(e.PlayedFor()),
 		RequestCost:     e.requestCost.SerializeForAPI(),
 		// Reward is optionally filled outside this function
 		MediaInfo: &proto.MediaConsumptionCheckpoint_YoutubeVideoData{
@@ -217,6 +218,7 @@ func (e *queueEntryYouTubeVideo) Stop() {
 		return
 	}
 	e.played = true
+	e.stoppedPlaying = time.Now()
 	e.donePlaying.Notify()
 }
 
@@ -224,9 +226,9 @@ func (e *queueEntryYouTubeVideo) Playing() bool {
 	return !e.startedPlaying.IsZero() && !e.played
 }
 
-func (e *queueEntryYouTubeVideo) PlayingFor() time.Duration {
+func (e *queueEntryYouTubeVideo) PlayedFor() time.Duration {
 	if !e.Playing() {
-		return 0
+		return e.stoppedPlaying.Sub(e.startedPlaying)
 	}
 	return time.Now().Sub(e.startedPlaying)
 }

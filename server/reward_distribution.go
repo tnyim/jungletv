@@ -23,7 +23,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	rewardBudget := media.RequestCost()
 
 	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
-		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.MediaInfo().Length())
+		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.PlayedFor())
 	go r.statsClient.Gauge("eligible", len(eligible))
 
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
@@ -65,7 +65,7 @@ func getEligibleSpectators(ctx context.Context,
 	moderationStore ModerationStore,
 	spectatorsByRemoteAddress map[string][]*spectator,
 	exceptAddress string,
-	videoLength time.Duration) map[string]*spectator {
+	videoPlayedFor time.Duration) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -87,7 +87,7 @@ func getEligibleSpectators(ctx context.Context,
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
 
-	minAcceptableDuration := ((videoLength * 40) / 100)
+	minAcceptableDuration := ((videoPlayedFor * 40) / 100)
 
 	for k := range spectatorsByUniquifiedRemoteAddress {
 		spectators := spectatorsByUniquifiedRemoteAddress[k]
