@@ -40,22 +40,18 @@
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
 
-    onMount(consumeChat);
+    onMount(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChanged)
+        consumeChat();
+    });
     function consumeChat() {
         chatEnabled = true;
         consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {
             setTimeout(consumeChat, 5000);
         });
-        document.addEventListener("visibilitychange", function() {
-            if(!document.hidden) {
-                chatContainer.scrollTo({
-                    top: chatContainer.scrollHeight,
-                    behavior: "smooth",
-                });
-            }
-        })
     }
     onDestroy(() => {
+        document.removeEventListener("visibilitychange", handleVisibilityChanged);
         if (consumeChatRequest !== undefined) {
             consumeChatRequest.close();
         }
@@ -71,18 +67,36 @@
     let mustAutoScroll = false;
     let sentMsgFlag = false;
     beforeUpdate(() => {
-        shouldAutoScroll =
-            chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
-    });
-    afterUpdate(() => {
-        if (shouldAutoScroll || mustAutoScroll) {
-            mustAutoScroll = false;
-            chatContainer.scrollTo({
-                top: chatContainer.scrollHeight,
-                behavior: "smooth",
-            });
+        if (!document.hidden) {
+            // when the document is hidden, shouldAutoScroll can be incorrectly set to false
+            // because browsers stop doing visibility calculations when the page is in the background
+            shouldAutoScroll =
+                chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
+        } else {
+            // we were in the background and beforeUpdate is triggered, so a new message came in
+            // therefore, we should autoscroll
+            shouldAutoScroll = true;
         }
     });
+    afterUpdate(() => {
+        if (!document.hidden && (shouldAutoScroll || mustAutoScroll)) {
+            scrollToBottom();
+        }
+    });
+
+    function handleVisibilityChanged() {
+        if(!document.hidden && shouldAutoScroll) {
+            scrollToBottom();
+        }
+    }
+
+    function scrollToBottom() {
+        mustAutoScroll = false;
+        chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: "smooth",
+        });
+    }
 
     function handleChatUpdated(update: ChatUpdate): void {
         if (update.hasMessageCreated()) {
@@ -255,7 +269,7 @@
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
     <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
-        {#each chatMessages as msg, idx}
+        {#each chatMessages as msg, idx (msg.getId())}
             <div
                 transition:fade|local={{ duration: 200 }}
                 id="chat-message-{msg.getId()}"

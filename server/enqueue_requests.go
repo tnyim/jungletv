@@ -102,7 +102,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		t.statusChanged.Notify()
 	}()
 
-	e.log.Printf("Registered ticket %s", t.id)
+	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.account.Address())
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
@@ -148,7 +148,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 			delete(e.requests, reqID)
 		}()
 		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-		e.log.Printf("Purged ticket %s", reqID)
+		e.log.Printf("Purged ticket %s with payment address %s", reqID, request.PaymentAccount().Address())
 		return nil
 	}
 	t := e.statsClient.NewTiming()
