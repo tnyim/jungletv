@@ -227,6 +227,7 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 		challengeAt = s.activityChallenge.ChallengedAt
 	}
 	r.recentlyDisconnectedSpectators.SetDefault(s.user.Address(), recentlyDisconnectedSpectator{
+		legitimate:            s.legitimate,
 		user:                  s.user,
 		remoteAddress:         s.remoteAddress,
 		startedWatching:       s.startedWatching,
