@@ -88,7 +88,7 @@
                 <p class="text-xs">
                     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
                         Requested by <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}"
+                            src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}?monkey=png"
                             alt={entry.getRequestedBy().getAddress()}
                             title="Click to copy: {entry.getRequestedBy().getAddress()}"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
