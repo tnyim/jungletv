@@ -76,7 +76,7 @@ import { apiClient } from "./api_client";
     }
 </script>
 
-<div class="flex-grow min-h-full">
+<div class="flex-grow min-h-full overflow-x-hidden">
     {#if !globalThis.PRODUCTION_BUILD}
         <div class="px-2 py-2 mb-10">
             <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
