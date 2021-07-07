@@ -15,7 +15,12 @@
         clicked = true;
         trusted = event.isTrusted;
         if (activityChallenge.getType() == "hCaptcha") {
-            (window as any).hcaptcha.execute(captchaWidgetID);
+            try {
+                (window as any).hcaptcha.execute(captchaWidgetID);
+            } catch {
+                alert("An error occurred when loading the captcha. The page will now reload.");
+                location.reload();
+            }
         } else {
             try {
                 await apiClient.submitActivityChallenge(activityChallenge.getId(), "", event.isTrusted);
@@ -34,13 +39,27 @@
         activityChallenge = null;
     };
 
+    (window as any).activityCaptchaOnError = async function (token: string) {
+        alert("An error occurred when submitting the captcha solution. The page will now reload.");
+        location.reload();
+    };
+
+    (window as any).activityCaptchaOnClose = async function (token: string) {
+        clicked = false;
+    };
+
     onMount(() => {
-        top = (0.25+Math.random()/2)*100;
-    })
+        top = (0.25 + Math.random() / 2) * 100;
+    });
 
     afterUpdate(() => {
         if (captchaWidgetID === undefined && activityChallenge !== null && activityChallenge.getType() == "hCaptcha") {
-            captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {});
+            try {
+                captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {});
+            } catch {
+                alert("An error occurred when preparing the captcha. The page will now reload.");
+                location.reload();
+            }
         }
     });
 </script>
@@ -89,6 +108,8 @@
             id="activity-captcha"
             class="h-captcha"
             data-callback="activityCaptchaOnSubmit"
+            error-callback="activityCaptchaOnError"
+            close-callback="activityCaptchaOnClose"
             data-size="invisible"
             data-sitekey="2b033fe2-e4ae-402d-a6cb-23094e84876d"
         />
