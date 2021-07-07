@@ -136,13 +136,13 @@ func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (
 	return m, nil
 }
 
-func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) error {
-	err := c.store.DeleteMessage(ctx, id)
+func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*ChatMessage, error) {
+	message, err := c.store.DeleteMessage(ctx, id)
 	if err != nil {
-		return stacktrace.Propagate(err, "failed to delete chat message")
+		return nil, stacktrace.Propagate(err, "failed to delete chat message")
 	}
 	c.messageDeleted.Notify(id)
-	return nil
+	return message, nil
 }
 
 func (c *ChatManager) LoadMessagesSince(ctx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {

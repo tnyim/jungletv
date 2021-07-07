@@ -17,7 +17,7 @@ var ErrChatMessageNotFound = errors.New("chat message not found")
 // ChatStore can save and load chat messages
 type ChatStore interface {
 	StoreMessage(context.Context, *ChatMessage) error
-	DeleteMessage(context.Context, snowflake.ID) error
+	DeleteMessage(context.Context, snowflake.ID) (*ChatMessage, error)
 	LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error)
 	LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error)
 	LoadNumLatestMessagesFromUser(context.Context, User, int) ([]*ChatMessage, error)
@@ -31,8 +31,8 @@ func (*ChatStoreNoOp) StoreMessage(context.Context, *ChatMessage) error {
 	return nil
 }
 
-func (*ChatStoreNoOp) DeleteMessage(context.Context, snowflake.ID) error {
-	return nil
+func (*ChatStoreNoOp) DeleteMessage(context.Context, snowflake.ID) (*ChatMessage, error) {
+	return &ChatMessage{}, nil
 }
 
 func (*ChatStoreNoOp) LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error) {
@@ -80,10 +80,10 @@ func (s *ChatStoreMemory) StoreMessage(_ context.Context, m *ChatMessage) error 
 	return nil
 }
 
-func (s *ChatStoreMemory) DeleteMessage(_ context.Context, id snowflake.ID) error {
+func (s *ChatStoreMemory) DeleteMessage(_ context.Context, id snowflake.ID) (*ChatMessage, error) {
 	s.l.Lock()
 	defer s.l.Unlock()
-	if _, present := s.msgMap.Get(id.Int64()); present {
+	if deletedMesage, present := s.msgMap.Get(id.Int64()); present {
 		s.msgMap.Remove(id.Int64())
 		it := s.msgMap.Iterator()
 		for it.End(); it.Prev(); {
@@ -92,9 +92,9 @@ func (s *ChatStoreMemory) DeleteMessage(_ context.Context, id snowflake.ID) erro
 				m.Reference = nil
 			}
 		}
-		return nil
+		return deletedMesage.(*ChatMessage), nil
 	} else {
-		return ErrChatMessageNotFound
+		return nil, ErrChatMessageNotFound
 	}
 }
 

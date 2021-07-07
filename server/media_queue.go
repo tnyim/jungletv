@@ -108,17 +108,17 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 	q.entryAdded.Notify("play_now", entry)
 }
 
-func (q *MediaQueue) RemoveEntry(entryID string) error {
+func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
 	if len(q.queue) == 0 {
-		return stacktrace.NewError("the queue is empty")
+		return nil, stacktrace.NewError("the queue is empty")
 	}
 
 	if entryID == q.queue[0].QueueID() {
 		q.queue[0].Stop()
-		return nil
+		return q.queue[0], nil
 	}
 
 	for i, entry := range q.queue {
@@ -127,10 +127,10 @@ func (q *MediaQueue) RemoveEntry(entryID string) error {
 			q.deepEntryRemoved.Notify(entry)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify()
-			return nil
+			return entry, nil
 		}
 	}
-	return stacktrace.NewError("entry not found in the queue")
+	return nil, stacktrace.NewError("entry not found in the queue")
 }
 
 func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {

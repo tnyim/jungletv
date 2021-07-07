@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
@@ -34,11 +36,25 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.mediaQueue.RemoveEntry(r.Id)
+	entry, err := s.mediaQueue.RemoveEntry(r.Id)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to remove queue entry")
 	}
+
 	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.Username, RemoteAddressFromContext(ctx))
+
+	requestedBy := "(unknown)"
+	if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
+		requestedBy = entry.RequestedBy().Address()[:14]
+	}
+
+	_, err = s.modLogWebhook.SendContent(
+		fmt.Sprintf("Moderator %s (%s) removed queue entry requested by %s with title \"%s\"",
+			user.Address()[:14], user.Username, requestedBy, entry.MediaInfo().Title()))
+	if err != nil {
+		s.log.Println("Failed to send mod log webhook:", err)
+	}
+
 	return &proto.RemoveQueueEntryResponse{}, nil
 }
 
@@ -49,9 +65,18 @@ func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatM
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.chat.DeleteMessage(ctx, snowflake.ParseInt64(r.Id))
+	deletedMsg, err := s.chat.DeleteMessage(ctx, snowflake.ParseInt64(r.Id))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
+	}
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) deleted chat message from %s:\n\n>>> %s",
+				user.Address()[:14], user.Username, deletedMsg.Author.Address()[:14], deletedMsg.Content))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
 	}
 	return &proto.RemoveChatMessageResponse{}, nil
 }
@@ -63,13 +88,30 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
+	enabledString := ""
 	if r.Enabled {
+		enabledString = "enabled"
 		s.chat.EnableChat()
 	} else {
+		enabledString = "disabled"
 		s.chat.DisableChat(ChatDisabledReasonUnspecified)
 	}
 
 	s.chat.SetSlowModeEnabled(r.Slowmode)
+
+	slowmodeString := "disabled"
+	if r.Slowmode {
+		slowmodeString = "enabled"
+	}
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) changed chat settings: chat %s, slowmode %s",
+				user.Address()[:14], user.Username, enabledString, slowmodeString))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
 
 	return &proto.SetChatSettingsResponse{}, nil
 }
@@ -82,6 +124,15 @@ func (s *grpcServer) SetVideoEnqueuingEnabled(ctx context.Context, r *proto.SetV
 	}
 
 	s.allowVideoEnqueuing = r.Allowed
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) changed video enqueuing to %s",
+				user.Address()[:14], user.Username, r.Allowed.String()))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
 
 	return &proto.SetVideoEnqueuingEnabledResponse{}, nil
 }
@@ -120,7 +171,31 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 			return nil, stacktrace.Propagate(err, "")
 		}
 
-		s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+		places := []string{}
+		if r.ChatBanned {
+			places = append(places, "chat")
+		}
+		if r.EnqueuingBanned {
+			places = append(places, "enqueuing")
+		}
+		if r.RewardsBanned {
+			places = append(places, "rewards")
+		}
+
+		if s.modLogWebhook != nil {
+			s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+			_, err = s.modLogWebhook.SendContent(
+				fmt.Sprintf("**Added ban with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
+					banID,
+					r.Address,
+					strings.Join(places, ", "),
+					r.Reason,
+					moderator.Address()[:14],
+					moderator.Username))
+			if err != nil {
+				s.log.Println("Failed to send mod log webhook:", err)
+			}
+		}
 		banIDs = append(banIDs, banID)
 	}
 
@@ -146,6 +221,18 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 	}
 
 	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("**Removed ban with ID `%s`**\n\nReason: %s\nBy moderator: %s (%s)",
+				r.BanId,
+				r.Reason,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
 
 	return &proto.RemoveBanResponse{}, nil
 }

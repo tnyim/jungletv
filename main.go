@@ -179,10 +179,15 @@ func main() {
 		mainLog.Fatalln("hCaptcha secret not present in keybox")
 	}
 
+	modLogWebhook, present := secrets.Get("modLogWebhook")
+	if !present {
+		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
+	}
+
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
 		queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
-		ipCheckEndpoint, ipCheckToken, hCaptchaSecret)
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DisgoOrg/disgohook"
+	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -53,13 +55,14 @@ type grpcServer struct {
 	workGenerator   *WorkGenerator
 	moderationStore ModerationStore
 
-	youtube *youtube.Service
+	youtube       *youtube.Service
+	modLogWebhook api.WebhookClient
 }
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
 	youtubeAPIkey string, jwtManager *JWTManager, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
-	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string) (*grpcServer, error) {
+	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string) (*grpcServer, error) {
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -80,6 +83,13 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
 		moderationStore:                NewModerationStoreMemory(bansFile),
+	}
+
+	if modLogWebhook != "" {
+		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log), modLogWebhook)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{

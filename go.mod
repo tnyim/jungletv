@@ -3,6 +3,7 @@ module github.com/tnyim/jungletv
 go 1.16
 
 require (
+	github.com/DisgoOrg/disgohook v1.4.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
