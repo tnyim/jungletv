@@ -10,6 +10,7 @@
 	import Navbar from "./Navbar.svelte";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
+	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
 	import { darkMode, rewardAddress } from "./stores";
 
 	export let url = "";
@@ -53,6 +54,13 @@
 		<Route path="/moderate">
 			{#if isAdmin}
 				<Moderate />
+			{:else}
+				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
+			{/if}
+		</Route>
+		<Route path="/moderate/users/:address/chathistory" let:params>
+			{#if isAdmin}
+				<ModerateUserChatHistory address={params.address} />
 			{:else}
 				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
 			{/if}

@@ -149,3 +149,26 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 
 	return &proto.RemoveBanResponse{}, nil
 }
+
+func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMessagesRequest) (*proto.UserChatMessagesResponse, error) {
+	moderator := UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	user := &addressOnlyUser{
+		address: r.Address,
+	}
+	messages, err := s.chat.store.LoadNumLatestMessagesFromUser(ctx, user, int(r.NumMessages))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to load chat messages")
+	}
+	protoMsgs := make([]*proto.ChatMessage, len(messages))
+	for i := range messages {
+		protoMsgs[i] = messages[i].SerializeForAPI()
+	}
+	return &proto.UserChatMessagesResponse{
+		Messages: protoMsgs,
+	}, nil
+}

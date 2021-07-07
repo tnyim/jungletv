@@ -42,6 +42,7 @@ func NewAuthInterceptor(jwtManager *JWTManager, authorizer UserAuthorizer) *Auth
 			"/jungletv.JungleTV/SetVideoEnqueuingEnabled": AdminPermissionLevel,
 			"/jungletv.JungleTV/BanUser":                  AdminPermissionLevel,
 			"/jungletv.JungleTV/RemoveBan":                AdminPermissionLevel,
+			"/jungletv.JungleTV/UserChatMessages":         AdminPermissionLevel,
 		},
 		authorizer,
 	}

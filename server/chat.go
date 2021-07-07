@@ -155,6 +155,11 @@ func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, includeShadowba
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
+func (c *ChatManager) LoadNumLatestMessagesFromUser(ctx context.Context, user User, num int) ([]*ChatMessage, error) {
+	messages, err := c.store.LoadNumLatestMessages(ctx, user, num)
+	return messages, stacktrace.Propagate(err, "could not load chat messages")
+}
+
 func (c *ChatManager) LoadMessage(ctx context.Context, id snowflake.ID) (*ChatMessage, error) {
 	messages, err := c.store.LoadMessage(ctx, id)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")

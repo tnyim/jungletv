@@ -166,6 +166,15 @@ type JungleTVRemoveBan = {
   readonly responseType: typeof jungletv_pb.RemoveBanResponse;
 };
 
+type JungleTVUserChatMessages = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UserChatMessagesRequest;
+  readonly responseType: typeof jungletv_pb.UserChatMessagesResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -186,6 +195,7 @@ export class JungleTV {
   static readonly SetVideoEnqueuingEnabled: JungleTVSetVideoEnqueuingEnabled;
   static readonly BanUser: JungleTVBanUser;
   static readonly RemoveBan: JungleTVRemoveBan;
+  static readonly UserChatMessages: JungleTVUserChatMessages;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -341,6 +351,15 @@ export class JungleTVClient {
   removeBan(
     requestMessage: jungletv_pb.RemoveBanRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveBanResponse|null) => void
+  ): UnaryResponse;
+  userChatMessages(
+    requestMessage: jungletv_pb.UserChatMessagesRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserChatMessagesResponse|null) => void
+  ): UnaryResponse;
+  userChatMessages(
+    requestMessage: jungletv_pb.UserChatMessagesRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserChatMessagesResponse|null) => void
   ): UnaryResponse;
 }
 

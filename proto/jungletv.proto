@@ -28,6 +28,7 @@ service JungleTV {
     rpc SetVideoEnqueuingEnabled(SetVideoEnqueuingEnabledRequest) returns (SetVideoEnqueuingEnabledResponse) {}
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
     rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
+    rpc UserChatMessages(UserChatMessagesRequest) returns (UserChatMessagesResponse) {}
 }
 
 message SignInRequest {
@@ -321,6 +322,15 @@ message SetVideoEnqueuingEnabledRequest {
 }
 
 message SetVideoEnqueuingEnabledResponse {}
+
+message UserChatMessagesRequest {
+    string address = 1;
+    uint32 num_messages = 2;
+}
+
+message UserChatMessagesResponse {
+    repeated ChatMessage messages = 1;
+}
 
 message SubmitProofOfWorkRequest {
     bytes previous = 1;

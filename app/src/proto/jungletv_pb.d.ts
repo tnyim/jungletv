@@ -1402,6 +1402,52 @@ export namespace SetVideoEnqueuingEnabledResponse {
   }
 }
 
+export class UserChatMessagesRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getNumMessages(): number;
+  setNumMessages(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserChatMessagesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserChatMessagesRequest): UserChatMessagesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserChatMessagesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserChatMessagesRequest;
+  static deserializeBinaryFromReader(message: UserChatMessagesRequest, reader: jspb.BinaryReader): UserChatMessagesRequest;
+}
+
+export namespace UserChatMessagesRequest {
+  export type AsObject = {
+    address: string,
+    numMessages: number,
+  }
+}
+
+export class UserChatMessagesResponse extends jspb.Message {
+  clearMessagesList(): void;
+  getMessagesList(): Array<ChatMessage>;
+  setMessagesList(value: Array<ChatMessage>): void;
+  addMessages(value?: ChatMessage, index?: number): ChatMessage;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserChatMessagesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserChatMessagesResponse): UserChatMessagesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserChatMessagesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserChatMessagesResponse;
+  static deserializeBinaryFromReader(message: UserChatMessagesResponse, reader: jspb.BinaryReader): UserChatMessagesResponse;
+}
+
+export namespace UserChatMessagesResponse {
+  export type AsObject = {
+    messagesList: Array<ChatMessage.AsObject>,
+  }
+}
+
 export class SubmitProofOfWorkRequest extends jspb.Message {
   getPrevious(): Uint8Array | string;
   getPrevious_asU8(): Uint8Array;

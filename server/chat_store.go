@@ -20,6 +20,7 @@ type ChatStore interface {
 	DeleteMessage(context.Context, snowflake.ID) error
 	LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error)
 	LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error)
+	LoadNumLatestMessagesFromUser(context.Context, User, int) ([]*ChatMessage, error)
 	LoadMessage(context.Context, snowflake.ID) (*ChatMessage, error)
 }
 
@@ -39,6 +40,10 @@ func (*ChatStoreNoOp) LoadMessagesSince(context.Context, User, time.Time) ([]*Ch
 }
 
 func (*ChatStoreNoOp) LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error) {
+	return []*ChatMessage{}, nil
+}
+
+func (*ChatStoreNoOp) LoadNumLatestMessagesFromUser(context.Context, User, int) ([]*ChatMessage, error) {
 	return []*ChatMessage{}, nil
 }
 
@@ -110,6 +115,9 @@ func (s *ChatStoreMemory) LoadMessagesSince(_ context.Context, includeShadowbann
 			break
 		}
 	}
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
 	return messages, nil
 }
 
@@ -126,6 +134,29 @@ func (s *ChatStoreMemory) LoadNumLatestMessages(_ context.Context, includeShadow
 			messages = append(messages, m)
 			i++
 		}
+	}
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+	return messages, nil
+}
+
+func (s *ChatStoreMemory) LoadNumLatestMessagesFromUser(_ context.Context, user User, num int) ([]*ChatMessage, error) {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	messages := []*ChatMessage{}
+	it := s.msgMap.Iterator()
+	i := 0
+	for it.End(); it.Prev() && i < num; {
+		m := it.Value().(*ChatMessage)
+		if m.Author != nil && m.Author.Address() == user.Address() {
+			messages = append(messages, m)
+			i++
+		}
+	}
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
 	}
 	return messages, nil
 }

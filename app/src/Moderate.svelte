@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
+    import { navigate } from "svelte-navigator";
+import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
@@ -7,6 +8,7 @@
     import SuccessMessage from "./SuccessMessage.svelte";
 
     let ticketID = "";
+    let chatHistoryAddress = "";
 
     async function enqueue() {
         await apiClient.forciblyEnqueueTicket(ticketID, ForcedTicketEnqueueType.ENQUEUE);
@@ -76,7 +78,7 @@
 
 <div class="flex-grow min-h-full">
     {#if !globalThis.PRODUCTION_BUILD}
-        <div class="px-2 py-2">
+        <div class="px-2 py-2 mb-10">
             <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
             <div class="grid grid-cols-6 gap-6">
                 <input class="col-span-3" type="text" placeholder="ticket ID" bind:value={ticketID} />
@@ -104,7 +106,7 @@
             </div>
         </div>
     {/if}
-    <div class="mt-10">
+    <div>
         <p class="px-2 font-semibold text-lg">Queue</p>
         <Queue mode="moderation" />
     </div>
@@ -244,6 +246,16 @@
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Chat</p>
+        <div class="px-2 mb-10 grid grid-cols-3 gap-6">
+            <input class="col-span-2" type="text" placeholder="Banano address" bind:value={chatHistoryAddress} />
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => navigate("/moderate/users/" + chatHistoryAddress +"/chathistory")}
+            >
+                See chat history
+            </button>
+        </div>
         <div class="px-2 grid grid-cols-3 gap-6">
             <button
                 type="submit"
