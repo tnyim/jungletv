@@ -3,7 +3,7 @@
     import { fly } from "svelte/transition";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
     import { afterUpdate, onMount } from "svelte";
-import { darkMode } from "./stores";
+    import { darkMode } from "./stores";
 
     export let activityChallenge: ActivityChallenge;
 
@@ -16,12 +16,7 @@ import { darkMode } from "./stores";
         clicked = true;
         trusted = event.isTrusted;
         if (activityChallenge.getType() == "hCaptcha") {
-            try {
-                (window as any).hcaptcha.execute(captchaWidgetID);
-            } catch {
-                alert("An error occurred when loading the captcha. The page will now reload.");
-                location.reload();
-            }
+            executehCaptcha();
         } else {
             try {
                 await apiClient.submitActivityChallenge(activityChallenge.getId(), "", event.isTrusted);
@@ -38,16 +33,17 @@ import { darkMode } from "./stores";
             location.reload();
         }
         activityChallenge = null;
-    };
+    }
 
     async function activityCaptchaOnError(message: string) {
-        alert("An error occurred when solving the captcha (" + message + "). The page will now reload.");
-        location.reload();
-    };
+        console.log("Captcha errored:", message);
+        renderhCaptcha();
+        executehCaptcha();
+    }
 
     async function activityCaptchaOnClose() {
         clicked = false;
-    };
+    }
 
     onMount(() => {
         top = (0.25 + Math.random() / 2) * 100;
@@ -55,20 +51,33 @@ import { darkMode } from "./stores";
 
     afterUpdate(() => {
         if (captchaWidgetID === undefined && activityChallenge !== null && activityChallenge.getType() == "hCaptcha") {
-            try {
-                captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {
-                    "callback": activityCaptchaOnSubmit,
-                    "error-callback": activityCaptchaOnError,
-                    "close-callback": activityCaptchaOnClose,
-                    "chalexpired-callback": activityCaptchaOnClose,
-                    "theme": $darkMode ? "dark" : "light",
-                });
-            } catch {
-                alert("An error occurred when preparing the captcha. The page will now reload so you can retry.");
-                location.reload();
-            }
+            renderhCaptcha();
         }
     });
+
+    function renderhCaptcha() {
+        try {
+            captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {
+                callback: activityCaptchaOnSubmit,
+                "error-callback": activityCaptchaOnError,
+                "close-callback": activityCaptchaOnClose,
+                "chalexpired-callback": activityCaptchaOnClose,
+                theme: $darkMode ? "dark" : "light",
+            });
+        } catch {
+            alert("An error occurred when preparing the captcha. The page will now reload so you can retry.");
+            location.reload();
+        }
+    }
+
+    function executehCaptcha() {
+        try {
+            (window as any).hcaptcha.execute(captchaWidgetID);
+        } catch {
+            alert("An error occurred when loading the captcha. The page will now reload.");
+            location.reload();
+        }
+    }
 </script>
 
 <div
