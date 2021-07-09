@@ -313,7 +313,7 @@
                         {/if}
                         <img
                             src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}?format=png"
-                            alt={msg.getUserMessage().getAuthor().getAddress()}
+                            alt="&nbsp;"
                             title="Click to reply"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
                             on:click={() => replyToMessage(msg)}

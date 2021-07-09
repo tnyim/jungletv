@@ -69,7 +69,7 @@
                         <span class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0">
                             Rewarding <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
-                                alt="MonKey for the address"
+                                alt="&nbsp;"
                                 title="Click to copy: {rAddress}"
                                 class="inline h-9 -mt-5 -mb-4 -ml-1 -mr-1 cursor-pointer"
                                 on:click={() => copyAddress(rAddress)}
