@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
@@ -30,6 +32,7 @@ type EnqueueManager struct {
 	collectorAccountAddress        string
 	log                            *log.Logger
 	moderationStore                ModerationStore
+	modLogWebhook                  api.WebhookClient
 
 	requests     map[string]EnqueueTicket
 	requestsLock sync.RWMutex
@@ -67,7 +70,8 @@ func NewEnqueueManager(log *log.Logger,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	statsHandler *StatsHandler,
 	collectorAccountAddress string,
-	moderationStore ModerationStore) (*EnqueueManager, error) {
+	moderationStore ModerationStore,
+	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
 	return &EnqueueManager{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -79,14 +83,38 @@ func NewEnqueueManager(log *log.Logger,
 		collectorAccountAddress:        collectorAccountAddress,
 		requests:                       make(map[string]EnqueueTicket),
 		moderationStore:                moderationStore,
+		modLogWebhook:                  modLogWebhook,
 	}, nil
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
-	paymentAccount, err := e.paymentAccountPool.RequestAccount()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+	var err error
+	var paymentAccount *wallet.Account
+	for {
+		paymentAccount, err = e.paymentAccountPool.RequestAccount()
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+
+		// avoid using an address which still has leftover balance
+		// (e.g. because someone sent banano too late and their ticket had already expired)
+		// also has the benefit of checking the liveliness of the RPC server before letting people proceed to payment
+		balance, pending, err := paymentAccount.Balance()
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "failed to check balance for account %v", paymentAccount.Address())
+		}
+		balance.Add(balance, pending)
+
+		if balance.Cmp(big.NewInt(0)) == 0 {
+			break
+		}
+		e.modLogWebhook.SendContent(fmt.Sprintf(
+			"Address %v has unhandled balance! (gbl08ma will issue a refund)\n"+
+				"Most likely, someone sent money to this address after their payment ticket had already expired.\n"+
+				"This address has been removed from the payment account pool for the time being.",
+			paymentAccount.Address()))
 	}
+
 	t := &ticket{
 		id:            uuid.NewV4().String(),
 		createdAt:     time.Now(),

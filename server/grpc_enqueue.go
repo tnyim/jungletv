@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
@@ -51,6 +52,15 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.Enq
 	case youTubeVideoEnqueueRequestCreationSucceeded:
 		ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
 		if err != nil {
+			if strings.Contains(err.Error(), "failed to check balance for account") {
+				return &proto.EnqueueMediaResponse{
+					EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+						Failure: &proto.EnqueueMediaFailure{
+							FailureReason: "The JungleTV payment subsystem is unavailable",
+						},
+					},
+				}, nil
+			}
 			return nil, stacktrace.Propagate(err, "")
 		}
 
@@ -74,8 +84,6 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.Enq
 		failureReason = "Video is longer than 30 minutes"
 	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
 		failureReason = "Video is already in the queue"
-	case youTubeVideoEnqueueRequestPaymentSubsystemUnavailable:
-		failureReason = "The JungleTV payment subsystem is unavailable"
 	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:
 		failureReason = "Video enqueuing is currently disabled due to upcoming maintenance"
 	case youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly:

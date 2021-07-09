@@ -17,6 +17,7 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -123,7 +124,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address(), s.moderationStore)
+		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address(), s.moderationStore,
+		s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -232,11 +234,15 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				if !entry.RequestedBy().IsUnknown() {
 					switch t {
 					case "enqueue":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
 					case "play_after_next":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just set_ %s _to play after the current video_", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just set_ %s _to play after the current video_",
+							entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
 					case "play_now":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
 					}
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
@@ -248,7 +254,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
-				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
+				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
 				}
@@ -273,7 +280,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					t.Reset(wait)
 				}
 			case <-t.C:
-				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
+				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos &&
+					s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := s.autoEnqueueNewVideo(ctx)
 						if err != nil {
@@ -345,7 +353,6 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
-	youTubeVideoEnqueueRequestPaymentSubsystemUnavailable
 	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
@@ -406,12 +413,6 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 
 	if videoDuration.DurationApprox() > 30*time.Minute {
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
-	}
-
-	// check wallet liveliness before letting people proceed to payment
-	_, _, _, err = s.wallet.RPC.BlockCount()
-	if err != nil {
-		return nil, youTubeVideoEnqueueRequestPaymentSubsystemUnavailable, nil
 	}
 
 	request := &queueEntryYouTubeVideo{
