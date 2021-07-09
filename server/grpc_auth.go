@@ -50,12 +50,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	}
 
 	index := uint32(rand.Int31())
+	idxIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardAddress)
+	if hadExistingProcess {
+		index = idxIface.(uint32)
+	}
+
 	verifRep, err := s.wallet.NewAccount(&index)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	expiration := time.Now().Add(5 * time.Minute)
+	if !hadExistingProcess {
+		expiration = time.Now().Add(5 * time.Minute)
+		s.verificationProcesses.Set(r.RewardAddress, index, 5*time.Minute)
+	}
 
 	accountOpened := true
 	_, err = s.wallet.RPC.AccountRepresentative(r.RewardAddress)

@@ -47,6 +47,8 @@ type grpcServer struct {
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
 
+	verificationProcesses *cache.Cache
+
 	mediaQueue      *MediaQueue
 	enqueueManager  *EnqueueManager
 	rewardsHandler  *RewardsHandler
@@ -73,6 +75,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		wallet:                         w,
 		statsClient:                    statsClient,
 		jwtManager:                     jwtManager,
+		verificationProcesses:          cache.New(5*time.Minute, 1*time.Minute),
 		mediaQueue:                     mediaQueue,
 		workGenerator:                  NewWorkGenerator(),
 		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
@@ -86,7 +89,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	if modLogWebhook != "" {
-		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log), modLogWebhook)
+		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log, false), modLogWebhook)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -100,7 +103,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
-		Tokens:   5,
+		Tokens:   10,
 		Interval: 5 * time.Minute,
 	})
 	if err != nil {
