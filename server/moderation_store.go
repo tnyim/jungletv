@@ -169,6 +169,10 @@ func (m *ModerationStoreMemory) BanUser(ctx context.Context, fromChat, fromEnque
 func (m *ModerationStoreMemory) recomputeBanMapsInMutex() {
 	m.bannedFromChat = make(map[string]struct{})
 	m.remoteAddressesBannedFromChat = make(map[string]struct{})
+	m.bannedFromEnqueuing = make(map[string]struct{})
+	m.remoteAddressesBannedFromEnqueuing = make(map[string]struct{})
+	m.bannedFromRewards = make(map[string]struct{})
+	m.remoteAddressesBannedFromRewards = make(map[string]struct{})
 	for _, decision := range m.decisions {
 		if decision.Address != "" {
 			if decision.FromChat {
