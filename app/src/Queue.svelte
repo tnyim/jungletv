@@ -87,7 +87,7 @@
                 </p>
                 <p class="text-xs">
                     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
-                        Requested by <img
+                        Enqueued by <img
                             src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}?monkey=png"
                             alt="&nbsp;"
                             title="Click to copy: {entry.getRequestedBy().getAddress()}"
