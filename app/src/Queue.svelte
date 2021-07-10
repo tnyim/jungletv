@@ -46,9 +46,9 @@
     }
 </script>
 
-<div class="lg:overflow-y-auto">
+<div class="lg:overflow-y-auto overflow-x-hidden">
     {#each queueEntries as entry, i}
-        <div class="px-2 py-1 flex flex-row text-sm hover:bg-gray-200 cursor-default">
+        <div class="px-2 py-1 flex flex-row text-sm hover:bg-gray-200 dark:hover:bg-gray-800 cursor-default">
             <div class="w-32 flex-shrink-0 thumbnail">
                 <img
                     src={entry.getYoutubeVideoData().getThumbnailUrl()}
@@ -78,17 +78,18 @@
                             class="text-blue-600 hover:underline"
                             href="https://www.youtube.com/watch?v={entry.getYoutubeVideoData().getId()}"
                             target="_blank">Watch on YouTube</a
-                        >{/if}
+                        >
+                    {/if}
                     <br />
-                    <span class="text-xs text-gray-600 font-semibold"
+                    <span class="text-xs text-gray-600 dark:text-gray-300 font-semibold"
                         >{entry.getYoutubeVideoData().getChannelTitle()}</span
                     >
                 </p>
                 <p class="text-xs">
                     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
                         Enqueued by <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}"
-                            alt={entry.getRequestedBy().getAddress()}
+                            src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}?monkey=png"
+                            alt="&nbsp;"
                             title="Click to copy: {entry.getRequestedBy().getAddress()}"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
                             on:click={() => copyAddress(entry.getRequestedBy().getAddress())}
@@ -104,7 +105,8 @@
                         Added by JungleTV (no reward)
                     {/if}
                     {#if mode == "moderation"}
-                        | <span
+                        | Request cost: {apiClient.formatBANPrice(entry.getRequestCost())} BAN |
+                        <span
                             class="text-blue-600 hover:underline cursor-pointer"
                             on:click={() => removeEntry(entry.getId())}>Remove</span
                         >
