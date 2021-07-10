@@ -17,8 +17,8 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Receive rewards</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             ⏲💥😞
         </p>
     </div>

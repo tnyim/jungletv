@@ -24,7 +24,7 @@ Feel free to take a look at the source code, report issues, or to maybe even mak
 # :moneybag: Donations
 If you would like to help support the development and operation of JungleTV, consider donating some potassium to the address below:
 
-![](https://jungletv.live/assets/brand/Donation_QR.png)
+<img src="https://github.com/tnyim/jungletv/raw/master/docs/assets/donation_qr.png" width="200">
 
 ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
 
@@ -35,4 +35,4 @@ JungleTV is open source software licensed under the Apache License 2.0.
 
 [Apache License 2.0](http://opensource.org/licenses/MIT)
 
-Made with :yellow_heart: and :banana: potassium in Portugal and the BANANO Jungle :monkey::monkey:.
+Made with :yellow_heart: and :banana: potassium in the BANANO Jungle :monkey::monkey:.

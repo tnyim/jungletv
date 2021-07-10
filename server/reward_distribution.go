@@ -22,7 +22,8 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 
 	rewardBudget := media.RequestCost()
 
-	eligible := getEligibleSpectators(r.log, r.ipReputationChecker, r.spectatorsByRemoteAddress, media.RequestedBy().Address())
+	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
+		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.PlayedFor())
 	go r.statsClient.Gauge("eligible", len(eligible))
 
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
@@ -53,12 +54,18 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		t := r.statsClient.NewTiming()
 		r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
 		t.Send("reward_distribution")
-		r.rewardsDistributed.Notify(rewardBudget)
+		r.rewardsDistributed.Notify(rewardBudget, len(eligible))
 	}()
 	return nil
 }
 
-func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectatorsByRemoteAddress map[string][]*spectator, exceptAddress string) map[string]*spectator {
+func getEligibleSpectators(ctx context.Context,
+	l *log.Logger,
+	c *IPAddressReputationChecker,
+	moderationStore ModerationStore,
+	spectatorsByRemoteAddress map[string][]*spectator,
+	exceptAddress string,
+	videoPlayedFor time.Duration) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -72,9 +79,15 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
 			continue
 		}
+		if banned, err := moderationStore.LoadRemoteAddressBannedFromRewards(ctx, k); err == nil && banned {
+			l.Println("Skipped rewarding remote address", k, "due to ban")
+			continue
+		}
 		uniquifiedIP := getUniquifiedIP(k)
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
+
+	minAcceptableDuration := ((videoPlayedFor * 40) / 100)
 
 	for k := range spectatorsByUniquifiedRemoteAddress {
 		spectators := spectatorsByUniquifiedRemoteAddress[k]
@@ -83,9 +96,24 @@ func getEligibleSpectators(l *log.Logger, c *IPAddressReputationChecker, spectat
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
 		for j := range spectators {
+			// do not reward spectators who didn't watch at least 40% of the video
+			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
+				continue
+			}
 			// do not reward an inactive spectator
-			if spectators[j].activityChallenge != "" && time.Since(spectators[j].activityChallengeAt) > activityChallengeTolerance {
+			if spectators[j].activityChallenge != nil && time.Since(spectators[j].activityChallenge.ChallengedAt) > spectators[j].activityChallenge.Tolerance {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
+				continue
+			}
+			// do not reward an illegitimate spectator
+			if !spectators[j].legitimate {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "because it is not considered legitimate")
+				continue
+			}
+			// do not reward a banned spectator
+			if banned, err := moderationStore.LoadPaymentAddressBannedFromRewards(ctx, spectators[j].user.Address()); err == nil && banned {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
 				continue
 			}
 			// do not reward an address that would have received a reward via another remote address already
@@ -115,7 +143,7 @@ func getUniquifiedIP(remoteAddress string) string {
 
 func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 	done := make(chan struct{})
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
 		defer func() { done <- struct{}{} }()
 		balance, pending, err := collectorAccount.Balance()
 		if err != nil {
@@ -161,7 +189,7 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) {
 	r.receiveCollectorPending(requestCost)
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
 		destinations := []wallet.SendDestination{}
 		spectators := []*spectator{}
 		for k := range eligible {
@@ -172,7 +200,7 @@ func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string
 			})
 			spectators = append(spectators, spectator)
 		}
-		blockHashes, err := collectorAccount.SendMultiple(destinations)
+		blockHashes, err := r.workGenerator.SendMultiple(RPC, RPCWork, collectorAccount, destinations)
 		if err != nil {
 			r.log.Printf("Error rewarding spectators: %v", err)
 		} else {
@@ -191,7 +219,7 @@ func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string,
 		return
 	}
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
 		blockHash, err := collectorAccount.Send(address, amount.Int)
 		if err != nil {
 			r.log.Printf("Error reimbursing %s with %v: %v", address, amount.Int, err)
@@ -233,7 +261,7 @@ func (r *RewardsHandler) desperatelyTryToFindFundsStuckInPaymentAccounts() error
 			continue
 		}
 		r.log.Printf("Sending all balance in account %s to collector account", account.Address())
-		r.collectorAccountQueue <- func(collectorAccount *wallet.Account) {
+		r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
 			_, err = account.Send(collectorAccount.Address(), balance)
 		}
 		if err != nil {

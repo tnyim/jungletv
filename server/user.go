@@ -10,6 +10,7 @@ import (
 // User represents an identity on the service
 type User interface {
 	Address() string
+	PermissionLevel() PermissionLevel
 	SerializeForAPI() *proto.User
 	IsUnknown() bool
 }
@@ -26,6 +27,10 @@ func NewAddressOnlyUser(address string) User {
 
 func (u *addressOnlyUser) Address() string {
 	return u.address
+}
+
+func (u *addressOnlyUser) PermissionLevel() PermissionLevel {
+	return UnauthenticatedPermissionLevel
 }
 
 func (u *addressOnlyUser) SerializeForAPI() *proto.User {
@@ -46,18 +51,22 @@ type UserClaims struct {
 }
 
 type userInfo struct {
-	RewardAddress   string          `json:"reward_address"`
-	PermissionLevel PermissionLevel `json:"permission_level"`
-	Username        string          `json:"username"`
+	RewardAddress string          `json:"reward_address"`
+	PermLevel     PermissionLevel `json:"permission_level"`
+	Username      string          `json:"username"`
 }
 
 func (u *UserClaims) Address() string {
 	return u.RewardAddress
 }
 
+func (u *UserClaims) PermissionLevel() PermissionLevel {
+	return u.PermLevel
+}
+
 func (u *UserClaims) SerializeForAPI() *proto.User {
 	roles := []proto.UserRole{}
-	if permissionLevelOrder[u.PermissionLevel] >= permissionLevelOrder[AdminPermissionLevel] {
+	if permissionLevelOrder[u.PermLevel] >= permissionLevelOrder[AdminPermissionLevel] {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
 	return &proto.User{
@@ -75,6 +84,10 @@ type unknownUser struct {
 
 func (u *unknownUser) Address() string {
 	return ""
+}
+
+func (u *unknownUser) PermissionLevel() PermissionLevel {
+	return UnauthenticatedPermissionLevel
 }
 
 func (u *unknownUser) SerializeForAPI() *proto.User {

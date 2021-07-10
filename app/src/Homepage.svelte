@@ -4,20 +4,13 @@
     import { fly, scale } from "svelte/transition";
     import watchMedia from "svelte-media";
     import { activityChallengeReceived } from "./stores";
-    import { apiClient } from "./api_client";
     import { cubicOut } from "svelte/easing";
     import waitForElementTransition from "wait-for-element-transition";
+    import ActivityChallenge from "./ActivityChallenge.svelte";
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
-    media.subscribe((obj: any) => (largeScreen = obj.large));
-    let latestActivityChallenge = "";
-    activityChallengeReceived.subscribe((challenge) => (latestActivityChallenge = challenge));
-
-    async function stillWatching() {
-        await apiClient.submitActivityChallenge(latestActivityChallenge);
-        latestActivityChallenge = "";
-    }
+    media.subscribe((obj: any) => largeScreen = obj.large);
 
     const sidebarOpenCloseAnimDuration = 400;
 
@@ -61,29 +54,14 @@
 
 <div class="flex flex-col lg:flex-row lg-screen-height-minus-top-padding w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
-        {#if latestActivityChallenge != ""}
-            <div
-                class="absolute left-0 top-3/4 w-72 bg-white flex flex-row p-2 rounded-r space-x-2"
-                transition:fly|local={{ x: -384, duration: 400 }}
-            >
-                <div>
-                    <h3>Are you still watching?</h3>
-                    <p class="text-xs text-gray-600">To receive rewards, confirm you're still watching.</p>
-                </div>
-                <button
-                    type="submit"
-                    class="inline-flex float-right items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-                    on:click={stillWatching}
-                >
-                    Still watching
-                </button>
-            </div>
+        {#if $activityChallengeReceived !== null}
+            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} />
         {/if}
         <Player />
     </div>
     {#if sidebarExpanded || !largeScreen}
         <div
-            class="flex flex-col overflow-hidden lg:shadow-xl bg-white lg:w-96 lg:z-10"
+            class="flex flex-col overflow-hidden lg:shadow-xl bg-white dark:bg-gray-900 dark:text-white lg:w-96 lg:z-10"
             transition:fly|local={{ x: 384, duration: sidebarOpenCloseAnimDuration, easing: cubicOut }}
             on:introstart={sidebarOpenStart}
             on:introend={sidebarOpenEnd}

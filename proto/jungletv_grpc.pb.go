@@ -11,7 +11,6 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // JungleTVClient is the client API for JungleTV service.
@@ -27,12 +26,17 @@ type JungleTVClient interface {
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
 	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
+	SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error)
+	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
 	RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error)
 	SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(ctx context.Context, in *SetVideoEnqueuingEnabledRequest, opts ...grpc.CallOption) (*SetVideoEnqueuingEnabledResponse, error)
+	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
+	RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error)
+	UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error)
 }
 
 type jungleTVClient struct {
@@ -44,7 +48,7 @@ func NewJungleTVClient(cc grpc.ClientConnInterface) JungleTVClient {
 }
 
 func (c *jungleTVClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[0], "/jungletv.JungleTV/SignIn", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[0], "/jungletv.JungleTV/SignIn", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +89,7 @@ func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaReque
 }
 
 func (c *jungleTVClient) MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[1], "/jungletv.JungleTV/MonitorTicket", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[1], "/jungletv.JungleTV/MonitorTicket", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +121,7 @@ func (x *jungleTVMonitorTicketClient) Recv() (*EnqueueMediaTicket, error) {
 }
 
 func (c *jungleTVClient) ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[2], "/jungletv.JungleTV/ConsumeMedia", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[2], "/jungletv.JungleTV/ConsumeMedia", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +153,7 @@ func (x *jungleTVConsumeMediaClient) Recv() (*MediaConsumptionCheckpoint, error)
 }
 
 func (c *jungleTVClient) MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[3], "/jungletv.JungleTV/MonitorQueue", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[3], "/jungletv.JungleTV/MonitorQueue", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +203,7 @@ func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *Submit
 }
 
 func (c *jungleTVClient) ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +237,24 @@ func (x *jungleTVConsumeChatClient) Recv() (*ChatUpdate, error) {
 func (c *jungleTVClient) SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error) {
 	out := new(SendChatMessageResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SendChatMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error) {
+	out := new(SubmitProofOfWorkResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SubmitProofOfWork", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error) {
+	out := new(UserPermissionLevelResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserPermissionLevel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -284,6 +306,33 @@ func (c *jungleTVClient) SetVideoEnqueuingEnabled(ctx context.Context, in *SetVi
 	return out, nil
 }
 
+func (c *jungleTVClient) BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error) {
+	out := new(BanUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/BanUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error) {
+	out := new(RemoveBanResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveBan", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error) {
+	out := new(UserChatMessagesResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserChatMessages", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -297,12 +346,17 @@ type JungleTVServer interface {
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
 	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
+	SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error)
+	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
 	RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error)
 	SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error)
+	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error)
+	UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -337,6 +391,12 @@ func (UnimplementedJungleTVServer) ConsumeChat(*ConsumeChatRequest, JungleTV_Con
 func (UnimplementedJungleTVServer) SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendChatMessage not implemented")
 }
+func (UnimplementedJungleTVServer) SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitProofOfWork not implemented")
+}
+func (UnimplementedJungleTVServer) UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserPermissionLevel not implemented")
+}
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
 }
@@ -352,6 +412,15 @@ func (UnimplementedJungleTVServer) SetChatSettings(context.Context, *SetChatSett
 func (UnimplementedJungleTVServer) SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetVideoEnqueuingEnabled not implemented")
 }
+func (UnimplementedJungleTVServer) BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BanUser not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBan not implemented")
+}
+func (UnimplementedJungleTVServer) UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserChatMessages not implemented")
+}
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
 // UnsafeJungleTVServer may be embedded to opt out of forward compatibility for this service.
@@ -362,7 +431,7 @@ type UnsafeJungleTVServer interface {
 }
 
 func RegisterJungleTVServer(s grpc.ServiceRegistrar, srv JungleTVServer) {
-	s.RegisterService(&JungleTV_ServiceDesc, srv)
+	s.RegisterService(&_JungleTV_serviceDesc, srv)
 }
 
 func _JungleTV_SignIn_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -542,6 +611,42 @@ func _JungleTV_SendChatMessage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SubmitProofOfWork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitProofOfWorkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SubmitProofOfWork(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SubmitProofOfWork",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SubmitProofOfWork(ctx, req.(*SubmitProofOfWorkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UserPermissionLevel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserPermissionLevelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserPermissionLevel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserPermissionLevel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserPermissionLevel(ctx, req.(*UserPermissionLevelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -632,10 +737,61 @@ func _JungleTV_SetVideoEnqueuingEnabled_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-// JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var JungleTV_ServiceDesc = grpc.ServiceDesc{
+func _JungleTV_BanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BanUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).BanUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/BanUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).BanUser(ctx, req.(*BanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RemoveBan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveBanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveBan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveBan",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveBan(ctx, req.(*RemoveBanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UserChatMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserChatMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserChatMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserChatMessages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserChatMessages(ctx, req.(*UserChatMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -656,6 +812,14 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_SendChatMessage_Handler,
 		},
 		{
+			MethodName: "SubmitProofOfWork",
+			Handler:    _JungleTV_SubmitProofOfWork_Handler,
+		},
+		{
+			MethodName: "UserPermissionLevel",
+			Handler:    _JungleTV_UserPermissionLevel_Handler,
+		},
+		{
 			MethodName: "ForciblyEnqueueTicket",
 			Handler:    _JungleTV_ForciblyEnqueueTicket_Handler,
 		},
@@ -674,6 +838,18 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetVideoEnqueuingEnabled",
 			Handler:    _JungleTV_SetVideoEnqueuingEnabled_Handler,
+		},
+		{
+			MethodName: "BanUser",
+			Handler:    _JungleTV_BanUser_Handler,
+		},
+		{
+			MethodName: "RemoveBan",
+			Handler:    _JungleTV_RemoveBan_Handler,
+		},
+		{
+			MethodName: "UserChatMessages",
+			Handler:    _JungleTV_UserChatMessages_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

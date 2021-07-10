@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
@@ -29,6 +31,8 @@ type EnqueueManager struct {
 	statsHandler                   *StatsHandler
 	collectorAccountAddress        string
 	log                            *log.Logger
+	moderationStore                ModerationStore
+	modLogWebhook                  api.WebhookClient
 
 	requests     map[string]EnqueueTicket
 	requestsLock sync.RWMutex
@@ -58,7 +62,16 @@ type EnqueueTicket interface {
 }
 
 // NewEnqueueManager returns a new EnqueueManager
-func NewEnqueueManager(log *log.Logger, statsClient *statsd.Client, mediaQueue *MediaQueue, wallet *wallet.Wallet, paymentAccountPool *PaymentAccountPool, paymentAccountPendingWaitGroup *sync.WaitGroup, statsHandler *StatsHandler, collectorAccountAddress string) (*EnqueueManager, error) {
+func NewEnqueueManager(log *log.Logger,
+	statsClient *statsd.Client,
+	mediaQueue *MediaQueue,
+	wallet *wallet.Wallet,
+	paymentAccountPool *PaymentAccountPool,
+	paymentAccountPendingWaitGroup *sync.WaitGroup,
+	statsHandler *StatsHandler,
+	collectorAccountAddress string,
+	moderationStore ModerationStore,
+	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
 	return &EnqueueManager{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -69,14 +82,39 @@ func NewEnqueueManager(log *log.Logger, statsClient *statsd.Client, mediaQueue *
 		statsHandler:                   statsHandler,
 		collectorAccountAddress:        collectorAccountAddress,
 		requests:                       make(map[string]EnqueueTicket),
+		moderationStore:                moderationStore,
+		modLogWebhook:                  modLogWebhook,
 	}, nil
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
-	paymentAccount, err := e.paymentAccountPool.RequestAccount()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+	var err error
+	var paymentAccount *wallet.Account
+	for {
+		paymentAccount, err = e.paymentAccountPool.RequestAccount()
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+
+		// avoid using an address which still has leftover balance
+		// (e.g. because someone sent banano too late and their ticket had already expired)
+		// also has the benefit of checking the liveliness of the RPC server before letting people proceed to payment
+		balance, pending, err := paymentAccount.Balance()
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "failed to check balance for account %v", paymentAccount.Address())
+		}
+		balance.Add(balance, pending)
+
+		if balance.Cmp(big.NewInt(0)) == 0 {
+			break
+		}
+		e.modLogWebhook.SendContent(fmt.Sprintf(
+			"Address %v has unhandled balance! (gbl08ma will issue a refund)\n"+
+				"Most likely, someone sent money to this address after their payment ticket had already expired.\n"+
+				"This address has been removed from the payment account pool for the time being.",
+			paymentAccount.Address()))
 	}
+
 	t := &ticket{
 		id:            uuid.NewV4().String(),
 		createdAt:     time.Now(),
@@ -92,7 +130,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		t.statusChanged.Notify()
 	}()
 
-	e.log.Printf("Registered ticket %s", t.id)
+	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.account.Address())
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
@@ -100,7 +138,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 	return t, nil
 }
 
-func (e *EnqueueManager) ProcessPayments() error {
+func (e *EnqueueManager) ProcessPayments(ctx context.Context) error {
 	// create a copy of the map so we don't hold the lock for so long
 	requestCopy := make(map[string]EnqueueTicket)
 	func() {
@@ -118,7 +156,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 	}
 
 	for reqID, request := range requestCopy {
-		err := e.processPaymentForTicket(reqID, request)
+		err := e.processPaymentForTicket(ctx, reqID, request)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
@@ -127,7 +165,7 @@ func (e *EnqueueManager) ProcessPayments() error {
 	return nil
 }
 
-func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTicket) error {
+func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID string, request EnqueueTicket) error {
 	if request.Status() == proto.EnqueueMediaTicketStatus_PAID {
 		return nil
 	}
@@ -138,7 +176,7 @@ func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTi
 			delete(e.requests, reqID)
 		}()
 		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-		e.log.Printf("Purged ticket %s", reqID)
+		e.log.Printf("Purged ticket %s with payment address %s", reqID, request.PaymentAccount().Address())
 		return nil
 	}
 	t := e.statsClient.NewTiming()
@@ -199,6 +237,10 @@ func (e *EnqueueManager) processPaymentForTicket(reqID string, request EnqueueTi
 	requestedByStr := "unknown"
 	if requestedBy != nil {
 		requestedByStr = requestedBy.Address()
+
+		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
+			return nil
+		}
 	}
 
 	e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
@@ -268,7 +310,7 @@ func (e *EnqueueManager) ProcessPaymentsWorker(ctx context.Context, interval tim
 	for {
 		select {
 		case <-t.C:
-			err := e.ProcessPayments()
+			err := e.ProcessPayments(ctx)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

@@ -6,7 +6,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import { rewardAddress } from "./stores";
+    import { darkMode, rewardAddress } from "./stores";
     import { DateTime } from "luxon";
     import marked from "marked/lib/marked.esm.js";
 
@@ -31,6 +31,7 @@
     let composedMessage = "";
     let replyingToMessage: ChatMessage;
     let sendError = false;
+    let sendErrorIsRateLimit = false;
     let chatEnabled = true;
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
@@ -39,7 +40,10 @@
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
 
-    onMount(consumeChat);
+    onMount(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChanged)
+        consumeChat();
+    });
     function consumeChat() {
         chatEnabled = true;
         consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {
@@ -47,6 +51,7 @@
         });
     }
     onDestroy(() => {
+        document.removeEventListener("visibilitychange", handleVisibilityChanged);
         if (consumeChatRequest !== undefined) {
             consumeChatRequest.close();
         }
@@ -62,18 +67,36 @@
     let mustAutoScroll = false;
     let sentMsgFlag = false;
     beforeUpdate(() => {
-        shouldAutoScroll =
-            chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
-    });
-    afterUpdate(() => {
-        if (shouldAutoScroll || mustAutoScroll) {
-            mustAutoScroll = false;
-            chatContainer.scrollTo({
-                top: chatContainer.scrollHeight,
-                behavior: "smooth",
-            });
+        if (!document.hidden) {
+            // when the document is hidden, shouldAutoScroll can be incorrectly set to false
+            // because browsers stop doing visibility calculations when the page is in the background
+            shouldAutoScroll =
+                chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
+        } else {
+            // we were in the background and beforeUpdate is triggered, so a new message came in
+            // therefore, we should autoscroll
+            shouldAutoScroll = true;
         }
     });
+    afterUpdate(() => {
+        if (!document.hidden && (shouldAutoScroll || mustAutoScroll)) {
+            scrollToBottom();
+        }
+    });
+
+    function handleVisibilityChanged() {
+        if(!document.hidden && shouldAutoScroll) {
+            scrollToBottom();
+        }
+    }
+
+    function scrollToBottom() {
+        mustAutoScroll = false;
+        chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: "smooth",
+        });
+    }
 
     function handleChatUpdated(update: ChatUpdate): void {
         if (update.hasMessageCreated()) {
@@ -91,7 +114,7 @@
                 sentMsgFlag = false;
                 mustAutoScroll = true;
             }
-            chatMessages = chatMessages; // this triggers Svelte's reactivity
+            chatMessages = chatMessages.slice(Math.max(0, chatMessages.length - 250)); // this triggers Svelte's reactivity and removes old messages
         } else if (update.hasMessageDeleted()) {
             let deletedId = update.getMessageDeleted().getId();
             for (var i = chatMessages.length - 1; i >= 0; i--) {
@@ -156,19 +179,25 @@
         return thisMsgDate.toLocaleString(needsDate ? DateTime.DATETIME_SHORT : DateTime.TIME_SIMPLE);
     }
 
-    async function sendMessage() {
-        let msg = composedMessage;
+    async function sendMessage(event: Event) {
+        let msg = composedMessage.trim();
         if (msg == "") {
             return;
         }
         composedMessage = "";
+        if (msg == "/lightsout") {
+            darkMode.update((v) => !v);
+            return;
+        }
         let refMsg = replyingToMessage;
         clearReplyToMessage();
         sentMsgFlag = true;
         try {
-            await apiClient.sendChatMessage(msg, refMsg);
+            await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
         } catch (ex) {
+            composedMessage = msg;
             sendError = true;
+            sendErrorIsRateLimit = ex instanceof Error && (ex as Error).toString().includes("rate limit reached");
             setTimeout(() => (sendError = false), 5000);
         }
         composeTextArea.focus();
@@ -182,7 +211,7 @@
                 return true;
             }
             event.preventDefault();
-            await sendMessage();
+            await sendMessage(event);
             autoresize(ta);
             return false;
         }
@@ -191,6 +220,7 @@
 
     function replyToMessage(message: ChatMessage) {
         replyingToMessage = message;
+        composeTextArea.focus();
     }
     function clearReplyToMessage() {
         replyingToMessage = undefined;
@@ -205,7 +235,11 @@
             behavior: "smooth",
         });
         msgElement.classList.add("bg-yellow-100");
-        setTimeout(() => msgElement.classList.remove("bg-yellow-100"), 2000);
+        msgElement.classList.add("dark:bg-yellow-800");
+        setTimeout(() => {
+            msgElement.classList.remove("bg-yellow-100");
+            msgElement.classList.remove("dark:bg-yellow-800");
+        }, 2000);
     }
     function focusOnInit(el: HTMLElement) {
         el.focus();
@@ -222,18 +256,29 @@
             console.error("Failed to copy!", err);
         }
     }
+
+    function getBackgroundColorForMessage(msg: ChatMessage): string {
+        if (msg.getUserMessage().getAuthor().getAddress() == rAddress) {
+            return "bg-gray-100 dark:bg-gray-800";
+        } else if (msg.hasReference() && msg.getReference().getUserMessage().getAuthor().getAddress() == rAddress) {
+            return "bg-yellow-100 dark:bg-yellow-800";
+        }
+        return "";
+    }
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
     <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
-        {#each chatMessages as msg, idx}
+        {#each chatMessages as msg, idx (msg.getId())}
             <div
                 transition:fade|local={{ duration: 200 }}
                 id="chat-message-{msg.getId()}"
                 class="transition-colors ease-in-out duration-1000"
             >
                 {#if shouldShowTimeSeparator(idx)}
-                    <div class="mt-1 flex flex-row text-xs text-gray-600 justify-center items-center">
+                    <div
+                        class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center"
+                    >
                         <hr class="flex-1 ml-8" />
                         <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
                         <hr class="flex-1 mr-8" />
@@ -242,9 +287,10 @@
                 {#if msg.hasUserMessage()}
                     {#if msg.hasReference()}
                         <p
-                            class="text-gray-600 text-xs {shouldAddAdditionalPadding(idx)
+                            class="text-gray-600 dark:text-gray-400 text-xs {shouldAddAdditionalPadding(idx)
                                 ? 'mt-2'
-                                : 'mt-1'} h-4 overflow-hidden cursor-pointer"
+                                : 'mt-1'} h-4 overflow-hidden cursor-pointer
+                                {getBackgroundColorForMessage(msg)}"
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
@@ -257,15 +303,17 @@
                     <p
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
+                            : msg.hasReference()
+                            ? 'pt-0.5'
                             : 'mt-0.5'} break-words
-                            {msg.getUserMessage().getAuthor().getAddress() == rAddress ? 'bg-gray-100' : ''}"
+                            {getBackgroundColorForMessage(msg)}"
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                         {/if}
                         <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
-                            alt={msg.getUserMessage().getAuthor().getAddress()}
+                            src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}?format=png"
+                            alt="&nbsp;"
                             title="Click to reply"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
                             on:click={() => replyToMessage(msg)}
@@ -277,13 +325,23 @@
                             on:click={() => replyToMessage(msg)}
                             >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-                            <i class="fas fa-shield-alt text-xs ml-1 text-purple-700" title="Chat moderator" />{/if}:
-                        {@html marked.parseInline(msg.getUserMessage().getContent())}
+                            <i
+                                class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
+                                title="Chat moderator"
+                            />{/if}:
+                        {@html marked
+                            .parseInline(
+                                msg.getUserMessage().getContent(),
+                                msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
+                                    ? { tokenizer: undefined }
+                                    : {}
+                            )
+                            .replace("<a ", '<a class="text-blue-600 hover:underline" target="_blank" rel="noopener" ')}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
                         <div class="flex-1" />
-                        <div class="px-2 py-0.5 bg-gray-400 text-white rounded-sm text-center">
+                        <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded-sm text-center">
                             {@html marked.parseInline(msg.getSystemMessage().getContent())}
                         </div>
                         <div class="flex-1" />
@@ -298,17 +356,23 @@
     </div>
     <div class="border-t border-gray-300 shadow-md">
         {#if rAddress == ""}
-            <div class="p-2 text-gray-600">
+            <div class="p-2 text-gray-600 dark:text-gray-400">
                 <a href="/rewards/address" use:link class="text-blue-600 hover:underline">Set a reward address</a> to chat.
             </div>
         {:else if !chatEnabled}
-            <div class="p-2 text-gray-600">
+            <div class="p-2 text-gray-600 dark:text-gray-400">
                 Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
             </div>
         {:else}
             {#if sendError}
                 <div class="px-2 text-xs">
-                    <ErrorMessage>Failed to send your message. Please try again.</ErrorMessage>
+                    <ErrorMessage>
+                        {#if sendErrorIsRateLimit}
+                            Failed to send your message. Please try again.
+                        {:else}
+                            You're going too fast. Slow down.
+                        {/if}
+                    </ErrorMessage>
                 </div>
             {/if}
             {#if replyingToMessage !== undefined}
@@ -323,18 +387,18 @@
                             >{replyingToMessage.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
                         >
                         <span
-                            class="cursor-pointer text-gray-600"
+                            class="cursor-pointer text-gray-600 dark:text-gray-400"
                             on:click={() =>
                                 copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
                             >(click to copy address)</span
                         >
-                        <div class="text-gray-600 overflow-hidden h-4">
+                        <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-4">
                             {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
                         </div>
                     </div>
                     <button
                         title="Stop replying"
-                        class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                        class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ease-linear transition-all duration-150"
                         on:click={clearReplyToMessage}
                     >
                         <i class="fas fa-times-circle" />
@@ -348,14 +412,14 @@
                     bind:value={composedMessage}
                     on:keydown={handleEnter}
                     use:focusOnInit
-                    class="flex-grow p-2 resize-none max-h-32 focus:outline-none"
+                    class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
                     placeholder="Say something..."
                     maxlength="512"
                 />
 
                 <button
                     title="Send message"
-                    class="text-purple-700 min-h-full w-10 p-2 shadow-md bg-gray-100 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                    class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
                     on:click={sendMessage}
                 >
                     <i class="fas fa-paper-plane" />

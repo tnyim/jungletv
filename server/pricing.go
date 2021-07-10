@@ -10,7 +10,7 @@ import (
 var BananoUnit *big.Int = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(29), big.NewInt(0)) // 100000000000000000000000000000
 
 // BaseEnqueuePrice is the price to enqueue on an empty queue
-var BaseEnqueuePrice *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(3))
+var BaseEnqueuePrice *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(2))
 
 // PriceRoundingFactor is the rounding factor for enqueue prices
 var PriceRoundingFactor *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(100))
@@ -52,6 +52,8 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	case videoDuration.Minutes() >= 10:
 		lengthPenalty = 10
 	case videoDuration.Minutes() >= 6:
+		lengthPenalty = 4
+	case videoDuration.Minutes() >= 4.5:
 		lengthPenalty = 2
 	}
 
@@ -60,7 +62,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	pricing.EnqueuePrice = Amount{new(big.Int)}
 	pricing.EnqueuePrice.Set(BaseEnqueuePrice)
 	m := big.NewInt(1000).Add(big.NewInt(1000), big.NewInt(queueLengthFactor))
-	m = m.Add(m, big.NewInt(int64(currentlyWatching*70)))
+	m = m.Add(m, big.NewInt(int64(currentlyWatching*100)))
 	m = m.Add(m, big.NewInt(int64(lengthPenalty*1000)))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, m)
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(1000))

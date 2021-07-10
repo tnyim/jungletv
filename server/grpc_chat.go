@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -28,13 +29,19 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	heartbeatC := time.NewTicker(5 * time.Second).C
 	var seq uint32
 
+	user := UserClaimsFromContext(stream.Context())
+
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
 		initialHistorySize := r.InitialHistorySize
 		if initialHistorySize > 1000 {
 			initialHistorySize = 1000
 		}
-		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), int(initialHistorySize))
+		var u User = &unknownUser{}
+		if user != nil {
+			u = user
+		}
+		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), u, int(initialHistorySize))
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}
@@ -81,13 +88,16 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				},
 			})
 		case v := <-onMessageCreated:
-			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_MessageCreated{
-					MessageCreated: &proto.ChatMessageCreatedEvent{
-						Message: v[0].(*ChatMessage).SerializeForAPI(),
+			msg := v[0].(*ChatMessage)
+			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
+				err = stream.Send(&proto.ChatUpdate{
+					Event: &proto.ChatUpdate_MessageCreated{
+						MessageCreated: &proto.ChatMessageCreatedEvent{
+							Message: msg.SerializeForAPI(),
+						},
 					},
-				},
-			})
+				})
+			}
 		case v := <-onMessageDeleted:
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageDeleted{
@@ -119,7 +129,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
-	if len(r.Content) == 0 {
+	if len(strings.TrimSpace(r.Content)) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "message empty")
 	}
 	if len(r.Content) > 512 {
@@ -144,6 +154,19 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	s.log.Printf("Chat message from %s %s: %s", m.Author.Address(), RemoteAddressFromContext(ctx), m.Content)
+	if !m.Shadowbanned {
+		go func() {
+			if r.Trusted {
+				if len(m.Content) >= 10 || m.Reference != nil {
+					s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, user.Address())
+				}
+			} else {
+				s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
+			}
+		}()
+	}
+
 	return &proto.SendChatMessageResponse{
 		Id: m.ID.Int64(),
 	}, nil

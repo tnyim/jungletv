@@ -40,6 +40,9 @@ func NewAuthInterceptor(jwtManager *JWTManager, authorizer UserAuthorizer) *Auth
 			"/jungletv.JungleTV/RemoveChatMessage":        AdminPermissionLevel,
 			"/jungletv.JungleTV/SetChatSettings":          AdminPermissionLevel,
 			"/jungletv.JungleTV/SetVideoEnqueuingEnabled": AdminPermissionLevel,
+			"/jungletv.JungleTV/BanUser":                  AdminPermissionLevel,
+			"/jungletv.JungleTV/RemoveBan":                AdminPermissionLevel,
+			"/jungletv.JungleTV/UserChatMessages":         AdminPermissionLevel,
 		},
 		authorizer,
 	}
@@ -122,7 +125,7 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 		return ctx, authErr
 	}
 
-	if permissionLevelOrder[minPermissionLevel] > permissionLevelOrder[claims.PermissionLevel] {
+	if permissionLevelOrder[minPermissionLevel] > permissionLevelOrder[claims.PermLevel] {
 		return ctx, status.Errorf(codes.PermissionDenied, "no permission to access this RPC")
 	}
 

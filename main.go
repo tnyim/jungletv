@@ -96,6 +96,11 @@ func main() {
 		mainLog.Println("Queue file path not present in keybox, will not persist queue")
 	}
 
+	bansFile, present := secrets.Get("bansFile")
+	if !present {
+		mainLog.Println("Bans file path not present in keybox, will not persist moderation decisions")
+	}
+
 	autoEnqueueVideoListFile, present := secrets.Get("autoEnqueueVideosFile")
 	if !present {
 		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
@@ -159,9 +164,30 @@ func main() {
 		ticketCheckPeriod = time.Duration(period) * time.Millisecond
 	}
 
+	ipCheckEndpoint, present := secrets.Get("ipCheckEndpoint")
+	if !present {
+		mainLog.Fatalln("IP check endpoint not present in keybox")
+	}
+
+	ipCheckToken, present := secrets.Get("ipCheckToken")
+	if !present {
+		mainLog.Fatalln("IP check token not present in keybox")
+	}
+
+	hCaptchaSecret, present := secrets.Get("hCaptchaSecret")
+	if !present {
+		mainLog.Fatalln("hCaptcha secret not present in keybox")
+	}
+
+	modLogWebhook, present := secrets.Get("modLogWebhook")
+	if !present {
+		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
+	}
+
 	jwtManager = server.NewJWTManager(jwtKey)
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod)
+		queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

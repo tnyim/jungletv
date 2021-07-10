@@ -20,8 +20,8 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Enqueue a video</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             <strong>Beware:</strong> if you just paid before the prices expired, it is possible your video was enqueued anyway.
             Double-check before trying again!
         </p>
@@ -36,7 +36,7 @@
             </div>
             <div class="flex flex-col flex-grow">
                 <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
             </div>
         </div>
         <div class="mt-8">

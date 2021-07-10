@@ -45,9 +45,12 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
-		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge string) {
+		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *activityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
-			cp.ActivityChallenge = &challenge
+			cp.ActivityChallenge = &proto.ActivityChallenge{
+				Id:   challenge.ID,
+				Type: challenge.Type,
+			}
 			err := send(cp)
 			if err != nil {
 				errChan <- stacktrace.Propagate(err, "")
@@ -68,7 +71,13 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+	lastPowTask := time.Time{}
 	for {
+		var powTask *WorkRequest
+		powTaskChan := make(<-chan WorkRequest)
+		if r.ParticipateInPow && time.Since(lastPowTask) > 30*time.Second {
+			powTaskChan = s.workGenerator.TaskChannel()
+		}
 		select {
 		case <-t.C:
 			break
@@ -78,8 +87,19 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			return nil
 		case err := <-errChan:
 			return err
+		case t := <-powTaskChan:
+			powTask = &t
+			lastPowTask = time.Now()
+			break
 		}
-		err := send(s.produceMediaConsumptionCheckpoint(stream.Context()))
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+		if powTask != nil {
+			cp.PowTask = &proto.ProofOfWorkTask{
+				Previous: powTask.Data,
+				Target:   powTask.Target[:],
+			}
+		}
+		err := send(cp)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
@@ -90,4 +110,23 @@ func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context) *pro
 	cp := s.mediaQueue.ProduceCheckpointForAPI()
 	cp.CurrentlyWatching = uint32(s.statsHandler.CurrentlyWatching(ctx))
 	return cp
+}
+
+func (s *grpcServer) SubmitProofOfWork(ctx context.Context, r *proto.SubmitProofOfWorkRequest) (*proto.SubmitProofOfWorkResponse, error) {
+	if len(r.Previous) != 32 {
+		return nil, stacktrace.NewError("invalid previous length")
+	}
+	var previous [32]byte
+	copy(previous[:], r.Previous)
+
+	if len(r.Work) != 8 {
+		return nil, stacktrace.NewError("invalid work length")
+	}
+	var work [8]byte
+	copy(work[:], r.Work)
+	err := s.workGenerator.DeliverWork(previous, work)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return &proto.SubmitProofOfWorkResponse{}, nil
 }

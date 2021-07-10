@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -31,17 +32,17 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	user := UserClaimsFromContext(ctx)
 	var jwtToken string
 	expiry := time.Now().Add(180 * 24 * time.Hour)
-	if user != nil && permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[UserPermissionLevel] {
+	if user != nil && permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[UserPermissionLevel] {
 		// keep permissions of authenticated user
 		jwtToken, err = s.jwtManager.Generate(&userInfo{
-			RewardAddress:   r.RewardAddress,
-			PermissionLevel: user.PermissionLevel,
-			Username:        user.Username,
+			RewardAddress: r.RewardAddress,
+			PermLevel:     user.PermLevel,
+			Username:      user.Username,
 		}, expiry)
 	} else {
 		jwtToken, err = s.jwtManager.Generate(&userInfo{
-			RewardAddress:   r.RewardAddress,
-			PermissionLevel: UserPermissionLevel,
+			RewardAddress: r.RewardAddress,
+			PermLevel:     UserPermissionLevel,
 		}, expiry)
 	}
 	if err != nil {
@@ -49,12 +50,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	}
 
 	index := uint32(rand.Int31())
+	idxIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardAddress)
+	if hadExistingProcess {
+		index = idxIface.(uint32)
+	}
+
 	verifRep, err := s.wallet.NewAccount(&index)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	expiration := time.Now().Add(5 * time.Minute)
+	if !hadExistingProcess {
+		expiration = time.Now().Add(5 * time.Minute)
+		s.verificationProcesses.Set(r.RewardAddress, index, 5*time.Minute)
+	}
 
 	accountOpened := true
 	_, err = s.wallet.RPC.AccountRepresentative(r.RewardAddress)
@@ -132,4 +141,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		}
 	}
 
+}
+
+func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	level := proto.PermissionLevel_UNAUTHENTICATED
+	if user != nil {
+		switch user.PermissionLevel() {
+		case UserPermissionLevel:
+			level = proto.PermissionLevel_USER
+		case AdminPermissionLevel:
+			level = proto.PermissionLevel_ADMIN
+		}
+	}
+	return &proto.UserPermissionLevelResponse{
+		PermissionLevel: level,
+	}, nil
 }

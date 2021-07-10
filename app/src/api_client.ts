@@ -3,7 +3,7 @@ import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap } from "./proto/jungletv_pb";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, SubmitProofOfWorkResponse, SubmitProofOfWorkRequest, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 
 class APIClient {
@@ -123,10 +123,12 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    consumeMedia(participateInPOW: boolean, onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        let request = new ConsumeMediaRequest();
+        request.setParticipateInPow(participateInPOW);
         return this.serverStreamingRPC<ConsumeMediaRequest, MediaConsumptionCheckpoint>(
             JungleTV.ConsumeMedia,
-            new ConsumeMediaRequest(),
+            request,
             onCheckpoint,
             onEnd);
     }
@@ -153,9 +155,11 @@ class APIClient {
         return this.unaryRPC<RewardInfoRequest, RewardInfoResponse>(JungleTV.RewardInfo, new RewardInfoRequest());
     }
 
-    async submitActivityChallenge(challenge: string): Promise<SubmitActivityChallengeResponse> {
+    async submitActivityChallenge(challenge: string, captchaResponse: string, trusted: boolean): Promise<SubmitActivityChallengeResponse> {
         let request = new SubmitActivityChallengeRequest();
         request.setChallenge(challenge);
+        request.setCaptchaResponse(captchaResponse);
+        request.setTrusted(trusted);
         return this.unaryRPC<SubmitActivityChallengeRequest, SubmitActivityChallengeResponse>(JungleTV.SubmitActivityChallenge, request);
     }
 
@@ -169,9 +173,10 @@ class APIClient {
             onEnd);
     }
 
-    async sendChatMessage(message: string, reference?: ChatMessage): Promise<SendChatMessageResponse> {
+    async sendChatMessage(message: string, trusted: boolean, reference?: ChatMessage): Promise<SendChatMessageResponse> {
         let request = new SendChatMessageRequest();
         request.setContent(message);
+        request.setTrusted(trusted);
         if (typeof reference !== 'undefined') {
             request.setReplyReferenceId(reference.getId());
         }
@@ -197,9 +202,10 @@ class APIClient {
         return this.unaryRPC<RemoveChatMessageRequest, RemoveChatMessageResponse>(JungleTV.RemoveChatMessage, request);
     }
 
-    async setChatSettings(enabled: boolean): Promise<SetChatSettingsResponse> {
+    async setChatSettings(enabled: boolean, slowmode: boolean): Promise<SetChatSettingsResponse> {
         let request = new SetChatSettingsRequest();
         request.setEnabled(enabled);
+        request.setSlowmode(slowmode);
         return this.unaryRPC<SetChatSettingsRequest, SetChatSettingsResponse>(JungleTV.SetChatSettings, request);
     }
 
@@ -207,6 +213,42 @@ class APIClient {
         let request = new SetVideoEnqueuingEnabledRequest();
         request.setAllowed(allowed);
         return this.unaryRPC<SetVideoEnqueuingEnabledRequest, SetVideoEnqueuingEnabledResponse>(JungleTV.SetVideoEnqueuingEnabled, request);
+    }
+
+    async banUser(address: string, remoteAddress: string, chatBanned: boolean, enqueuingBanned: boolean, rewardsBanned: boolean, reason: string): Promise<BanUserResponse> {
+        let request = new BanUserRequest();
+        request.setAddress(address);
+        request.setRemoteAddress(remoteAddress);
+        request.setChatBanned(chatBanned);
+        request.setEnqueuingBanned(enqueuingBanned);
+        request.setRewardsBanned(rewardsBanned);
+        request.setReason(reason);
+        return this.unaryRPC<BanUserRequest, BanUserResponse>(JungleTV.BanUser, request);
+    }
+
+    async removeBan(banID: string, reason: string): Promise<RemoveBanResponse> {
+        let request = new RemoveBanRequest();
+        request.setBanId(banID);
+        request.setReason(reason);
+        return this.unaryRPC<RemoveBanRequest, RemoveBanResponse>(JungleTV.RemoveBan, request);
+    }
+
+    async userChatMessages(address: string, numMessages: number): Promise<UserChatMessagesResponse> {
+        let request = new UserChatMessagesRequest();
+        request.setAddress(address);
+        request.setNumMessages(numMessages);
+        return this.unaryRPC<UserChatMessagesRequest, UserChatMessagesResponse>(JungleTV.UserChatMessages, request);
+    }
+
+    async submitProofOfWork(previous: Uint8Array, work: Uint8Array): Promise<SubmitProofOfWorkResponse> {
+        let request = new SubmitProofOfWorkRequest();
+        request.setPrevious(previous);
+        request.setWork(work);
+        return this.unaryRPC<SubmitProofOfWorkRequest, SubmitProofOfWorkResponse>(JungleTV.SubmitProofOfWork, request);
+    }
+
+    async userPermissionLevel(): Promise<UserPermissionLevelResponse> {
+        return this.unaryRPC<UserPermissionLevelRequest, UserPermissionLevelResponse>(JungleTV.UserPermissionLevel, new UserPermissionLevelRequest());
     }
 
     formatBANPrice(raw: string): string {

@@ -1,9 +1,10 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { rewardAddress, rewardReceived } from "./stores";
+    import { darkMode, rewardAddress, rewardReceived } from "./stores";
     import { fade, fly } from "svelte/transition";
     import { globalHistory } from "svelte-navigator";
+    import Toggle from "svelte-toggle";
     const historyStore = { subscribe: globalHistory.listen };
 
     let navbarOpen = false;
@@ -42,7 +43,7 @@
 <nav
     class="top-0 fixed z-50 {navbarOpen
         ? 'h-auto'
-        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow"
+        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
 >
     <div class="container max-w-none w-full px-4 mx-auto flex flex-wrap items-center justify-between">
         <div class="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
@@ -67,8 +68,8 @@
                     {#if rAddress !== ""}
                         <span class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0">
                             Rewarding <img
-                                src="https://monkey.banano.cc/api/v1/monkey/{rAddress}"
-                                alt="MonKey for the address"
+                                src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
+                                alt="&nbsp;"
                                 title="Click to copy: {rAddress}"
                                 class="inline h-9 -mt-5 -mb-4 -ml-1 -mr-1 cursor-pointer"
                                 on:click={() => copyAddress(rAddress)}
@@ -105,8 +106,21 @@
             </ul>
             <ul class="flex flex-col lg:flex-row list-none lg:ml-auto">
                 <li class="flex items-center">
+                    <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
+                        <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
+                        <Toggle
+                            bind:toggled={$darkMode}
+                            hideLabel
+                            label="Toggle dark mode"
+                            toggledColor="#6b7280"
+                            untoggledColor="#6b7280"
+                        />
+                        <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
+                    </div>
+                </li>
+                <li class="flex items-center">
                     <a
-                        class="text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-gray-900 dark:text-gray-300 text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/about"
                     >
@@ -117,7 +131,7 @@
 
                 <li class="flex items-center">
                     <a
-                        class="text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-gray-900 dark:text-purple-500 text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/rewards/address"
                     >
@@ -128,7 +142,7 @@
 
                 <li class="flex items-center">
                     <a
-                        class="bg-yellow-400 text-white text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-500 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="dark:bg-yellow-600 bg-yellow-400 text-white text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
                         href="/enqueue"
                     >

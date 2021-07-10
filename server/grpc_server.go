@@ -12,8 +12,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DisgoOrg/disgohook"
+	"github.com/DisgoOrg/disgohook/api"
+	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -32,7 +36,7 @@ type grpcServer struct {
 	statsClient                    *statsd.Client
 	wallet                         *wallet.Wallet
 	collectorAccount               *wallet.Account
-	collectorAccountQueue          chan func(*wallet.Account)
+	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	jwtManager                     *JWTManager
 	enqueueRequestRateLimiter      limiter.Store
@@ -44,19 +48,24 @@ type grpcServer struct {
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
 
-	mediaQueue     *MediaQueue
-	enqueueManager *EnqueueManager
-	rewardsHandler *RewardsHandler
-	statsHandler   *StatsHandler
-	chat           *ChatManager
+	verificationProcesses *cache.Cache
 
-	youtube *youtube.Service
+	mediaQueue      *MediaQueue
+	enqueueManager  *EnqueueManager
+	rewardsHandler  *RewardsHandler
+	statsHandler    *StatsHandler
+	chat            *ChatManager
+	workGenerator   *WorkGenerator
+	moderationStore ModerationStore
+
+	youtube       *youtube.Service
+	modLogWebhook api.WebhookClient
 }
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *JWTManager, queueFile, autoEnqueueVideoListFile, repAddress string,
-	ticketCheckPeriod time.Duration) (*grpcServer, error) {
+	youtubeAPIkey string, jwtManager *JWTManager, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
+	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string) (*grpcServer, error) {
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -67,14 +76,24 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		wallet:                         w,
 		statsClient:                    statsClient,
 		jwtManager:                     jwtManager,
+		verificationProcesses:          cache.New(5*time.Minute, 1*time.Minute),
 		mediaQueue:                     mediaQueue,
-		collectorAccountQueue:          make(chan func(*wallet.Account), 10000),
+		workGenerator:                  NewWorkGenerator(),
+		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
 		autoEnqueueVideos:              autoEnqueueVideoListFile != "",
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
-		ipReputationChecker:            NewIPAddressReputationChecker(log),
+		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
+		moderationStore:                NewModerationStoreMemory(bansFile),
+	}
+
+	if modLogWebhook != "" {
+		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log, false), modLogWebhook)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 	}
 
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -85,7 +104,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
-		Tokens:   5,
+		Tokens:   10,
 		Interval: 5 * time.Minute,
 	})
 	if err != nil {
@@ -105,18 +124,20 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address())
+		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address(), s.moderationStore,
+		s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.rewardsHandler, err = NewRewardsHandler(
-		log, statsClient, s.mediaQueue, s.ipReputationChecker, w, s.collectorAccountQueue, s.paymentAccountPendingWaitGroup)
+		log, statsClient, s.mediaQueue, s.ipReputationChecker, hCaptchaSecret, w, s.collectorAccountQueue,
+		s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(1000))
+	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(10000), s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -172,7 +193,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case f := <-s.collectorAccountQueue:
-				f(s.collectorAccount)
+				f(s.collectorAccount, s.wallet.RPC, s.wallet.RPCWork)
 			case <-ctx.Done():
 				s.log.Println("Collector account worker done")
 				return
@@ -213,11 +234,15 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				if !entry.RequestedBy().IsUnknown() {
 					switch t {
 					case "enqueue":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
 					case "play_after_next":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just set_ %s _to play after the current video_", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just set_ %s _to play after the current video_",
+							entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
 					case "play_now":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
 					}
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
@@ -225,10 +250,12 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				}
 			case v := <-rewardsDistributedC:
 				amount := v[0].(Amount)
+				eligibleCount := v[1].(int)
 				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
-				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_**%s BAN** distributed among spectators._", banStr))
+				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
 				}
@@ -253,7 +280,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					t.Reset(wait)
 				}
 			case <-t.C:
-				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
+				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos &&
+					s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := s.autoEnqueueNewVideo(ctx)
 						if err != nil {
@@ -325,7 +353,6 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
-	youTubeVideoEnqueueRequestPaymentSubsystemUnavailable
 	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
@@ -333,8 +360,14 @@ const (
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
 	user := UserClaimsFromContext(ctx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, RemoteAddressFromContext(ctx)); err == nil && banned {
+		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
+	}
 	if user != nil {
-		isAdmin = permissionLevelOrder[user.PermissionLevel] >= permissionLevelOrder[AdminPermissionLevel]
+		isAdmin = permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[AdminPermissionLevel]
+		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
+			return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
+		}
 	}
 	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingDisabled, nil
@@ -380,12 +413,6 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 
 	if videoDuration.DurationApprox() > 30*time.Minute {
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
-	}
-
-	// check wallet liveliness before letting people proceed to payment
-	_, _, _, err = s.wallet.RPC.BlockCount()
-	if err != nil {
-		return nil, youTubeVideoEnqueueRequestPaymentSubsystemUnavailable, nil
 	}
 
 	request := &queueEntryYouTubeVideo{

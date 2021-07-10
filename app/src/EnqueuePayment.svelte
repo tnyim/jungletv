@@ -61,16 +61,16 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900">Enqueue a video</h3>
-        <p class="mt-1 text-sm text-gray-600">
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Looks like this video can be played on JungleTV. The prices shown are valid for two minutes, regardless of
             the changes in queue length and viewership during this period.
         </p>
-        <p class="mt-1 md:mt-3 text-sm text-gray-600">
+        <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
             In addition to the minimum price, there are two additional price tiers you can use to play the video sooner.
             Beware: these might not make much sense if the queue is already short!
         </p>
-        <p class="mt-1 md:mt-3 text-sm text-gray-600">
+        <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
             If you decide to enqueue the video right after the current one, beware that until the current video finishes
             playing, it is still possible for others to dethrone it by using the same option.
         </p>
@@ -85,7 +85,7 @@
             </div>
             <div class="flex flex-col flex-grow">
                 <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
             </div>
         </div>
         <p class="mt-8">

@@ -42,13 +42,17 @@
             if (code == 0 || step == 3 || step == 2) {
                 return;
             }
+            if (code == 2 && msg.includes("Response closed")) {
+                setTimeout(monitorVerification, 1000);
+                return;
+            }
             step = 0;
             if (msg === "invalid reward address") {
                 failureReason = "Invalid address for rewards. Make sure this is a valid Banano address.";
             } else if (msg === "rate limit reached") {
                 failureReason = "Rate limited due to too many attempts to set an address for rewards.";
             } else {
-                failureReason = "Failed to save address due to internal error.";
+                failureReason = "Failed to save address due to internal error. Code: " + code + " Message: " + msg;
             }
         });
     }
