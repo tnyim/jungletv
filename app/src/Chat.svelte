@@ -1,7 +1,7 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import { onDestroy, onMount, beforeUpdate, afterUpdate } from "svelte";
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, User, UserRole } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
@@ -310,6 +310,7 @@
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
+                            <i class="fas fa-history cursor-pointer ml-1" on:click={() => navigate("/moderate/users/" + msg.getUserMessage().getAuthor().getAddress() + "/chathistory")} />
                         {/if}
                         <img
                             src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}?format=png"
