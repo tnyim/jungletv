@@ -40,7 +40,12 @@ func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequ
 	}
 }
 
-func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.EnqueueMediaRequest, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
+func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.EnqueueMediaRequest, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx (for now)
 	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, r.Id, origReq.Unskippable)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -75,15 +80,17 @@ func (s *grpcServer) enqueueYouTubeVideo(ctx context.Context, origReq *proto.Enq
 	case youTubeVideoEnqueueRequestCreationVideoNotFound:
 		failureReason = "Video not found"
 	case youTubeVideoEnqueueRequestCreationVideoAgeRestricted:
-		failureReason = "Video is age restricted"
+		failureReason = "This video is age restricted"
 	case youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast:
-		failureReason = "Video is a live broadcast"
+		failureReason = "This is a live broadcast"
 	case youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable:
-		failureReason = "Video can't be played outside of YouTube"
+		failureReason = "This video can't be played outside of YouTube"
 	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:
-		failureReason = "Video is longer than 30 minutes"
+		failureReason = "This video is longer than 30 minutes"
 	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
-		failureReason = "Video is already in the queue"
+		failureReason = "This video is already in the queue"
+	case youTubeVideoEnqueueRequestCreationVideoIsDisallowed:
+		failureReason = "This video is disallowed on JungleTV"
 	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:
 		failureReason = "Video enqueuing is currently disabled due to upcoming maintenance"
 	case youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly:

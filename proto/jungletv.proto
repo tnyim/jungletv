@@ -29,6 +29,14 @@ service JungleTV {
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
     rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
     rpc UserChatMessages(UserChatMessagesRequest) returns (UserChatMessagesResponse) {}
+    rpc DisallowedVideos(DisallowedVideosRequest) returns (DisallowedVideosResponse) {}
+    rpc AddDisallowedVideo(AddDisallowedVideoRequest) returns (AddDisallowedVideoResponse) {}
+    rpc RemoveDisallowedVideo(RemoveDisallowedVideoRequest) returns (RemoveDisallowedVideoResponse) {}
+}
+
+message PaginationParameters {
+    uint64 offset = 1;
+    uint64 limit = 2;
 }
 
 message SignInRequest {
@@ -351,3 +359,36 @@ enum PermissionLevel {
 message UserPermissionLevelResponse {
     PermissionLevel permission_level = 1;
 }
+
+message DisallowedVideosRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+message DisallowedVideo {
+    string id = 1;
+    string disallowed_by = 2;
+    google.protobuf.Timestamp disallowed_at = 3;
+    string yt_video_id = 4;
+    string yt_video_title = 5;
+}
+
+message DisallowedVideosResponse {
+    repeated DisallowedVideo disallowed_videos = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message AddDisallowedVideoRequest {
+    string yt_video_id = 1;
+}
+
+message AddDisallowedVideoResponse {
+    string id = 1;
+}
+
+message RemoveDisallowedVideoRequest {
+    string id = 1;
+}
+
+message RemoveDisallowedVideoResponse {}

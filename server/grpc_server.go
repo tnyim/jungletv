@@ -22,6 +22,7 @@ import (
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
@@ -283,7 +284,14 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos &&
 					s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
-						err := s.autoEnqueueNewVideo(ctx)
+						err := func() error {
+							tx, err := BeginTransaction(ctx)
+							if err != nil {
+								return stacktrace.Propagate(err, "")
+							}
+							defer tx.Commit() // read-only tx
+							return s.autoEnqueueNewVideo(tx)
+						}()
 						if err != nil {
 							errChan <- stacktrace.Propagate(err, "")
 						} else {
@@ -307,7 +315,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}
 }
 
-func (s *grpcServer) autoEnqueueNewVideo(ctx context.Context) error {
+func (s *grpcServer) autoEnqueueNewVideo(ctx *TransactionWrappingContext) error {
 	videoID, err := s.getRandomVideoForAutoEnqueue()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -353,11 +361,12 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
+	youTubeVideoEnqueueRequestCreationVideoIsDisallowed
 	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
 
-func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
+func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingContext, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
 	user := UserClaimsFromContext(ctx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, RemoteAddressFromContext(ctx)); err == nil && banned {
@@ -376,6 +385,12 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
 
+	ctx, err := BeginTransaction(ctx)
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
 	for _, entry := range s.mediaQueue.Entries() {
 		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
 			if ytEntry.id == videoID {
@@ -391,6 +406,14 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx context.Context, videoID 
 
 	if len(response.Items) == 0 {
 		return nil, youTubeVideoEnqueueRequestCreationVideoNotFound, nil
+	}
+
+	allowed, err := types.IsMediaAllowed(ctx, types.MediaTypeYouTubeVideo, videoID)
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	if !allowed {
+		return nil, youTubeVideoEnqueueRequestCreationVideoIsDisallowed, nil
 	}
 
 	videoItem := response.Items[0]

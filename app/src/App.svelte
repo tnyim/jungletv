@@ -12,6 +12,7 @@
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
 	import { darkMode, rewardAddress } from "./stores";
+import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 
 	export let url = "";
 
@@ -61,6 +62,13 @@
 		<Route path="/moderate/users/:address/chathistory" let:params>
 			{#if isAdmin}
 				<ModerateUserChatHistory address={params.address} />
+			{:else}
+				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
+			{/if}
+		</Route>
+		<Route path="/moderate/media/disallowed" let:params>
+			{#if isAdmin}
+				<ModerateDisallowedMedia />
 			{:else}
 				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
 			{/if}

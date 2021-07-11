@@ -1,6 +1,7 @@
 <script lang="ts">
+    import { link } from "svelte-navigator";
     import { navigate } from "svelte-navigator";
-import { apiClient } from "./api_client";
+    import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
@@ -135,6 +136,9 @@ import { apiClient } from "./api_client";
                 Disable video enqueuing
             </button>
         </div>
+        <p class="px-2 py-2 text-lg">
+            <a href="/moderate/media/disallowed" use:link class="text-blue-600 hover:underline">Manage disallowed videos</a>
+        </p>
     </div>
     <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">
         <div>
@@ -251,7 +255,7 @@ import { apiClient } from "./api_client";
             <button
                 type="submit"
                 class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => navigate("/moderate/users/" + chatHistoryAddress +"/chathistory")}
+                on:click={() => navigate("/moderate/users/" + chatHistoryAddress + "/chathistory")}
             >
                 See chat history
             </button>

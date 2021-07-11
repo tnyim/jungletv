@@ -41,8 +41,11 @@
         }
     }
 
-    async function removeEntry(id: string) {
-        apiClient.removeQueueEntry(id);
+    async function removeEntry(entry: QueueEntry, disallow: boolean) {
+        await apiClient.removeQueueEntry(entry.getId());
+        if(disallow) {
+            await apiClient.addDisallowedVideo(entry.getYoutubeVideoData().getId());
+        }
     }
 </script>
 
@@ -108,7 +111,11 @@
                         | Request cost: {apiClient.formatBANPrice(entry.getRequestCost())} BAN |
                         <span
                             class="text-blue-600 hover:underline cursor-pointer"
-                            on:click={() => removeEntry(entry.getId())}>Remove</span
+                            on:click={() => removeEntry(entry, false)}>Remove</span
+                        > |
+                        <span
+                            class="text-blue-600 hover:underline cursor-pointer"
+                            on:click={() => removeEntry(entry, true)}>Remove and disallow video</span
                         >
                     {/if}
                 </p>

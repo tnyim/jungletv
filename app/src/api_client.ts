@@ -3,7 +3,7 @@ import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, SubmitProofOfWorkResponse, SubmitProofOfWorkRequest, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest } from "./proto/jungletv_pb";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, SubmitProofOfWorkResponse, SubmitProofOfWorkRequest, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 
 class APIClient {
@@ -238,6 +238,25 @@ class APIClient {
         request.setAddress(address);
         request.setNumMessages(numMessages);
         return this.unaryRPC<UserChatMessagesRequest, UserChatMessagesResponse>(JungleTV.UserChatMessages, request);
+    }
+
+    async disallowedVideos(searchQuery: string, pagParams: PaginationParameters): Promise<DisallowedVideosResponse> {
+        let request = new DisallowedVideosRequest();
+        request.setSearchQuery(searchQuery);
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<DisallowedVideosRequest, DisallowedVideosResponse>(JungleTV.DisallowedVideos, request);
+    }
+
+    async addDisallowedVideo(ytVideoID: string): Promise<AddDisallowedVideoResponse> {
+        let request = new AddDisallowedVideoRequest();
+        request.setYtVideoId(ytVideoID);
+        return this.unaryRPC<AddDisallowedVideoRequest, AddDisallowedVideoResponse>(JungleTV.AddDisallowedVideo, request);
+    }
+
+    async removeDisallowedVideo(id: string): Promise<RemoveDisallowedVideoResponse> {
+        let request = new RemoveDisallowedVideoRequest();
+        request.setId(id);
+        return this.unaryRPC<RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse>(JungleTV.RemoveDisallowedVideo, request);
     }
 
     async submitProofOfWork(previous: Uint8Array, work: Uint8Array): Promise<SubmitProofOfWorkResponse> {

@@ -13,7 +13,9 @@ import (
 	"strings"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/keybox"
+	"github.com/gbl08ma/sqalx"
 	"github.com/gbl08ma/ssoclient"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -21,6 +23,8 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server"
@@ -29,7 +33,10 @@ import (
 )
 
 var (
-	secrets *keybox.Keybox
+	rdb           *sqlx.DB
+	sdb           sq.StatementBuilderType
+	rootSqalxNode sqalx.Node
+	secrets       *keybox.Keybox
 
 	mainLog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	apiLog  = log.New(os.Stdout, "api ", log.Ldate|log.Ltime)
@@ -55,6 +62,31 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 	mainLog.Println("Keybox opened")
+
+	mainLog.Println("Opening database...")
+	databaseURI, present := secrets.Get("databaseURI")
+	if !present {
+		mainLog.Fatalln("Database connection string not present in keybox")
+	}
+	rdb, err = sqlx.Open("postgres", databaseURI)
+	if err != nil {
+		mainLog.Fatalln(err)
+	}
+	defer rdb.Close()
+
+	err = rdb.Ping()
+	if err != nil {
+		mainLog.Fatalln(err)
+	}
+	rdb.SetMaxOpenConns(MaxDBconnectionPoolSize)
+	sdb = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(rdb)
+
+	rootSqalxNode, err = sqalx.New(rdb)
+	if err != nil {
+		mainLog.Fatalln(err)
+	}
+	ctx = context.WithValue(ctx, "SqalxNode", rootSqalxNode)
+	mainLog.Println("Database opened")
 
 	statsClient, err := buildStatsClient()
 	if err != nil {
@@ -248,11 +280,12 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 }
 
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager, listenAddr string) (*http.Server, error) {
+	sqalxInterceptor := &sqalxInterceptor{rootNode: rootSqalxNode}
 	versionInterceptor := server.NewVersionInterceptor(versionHash)
 	authInterceptor := server.NewAuthInterceptor(jwtManager, &authorizer{})
 
-	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
-	streamInterceptor := grpc_middleware.ChainStreamServer(versionInterceptor.Stream(), authInterceptor.Stream())
+	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
+	streamInterceptor := grpc_middleware.ChainStreamServer(sqalxInterceptor.Stream(), versionInterceptor.Stream(), authInterceptor.Stream())
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(unaryInterceptor),
 		grpc.StreamInterceptor(streamInterceptor))

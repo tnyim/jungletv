@@ -181,6 +181,33 @@ JungleTV.UserChatMessages = {
   responseType: jungletv_pb.UserChatMessagesResponse
 };
 
+JungleTV.DisallowedVideos = {
+  methodName: "DisallowedVideos",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.DisallowedVideosRequest,
+  responseType: jungletv_pb.DisallowedVideosResponse
+};
+
+JungleTV.AddDisallowedVideo = {
+  methodName: "AddDisallowedVideo",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.AddDisallowedVideoRequest,
+  responseType: jungletv_pb.AddDisallowedVideoResponse
+};
+
+JungleTV.RemoveDisallowedVideo = {
+  methodName: "RemoveDisallowedVideo",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveDisallowedVideoRequest,
+  responseType: jungletv_pb.RemoveDisallowedVideoResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -791,6 +818,99 @@ JungleTVClient.prototype.userChatMessages = function userChatMessages(requestMes
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.UserChatMessages, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.disallowedVideos = function disallowedVideos(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.DisallowedVideos, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.addDisallowedVideo = function addDisallowedVideo(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.AddDisallowedVideo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeDisallowedVideo = function removeDisallowedVideo(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveDisallowedVideo, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
