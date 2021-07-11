@@ -31,7 +31,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is 0 for videos under 6 minutes, 1 for videos with [6, 10[ minutes, 5 for videos with [10, 14[ minutes, 12 for videos with [14, 20[ minutes, 20 for videos with [20, 25[ minutes, 40 for videos with [25, 30] minutes
 	// UnskippableFactor is 19 if unskippable, else 0
-	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.06) + LengthPenalty) * UnskippableFactor
+	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.1) + LengthPenalty) * UnskippableFactor
 	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 100 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
