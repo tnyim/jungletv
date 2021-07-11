@@ -41,18 +41,18 @@ func GetDisallowedMedia(node sqalx.Node, pagParams *PaginationParams) ([]*Disall
 	return getDisallowedMediaWithSelect(node, s)
 }
 
-// GetDisallowedMedia returns the specified disallowed media
+// GetDisallowedMediaWithIDs returns the disallowed media with the specified IDs
 func GetDisallowedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*DisallowedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media.id": ids})
-	players, _, err := getDisallowedMediaWithSelect(node, s)
+	items, _, err := getDisallowedMediaWithSelect(node, s)
 	if err != nil {
 		return map[string]*DisallowedMedia{}, stacktrace.Propagate(err, "")
 	}
 
-	result := make(map[string]*DisallowedMedia, len(players))
-	for i := range players {
-		result[players[i].ID] = players[i]
+	result := make(map[string]*DisallowedMedia, len(items))
+	for i := range items {
+		result[items[i].ID] = items[i]
 	}
 	return result, nil
 }

@@ -89,6 +89,8 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 		failureReason = "This video is longer than 30 minutes"
 	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
 		failureReason = "This video is already in the queue"
+	case youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently:
+		failureReason = "This video was last played on JungleTV too recently"
 	case youTubeVideoEnqueueRequestCreationVideoIsDisallowed:
 		failureReason = "This video is disallowed on JungleTV"
 	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:

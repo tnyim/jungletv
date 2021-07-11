@@ -2,15 +2,19 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -151,6 +155,10 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 		}()
 
 		if prevQueueEntry != currentQueueEntry {
+			err := q.logPlayedMedia(ctx, prevQueueEntry, currentQueueEntry)
+			if err != nil {
+				q.log.Println("Error logging played media:", stacktrace.Propagate(err, ""))
+			}
 			prevQueueEntry = currentQueueEntry
 			q.mediaChanged.Notify(currentQueueEntry)
 		}
@@ -263,4 +271,57 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
 	return nil
+}
+
+func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueueEntry, newMedia MediaQueueEntry) error {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	if prevMedia != nil {
+		medias, err := types.GetPlayedMediaWithIDs(ctx, []string{prevMedia.QueueID()})
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		prevPlayedMedia := medias[prevMedia.QueueID()]
+		prevPlayedMedia.EndedAt = sql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		}
+		err = prevPlayedMedia.Update(ctx)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	if newMedia != nil {
+		newPlayedMedia := &types.PlayedMedia{
+			ID:          newMedia.QueueID(),
+			StartedAt:   time.Now(),
+			MediaLength: types.Duration(newMedia.MediaInfo().Length()),
+			RequestedBy: newMedia.RequestedBy().Address(),
+			RequestCost: decimal.NewFromBigInt(newMedia.RequestCost().Int, 0),
+			Unskippable: newMedia.Unskippable(),
+		}
+		// this is not elegant but it will have to do for now
+		// later on, we can specify that media queue entries need to know how to serialize themselves into a PlayedMedia
+		switch v := newMedia.(type) {
+		case *queueEntryYouTubeVideo:
+			newPlayedMedia.MediaType = types.MediaTypeYouTubeVideo
+			newPlayedMedia.YouTubeVideoID = &v.id
+			newPlayedMedia.YouTubeVideoTitle = &v.title
+		default:
+			return stacktrace.NewError("unknown media queue entry type")
+		}
+
+		err = newPlayedMedia.Update(ctx)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	return stacktrace.Propagate(ctx.Commit(), "")
 }

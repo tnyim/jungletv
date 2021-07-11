@@ -361,6 +361,7 @@ const (
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
+	youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently
 	youTubeVideoEnqueueRequestCreationVideoIsDisallowed
 	youTubeVideoEnqueueRequestVideoEnqueuingDisabled
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
@@ -408,7 +409,9 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationVideoNotFound, nil
 	}
 
-	allowed, err := types.IsMediaAllowed(ctx, types.MediaTypeYouTubeVideo, videoID)
+	videoItem := response.Items[0]
+
+	allowed, err := types.IsMediaAllowed(ctx, types.MediaTypeYouTubeVideo, videoItem.Id)
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -416,7 +419,14 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsDisallowed, nil
 	}
 
-	videoItem := response.Items[0]
+	lastPlayed, err := types.LastPlayTimeOfMedia(ctx, types.MediaTypeYouTubeVideo, videoItem.Id)
+	if err != nil {
+		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	if time.Since(lastPlayed) < 2*time.Hour {
+		return nil, youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
+	}
+
 	if videoItem.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
 		return nil, youTubeVideoEnqueueRequestCreationVideoAgeRestricted, nil
 	}
@@ -439,7 +449,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	}
 
 	request := &queueEntryYouTubeVideo{
-		id:           videoID,
+		id:           videoItem.Id,
 		title:        videoItem.Snippet.Title,
 		channelTitle: videoItem.Snippet.ChannelTitle,
 		thumbnailURL: videoItem.Snippet.Thumbnails.Default.Url,
