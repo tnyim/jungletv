@@ -78,7 +78,6 @@
                     {entry.getYoutubeVideoData().getTitle()}
                     {#if mode == "moderation"}
                         | <a
-                            class="text-blue-600 hover:underline"
                             href="https://www.youtube.com/watch?v={entry.getYoutubeVideoData().getId()}"
                             target="_blank">Watch on YouTube</a
                         >
@@ -123,7 +122,7 @@
         </div>
     {:else}
         <div class="px-2 py-2">
-            Nothing playing. <a href="/enqueue" use:link class="text-blue-600 hover:underline">Get something going</a>!
+            Nothing playing. <a href="/enqueue" use:link>Get something going</a>!
         </div>
     {/each}
 </div>

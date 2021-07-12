@@ -42,5 +42,5 @@
 <td
     class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-no-wrap p-4 text-gray-700 dark:text-white"
 >
-    <a href={'#'} class="text-blue-600 hover:underline" on:click={remove}>Remove</a>
+    <a href={'#'} on:click={remove}>Remove</a>
 </td>

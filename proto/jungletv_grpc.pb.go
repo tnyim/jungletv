@@ -28,6 +28,7 @@ type JungleTVClient interface {
 	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
 	SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
+	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -40,6 +41,7 @@ type JungleTVClient interface {
 	DisallowedVideos(ctx context.Context, in *DisallowedVideosRequest, opts ...grpc.CallOption) (*DisallowedVideosResponse, error)
 	AddDisallowedVideo(ctx context.Context, in *AddDisallowedVideoRequest, opts ...grpc.CallOption) (*AddDisallowedVideoResponse, error)
 	RemoveDisallowedVideo(ctx context.Context, in *RemoveDisallowedVideoRequest, opts ...grpc.CallOption) (*RemoveDisallowedVideoResponse, error)
+	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 }
 
 type jungleTVClient struct {
@@ -264,6 +266,15 @@ func (c *jungleTVClient) UserPermissionLevel(ctx context.Context, in *UserPermis
 	return out, nil
 }
 
+func (c *jungleTVClient) GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error) {
+	out := new(Document)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/GetDocument", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -363,6 +374,15 @@ func (c *jungleTVClient) RemoveDisallowedVideo(ctx context.Context, in *RemoveDi
 	return out, nil
 }
 
+func (c *jungleTVClient) UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error) {
+	out := new(UpdateDocumentResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UpdateDocument", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -378,6 +398,7 @@ type JungleTVServer interface {
 	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
 	SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
+	GetDocument(context.Context, *GetDocumentRequest) (*Document, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -390,6 +411,7 @@ type JungleTVServer interface {
 	DisallowedVideos(context.Context, *DisallowedVideosRequest) (*DisallowedVideosResponse, error)
 	AddDisallowedVideo(context.Context, *AddDisallowedVideoRequest) (*AddDisallowedVideoResponse, error)
 	RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error)
+	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -430,6 +452,9 @@ func (UnimplementedJungleTVServer) SubmitProofOfWork(context.Context, *SubmitPro
 func (UnimplementedJungleTVServer) UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserPermissionLevel not implemented")
 }
+func (UnimplementedJungleTVServer) GetDocument(context.Context, *GetDocumentRequest) (*Document, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocument not implemented")
+}
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
 }
@@ -462,6 +487,9 @@ func (UnimplementedJungleTVServer) AddDisallowedVideo(context.Context, *AddDisal
 }
 func (UnimplementedJungleTVServer) RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveDisallowedVideo not implemented")
+}
+func (UnimplementedJungleTVServer) UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocument not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -689,6 +717,24 @@ func _JungleTV_UserPermissionLevel_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_GetDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).GetDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/GetDocument",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).GetDocument(ctx, req.(*GetDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -887,6 +933,24 @@ func _JungleTV_RemoveDisallowedVideo_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_UpdateDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Document)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UpdateDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UpdateDocument",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UpdateDocument(ctx, req.(*Document))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -914,6 +978,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserPermissionLevel",
 			Handler:    _JungleTV_UserPermissionLevel_Handler,
+		},
+		{
+			MethodName: "GetDocument",
+			Handler:    _JungleTV_GetDocument_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",
@@ -958,6 +1026,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveDisallowedVideo",
 			Handler:    _JungleTV_RemoveDisallowedVideo_Handler,
+		},
+		{
+			MethodName: "UpdateDocument",
+			Handler:    _JungleTV_UpdateDocument_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

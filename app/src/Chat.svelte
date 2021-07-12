@@ -337,7 +337,7 @@
                                     ? { tokenizer: undefined }
                                     : {}
                             )
-                            .replace("<a ", '<a class="text-blue-600 hover:underline" target="_blank" rel="noopener" ')}
+                            .replace("<a ", '<a target="_blank" rel="noopener" ')}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
@@ -358,7 +358,7 @@
     <div class="border-t border-gray-300 shadow-md">
         {#if rAddress == ""}
             <div class="p-2 text-gray-600 dark:text-gray-400">
-                <a href="/rewards/address" use:link class="text-blue-600 hover:underline">Set a reward address</a> to chat.
+                <a href="/rewards/address" use:link>Set a reward address</a> to chat.
             </div>
         {:else if !chatEnabled}
             <div class="p-2 text-gray-600 dark:text-gray-400">

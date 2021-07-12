@@ -1722,6 +1722,70 @@ export namespace RemoveDisallowedVideoResponse {
   }
 }
 
+export class GetDocumentRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetDocumentRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetDocumentRequest): GetDocumentRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetDocumentRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetDocumentRequest;
+  static deserializeBinaryFromReader(message: GetDocumentRequest, reader: jspb.BinaryReader): GetDocumentRequest;
+}
+
+export namespace GetDocumentRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class Document extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getFormat(): string;
+  setFormat(value: string): void;
+
+  getContent(): string;
+  setContent(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Document.AsObject;
+  static toObject(includeInstance: boolean, msg: Document): Document.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Document, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Document;
+  static deserializeBinaryFromReader(message: Document, reader: jspb.BinaryReader): Document;
+}
+
+export namespace Document {
+  export type AsObject = {
+    id: string,
+    format: string,
+    content: string,
+  }
+}
+
+export class UpdateDocumentResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateDocumentResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateDocumentResponse): UpdateDocumentResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateDocumentResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateDocumentResponse;
+  static deserializeBinaryFromReader(message: UpdateDocumentResponse, reader: jspb.BinaryReader): UpdateDocumentResponse;
+}
+
+export namespace UpdateDocumentResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

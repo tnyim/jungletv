@@ -78,7 +78,7 @@
         </p>
         <p class="mt-2">
             If in doubt, please ask for help in the
-            <a href="https://chat.banano.cc" target="_blank" rel="noopener" class="text-blue-600 hover:underline"
+            <a href="https://chat.banano.cc" target="_blank" rel="noopener"
                 >Banano Discord</a
             > (not affiliated with JungleTV).
         </p>

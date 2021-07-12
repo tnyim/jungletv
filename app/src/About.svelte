@@ -8,15 +8,10 @@
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
-    <span use:registerFocus class="hidden"></span>
+    <span use:registerFocus class="hidden" />
     <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-24" />
     <p class="mt-3">
-        JungleTV is a video sharing website for the <a
-            href="https://banano.cc"
-            target="_blank"
-            rel="noopener"
-            class="text-blue-600 hover:underline"
-        >
+        JungleTV is a video sharing website for the <a href="https://banano.cc" target="_blank" rel="noopener">
             Banano
         </a>
         community. Banano is a feeless, instant, environment-friendly cryptocurrency that's ripe for memes.
@@ -27,27 +22,28 @@
         experience similar to watching TV or a livestream.
     </p>
     <p class="mt-3">
+        Before participating, make sure to read the <a href="/guidelines" use:link>
+            guidelines for acceptable content and behavior
+        </a>.
+    </p>
+    <p class="mt-3">
         You will have to spend some Banano to
-        <a href="/enqueue" use:link class="text-blue-600 hover:underline">enqueue a video</a>. How much you must spend
-        is determined by factors like the amount of people watching and the length of the queue.
+        <a href="/enqueue" use:link>enqueue a video</a>. How much you must spend is determined by factors like the
+        amount of people watching and the length of the queue.
     </p>
     <p class="mt-3">
         The Banano spent to enqueue each video is distributed among the JungleTV spectators who our fraud prevention
         monkeys deem sufficiently ripe. Make sure to
-        <a href="/rewards/address" use:link class="text-blue-600 hover:underline"> set your address to earn rewards</a>!
-        If you watch enough videos, you'll eventually make enough to enqueue your own - or to recover your initial
-        spending!
+        <a href="/rewards/address" use:link> set your address to earn rewards</a>! If you watch enough videos, you'll
+        eventually make enough to enqueue your own - or to recover your initial spending!
     </p>
     <hr class="mt-3" />
     <h3 class="mt-3 text-large font-semibold">Get in touch</h3>
     <p>
         JungleTV is a non-profit hobby project operated by
-        <a href="https://twitter.com/gbl08ma/" target="_blank" rel="noopener" class="text-blue-600 hover:underline"
-            >gbl08ma</a
-        > (Discord tag: gbl08ma#3988), who you can find on the
-        <a href="https://chat.banano.cc/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">
-            Banano Discord</a
-        >.
+        <a href="https://twitter.com/gbl08ma/" target="_blank" rel="noopener">gbl08ma</a> (Discord tag: gbl08ma#3988),
+        who you can find on the
+        <a href="https://chat.banano.cc/" target="_blank" rel="noopener"> Banano Discord</a>.
     </p>
     <h3 class="mt-3 text-large font-semibold">Contribute</h3>
     <p>
@@ -62,7 +58,6 @@
             href="https://github.com/tnyim/jungletv"
             target="_blank"
             rel="noopener"
-            class="text-blue-600 hover:underline"
         >
             JungleTV GitHub
         </a> to take a look at the source code, report issues, or to maybe even make some contributions of your own!

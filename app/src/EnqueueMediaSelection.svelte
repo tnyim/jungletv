@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import { createEventDispatcher } from "svelte";
@@ -51,8 +52,12 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            You can add most YouTube videos to the JungleTV programming. There is a minimum price to enqueue each video,
-            which depends on its length, the number of videos in queue, and the current JungleTV viewership.
+            You can add most YouTube videos to the JungleTV programming. Make sure to check the
+            <a href="/guidelines" use:link>JungleTV guidelines for content</a> before enqueuing videos.
+        </p>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            There is a minimum price to enqueue each video, which depends on its length, the number of videos in queue,
+            and the current JungleTV viewership.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Longer videos suffer an increasing price penalty.</p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -61,7 +66,9 @@
         </p>
     </div>
     <div slot="main-content">
-        <label for="youtube_video_link" class="block text-sm font-medium text-gray-700 dark:text-gray-300"> YouTube video URL </label>
+        <label for="youtube_video_link" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            YouTube video URL
+        </label>
         <div class="mt-1 flex rounded-md shadow-sm">
             <input
                 on:input={() => (failureReason = "")}
@@ -95,7 +102,9 @@
                     />
                 </div>
                 <div class="ml-3 text-sm">
-                    <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300"> Make video unskippable</label>
+                    <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300">
+                        Make video unskippable</label
+                    >
                     <p class="text-gray-500">
                         Prevent this video from being skipped even if users pay enough to do so.<br />
                         <span class="font-semibold">
@@ -105,6 +114,10 @@
                 </div>
             </div>
         </div>
+        <p class="mt-4">
+            Make sure to check the
+            <a href="/guidelines" use:link>JungleTV guidelines for content</a> before enqueuing videos.
+        </p>
     </div>
     <div slot="buttons">
         <button

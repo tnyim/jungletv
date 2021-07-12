@@ -137,7 +137,7 @@
             </button>
         </div>
         <p class="px-2 py-2 text-lg">
-            <a href="/moderate/media/disallowed" use:link class="text-blue-600 hover:underline">Manage disallowed videos</a>
+            <a href="/moderate/media/disallowed" use:link>Manage disallowed videos</a>
         </p>
     </div>
     <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">

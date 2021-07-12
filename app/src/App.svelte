@@ -12,7 +12,8 @@
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
 	import { darkMode, rewardAddress } from "./stores";
-import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
+	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
+	import Document from "./Document.svelte";
 
 	export let url = "";
 
@@ -52,25 +53,26 @@ import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 		<Route path="/about" component={About} />
 		<Route path="/enqueue" component={Enqueue} />
 		<Route path="/rewards/address" component={SetRewardsAddress} />
+		<Route path="/guidelines" component={Document} documentID="guidelines" />
 		<Route path="/moderate">
 			{#if isAdmin}
 				<Moderate />
 			{:else}
-				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
+				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 		<Route path="/moderate/users/:address/chathistory" let:params>
 			{#if isAdmin}
 				<ModerateUserChatHistory address={params.address} />
 			{:else}
-				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
+				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 		<Route path="/moderate/media/disallowed" let:params>
 			{#if isAdmin}
 				<ModerateDisallowedMedia />
 			{:else}
-				<a href="/admin/signin" class="text-blue-600 hover:underline">Sign in</a>
+				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 	</Router>
@@ -80,4 +82,44 @@ import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 	@tailwind base;
 	@tailwind components;
 	@tailwind utilities;
+
+	@layer base {
+		h1 {
+			@apply text-2xl;
+		}
+		h2 {
+			@apply text-xl;
+		}
+		h3 {
+			@apply text-lg;
+		}
+		h4 {
+			@apply text-base font-extrabold;
+		}
+
+		a {
+			@apply text-blue-600 hover:underline;
+		}
+
+		.markdown-document ul {
+			@apply list-disc list-inside;
+		}
+
+		.markdown-document ol {
+			@apply list-decimal list-inside;
+		}
+
+		.markdown-document li > p {
+			display: inline;
+			margin-top: 0;
+		}
+
+		.markdown-document li {
+			@apply mt-3;
+		}
+
+		.markdown-document p {
+			@apply mt-4;
+		}
+	}
 </style>

@@ -26,7 +26,7 @@
         </div>
         <div class="mt-8">
             If this is your first time using Banano and you do not have any to send to your new account, you can get a small amount at
-            <a href="https://monkeytalks.cc/"  target="_blank" rel="noopener" class="text-blue-600 hover:underline">MonkeyTalks</a>
+            <a href="https://monkeytalks.cc/"  target="_blank" rel="noopener">MonkeyTalks</a>
             (click the Faucet button in the top right corner).
         </div>
     </div>

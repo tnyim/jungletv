@@ -103,6 +103,15 @@ type JungleTVUserPermissionLevel = {
   readonly responseType: typeof jungletv_pb.UserPermissionLevelResponse;
 };
 
+type JungleTVGetDocument = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.GetDocumentRequest;
+  readonly responseType: typeof jungletv_pb.Document;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -202,6 +211,15 @@ type JungleTVRemoveDisallowedVideo = {
   readonly responseType: typeof jungletv_pb.RemoveDisallowedVideoResponse;
 };
 
+type JungleTVUpdateDocument = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.Document;
+  readonly responseType: typeof jungletv_pb.UpdateDocumentResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -215,6 +233,7 @@ export class JungleTV {
   static readonly SendChatMessage: JungleTVSendChatMessage;
   static readonly SubmitProofOfWork: JungleTVSubmitProofOfWork;
   static readonly UserPermissionLevel: JungleTVUserPermissionLevel;
+  static readonly GetDocument: JungleTVGetDocument;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -226,6 +245,7 @@ export class JungleTV {
   static readonly DisallowedVideos: JungleTVDisallowedVideos;
   static readonly AddDisallowedVideo: JungleTVAddDisallowedVideo;
   static readonly RemoveDisallowedVideo: JungleTVRemoveDisallowedVideo;
+  static readonly UpdateDocument: JungleTVUpdateDocument;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -319,6 +339,15 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.UserPermissionLevelRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserPermissionLevelResponse|null) => void
   ): UnaryResponse;
+  getDocument(
+    requestMessage: jungletv_pb.GetDocumentRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.Document|null) => void
+  ): UnaryResponse;
+  getDocument(
+    requestMessage: jungletv_pb.GetDocumentRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.Document|null) => void
+  ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,
@@ -417,6 +446,15 @@ export class JungleTVClient {
   removeDisallowedVideo(
     requestMessage: jungletv_pb.RemoveDisallowedVideoRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveDisallowedVideoResponse|null) => void
+  ): UnaryResponse;
+  updateDocument(
+    requestMessage: jungletv_pb.Document,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UpdateDocumentResponse|null) => void
+  ): UnaryResponse;
+  updateDocument(
+    requestMessage: jungletv_pb.Document,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UpdateDocumentResponse|null) => void
   ): UnaryResponse;
 }
 

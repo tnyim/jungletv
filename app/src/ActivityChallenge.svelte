@@ -111,11 +111,11 @@
     </div>
     <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
         Protected by hCaptcha ●
-        <a target="_blank" rel="noopener" class="text-blue-600 hover:underline" href="https://hcaptcha.com/privacy"
+        <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy"
             >Privacy</a
         >
         ●
-        <a target="_blank" rel="noopener" class="text-blue-600 hover:underline" href="https://hcaptcha.com/terms"
+        <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms"
             >Terms</a
         >
     </div>

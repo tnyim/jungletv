@@ -19,6 +19,7 @@ service JungleTV {
     rpc SendChatMessage (SendChatMessageRequest) returns (SendChatMessageResponse) {}
     rpc SubmitProofOfWork (SubmitProofOfWorkRequest) returns (SubmitProofOfWorkResponse) {}
     rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
+    rpc GetDocument (GetDocumentRequest) returns (Document) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -32,6 +33,7 @@ service JungleTV {
     rpc DisallowedVideos(DisallowedVideosRequest) returns (DisallowedVideosResponse) {}
     rpc AddDisallowedVideo(AddDisallowedVideoRequest) returns (AddDisallowedVideoResponse) {}
     rpc RemoveDisallowedVideo(RemoveDisallowedVideoRequest) returns (RemoveDisallowedVideoResponse) {}
+    rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
 }
 
 message PaginationParameters {
@@ -392,3 +394,15 @@ message RemoveDisallowedVideoRequest {
 }
 
 message RemoveDisallowedVideoResponse {}
+
+message GetDocumentRequest {
+    string id = 1;
+}
+
+message Document {
+    string id = 1;
+    string format = 2;
+    string content = 3;
+}
+
+message UpdateDocumentResponse {}
