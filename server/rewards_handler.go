@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	movingaverage "github.com/RobinUS2/golang-moving-average"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -31,6 +32,7 @@ type RewardsHandler struct {
 	hCaptchaSecret                 string
 	hCaptchaHTTPClient             http.Client
 	moderationStore                ModerationStore
+	eligibleMovingAverage          *movingaverage.MovingAverage
 
 	rewardsDistributed *event.Event
 
@@ -114,7 +116,8 @@ func NewRewardsHandler(log *log.Logger,
 		hCaptchaHTTPClient: http.Client{
 			Timeout: 10 * time.Second,
 		},
-		moderationStore: moderationStore,
+		moderationStore:       moderationStore,
+		eligibleMovingAverage: movingaverage.New(3),
 
 		rewardsDistributed: event.New(),
 

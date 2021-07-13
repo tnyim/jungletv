@@ -29,6 +29,7 @@ type EnqueueManager struct {
 	paymentAccountPool             *PaymentAccountPool
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	statsHandler                   *StatsHandler
+	rewardsHandler                 *RewardsHandler
 	collectorAccountAddress        string
 	log                            *log.Logger
 	moderationStore                ModerationStore
@@ -69,6 +70,7 @@ func NewEnqueueManager(log *log.Logger,
 	paymentAccountPool *PaymentAccountPool,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	statsHandler *StatsHandler,
+	rewardsHandler *RewardsHandler,
 	collectorAccountAddress string,
 	moderationStore ModerationStore,
 	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
@@ -80,6 +82,7 @@ func NewEnqueueManager(log *log.Logger,
 		paymentAccountPool:             paymentAccountPool,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
 		statsHandler:                   statsHandler,
+		rewardsHandler:                 rewardsHandler,
 		collectorAccountAddress:        collectorAccountAddress,
 		requests:                       make(map[string]EnqueueTicket),
 		moderationStore:                moderationStore,
@@ -115,13 +118,21 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 			paymentAccount.Address()))
 	}
 
+	currentlyWatchingEligible := int(e.rewardsHandler.eligibleMovingAverage.Avg())
+	if e.rewardsHandler.eligibleMovingAverage.Count() == 0 {
+		// we didn't send rewards yet since restarting, take the total number of spectators and assume 50% are eligible
+		// (50% figure chosen based on observed data)
+		currentlyWatchingTotal := e.statsHandler.CurrentlyWatching(ctx)
+		currentlyWatchingEligible = currentlyWatchingTotal / 2
+	}
+
 	t := &ticket{
 		id:            uuid.NewV4().String(),
 		createdAt:     time.Now(),
 		requestedBy:   request.RequestedBy(),
 		mediaInfo:     request.MediaInfo(),
 		unskippable:   request.Unskippable(),
-		pricing:       ComputeEnqueuePricing(e.mediaQueue, e.statsHandler.CurrentlyWatching(ctx), request.MediaInfo().Length(), request.Unskippable()),
+		pricing:       ComputeEnqueuePricing(e.mediaQueue, currentlyWatchingEligible, request.MediaInfo().Length(), request.Unskippable()),
 		account:       paymentAccount,
 		statusChanged: event.New(),
 	}

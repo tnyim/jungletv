@@ -125,8 +125,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	}
 
 	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.collectorAccount.Address(), s.moderationStore,
-		s.modLogWebhook)
+		s.paymentAccountPendingWaitGroup, s.statsHandler, s.rewardsHandler, s.collectorAccount.Address(),
+		s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

@@ -25,6 +25,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
 		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.PlayedFor())
 	go r.statsClient.Gauge("eligible", len(eligible))
+	r.eligibleMovingAverage.Add(float64(len(eligible)))
 
 	if rewardBudget.Cmp(big.NewInt(0)) == 0 {
 		r.log.Println("Request cost was 0, nothing to reward")
