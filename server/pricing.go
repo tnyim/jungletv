@@ -68,7 +68,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	pricing.EnqueuePrice = Amount{new(big.Int)}
 	pricing.EnqueuePrice.Set(BaseEnqueuePrice)
 	m := big.NewInt(1000).Add(big.NewInt(1000), big.NewInt(queueLengthFactor))
-	m = m.Add(m, big.NewInt(int64(currentlyWatching*100)))
+	m = m.Add(m, big.NewInt(int64(currentlyWatching*250)))
 	m = m.Add(m, big.NewInt(int64(lengthPenalty*1000)))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, m)
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(1000))
