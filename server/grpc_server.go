@@ -124,16 +124,16 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.rewardsHandler, s.collectorAccount.Address(),
-		s.moderationStore, s.modLogWebhook)
+	s.rewardsHandler, err = NewRewardsHandler(
+		log, statsClient, s.mediaQueue, s.ipReputationChecker, hCaptchaSecret, w, s.collectorAccountQueue,
+		s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.rewardsHandler, err = NewRewardsHandler(
-		log, statsClient, s.mediaQueue, s.ipReputationChecker, hCaptchaSecret, w, s.collectorAccountQueue,
-		s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
+	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
+		s.paymentAccountPendingWaitGroup, s.statsHandler, s.rewardsHandler, s.collectorAccount.Address(),
+		s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
