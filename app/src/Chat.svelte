@@ -12,6 +12,7 @@
 
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
+    import WarningMessage from "./WarningMessage.svelte";
 
     const tokenizer = {
         tag: () => {},
@@ -39,9 +40,10 @@
     let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
+    let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == 'true';
 
     onMount(() => {
-        document.addEventListener("visibilitychange", handleVisibilityChanged)
+        document.addEventListener("visibilitychange", handleVisibilityChanged);
         consumeChat();
     });
     function consumeChat() {
@@ -85,7 +87,7 @@
     });
 
     function handleVisibilityChanged() {
-        if(!document.hidden && shouldAutoScroll) {
+        if (!document.hidden && shouldAutoScroll) {
             scrollToBottom();
         }
     }
@@ -265,6 +267,11 @@
         }
         return "";
     }
+
+    function dismissGuidelinesWarning() {
+        showedGuidelinesChatWarning = true;
+        localStorage.setItem("showedGuidelinesChatWarning", "true");
+    }
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
@@ -310,10 +317,21 @@
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
-                            <i class="fas fa-history cursor-pointer ml-1" on:click={() => navigate("/moderate/users/" + msg.getUserMessage().getAuthor().getAddress() + "/chathistory")} />
+                            <i
+                                class="fas fa-history cursor-pointer ml-1"
+                                on:click={() =>
+                                    navigate(
+                                        "/moderate/users/" +
+                                            msg.getUserMessage().getAuthor().getAddress() +
+                                            "/chathistory"
+                                    )}
+                            />
                         {/if}
                         <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}?format=png"
+                            src="https://monkey.banano.cc/api/v1/monkey/{msg
+                                .getUserMessage()
+                                .getAuthor()
+                                .getAddress()}?format=png"
                             alt="&nbsp;"
                             title="Click to reply"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
@@ -366,7 +384,7 @@
             </div>
         {:else}
             {#if sendError}
-                <div class="px-2 text-xs">
+                <div class="px-2 pb-2 text-xs">
                     <ErrorMessage>
                         {#if sendErrorIsRateLimit}
                             Failed to send your message. Please try again.
@@ -374,6 +392,16 @@
                             You're going too fast. Slow down.
                         {/if}
                     </ErrorMessage>
+                </div>
+            {/if}
+            {#if !showedGuidelinesChatWarning}
+                <div class="px-2 pb-2 text-xs">
+                    <WarningMessage>
+                        Before participating in chat, make sure to read the
+                        <a use:link href="/guidelines">community guidelines</a>.
+                        <br />
+                        <a class="font-semibold float-right" href={'#'} on:click={dismissGuidelinesWarning}>I read the guidelines and will respect them</a>
+                    </WarningMessage>
                 </div>
             {/if}
             {#if replyingToMessage !== undefined}

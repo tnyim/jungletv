@@ -248,6 +248,10 @@
             </div>
         </div>
     </div>
+    <div>
+        <p class="px-2 font-semibold text-lg">Documents</p>
+        <p class="px-2"><a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> | <a use:link href="/moderate/documents/faq">Edit FAQ</a></p>
+    </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Chat</p>
         <div class="px-2 mb-10 grid grid-cols-3 gap-6">

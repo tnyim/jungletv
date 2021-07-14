@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 
-	import { Router, Route, navigate } from "svelte-navigator";
+	import { Router, Route, useParams } from "svelte-navigator";
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
 	import Enqueue from "./Enqueue.svelte";
@@ -13,6 +13,7 @@
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
 	import { darkMode, rewardAddress } from "./stores";
 	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
+	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
 
 	export let url = "";
@@ -54,6 +55,8 @@
 		<Route path="/enqueue" component={Enqueue} />
 		<Route path="/rewards/address" component={SetRewardsAddress} />
 		<Route path="/guidelines" component={Document} documentID="guidelines" />
+		<Route path="/faq" component={Document} documentID="faq" />
+		<Route path="/documents/:documentID" component={Document} />
 		<Route path="/moderate">
 			{#if isAdmin}
 				<Moderate />
@@ -75,6 +78,13 @@
 				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
+		<Route path="/moderate/documents/:documentID" let:params>
+			{#if isAdmin}
+				<ModerateEditDocument documentID={params.documentID} />
+			{:else}
+				<a href="/admin/signin">Sign in</a>
+			{/if}
+		</Route>
 	</Router>
 </div>
 
@@ -84,21 +94,21 @@
 	@tailwind utilities;
 
 	@layer base {
-		h1 {
-			@apply text-2xl;
-		}
-		h2 {
-			@apply text-xl;
-		}
-		h3 {
-			@apply text-lg;
-		}
-		h4 {
-			@apply text-base font-extrabold;
+		a {
+			@apply text-blue-600 hover:underline cursor-pointer;
 		}
 
-		a {
-			@apply text-blue-600 hover:underline;
+		.markdown-document h1 {
+			@apply text-2xl mt-6 mb-2;
+		}
+		.markdown-document h2 {
+			@apply text-xl mt-6 mb-2;
+		}
+		.markdown-document h3 {
+			@apply text-lg mt-4 mb-1;
+		}
+		.markdown-document h4 {
+			@apply text-base font-extrabold mt-4;
 		}
 
 		.markdown-document ul {
@@ -115,11 +125,11 @@
 		}
 
 		.markdown-document li {
-			@apply mt-3;
+			@apply mb-3;
 		}
 
 		.markdown-document p {
-			@apply mt-4;
+			@apply mb-4;
 		}
 	}
 </style>

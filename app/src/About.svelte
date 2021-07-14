@@ -10,6 +10,9 @@
 <div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
     <span use:registerFocus class="hidden" />
     <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-24" />
+    <p class="mt-3 text-lg">
+        <a href="/guidelines" use:link>Community guidelines</a> • <a href="/faq" use:link>FAQ</a>
+    </p>
     <p class="mt-3">
         JungleTV is a video sharing website for the <a href="https://banano.cc" target="_blank" rel="noopener">
             Banano
@@ -22,9 +25,8 @@
         experience similar to watching TV or a livestream.
     </p>
     <p class="mt-3">
-        Before participating, make sure to read the <a href="/guidelines" use:link>
-            guidelines for acceptable content and behavior
-        </a>.
+        Before participating, make sure to read the
+        <a href="/guidelines" use:link>guidelines for acceptable content and behavior</a>.
     </p>
     <p class="mt-3">
         You will have to spend some Banano to
