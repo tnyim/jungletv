@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS "chat_message";
+DROP TABLE IF EXISTS "chat_user";
 DROP TABLE IF EXISTS "document";
 DROP TABLE IF EXISTS "disallowed_media";
 DROP TABLE IF EXISTS "played_media";
@@ -38,4 +40,19 @@ CREATE TABLE IF NOT EXISTS "document" (
     "format" VARCHAR(36),
     content TEXT,
     PRIMARY KEY (id, updated_at)
+);
+
+CREATE TABLE IF NOT EXISTS "chat_user" (
+    "address" VARCHAR(64) PRIMARY KEY,
+    permission_level VARCHAR(36) NOT NULL,
+    nickname VARCHAR(32)
+);
+
+CREATE TABLE IF NOT EXISTS "chat_message" (
+    id BIGINT PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    author VARCHAR(64) REFERENCES chat_user ("address"),
+    content TEXT NOT NULL,
+    reference BIGINT REFERENCES chat_message (id),
+    shadowbanned BOOLEAN NOT NULL
 );

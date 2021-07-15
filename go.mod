@@ -21,6 +21,7 @@ require (
 	github.com/hectorchu/gonano v0.1.15
 	github.com/heetch/sqalx v0.4.0
 	github.com/iancoleman/strcase v0.1.3
+	github.com/icza/gox v0.0.0-20201215141822-6edfac6c05b5 // indirect
 	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
 	github.com/lib/pq v1.0.0

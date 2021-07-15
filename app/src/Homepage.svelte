@@ -7,6 +7,7 @@
     import { cubicOut } from "svelte/easing";
     import waitForElementTransition from "wait-for-element-transition";
     import ActivityChallenge from "./ActivityChallenge.svelte";
+    import { onDestroy, onMount } from "svelte";
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
@@ -50,11 +51,37 @@
 
     let sidebarExpanded = true;
     let playerContainer: HTMLElement;
+
+    let showCaptcha = false;
+    let hasChallenge = false;
+    onMount(() => {
+        document.addEventListener("visibilitychange", checkShowCaptcha);
+    });
+
+    onDestroy(() => {
+        document.removeEventListener("visibilitychange", checkShowCaptcha);
+    });
+
+    activityChallengeReceived.subscribe((c) => {
+        if (c == null) {
+            hasChallenge = false;
+            showCaptcha = false;
+            return;
+        }
+        hasChallenge = true;
+        checkShowCaptcha();
+    });
+
+    function checkShowCaptcha() {
+        if (!document.hidden && hasChallenge) {
+            showCaptcha = true;
+        }
+    }
 </script>
 
 <div class="flex flex-col lg:flex-row lg-screen-height-minus-top-padding w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
-        {#if $activityChallengeReceived !== null}
+        {#if showCaptcha}
             <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} />
         {/if}
         <Player />

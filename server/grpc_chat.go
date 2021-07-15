@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
@@ -129,6 +131,9 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
+	// remove emoji that can be confused for chat moderator icons
+	r.Content = disallowedEmojiRegex.ReplaceAllString(r.Content, "")
+	r.Content = stringsx.Clean(r.Content)
 	if len(strings.TrimSpace(r.Content)) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "message empty")
 	}
@@ -154,7 +159,6 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	s.log.Printf("Chat message from %s %s: %s", m.Author.Address(), RemoteAddressFromContext(ctx), m.Content)
 	if !m.Shadowbanned {
 		go func() {
 			if r.Trusted {
@@ -170,4 +174,38 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	return &proto.SendChatMessageResponse{
 		Id: m.ID.Int64(),
 	}, nil
+}
+
+var disallowedEmojiRegex = regexp.MustCompile("[🛡️🔰🛡⚔️⚔🗡️🗡🗡️]")
+
+func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNicknameRequest) (*proto.SetChatNicknameResponse, error) {
+	user := UserClaimsFromContext(ctx)
+	if user == nil {
+		return nil, stacktrace.NewError("user claims unexpectedly missing")
+	}
+
+	if len(r.Nickname) > 0 {
+		r.Nickname = strings.TrimSpace(r.Nickname)
+		// remove emoji that can be confused for chat moderator icons
+		r.Nickname = disallowedEmojiRegex.ReplaceAllString(r.Nickname, "")
+		r.Nickname = stringsx.Clean(r.Nickname)
+		if len(r.Nickname) < 3 {
+			return nil, status.Error(codes.InvalidArgument, "nickname must be at least 3 characters long")
+		}
+		if len(r.Nickname) > 16 {
+			return nil, status.Error(codes.InvalidArgument, "nickname must be at most 16 characters long")
+		}
+	}
+
+	var err error
+	if r.Nickname == "" {
+		err = s.chat.SetNickname(ctx, user, nil)
+	} else {
+		err = s.chat.SetNickname(ctx, user, &r.Nickname)
+	}
+
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return &proto.SetChatNicknameResponse{}, nil
 }

@@ -138,7 +138,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, statsClient, NewChatStoreMemory(10000), s.moderationStore)
+	s.chat, err = NewChatManager(log, statsClient, NewChatStoreDatabase(), s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

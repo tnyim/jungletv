@@ -13,15 +13,26 @@ type User interface {
 	PermissionLevel() PermissionLevel
 	SerializeForAPI() *proto.User
 	IsUnknown() bool
+	SetNickname(*string)
 }
 
 type addressOnlyUser struct {
-	address string
+	address         string
+	permissionLevel PermissionLevel
+	nickname        *string
 }
 
 func NewAddressOnlyUser(address string) User {
 	return &addressOnlyUser{
-		address: address,
+		address:         address,
+		permissionLevel: UnauthenticatedPermissionLevel,
+	}
+}
+
+func NewAddressOnlyUserWithPermissionLevel(address string, permLevel PermissionLevel) User {
+	return &addressOnlyUser{
+		address:         address,
+		permissionLevel: permLevel,
 	}
 }
 
@@ -30,17 +41,27 @@ func (u *addressOnlyUser) Address() string {
 }
 
 func (u *addressOnlyUser) PermissionLevel() PermissionLevel {
-	return UnauthenticatedPermissionLevel
+	return u.permissionLevel
 }
 
 func (u *addressOnlyUser) SerializeForAPI() *proto.User {
+	roles := []proto.UserRole{}
+	if permissionLevelOrder[u.permissionLevel] >= permissionLevelOrder[AdminPermissionLevel] {
+		roles = append(roles, proto.UserRole_MODERATOR)
+	}
 	return &proto.User{
-		Address: u.address,
+		Address:  u.address,
+		Roles:    roles,
+		Nickname: u.nickname,
 	}
 }
 
 func (u *addressOnlyUser) IsUnknown() bool {
 	return false
+}
+
+func (u *addressOnlyUser) SetNickname(s *string) {
+	u.nickname = s
 }
 
 // UserClaims is the claim type used
@@ -54,6 +75,7 @@ type userInfo struct {
 	RewardAddress string          `json:"reward_address"`
 	PermLevel     PermissionLevel `json:"permission_level"`
 	Username      string          `json:"username"`
+	Nickname      string          `json:"nickname"`
 }
 
 func (u *UserClaims) Address() string {
@@ -69,14 +91,26 @@ func (u *UserClaims) SerializeForAPI() *proto.User {
 	if permissionLevelOrder[u.PermLevel] >= permissionLevelOrder[AdminPermissionLevel] {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
-	return &proto.User{
+	pu := &proto.User{
 		Address: u.RewardAddress,
 		Roles:   roles,
 	}
+	if u.Nickname != "" {
+		pu.Nickname = &u.Nickname
+	}
+	return pu
 }
 
 func (u *UserClaims) IsUnknown() bool {
 	return false
+}
+
+func (u *UserClaims) SetNickname(s *string) {
+	if s == nil {
+		u.Nickname = ""
+	} else {
+		u.Nickname = *s
+	}
 }
 
 type unknownUser struct {
@@ -96,6 +130,9 @@ func (u *unknownUser) SerializeForAPI() *proto.User {
 
 func (u *unknownUser) IsUnknown() bool {
 	return true
+}
+
+func (u *unknownUser) SetNickname(s *string) {
 }
 
 func UserClaimsFromContext(ctx context.Context) *UserClaims {

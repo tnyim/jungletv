@@ -29,6 +29,7 @@ type JungleTVClient interface {
 	SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error)
+	SetChatNickname(ctx context.Context, in *SetChatNicknameRequest, opts ...grpc.CallOption) (*SetChatNicknameResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -275,6 +276,15 @@ func (c *jungleTVClient) GetDocument(ctx context.Context, in *GetDocumentRequest
 	return out, nil
 }
 
+func (c *jungleTVClient) SetChatNickname(ctx context.Context, in *SetChatNicknameRequest, opts ...grpc.CallOption) (*SetChatNicknameResponse, error) {
+	out := new(SetChatNicknameResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetChatNickname", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -399,6 +409,7 @@ type JungleTVServer interface {
 	SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
 	GetDocument(context.Context, *GetDocumentRequest) (*Document, error)
+	SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -454,6 +465,9 @@ func (UnimplementedJungleTVServer) UserPermissionLevel(context.Context, *UserPer
 }
 func (UnimplementedJungleTVServer) GetDocument(context.Context, *GetDocumentRequest) (*Document, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDocument not implemented")
+}
+func (UnimplementedJungleTVServer) SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetChatNickname not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -735,6 +749,24 @@ func _JungleTV_GetDocument_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetChatNickname_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetChatNicknameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetChatNickname(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetChatNickname",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetChatNickname(ctx, req.(*SetChatNicknameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -982,6 +1014,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDocument",
 			Handler:    _JungleTV_GetDocument_Handler,
+		},
+		{
+			MethodName: "SetChatNickname",
+			Handler:    _JungleTV_SetChatNickname_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

@@ -718,6 +718,11 @@ export class User extends jspb.Message {
   setRolesList(value: Array<UserRoleMap[keyof UserRoleMap]>): void;
   addRoles(value: UserRoleMap[keyof UserRoleMap], index?: number): UserRoleMap[keyof UserRoleMap];
 
+  hasNickname(): boolean;
+  clearNickname(): void;
+  getNickname(): string;
+  setNickname(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): User.AsObject;
   static toObject(includeInstance: boolean, msg: User): User.AsObject;
@@ -732,6 +737,7 @@ export namespace User {
   export type AsObject = {
     address: string,
     rolesList: Array<UserRoleMap[keyof UserRoleMap]>,
+    nickname: string,
   }
 }
 
@@ -1782,6 +1788,42 @@ export class UpdateDocumentResponse extends jspb.Message {
 }
 
 export namespace UpdateDocumentResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetChatNicknameRequest extends jspb.Message {
+  getNickname(): string;
+  setNickname(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetChatNicknameRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetChatNicknameRequest): SetChatNicknameRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetChatNicknameRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetChatNicknameRequest;
+  static deserializeBinaryFromReader(message: SetChatNicknameRequest, reader: jspb.BinaryReader): SetChatNicknameRequest;
+}
+
+export namespace SetChatNicknameRequest {
+  export type AsObject = {
+    nickname: string,
+  }
+}
+
+export class SetChatNicknameResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetChatNicknameResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetChatNicknameResponse): SetChatNicknameResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetChatNicknameResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetChatNicknameResponse;
+  static deserializeBinaryFromReader(message: SetChatNicknameResponse, reader: jspb.BinaryReader): SetChatNicknameResponse;
+}
+
+export namespace SetChatNicknameResponse {
   export type AsObject = {
   }
 }

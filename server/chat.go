@@ -19,13 +19,14 @@ import (
 
 // ChatManager handles the chat system
 type ChatManager struct {
-	log                 *log.Logger
-	statsClient         *statsd.Client
-	store               ChatStore
-	idNode              *snowflake.Node
-	rateLimiter         limiter.Store
-	slowmodeRateLimiter limiter.Store
-	moderationStore     ModerationStore
+	log                   *log.Logger
+	statsClient           *statsd.Client
+	store                 ChatStore
+	idNode                *snowflake.Node
+	rateLimiter           limiter.Store
+	slowmodeRateLimiter   limiter.Store
+	nickChangeRateLimiter limiter.Store
+	moderationStore       ModerationStore
 
 	enabled        bool
 	slowmode       bool
@@ -58,15 +59,24 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
 	}
 
+	nickChangeRateLimiter, err := memorystore.New(&memorystore.Config{
+		Tokens:   1,
+		Interval: 1 * time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
+	}
+
 	return &ChatManager{
-		log:                 log,
-		statsClient:         statsClient,
-		store:               store,
-		idNode:              node,
-		rateLimiter:         rateLimiter,
-		slowmodeRateLimiter: slowmodeRateLimiter,
-		enabled:             true,
-		moderationStore:     moderationStore,
+		log:                   log,
+		statsClient:           statsClient,
+		store:                 store,
+		idNode:                node,
+		rateLimiter:           rateLimiter,
+		slowmodeRateLimiter:   slowmodeRateLimiter,
+		nickChangeRateLimiter: nickChangeRateLimiter,
+		enabled:               true,
+		moderationStore:       moderationStore,
 
 		chatEnabled:    event.New(),
 		chatDisabled:   event.New(),
@@ -113,9 +123,12 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		Reference:    reference,
 		Shadowbanned: banned,
 	}
-	err = c.store.StoreMessage(ctx, m)
+	nickname, err := c.store.StoreMessage(ctx, m)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to store chat message")
+	}
+	if m.Author != nil {
+		m.Author.SetNickname(nickname)
 	}
 	c.messageCreated.Notify(m)
 	go c.statsClient.Count("chat_message_created", 1)
@@ -128,7 +141,7 @@ func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (
 		CreatedAt: time.Now(),
 		Content:   content,
 	}
-	err := c.store.StoreMessage(ctx, m)
+	_, err := c.store.StoreMessage(ctx, m)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to store chat message")
 	}
@@ -143,6 +156,18 @@ func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*Chat
 	}
 	c.messageDeleted.Notify(id)
 	return message, nil
+}
+
+func (c *ChatManager) SetNickname(ctxCtx context.Context, user User, nickname *string) error {
+	_, _, _, ok, err := c.nickChangeRateLimiter.Take(ctxCtx, user.Address())
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return stacktrace.NewError("rate limit reached")
+	}
+
+	return stacktrace.Propagate(c.store.SetUserNickname(ctxCtx, user, nickname), "")
 }
 
 func (c *ChatManager) LoadMessagesSince(ctx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {

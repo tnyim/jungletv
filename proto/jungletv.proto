@@ -20,6 +20,7 @@ service JungleTV {
     rpc SubmitProofOfWork (SubmitProofOfWorkRequest) returns (SubmitProofOfWorkResponse) {}
     rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
     rpc GetDocument (GetDocumentRequest) returns (Document) {}
+    rpc SetChatNickname (SetChatNicknameRequest) returns (SetChatNicknameResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -187,6 +188,7 @@ enum UserRole {
 message User {
     string address = 1;
     repeated UserRole roles = 2;
+    optional string nickname = 3;
 }
 
 message RewardInfoRequest {}
@@ -406,3 +408,9 @@ message Document {
 }
 
 message UpdateDocumentResponse {}
+
+message SetChatNicknameRequest {
+    string nickname = 1;
+}
+
+message SetChatNicknameResponse {}

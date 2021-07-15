@@ -34,6 +34,7 @@ func NewAuthInterceptor(jwtManager *JWTManager, authorizer UserAuthorizer) *Auth
 		map[string]PermissionLevel{
 			"/jungletv.JungleTV/RewardInfo":      UserPermissionLevel,
 			"/jungletv.JungleTV/SendChatMessage": UserPermissionLevel,
+			"/jungletv.JungleTV/SetChatNickname": UserPermissionLevel,
 
 			"/jungletv.JungleTV/ForciblyEnqueueTicket":    AdminPermissionLevel,
 			"/jungletv.JungleTV/RemoveQueueEntry":         AdminPermissionLevel,

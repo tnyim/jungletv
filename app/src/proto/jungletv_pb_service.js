@@ -118,6 +118,15 @@ JungleTV.GetDocument = {
   responseType: jungletv_pb.Document
 };
 
+JungleTV.SetChatNickname = {
+  methodName: "SetChatNickname",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetChatNicknameRequest,
+  responseType: jungletv_pb.SetChatNicknameResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -619,6 +628,37 @@ JungleTVClient.prototype.getDocument = function getDocument(requestMessage, meta
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.GetDocument, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setChatNickname = function setChatNickname(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetChatNickname, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

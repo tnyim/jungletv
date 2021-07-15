@@ -32,7 +32,7 @@
     let composedMessage = "";
     let replyingToMessage: ChatMessage;
     let sendError = false;
-    let sendErrorIsRateLimit = false;
+    let sendErrorMessage = "";
     let chatEnabled = true;
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
@@ -40,7 +40,7 @@
     let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
-    let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == 'true';
+    let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
 
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
@@ -195,11 +195,36 @@
         clearReplyToMessage();
         sentMsgFlag = true;
         try {
-            await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
+            if (msg.startsWith("/nick")) {
+                let nickname = "";
+                let parts = splitAtFirstSpace(msg);
+                if (parts.length > 1) {
+                    nickname = parts[1];
+                    if (nickname.length < 3) {
+                        sendError = true;
+                        sendErrorMessage = "The nickname must be at least 3 characters long.";
+                        setTimeout(() => (sendError = false), 5000);
+                        return;
+                    } else if (nickname.length > 16) {
+                        sendError = true;
+                        sendErrorMessage = "The nickname must be at most 16 characters long.";
+                        setTimeout(() => (sendError = false), 5000);
+                        return;
+                    }
+                }
+                await apiClient.setChatNickname(nickname);
+            } else {
+                await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
+            }
         } catch (ex) {
+            console.log(ex);
             composedMessage = msg;
             sendError = true;
-            sendErrorIsRateLimit = ex instanceof Error && (ex as Error).toString().includes("rate limit reached");
+            if (ex.includes("rate limit reached")) {
+                sendErrorMessage = "You're going too fast. Slow down.";
+            } else {
+                sendErrorMessage = "Failed to send your message. Please try again.";
+            }
             setTimeout(() => (sendError = false), 5000);
         }
         composeTextArea.focus();
@@ -268,9 +293,30 @@
         return "";
     }
 
+    function getReadableMessageAuthor(msg: ChatMessage): string {
+        if (msg.getUserMessage().getAuthor().hasNickname()) {
+            return msg.getUserMessage().getAuthor().getNickname();
+        }
+        return msg.getUserMessage().getAuthor().getAddress().substr(0, 14);
+    }
+
+    function getClassForMessageAuthor(msg: ChatMessage): string {
+        if (msg.getUserMessage().getAuthor().hasNickname()) {
+            return "chat-user-nickname";
+        }
+        return "chat-user-address";
+    }
+
     function dismissGuidelinesWarning() {
         showedGuidelinesChatWarning = true;
         localStorage.setItem("showedGuidelinesChatWarning", "true");
+    }
+
+    function splitAtFirstSpace(str) {
+        var i = str.indexOf(" ");
+        if (i > 0) {
+            return [str.substring(0, i), str.substring(i + 1)];
+        } else return [str];
     }
 </script>
 
@@ -296,13 +342,13 @@
                         <p
                             class="text-gray-600 dark:text-gray-400 text-xs {shouldAddAdditionalPadding(idx)
                                 ? 'mt-2'
-                                : 'mt-1'} h-4 overflow-hidden cursor-pointer
+                                : 'mt-1'} h-5 overflow-hidden cursor-pointer
                                 {getBackgroundColorForMessage(msg)}"
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
-                            <span class="font-mono" style="font-size: 0.70rem;"
-                                >{msg.getReference().getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                            <span class={getClassForMessageAuthor(msg.getReference())}
+                                >{getReadableMessageAuthor(msg.getReference())}</span
                             >:
                             {@html marked.parseInline(msg.getReference().getUserMessage().getContent())}
                         </p>
@@ -311,7 +357,7 @@
                         class="{shouldAddAdditionalPadding(idx) && !msg.hasReference()
                             ? 'mt-1.5'
                             : msg.hasReference()
-                            ? 'pt-0.5'
+                            ? ''
                             : 'mt-0.5'} break-words
                             {getBackgroundColorForMessage(msg)}"
                     >
@@ -338,11 +384,9 @@
                             on:click={() => replyToMessage(msg)}
                         />
                         <span
-                            class="font-mono cursor-pointer"
-                            style="font-size: 0.70rem;"
+                            class="{getClassForMessageAuthor(msg)} cursor-pointer"
                             title="Click to reply"
-                            on:click={() => replyToMessage(msg)}
-                            >{msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                            on:click={() => replyToMessage(msg)}>{getReadableMessageAuthor(msg)}</span
                         >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
                             <i
                                 class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
@@ -386,11 +430,7 @@
             {#if sendError}
                 <div class="px-2 pb-2 text-xs">
                     <ErrorMessage>
-                        {#if sendErrorIsRateLimit}
-                            Failed to send your message. Please try again.
-                        {:else}
-                            You're going too fast. Slow down.
-                        {/if}
+                        {sendErrorMessage}
                     </ErrorMessage>
                 </div>
             {/if}
@@ -400,7 +440,9 @@
                         Before participating in chat, make sure to read the
                         <a use:link href="/guidelines">community guidelines</a>.
                         <br />
-                        <a class="font-semibold float-right" href={'#'} on:click={dismissGuidelinesWarning}>I read the guidelines and will respect them</a>
+                        <a class="font-semibold float-right" href={"#"} on:click={dismissGuidelinesWarning}
+                            >I read the guidelines and will respect them</a
+                        >
                     </WarningMessage>
                 </div>
             {/if}
@@ -409,11 +451,10 @@
                     <div class="flex-grow px-2 text-xs">
                         Replying to
                         <span
-                            class="font-mono cursor-pointer"
-                            style="font-size: 0.70rem;"
+                            class="{getClassForMessageAuthor(replyingToMessage)} cursor-pointer"
                             on:click={() =>
                                 copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
-                            >{replyingToMessage.getUserMessage().getAuthor().getAddress().substr(0, 14)}</span
+                            >{getReadableMessageAuthor(replyingToMessage)}</span
                         >
                         <span
                             class="cursor-pointer text-gray-600 dark:text-gray-400"
@@ -421,7 +462,7 @@
                                 copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
                             >(click to copy address)</span
                         >
-                        <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-4">
+                        <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-5">
                             {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
                         </div>
                     </div>
@@ -458,7 +499,7 @@
     </div>
 </div>
 
-<style>
+<style lang="postcss">
     .chat-max-height {
         max-height: max(250px, calc(100vh - 56.25vw - 4rem - 48px));
     }
@@ -466,5 +507,15 @@
         .chat-max-height {
             max-height: 100%;
         }
+    }
+
+    .chat-user-address {
+        font-size: 0.7rem;
+        @apply font-mono;
+    }
+
+    .chat-user-nickname {
+        font-size: 0.8rem;
+        @apply font-semibold;
     }
 </style>
