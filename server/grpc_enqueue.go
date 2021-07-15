@@ -86,7 +86,7 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 	case youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable:
 		failureReason = "This video can't be played outside of YouTube"
 	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:
-		failureReason = "This video is longer than 30 minutes"
+		failureReason = "This video is longer than 35 minutes"
 	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
 		failureReason = "This video is already in the queue"
 	case youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently:

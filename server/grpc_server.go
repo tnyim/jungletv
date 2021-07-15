@@ -444,7 +444,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
 	}
 
-	if videoDuration.DurationApprox() > 30*time.Minute {
+	if videoDuration.DurationApprox() > 35*time.Minute {
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
 	}
 

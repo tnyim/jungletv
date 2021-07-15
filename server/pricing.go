@@ -29,7 +29,7 @@ type EnqueuePricing struct {
 func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration, unskippable bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
-	// LengthPenalty is 0 for videos under 6 minutes, 1 for videos with [6, 10[ minutes, 5 for videos with [10, 14[ minutes, 12 for videos with [14, 20[ minutes, 20 for videos with [20, 25[ minutes, 40 for videos with [25, 30] minutes
+	// LengthPenalty is ... see the switch below
 	// UnskippableFactor is 19 if unskippable, else 0
 	// EnqueuePrice = BaseEnqueuePrice * (1 + (QueueLengthFactor/10) + (currentlyWatching * 0.1) + LengthPenalty) * UnskippableFactor
 	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 100 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
@@ -43,24 +43,28 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 
 	lengthPenalty := 0
 	switch {
+	case videoDuration.Minutes() >= 30:
+		lengthPenalty = 90
 	case videoDuration.Minutes() >= 25:
-		lengthPenalty = 100
+		lengthPenalty = 65
 	case videoDuration.Minutes() >= 20:
-		lengthPenalty = 70
-	case videoDuration.Minutes() >= 17:
-		lengthPenalty = 50
-	case videoDuration.Minutes() >= 14:
 		lengthPenalty = 40
+	case videoDuration.Minutes() >= 17:
+		lengthPenalty = 35
+	case videoDuration.Minutes() >= 14:
+		lengthPenalty = 25
 	case videoDuration.Minutes() >= 10:
-		lengthPenalty = 20
-	case videoDuration.Minutes() >= 6:
-		lengthPenalty = 8
+		lengthPenalty = 15
+	case videoDuration.Minutes() >= 6.5:
+		lengthPenalty = 7
 	case videoDuration.Minutes() >= 4.5:
 		lengthPenalty = 4
 	case videoDuration.Minutes() < 0.5:
 		lengthPenalty = 15
 	case videoDuration.Minutes() < 1:
 		lengthPenalty = 8
+	case videoDuration.Minutes() < 1.2:
+		lengthPenalty = 6
 	}
 
 	pricing := EnqueuePricing{}

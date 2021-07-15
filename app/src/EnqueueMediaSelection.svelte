@@ -88,7 +88,7 @@
             <ErrorMessage>{failureReason}</ErrorMessage>
         {/if}
         <p class="mt-2 text-sm text-gray-500">
-            Playlists are not supported. Videos must not be age-restricted and must not be longer than 30 minutes.
+            Playlists are not supported. Videos must not be age-restricted and must not be longer than 35 minutes.
         </p>
         <div class="mt-4 space-y-4">
             <div class="flex items-start">
