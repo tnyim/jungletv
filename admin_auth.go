@@ -15,6 +15,27 @@ var (
 	websiteURL   string
 )
 
+// directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
+func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
+	expiry := time.Now().Add(7 * 24 * 60 * 60 * time.Second)
+	adminToken, err := jwtManager.GenerateAdminToken("DEBUG_USER", expiry)
+	if err != nil {
+		authLog.Println("Error generating admin JWT:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "auth-token",
+		Value:   adminToken,
+		Path:    "/",
+		MaxAge:  int(time.Until(expiry).Seconds()),
+		Expires: expiry,
+		Secure:  true,
+	})
+	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)
+}
+
 // authInitHandler serves the initial authentication request
 func authInitHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := sessionStore.Get(r, "sso_process")

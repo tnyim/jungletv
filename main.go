@@ -145,40 +145,44 @@ func main() {
 
 	ssoKeybox, present := secrets.GetBox("sso")
 	if !present {
-		mainLog.Fatalln("SSO keybox not present in web keybox")
-	}
+		if DEBUG {
+			mainLog.Println("SSO keybox not present in web keybox. Anyone will be signed in as admin as soon as they ask. This is UNSAFE.")
+		} else {
+			mainLog.Fatalln("SSO keybox not present in web keybox")
+		}
+	} else {
+		ssoCookieAuthKey, present := ssoKeybox.Get("cookieAuthKey")
+		if !present {
+			mainLog.Fatalln("SSO cookie auth key not present in keybox")
+		}
 
-	ssoCookieAuthKey, present := ssoKeybox.Get("cookieAuthKey")
-	if !present {
-		mainLog.Fatalln("SSO cookie auth key not present in keybox")
-	}
+		ssoCookieCipherKey, present := ssoKeybox.Get("cookieCipherKey")
+		if !present {
+			mainLog.Fatalln("SSO cookie cipher key not present in keybox")
+		}
 
-	ssoCookieCipherKey, present := ssoKeybox.Get("cookieCipherKey")
-	if !present {
-		mainLog.Fatalln("SSO cookie cipher key not present in keybox")
-	}
+		sessionStore = sessions.NewCookieStore(
+			[]byte(ssoCookieAuthKey),
+			[]byte(ssoCookieCipherKey))
 
-	sessionStore = sessions.NewCookieStore(
-		[]byte(ssoCookieAuthKey),
-		[]byte(ssoCookieCipherKey))
+		ssoEndpointURL, present := ssoKeybox.Get("endpoint")
+		if !present {
+			mainLog.Fatalln("SSO Endpoint URL not present in keybox")
+		}
+		ssoAPIkey, present := ssoKeybox.Get("key")
+		if !present {
+			mainLog.Fatalln("SSO API key not present in keybox")
+		}
 
-	ssoEndpointURL, present := ssoKeybox.Get("endpoint")
-	if !present {
-		mainLog.Fatalln("SSO Endpoint URL not present in keybox")
-	}
-	ssoAPIkey, present := ssoKeybox.Get("key")
-	if !present {
-		mainLog.Fatalln("SSO API key not present in keybox")
-	}
+		ssoAPIsecret, present := ssoKeybox.Get("secret")
+		if !present {
+			mainLog.Fatalln("SSO API secret not present in keybox")
+		}
 
-	ssoAPIsecret, present := ssoKeybox.Get("secret")
-	if !present {
-		mainLog.Fatalln("SSO API secret not present in keybox")
-	}
-
-	daClient, err = ssoclient.NewSSOClient(ssoEndpointURL, ssoAPIkey, ssoAPIsecret)
-	if err != nil {
-		mainLog.Fatalln("Failed to create SSO client: ", err)
+		daClient, err = ssoclient.NewSSOClient(ssoEndpointURL, ssoAPIkey, ssoAPIsecret)
+		if err != nil {
+			mainLog.Fatalln("Failed to create SSO client: ", err)
+		}
 	}
 
 	repAddress, present := secrets.Get("representative")
@@ -328,7 +332,11 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 func configureRouter(router *mux.Router) {
 	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
 
-	router.HandleFunc("/admin/signin", authInitHandler)
+	if DEBUG && daClient == nil {
+		router.HandleFunc("/admin/signin", directUnsafeAuthHandler)
+	} else {
+		router.HandleFunc("/admin/signin", authInitHandler)
+	}
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
 	router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/"))))
