@@ -33,6 +33,6 @@ ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
 
 JungleTV is open source software licensed under the Apache License 2.0. 
 
-[Apache License 2.0](http://opensource.org/licenses/MIT)
+[Apache License 2.0](https://opensource.org/licenses/Apache-2.0)
 
 Made with :yellow_heart: and :banana: potassium in the BANANO Jungle :monkey::monkey:.
