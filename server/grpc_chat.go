@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/icza/gox/stringsx"
@@ -133,7 +134,12 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	}
 	// remove emoji that can be confused for chat moderator icons
 	r.Content = disallowedEmojiRegex.ReplaceAllString(r.Content, "")
-	r.Content = stringsx.Clean(r.Content)
+	r.Content = strings.Map(func(r rune) rune {
+		if unicode.IsGraphic(r) || r == '\n' {
+			return r
+		}
+		return -1
+	}, r.Content)
 	if len(strings.TrimSpace(r.Content)) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "message empty")
 	}
