@@ -200,12 +200,12 @@
                 let parts = splitAtFirstSpace(msg);
                 if (parts.length > 1) {
                     nickname = parts[1];
-                    if (nickname.length < 3) {
+                    if ([...nickname].length < 3) {
                         sendError = true;
                         sendErrorMessage = "The nickname must be at least 3 characters long.";
                         setTimeout(() => (sendError = false), 5000);
                         return;
-                    } else if (nickname.length > 16) {
+                    } else if ([...nickname].length > 16) {
                         sendError = true;
                         sendErrorMessage = "The nickname must be at most 16 characters long.";
                         setTimeout(() => (sendError = false), 5000);
