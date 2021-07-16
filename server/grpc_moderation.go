@@ -288,7 +288,7 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
-			fmt.Sprintf("**Nickname for user %s set to \"%s\" by moderator: %s (%s)",
+			fmt.Sprintf("Nickname for user %s set to \"%s\" by moderator: %s (%s)",
 				r.Address,
 				r.Nickname,
 				moderator.Address()[:14],
