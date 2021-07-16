@@ -43,6 +43,7 @@ type JungleTVClient interface {
 	AddDisallowedVideo(ctx context.Context, in *AddDisallowedVideoRequest, opts ...grpc.CallOption) (*AddDisallowedVideoResponse, error)
 	RemoveDisallowedVideo(ctx context.Context, in *RemoveDisallowedVideoRequest, opts ...grpc.CallOption) (*RemoveDisallowedVideoResponse, error)
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
+	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
 }
 
 type jungleTVClient struct {
@@ -393,6 +394,15 @@ func (c *jungleTVClient) UpdateDocument(ctx context.Context, in *Document, opts 
 	return out, nil
 }
 
+func (c *jungleTVClient) SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error) {
+	out := new(SetUserChatNicknameResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetUserChatNickname", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -423,6 +433,7 @@ type JungleTVServer interface {
 	AddDisallowedVideo(context.Context, *AddDisallowedVideoRequest) (*AddDisallowedVideoResponse, error)
 	RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error)
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
+	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -504,6 +515,9 @@ func (UnimplementedJungleTVServer) RemoveDisallowedVideo(context.Context, *Remov
 }
 func (UnimplementedJungleTVServer) UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocument not implemented")
+}
+func (UnimplementedJungleTVServer) SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetUserChatNickname not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -983,6 +997,24 @@ func _JungleTV_UpdateDocument_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetUserChatNickname_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetUserChatNicknameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetUserChatNickname(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetUserChatNickname",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetUserChatNickname(ctx, req.(*SetUserChatNicknameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1066,6 +1098,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDocument",
 			Handler:    _JungleTV_UpdateDocument_Handler,
+		},
+		{
+			MethodName: "SetUserChatNickname",
+			Handler:    _JungleTV_SetUserChatNickname_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

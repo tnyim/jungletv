@@ -229,6 +229,15 @@ type JungleTVUpdateDocument = {
   readonly responseType: typeof jungletv_pb.UpdateDocumentResponse;
 };
 
+type JungleTVSetUserChatNickname = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetUserChatNicknameRequest;
+  readonly responseType: typeof jungletv_pb.SetUserChatNicknameResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -256,6 +265,7 @@ export class JungleTV {
   static readonly AddDisallowedVideo: JungleTVAddDisallowedVideo;
   static readonly RemoveDisallowedVideo: JungleTVRemoveDisallowedVideo;
   static readonly UpdateDocument: JungleTVUpdateDocument;
+  static readonly SetUserChatNickname: JungleTVSetUserChatNickname;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -474,6 +484,15 @@ export class JungleTVClient {
   updateDocument(
     requestMessage: jungletv_pb.Document,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.UpdateDocumentResponse|null) => void
+  ): UnaryResponse;
+  setUserChatNickname(
+    requestMessage: jungletv_pb.SetUserChatNicknameRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetUserChatNicknameResponse|null) => void
+  ): UnaryResponse;
+  setUserChatNickname(
+    requestMessage: jungletv_pb.SetUserChatNicknameRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetUserChatNicknameResponse|null) => void
   ): UnaryResponse;
 }
 

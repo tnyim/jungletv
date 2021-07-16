@@ -259,3 +259,44 @@ func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMess
 		Messages: protoMsgs,
 	}, nil
 }
+
+func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserChatNicknameRequest) (*proto.SetUserChatNicknameResponse, error) {
+	moderator := UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	var err error
+	r.Nickname, err = validateNicknameReturningGRPCError(r.Nickname)
+	if err != nil {
+		return nil, err
+	}
+
+	user := NewAddressOnlyUser(r.Address)
+
+	if r.Nickname == "" {
+		err = s.chat.SetNickname(ctx, user, nil, true)
+	} else {
+		err = s.chat.SetNickname(ctx, user, &r.Nickname, true)
+	}
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Nickname for user %s set to \"%s\" by %s (remote address %s)", r.Address, r.Nickname, moderator.Username, RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("**Nickname for user %s set to \"%s\" by moderator: %s (%s)",
+				r.Address,
+				r.Nickname,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetUserChatNicknameResponse{}, nil
+}

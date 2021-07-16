@@ -1828,6 +1828,46 @@ export namespace SetChatNicknameResponse {
   }
 }
 
+export class SetUserChatNicknameRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getNickname(): string;
+  setNickname(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetUserChatNicknameRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetUserChatNicknameRequest): SetUserChatNicknameRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetUserChatNicknameRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetUserChatNicknameRequest;
+  static deserializeBinaryFromReader(message: SetUserChatNicknameRequest, reader: jspb.BinaryReader): SetUserChatNicknameRequest;
+}
+
+export namespace SetUserChatNicknameRequest {
+  export type AsObject = {
+    address: string,
+    nickname: string,
+  }
+}
+
+export class SetUserChatNicknameResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetUserChatNicknameResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetUserChatNicknameResponse): SetUserChatNicknameResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetUserChatNicknameResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetUserChatNicknameResponse;
+  static deserializeBinaryFromReader(message: SetUserChatNicknameResponse, reader: jspb.BinaryReader): SetUserChatNicknameResponse;
+}
+
+export namespace SetUserChatNicknameResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

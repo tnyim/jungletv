@@ -158,13 +158,15 @@ func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*Chat
 	return message, nil
 }
 
-func (c *ChatManager) SetNickname(ctxCtx context.Context, user User, nickname *string) error {
-	_, _, _, ok, err := c.nickChangeRateLimiter.Take(ctxCtx, user.Address())
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-	if !ok {
-		return stacktrace.NewError("rate limit reached")
+func (c *ChatManager) SetNickname(ctxCtx context.Context, user User, nickname *string, bypassRatelimit bool) error {
+	if !bypassRatelimit {
+		_, _, _, ok, err := c.nickChangeRateLimiter.Take(ctxCtx, user.Address())
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		if !ok {
+			return stacktrace.NewError("rate limit reached")
+		}
 	}
 
 	return stacktrace.Propagate(c.store.SetUserNickname(ctxCtx, user, nickname), "")

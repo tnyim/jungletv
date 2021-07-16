@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/icza/gox/stringsx"
@@ -190,28 +191,35 @@ func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNickna
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
 
-	if len(r.Nickname) > 0 {
-		r.Nickname = strings.TrimSpace(r.Nickname)
-		// remove emoji that can be confused for chat moderator icons
-		r.Nickname = disallowedEmojiRegex.ReplaceAllString(r.Nickname, "")
-		r.Nickname = stringsx.Clean(r.Nickname)
-		if len(r.Nickname) < 3 {
-			return nil, status.Error(codes.InvalidArgument, "nickname must be at least 3 characters long")
-		}
-		if len(r.Nickname) > 16 {
-			return nil, status.Error(codes.InvalidArgument, "nickname must be at most 16 characters long")
-		}
-	}
-
 	var err error
+	r.Nickname, err = validateNicknameReturningGRPCError(r.Nickname)
+	if err != nil {
+		return nil, err
+	}
 	if r.Nickname == "" {
-		err = s.chat.SetNickname(ctx, user, nil)
+		err = s.chat.SetNickname(ctx, user, nil, false)
 	} else {
-		err = s.chat.SetNickname(ctx, user, &r.Nickname)
+		err = s.chat.SetNickname(ctx, user, &r.Nickname, false)
 	}
 
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	return &proto.SetChatNicknameResponse{}, nil
+}
+
+func validateNicknameReturningGRPCError(nickname string) (string, error) {
+	if len(nickname) > 0 {
+		nickname = strings.TrimSpace(nickname)
+		// remove emoji that can be confused for chat moderator icons
+		nickname = disallowedEmojiRegex.ReplaceAllString(nickname, "")
+		nickname = stringsx.Clean(nickname)
+		if utf8.RuneCountInString(nickname) < 3 {
+			return "", status.Error(codes.InvalidArgument, "nickname must be at least 3 characters long")
+		}
+		if utf8.RuneCountInString(nickname) > 16 {
+			return "", status.Error(codes.InvalidArgument, "nickname must be at most 16 characters long")
+		}
+	}
+	return nickname, nil
 }
