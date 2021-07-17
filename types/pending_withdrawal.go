@@ -39,6 +39,14 @@ func GetPendingWithdrawals(node sqalx.Node) ([]*PendingWithdrawal, error) {
 	return p, stacktrace.Propagate(err, "")
 }
 
+// AddressHasPendingWithdrawal returns whether an address has a pending withdrawal
+func AddressHasPendingWithdrawal(node sqalx.Node, address string) (bool, error) {
+	s := sdb.Select().
+		Where(sq.Eq{"pending_withdrawal.rewards_address": address})
+	p, _, err := getPendingWithdrawalWithSelect(node, s)
+	return len(p) > 0, stacktrace.Propagate(err, "")
+}
+
 // InsertPendingWithdrawals inserts the passed pending withdrawals in the database
 func InsertPendingWithdrawals(node sqalx.Node, items []*PendingWithdrawal) error {
 	c := make([]interface{}, len(items))

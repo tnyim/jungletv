@@ -770,6 +770,9 @@ export class RewardInfoResponse extends jspb.Message {
   getRewardBalance(): string;
   setRewardBalance(value: string): void;
 
+  getWithdrawPending(): boolean;
+  setWithdrawPending(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RewardInfoResponse.AsObject;
   static toObject(includeInstance: boolean, msg: RewardInfoResponse): RewardInfoResponse.AsObject;
@@ -784,6 +787,7 @@ export namespace RewardInfoResponse {
   export type AsObject = {
     rewardAddress: string,
     rewardBalance: string,
+    withdrawPending: boolean,
   }
 }
 
@@ -1874,6 +1878,38 @@ export class SetUserChatNicknameResponse extends jspb.Message {
 }
 
 export namespace SetUserChatNicknameResponse {
+  export type AsObject = {
+  }
+}
+
+export class WithdrawRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): WithdrawRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: WithdrawRequest): WithdrawRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: WithdrawRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WithdrawRequest;
+  static deserializeBinaryFromReader(message: WithdrawRequest, reader: jspb.BinaryReader): WithdrawRequest;
+}
+
+export namespace WithdrawRequest {
+  export type AsObject = {
+  }
+}
+
+export class WithdrawResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): WithdrawResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: WithdrawResponse): WithdrawResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: WithdrawResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WithdrawResponse;
+  static deserializeBinaryFromReader(message: WithdrawResponse, reader: jspb.BinaryReader): WithdrawResponse;
+}
+
+export namespace WithdrawResponse {
   export type AsObject = {
   }
 }

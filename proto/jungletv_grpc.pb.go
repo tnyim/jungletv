@@ -30,6 +30,7 @@ type JungleTVClient interface {
 	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error)
 	SetChatNickname(ctx context.Context, in *SetChatNicknameRequest, opts ...grpc.CallOption) (*SetChatNicknameResponse, error)
+	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -286,6 +287,15 @@ func (c *jungleTVClient) SetChatNickname(ctx context.Context, in *SetChatNicknam
 	return out, nil
 }
 
+func (c *jungleTVClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawResponse, error) {
+	out := new(WithdrawResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Withdraw", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -420,6 +430,7 @@ type JungleTVServer interface {
 	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
 	GetDocument(context.Context, *GetDocumentRequest) (*Document, error)
 	SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error)
+	Withdraw(context.Context, *WithdrawRequest) (*WithdrawResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -479,6 +490,9 @@ func (UnimplementedJungleTVServer) GetDocument(context.Context, *GetDocumentRequ
 }
 func (UnimplementedJungleTVServer) SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetChatNickname not implemented")
+}
+func (UnimplementedJungleTVServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -781,6 +795,24 @@ func _JungleTV_SetChatNickname_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).Withdraw(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/Withdraw",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).Withdraw(ctx, req.(*WithdrawRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -1050,6 +1082,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetChatNickname",
 			Handler:    _JungleTV_SetChatNickname_Handler,
+		},
+		{
+			MethodName: "Withdraw",
+			Handler:    _JungleTV_Withdraw_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

@@ -15,6 +15,7 @@
 	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
+	import Rewards from "./Rewards.svelte";
 
 	export let url = "";
 
@@ -55,6 +56,7 @@
 		<Route path="/" component={Homepage} />
 		<Route path="/about" component={About} />
 		<Route path="/enqueue" component={Enqueue} />
+		<Route path="/rewards" component={Rewards} />
 		<Route path="/rewards/address" component={SetRewardsAddress} />
 		<Route path="/guidelines" component={Document} documentID="guidelines" />
 		<Route path="/faq" component={Document} documentID="faq" />

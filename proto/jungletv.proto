@@ -21,6 +21,7 @@ service JungleTV {
     rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
     rpc GetDocument (GetDocumentRequest) returns (Document) {}
     rpc SetChatNickname (SetChatNicknameRequest) returns (SetChatNicknameResponse) {}
+    rpc Withdraw (WithdrawRequest) returns (WithdrawResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -198,6 +199,7 @@ message RewardInfoRequest {}
 message RewardInfoResponse {
     string reward_address = 1;
     string reward_balance = 2;
+    bool withdraw_pending = 3;
 }
 
 message RemoveQueueEntryRequest {
@@ -424,3 +426,7 @@ message SetUserChatNicknameRequest {
 }
 
 message SetUserChatNicknameResponse {}
+
+message WithdrawRequest {}
+
+message WithdrawResponse {}

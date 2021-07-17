@@ -68,7 +68,7 @@
                     {#if rAddress !== ""}
                         <div
                             class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
-                            on:click={() => navigate("/rewards/address")}
+                            on:click={() => navigate("/rewards")}
                         >
                             <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
@@ -140,10 +140,14 @@
                     <a
                         class="dark:bg-gray-900 dark:text-purple-500 text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
                         use:link
-                        href="/rewards/address"
+                        href="{rAddress !== "" ? '/rewards' : '/rewards/address' }"
                     >
                         <i class="fas fa-coins text-lg leading-lg mr-2" />
+                        {#if rAddress !== ""}
+                        Rewards
+                        {:else}
                         Earn rewards
+                        {/if}
                     </a>
                 </li>
 

@@ -89,7 +89,7 @@ func main() {
 	}
 	ctx = context.WithValue(ctx, "SqalxNode", rootSqalxNode)
 
-	if DEBUG {
+	if LogDBQueries {
 		types.SetLogger(dbLog)
 	}
 	mainLog.Println("Database opened")

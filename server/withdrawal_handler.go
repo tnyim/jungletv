@@ -153,7 +153,7 @@ func (w *WithdrawalHandler) CompleteWithdrawals(ctxCtx context.Context, pending 
 	for _, p := range pending {
 		err := w.CompleteWithdrawal(ctxCtx, p)
 		if err != nil {
-			stacktrace.Propagate(err, "")
+			return stacktrace.Propagate(err, "")
 		}
 	}
 	return nil
@@ -174,7 +174,7 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	// this call will error if the pending withdrawal no longer exists (avoids double spends)
 	err = pending.Delete(ctx)
 	if err != nil {
-		stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	done := make(chan struct{})
@@ -185,7 +185,7 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	}
 	<-done
 	if err != nil {
-		stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	withdrawal := &types.Withdrawal{
@@ -198,7 +198,7 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	}
 	err = withdrawal.Insert(ctx)
 	if err != nil {
-		stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	return stacktrace.Propagate(ctx.Commit(), "")

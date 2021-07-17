@@ -6,6 +6,9 @@ const (
 	// DEBUG is whether this is a debug build
 	DEBUG = false
 
+	// LogDBQueries is whether database queries should be logged
+	LogDBQueries = false
+
 	// SecretsPath is the default path to the file containing secrets
 	SecretsPath = "secrets.json"
 
