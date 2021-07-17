@@ -57,7 +57,7 @@ func (u *addressOnlyUser) SerializeForAPI() *proto.User {
 }
 
 func (u *addressOnlyUser) IsUnknown() bool {
-	return false
+	return u.address == ""
 }
 
 func (u *addressOnlyUser) SetNickname(s *string) {

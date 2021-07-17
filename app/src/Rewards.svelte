@@ -115,7 +115,7 @@
                 </p>
             {/if}
             <p class="mt-4">
-                Withdraws happen automatically when your balance goes over 5 BAN, or 24 hours after your last received
+                Withdraws happen automatically when your balance reaches 5 BAN, or 24 hours after your last received
                 reward, whichever happens first.
             </p>
         {/await}

@@ -87,24 +87,20 @@ func AdjustRewardBalanceOfAddresses(node sqalx.Node, addresses []string, amount 
 	defer tx.Rollback()
 
 	now := time.Now()
-	valueMaps := make([]map[string]interface{}, len(addresses))
-	for i, address := range addresses {
-		valueMaps[i] = map[string]interface{}{
-			"rewards_address": address,
-			"balance":         amount,
-			"updated_at":      now,
-		}
+
+	builder := sdb.Insert("reward_balance").Columns("rewards_address", "balance", "updated_at")
+	for _, address := range addresses {
+		builder = builder.Values(address, amount, now)
 	}
+	query, args, err := builder.Suffix(`
+		ON CONFLICT (rewards_address)
+		DO UPDATE SET balance = reward_balance.balance + EXCLUDED.balance, updated_at = EXCLUDED.updated_at
+		RETURNING rewards_address, balance, updated_at`).
+		ToSql()
+	logger.Println(query, args, err)
 
 	balances := []*RewardBalance{}
-
-	err = tx.Tx().Select(&balances, `
-		INSERT INTO reward_balance (rewards_address, balance, updated_at)
-		VALUES (:rewards_address, :balance, :updated_at)
-		ON CONFLICT (rewards_address)
-		DO UPDATE SET balance = balance + EXCLUDED.balance, updated_at = EXCLUDED.updated_at
-		RETURNING rewards_address, balance, updated_at`,
-		valueMaps)
+	err = tx.Tx().Select(&balances, query, args...)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
