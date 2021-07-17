@@ -3,12 +3,14 @@ package server
 import (
 	"context"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -40,6 +42,7 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 	onPendingWithdrawalCreated := w.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
 	defer w.pendingWithdrawalCreated.Unsubscribe(onPendingWithdrawalCreated)
 
+	t := time.NewTicker(5 * time.Minute)
 	for {
 		select {
 		case <-onPendingWithdrawalCreated:
@@ -47,10 +50,38 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
+		case <-t.C:
+			err := w.AutoWithdrawBalances(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
 		case <-ctx.Done():
 			return nil
 		}
 	}
+}
+
+// AutoWithdrawBalances initiates withdrawals for all balances that match the automatic withdrawal criteria
+func (w *WithdrawalHandler) AutoWithdrawBalances(ctxCtx context.Context) error {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	threshold := new(big.Int).Mul(BananoUnit, big.NewInt(5)) // 5 BAN
+
+	balances, err := types.GetRewardBalancesReadyForAutoWithdrawal(ctx, decimal.NewFromBigInt(threshold, 0), time.Now().Add(-24*time.Hour))
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = w.WithdrawBalances(ctx, balances)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 // WithdrawBalances initiates withdraws for the specified balances

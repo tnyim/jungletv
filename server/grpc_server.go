@@ -166,7 +166,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			if err == nil {
 				return
 			}
-			errChan <- stacktrace.Propagate(err, "")
+			errChan <- stacktrace.Propagate(err, "payments processor error")
 			select {
 			case <-ctx.Done():
 				s.log.Println("Payments processor done")
@@ -183,10 +183,27 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			if err == nil {
 				return
 			}
-			errChan <- stacktrace.Propagate(err, "")
+			errChan <- stacktrace.Propagate(err, "rewards handler error")
 			select {
 			case <-ctx.Done():
 				s.log.Println("Rewards handler done")
+				return
+			default:
+			}
+		}
+	}(ctx)
+
+	go func(ctx context.Context) {
+		for {
+			s.log.Println("Withdrawal handler starting/restarting")
+			err := s.withdrawalHandler.Worker(ctx)
+			if err == nil {
+				return
+			}
+			errChan <- stacktrace.Propagate(err, "withdrawal handler error")
+			select {
+			case <-ctx.Done():
+				s.log.Println("Withdrawal handler done")
 				return
 			default:
 			}

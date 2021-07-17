@@ -11,7 +11,7 @@ import (
 
 // RewardBalance represents the balance of not-yet-withdrawn rewards for a user
 type RewardBalance struct {
-	RewardsAddress string          `db:"rewards_address", dbKey:"true"`
+	RewardsAddress string          `db:"rewards_address" dbKey:"true"`
 	Balance        decimal.Decimal `db:"balance"`
 	UpdatedAt      time.Time       `db:"updated_at"`
 }
@@ -48,16 +48,16 @@ func GetRewardBalanceOfAddress(node sqalx.Node, address string) (*RewardBalance,
 	return items[0], nil
 }
 
-// GetRewardBalancesOverThresholdOrOlderThan returns non-zero rewards balances
-// that are over a certain threshold or which haven't been updated since the
-// specified moment
-func GetRewardBalancesOverThresholdOrOlderThan(node sqalx.Node, threshold decimal.Decimal, moment time.Time) ([]*RewardBalance, error) {
+// GetRewardBalancesReadyForAutoWithdrawal returns rewards balances
+// that are ready for automated withdrawal according to the passed parameters
+func GetRewardBalancesReadyForAutoWithdrawal(node sqalx.Node, minBalance decimal.Decimal, unchangedSince time.Time) ([]*RewardBalance, error) {
 	s := sdb.Select().
 		Where(sq.Gt{"reward_balance.balance": decimal.Zero}).
 		Where(sq.Or{
-			sq.Gt{"reward_balance.balance": threshold},
-			sq.Lt{"reward_balance.updated_at": moment},
-		})
+			sq.GtOrEq{"reward_balance.balance": minBalance},
+			sq.Lt{"reward_balance.updated_at": unchangedSince},
+		}).
+		Where(sq.Expr("reward_balance.rewards_address NOT IN (SELECT rewards_address FROM pending_withdrawal)"))
 	items, _, err := getRewardBalanceWithSelect(node, s)
 	return items, stacktrace.Propagate(err, "")
 }

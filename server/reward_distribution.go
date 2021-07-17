@@ -12,7 +12,6 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
-	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/types"
 )
 
@@ -222,14 +221,7 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, eligible map[str
 		}
 	}
 
-	threshold := new(big.Int).Mul(BananoUnit, big.NewInt(5)) // 5 BAN
-
-	balances, err := types.GetRewardBalancesOverThresholdOrOlderThan(ctx, decimal.NewFromBigInt(threshold, 0), time.Now().Add(-24*time.Hour))
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-
-	err = r.withdrawalHandler.WithdrawBalances(ctx, balances)
+	err = r.withdrawalHandler.AutoWithdrawBalances(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
