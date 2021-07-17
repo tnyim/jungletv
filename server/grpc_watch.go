@@ -35,10 +35,12 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 		// SubscribeUsingCallback returns a function that unsubscribes when called. That's the reason for the defers
 
-		defer spectator.OnRewarded().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(reward Amount) {
+		defer spectator.OnRewarded().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(reward Amount, rewardBalance Amount) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
 			s := reward.String()
 			cp.Reward = &s
+			s2 := rewardBalance.String()
+			cp.RewardBalance = &s2
 			err := send(cp)
 			if err != nil {
 				errChan <- stacktrace.Propagate(err, "")

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -206,39 +207,60 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 	return values, globalCount, nil
 }
 
-// Update updates or inserts value t in the database
-func Update(node sqalx.Node, t interface{}) error {
+// Update updates or inserts values t in the database. All t must be of the same type
+func Update(node sqalx.Node, t ...interface{}) error {
+	return stacktrace.Propagate(updateOrInsert(node, true, t), "")
+}
+
+// Insert inserts values t in the database. All t must be of the same type
+func Insert(node sqalx.Node, t ...interface{}) error {
+	return stacktrace.Propagate(updateOrInsert(node, false, t), "")
+}
+
+// updateOrInsert updates or inserts values t in the database. All t must be of the same type
+func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
+	if len(t) == 0 {
+		return nil
+	}
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	defer tx.Rollback()
 
-	if ev, hasExtra := t.(extraDataHandler); hasExtra {
-		err = ev.updateExtra(tx, true)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-	}
-
-	fields, tableName := getStructInfo(t)
 	columns := []string{}
-	values := []interface{}{}
-	for i := range fields {
-		if !fields[i].ignore {
-			columns = append(columns, fields[i].column)
-			if fields[i].specialType != nil {
-				// convert special types
-				converted := reflect.New(fields[i].specialType).Interface().(customDBType)
-				converted.convertToDB(fields[i].value)
-				fields[i].value = converted
+	rows := [][]interface{}{}
+	fields := []structDBfield{}
+	tableName := ""
+	for rowIdx, ti := range t {
+		if ev, hasExtra := ti.(extraDataHandler); hasExtra {
+			err = ev.updateExtra(tx, true)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
 			}
-			values = append(values, fields[i].value)
 		}
+
+		fields, tableName = getStructInfo(ti)
+
+		values := []interface{}{}
+		for i := range fields {
+			if !fields[i].ignore {
+				if rowIdx == 0 {
+					columns = append(columns, fields[i].column)
+				}
+				if fields[i].specialType != nil {
+					// convert special types
+					converted := reflect.New(fields[i].specialType).Interface().(customDBType)
+					converted.convertToDB(fields[i].value)
+					fields[i].value = converted
+				}
+				values = append(values, fields[i].value)
+			}
+		}
+		rows = append(rows, values)
 	}
 
 	suffixStr := ""
-	suffixArgs := []interface{}{}
 	keyFields := []*structDBfield{}
 	keyFieldNames := []string{}
 	for _, field := range fields {
@@ -247,15 +269,16 @@ func Update(node sqalx.Node, t interface{}) error {
 			keyFieldNames = append(keyFieldNames, field.column)
 		}
 	}
-	if len(keyFields) > 0 {
+	if len(keyFields) > 0 && allowUpdate {
 		suffixStr = "ON CONFLICT (" + strings.Join(keyFieldNames, ", ") + ") DO UPDATE SET "
+		updateFields := 0
 		for _, field := range fields {
 			if !field.key && !field.ignore {
-				suffixStr += field.column + " = ?,"
-				suffixArgs = append(suffixArgs, field.value)
+				suffixStr += fmt.Sprintf("%s = EXCLUDED.%s,", field.column, field.column)
+				updateFields++
 			}
 		}
-		if len(suffixArgs) == 0 {
+		if updateFields == 0 {
 			// all columns on this table are part of the primary key
 			suffixStr = suffixStr[:len(suffixStr)-len("UPDATE SET ")] + "NOTHING"
 		} else {
@@ -263,9 +286,11 @@ func Update(node sqalx.Node, t interface{}) error {
 		}
 	}
 
-	builder := sdb.Insert(tableName).Columns(columns...).
-		Values(values...).
-		Suffix(suffixStr, suffixArgs...)
+	builder := sdb.Insert(tableName).Columns(columns...)
+	for _, values := range rows {
+		builder = builder.Values(values...)
+	}
+	builder = builder.Suffix(suffixStr)
 	logger.Println(builder.ToSql())
 
 	_, err = builder.RunWith(tx).Exec()
@@ -274,10 +299,12 @@ func Update(node sqalx.Node, t interface{}) error {
 	}
 
 	// call updateExtra again, this time with preSelf == false
-	if ev, hasExtra := t.(extraDataHandler); hasExtra {
-		err = ev.updateExtra(tx, false)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
+	for _, ti := range t {
+		if ev, hasExtra := ti.(extraDataHandler); hasExtra {
+			err = ev.updateExtra(tx, false)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
 		}
 	}
 
@@ -303,32 +330,58 @@ func DeleteCustom(node sqalx.Node, t interface{}, dbuilder sq.DeleteBuilder) err
 	return stacktrace.Propagate(tx.Commit(), "")
 }
 
-// Delete deletes value t from the database
-func Delete(node sqalx.Node, t interface{}) error {
+// Delete deletes values t from the database.  All t must be of the same type
+func Delete(node sqalx.Node, t ...interface{}) error {
+	return stacktrace.Propagate(deleteValues(node, false, t), "")
+}
+
+// MustDelete deletes values t from the database.  All t must be of the same type
+// MustDelete is like Delete but returns an error when no rows were deleted
+func MustDelete(node sqalx.Node, t ...interface{}) error {
+	return stacktrace.Propagate(deleteValues(node, true, t), "")
+}
+
+// delete deletes values t from the database.  All t must be of the same type
+func deleteValues(node sqalx.Node, errorOnNothingDeleted bool, t []interface{}) error {
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	defer tx.Rollback()
 
-	fields, tableName := getStructInfo(t)
-	deleteEqs := make(map[string]interface{})
-	for _, field := range fields {
-		if field.key {
-			deleteEqs[field.column] = field.value
+	or := sq.Or{}
+
+	tableName := ""
+	for _, ti := range t {
+		var fields []structDBfield
+		fields, tableName = getStructInfo(ti)
+		deleteEqs := make(map[string]interface{})
+		for _, field := range fields {
+			if field.key {
+				deleteEqs[field.column] = field.value
+			}
 		}
+
+		if len(deleteEqs) == 0 {
+			return stacktrace.NewError("type does not have any known keys")
+		}
+		or = append(or, sq.Eq(deleteEqs))
 	}
 
-	if len(deleteEqs) == 0 {
-		return stacktrace.NewError("type does not have any known keys")
-	}
-
-	builder := sdb.Delete(tableName).
-		Where(deleteEqs)
+	builder := sdb.Delete(tableName).Where(or)
 	logger.Println(builder.ToSql())
-	_, err = builder.RunWith(tx).Exec()
+	result, err := builder.RunWith(tx).Exec()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
+	}
+	if errorOnNothingDeleted {
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		if rowsAffected == 0 {
+			return sql.ErrNoRows
+		}
 	}
 	return stacktrace.Propagate(tx.Commit(), "")
 }

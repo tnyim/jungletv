@@ -28,6 +28,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server"
+	"github.com/tnyim/jungletv/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 )
@@ -39,6 +40,7 @@ var (
 	secrets       *keybox.Keybox
 
 	mainLog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	dbLog   = log.New(os.Stdout, "db ", log.Ldate|log.Ltime)
 	apiLog  = log.New(os.Stdout, "api ", log.Ldate|log.Ltime)
 	webLog  = log.New(os.Stdout, "web ", log.Ldate|log.Ltime)
 	authLog = log.New(os.Stdout, "auth ", log.Ldate|log.Ltime)
@@ -86,6 +88,10 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 	ctx = context.WithValue(ctx, "SqalxNode", rootSqalxNode)
+
+	if DEBUG {
+		types.SetLogger(dbLog)
+	}
 	mainLog.Println("Database opened")
 
 	statsClient, err := buildStatsClient()

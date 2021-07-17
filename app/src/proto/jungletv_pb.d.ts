@@ -479,6 +479,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getReward(): string;
   setReward(value: string): void;
 
+  hasRewardBalance(): boolean;
+  clearRewardBalance(): void;
+  getRewardBalance(): string;
+  setRewardBalance(value: string): void;
+
   hasActivityChallenge(): boolean;
   clearActivityChallenge(): void;
   getActivityChallenge(): ActivityChallenge | undefined;
@@ -518,6 +523,7 @@ export namespace MediaConsumptionCheckpoint {
     requestCost: string,
     currentlyWatching: number,
     reward: string,
+    rewardBalance: string,
     activityChallenge?: ActivityChallenge.AsObject,
     powTask?: ProofOfWorkTask.AsObject,
     stubData?: NowPlayingStubData.AsObject,
@@ -526,8 +532,8 @@ export namespace MediaConsumptionCheckpoint {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 9,
-    YOUTUBE_VIDEO_DATA = 10,
+    STUB_DATA = 10,
+    YOUTUBE_VIDEO_DATA = 11,
   }
 }
 
@@ -761,6 +767,9 @@ export class RewardInfoResponse extends jspb.Message {
   getRewardAddress(): string;
   setRewardAddress(value: string): void;
 
+  getRewardBalance(): string;
+  setRewardBalance(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RewardInfoResponse.AsObject;
   static toObject(includeInstance: boolean, msg: RewardInfoResponse): RewardInfoResponse.AsObject;
@@ -774,6 +783,7 @@ export class RewardInfoResponse extends jspb.Message {
 export namespace RewardInfoResponse {
   export type AsObject = {
     rewardAddress: string,
+    rewardBalance: string,
   }
 }
 

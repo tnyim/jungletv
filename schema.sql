@@ -1,3 +1,8 @@
+
+DROP TABLE IF EXISTS "withdrawal";
+DROP TABLE IF EXISTS "pending_withdrawal";
+DROP TABLE IF EXISTS "reward_balance";
+DROP TABLE IF EXISTS "received_reward";
 DROP TABLE IF EXISTS "chat_message";
 DROP TABLE IF EXISTS "chat_user";
 DROP TABLE IF EXISTS "document";
@@ -55,4 +60,33 @@ CREATE TABLE IF NOT EXISTS "chat_message" (
     content TEXT NOT NULL,
     reference BIGINT REFERENCES chat_message (id),
     shadowbanned BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "received_reward" (
+    id VARCHAR(36) PRIMARY KEY,
+    rewards_address VARCHAR(64) NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    amount NUMERIC(39, 0) NOT NULL,
+    media VARCHAR(36) NOT NULL REFERENCES played_media (id)
+);
+
+CREATE TABLE IF NOT EXISTS "reward_balance" (
+    rewards_address VARCHAR(64) PRIMARY KEY,
+    balance NUMERIC(39, 0) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "pending_withdrawal" (
+    rewards_address VARCHAR(64) PRIMARY KEY,
+    amount NUMERIC(39, 0) NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "withdrawal" (
+    id VARCHAR(36) PRIMARY KEY,
+    rewards_address VARCHAR(64) NOT NULL,
+    amount NUMERIC(39, 0) NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    tx_hash VARCHAR(64) NOT NULL
 );

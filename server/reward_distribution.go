@@ -12,6 +12,8 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/types"
 )
 
 func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry) error {
@@ -51,12 +53,12 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return nil
 	}
 
-	go func() {
-		t := r.statsClient.NewTiming()
-		r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
-		t.Send("reward_distribution")
-		r.rewardsDistributed.Notify(rewardBudget, len(eligible))
-	}()
+	err := r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	r.rewardsDistributed.Notify(rewardBudget, len(eligible))
 	return nil
 }
 
@@ -187,30 +189,52 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 	<-done
 }
 
-func (r *RewardsHandler) rewardEligible(ctx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) {
+func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) error {
 	r.receiveCollectorPending(requestCost)
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
-		destinations := []wallet.SendDestination{}
-		spectators := []*spectator{}
-		for k := range eligible {
-			spectator := eligible[k]
-			destinations = append(destinations, wallet.SendDestination{
-				Account: spectator.user.Address(),
-				Amount:  amountForEach.Int,
-			})
-			spectators = append(spectators, spectator)
-		}
-		blockHashes, err := r.workGenerator.SendMultiple(RPC, RPCWork, collectorAccount, destinations)
-		if err != nil {
-			r.log.Printf("Error rewarding spectators: %v", err)
-		} else {
-			for i, hash := range blockHashes {
-				r.log.Printf("Rewarded %s with %v, block hash %s", spectators[i].user.Address(), amountForEach, hash.String())
-				spectators[i].onRewarded.Notify(amountForEach)
-			}
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	addresses := make([]string, len(eligible))
+	i := 0
+	for address := range eligible {
+		addresses[i] = address
+		i++
+	}
+
+	newBalances, err := types.AdjustRewardBalanceOfAddresses(ctx, addresses, amountForEach.Decimal())
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	balancesByAddress := make(map[string]*types.RewardBalance)
+	for _, balance := range newBalances {
+		balancesByAddress[balance.RewardsAddress] = balance
+	}
+
+	for _, spectator := range eligible {
+		rewardBalance, ok := balancesByAddress[spectator.user.Address()]
+		if ok {
+			spectator.onRewarded.Notify(amountForEach, NewAmountFromDecimal(rewardBalance.Balance))
 		}
 	}
+
+	threshold := new(big.Int).Mul(BananoUnit, big.NewInt(5)) // 5 BAN
+
+	balances, err := types.GetRewardBalancesOverThresholdOrOlderThan(ctx, decimal.NewFromBigInt(threshold, 0), time.Now().Add(-24*time.Hour))
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = r.withdrawalHandler.WithdrawBalances(ctx, balances)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string, amount Amount) {

@@ -51,13 +51,14 @@ type grpcServer struct {
 
 	verificationProcesses *cache.Cache
 
-	mediaQueue      *MediaQueue
-	enqueueManager  *EnqueueManager
-	rewardsHandler  *RewardsHandler
-	statsHandler    *StatsHandler
-	chat            *ChatManager
-	workGenerator   *WorkGenerator
-	moderationStore ModerationStore
+	mediaQueue        *MediaQueue
+	enqueueManager    *EnqueueManager
+	rewardsHandler    *RewardsHandler
+	withdrawalHandler *WithdrawalHandler
+	statsHandler      *StatsHandler
+	chat              *ChatManager
+	workGenerator     *WorkGenerator
+	moderationStore   ModerationStore
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -124,9 +125,11 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	s.withdrawalHandler = NewWithdrawalHandler(log, s.statsClient, s.collectorAccountQueue)
+
 	s.rewardsHandler, err = NewRewardsHandler(
-		log, statsClient, s.mediaQueue, s.ipReputationChecker, hCaptchaSecret, w, s.collectorAccountQueue,
-		s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
+		log, statsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, hCaptchaSecret, w,
+		s.collectorAccountQueue, s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

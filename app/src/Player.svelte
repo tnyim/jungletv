@@ -5,7 +5,7 @@
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { activityChallengeReceived, currentlyWatching, playerConnected, rewardReceived } from "./stores";
+    import { activityChallengeReceived, currentlyWatching, playerConnected, rewardBalance, rewardReceived } from "./stores";
     import { pow_callback, pow_initiate, pow_terminate } from "./pow";
 
     const options = {
@@ -94,6 +94,9 @@
         }
         if (checkpoint.getReward() !== "") {
             rewardReceived.update((_) => checkpoint.getReward());
+        }
+        if (checkpoint.getRewardBalance() !== "") {
+            rewardBalance.update((_) => checkpoint.getRewardBalance());
         }
         if (checkpoint.hasActivityChallenge()) {
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());

@@ -4683,15 +4683,15 @@ proto.jungletv.NowPlayingYouTubeVideoData.prototype.setId = function(value) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_ = [[9,10]];
+proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_ = [[10,11]];
 
 /**
  * @enum {number}
  */
 proto.jungletv.MediaConsumptionCheckpoint.MediaInfoCase = {
   MEDIA_INFO_NOT_SET: 0,
-  STUB_DATA: 9,
-  YOUTUBE_VIDEO_DATA: 10
+  STUB_DATA: 10,
+  YOUTUBE_VIDEO_DATA: 11
 };
 
 /**
@@ -4738,6 +4738,7 @@ proto.jungletv.MediaConsumptionCheckpoint.toObject = function(includeInstance, m
     requestCost: jspb.Message.getFieldWithDefault(msg, 4, ""),
     currentlyWatching: jspb.Message.getFieldWithDefault(msg, 5, 0),
     reward: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    rewardBalance: jspb.Message.getFieldWithDefault(msg, 7, ""),
     activityChallenge: (f = msg.getActivityChallenge()) && proto.jungletv.ActivityChallenge.toObject(includeInstance, f),
     powTask: (f = msg.getPowTask()) && proto.jungletv.ProofOfWorkTask.toObject(includeInstance, f),
     stubData: (f = msg.getStubData()) && proto.jungletv.NowPlayingStubData.toObject(includeInstance, f),
@@ -4805,21 +4806,25 @@ proto.jungletv.MediaConsumptionCheckpoint.deserializeBinaryFromReader = function
       msg.setReward(value);
       break;
     case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRewardBalance(value);
+      break;
+    case 8:
       var value = new proto.jungletv.ActivityChallenge;
       reader.readMessage(value,proto.jungletv.ActivityChallenge.deserializeBinaryFromReader);
       msg.setActivityChallenge(value);
       break;
-    case 8:
+    case 9:
       var value = new proto.jungletv.ProofOfWorkTask;
       reader.readMessage(value,proto.jungletv.ProofOfWorkTask.deserializeBinaryFromReader);
       msg.setPowTask(value);
       break;
-    case 9:
+    case 10:
       var value = new proto.jungletv.NowPlayingStubData;
       reader.readMessage(value,proto.jungletv.NowPlayingStubData.deserializeBinaryFromReader);
       msg.setStubData(value);
       break;
-    case 10:
+    case 11:
       var value = new proto.jungletv.NowPlayingYouTubeVideoData;
       reader.readMessage(value,proto.jungletv.NowPlayingYouTubeVideoData.deserializeBinaryFromReader);
       msg.setYoutubeVideoData(value);
@@ -4897,10 +4902,17 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
       f
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
   f = message.getActivityChallenge();
   if (f != null) {
     writer.writeMessage(
-      7,
+      8,
       f,
       proto.jungletv.ActivityChallenge.serializeBinaryToWriter
     );
@@ -4908,7 +4920,7 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
   f = message.getPowTask();
   if (f != null) {
     writer.writeMessage(
-      8,
+      9,
       f,
       proto.jungletv.ProofOfWorkTask.serializeBinaryToWriter
     );
@@ -4916,7 +4928,7 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
   f = message.getStubData();
   if (f != null) {
     writer.writeMessage(
-      9,
+      10,
       f,
       proto.jungletv.NowPlayingStubData.serializeBinaryToWriter
     );
@@ -4924,7 +4936,7 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
   f = message.getYoutubeVideoData();
   if (f != null) {
     writer.writeMessage(
-      10,
+      11,
       f,
       proto.jungletv.NowPlayingYouTubeVideoData.serializeBinaryToWriter
     );
@@ -5097,12 +5109,48 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.hasReward = function() {
 
 
 /**
- * optional ActivityChallenge activity_challenge = 7;
+ * optional string reward_balance = 7;
+ * @return {string}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.getRewardBalance = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.setRewardBalance = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.clearRewardBalance = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.hasRewardBalance = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional ActivityChallenge activity_challenge = 8;
  * @return {?proto.jungletv.ActivityChallenge}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.getActivityChallenge = function() {
   return /** @type{?proto.jungletv.ActivityChallenge} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.ActivityChallenge, 7));
+    jspb.Message.getWrapperField(this, proto.jungletv.ActivityChallenge, 8));
 };
 
 
@@ -5111,7 +5159,7 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.getActivityChallenge = funct
  * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
 */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.setActivityChallenge = function(value) {
-  return jspb.Message.setWrapperField(this, 7, value);
+  return jspb.Message.setWrapperField(this, 8, value);
 };
 
 
@@ -5129,17 +5177,17 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearActivityChallenge = fun
  * @return {boolean}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasActivityChallenge = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
 /**
- * optional ProofOfWorkTask pow_task = 8;
+ * optional ProofOfWorkTask pow_task = 9;
  * @return {?proto.jungletv.ProofOfWorkTask}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.getPowTask = function() {
   return /** @type{?proto.jungletv.ProofOfWorkTask} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.ProofOfWorkTask, 8));
+    jspb.Message.getWrapperField(this, proto.jungletv.ProofOfWorkTask, 9));
 };
 
 
@@ -5148,7 +5196,7 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.getPowTask = function() {
  * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
 */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.setPowTask = function(value) {
-  return jspb.Message.setWrapperField(this, 8, value);
+  return jspb.Message.setWrapperField(this, 9, value);
 };
 
 
@@ -5166,17 +5214,17 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearPowTask = function() {
  * @return {boolean}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasPowTask = function() {
-  return jspb.Message.getField(this, 8) != null;
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
 /**
- * optional NowPlayingStubData stub_data = 9;
+ * optional NowPlayingStubData stub_data = 10;
  * @return {?proto.jungletv.NowPlayingStubData}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.getStubData = function() {
   return /** @type{?proto.jungletv.NowPlayingStubData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.NowPlayingStubData, 9));
+    jspb.Message.getWrapperField(this, proto.jungletv.NowPlayingStubData, 10));
 };
 
 
@@ -5185,7 +5233,7 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.getStubData = function() {
  * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
 */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.setStubData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 9, proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 10, proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_[0], value);
 };
 
 
@@ -5203,17 +5251,17 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearStubData = function() {
  * @return {boolean}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasStubData = function() {
-  return jspb.Message.getField(this, 9) != null;
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
 /**
- * optional NowPlayingYouTubeVideoData youtube_video_data = 10;
+ * optional NowPlayingYouTubeVideoData youtube_video_data = 11;
  * @return {?proto.jungletv.NowPlayingYouTubeVideoData}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.getYoutubeVideoData = function() {
   return /** @type{?proto.jungletv.NowPlayingYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.NowPlayingYouTubeVideoData, 10));
+    jspb.Message.getWrapperField(this, proto.jungletv.NowPlayingYouTubeVideoData, 11));
 };
 
 
@@ -5222,7 +5270,7 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.getYoutubeVideoData = functi
  * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
 */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 10, proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 11, proto.jungletv.MediaConsumptionCheckpoint.oneofGroups_[0], value);
 };
 
 
@@ -5240,7 +5288,7 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearYoutubeVideoData = func
  * @return {boolean}
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 10) != null;
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -6860,7 +6908,8 @@ proto.jungletv.RewardInfoResponse.prototype.toObject = function(opt_includeInsta
  */
 proto.jungletv.RewardInfoResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    rewardAddress: jspb.Message.getFieldWithDefault(msg, 1, "")
+    rewardAddress: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    rewardBalance: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -6901,6 +6950,10 @@ proto.jungletv.RewardInfoResponse.deserializeBinaryFromReader = function(msg, re
       var value = /** @type {string} */ (reader.readString());
       msg.setRewardAddress(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRewardBalance(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -6937,6 +6990,13 @@ proto.jungletv.RewardInfoResponse.serializeBinaryToWriter = function(message, wr
       f
     );
   }
+  f = message.getRewardBalance();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -6955,6 +7015,24 @@ proto.jungletv.RewardInfoResponse.prototype.getRewardAddress = function() {
  */
 proto.jungletv.RewardInfoResponse.prototype.setRewardAddress = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string reward_balance = 2;
+ * @return {string}
+ */
+proto.jungletv.RewardInfoResponse.prototype.getRewardBalance = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.setRewardBalance = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

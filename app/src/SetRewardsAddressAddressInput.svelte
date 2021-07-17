@@ -3,7 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
-    import { rewardAddress } from "./stores";
+    import { rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
 
     const dispatch = createEventDispatcher();
@@ -11,13 +11,16 @@
     export let failureReason: string = "";
     let successful = false;
     let rewardsAddress: string = "";
+    let rewardsBalance: string = "";
 
     let rewardInfoPromise = (async function () {
         try {
             let rewardInfo = await apiClient.rewardInfo();
 
             rewardsAddress = rewardInfo.getRewardAddress();
+            rewardsBalance = rewardInfo.getRewardBalance();
             rewardAddress.update((_) => rewardsAddress);
+            rewardBalance.update((_) => rewardsBalance);
         } catch (ex) {
             console.log(ex);
             rewardsAddress = "";

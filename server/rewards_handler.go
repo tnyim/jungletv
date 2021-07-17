@@ -24,6 +24,7 @@ type RewardsHandler struct {
 	statsClient                    *statsd.Client
 	mediaQueue                     *MediaQueue
 	ipReputationChecker            *IPAddressReputationChecker
+	withdrawalHandler              *WithdrawalHandler
 	wallet                         *wallet.Wallet
 	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
 	workGenerator                  *WorkGenerator
@@ -97,6 +98,7 @@ func NewRewardsHandler(log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *MediaQueue,
 	ipReputationChecker *IPAddressReputationChecker,
+	withdrawalHandler *WithdrawalHandler,
 	hCaptchaSecret string,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
@@ -108,6 +110,7 @@ func NewRewardsHandler(log *log.Logger,
 		statsClient:                    statsClient,
 		mediaQueue:                     mediaQueue,
 		ipReputationChecker:            ipReputationChecker,
+		withdrawalHandler:              withdrawalHandler,
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
 		workGenerator:                  workGenerator,
@@ -244,7 +247,11 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
 	onMediaChanged := r.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer r.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+
 	onEntryRemoved := r.mediaQueue.deepEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
+	defer r.mediaQueue.deepEntryRemoved.Unsubscribe(onEntryRemoved)
+
 	// the rewards handler might be starting at a time when there are things already playing,
 	// in that case we need to update lastMedia
 	entries := r.mediaQueue.Entries()

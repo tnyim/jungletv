@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { darkMode, rewardAddress, rewardReceived } from "./stores";
+    import { darkMode, rewardAddress, rewardBalance, rewardReceived } from "./stores";
     import { fade, fly } from "svelte/transition";
     import { globalHistory } from "svelte-navigator";
     import Toggle from "svelte-toggle";
@@ -66,22 +66,29 @@
             <ul class="flex flex-col lg:flex-row list-none mr-auto">
                 <li class="flex items-center">
                     {#if rAddress !== ""}
-                        <span class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0">
-                            Rewarding <img
+                        <div
+                            class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
+                            on:click={() => navigate("/rewards/address")}
+                        >
+                            <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
                                 alt="&nbsp;"
-                                title="Click to copy: {rAddress}"
-                                class="inline h-9 -mt-5 -mb-4 -ml-1 -mr-1 cursor-pointer"
-                                on:click={() => copyAddress(rAddress)}
+                                title="MonKey for your address"
+                                class="h-9"
+                                style="margin-top: -3px;"
                             />
-                            <span
-                                class="font-mono cursor-pointer"
-                                title="Click to copy: {rAddress}"
-                                on:click={() => copyAddress(rAddress)}
-                            >
-                                {rAddress.substr(0, 16)}
-                            </span>
-                        </span>
+                            <div class="flex flex-col">
+                                <div>
+                                    Rewarding <span class="font-mono">{rAddress.substr(0, 16)}</span>
+                                </div>
+                                <div>
+                                    Balance:
+                                    <span class="font-bold">
+                                        {apiClient.formatBANPrice($rewardBalance)} BAN
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     {/if}
                     {#if lastReward !== ""}
                         <span

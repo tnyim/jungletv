@@ -1,4 +1,4 @@
-# Welcome to JungleTV 
+# Welcome to JungleTV
 
 ![](https://jungletv.live/assets/brand/logo.svg)
 

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
-	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -303,7 +302,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 			StartedAt:   time.Now(),
 			MediaLength: types.Duration(newMedia.MediaInfo().Length()),
 			RequestedBy: newMedia.RequestedBy().Address(),
-			RequestCost: decimal.NewFromBigInt(newMedia.RequestCost().Int, 0),
+			RequestCost: newMedia.RequestCost().Decimal(),
 			Unskippable: newMedia.Unskippable(),
 		}
 		// this is not elegant but it will have to do for now

@@ -139,11 +139,12 @@ message MediaConsumptionCheckpoint {
     string request_cost = 4;
     uint32 currently_watching = 5;
     optional string reward = 6;
-    optional ActivityChallenge activity_challenge = 7;
-    optional ProofOfWorkTask pow_task = 8;
+    optional string reward_balance = 7;
+    optional ActivityChallenge activity_challenge = 8;
+    optional ProofOfWorkTask pow_task = 9;
     oneof media_info {
-        NowPlayingStubData stub_data = 9;
-        NowPlayingYouTubeVideoData youtube_video_data = 10;
+        NowPlayingStubData stub_data = 10;
+        NowPlayingYouTubeVideoData youtube_video_data = 11;
     }
 }
 
@@ -196,6 +197,7 @@ message RewardInfoRequest {}
 
 message RewardInfoResponse {
     string reward_address = 1;
+    string reward_balance = 2;
 }
 
 message RemoveQueueEntryRequest {
