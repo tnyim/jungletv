@@ -75,7 +75,7 @@
             <p>Loading...</p>
         {:then}
             <p class="text-lg font-semibold">Currently rewarding:</p>
-            <p class="font-mono text-sm">{$rewardAddress}</p>
+            <p class="font-mono text-sm break-words">{$rewardAddress}</p>
             <p class="mt-2 mb-6">
                 <a
                     use:link
