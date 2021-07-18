@@ -1,6 +1,8 @@
 package types
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -34,17 +36,37 @@ func getPendingWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) 
 // GetPendingWithdrawals returns all pending withdrawals
 func GetPendingWithdrawals(node sqalx.Node) ([]*PendingWithdrawal, error) {
 	s := sdb.Select().
-		OrderBy("pending_withdrawal.started_at DESC")
+		OrderBy("pending_withdrawal.started_at DESC, pending_withdrawal.rewards_address")
 	p, _, err := getPendingWithdrawalWithSelect(node, s)
 	return p, stacktrace.Propagate(err, "")
 }
 
 // AddressHasPendingWithdrawal returns whether an address has a pending withdrawal
-func AddressHasPendingWithdrawal(node sqalx.Node, address string) (bool, error) {
-	s := sdb.Select().
-		Where(sq.Eq{"pending_withdrawal.rewards_address": address})
-	p, _, err := getPendingWithdrawalWithSelect(node, s)
-	return len(p) > 0, stacktrace.Propagate(err, "")
+func AddressHasPendingWithdrawal(node sqalx.Node, address string) (bool, int, int, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return false, 0, 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var position int
+	var total int
+	err = sdb.Select("position", "total").
+		FromSelect(
+			sdb.Select(
+				"rewards_address",
+				"ROW_NUMBER() OVER (ORDER BY pending_withdrawal.started_at DESC, pending_withdrawal.rewards_address) AS position",
+				"SUM(COUNT(*)) OVER () AS total").
+				From("pending_withdrawal").
+				GroupBy("rewards_address"), "queue_position").
+		Where(sq.Eq{"rewards_address": address}).
+		RunWith(tx).Scan(&position, &total)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return false, 0, 0, nil
+	} else if err != nil {
+		return false, 0, 0, stacktrace.Propagate(err, "")
+	}
+	return true, position, total, nil
 }
 
 // InsertPendingWithdrawals inserts the passed pending withdrawals in the database

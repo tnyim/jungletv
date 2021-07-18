@@ -770,8 +770,18 @@ export class RewardInfoResponse extends jspb.Message {
   getRewardBalance(): string;
   setRewardBalance(value: string): void;
 
-  getWithdrawPending(): boolean;
-  setWithdrawPending(value: boolean): void;
+  getWithdrawalPending(): boolean;
+  setWithdrawalPending(value: boolean): void;
+
+  hasWithdrawalPositionInQueue(): boolean;
+  clearWithdrawalPositionInQueue(): void;
+  getWithdrawalPositionInQueue(): number;
+  setWithdrawalPositionInQueue(value: number): void;
+
+  hasWithdrawalsInQueue(): boolean;
+  clearWithdrawalsInQueue(): void;
+  getWithdrawalsInQueue(): number;
+  setWithdrawalsInQueue(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RewardInfoResponse.AsObject;
@@ -787,7 +797,9 @@ export namespace RewardInfoResponse {
   export type AsObject = {
     rewardAddress: string,
     rewardBalance: string,
-    withdrawPending: boolean,
+    withdrawalPending: boolean,
+    withdrawalPositionInQueue: number,
+    withdrawalsInQueue: number,
   }
 }
 

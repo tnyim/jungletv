@@ -199,7 +199,9 @@ message RewardInfoRequest {}
 message RewardInfoResponse {
     string reward_address = 1;
     string reward_balance = 2;
-    bool withdraw_pending = 3;
+    bool withdrawal_pending = 3;
+    optional int32 withdrawal_position_in_queue = 4;
+    optional int32 withdrawals_in_queue = 5;
 }
 
 message RemoveQueueEntryRequest {

@@ -8,7 +8,9 @@
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
 
-    let pendingWithdraw = false;
+    let pendingWithdrawal = false;
+    let withdrawalPositionInQueue = 0;
+    let withdrawalsInQueue = 0;
 
     let rewardInfoPromise = (async function () {
         try {
@@ -16,7 +18,13 @@
 
             rewardAddress.update((_) => rewardInfo.getRewardAddress());
             rewardBalance.update((_) => rewardInfo.getRewardBalance());
-            pendingWithdraw = rewardInfo.getWithdrawPending();
+            pendingWithdrawal = rewardInfo.getWithdrawalPending();
+            if (rewardInfo.hasWithdrawalPositionInQueue()) {
+                withdrawalPositionInQueue = rewardInfo.getWithdrawalPositionInQueue();
+            }
+            if (rewardInfo.hasWithdrawalsInQueue()) {
+                withdrawalsInQueue = rewardInfo.getWithdrawalsInQueue();
+            }
         } catch (ex) {
             console.log(ex);
             navigate("/rewards/address");
@@ -77,10 +85,13 @@
                     Change address
                 </a>
             </p>
-            {#if pendingWithdraw}
+            {#if pendingWithdrawal}
                 <WarningMessage>
                     A withdrawal is pending for your account. This usually takes some seconds to complete, and
                     occasionally can take some minutes. You'll be able to withdraw when it completes.
+                    <br />
+                    Your withdrawal is in position {withdrawalPositionInQueue} of {withdrawalsInQueue} withdrawals in queue
+                    to be processed.
                 </WarningMessage>
                 <p class="text-lg font-semibold">Current balance:</p>
             {:else}
@@ -89,7 +100,7 @@
             <p class="text-xl font-bold">
                 {apiClient.formatBANPrice($rewardBalance)} BAN
             </p>
-            {#if !pendingWithdraw}
+            {#if !pendingWithdrawal}
                 <p class="mt-2 mb-6">
                     {#if withdrawSuccessful}
                         <SuccessMessage>
@@ -115,7 +126,7 @@
                 </p>
             {/if}
             <p class="mt-4">
-                Withdraws happen automatically when your balance reaches 10 BAN, or 24 hours after your last received
+                Withdrawals happen automatically when your balance reaches 10 BAN, or 24 hours after your last received
                 reward, whichever happens first.
             </p>
         {/await}

@@ -27,16 +27,23 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	pendingWithdraw, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
+	pendingWithdrawal, position, total, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return &proto.RewardInfoResponse{
-		RewardAddress:   userClaims.RewardAddress,
-		RewardBalance:   NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
-		WithdrawPending: pendingWithdraw,
-	}, nil
+	response := &proto.RewardInfoResponse{
+		RewardAddress:     userClaims.RewardAddress,
+		RewardBalance:     NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
+		WithdrawalPending: pendingWithdrawal,
+	}
+	if pendingWithdrawal {
+		p := int32(position)
+		t := int32(total)
+		response.WithdrawalPositionInQueue = &p
+		response.WithdrawalsInQueue = &t
+	}
+	return response, nil
 }
 
 func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) (*proto.WithdrawResponse, error) {
@@ -60,7 +67,7 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 		return nil, status.Error(codes.FailedPrecondition, "insufficient balance")
 	}
 
-	pendingWithdraw, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
+	pendingWithdraw, _, _, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
