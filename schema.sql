@@ -83,10 +83,9 @@ CREATE TABLE IF NOT EXISTS "pending_withdrawal" (
 );
 
 CREATE TABLE IF NOT EXISTS "withdrawal" (
-    id VARCHAR(36) PRIMARY KEY,
+    tx_hash VARCHAR(64) PRIMARY KEY,
     rewards_address VARCHAR(64) NOT NULL,
     amount NUMERIC(39, 0) NOT NULL,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    tx_hash VARCHAR(64) NOT NULL
+    completed_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

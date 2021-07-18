@@ -9,12 +9,11 @@ import (
 
 // Withdrawal represents a completed withdrawal
 type Withdrawal struct {
-	ID             string `dbKey:"true"`
+	TxHash         string `dbKey:"true"`
 	RewardsAddress string
 	Amount         decimal.Decimal
 	StartedAt      time.Time
 	CompletedAt    time.Time
-	TxHash         string
 }
 
 // Insert inserts the Withdrawal

@@ -9,7 +9,6 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
-	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -200,12 +199,11 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	}
 
 	withdrawal := &types.Withdrawal{
-		ID:             uuid.NewV4().String(),
+		TxHash:         blockHash.String(),
 		RewardsAddress: pending.RewardsAddress,
 		Amount:         pending.Amount,
 		StartedAt:      pending.StartedAt,
 		CompletedAt:    time.Now(),
-		TxHash:         blockHash.String(),
 	}
 	err = withdrawal.Insert(ctx)
 	if err != nil {
