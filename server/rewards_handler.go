@@ -14,6 +14,7 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -50,6 +51,7 @@ type RewardsHandler struct {
 
 type Spectator interface {
 	OnRewarded() *event.Event
+	OnWithdrew() *event.Event
 	OnActivityChallenge() *event.Event
 }
 
@@ -62,6 +64,7 @@ type spectator struct {
 	activityCheckTimer    *time.Timer
 	nextActivityCheckTime time.Time
 	onRewarded            *event.Event
+	onWithdrew            *event.Event
 	onDisconnected        *event.Event
 	onActivityChallenge   *event.Event
 	activityChallenge     *activityChallenge
@@ -87,6 +90,10 @@ type activityChallenge struct {
 
 func (s *spectator) OnRewarded() *event.Event {
 	return s.onRewarded
+}
+
+func (s *spectator) OnWithdrew() *event.Event {
+	return s.onWithdrew
 }
 
 func (s *spectator) OnActivityChallenge() *event.Event {
@@ -138,6 +145,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 		return &spectator{
 			isDummy:             true,
 			onRewarded:          event.New(),
+			onWithdrew:          event.New(),
 			onActivityChallenge: event.New(),
 		}, nil
 	}
@@ -174,6 +182,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 		}
 	}
 	s.onRewarded = event.New()
+	s.onWithdrew = event.New()
 	s.onDisconnected = event.New()
 	s.onActivityChallenge = event.New()
 
@@ -252,6 +261,9 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 	onEntryRemoved := r.mediaQueue.deepEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
 	defer r.mediaQueue.deepEntryRemoved.Unsubscribe(onEntryRemoved)
 
+	onPendingWithdrawalCreated := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
+	defer r.withdrawalHandler.pendingWithdrawalCreated.Unsubscribe(onPendingWithdrawalCreated)
+
 	// the rewards handler might be starting at a time when there are things already playing,
 	// in that case we need to update lastMedia
 	entries := r.mediaQueue.Entries()
@@ -275,8 +287,23 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
+		case v := <-onPendingWithdrawalCreated:
+			r.onPendingWithdrawalCreated(ctx, v[0].([]*types.PendingWithdrawal))
 		case <-ctx.Done():
 			return nil
+		}
+	}
+}
+
+func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending []*types.PendingWithdrawal) {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+	for _, p := range pending {
+		spectators, ok := r.spectatorsByRewardAddress[p.RewardsAddress]
+		if ok {
+			for _, spectator := range spectators {
+				spectator.onWithdrew.Notify()
+			}
 		}
 	}
 }

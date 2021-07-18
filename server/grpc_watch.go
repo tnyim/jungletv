@@ -47,6 +47,16 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
+		defer spectator.OnWithdrew().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			s2 := "0"
+			cp.RewardBalance = &s2
+			err := send(cp)
+			if err != nil {
+				errChan <- stacktrace.Propagate(err, "")
+			}
+		})()
+
 		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *activityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
 			cp.ActivityChallenge = &proto.ActivityChallenge{

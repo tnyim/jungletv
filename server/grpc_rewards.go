@@ -60,6 +60,14 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 		return nil, status.Error(codes.FailedPrecondition, "insufficient balance")
 	}
 
+	pendingWithdraw, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if pendingWithdraw {
+		return nil, status.Error(codes.FailedPrecondition, "existing pending withdraw")
+	}
+
 	err = s.withdrawalHandler.WithdrawBalances(ctx, []*types.RewardBalance{balance})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")

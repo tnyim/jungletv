@@ -18,9 +18,10 @@ import (
 
 // WithdrawalHandler handles withdrawals
 type WithdrawalHandler struct {
-	log                   *log.Logger
-	statsClient           *statsd.Client
-	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client)
+	log                          *log.Logger
+	statsClient                  *statsd.Client
+	collectorAccountQueue        chan func(*wallet.Account, rpc.Client, rpc.Client)
+	completingPendingWithdrawals bool
 
 	pendingWithdrawalCreated *event.Event
 }
@@ -51,7 +52,11 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 		case <-t.C:
-			err := w.AutoWithdrawBalances(ctx)
+			err := w.CompleteAllPendingWithdrawals(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			err = w.AutoWithdrawBalances(ctx)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -69,7 +74,7 @@ func (w *WithdrawalHandler) AutoWithdrawBalances(ctxCtx context.Context) error {
 	}
 	defer ctx.Rollback()
 
-	threshold := new(big.Int).Mul(BananoUnit, big.NewInt(5)) // 5 BAN
+	threshold := new(big.Int).Mul(BananoUnit, big.NewInt(10)) // 10 BAN
 
 	balances, err := types.GetRewardBalancesReadyForAutoWithdrawal(ctx, decimal.NewFromBigInt(threshold, 0), time.Now().Add(-24*time.Hour))
 	if err != nil {
@@ -117,7 +122,7 @@ func (w *WithdrawalHandler) WithdrawBalances(ctxCtx context.Context, balances []
 		return stacktrace.Propagate(err, "")
 	}
 
-	ctx.DeferToCommit(func() { w.pendingWithdrawalCreated.Notify() })
+	ctx.DeferToCommit(func() { w.pendingWithdrawalCreated.Notify(pendingWithdrawals) })
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
@@ -125,6 +130,12 @@ func (w *WithdrawalHandler) WithdrawBalances(ctxCtx context.Context, balances []
 // If the process is interrupted, it's possible that not all pending withdrawals will have gone out
 // In that case, the ones that did not go out will remain as pending withdrawals
 func (w *WithdrawalHandler) CompleteAllPendingWithdrawals(ctxCtx context.Context) error {
+	if w.completingPendingWithdrawals {
+		return nil
+	}
+	w.completingPendingWithdrawals = true
+	defer func() { w.completingPendingWithdrawals = false }()
+
 	ctx, err := BeginTransaction(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

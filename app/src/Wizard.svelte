@@ -13,9 +13,11 @@
                     </div>
                 </div>
             </div>
-            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6">
-                <slot name="buttons" />
-            </div>
+            {#if $$slots.buttons}
+                <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6">
+                    <slot name="buttons" />
+                </div>
+            {/if}
         </div>
     </div>
 </div>
