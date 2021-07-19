@@ -399,13 +399,6 @@
                             ? ''
                             : 'mt-0.5'} break-words relative
                             {getBackgroundColorForMessage(msg)}"
-                        on:pointerenter={(ev) => {
-                            if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
-                                beginShowMessageDetails(msg);
-                            } else {
-                                hideMessageDetails();
-                            }
-                        }}
                         on:pointerleave={(ev) => {
                             if (ev.pointerType != "touch") {
                                 hideMessageDetails();
@@ -428,25 +421,35 @@
                                 on:click={() => editNicknameForUser(msg.getUserMessage().getAuthor().getAddress())}
                             />
                         {/if}
-                        <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{msg
-                                .getUserMessage()
-                                .getAuthor()
-                                .getAddress()}?format=png"
-                            alt="&nbsp;"
-                            title="Click to reply"
-                            class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                            on:click={() => replyToMessage(msg)}
-                        />
                         <span
-                            class="{getClassForMessageAuthor(msg)} cursor-pointer"
-                            title="Click to reply"
-                            on:click={() => replyToMessage(msg)}>{getReadableMessageAuthor(msg)}</span
-                        >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-                            <i
-                                class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
-                                title="Chat moderator"
-                            />{/if}:
+                            on:pointerenter={(ev) => {
+                                if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
+                                    beginShowMessageDetails(msg);
+                                } else {
+                                    hideMessageDetails();
+                                }
+                            }}
+                        >
+                            <img
+                                src="https://monkey.banano.cc/api/v1/monkey/{msg
+                                    .getUserMessage()
+                                    .getAuthor()
+                                    .getAddress()}?format=png"
+                                alt="&nbsp;"
+                                title="Click to reply"
+                                class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
+                                on:click={() => replyToMessage(msg)}
+                            />
+                            <span
+                                class="{getClassForMessageAuthor(msg)} cursor-pointer"
+                                title="Click to reply"
+                                on:click={() => replyToMessage(msg)}>{getReadableMessageAuthor(msg)}</span
+                            >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+                                <i
+                                    class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
+                                    title="Chat moderator"
+                                />{/if}:
+                        </span>
                         {@html marked
                             .parseInline(
                                 msg.getUserMessage().getContent(),
