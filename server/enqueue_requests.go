@@ -252,6 +252,8 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
 			return nil
 		}
+
+		e.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, requestedByStr)
 	}
 
 	e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
