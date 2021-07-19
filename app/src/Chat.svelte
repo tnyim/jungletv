@@ -454,7 +454,7 @@
                                     ? { tokenizer: undefined }
                                     : {}
                             )
-                            .replace("<a ", '<a target="_blank" rel="noopener" ')}
+                            .replaceAll("<a ", '<a target="_blank" rel="noopener" ')}
                         {#if detailsOpenForMsgID == msg.getId()}
                             <ChatMessageDetails
                                 {msg}
