@@ -13,6 +13,8 @@
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
     import WarningMessage from "./WarningMessage.svelte";
+    import { copyToClipboard } from "./utils";
+    import ChatMessageDetails from "./ChatMessageDetails.svelte";
 
     const tokenizer = {
         tag: () => {},
@@ -299,14 +301,6 @@
         }
     }
 
-    async function copyToClipboard(content: string) {
-        try {
-            await navigator.clipboard.writeText(content);
-        } catch (err) {
-            console.error("Failed to copy!", err);
-        }
-    }
-
     function getBackgroundColorForMessage(msg: ChatMessage): string {
         if (msg.getUserMessage().getAuthor().getAddress() == rAddress) {
             return "bg-gray-100 dark:bg-gray-800";
@@ -341,6 +335,28 @@
             return [str.substring(0, i), str.substring(i + 1)];
         } else return [str];
     }
+
+    let detailsOpenForMsgID = "";
+    let detailsOpenTimer: number;
+    function beginShowMessageDetails(msg: ChatMessage) {
+        endPreShowMessageDetails();
+        detailsOpenTimer = setTimeout(() => showMessageDetails(msg), 500);
+    }
+    function endPreShowMessageDetails() {
+        if (detailsOpenTimer !== undefined) {
+            clearTimeout(detailsOpenTimer);
+            detailsOpenTimer = undefined;
+        }
+    }
+    function showMessageDetails(msg: ChatMessage) {
+        detailsOpenTimer = undefined;
+        detailsOpenForMsgID = msg.getId();
+    }
+
+    function hideMessageDetails() {
+        endPreShowMessageDetails();
+        detailsOpenForMsgID = "";
+    }
 </script>
 
 <div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
@@ -349,7 +365,7 @@
             <div
                 transition:fade|local={{ duration: 200 }}
                 id="chat-message-{msg.getId()}"
-                class="transition-colors ease-in-out duration-1000"
+                class="transition-colors ease-in-out duration-1000 relative"
             >
                 {#if shouldShowTimeSeparator(idx)}
                     <div
@@ -383,6 +399,18 @@
                             ? ''
                             : 'mt-0.5'} break-words
                             {getBackgroundColorForMessage(msg)}"
+                        on:pointerenter={(ev) => {
+                            if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
+                                beginShowMessageDetails(msg);
+                            } else {
+                                hideMessageDetails();
+                            }
+                        }}
+                        on:pointerleave={(ev) => {
+                            if (ev.pointerType != "touch") {
+                                hideMessageDetails();
+                            }
+                        }}
                     >
                         {#if mode == "moderation"}
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
@@ -427,11 +455,18 @@
                                     : {}
                             )
                             .replace("<a ", '<a target="_blank" rel="noopener" ')}
+                        {#if detailsOpenForMsgID == msg.getId()}
+                            <ChatMessageDetails
+                                {msg}
+                                on:reply={() => replyToMessage(msg)}
+                                on:mouseLeft={() => hideMessageDetails()}
+                            />
+                        {/if}
                     </p>
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
                         <div class="flex-1" />
-                        <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded-sm text-center">
+                        <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded text-center">
                             {@html marked.parseInline(msg.getSystemMessage().getContent())}
                         </div>
                         <div class="flex-1" />
