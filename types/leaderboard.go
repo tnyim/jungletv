@@ -50,6 +50,7 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 	} else {
 		mustIncludes = []string{"<never matches>"}
 	}
+	query += " ORDER BY position, rownum"
 
 	query, args, err := sqlx.In(query, start, end, mustIncludes, size)
 	if err != nil {
