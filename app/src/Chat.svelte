@@ -365,7 +365,7 @@
             <div
                 transition:fade|local={{ duration: 200 }}
                 id="chat-message-{msg.getId()}"
-                class="transition-colors ease-in-out duration-1000 relative"
+                class="transition-colors ease-in-out duration-1000"
             >
                 {#if shouldShowTimeSeparator(idx)}
                     <div
@@ -397,7 +397,7 @@
                             ? 'mt-1.5'
                             : msg.hasReference()
                             ? ''
-                            : 'mt-0.5'} break-words
+                            : 'mt-0.5'} break-words relative
                             {getBackgroundColorForMessage(msg)}"
                         on:pointerenter={(ev) => {
                             if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
