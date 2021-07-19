@@ -359,7 +359,7 @@
     }
 </script>
 
-<div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}">
+<div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}" on:pointerenter={hideMessageDetails}>
     <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
         {#each chatMessages as msg, idx (msg.getId())}
             <div
