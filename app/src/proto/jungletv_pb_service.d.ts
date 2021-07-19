@@ -130,6 +130,15 @@ type JungleTVWithdraw = {
   readonly responseType: typeof jungletv_pb.WithdrawResponse;
 };
 
+type JungleTVLeaderboards = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.LeaderboardsRequest;
+  readonly responseType: typeof jungletv_pb.LeaderboardsResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -263,6 +272,7 @@ export class JungleTV {
   static readonly GetDocument: JungleTVGetDocument;
   static readonly SetChatNickname: JungleTVSetChatNickname;
   static readonly Withdraw: JungleTVWithdraw;
+  static readonly Leaderboards: JungleTVLeaderboards;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -395,6 +405,15 @@ export class JungleTVClient {
   withdraw(
     requestMessage: jungletv_pb.WithdrawRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.WithdrawResponse|null) => void
+  ): UnaryResponse;
+  leaderboards(
+    requestMessage: jungletv_pb.LeaderboardsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.LeaderboardsResponse|null) => void
+  ): UnaryResponse;
+  leaderboards(
+    requestMessage: jungletv_pb.LeaderboardsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.LeaderboardsResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

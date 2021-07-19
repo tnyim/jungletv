@@ -34,7 +34,7 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 			rank() OVER (ORDER BY SUM(request_cost) DESC) AS position,
 			row_number() OVER (ORDER BY SUM(request_cost) DESC) AS rownum
 		FROM played_media
-		WHERE started_at BETWEEN ? AND ?
+		WHERE requested_by <> '' AND started_at BETWEEN ? AND ?
 		GROUP BY requested_by
 	),
 	mi AS (

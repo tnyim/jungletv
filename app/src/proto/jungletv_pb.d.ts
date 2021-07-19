@@ -1926,6 +1926,144 @@ export namespace WithdrawResponse {
   }
 }
 
+export class LeaderboardsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LeaderboardsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: LeaderboardsRequest): LeaderboardsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LeaderboardsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LeaderboardsRequest;
+  static deserializeBinaryFromReader(message: LeaderboardsRequest, reader: jspb.BinaryReader): LeaderboardsRequest;
+}
+
+export namespace LeaderboardsRequest {
+  export type AsObject = {
+  }
+}
+
+export class LeaderboardsResponse extends jspb.Message {
+  clearLeaderboardsList(): void;
+  getLeaderboardsList(): Array<Leaderboard>;
+  setLeaderboardsList(value: Array<Leaderboard>): void;
+  addLeaderboards(value?: Leaderboard, index?: number): Leaderboard;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LeaderboardsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: LeaderboardsResponse): LeaderboardsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LeaderboardsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LeaderboardsResponse;
+  static deserializeBinaryFromReader(message: LeaderboardsResponse, reader: jspb.BinaryReader): LeaderboardsResponse;
+}
+
+export namespace LeaderboardsResponse {
+  export type AsObject = {
+    leaderboardsList: Array<Leaderboard.AsObject>,
+  }
+}
+
+export class Leaderboard extends jspb.Message {
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  clearValueTitlesList(): void;
+  getValueTitlesList(): Array<string>;
+  setValueTitlesList(value: Array<string>): void;
+  addValueTitles(value: string, index?: number): string;
+
+  clearRowsList(): void;
+  getRowsList(): Array<LeaderboardRow>;
+  setRowsList(value: Array<LeaderboardRow>): void;
+  addRows(value?: LeaderboardRow, index?: number): LeaderboardRow;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Leaderboard.AsObject;
+  static toObject(includeInstance: boolean, msg: Leaderboard): Leaderboard.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Leaderboard, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Leaderboard;
+  static deserializeBinaryFromReader(message: Leaderboard, reader: jspb.BinaryReader): Leaderboard;
+}
+
+export namespace Leaderboard {
+  export type AsObject = {
+    title: string,
+    valueTitlesList: Array<string>,
+    rowsList: Array<LeaderboardRow.AsObject>,
+  }
+}
+
+export class LeaderboardRow extends jspb.Message {
+  getRowNum(): number;
+  setRowNum(value: number): void;
+
+  getPosition(): number;
+  setPosition(value: number): void;
+
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  hasNickname(): boolean;
+  clearNickname(): void;
+  getNickname(): string;
+  setNickname(value: string): void;
+
+  clearValuesList(): void;
+  getValuesList(): Array<LeaderboardValue>;
+  setValuesList(value: Array<LeaderboardValue>): void;
+  addValues(value?: LeaderboardValue, index?: number): LeaderboardValue;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LeaderboardRow.AsObject;
+  static toObject(includeInstance: boolean, msg: LeaderboardRow): LeaderboardRow.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LeaderboardRow, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LeaderboardRow;
+  static deserializeBinaryFromReader(message: LeaderboardRow, reader: jspb.BinaryReader): LeaderboardRow;
+}
+
+export namespace LeaderboardRow {
+  export type AsObject = {
+    rowNum: number,
+    position: number,
+    address: string,
+    nickname: string,
+    valuesList: Array<LeaderboardValue.AsObject>,
+  }
+}
+
+export class LeaderboardValue extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): string;
+  setAmount(value: string): void;
+
+  getValueCase(): LeaderboardValue.ValueCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LeaderboardValue.AsObject;
+  static toObject(includeInstance: boolean, msg: LeaderboardValue): LeaderboardValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LeaderboardValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LeaderboardValue;
+  static deserializeBinaryFromReader(message: LeaderboardValue, reader: jspb.BinaryReader): LeaderboardValue;
+}
+
+export namespace LeaderboardValue {
+  export type AsObject = {
+    amount: string,
+  }
+
+  export enum ValueCase {
+    VALUE_NOT_SET = 0,
+    AMOUNT = 1,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

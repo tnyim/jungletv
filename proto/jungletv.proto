@@ -22,6 +22,7 @@ service JungleTV {
     rpc GetDocument (GetDocumentRequest) returns (Document) {}
     rpc SetChatNickname (SetChatNicknameRequest) returns (SetChatNicknameResponse) {}
     rpc Withdraw (WithdrawRequest) returns (WithdrawResponse) {}
+    rpc Leaderboards (LeaderboardsRequest) returns (LeaderboardsResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -432,3 +433,29 @@ message SetUserChatNicknameResponse {}
 message WithdrawRequest {}
 
 message WithdrawResponse {}
+
+message LeaderboardsRequest {}
+
+message LeaderboardsResponse {
+    repeated Leaderboard leaderboards = 1;
+}
+
+message Leaderboard {
+    string title = 1;
+    repeated string value_titles = 2;
+    repeated LeaderboardRow rows = 3;
+}
+
+message LeaderboardRow {
+    uint32 row_num = 1;
+    uint32 position = 2;
+    string address = 3;
+    optional string nickname = 4;
+    repeated LeaderboardValue values = 5;
+}
+
+message LeaderboardValue {
+    oneof value {
+        string amount = 1;
+    }
+}

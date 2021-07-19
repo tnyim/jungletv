@@ -31,6 +31,7 @@ type JungleTVClient interface {
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error)
 	SetChatNickname(ctx context.Context, in *SetChatNicknameRequest, opts ...grpc.CallOption) (*SetChatNicknameResponse, error)
 	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawResponse, error)
+	Leaderboards(ctx context.Context, in *LeaderboardsRequest, opts ...grpc.CallOption) (*LeaderboardsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -296,6 +297,15 @@ func (c *jungleTVClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts
 	return out, nil
 }
 
+func (c *jungleTVClient) Leaderboards(ctx context.Context, in *LeaderboardsRequest, opts ...grpc.CallOption) (*LeaderboardsResponse, error) {
+	out := new(LeaderboardsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Leaderboards", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -431,6 +441,7 @@ type JungleTVServer interface {
 	GetDocument(context.Context, *GetDocumentRequest) (*Document, error)
 	SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawResponse, error)
+	Leaderboards(context.Context, *LeaderboardsRequest) (*LeaderboardsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -493,6 +504,9 @@ func (UnimplementedJungleTVServer) SetChatNickname(context.Context, *SetChatNick
 }
 func (UnimplementedJungleTVServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (UnimplementedJungleTVServer) Leaderboards(context.Context, *LeaderboardsRequest) (*LeaderboardsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Leaderboards not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -813,6 +827,24 @@ func _JungleTV_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_Leaderboards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LeaderboardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).Leaderboards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/Leaderboards",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).Leaderboards(ctx, req.(*LeaderboardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -1086,6 +1118,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Withdraw",
 			Handler:    _JungleTV_Withdraw_Handler,
+		},
+		{
+			MethodName: "Leaderboards",
+			Handler:    _JungleTV_Leaderboards_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

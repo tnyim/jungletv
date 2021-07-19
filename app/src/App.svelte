@@ -16,6 +16,7 @@
 	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
 	import Rewards from "./Rewards.svelte";
+	import Leaderboards from "./Leaderboards.svelte";
 
 	export let url = "";
 
@@ -58,6 +59,7 @@
 		<Route path="/enqueue" component={Enqueue} />
 		<Route path="/rewards" component={Rewards} />
 		<Route path="/rewards/address" component={SetRewardsAddress} />
+		<Route path="/leaderboards" component={Leaderboards} />
 		<Route path="/guidelines" component={Document} documentID="guidelines" />
 		<Route path="/faq" component={Document} documentID="faq" />
 		<Route path="/documents/:documentID" component={Document} />
