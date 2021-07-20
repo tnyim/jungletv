@@ -1,7 +1,7 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
 
-    import type { Leaderboard } from "./proto/jungletv_pb";
+    import type { Leaderboard, LeaderboardRow } from "./proto/jungletv_pb";
     import { copyToClipboard } from "./utils";
 
     export let leaderboard: Leaderboard;
@@ -20,6 +20,13 @@
         }
         return i + "th";
     }
+
+    function shouldShowSeparator(rows: LeaderboardRow[], curIdx: number): boolean {
+        if (curIdx == 0) {
+            return false;
+        }
+        return rows[curIdx].getRowNum() > rows[curIdx - 1].getRowNum() + 1;
+    }
 </script>
 
 <div class="mt-2 mb-10">
@@ -35,8 +42,8 @@
             </tr>
         </thead>
         <tbody>
-            {#each leaderboard.getRowsList() as row}
-                <tr>
+            {#each leaderboard.getRowsList() as row, idx}
+                <tr class="{shouldShowSeparator(leaderboard.getRowsList(), idx) ? "border-t-2 border-gray-500" : ""}">
                     <td class="p-2 text-right">{ordinalSuffix(row.getPosition())}</td>
                     <td class="p-2">
                         <img
@@ -50,8 +57,11 @@
                         {/if}
                         <span class="font-mono">{row.getAddress().substr(0, 14)} </span>
                         <span class="float-right">
-                            <i class="fas fa-copy cursor-pointer hover:text-purple-700 hover:dark:text-purple-500"
-                            title="Copy address" on:click={() => copyToClipboard(row.getAddress())} />
+                            <i
+                                class="fas fa-copy cursor-pointer hover:text-purple-700 hover:dark:text-purple-500"
+                                title="Copy address"
+                                on:click={() => copyToClipboard(row.getAddress())}
+                            />
                         </span>
                     </td>
                     {#each row.getValuesList() as value}
