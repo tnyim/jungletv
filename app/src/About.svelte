@@ -11,7 +11,8 @@
     <span use:registerFocus class="hidden" />
     <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-24" />
     <p class="mt-3 text-lg">
-        <a href="/guidelines" use:link>Community guidelines</a> • <a href="/faq" use:link>FAQ</a>
+        <a href="/guidelines" use:link>Community guidelines</a> • <a href="/faq" use:link>FAQ</a> •
+        <a href="/leaderboards" use:link>Leaderboards</a>
     </p>
     <p class="mt-3">
         JungleTV is a video sharing website for the <a href="https://banano.cc" target="_blank" rel="noopener">
