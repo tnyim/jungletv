@@ -34,6 +34,7 @@ type EnqueueManager struct {
 	log                            *log.Logger
 	moderationStore                ModerationStore
 	modLogWebhook                  api.WebhookClient
+	finalPricesMultiplier          int
 
 	requests     map[string]EnqueueTicket
 	requestsLock sync.RWMutex
@@ -87,7 +88,15 @@ func NewEnqueueManager(log *log.Logger,
 		requests:                       make(map[string]EnqueueTicket),
 		moderationStore:                moderationStore,
 		modLogWebhook:                  modLogWebhook,
+		finalPricesMultiplier:          100,
 	}, nil
+}
+
+func (e *EnqueueManager) SetFinalPricesMultiplier(m int) {
+	if m < 1 {
+		return
+	}
+	e.finalPricesMultiplier = m
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
@@ -132,7 +141,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		requestedBy:   request.RequestedBy(),
 		mediaInfo:     request.MediaInfo(),
 		unskippable:   request.Unskippable(),
-		pricing:       ComputeEnqueuePricing(e.mediaQueue, currentlyWatchingEligible, request.MediaInfo().Length(), request.Unskippable()),
+		pricing:       ComputeEnqueuePricing(e.mediaQueue, currentlyWatchingEligible, request.MediaInfo().Length(), request.Unskippable(), e.finalPricesMultiplier),
 		account:       paymentAccount,
 		statusChanged: event.New(),
 	}

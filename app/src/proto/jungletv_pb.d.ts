@@ -1894,6 +1894,42 @@ export namespace SetUserChatNicknameResponse {
   }
 }
 
+export class SetPricesMultiplierRequest extends jspb.Message {
+  getMultiplier(): number;
+  setMultiplier(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetPricesMultiplierRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetPricesMultiplierRequest): SetPricesMultiplierRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetPricesMultiplierRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetPricesMultiplierRequest;
+  static deserializeBinaryFromReader(message: SetPricesMultiplierRequest, reader: jspb.BinaryReader): SetPricesMultiplierRequest;
+}
+
+export namespace SetPricesMultiplierRequest {
+  export type AsObject = {
+    multiplier: number,
+  }
+}
+
+export class SetPricesMultiplierResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetPricesMultiplierResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetPricesMultiplierResponse): SetPricesMultiplierResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetPricesMultiplierResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetPricesMultiplierResponse;
+  static deserializeBinaryFromReader(message: SetPricesMultiplierResponse, reader: jspb.BinaryReader): SetPricesMultiplierResponse;
+}
+
+export namespace SetPricesMultiplierResponse {
+  export type AsObject = {
+  }
+}
+
 export class WithdrawRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WithdrawRequest.AsObject;

@@ -26,7 +26,7 @@ type EnqueuePricing struct {
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
-func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration, unskippable bool) EnqueuePricing {
+func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration, unskippable bool, finalMultiplier int) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is ... see the switch below
@@ -79,6 +79,9 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	if unskippable {
 		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(19))
 	}
+
+	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(100))
+	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(int64(finalMultiplier)))
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)

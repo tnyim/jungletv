@@ -75,6 +75,21 @@
             removeBanSuccessful = false;
         }
     }
+
+    async function setPricesMultiplier() {
+        let multiplierStr = prompt("Enter the multiplier (think of it as a percentage of the original prices). Minimum is 10, default is 100.");
+        let multiplier = parseInt(multiplierStr);
+        if (Object.is(NaN, multiplier)) {
+            alert("Invalid multiplier");
+            return;
+        }
+        try {
+            await apiClient.setPricesMultiplier(multiplier);
+            alert("Prices multiplier set successfully");
+        } catch(e) {
+            alert("An error occurred when setting the prices multiplier: " + e);
+        }
+    }
 </script>
 
 <div class="flex-grow min-h-full overflow-x-hidden">
@@ -113,27 +128,34 @@
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Video enqueuing</p>
-        <div class="px-2 grid grid-cols-3 gap-6">
+        <div class="px-2 grid grid-cols-4 gap-6">
             <button
                 type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                 on:click={setVideoEnqueuingEnabled}
             >
                 Allow video enqueuing
             </button>
             <button
                 type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                 on:click={setVideoEnqueuingStaffOnly}
             >
                 Allow only staff to enqueue
             </button>
             <button
                 type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                 on:click={setVideoEnqueuingDisabled}
             >
                 Disable video enqueuing
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={setPricesMultiplier}
+            >
+                Set prices multiplier
             </button>
         </div>
         <p class="px-2 py-2 text-lg">

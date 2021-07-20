@@ -38,6 +38,7 @@ service JungleTV {
     rpc RemoveDisallowedVideo(RemoveDisallowedVideoRequest) returns (RemoveDisallowedVideoResponse) {}
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
+    rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
 }
 
 message PaginationParameters {
@@ -429,6 +430,12 @@ message SetUserChatNicknameRequest {
 }
 
 message SetUserChatNicknameResponse {}
+
+message SetPricesMultiplierRequest {
+    int32 multiplier = 1;
+}
+
+message SetPricesMultiplierResponse {}
 
 message WithdrawRequest {}
 

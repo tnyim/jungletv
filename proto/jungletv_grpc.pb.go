@@ -46,6 +46,7 @@ type JungleTVClient interface {
 	RemoveDisallowedVideo(ctx context.Context, in *RemoveDisallowedVideoRequest, opts ...grpc.CallOption) (*RemoveDisallowedVideoResponse, error)
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
+	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
 }
 
 type jungleTVClient struct {
@@ -423,6 +424,15 @@ func (c *jungleTVClient) SetUserChatNickname(ctx context.Context, in *SetUserCha
 	return out, nil
 }
 
+func (c *jungleTVClient) SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error) {
+	out := new(SetPricesMultiplierResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetPricesMultiplier", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -456,6 +466,7 @@ type JungleTVServer interface {
 	RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error)
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
+	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -546,6 +557,9 @@ func (UnimplementedJungleTVServer) UpdateDocument(context.Context, *Document) (*
 }
 func (UnimplementedJungleTVServer) SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserChatNickname not implemented")
+}
+func (UnimplementedJungleTVServer) SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPricesMultiplier not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1079,6 +1093,24 @@ func _JungleTV_SetUserChatNickname_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetPricesMultiplier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPricesMultiplierRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetPricesMultiplier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetPricesMultiplier",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetPricesMultiplier(ctx, req.(*SetPricesMultiplierRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1174,6 +1206,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUserChatNickname",
 			Handler:    _JungleTV_SetUserChatNickname_Handler,
+		},
+		{
+			MethodName: "SetPricesMultiplier",
+			Handler:    _JungleTV_SetPricesMultiplier_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

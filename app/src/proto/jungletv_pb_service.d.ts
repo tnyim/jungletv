@@ -256,6 +256,15 @@ type JungleTVSetUserChatNickname = {
   readonly responseType: typeof jungletv_pb.SetUserChatNicknameResponse;
 };
 
+type JungleTVSetPricesMultiplier = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetPricesMultiplierRequest;
+  readonly responseType: typeof jungletv_pb.SetPricesMultiplierResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -286,6 +295,7 @@ export class JungleTV {
   static readonly RemoveDisallowedVideo: JungleTVRemoveDisallowedVideo;
   static readonly UpdateDocument: JungleTVUpdateDocument;
   static readonly SetUserChatNickname: JungleTVSetUserChatNickname;
+  static readonly SetPricesMultiplier: JungleTVSetPricesMultiplier;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -531,6 +541,15 @@ export class JungleTVClient {
   setUserChatNickname(
     requestMessage: jungletv_pb.SetUserChatNicknameRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetUserChatNicknameResponse|null) => void
+  ): UnaryResponse;
+  setPricesMultiplier(
+    requestMessage: jungletv_pb.SetPricesMultiplierRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetPricesMultiplierResponse|null) => void
+  ): UnaryResponse;
+  setPricesMultiplier(
+    requestMessage: jungletv_pb.SetPricesMultiplierRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetPricesMultiplierResponse|null) => void
   ): UnaryResponse;
 }
 

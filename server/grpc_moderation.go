@@ -300,3 +300,32 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 
 	return &proto.SetUserChatNicknameResponse{}, nil
 }
+
+func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPricesMultiplierRequest) (*proto.SetPricesMultiplierResponse, error) {
+	moderator := UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.Multiplier < 10 {
+		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 10")
+	}
+
+	s.enqueueManager.SetFinalPricesMultiplier(int(r.Multiplier))
+
+	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Prices multiplier set to %d by moderator: %s (%s)",
+				r.Multiplier,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetPricesMultiplierResponse{}, nil
+}

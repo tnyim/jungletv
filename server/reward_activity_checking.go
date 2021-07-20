@@ -71,9 +71,11 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	var present bool
 	spectator, present = r.spectatorByActivityChallenge[challenge]
 	if !present {
+		r.log.Println("Unidentified spectator with remote address ", RemoteAddressFromContext(ctx), "submitted a solution to a missing challenge:", challenge)
 		return stacktrace.NewError("invalid challenge")
 	}
 	if RemoteAddressFromContext(ctx) != spectator.remoteAddress {
+		r.log.Println("Spectator", spectator.user.Address(), RemoteAddressFromContext(ctx), "submitted a challenge solution from a mismatched remote address:", spectator.remoteAddress)
 		return stacktrace.NewError("mismatched remote address")
 	}
 
