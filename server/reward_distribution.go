@@ -12,6 +12,7 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/types"
 )
 
@@ -52,7 +53,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return nil
 	}
 
-	err := r.rewardEligible(ctx, eligible, rewardBudget, amountForEach)
+	err := r.rewardEligible(ctx, media.QueueID(), eligible, rewardBudget, amountForEach)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -188,7 +189,7 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 	<-done
 }
 
-func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) error {
+func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) error {
 	r.receiveCollectorPending(requestCost)
 
 	ctx, err := BeginTransaction(ctxCtx)
@@ -214,11 +215,28 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, eligible map[str
 		balancesByAddress[balance.RewardsAddress] = balance
 	}
 
+	rewards := make([]*types.ReceivedReward, len(eligible))
+	rewardsIdx := 0
+	now := time.Now()
 	for _, spectator := range eligible {
 		rewardBalance, ok := balancesByAddress[spectator.user.Address()]
 		if ok {
 			spectator.onRewarded.Notify(amountForEach, NewAmountFromDecimal(rewardBalance.Balance))
 		}
+
+		rewards[rewardsIdx] = &types.ReceivedReward{
+			ID:             uuid.NewV4().String(),
+			RewardsAddress: spectator.user.Address(),
+			ReceivedAt:     now,
+			Amount:         amountForEach.Decimal(),
+			Media:          mediaID,
+		}
+		rewardsIdx++
+	}
+
+	err = types.InsertReceivedRewards(ctx, rewards)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
 	}
 
 	err = r.withdrawalHandler.AutoWithdrawBalances(ctx)
