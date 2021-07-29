@@ -99,16 +99,6 @@
                             Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
                         </span>
                     {/if}
-                    <!-- <a
-                        class="hover:text-blueGray-500 text-blueGray-700 px-3 py-2 flex items-center text-xs uppercase font-bold"
-                        use:link
-                        href="/rewards/address"
-                    >
-                        <i
-                            class="text-blueGray-400 fas fa-coins text-lg leading-lg mr-2"
-                        />
-                        Earn rewards
-                    </a> -->
                 </li>
             </ul>
             <ul class="flex flex-col lg:flex-row list-none lg:ml-auto">
