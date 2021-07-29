@@ -281,18 +281,18 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		defer t.Send("enqueue_ticket_final_operations")
 
 		retry := 0
-		for ; retry < 3; retry++ {
+		for ; retry < 5; retry++ {
 			err := request.PaymentAccount().ReceivePendings()
 			if err != nil {
 				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
-				time.Sleep(1 * time.Second)
+				time.Sleep(5 * time.Second)
 				continue
 			}
 			if balance.Cmp(big.NewInt(0)) > 0 {
 				_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
 				if err != nil {
 					e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
-					time.Sleep(1 * time.Second)
+					time.Sleep(5 * time.Second)
 					continue
 				}
 			}
@@ -300,7 +300,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		}
 		e.paymentAccountPendingWaitGroup.Done()
 
-		if retry < 3 {
+		if retry < 5 {
 			// only reuse the account if no funds got stuck there
 			e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
 		}
