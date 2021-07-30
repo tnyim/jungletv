@@ -171,7 +171,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	}
 
 	if s == nil {
-		d := durationUntilNextActivityChallenge(true)
+		d := durationUntilNextActivityChallenge(user, true)
 		s = &spectator{
 			legitimate:            true, // everyone starts in good standings
 			user:                  user,
@@ -255,10 +255,10 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 }
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
-	onMediaChanged := r.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onMediaChanged := r.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
 	defer r.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
 
-	onEntryRemoved := r.mediaQueue.deepEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
+	onEntryRemoved := r.mediaQueue.deepEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
 	defer r.mediaQueue.deepEntryRemoved.Unsubscribe(onEntryRemoved)
 
 	onPendingWithdrawalCreated := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
@@ -317,7 +317,14 @@ func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia MediaQueue
 		return nil
 	}
 
-	return stacktrace.Propagate(r.rewardUsers(ctx, r.lastMedia), "")
+	go func() {
+		err := r.rewardUsers(ctx, r.lastMedia)
+		if err != nil {
+			r.log.Println("Error rewarding users:", err)
+		}
+	}()
+
+	return nil
 }
 
 func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueEntry) error {

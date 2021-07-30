@@ -31,7 +31,11 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 	}
 }
 
-func durationUntilNextActivityChallenge(first bool) time.Duration {
+func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
+	if permissionLevelOrder[user.PermissionLevel()] >= permissionLevelOrder[AdminPermissionLevel] {
+		// exempt admins/moderators from activity challenges
+		return 100 * 24 * time.Hour
+	}
 	if first {
 		return 30*time.Second + time.Duration(rand.Intn(120))*time.Second
 	}
@@ -105,7 +109,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "considered not legitimate")
 	}
 
-	d := durationUntilNextActivityChallenge(false)
+	d := durationUntilNextActivityChallenge(spectator.user, false)
 	spectator.nextActivityCheckTime = time.Now().Add(d)
 	spectator.activityCheckTimer.Reset(d)
 	spectator.activityChallenge = nil
@@ -161,7 +165,7 @@ func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context,
 		spectator := spectators[i]
 		if spectator.activityChallenge == nil {
 			spectator.activityCheckTimer.Stop()
-			d := durationUntilNextActivityChallenge(false)
+			d := durationUntilNextActivityChallenge(spectator.user, false)
 			spectator.nextActivityCheckTime = time.Now().Add(d)
 			spectator.activityCheckTimer.Reset(d)
 		}
