@@ -316,9 +316,10 @@ func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia MediaQueue
 	if r.lastMedia == nil {
 		return nil
 	}
+	lastMedia := r.lastMedia
 
 	go func() {
-		err := r.rewardUsers(ctx, r.lastMedia)
+		err := r.rewardUsers(ctx, lastMedia)
 		if err != nil {
 			r.log.Println("Error rewarding users:", err)
 		}
