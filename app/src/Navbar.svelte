@@ -5,6 +5,7 @@
     import { fade, fly } from "svelte/transition";
     import { globalHistory } from "svelte-navigator";
     import Toggle from "svelte-toggle";
+    import watchMedia from "svelte-media";
     const historyStore = { subscribe: globalHistory.listen };
 
     let navbarOpen = false;
@@ -13,8 +14,19 @@
         navbarOpen = false;
     });
 
+    const media = watchMedia({ large: "(min-width: 1024px)" });
+    let largeScreen = false;
+    media.subscribe((obj: any) => {
+        largeScreen = obj.large;
+        if (obj.large) {
+            navbarOpen = false;
+        }
+    });
+
     function setNavbarOpen() {
         navbarOpen = !navbarOpen;
+        lastReward = "10000000000000000000000000000";
+        hideRewardTimeout = setTimeout(() => (lastReward = ""), 7000);
     }
 
     let rAddress = "";
@@ -43,10 +55,10 @@
 <nav
     class="top-0 fixed z-50 {navbarOpen
         ? 'h-auto'
-        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
+        : 'h-16'} w-full flex flex-wrap items-center justify-between py-3 lg:py-0 px-2 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
 >
-    <div class="container max-w-none w-full px-4 mx-auto flex flex-wrap items-center justify-between">
-        <div class="lg:py-3 w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
+    <div class="container max-w-none w-full h-full px-4 mx-auto flex flex-wrap items-center justify-between">
+        <div class="lg:py-3 w-full relative flex lg:w-auto lg:static lg:block lg:justify-start h-full">
             <a
                 use:link
                 class="text-blueGray-700 text-sm font-bold leading-relaxed inline-block mr-4 whitespace-nowrap uppercase"
@@ -54,16 +66,25 @@
             >
                 <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-11 -mb-2" />
             </a>
+            {#if lastReward !== "" && !largeScreen}
+                <span
+                    class="text-sm text-gray-700 bg-yellow-200 ml-5 p-1 rounded h-7 self-center"
+                    in:fly={{ x: 200, duration: 1000 }}
+                    out:fade
+                >
+                    Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
+                </span>
+            {/if}
             <button
-                class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
+                class="cursor-pointer ml-auto text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
                 type="button"
                 on:click={setNavbarOpen}
             >
-                <i class="fas fa-bars" />
+                <i class="fas {navbarOpen ? 'fa-times' : 'fa-bars'}" />
             </button>
         </div>
         <div class="lg:flex flex-grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
-            <ul class="lg:py-3 flex flex-col lg:flex-row list-none mr-auto">
+            <ul class="flex flex-grow flex-row list-none mr-auto">
                 <li class="flex items-center">
                     {#if rAddress !== ""}
                         <div
@@ -90,7 +111,7 @@
                             </div>
                         </div>
                     {/if}
-                    {#if lastReward !== ""}
+                    {#if lastReward !== "" && largeScreen}
                         <span
                             class="text-sm text-gray-700 bg-yellow-200 ml-5 p-1 rounded"
                             in:fly={{ x: 200, duration: 1000 }}
@@ -100,21 +121,23 @@
                         </span>
                     {/if}
                 </li>
+                <li class="lg:py-3 flex items-center ml-auto">
+                    <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
+                        <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
+                        <Toggle
+                            bind:toggled={$darkMode}
+                            hideLabel
+                            label="Toggle dark mode"
+                            toggledColor="#6b7280"
+                            untoggledColor="#6b7280"
+                        />
+                        <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
+                    </div>
+                </li>
             </ul>
-            <div class="lg:py-3 flex items-center lg:ml-auto">
-                <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
-                    <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
-                    <Toggle
-                        bind:toggled={$darkMode}
-                        hideLabel
-                        label="Toggle dark mode"
-                        toggledColor="#6b7280"
-                        untoggledColor="#6b7280"
-                    />
-                    <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
-                </div>
-            </div>
-            <ul class="grid grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0 lg:-mt-0.5">
+            <ul
+                class="grid grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
+            >
                 <li>
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
@@ -122,35 +145,29 @@
                         href="/about"
                     >
                         <i class="fas fa-info" />
-                        <div class="text-xs font-bold uppercase">
-                            About
-                        </div>
+                        <div class="text-xs font-bold uppercase">About</div>
                     </a>
                 </li>
 
-                <li>
+                <li class="lg:hidden xl:block">
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href="/faq"
                     >
                         <i class="fas fa-question" />
-                        <div class="text-xs font-bold uppercase">
-                            FAQ
-                        </div>
+                        <div class="text-xs font-bold uppercase">FAQ</div>
                     </a>
                 </li>
 
-                <li>
+                <li class="lg:hidden xl:block">
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href="/guidelines"
                     >
                         <i class="fas fa-scroll" />
-                        <div class="text-xs font-bold uppercase">
-                            Rules
-                        </div>
+                        <div class="text-xs font-bold uppercase">Rules</div>
                     </a>
                 </li>
 
@@ -161,9 +178,7 @@
                         href="/leaderboards"
                     >
                         <i class="fas fa-trophy" />
-                        <div class="text-xs font-bold uppercase">
-                            Leaderboards
-                        </div>
+                        <div class="text-xs font-bold uppercase">Leaderboards</div>
                     </a>
                 </li>
 
