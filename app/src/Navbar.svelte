@@ -25,8 +25,6 @@
 
     function setNavbarOpen() {
         navbarOpen = !navbarOpen;
-        lastReward = "10000000000000000000000000000";
-        hideRewardTimeout = setTimeout(() => (lastReward = ""), 7000);
     }
 
     let rAddress = "";

@@ -58,27 +58,6 @@
 
     let videoId = "";
 
-    function dec2hex(str) {
-        // .toString(16) only works up to 2^53
-        var dec = str.toString().split(""),
-            sum = [],
-            hex = [],
-            i,
-            s;
-        while (dec.length) {
-            s = 1 * dec.shift();
-            for (i = 0; s || i < sum.length; i++) {
-                s += (sum[i] || 0) * 10;
-                sum[i] = s % 16;
-                s = (s - sum[i]) / 16;
-            }
-        }
-        while (sum.length) {
-            hex.push(sum.pop().toString(16));
-        }
-        return hex.join("");
-    }
-
     async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
         playerConnected.update(() => true);
         if (checkpoint.getMediaPresent()) {
@@ -86,11 +65,20 @@
             let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
             firstSeekTo = currentTimeFromServer;
             let currentPlayerTime = await player.getCurrentTime();
-            if (Math.abs(currentPlayerTime - currentTimeFromServer) > 3) {
+            let leniencySeconds = 3;
+            if (player.getVideoLoadedFraction()*player.getDuration() < 10) {
+                leniencySeconds = 10;
+            }
+            if (Math.abs(currentPlayerTime - currentTimeFromServer) > leniencySeconds) {
                 player.seekTo(currentTimeFromServer, true);
             }
         } else {
-            videoId = "";
+            player.stopVideo();
+            if(videoId != "") {
+                videoId = "cdwal5Kw3Fc"; // ensure whatever video was there is really gone
+            } else {
+                videoId = "";
+            }
         }
         if (checkpoint.getReward() !== "") {
             rewardReceived.update((_) => checkpoint.getReward());
