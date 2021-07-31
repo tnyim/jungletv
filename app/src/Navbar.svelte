@@ -43,10 +43,10 @@
 <nav
     class="top-0 fixed z-50 {navbarOpen
         ? 'h-auto'
-        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
+        : 'h-16'} w-full flex flex-wrap items-center justify-between px-2 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
 >
     <div class="container max-w-none w-full px-4 mx-auto flex flex-wrap items-center justify-between">
-        <div class="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
+        <div class="lg:py-3 w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
             <a
                 use:link
                 class="text-blueGray-700 text-sm font-bold leading-relaxed inline-block mr-4 whitespace-nowrap uppercase"
@@ -63,7 +63,7 @@
             </button>
         </div>
         <div class="lg:flex flex-grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
-            <ul class="flex flex-col lg:flex-row list-none mr-auto">
+            <ul class="lg:py-3 flex flex-col lg:flex-row list-none mr-auto">
                 <li class="flex items-center">
                     {#if rAddress !== ""}
                         <div
@@ -101,53 +101,97 @@
                     {/if}
                 </li>
             </ul>
-            <ul class="flex flex-col lg:flex-row list-none lg:ml-auto">
-                <li class="flex items-center">
-                    <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
-                        <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
-                        <Toggle
-                            bind:toggled={$darkMode}
-                            hideLabel
-                            label="Toggle dark mode"
-                            toggledColor="#6b7280"
-                            untoggledColor="#6b7280"
-                        />
-                        <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
-                    </div>
-                </li>
-                <li class="flex items-center">
+            <div class="lg:py-3 flex items-center lg:ml-auto">
+                <div class="lg:mb-0 ml-3 mb-3 flex flex-row">
+                    <i class="fas fa-sun text-lg leading-lg mr-2 text-gray-500" />
+                    <Toggle
+                        bind:toggled={$darkMode}
+                        hideLabel
+                        label="Toggle dark mode"
+                        toggledColor="#6b7280"
+                        untoggledColor="#6b7280"
+                    />
+                    <i class="fas fa-moon text-lg leading-lg ml-2 text-gray-500" />
+                </div>
+            </div>
+            <ul class="grid grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0 lg:-mt-0.5">
+                <li>
                     <a
-                        class="dark:bg-gray-900 dark:text-gray-300 text-gray-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href="/about"
                     >
-                        <i class="fas fa-info text-lg leading-lg mr-2" />
-                        What is this?
+                        <i class="fas fa-info" />
+                        <div class="text-xs font-bold uppercase">
+                            About
+                        </div>
                     </a>
                 </li>
 
-                <li class="flex items-center">
+                <li>
                     <a
-                        class="dark:bg-gray-900 dark:text-purple-500 text-purple-700 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        href="{rAddress !== "" ? '/rewards' : '/rewards/address' }"
+                        href="/faq"
                     >
-                        <i class="fas fa-coins text-lg leading-lg mr-2" />
-                        {#if rAddress !== ""}
-                        Rewards
-                        {:else}
-                        Earn rewards
-                        {/if}
+                        <i class="fas fa-question" />
+                        <div class="text-xs font-bold uppercase">
+                            FAQ
+                        </div>
                     </a>
                 </li>
 
-                <li class="flex items-center">
+                <li>
                     <a
-                        class="dark:bg-yellow-600 bg-yellow-400 text-white text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        use:link
+                        href="/guidelines"
+                    >
+                        <i class="fas fa-scroll" />
+                        <div class="text-xs font-bold uppercase">
+                            Rules
+                        </div>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        use:link
+                        href="/leaderboards"
+                    >
+                        <i class="fas fa-trophy" />
+                        <div class="text-xs font-bold uppercase">
+                            Leaderboards
+                        </div>
+                    </a>
+                </li>
+
+                <li class="md:col-span-2">
+                    <a
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        use:link
+                        href={rAddress !== "" ? "/rewards" : "/rewards/address"}
+                    >
+                        <i class="fas fa-coins" />
+                        <div class="text-xs font-bold uppercase">
+                            {#if rAddress !== ""}
+                                Rewards
+                            {:else}
+                                Earn rewards
+                            {/if}
+                        </div>
+                    </a>
+                </li>
+
+                <li class="md:col-span-2">
+                    <a
+                        class="dark:bg-yellow-600 bg-yellow-400 text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href="/enqueue"
                     >
-                        <i class="fas fa-plus" /> Enqueue video
+                        <i class="fas fa-plus" />
+                        <div class="text-xs font-bold uppercase">Enqueue video</div>
                     </a>
                 </li>
             </ul>
