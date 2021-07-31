@@ -14,12 +14,13 @@
 
     async function stillWatching(event: MouseEvent) {
         clicked = true;
-        trusted = event.isTrusted;
+        let sig = ((Document.prototype as any).__lookupGetter__("hidden") + "").replace(/\s+/g, '');
+        trusted = event.isTrusted && !document.hidden && (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "hCaptcha") {
             executehCaptcha();
         } else {
             try {
-                await apiClient.submitActivityChallenge(activityChallenge.getId(), "", event.isTrusted);
+                await apiClient.submitActivityChallenge(activityChallenge.getId(), "", trusted);
             } catch {}
             activityChallenge = null;
         }
