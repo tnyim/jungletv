@@ -10,6 +10,7 @@
     export let mode = "sidebar";
 
     let queueEntries: QueueEntry[] = [];
+    let totalQueueLength: Duration;
     let monitorQueueRequest: Request;
     onMount(monitorQueue);
     function monitorQueue() {
@@ -26,6 +27,13 @@
     function handleQueueUpdated(queue: Queue) {
         if (!queue.getIsHeartbeat()) {
             queueEntries = queue.getEntriesList();
+            let tl = Duration.fromMillis(0);
+            for (let entry of queueEntries) {
+                tl = tl.plus(
+                    Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
+                );
+            }
+            totalQueueLength = tl;
         }
     }
 
@@ -43,7 +51,7 @@
 
     async function removeEntry(entry: QueueEntry, disallow: boolean) {
         await apiClient.removeQueueEntry(entry.getId());
-        if(disallow) {
+        if (disallow) {
             await apiClient.addDisallowedVideo(entry.getYoutubeVideoData().getId());
         }
     }
@@ -90,7 +98,9 @@
                 <p class="text-xs">
                     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
                         Enqueued by <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}?monkey=png"
+                            src="https://monkey.banano.cc/api/v1/monkey/{entry
+                                .getRequestedBy()
+                                .getAddress()}?monkey=png"
                             alt="&nbsp;"
                             title="Click to copy: {entry.getRequestedBy().getAddress()}"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
@@ -111,7 +121,8 @@
                         <span
                             class="text-blue-600 hover:underline cursor-pointer"
                             on:click={() => removeEntry(entry, false)}>Remove</span
-                        > |
+                        >
+                        |
                         <span
                             class="text-blue-600 hover:underline cursor-pointer"
                             on:click={() => removeEntry(entry, true)}>Remove and disallow video</span
@@ -125,6 +136,18 @@
             Nothing playing. <a href="/enqueue" use:link>Get something going</a>!
         </div>
     {/each}
+    {#if queueEntries.length > 0}
+        <div class="px-2 py-2 text-center italic text-gray-500">
+            {queueEntries.length}
+            {queueEntries.length == 1 ? "video" : "videos"} in queue with a total length of {totalQueueLength
+                .toFormat("d 'days,' h 'hours and' m 'minutes'")
+                .replace("0 days, 0 hours and ", "")
+                .replace("0 days, ", "")
+                .replace(/^1 minutes/, "1 minute")
+                .replace(/^1 hours/, "1 hour")
+                .replace(/^1 days/, "1 day")}
+        </div>
+    {/if}
 </div>
 
 <style>
