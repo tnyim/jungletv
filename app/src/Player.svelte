@@ -6,7 +6,6 @@
     import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { activityChallengeReceived, currentlyWatching, playerConnected, rewardBalance, rewardReceived } from "./stores";
-    import { pow_callback, pow_initiate, pow_terminate } from "./pow";
 
     const options = {
         height: "100%",
@@ -20,11 +19,6 @@
     let consumeMediaRequest: Request;
     let playerBecameReady = false;
     let firstSeekTo = 0;
-    let workers: Worker[];
-
-    function shouldDoWorkGeneration() {
-        return !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
 
     onMount(() => {
         consumeMedia();
@@ -36,7 +30,7 @@
         });
     });
     function consumeMedia() {
-        consumeMediaRequest = apiClient.consumeMedia(shouldDoWorkGeneration(), handleCheckpoint, (code, msg) => {
+        consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
             playerConnected.update(() => false);
             activityChallengeReceived.update((_) => null);
             setTimeout(consumeMedia, 5000);
@@ -47,13 +41,6 @@
             consumeMediaRequest.close();
         }
         activityChallengeReceived.update((_) => null);
-        if (workers !== undefined && workers.length > 0) {
-            try {
-                pow_terminate(workers);
-            } catch (e) {
-                console.log("pow_terminate", e);
-            }
-        }
     });
 
     let videoId = "";
@@ -88,40 +75,6 @@
         }
         if (checkpoint.hasActivityChallenge()) {
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());
-        }
-        if (checkpoint.hasPowTask()) {
-            try {
-                workers = pow_initiate(undefined, "/assets/vendor/pow/");
-                if (workers === undefined || workers.length == 0) {
-                    return;
-                }
-
-                let task = checkpoint.getPowTask();
-                // convert the bytes to hex strings
-                let previous = task
-                    .getPrevious_asU8()
-                    .reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
-                let target = task.getTarget_asU8().reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
-                let workTimeout = setTimeout(() => {
-                    if (workers !== undefined) {
-                        pow_terminate(workers);
-                    }
-                }, 10000);
-                pow_callback(
-                    workers,
-                    previous,
-                    target,
-                    () => {},
-                    async (work) => {
-                        clearTimeout(workTimeout);
-                        // convert the hex string to a Uint8Array
-                        let workArray = new Uint8Array(work.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
-                        await apiClient.submitProofOfWork(task.getPrevious_asU8(), workArray);
-                    }
-                );
-            } catch (e) {
-                console.log("pow task", e);
-            }
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }

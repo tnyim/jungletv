@@ -57,7 +57,6 @@ type grpcServer struct {
 	withdrawalHandler *WithdrawalHandler
 	statsHandler      *StatsHandler
 	chat              *ChatManager
-	workGenerator     *WorkGenerator
 	moderationStore   ModerationStore
 
 	youtube       *youtube.Service
@@ -80,7 +79,6 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		jwtManager:                     jwtManager,
 		verificationProcesses:          cache.New(5*time.Minute, 1*time.Minute),
 		mediaQueue:                     mediaQueue,
-		workGenerator:                  NewWorkGenerator(),
 		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       autoEnqueueVideoListFile,
@@ -129,7 +127,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		log, statsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, hCaptchaSecret, w,
-		s.collectorAccountQueue, s.workGenerator, s.paymentAccountPendingWaitGroup, s.moderationStore)
+		s.collectorAccountQueue, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

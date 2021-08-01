@@ -17,7 +17,6 @@ service JungleTV {
     rpc SubmitActivityChallenge (SubmitActivityChallengeRequest) returns (SubmitActivityChallengeResponse) {}
     rpc ConsumeChat (ConsumeChatRequest) returns (stream ChatUpdate) {}
     rpc SendChatMessage (SendChatMessageRequest) returns (SendChatMessageResponse) {}
-    rpc SubmitProofOfWork (SubmitProofOfWorkRequest) returns (SubmitProofOfWorkResponse) {}
     rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
     rpc GetDocument (GetDocumentRequest) returns (Document) {}
     rpc SetChatNickname (SetChatNicknameRequest) returns (SetChatNicknameResponse) {}
@@ -126,9 +125,7 @@ message MonitorTicketRequest {
     string ticket_id = 1;
 }
 
-message ConsumeMediaRequest {
-    bool participate_in_pow = 1;
-}
+message ConsumeMediaRequest {}
 
 // NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
 message NowPlayingStubData {}
@@ -146,21 +143,15 @@ message MediaConsumptionCheckpoint {
     optional string reward = 6;
     optional string reward_balance = 7;
     optional ActivityChallenge activity_challenge = 8;
-    optional ProofOfWorkTask pow_task = 9;
     oneof media_info {
-        NowPlayingStubData stub_data = 10;
-        NowPlayingYouTubeVideoData youtube_video_data = 11;
+        NowPlayingStubData stub_data = 9;
+        NowPlayingYouTubeVideoData youtube_video_data = 10;
     }
 }
 
 message ActivityChallenge {
     string id = 1;
     string type = 2;
-}
-
-message ProofOfWorkTask {
-    bytes target = 1;
-    bytes previous = 2;
 }
 
 message MonitorQueueRequest {}
@@ -353,14 +344,6 @@ message UserChatMessagesRequest {
 
 message UserChatMessagesResponse {
     repeated ChatMessage messages = 1;
-}
-
-message SubmitProofOfWorkRequest {
-    bytes previous = 1;
-    bytes work = 2;
-}
-
-message SubmitProofOfWorkResponse {
 }
 
 message UserPermissionLevelRequest {}

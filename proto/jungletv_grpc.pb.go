@@ -26,7 +26,6 @@ type JungleTVClient interface {
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
 	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
-	SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*Document, error)
 	SetChatNickname(ctx context.Context, in *SetChatNicknameRequest, opts ...grpc.CallOption) (*SetChatNicknameResponse, error)
@@ -255,15 +254,6 @@ func (c *jungleTVClient) SendChatMessage(ctx context.Context, in *SendChatMessag
 	return out, nil
 }
 
-func (c *jungleTVClient) SubmitProofOfWork(ctx context.Context, in *SubmitProofOfWorkRequest, opts ...grpc.CallOption) (*SubmitProofOfWorkResponse, error) {
-	out := new(SubmitProofOfWorkResponse)
-	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SubmitProofOfWork", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *jungleTVClient) UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error) {
 	out := new(UserPermissionLevelResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserPermissionLevel", in, out, opts...)
@@ -466,7 +456,6 @@ type JungleTVServer interface {
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
 	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
-	SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error)
 	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
 	GetDocument(context.Context, *GetDocumentRequest) (*Document, error)
 	SetChatNickname(context.Context, *SetChatNicknameRequest) (*SetChatNicknameResponse, error)
@@ -522,9 +511,6 @@ func (UnimplementedJungleTVServer) ConsumeChat(*ConsumeChatRequest, JungleTV_Con
 }
 func (UnimplementedJungleTVServer) SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendChatMessage not implemented")
-}
-func (UnimplementedJungleTVServer) SubmitProofOfWork(context.Context, *SubmitProofOfWorkRequest) (*SubmitProofOfWorkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitProofOfWork not implemented")
 }
 func (UnimplementedJungleTVServer) UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserPermissionLevel not implemented")
@@ -775,24 +761,6 @@ func _JungleTV_SendChatMessage_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).SendChatMessage(ctx, req.(*SendChatMessageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _JungleTV_SubmitProofOfWork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SubmitProofOfWorkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(JungleTVServer).SubmitProofOfWork(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/jungletv.JungleTV/SubmitProofOfWork",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JungleTVServer).SubmitProofOfWork(ctx, req.(*SubmitProofOfWorkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1194,10 +1162,6 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendChatMessage",
 			Handler:    _JungleTV_SendChatMessage_Handler,
-		},
-		{
-			MethodName: "SubmitProofOfWork",
-			Handler:    _JungleTV_SubmitProofOfWork_Handler,
 		},
 		{
 			MethodName: "UserPermissionLevel",
