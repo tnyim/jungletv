@@ -22,6 +22,6 @@
             {@html d.getContent()}
         {/if}
     {:catch}
-        <p>Document not available.</p>
+        <p>Content not available.</p>
     {/await}
 </div>

@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS "chat_message" (
     reference BIGINT REFERENCES chat_message (id),
     shadowbanned BOOLEAN NOT NULL
 );
+CREATE INDEX index_created_at_on_chat_message ON chat_message USING BTREE (created_at);
 
 CREATE TABLE IF NOT EXISTS "received_reward" (
     id VARCHAR(36) PRIMARY KEY,
@@ -69,6 +70,8 @@ CREATE TABLE IF NOT EXISTS "received_reward" (
     amount NUMERIC(39, 0) NOT NULL,
     media VARCHAR(36) NOT NULL REFERENCES played_media (id)
 );
+CREATE INDEX index_rewards_address_on_received_reward ON received_reward USING HASH (rewards_address);
+CREATE INDEX index_received_at_on_received_reward ON received_reward USING BTREE (received_at);
 
 CREATE TABLE IF NOT EXISTS "reward_balance" (
     rewards_address VARCHAR(64) PRIMARY KEY,
@@ -89,3 +92,5 @@ CREATE TABLE IF NOT EXISTS "withdrawal" (
     started_at TIMESTAMP WITH TIME ZONE NOT NULL,
     completed_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+CREATE INDEX index_rewards_address_on_withdrawal ON withdrawal USING HASH (rewards_address);
+CREATE INDEX index_started_at_on_withdrawal ON withdrawal USING BTREE (started_at);

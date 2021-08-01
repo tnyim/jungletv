@@ -11,7 +11,7 @@
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
-    media.subscribe((obj: any) => largeScreen = obj.large);
+    media.subscribe((obj: any) => (largeScreen = obj.large));
 
     const sidebarOpenCloseAnimDuration = 400;
 

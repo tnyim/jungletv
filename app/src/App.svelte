@@ -101,7 +101,7 @@
 
 	@layer base {
 		a {
-			@apply text-blue-600 hover:underline cursor-pointer;
+			@apply text-blue-600 dark:text-blue-400 hover:underline cursor-pointer;
 		}
 
 		.markdown-document h1 {

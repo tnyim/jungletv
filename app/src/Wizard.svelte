@@ -19,5 +19,15 @@
                 </div>
             {/if}
         </div>
+        {#if $$slots.secondary_1}
+            <div class="mt-4">
+                <slot name="secondary_1" />
+            </div>
+        {/if}
+        {#if $$slots.secondary_2}
+            <div class="mt-4">
+                <slot name="secondary_2" />
+            </div>
+        {/if}
     </div>
 </div>

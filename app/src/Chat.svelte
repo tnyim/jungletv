@@ -503,9 +503,9 @@
                 <div class="px-2 pb-2 text-xs">
                     <WarningMessage>
                         Before participating in chat, make sure to read the
-                        <a use:link href="/guidelines">community guidelines</a>.
+                        <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.
                         <br />
-                        <a class="font-semibold float-right" href={"#"} on:click={dismissGuidelinesWarning}
+                        <a class="font-semibold float-right dark:text-blue-600" href={"#"} on:click={dismissGuidelinesWarning}
                             >I read the guidelines and will respect them</a
                         >
                     </WarningMessage>

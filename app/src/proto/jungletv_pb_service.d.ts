@@ -139,6 +139,24 @@ type JungleTVLeaderboards = {
   readonly responseType: typeof jungletv_pb.LeaderboardsResponse;
 };
 
+type JungleTVRewardHistory = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RewardHistoryRequest;
+  readonly responseType: typeof jungletv_pb.RewardHistoryResponse;
+};
+
+type JungleTVWithdrawalHistory = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.WithdrawalHistoryRequest;
+  readonly responseType: typeof jungletv_pb.WithdrawalHistoryResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -282,6 +300,8 @@ export class JungleTV {
   static readonly SetChatNickname: JungleTVSetChatNickname;
   static readonly Withdraw: JungleTVWithdraw;
   static readonly Leaderboards: JungleTVLeaderboards;
+  static readonly RewardHistory: JungleTVRewardHistory;
+  static readonly WithdrawalHistory: JungleTVWithdrawalHistory;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -424,6 +444,24 @@ export class JungleTVClient {
   leaderboards(
     requestMessage: jungletv_pb.LeaderboardsRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.LeaderboardsResponse|null) => void
+  ): UnaryResponse;
+  rewardHistory(
+    requestMessage: jungletv_pb.RewardHistoryRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RewardHistoryResponse|null) => void
+  ): UnaryResponse;
+  rewardHistory(
+    requestMessage: jungletv_pb.RewardHistoryRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RewardHistoryResponse|null) => void
+  ): UnaryResponse;
+  withdrawalHistory(
+    requestMessage: jungletv_pb.WithdrawalHistoryRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.WithdrawalHistoryResponse|null) => void
+  ): UnaryResponse;
+  withdrawalHistory(
+    requestMessage: jungletv_pb.WithdrawalHistoryRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.WithdrawalHistoryResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

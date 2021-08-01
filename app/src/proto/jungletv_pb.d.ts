@@ -2100,6 +2100,200 @@ export namespace LeaderboardValue {
   }
 }
 
+export class RewardHistoryRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RewardHistoryRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RewardHistoryRequest): RewardHistoryRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RewardHistoryRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RewardHistoryRequest;
+  static deserializeBinaryFromReader(message: RewardHistoryRequest, reader: jspb.BinaryReader): RewardHistoryRequest;
+}
+
+export namespace RewardHistoryRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+  }
+}
+
+export class ReceivedReward extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  getAmount(): string;
+  setAmount(value: string): void;
+
+  hasReceivedAt(): boolean;
+  clearReceivedAt(): void;
+  getReceivedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setReceivedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getMediaId(): string;
+  setMediaId(value: string): void;
+
+  hasYoutubeVideoData(): boolean;
+  clearYoutubeVideoData(): void;
+  getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
+  setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
+
+  getMediaInfoCase(): ReceivedReward.MediaInfoCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ReceivedReward.AsObject;
+  static toObject(includeInstance: boolean, msg: ReceivedReward): ReceivedReward.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ReceivedReward, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ReceivedReward;
+  static deserializeBinaryFromReader(message: ReceivedReward, reader: jspb.BinaryReader): ReceivedReward;
+}
+
+export namespace ReceivedReward {
+  export type AsObject = {
+    id: string,
+    rewardsAddress: string,
+    amount: string,
+    receivedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    mediaId: string,
+    youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+  }
+
+  export enum MediaInfoCase {
+    MEDIA_INFO_NOT_SET = 0,
+    YOUTUBE_VIDEO_DATA = 6,
+  }
+}
+
+export class RewardHistoryResponse extends jspb.Message {
+  clearReceivedRewardsList(): void;
+  getReceivedRewardsList(): Array<ReceivedReward>;
+  setReceivedRewardsList(value: Array<ReceivedReward>): void;
+  addReceivedRewards(value?: ReceivedReward, index?: number): ReceivedReward;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RewardHistoryResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RewardHistoryResponse): RewardHistoryResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RewardHistoryResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RewardHistoryResponse;
+  static deserializeBinaryFromReader(message: RewardHistoryResponse, reader: jspb.BinaryReader): RewardHistoryResponse;
+}
+
+export namespace RewardHistoryResponse {
+  export type AsObject = {
+    receivedRewardsList: Array<ReceivedReward.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
+export class WithdrawalHistoryRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): WithdrawalHistoryRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: WithdrawalHistoryRequest): WithdrawalHistoryRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: WithdrawalHistoryRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WithdrawalHistoryRequest;
+  static deserializeBinaryFromReader(message: WithdrawalHistoryRequest, reader: jspb.BinaryReader): WithdrawalHistoryRequest;
+}
+
+export namespace WithdrawalHistoryRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+  }
+}
+
+export class Withdrawal extends jspb.Message {
+  getTxHash(): string;
+  setTxHash(value: string): void;
+
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  getAmount(): string;
+  setAmount(value: string): void;
+
+  hasStartedAt(): boolean;
+  clearStartedAt(): void;
+  getStartedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setStartedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasCompletedAt(): boolean;
+  clearCompletedAt(): void;
+  getCompletedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCompletedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Withdrawal.AsObject;
+  static toObject(includeInstance: boolean, msg: Withdrawal): Withdrawal.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Withdrawal, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Withdrawal;
+  static deserializeBinaryFromReader(message: Withdrawal, reader: jspb.BinaryReader): Withdrawal;
+}
+
+export namespace Withdrawal {
+  export type AsObject = {
+    txHash: string,
+    rewardsAddress: string,
+    amount: string,
+    startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    completedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class WithdrawalHistoryResponse extends jspb.Message {
+  clearWithdrawalsList(): void;
+  getWithdrawalsList(): Array<Withdrawal>;
+  setWithdrawalsList(value: Array<Withdrawal>): void;
+  addWithdrawals(value?: Withdrawal, index?: number): Withdrawal;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): WithdrawalHistoryResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: WithdrawalHistoryResponse): WithdrawalHistoryResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: WithdrawalHistoryResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WithdrawalHistoryResponse;
+  static deserializeBinaryFromReader(message: WithdrawalHistoryResponse, reader: jspb.BinaryReader): WithdrawalHistoryResponse;
+}
+
+export namespace WithdrawalHistoryResponse {
+  export type AsObject = {
+    withdrawalsList: Array<Withdrawal.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

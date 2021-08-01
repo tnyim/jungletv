@@ -23,6 +23,8 @@ service JungleTV {
     rpc SetChatNickname (SetChatNicknameRequest) returns (SetChatNicknameResponse) {}
     rpc Withdraw (WithdrawRequest) returns (WithdrawResponse) {}
     rpc Leaderboards (LeaderboardsRequest) returns (LeaderboardsResponse) {}
+    rpc RewardHistory (RewardHistoryRequest) returns (RewardHistoryResponse) {}
+    rpc WithdrawalHistory (WithdrawalHistoryRequest) returns (WithdrawalHistoryResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -465,4 +467,43 @@ message LeaderboardValue {
     oneof value {
         string amount = 1;
     }
+}
+
+message RewardHistoryRequest {
+    PaginationParameters pagination_params = 1;
+}
+
+message ReceivedReward {
+    string id = 1;
+    string rewards_address = 2;
+    string amount = 3;
+    google.protobuf.Timestamp received_at = 4;
+    string media_id = 5;
+    oneof media_info {
+        QueueYouTubeVideoData youtube_video_data = 6;
+    }
+}
+
+message RewardHistoryResponse {
+    repeated ReceivedReward received_rewards = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message WithdrawalHistoryRequest {
+    PaginationParameters pagination_params = 1;
+}
+
+message Withdrawal {
+    string tx_hash = 1;
+    string rewards_address = 2;
+    string amount = 3;
+    google.protobuf.Timestamp started_at = 4;
+    google.protobuf.Timestamp completed_at = 5;
+}
+
+message WithdrawalHistoryResponse {
+    repeated Withdrawal withdrawals = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
 }

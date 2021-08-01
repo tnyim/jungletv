@@ -86,13 +86,13 @@
 </script>
 
 <div
-  class="relative flex flex-col min-w-0 break-words w-full mb-6 {is_card
-    ? 'shadow-lg rounded'
+  class="relative flex flex-col min-w-0 break-words w-full {is_card
+    ? 'shadow rounded'
     : ''} bg-white dark:bg-gray-800"
 >
   <div class="rounded-t mb-0 px-4 py-3 border-0">
     <div class="flex flex-wrap items-center">
-      <div class="relative w-full px-2 max-w-full flex-grow flex-1">
+      <div class="relative w-full sm:px-2 max-w-full flex-grow flex-1">
         <h3 class="font-semibold text-lg text-gray-800 dark:text-white">
           {title}
           {#if search_query}
@@ -112,7 +112,7 @@
           {#each Array.from(new Array(Math.max(last_page_items, 1)).keys()) as rownum}
             <tr>
               <td
-                class="border-t-0 px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-no-wrap p-4"
+                class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-nowrap p-4"
                 colspan={column_count}
               >
                 {#if rownum === 0}
@@ -127,14 +127,14 @@
             <slot name="item" {item} {updateDataCallback} />
           {:else}
             <td
-              class="border-t-0 px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-no-wrap p-4"
+              class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-nowrap p-4"
               colspan={column_count}>{search_query != "" ? no_results_message : no_items_message}</td
             >
           {/each}
         {:catch}
           <tr>
             <td
-              class="border-t-0 px-6 align-middle text-center border-l-0 border-r-0 text-xs whitespace-no-wrap p-4 text-red-600"
+              class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-red-600"
               colspan={column_count}>{error_message}</td
             >
           </tr>
@@ -142,16 +142,16 @@
       </tbody>
     </table>
     {#if num_pages > 1}
-      <div class="py-2 align-middle">
+      <div class="py-2 pb-3 align-middle">
         <nav class="block">
-          <ul class="flex px-6 rounded list-none flex-wrap">
+          <ul class="flex px-4 sm:px-6 rounded list-none flex-wrap">
             {#each page_nums as page}
               {#if pages_to_show[page]}
                 <li>
                   <button
                     on:click={(event) => changePageWithElem(event.currentTarget, page)}
-                    class="first:ml-0 text-xs font-semibold flex w-8 h-8 mx-1 p-0 rounded-full items-center justify-center leading-tight relative border border-solid border-profilerblue
-                    {page === cur_page ? 'bg-blue-600 text-white' : ' bg-white text-blue-600'}
+                    class="first:ml-0 text-xs font-semibold flex w-8 h-8 mx-1 p-0 rounded-full items-center justify-center leading-tight relative border border-solid border-yellow-800
+                    {page === cur_page ? 'bg-yellow-600 text-white' : ' bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-600 ease-linear transition-all duration-150'}
                   ">{page + 1}</button
                   >
                 </li>
