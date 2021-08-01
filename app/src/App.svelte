@@ -118,11 +118,15 @@
 		}
 
 		.markdown-document ul {
-			@apply list-disc list-inside;
+			@apply list-disc list-outside;
+			margin: 1em 0;
+    		padding: 0 0 0 20px;
 		}
 
 		.markdown-document ol {
-			@apply list-decimal list-inside;
+			@apply list-decimal list-outside;
+			margin: 1em 0;
+    		padding: 0 0 0 30px;
 		}
 
 		.markdown-document li > p {
@@ -132,6 +136,7 @@
 
 		.markdown-document li {
 			@apply mb-3;
+			display: list-item;
 		}
 
 		.markdown-document p {

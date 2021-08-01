@@ -172,7 +172,7 @@
             in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
             out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
         >
-            <Document documentID="announcements" />
+            <Document documentID="announcements" mode="sidebar" />
         </div>
     {/if}
 </div>
