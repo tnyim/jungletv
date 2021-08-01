@@ -133,7 +133,7 @@
         </div>
         {#if playerIsConnected}
             <div
-                class="text-gray-500 pt-1"
+                class="text-gray-500 pt-1 pl-2"
                 title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
             >
                 <i class="far fa-eye " />
@@ -141,7 +141,7 @@
             </div>
         {:else}
             <div
-                class="text-red-500 pt-1"
+                class="text-red-500 pt-1 pl-2"
                 title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
             >
                 <i class="fas fa-low-vision" /> Disconnected
