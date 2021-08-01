@@ -54,7 +54,7 @@
         <textarea class="w-full h-96 text-black font-mono" bind:value={content} />
         <h2 class="text-lg mt-6 text-center border-b border-gray-500">Preview</h2>
         <div class="markdown-document">
-            {@html marked.parse(content)}
+            {@html marked.parse(content, { tokenizer: undefined })}
         </div>
     {/await}
 </div>

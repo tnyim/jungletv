@@ -17,7 +17,7 @@
     {:then d}
         {#if d.getFormat() == "markdown"}
             <div class="markdown-document {mode == "sidebar" ? "sidebar-document" : ""}">
-                {@html marked.parse(d.getContent())}
+                {@html marked.parse(d.getContent(), { tokenizer: undefined })}
             </div>
         {:else if d.getFormat() == "html"}
             {@html d.getContent()}
