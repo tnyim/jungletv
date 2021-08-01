@@ -2,6 +2,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { Document } from "./proto/jungletv_pb";
+    import marked from "marked/lib/marked.esm.js";
 
     export let documentID = "";
     let content = "";
@@ -51,5 +52,9 @@
         <p>Loading document...</p>
     {:then}
         <textarea class="w-full h-96 text-black font-mono" bind:value={content} />
+        <h2 class="text-lg mt-6 text-center border-b border-gray-500">Preview</h2>
+        <div class="markdown-document">
+            {@html marked.parse(content)}
+        </div>
     {/await}
 </div>
