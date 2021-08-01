@@ -77,7 +77,9 @@
     }
 
     async function setPricesMultiplier() {
-        let multiplierStr = prompt("Enter the multiplier (think of it as a percentage of the original prices). Minimum is 10, default is 100.");
+        let multiplierStr = prompt(
+            "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 10, default is 100."
+        );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
             alert("Invalid multiplier");
@@ -86,7 +88,7 @@
         try {
             await apiClient.setPricesMultiplier(multiplier);
             alert("Prices multiplier set successfully");
-        } catch(e) {
+        } catch (e) {
             alert("An error occurred when setting the prices multiplier: " + e);
         }
     }
@@ -272,7 +274,11 @@
     </div>
     <div>
         <p class="px-2 font-semibold text-lg">Documents</p>
-        <p class="px-2"><a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> | <a use:link href="/moderate/documents/faq">Edit FAQ</a></p>
+        <p class="px-2">
+            <a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> |
+            <a use:link href="/moderate/documents/faq">Edit FAQ</a> |
+            <a use:link href="/moderate/documents/announcements">Edit Announcements</a>
+        </p>
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Chat</p>

@@ -5,7 +5,7 @@
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
     import Chat from "./Chat.svelte";
-    import ScaleOut from "svelte-loading-spinners/dist/ts/ScaleOut.svelte";
+    import Document from "./Document.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -18,7 +18,8 @@
         playerIsConnected = connected;
     });
 
-    const tabOrder = ["queue", "chat"];
+    const tabOrder = ["queue", "chat", "announcements"];
+    const tabNames = ["Queue", "Chat", "Announcements"];
     let selectedTab = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
     let tabInX = 384;
     let tabOutX = 384;
@@ -87,6 +88,8 @@
                 } else {
                     didNotMoveFor = 0;
                 }
+            } else {
+                clearScrollInterval();
             }
         }, 16);
     }
@@ -122,12 +125,11 @@
             bind:this={tabBar}
             bind:offsetWidth={blW}
         >
-            <SidebarTabButton selected={selectedTab == "queue"} on:click={() => sidebarMode.update((_) => "queue")}>
-                Queue
-            </SidebarTabButton>
-            <SidebarTabButton selected={selectedTab == "chat"} on:click={() => sidebarMode.update((_) => "chat")}>
-                Chat
-            </SidebarTabButton>
+            {#each tabOrder as tabId, idx}
+                <SidebarTabButton selected={selectedTab == tabId} on:click={() => sidebarMode.update((_) => tabId)}>
+                    {tabNames[idx]}
+                </SidebarTabButton>
+            {/each}
         </div>
         {#if playerIsConnected}
             <div
@@ -163,6 +165,14 @@
             out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
         >
             <Chat mode="sidebar" />
+        </div>
+    {:else if selectedTab == "announcements"}
+        <div
+            class="h-full lg:overflow-y-auto"
+            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
+            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
+        >
+            <Document documentID="announcements" />
         </div>
     {/if}
 </div>
