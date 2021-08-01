@@ -9,7 +9,7 @@
     let documentPromise = apiClient.getDocument(documentID);
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
+<div class="flex-grow container mx-auto max-w-screen-md p-2">
     <span use:registerFocus class="hidden" />
     {#await documentPromise}
         <p>Loading content...</p>
