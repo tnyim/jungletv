@@ -1,10 +1,11 @@
 <script lang="ts">
     import { currentlyWatching, playerConnected, sidebarMode } from "./stores";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import Queue from "./Queue.svelte";
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
     import Chat from "./Chat.svelte";
+    import ScaleOut from "svelte-loading-spinners/dist/ts/ScaleOut.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -17,9 +18,88 @@
         playerIsConnected = connected;
     });
 
-    let selectedTab = "queue";
+    const tabOrder = ["queue", "chat"];
+    let selectedTab = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
+    let tabInX = 384;
+    let tabOutX = 384;
+    const EXIT_LEFT = -384;
+    const EXIT_RIGHT = 384;
+    const ENTER_LEFT = -384;
+    const ENTER_RIGHT = 384;
+    const SLIDE_DURATION = 200;
     sidebarMode.subscribe((mode) => {
+        if (tabOrder.indexOf(selectedTab) < tabOrder.indexOf(mode)) {
+            // new tab is to the right
+            tabInX = ENTER_RIGHT; // the tab that's entering must enter through the right
+            tabOutX = EXIT_LEFT; // the tab that's leaving must leave through the left
+        } else {
+            // new tab is to the left
+            tabInX = ENTER_LEFT; // the tab that's entering must enter through the left
+            tabOutX = EXIT_RIGHT; // the tab that's leaving must leave through the right
+        }
         selectedTab = mode;
+    });
+
+    let tabBar: HTMLDivElement;
+    let blW = 0;
+    let blSW = 1,
+        wDiff = blSW / blW - 1, // widths difference ratio
+        mPadd = 120, // Mousemove Padding
+        damp = 10, // Mousemove response softness
+        mX = 0, // Real mouse position
+        mX2 = 0, // Modified mouse position
+        posX = 0,
+        mmAA = blW - mPadd * 2, // The mousemove available area
+        mmAAr = blW / mmAA; // get available mousemove fidderence ratio
+    $: if (tabBar !== undefined) {
+        blSW = tabBar.scrollWidth;
+        wDiff = blSW / blW - 1; // widths difference ratio
+        mmAA = blW - mPadd * 2; // The mousemove available area
+        mmAAr = blW / mmAA;
+    }
+    let touchingTabBar = false;
+    function onTabBarMouseMove(e: MouseEvent) {
+        if (!touchingTabBar) {
+            mX = e.pageX - tabBar.getBoundingClientRect().left;
+            mX2 = Math.min(Math.max(0, mX - mPadd), mmAA) * mmAAr;
+            if (scrollInterval == undefined) {
+                setupScrollInterval();
+            }
+        }
+    }
+
+    let scrollInterval: number;
+    let didNotMoveFor = 0;
+
+    function setupScrollInterval() {
+        scrollInterval = setInterval(function () {
+            if (!touchingTabBar) {
+                let prev = tabBar.scrollLeft;
+                posX += (mX2 - posX) / damp; // zeno's paradox equation "catching delay"
+                tabBar.scrollLeft = posX * wDiff;
+                if (prev == tabBar.scrollLeft) {
+                    didNotMoveFor++;
+                    if (didNotMoveFor > 20) {
+                        // we have stopped moving, clear the interval to save power
+                        clearScrollInterval();
+                        return;
+                    }
+                } else {
+                    didNotMoveFor = 0;
+                }
+            }
+        }, 16);
+    }
+
+    function clearScrollInterval() {
+        if (scrollInterval !== undefined) {
+            clearInterval(scrollInterval);
+            scrollInterval = undefined;
+        }
+    }
+
+    onDestroy(() => {
+        clearScrollInterval();
     });
 </script>
 
@@ -31,7 +111,17 @@
         <i class="fas fa-angle-double-right" />
     </div>
     <div class="flex flex-row lg:ml-10">
-        <div class="flex-grow flex flex-row">
+        <div
+            class="flex-1 flex flex-row h-9 lg: overflow-x-scroll disable-scrollbars relative"
+            on:mousemove={onTabBarMouseMove}
+            on:touchstart={() => (touchingTabBar = true)}
+            on:touchend={() => {
+                clearScrollInterval();
+                touchingTabBar = false;
+            }}
+            bind:this={tabBar}
+            bind:offsetWidth={blW}
+        >
             <SidebarTabButton selected={selectedTab == "queue"} on:click={() => sidebarMode.update((_) => "queue")}>
                 Queue
             </SidebarTabButton>
@@ -59,11 +149,19 @@
 </div>
 <div class="h-full lg:overflow-y-auto transition-container">
     {#if selectedTab == "queue"}
-        <div class="h-full lg:overflow-y-auto" transition:fly|local={{ duration: 200, x: -384 }}>
+        <div
+            class="h-full lg:overflow-y-auto"
+            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
+            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
+        >
             <Queue mode="sidebar" />
         </div>
     {:else if selectedTab == "chat"}
-        <div class="h-full lg:overflow-y-auto" transition:fly|local={{ duration: 200, x: 384 }}>
+        <div
+            class="h-full lg:overflow-y-auto"
+            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
+            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
+        >
             <Chat mode="sidebar" />
         </div>
     {/if}
@@ -81,5 +179,16 @@
         grid-column: 1;
         overflow-x: hidden;
         mix-blend-mode: normal;
+    }
+
+    .disable-scrollbars::-webkit-scrollbar {
+        width: 0px;
+        height: 0px;
+        background: transparent; /* Chrome/Safari/Webkit */
+    }
+
+    .disable-scrollbars {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE 10+ */
     }
 </style>
