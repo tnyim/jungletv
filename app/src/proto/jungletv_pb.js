@@ -6889,8 +6889,9 @@ proto.jungletv.RewardInfoResponse.toObject = function(includeInstance, msg) {
     rewardAddress: jspb.Message.getFieldWithDefault(msg, 1, ""),
     rewardBalance: jspb.Message.getFieldWithDefault(msg, 2, ""),
     withdrawalPending: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-    withdrawalPositionInQueue: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    withdrawalsInQueue: jspb.Message.getFieldWithDefault(msg, 5, 0)
+    badRepresentative: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
+    withdrawalPositionInQueue: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    withdrawalsInQueue: jspb.Message.getFieldWithDefault(msg, 6, 0)
   };
 
   if (includeInstance) {
@@ -6940,10 +6941,14 @@ proto.jungletv.RewardInfoResponse.deserializeBinaryFromReader = function(msg, re
       msg.setWithdrawalPending(value);
       break;
     case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setBadRepresentative(value);
+      break;
+    case 5:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWithdrawalPositionInQueue(value);
       break;
-    case 5:
+    case 6:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWithdrawalsInQueue(value);
       break;
@@ -6997,9 +7002,9 @@ proto.jungletv.RewardInfoResponse.serializeBinaryToWriter = function(message, wr
       f
     );
   }
-  f = /** @type {number} */ (jspb.Message.getField(message, 4));
-  if (f != null) {
-    writer.writeInt32(
+  f = message.getBadRepresentative();
+  if (f) {
+    writer.writeBool(
       4,
       f
     );
@@ -7008,6 +7013,13 @@ proto.jungletv.RewardInfoResponse.serializeBinaryToWriter = function(message, wr
   if (f != null) {
     writer.writeInt32(
       5,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeInt32(
+      6,
       f
     );
   }
@@ -7069,46 +7081,28 @@ proto.jungletv.RewardInfoResponse.prototype.setWithdrawalPending = function(valu
 
 
 /**
- * optional int32 withdrawal_position_in_queue = 4;
+ * optional bool bad_representative = 4;
+ * @return {boolean}
+ */
+proto.jungletv.RewardInfoResponse.prototype.getBadRepresentative = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.setBadRepresentative = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 4, value);
+};
+
+
+/**
+ * optional int32 withdrawal_position_in_queue = 5;
  * @return {number}
  */
 proto.jungletv.RewardInfoResponse.prototype.getWithdrawalPositionInQueue = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/**
- * @param {number} value
- * @return {!proto.jungletv.RewardInfoResponse} returns this
- */
-proto.jungletv.RewardInfoResponse.prototype.setWithdrawalPositionInQueue = function(value) {
-  return jspb.Message.setField(this, 4, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.jungletv.RewardInfoResponse} returns this
- */
-proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalPositionInQueue = function() {
-  return jspb.Message.setField(this, 4, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalPositionInQueue = function() {
-  return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional int32 withdrawals_in_queue = 5;
- * @return {number}
- */
-proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
 };
 
@@ -7117,7 +7111,7 @@ proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
  * @param {number} value
  * @return {!proto.jungletv.RewardInfoResponse} returns this
  */
-proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(value) {
+proto.jungletv.RewardInfoResponse.prototype.setWithdrawalPositionInQueue = function(value) {
   return jspb.Message.setField(this, 5, value);
 };
 
@@ -7126,7 +7120,7 @@ proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(val
  * Clears the field making it undefined.
  * @return {!proto.jungletv.RewardInfoResponse} returns this
  */
-proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function() {
+proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalPositionInQueue = function() {
   return jspb.Message.setField(this, 5, undefined);
 };
 
@@ -7135,8 +7129,44 @@ proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function()
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalsInQueue = function() {
+proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalPositionInQueue = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional int32 withdrawals_in_queue = 6;
+ * @return {number}
+ */
+proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(value) {
+  return jspb.Message.setField(this, 6, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function() {
+  return jspb.Message.setField(this, 6, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalsInQueue = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

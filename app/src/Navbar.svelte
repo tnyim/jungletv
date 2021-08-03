@@ -1,26 +1,31 @@
 <script lang="ts">
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { darkMode, rewardAddress, rewardBalance, rewardReceived } from "./stores";
-    import { fade, fly } from "svelte/transition";
+    import { badRepresentative, darkMode, rewardAddress, rewardBalance, rewardReceived } from "./stores";
     import { globalHistory } from "svelte-navigator";
     import Toggle from "svelte-toggle";
     import watchMedia from "svelte-media";
+    import NavbarAlert from "./NavbarAlert.svelte";
+
     const historyStore = { subscribe: globalHistory.listen };
-
-    let navbarOpen = false;
-
-    historyStore.subscribe(() => {
-        navbarOpen = false;
+    const media = watchMedia({
+        large: "(min-width: 1024px)",
+        largeEnoughForLeaderboardsButton: "(min-width: 1100px)",
     });
 
-    const media = watchMedia({ large: "(min-width: 1024px)" });
     let largeScreen = false;
+    let canShowLeaderboardsButton = false;
+    let navbarOpen = false;
     media.subscribe((obj: any) => {
         largeScreen = obj.large;
         if (obj.large) {
             navbarOpen = false;
         }
+        canShowLeaderboardsButton = !obj.large || obj.largeEnoughForLeaderboardsButton;
+    });
+
+    historyStore.subscribe(() => {
+        navbarOpen = false;
     });
 
     function setNavbarOpen() {
@@ -28,26 +33,10 @@
     }
 
     let rAddress = "";
-    let lastReward = "";
-    let hideRewardTimeout: number;
 
-    rewardAddress.subscribe((address) => {
+    rewardAddress.subscribe(async (address) => {
         rAddress = address;
     });
-
-    rewardReceived.subscribe((reward) => {
-        clearTimeout(hideRewardTimeout);
-        lastReward = reward;
-        hideRewardTimeout = setTimeout(() => (lastReward = ""), 7000);
-    });
-
-    async function copyAddress(address: string) {
-        try {
-            await navigator.clipboard.writeText(address);
-        } catch (err) {
-            console.error("Failed to copy!", err);
-        }
-    }
 </script>
 
 <nav
@@ -64,14 +53,8 @@
             >
                 <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-11 -mb-2" />
             </a>
-            {#if lastReward !== "" && !largeScreen}
-                <span
-                    class="text-sm text-gray-700 bg-yellow-200 ml-5 p-1 rounded h-7 self-center"
-                    in:fly={{ x: 200, duration: 1000 }}
-                    out:fade
-                >
-                    Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
-                </span>
+            {#if !largeScreen}
+                <NavbarAlert />
             {/if}
             <button
                 class="cursor-pointer ml-auto text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
@@ -109,14 +92,8 @@
                             </div>
                         </div>
                     {/if}
-                    {#if lastReward !== "" && largeScreen}
-                        <span
-                            class="text-sm text-gray-700 bg-yellow-200 ml-5 p-1 rounded"
-                            in:fly={{ x: 200, duration: 1000 }}
-                            out:fade
-                        >
-                            Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
-                        </span>
+                    {#if largeScreen}
+                        <NavbarAlert />
                     {/if}
                 </li>
                 <li class="lg:py-3 flex items-center ml-auto">
@@ -169,16 +146,18 @@
                     </a>
                 </li>
 
-                <li>
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/leaderboards"
-                    >
-                        <i class="fas fa-trophy" />
-                        <div class="text-xs font-bold uppercase">Leaderboards</div>
-                    </a>
-                </li>
+                {#if canShowLeaderboardsButton}
+                    <li>
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/leaderboards"
+                        >
+                            <i class="fas fa-trophy" />
+                            <div class="text-xs font-bold uppercase">Leaderboards</div>
+                        </a>
+                    </li>
+                {/if}
 
                 <li class="md:col-span-2">
                     <a

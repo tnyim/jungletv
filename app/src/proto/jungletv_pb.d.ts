@@ -735,6 +735,9 @@ export class RewardInfoResponse extends jspb.Message {
   getWithdrawalPending(): boolean;
   setWithdrawalPending(value: boolean): void;
 
+  getBadRepresentative(): boolean;
+  setBadRepresentative(value: boolean): void;
+
   hasWithdrawalPositionInQueue(): boolean;
   clearWithdrawalPositionInQueue(): void;
   getWithdrawalPositionInQueue(): number;
@@ -760,6 +763,7 @@ export namespace RewardInfoResponse {
     rewardAddress: string,
     rewardBalance: string,
     withdrawalPending: boolean,
+    badRepresentative: boolean,
     withdrawalPositionInQueue: number,
     withdrawalsInQueue: number,
   }

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
@@ -22,6 +23,33 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
 
+	delegatorsCountChan := make(chan uint64)
+	delegatorsErrChan := make(chan error)
+
+	_, cachedGoodRepResult := s.addressesWithGoodRepCache.Get(userClaims.RewardAddress)
+	if !cachedGoodRepResult {
+		go func() {
+			representative, err := s.wallet.RPC.AccountRepresentative(userClaims.RewardAddress)
+			if err != nil {
+				delegatorsErrChan <- stacktrace.Propagate(err, "")
+				return
+			}
+
+			cachedCount, ok := s.delegatorCountsPerRep.Get(representative)
+			if ok {
+				delegatorsCountChan <- cachedCount.(uint64)
+				return
+			}
+			c, err := s.wallet.RPC.DelegatorsCount(representative)
+			if err != nil {
+				delegatorsErrChan <- stacktrace.Propagate(err, "")
+				return
+			}
+			delegatorsCountChan <- c
+			s.delegatorCountsPerRep.SetDefault(representative, c)
+		}()
+	}
+
 	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.RewardAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -32,10 +60,24 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	badRepresentative := false
+	if !cachedGoodRepResult {
+		select {
+		case err := <-delegatorsErrChan:
+			s.log.Printf("Error checking delegators count for address %s: %v", userClaims.RewardAddress, err)
+		case c := <-delegatorsCountChan:
+			badRepresentative = c < 2
+			s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, true)
+		case <-time.After(5 * time.Second):
+			break
+		}
+	}
+
 	response := &proto.RewardInfoResponse{
 		RewardAddress:     userClaims.RewardAddress,
 		RewardBalance:     NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
 		WithdrawalPending: pendingWithdrawal,
+		BadRepresentative: badRepresentative,
 	}
 	if pendingWithdrawal {
 		p := int32(position)

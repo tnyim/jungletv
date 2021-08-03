@@ -67,9 +67,7 @@
                 videoId = "";
             }
         }
-        if (checkpoint.getReward() !== "") {
-            rewardReceived.update((_) => checkpoint.getReward());
-        }
+        rewardReceived.update((_) => checkpoint.getReward());
         if (checkpoint.getRewardBalance() !== "") {
             rewardBalance.update((_) => checkpoint.getRewardBalance());
         }

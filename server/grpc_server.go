@@ -49,7 +49,9 @@ type grpcServer struct {
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
 
-	verificationProcesses *cache.Cache
+	verificationProcesses     *cache.Cache
+	delegatorCountsPerRep     *cache.Cache
+	addressesWithGoodRepCache *cache.Cache
 
 	mediaQueue        *MediaQueue
 	enqueueManager    *EnqueueManager
@@ -78,6 +80,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		statsClient:                    statsClient,
 		jwtManager:                     jwtManager,
 		verificationProcesses:          cache.New(5*time.Minute, 1*time.Minute),
+		delegatorCountsPerRep:          cache.New(1*time.Hour, 5*time.Minute),
+		addressesWithGoodRepCache:      cache.New(6*time.Hour, 5*time.Minute),
 		mediaQueue:                     mediaQueue,
 		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),

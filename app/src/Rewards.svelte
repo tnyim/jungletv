@@ -5,7 +5,7 @@
     import PaginatedTable from "./PaginatedTable.svelte";
     import type { PaginationParameters, ReceivedReward, Withdrawal } from "./proto/jungletv_pb";
 
-    import { rewardAddress, rewardBalance } from "./stores";
+    import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
@@ -22,6 +22,7 @@
 
             rewardAddress.update((_) => rewardInfo.getRewardAddress());
             rewardBalance.update((_) => rewardInfo.getRewardBalance());
+            badRepresentative.update((_) => rewardInfo.getBadRepresentative());
             pendingWithdrawal = rewardInfo.getWithdrawalPending();
             if (rewardInfo.hasWithdrawalPositionInQueue()) {
                 withdrawalPositionInQueue = rewardInfo.getWithdrawalPositionInQueue();

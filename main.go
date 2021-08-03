@@ -349,6 +349,7 @@ func configureRouter(router *mux.Router) {
 	router.PathPrefix("/favicon.ico").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/favicon.png").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/apple-icon.png").Handler(http.FileServer(http.Dir("app/public/")))
+	router.PathPrefix("/banano.json").Handler(http.FileServer(http.Dir("app/public/")))
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := webtemplate.ExecuteTemplate(w, "index.template", struct {

@@ -3,7 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
-    import { rewardAddress, rewardBalance } from "./stores";
+    import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
 
     const dispatch = createEventDispatcher();
@@ -21,6 +21,7 @@
             rewardsBalance = rewardInfo.getRewardBalance();
             rewardAddress.update((_) => rewardsAddress);
             rewardBalance.update((_) => rewardsBalance);
+            badRepresentative.update((_) => rewardInfo.getBadRepresentative());
         } catch (ex) {
             console.log(ex);
             rewardsAddress = "";

@@ -11,7 +11,7 @@
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
-	import { darkMode, rewardAddress, rewardBalance } from "./stores";
+	import { badRepresentative, darkMode, rewardAddress, rewardBalance } from "./stores";
 	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
@@ -42,6 +42,7 @@
 			let rewardInfo = await apiClient.rewardInfo();
 			rewardAddress.update((_) => rewardInfo.getRewardAddress());
 			rewardBalance.update((_) => rewardInfo.getRewardBalance());
+			badRepresentative.update((_) => rewardInfo.getBadRepresentative());
 		} catch (ex) {
 			rewardAddress.update((_) => "");
 			rewardBalance.update((_) => "");
