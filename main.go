@@ -354,7 +354,9 @@ func configureRouter(router *mux.Router) {
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := webtemplate.ExecuteTemplate(w, "index.template", struct {
 			VersionHash string
+			FullURL     string
 		}{
+			FullURL:     websiteURL + r.URL.Path,
 			VersionHash: versionHash,
 		})
 		if err != nil {
