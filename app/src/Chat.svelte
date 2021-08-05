@@ -1,6 +1,6 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
-    import { onDestroy, onMount, beforeUpdate, afterUpdate } from "svelte";
+    import { onDestroy, onMount, beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
     import { link, navigate } from "svelte-navigator";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, User, UserRole } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
@@ -14,7 +14,11 @@
     import { autoresize } from "svelte-textarea-autoresize";
     import WarningMessage from "./WarningMessage.svelte";
     import { copyToClipboard } from "./utils";
+    import type { SidebarTab } from "./tabStores";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
+    import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
+
+    const dispatch = createEventDispatcher();
 
     const tokenizer = {
         tag: () => {},
@@ -278,7 +282,26 @@
         await apiClient.removeChatMessage(id);
     }
 
-    async function editNicknameForUser(address: string) {
+    function openChatHistoryForAuthorOfMessage(message: ChatMessage) {
+        if (mode == "sidebar") {
+            let newTab: SidebarTab = {
+                id: message.getId() + Math.random().toString().substr(2, 8),
+                tabTitle: `${getReadableMessageAuthor(message)}'s chat history`,
+                component: ModerateUserChatHistory,
+                props: {
+                    address: message.getUserMessage().getAuthor().getAddress(),
+                    mode: "sidebar"
+                },
+                closeable: true,
+            };
+            dispatch("openSidebarTab", newTab);
+        } else {
+            navigate("/moderate/users/" + message.getUserMessage().getAuthor().getAddress() + "/chathistory");
+        }
+    }
+
+    async function editNicknameForAuthorOfMessage(message: ChatMessage) {
+        let address = message.getUserMessage().getAuthor().getAddress();
         let nickname = prompt("Enter new nickname, leave empty to remove nickname");
         if (nickname != "") {
             if ([...nickname].length < 3) {
@@ -409,16 +432,11 @@
                             <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage(msg.getId())} />
                             <i
                                 class="fas fa-history cursor-pointer ml-1"
-                                on:click={() =>
-                                    navigate(
-                                        "/moderate/users/" +
-                                            msg.getUserMessage().getAuthor().getAddress() +
-                                            "/chathistory"
-                                    )}
+                                on:click={() => openChatHistoryForAuthorOfMessage(msg)}
                             />
                             <i
                                 class="fas fa-edit cursor-pointer"
-                                on:click={() => editNicknameForUser(msg.getUserMessage().getAuthor().getAddress())}
+                                on:click={() => editNicknameForAuthorOfMessage(msg)}
                             />
                         {/if}
                         <span
@@ -462,6 +480,9 @@
                             <ChatMessageDetails
                                 {msg}
                                 on:reply={() => replyToMessage(msg)}
+                                on:delete={() => removeChatMessage(msg.getId())}
+                                on:history={() => openChatHistoryForAuthorOfMessage(msg)}
+                                on:changeNickname={() => editNicknameForAuthorOfMessage(msg)}
                                 on:mouseLeft={() => hideMessageDetails()}
                             />
                         {/if}
@@ -505,8 +526,10 @@
                         Before participating in chat, make sure to read the
                         <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.
                         <br />
-                        <a class="font-semibold float-right dark:text-blue-600" href={"#"} on:click={dismissGuidelinesWarning}
-                            >I read the guidelines and will respect them</a
+                        <a
+                            class="font-semibold float-right dark:text-blue-600"
+                            href={"#"}
+                            on:click={dismissGuidelinesWarning}>I read the guidelines and will respect them</a
                         >
                     </WarningMessage>
                 </div>

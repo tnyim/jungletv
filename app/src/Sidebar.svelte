@@ -1,11 +1,10 @@
 <script lang="ts">
     import { currentlyWatching, playerConnected, sidebarMode } from "./stores";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import Queue from "./Queue.svelte";
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
-    import Chat from "./Chat.svelte";
-    import Document from "./Document.svelte";
+    import type { SidebarTab } from "./tabStores";
+    import { sidebarTabs } from "./tabStores";
 
     const dispatch = createEventDispatcher();
 
@@ -18,27 +17,48 @@
         playerIsConnected = connected;
     });
 
-    const tabOrder = ["queue", "chat", "announcements"];
-    const tabNames = ["Queue", "Chat", "Announcements"];
-    let selectedTab = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
+    let tabs: SidebarTab[] = [];
+
+    sidebarTabs.subscribe((t) => {
+        tabs = t;
+    });
+
+    function openSidebarTab(event: CustomEvent<SidebarTab>) {
+        let newTab = event.detail;
+        let selectedTabIndex = tabs.findIndex((t) => selectedTabID == t.id);
+        tabs.splice(selectedTabIndex + 1, 0, newTab);
+        sidebarTabs.update((_) => tabs);
+        sidebarMode.update((_) => newTab.id);
+    }
+
+    function closeTab(tab: SidebarTab) {
+        let tabIndex = tabs.findIndex((t) => tab.id == t.id);
+        if (tabIndex >= 0) {
+            tabs.splice(tabIndex, 1);
+            if (selectedTabID == tab.id) {
+                sidebarMode.update((_) => tabs[Math.max(0, tabIndex - 1)].id);
+            }
+            sidebarTabs.update((_) => tabs);
+        }
+    }
+
+    let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
+    let selectedTab: SidebarTab;
+
     let tabInX = 384;
-    let tabOutX = 384;
-    const EXIT_LEFT = -384;
-    const EXIT_RIGHT = 384;
-    const ENTER_LEFT = -384;
-    const ENTER_RIGHT = 384;
     const SLIDE_DURATION = 200;
+    let flipFlop = false;
     sidebarMode.subscribe((mode) => {
-        if (tabOrder.indexOf(selectedTab) < tabOrder.indexOf(mode)) {
+        if (tabs.findIndex((t) => selectedTabID == t.id) < tabs.findIndex((t) => mode == t.id)) {
             // new tab is to the right
-            tabInX = ENTER_RIGHT; // the tab that's entering must enter through the right
-            tabOutX = EXIT_LEFT; // the tab that's leaving must leave through the left
+            tabInX = 384;
         } else {
             // new tab is to the left
-            tabInX = ENTER_LEFT; // the tab that's entering must enter through the left
-            tabOutX = EXIT_RIGHT; // the tab that's leaving must leave through the right
+            tabInX = -384;
         }
-        selectedTab = mode;
+        selectedTabID = mode;
+        selectedTab = tabs.find((t) => selectedTabID == t.id);
+        flipFlop = !flipFlop;
     });
 
     let tabBar: HTMLDivElement;
@@ -125,9 +145,15 @@
             bind:this={tabBar}
             bind:offsetWidth={blW}
         >
-            {#each tabOrder as tabId, idx}
-                <SidebarTabButton selected={selectedTab == tabId} on:click={() => sidebarMode.update((_) => tabId)}>
-                    {tabNames[idx]}
+            {#each tabs as tab}
+                <SidebarTabButton selected={selectedTabID == tab.id} on:click={() => sidebarMode.update((_) => tab.id)}>
+                    {tab.tabTitle}
+                    {#if tab.closeable}
+                        <i
+                            class="fas fa-times cursor-pointer hover:text-yellow-700 dark:hover:text-yellow-500"
+                            on:click|stopPropagation={() => closeTab(tab)}
+                        />
+                    {/if}
                 </SidebarTabButton>
             {/each}
         </div>
@@ -150,29 +176,33 @@
     </div>
 </div>
 <div class="h-full lg:overflow-y-auto transition-container">
-    {#if selectedTab == "queue"}
+    <!-- these two are identical. This is to work around the way the svelte transitions system behaves -->
+    <!-- (no, #key does not have the same behavior here) -->
+    {#if flipFlop}
         <div
             class="h-full lg:overflow-y-auto"
             in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
-            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
+            out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
         >
-            <Queue mode="sidebar" />
+            <svelte:component
+                this={selectedTab.component}
+                {...selectedTab.props}
+                on:openSidebarTab={openSidebarTab}
+                on:closeTab={() => closeTab(selectedTab)}
+            />
         </div>
-    {:else if selectedTab == "chat"}
+    {:else}
         <div
             class="h-full lg:overflow-y-auto"
             in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
-            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
+            out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
         >
-            <Chat mode="sidebar" />
-        </div>
-    {:else if selectedTab == "announcements"}
-        <div
-            class="h-full lg:overflow-y-auto"
-            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
-            out:fly|local={{ duration: SLIDE_DURATION, x: tabOutX }}
-        >
-            <Document documentID="announcements" mode="sidebar" />
+            <svelte:component
+                this={selectedTab.component}
+                {...selectedTab.props}
+                on:openSidebarTab={openSidebarTab}
+                on:closeTab={() => closeTab(selectedTab)}
+            />
         </div>
     {/if}
 </div>

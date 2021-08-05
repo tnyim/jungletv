@@ -11,7 +11,7 @@
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
-	import { badRepresentative, darkMode, rewardAddress, rewardBalance } from "./stores";
+	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance } from "./stores";
 	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
@@ -49,6 +49,7 @@
 		}
 		let response = await apiClient.userPermissionLevel();
 		isAdmin = response.getPermissionLevel() == PermissionLevel.ADMIN;
+		permissionLevel.update((_) => response.getPermissionLevel());
 	});
 </script>
 

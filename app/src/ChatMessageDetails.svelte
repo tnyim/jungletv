@@ -1,8 +1,8 @@
 <script lang="ts">
     import { fade } from "svelte/transition";
     import QrCode from "svelte-qrcode";
-    import { darkMode } from "./stores";
-    import { ChatMessage, UserRole } from "./proto/jungletv_pb";
+    import { darkMode, permissionLevel } from "./stores";
+    import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
     import { copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
 
@@ -10,6 +10,13 @@
     let copied = false;
 
     const dispatch = createEventDispatcher();
+
+    let isChatModerator = false;
+    let topOffset = isChatModerator ? -208 : -168;
+    $: topOffset = isChatModerator ? -208 : -168;
+    permissionLevel.subscribe((level) => {
+        isChatModerator = level == PermissionLevel.ADMIN;
+    });
 
     function tipAuthor() {
         window.open("https://vault.banano.cc/send?to=" + msg.getUserMessage().getAuthor().getAddress());
@@ -29,7 +36,7 @@
         "ease-linear transition-all duration-150 cursor-pointer";
 </script>
 
-<div class="absolute w-full max-w-md left-0" style="top: -168px" transition:fade|local={{ duration: 200 }}>
+<div class="absolute w-full max-w-md left-0" style="top: {topOffset}px" transition:fade|local={{ duration: 200 }}>
     <div class="bg-gray-200 dark:bg-black rounded flex flex-col shadow-md">
         <div class="flex flex-row px-2 pt-2" on:mouseenter={() => dispatch("mouseLeft")}>
             <img
@@ -62,14 +69,25 @@
                 color={$darkMode ? "#e5e7eb" : "#000000"}
             />
         </div>
-        <div class="grid grid-cols-2 gap-2 place-items-center px-2 pb-2">
-            <div class="{commonButtonClasses} col-span-2" on:click={tipAuthor}>
+        <div class="grid grid-cols-6 gap-2 place-items-center px-2 pb-2">
+            {#if isChatModerator}
+                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("delete")}>
+                    <i class="fas fa-trash" /> Delete
+                </div>
+                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("history")}>
+                    <i class="fas fa-history" /> History
+                </div>
+                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("changeNickname")}>
+                    <i class="fas fa-edit" /> Nickname
+                </div>
+            {/if}
+            <div class="{commonButtonClasses} col-span-6" on:click={tipAuthor}>
                 <i class="fas fa-heart" /> Tip in BananoVault
             </div>
-            <div class={commonButtonClasses} on:click={() => dispatch("reply")}>
+            <div class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
                 <i class="fas fa-reply" /> Reply
             </div>
-            <div class={commonButtonClasses} on:click={copyAddress}>
+            <div class="{commonButtonClasses} col-span-3" on:click={copyAddress}>
                 <i class="fas fa-copy" />
                 {copied ? "Copied!" : "Copy address"}
             </div>
