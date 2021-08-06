@@ -39,7 +39,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	if queueLength < 0 {
 		queueLength = 0
 	}
-	queueLengthFactor := int64(100.0 * math.Pow(float64(queueLength), 1.2))
+	queueLengthFactor := int64(100.0 * math.Pow(float64(queueLength), 1.3))
 
 	lengthPenalty := 0
 	switch {
