@@ -53,7 +53,7 @@
         <p class="font-mono">{rewardsAddress}</p>
         <p class="mt-8">You should now set the representative for your address back to a reputable one, for example:</p>
         <div class="mt-1 mb-4">
-            <AddressBox address={getGoodRepAddress()} allowQR={false} showQR={true} />
+            <AddressBox address={getGoodRepAddress()} allowQR={false} showQR={true} isRepresentativeChange={true} />
         </div>
         <p class="mt-8">
             If you are watching JungleTV in another window or tab, please refresh it to ensure you'll be rewarded.

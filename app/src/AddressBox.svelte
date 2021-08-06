@@ -5,6 +5,21 @@
     export let allowQR = false;
     export let showQR = false;
     export let qrAmount = "";
+    export let isRepresentativeChange = false;
+
+    let uri = "";
+
+    $: {
+        if (isRepresentativeChange) {
+            uri = `bananorep:${address}`;
+        } else {
+            uri = `banano:${address}`;
+            if (qrAmount != "") {
+                uri += "?amount=" + qrAmount;
+            }
+        }
+    }
+
     async function copyAddress() {
         try {
             await navigator.clipboard.writeText(address);
@@ -31,11 +46,19 @@
     {#if allowQR}
         <button
             class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
-            on:click={() => {showQR = !showQR}}
+            on:click={() => {
+                showQR = !showQR;
+            }}
         >
             <i class="fas fa-qrcode" />
         </button>
     {/if}
+    <a
+        class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
+        href={uri}
+    >
+        <i class="fas fa-external-link-square-alt" />
+    </a>
     <button
         class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
         on:click={copyAddress}
@@ -45,7 +68,7 @@
     </button>
 </div>
 {#if showQR}
-<div class="mt-4 flex justify-center">
-    <QrCode value={"ban:" + address + (qrAmount != "" ? "?amount=" + qrAmount : "")} size="150" />
-</div>
+    <div class="mt-4 flex justify-center">
+        <QrCode value={"ban:" + address + (qrAmount != "" ? "?amount=" + qrAmount : "")} size="150" />
+    </div>
 {/if}

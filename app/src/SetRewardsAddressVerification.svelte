@@ -67,7 +67,7 @@
             To do so, please <strong>set the representative of your address</strong> to the address shown below.
         </p>
         <div class="mt-1 mb-4">
-            <AddressBox address={verification.getVerificationRepresentativeAddress()} allowQR={false} showQR={true} />
+            <AddressBox address={verification.getVerificationRepresentativeAddress()} allowQR={false} showQR={true} isRepresentativeChange={true} />
         </div>
         <p class="mt-2">
             <strong
