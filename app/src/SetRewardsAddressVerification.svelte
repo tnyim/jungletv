@@ -67,26 +67,29 @@
             To do so, please <strong>set the representative of your address</strong> to the address shown below.
         </p>
         <div class="mt-1 mb-4">
-            <AddressBox address={verification.getVerificationRepresentativeAddress()} allowQR={false} showQR={true} isRepresentativeChange={true} />
+            <AddressBox
+                address={verification.getVerificationRepresentativeAddress()}
+                allowQR={false}
+                showQR={true}
+                isRepresentativeChange={true}
+            />
         </div>
         <p class="mt-2">
             <strong
                 >Setting your representative is a free operation that does not allow JungleTV - or anyone - to steal
                 your Banano or do anything nefarious with your address.</strong
-            > This is a temporary representative change that we will instruct you to undo immediately after
-            verification is complete.
+            > This is a temporary representative change that we will instruct you to undo immediately after verification
+            is complete.
         </p>
         <p class="mt-2">
             If in doubt, please ask for help in the
-            <a href="https://chat.banano.cc" target="_blank" rel="noopener"
-                >Banano Discord</a
-            > (not affiliated with JungleTV).
+            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a> (not affiliated with JungleTV).
         </p>
         <p class="mt-2">
             This verification process will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
         </p>
     </div>
-    <div slot="buttons">
+    <div slot="buttons" class="flex">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
@@ -94,9 +97,10 @@
         >
             Cancel
         </button>
+        <div class="flex-grow" />
         <button
             disabled
-            class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
         >
             <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
             Awaiting representative change

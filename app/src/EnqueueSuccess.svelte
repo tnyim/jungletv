@@ -32,12 +32,14 @@
             </div>
             <div class="flex flex-col flex-grow">
                 <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {ticket.getYoutubeVideoData().getChannelTitle()}
+                </p>
             </div>
         </div>
         <p class="mt-8">Video enqueued successfully! Thank you!</p>
     </div>
-    <div slot="buttons">
+    <div slot="buttons" class="flex">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
@@ -45,10 +47,12 @@
         >
             Enqueue another
         </button>
-        <span class="mt-10 text-xs text-gray-400">Ticket ID: <span class="font-mono">{ticket.getId()}</span></span>
+        <span class="mt-10 text-xs text-gray-400 flex-grow">
+            Ticket ID: <span class="font-mono">{ticket.getId()}</span>
+        </span>
         <button
             type="submit"
-            class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
             on:click={closeEnqueue}
         >
             Close

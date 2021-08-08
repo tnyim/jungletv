@@ -101,10 +101,12 @@
                     </SuccessMessage>
                 {/if}
             {/if}
-            <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">Setting an address will also allow you to chat with other users.</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                Setting an address will also allow you to chat with other users.
+            </p>
         {/await}
     </div>
-    <div slot="buttons">
+    <div slot="buttons" class="flex">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
@@ -112,9 +114,10 @@
         >
             Cancel
         </button>
+        <div class="flex-grow" />
         <button
             type="submit"
-            class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
             on:click={submit}
         >
             Next

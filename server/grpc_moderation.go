@@ -23,6 +23,9 @@ func (s *grpcServer) ForciblyEnqueueTicket(ctx context.Context, r *proto.Forcibl
 	if ticket == nil {
 		return nil, stacktrace.NewError("unknown ticket ID")
 	}
+	if ticket.Status() != proto.EnqueueMediaTicketStatus_ACTIVE {
+		return nil, stacktrace.NewError("ticket no longer active")
+	}
 	ticket.ForceEnqueuing(r.EnqueueType)
 
 	s.log.Printf("Ticket %s forcibly enqueued by %s (remote address %s)", r.Id, user.Username, RemoteAddressFromContext(ctx))

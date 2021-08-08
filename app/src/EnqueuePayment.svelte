@@ -15,7 +15,7 @@
 
     let monitorTicketRequest: Request;
     let ticketTimeRemainingFormatted = "";
-    let updateTicketTimeRemainingTimeout = 0;
+    let updateTicketTimeRemainingInterval: number;
     let selectedPrice = "";
 
     onMount(() => {
@@ -29,7 +29,9 @@
         });
     }
     onDestroy(() => {
-        clearTimeout(updateTicketTimeRemainingTimeout);
+        if (updateTicketTimeRemainingInterval !== undefined) {
+            clearInterval(updateTicketTimeRemainingInterval);
+        }
         if (monitorTicketRequest !== undefined) {
             monitorTicketRequest.close();
         }
@@ -37,8 +39,15 @@
 
     function updateTicketTimeRemaining() {
         let endTime = DateTime.fromJSDate(ticket.getExpiration().toDate());
-        ticketTimeRemainingFormatted = endTime.diff(DateTime.now()).toFormat("mm:ss");
-        updateTicketTimeRemainingTimeout = setTimeout(updateTicketTimeRemaining, 1000);
+        let diff = endTime.diffNow();
+        if (diff.toMillis() < -6000) {
+            // surely by now we would have received an updated ticket with expired status
+            dispatch("connectionLost");
+        }
+        ticketTimeRemainingFormatted = diff.toFormat("mm:ss");
+        if (updateTicketTimeRemainingInterval === undefined) {
+            updateTicketTimeRemainingInterval = setInterval(updateTicketTimeRemaining, 1000);
+        }
     }
 
     function handleTicketUpdated(t: EnqueueMediaTicket) {
@@ -75,95 +84,105 @@
             playing, it is still possible for others to dethrone it by using the same option.
         </p>
     </div>
+    <!-- if the ticket is paid/expired it'll be missing some fields this component needs -->
     <div slot="main-content">
-        <div class="px-2 py-1 flex flex-row space-x-1 shadow-sm rounded-md border border-gray-300">
-            <div class="w-32 flex-shrink-0">
-                <img
-                    alt="{ticket.getYoutubeVideoData().getTitle()} thumbnail"
-                    src={ticket.getYoutubeVideoData().getThumbnailUrl()}
+        {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE}
+            <div class="px-2 py-1 flex flex-row space-x-1 shadow-sm rounded-md border border-gray-300">
+                <div class="w-32 flex-shrink-0">
+                    <img
+                        alt="{ticket.getYoutubeVideoData().getTitle()} thumbnail"
+                        src={ticket.getYoutubeVideoData().getThumbnailUrl()}
+                    />
+                </div>
+                <div class="flex flex-col flex-grow">
+                    <p>{ticket.getYoutubeVideoData().getTitle()}</p>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        {ticket.getYoutubeVideoData().getChannelTitle()}
+                    </p>
+                </div>
+            </div>
+            <p class="mt-8">
+                The video will be added to the queue once at least <span class="font-bold"
+                    >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
+                > is sent to the following address:
+            </p>
+            <div class="mt-1 mb-4">
+                <AddressBox
+                    address={ticket.getPaymentAddress()}
+                    allowQR={false}
+                    showQR={true}
+                    qrAmount={selectedPrice}
                 />
             </div>
-            <div class="flex flex-col flex-grow">
-                <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{ticket.getYoutubeVideoData().getChannelTitle()}</p>
+            {#if ticket.getUnskippable()}
+                <div class="flex justify-center text-yellow-800">
+                    <strong>Prices have been heavily increased as you wish for this video to be unskippable.</strong>
+                </div>
+            {/if}
+            <div class="flex justify-center">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input
+                                    type="radio"
+                                    checked={selectedPrice == ticket.getEnqueuePrice()}
+                                    on:change={() => updateSelectedPrice(ticket.getEnqueuePrice())}
+                                />
+                            </td>
+                            <td class="text-right font-bold p-2">
+                                Send {apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN
+                            </td>
+                            <td class="p-2">to add the video to the end of the queue</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input
+                                    type="radio"
+                                    checked={selectedPrice == ticket.getPlayNextPrice()}
+                                    on:change={() => updateSelectedPrice(ticket.getPlayNextPrice())}
+                                />
+                            </td>
+                            <td class="text-right font-bold p-2">
+                                Send {apiClient.formatBANPrice(ticket.getPlayNextPrice())} BAN
+                            </td>
+                            <td class="p-2">to play the video right after the current one</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input
+                                    type="radio"
+                                    checked={selectedPrice == ticket.getPlayNowPrice()}
+                                    on:change={() => updateSelectedPrice(ticket.getPlayNowPrice())}
+                                />
+                            </td>
+                            <td
+                                class="text-right font-bold p-2 {ticket.getCurrentlyPlayingIsUnskippable()
+                                    ? 'line-through'
+                                    : ''}"
+                            >
+                                Send {apiClient.formatBANPrice(ticket.getPlayNowPrice())} BAN
+                            </td>
+                            <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? 'line-through' : ''}"
+                                >to skip the current video and play immediately</td
+                            >
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-        <p class="mt-8">
-            The video will be added to the queue once at least <span class="font-bold"
-                >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
-            > is sent to the following address:
-        </p>
-        <div class="mt-1 mb-4">
-            <AddressBox address={ticket.getPaymentAddress()} allowQR={false} showQR={true} qrAmount={selectedPrice} />
-        </div>
-        {#if ticket.getUnskippable()}
-            <div class="flex justify-center text-yellow-800">
-                <strong> Prices have been heavily increased as you wish for this video to be unskippable. </strong>
-            </div>
+            {#if ticket.getCurrentlyPlayingIsUnskippable()}
+                <WarningMessage>
+                    The currently playing video is unskippable; even if you pay the price to play immediately, it will
+                    still be enqueued to play after the current one.
+                </WarningMessage>
+            {/if}
+            <p class="mt-2">Sending more BAN will increase the rewards for viewers when watching this video.</p>
+            <p class="mt-2">
+                This price and address will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
+            </p>
         {/if}
-        <div class="flex justify-center">
-            <table>
-                <tbody>
-                    <tr>
-                        <td>
-                            <input
-                                type="radio"
-                                checked={selectedPrice == ticket.getEnqueuePrice()}
-                                on:change={() => updateSelectedPrice(ticket.getEnqueuePrice())}
-                            />
-                        </td>
-                        <td class="text-right font-bold p-2">
-                            Send {apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN
-                        </td>
-                        <td class="p-2">to add the video to the end of the queue</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input
-                                type="radio"
-                                checked={selectedPrice == ticket.getPlayNextPrice()}
-                                on:change={() => updateSelectedPrice(ticket.getPlayNextPrice())}
-                            />
-                        </td>
-                        <td class="text-right font-bold p-2">
-                            Send {apiClient.formatBANPrice(ticket.getPlayNextPrice())} BAN
-                        </td>
-                        <td class="p-2">to play the video right after the current one</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input
-                                type="radio"
-                                checked={selectedPrice == ticket.getPlayNowPrice()}
-                                on:change={() => updateSelectedPrice(ticket.getPlayNowPrice())}
-                            />
-                        </td>
-                        <td
-                            class="text-right font-bold p-2 {ticket.getCurrentlyPlayingIsUnskippable()
-                                ? 'line-through'
-                                : ''}"
-                        >
-                            Send {apiClient.formatBANPrice(ticket.getPlayNowPrice())} BAN
-                        </td>
-                        <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? 'line-through' : ''}"
-                            >to skip the current video and play immediately</td
-                        >
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        {#if ticket.getCurrentlyPlayingIsUnskippable()}
-            <WarningMessage>
-                The currently playing video is unskippable; even if you pay the price to play immediately, it will still
-                be enqueued to play after the current one.
-            </WarningMessage>
-        {/if}
-        <p class="mt-2">Sending more BAN will increase the rewards for viewers when watching this video.</p>
-        <p class="mt-2">
-            This price and address will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
-        </p>
     </div>
-    <div slot="buttons">
+    <div slot="buttons" class="flex">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
@@ -171,10 +190,12 @@
         >
             Cancel
         </button>
-        <span class="mt-10 text-xs text-gray-400">Ticket ID: <span class="font-mono">{ticket.getId()}</span></span>
+        <span class="mt-10 text-xs text-gray-400 flex-grow">
+            Ticket ID: <span class="font-mono">{ticket.getId()}</span>
+        </span>
         <button
             disabled
-            class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
         >
             <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
             Awaiting payment

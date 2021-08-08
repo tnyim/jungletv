@@ -23,6 +23,9 @@
     function onTicketExpired() {
         step = 3;
     }
+    function onConnectionLost() {
+        step = 4;
+    }
 </script>
 
 {#if step == 0}
@@ -32,10 +35,13 @@
         on:userCanceled={onUserCanceled}
         on:ticketPaid={onTicketPaid}
         on:ticketExpired={onTicketExpired}
+        on:connectionLost={onConnectionLost}
         bind:ticket
     />
 {:else if step == 2}
     <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket />
 {:else if step == 3}
     <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket />
+{:else if step == 4}
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true} />
 {/if}

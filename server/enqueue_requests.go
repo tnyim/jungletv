@@ -12,6 +12,7 @@ import (
 	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
@@ -36,8 +37,9 @@ type EnqueueManager struct {
 	modLogWebhook                  api.WebhookClient
 	finalPricesMultiplier          int
 
-	requests     map[string]EnqueueTicket
-	requestsLock sync.RWMutex
+	requests                map[string]EnqueueTicket
+	requestsLock            sync.RWMutex
+	recentlyEvictedRequests *cache.Cache
 }
 
 // EnqueueRequest is a request to create an EnqueueTicket
@@ -89,6 +91,7 @@ func NewEnqueueManager(log *log.Logger,
 		moderationStore:                moderationStore,
 		modLogWebhook:                  modLogWebhook,
 		finalPricesMultiplier:          100,
+		recentlyEvictedRequests:        cache.New(10*time.Minute, 1*time.Minute),
 	}, nil
 }
 
@@ -193,6 +196,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		func() {
 			e.requestsLock.Lock()
 			defer e.requestsLock.Unlock()
+			e.recentlyEvictedRequests.SetDefault(reqID, request)
 			delete(e.requests, reqID)
 		}()
 		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
@@ -274,6 +278,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
+	e.recentlyEvictedRequests.SetDefault(reqID, request)
 	delete(e.requests, reqID)
 
 	go func(reqID string, request EnqueueTicket) {
@@ -345,7 +350,14 @@ func (e *EnqueueManager) ProcessPaymentsWorker(ctx context.Context, interval tim
 func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 	e.requestsLock.RLock()
 	defer e.requestsLock.RUnlock()
-	return e.requests[id]
+	if r, ok := e.requests[id]; ok {
+		return r
+	}
+	evIface, ok := e.recentlyEvictedRequests.Get(id)
+	if ok {
+		return evIface.(EnqueueTicket)
+	}
+	return nil
 }
 
 type ticket struct {
