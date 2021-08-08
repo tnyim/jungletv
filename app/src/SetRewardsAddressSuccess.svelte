@@ -59,7 +59,7 @@
             If you are watching JungleTV in another window or tab, please refresh it to ensure you'll be rewarded.
         </p>
     </div>
-    <div slot="buttons" class="flex">
+    <div slot="buttons" class="flex items-center flex-wrap">
         <button
             type="submit"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"

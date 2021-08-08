@@ -55,7 +55,7 @@
             </ErrorMessage>
         </div>
     </div>
-    <div slot="buttons" class="flex">
+    <div slot="buttons" class="flex items-center flex-wrap">
         <button
             type="button"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
@@ -63,7 +63,7 @@
         >
             Cancel
         </button>
-        <span class="mt-10 text-xs text-gray-400 flex-grow">
+        <span class="px-4 text-xs text-gray-400 flex-grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
         <button
