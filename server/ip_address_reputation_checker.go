@@ -118,6 +118,9 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			}
 
 			var response struct {
+				ASN struct {
+					ASN int `json:"asn"`
+				} `json:"asn"`
 				Privacy struct {
 					Proxy   bool `json:"proxy"`
 					Hosting bool `json:"hosting"`
@@ -134,6 +137,9 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			if response.Privacy.Proxy || response.Privacy.Hosting {
 				r = 1.0
 				c.log.Printf("IP %v is bad actor", addressToCheck)
+			} else if response.ASN.ASN == 38247 {
+				r = 1.0
+				c.log.Printf("IP %v is from disallowed ASN %d", addressToCheck, response.ASN.ASN)
 			} else {
 				c.log.Printf("IP %v seems good", addressToCheck)
 			}
