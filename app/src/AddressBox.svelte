@@ -1,22 +1,29 @@
 <script>
     import QrCode from "svelte-qrcode";
+    import { apiClient } from "./api_client";
 
     export let address = "";
     export let allowQR = false;
     export let showQR = false;
-    export let qrAmount = "";
+    export let showBananoVaultLink = false;
+    export let paymentAmount = "";
     export let isRepresentativeChange = false;
 
     let uri = "";
+    let bananoVaultURI = "";
 
     $: {
         if (isRepresentativeChange) {
             uri = `bananorep:${address}`;
         } else {
             uri = `banano:${address}`;
-            if (qrAmount != "") {
-                uri += "?amount=" + qrAmount;
+            if (paymentAmount != "") {
+                uri += "?amount=" + paymentAmount;
             }
+            bananoVaultURI =
+                "https://vault.banano.cc/send?to=" +
+                address +
+                (paymentAmount != "" ? "&amount=" + apiClient.formatBANPrice(paymentAmount) : "");
         }
     }
 
@@ -33,6 +40,10 @@
         range.selectNode(event.target);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
+    }
+
+    function openBananoVault() {
+        window.open();
     }
 </script>
 
@@ -69,6 +80,14 @@
 </div>
 {#if showQR}
     <div class="mt-4 flex justify-center">
-        <QrCode value={"ban:" + address + (qrAmount != "" ? "?amount=" + qrAmount : "")} size="150" />
+        <QrCode value={"ban:" + address + (paymentAmount != "" ? "?amount=" + paymentAmount : "")} size="150" />
+    </div>
+{/if}
+{#if showBananoVaultLink}
+    <div class="mt-4 flex justify-center">
+        <p>
+            Send <a target="_blank" rel="noopener" href={bananoVaultURI}>from BananoVault</a> •
+            <a href={uri}>from installed wallet</a>
+        </p>
     </div>
 {/if}

@@ -22,6 +22,10 @@
         window.open("https://vault.banano.cc/send?to=" + msg.getUserMessage().getAuthor().getAddress());
     }
 
+    function openExplorer() {
+        window.open("https://www.yellowspyglass.com/search?address=" + msg.getUserMessage().getAuthor().getAddress());
+    }
+
     async function copyAddress() {
         await copyToClipboard(msg.getUserMessage().getAuthor().getAddress());
         copied = true;
@@ -81,9 +85,14 @@
                     <i class="fas fa-edit" /> Nickname
                 </div>
             {/if}
-            <div class="{commonButtonClasses} col-span-6" on:click={tipAuthor}>
+            <div class="{commonButtonClasses} {isChatModerator ? "col-span-3 text-xs" : "col-span-6"}" on:click={tipAuthor}>
                 <i class="fas fa-heart" /> Tip in BananoVault
             </div>
+            {#if isChatModerator}
+                <div class="{commonButtonClasses} col-span-3" on:click={() => openExplorer()}>
+                    <i class="fas fa-search-dollar" /> Explorer
+                </div>
+            {/if}
             <div class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
                 <i class="fas fa-reply" /> Reply
             </div>

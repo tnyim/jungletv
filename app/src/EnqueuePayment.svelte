@@ -111,7 +111,8 @@
                     address={ticket.getPaymentAddress()}
                     allowQR={false}
                     showQR={true}
-                    qrAmount={selectedPrice}
+                    showBananoVaultLink={true}
+                    paymentAmount={selectedPrice}
                 />
             </div>
             {#if ticket.getUnskippable()}
