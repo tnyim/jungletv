@@ -1,7 +1,7 @@
 <script lang="ts">
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { badRepresentative, darkMode, rewardAddress, rewardBalance, rewardReceived } from "./stores";
+    import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import { globalHistory } from "svelte-navigator";
     import Toggle from "svelte-toggle";
     import watchMedia from "svelte-media";
@@ -24,8 +24,13 @@
         canShowLeaderboardsButton = !obj.large || obj.largeEnoughForLeaderboardsButton;
     });
 
-    historyStore.subscribe(() => {
+    let isOnHomepage = false;
+    let hrefTarget = "";
+
+    historyStore.subscribe((v) => {
         navbarOpen = false;
+        isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
+        hrefTarget = isOnHomepage ? "_blank" : "";
     });
 
     function setNavbarOpen() {
@@ -70,7 +75,7 @@
                     {#if rAddress !== ""}
                         <div
                             class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
-                            on:click={() => navigate("/rewards")}
+                            on:click={() => isOnHomepage ? window.open("/rewards") : navigate("/rewards")}
                         >
                             <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
@@ -117,6 +122,7 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
+                        target="{hrefTarget}"
                         href="/about"
                     >
                         <i class="fas fa-info" />
@@ -128,6 +134,7 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
+                        target="{hrefTarget}"
                         href="/faq"
                     >
                         <i class="fas fa-question" />
@@ -139,6 +146,7 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
+                        target="{hrefTarget}"
                         href="/guidelines"
                     >
                         <i class="fas fa-scroll" />
@@ -151,6 +159,7 @@
                         <a
                             class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
+                            target="{hrefTarget}"
                             href="/leaderboards"
                         >
                             <i class="fas fa-trophy" />
@@ -163,6 +172,7 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
+                        target="{hrefTarget}"
                         href={rAddress !== "" ? "/rewards" : "/rewards/address"}
                     >
                         <i class="fas fa-coins" />
@@ -180,6 +190,7 @@
                     <a
                         class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
+                        target="{hrefTarget}"
                         href="/enqueue"
                     >
                         <i class="fas fa-plus" />
