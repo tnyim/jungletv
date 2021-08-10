@@ -13,7 +13,7 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
-	"github.com/patrickmn/go-cache"
+	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -37,12 +37,10 @@ type RewardsHandler struct {
 
 	rewardsDistributed *event.Event
 
-	recentlyDisconnectedSpectators *cache.Cache
-
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
-	// spectatorsByRewardAddress maps a reward address to a set of spectators
-	spectatorsByRewardAddress map[string][]*spectator
+	// spectatorsByRewardAddress maps a reward address to a spectator
+	spectatorsByRewardAddress map[string]*spectator
 	// spectatorByActivityChallenge maps an activity challenge to a spectator
 	spectatorByActivityChallenge map[string]*spectator
 	spectatorsMutex              sync.RWMutex
@@ -52,6 +50,7 @@ type Spectator interface {
 	OnRewarded() *event.Event
 	OnWithdrew() *event.Event
 	OnActivityChallenge() *event.Event
+	CurrentActivityChallenge() *activityChallenge
 }
 
 type spectator struct {
@@ -59,7 +58,9 @@ type spectator struct {
 	legitimate            bool
 	user                  User
 	remoteAddress         string
+	remoteAddresses       map[string]struct{}
 	startedWatching       time.Time
+	stoppedWatching       time.Time
 	activityCheckTimer    *time.Timer
 	nextActivityCheckTime time.Time
 	onRewarded            *event.Event
@@ -68,16 +69,7 @@ type spectator struct {
 	onActivityChallenge   *event.Event
 	activityChallenge     *activityChallenge
 	hardChallengesSolved  int
-}
-
-type recentlyDisconnectedSpectator struct {
-	legitimate            bool
-	user                  User
-	remoteAddress         string
-	startedWatching       time.Time
-	nextActivityCheckTime time.Time
-	activityChallengeAt   time.Time
-	hardChallengesSolved  int
+	connectionCount       int
 }
 
 type activityChallenge struct {
@@ -85,6 +77,13 @@ type activityChallenge struct {
 	ID           string
 	Type         string
 	Tolerance    time.Duration
+}
+
+func (a *activityChallenge) SerializeForAPI() *proto.ActivityChallenge {
+	return &proto.ActivityChallenge{
+		Id:   a.ID,
+		Type: a.Type,
+	}
 }
 
 func (s *spectator) OnRewarded() *event.Event {
@@ -97,6 +96,10 @@ func (s *spectator) OnWithdrew() *event.Event {
 
 func (s *spectator) OnActivityChallenge() *event.Event {
 	return s.onActivityChallenge
+}
+
+func (s *spectator) CurrentActivityChallenge() *activityChallenge {
+	return s.activityChallenge
 }
 
 // NewRewardsHandler creates a new RewardsHandler
@@ -128,10 +131,8 @@ func NewRewardsHandler(log *log.Logger,
 
 		rewardsDistributed: event.New(),
 
-		recentlyDisconnectedSpectators: cache.New(30*time.Second, 1*time.Minute),
-
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
-		spectatorsByRewardAddress:    make(map[string][]*spectator),
+		spectatorsByRewardAddress:    make(map[string]*spectator),
 		spectatorByActivityChallenge: make(map[string]*spectator),
 	}, nil
 }
@@ -150,24 +151,14 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	now := time.Now()
 	remoteAddress := RemoteAddressFromContext(ctx)
 
-	var s *spectator
-	oldSpectatorIface, found := r.recentlyDisconnectedSpectators.Get(user.Address())
-	if found {
-		oldSpectator := oldSpectatorIface.(recentlyDisconnectedSpectator)
-		if oldSpectator.remoteAddress == remoteAddress {
-			s = &spectator{
-				legitimate:            oldSpectator.legitimate,
-				user:                  oldSpectator.user,
-				remoteAddress:         oldSpectator.remoteAddress,
-				startedWatching:       oldSpectator.startedWatching,
-				nextActivityCheckTime: oldSpectator.nextActivityCheckTime,
-				activityCheckTimer:    time.NewTimer(time.Until(oldSpectator.nextActivityCheckTime)),
-				hardChallengesSolved:  oldSpectator.hardChallengesSolved,
-			}
-		}
-	}
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
 
-	if s == nil {
+	s, found := r.spectatorsByRewardAddress[user.Address()]
+	if found {
+		s.stoppedWatching = time.Time{}
+		s.remoteAddresses[remoteAddress] = struct{}{}
+	} else {
 		d := durationUntilNextActivityChallenge(user, true)
 		s = &spectator{
 			legitimate:            true, // everyone starts in good standings
@@ -176,22 +167,31 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			startedWatching:       now,
 			nextActivityCheckTime: now.Add(d),
 			activityCheckTimer:    time.NewTimer(d),
+			onRewarded:            event.New(),
+			onWithdrew:            event.New(),
+			onDisconnected:        event.New(),
+			onActivityChallenge:   event.New(),
+			remoteAddresses: map[string]struct{}{
+				remoteAddress: {},
+			},
 		}
+		r.spectatorsByRemoteAddress[s.remoteAddress] = append(r.spectatorsByRemoteAddress[s.remoteAddress], s)
+		r.spectatorsByRewardAddress[s.user.Address()] = s
 	}
-	s.onRewarded = event.New()
-	s.onWithdrew = event.New()
-	s.onDisconnected = event.New()
-	s.onActivityChallenge = event.New()
-
-	r.spectatorsMutex.Lock()
-	defer r.spectatorsMutex.Unlock()
-
-	r.spectatorsByRemoteAddress[s.remoteAddress] = append(r.spectatorsByRemoteAddress[s.remoteAddress], s)
-	r.spectatorsByRewardAddress[s.user.Address()] = append(r.spectatorsByRewardAddress[s.user.Address()], s)
+	s.connectionCount++
 
 	r.ipReputationChecker.EnqueueAddressForChecking(s.remoteAddress)
 
-	r.log.Printf("Registered spectator with reward address %s and remote address %s", s.user.Address(), s.remoteAddress)
+	reconnectingStr := ""
+	if found {
+		reconnectingStr = "-re"
+		// we must fire this event again since the timer may have been consumed by spectatorActivityWatchdog on another/a previous connection
+		if s.activityChallenge != nil {
+			s.onActivityChallenge.Notify(s.activityChallenge)
+		}
+	}
+
+	r.log.Printf("Re%sgistered spectator with reward address %s and remote address %s, %d connections", reconnectingStr, s.user.Address(), s.remoteAddress, s.connectionCount)
 	go spectatorActivityWatchdog(s, r)
 	return s, nil
 }
@@ -206,7 +206,26 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 		return nil
 	}
 
-	removeSpectator := func(m map[string][]*spectator, key string) {
+	s.connectionCount--
+	if s.connectionCount <= 0 {
+		s.onDisconnected.Notify()
+		s.stoppedWatching = time.Now()
+	}
+
+	activityChallengeInfo := ""
+	if s.activityChallenge != nil {
+		activityChallengeInfo = fmt.Sprintf(" (had activity challenge since %v)", s.activityChallenge.ChallengedAt)
+	}
+	r.log.Printf("Unregistered spectator with reward address %s and remote address %s%s, %d connections remain", s.user.Address(), s.remoteAddress, activityChallengeInfo, s.connectionCount)
+
+	return nil
+}
+
+func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
+
+	removeSpectator := func(m map[string][]*spectator, s *spectator, key string) {
 		slice := m[key]
 		newSlice := []*spectator{}
 		for i := range slice {
@@ -221,34 +240,20 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 		}
 	}
 
-	s.onDisconnected.Notify()
-	removeSpectator(r.spectatorsByRemoteAddress, s.remoteAddress)
-	removeSpectator(r.spectatorsByRewardAddress, s.user.Address())
-	if s.activityChallenge != nil {
-		delete(r.spectatorByActivityChallenge, s.activityChallenge.ID)
+	spectators := []*spectator{}
+	for _, slice := range r.spectatorsByRemoteAddress {
+		spectators = append(spectators, slice...)
 	}
-
-	activityChallengeInfo := ""
-	if s.activityChallenge != nil {
-		activityChallengeInfo = fmt.Sprintf(" (had activity challenge since %v)", s.activityChallenge.ChallengedAt)
+	for _, s := range spectators {
+		if !s.stoppedWatching.IsZero() && time.Since(s.stoppedWatching) > 15*time.Minute {
+			removeSpectator(r.spectatorsByRemoteAddress, s, s.remoteAddress)
+			delete(r.spectatorsByRewardAddress, s.user.Address())
+			if s.activityChallenge != nil {
+				delete(r.spectatorByActivityChallenge, s.activityChallenge.ID)
+			}
+			r.log.Printf("Purged spectator with reward address %s and remote address %s", s.user.Address(), s.remoteAddress)
+		}
 	}
-	r.log.Printf("Unregistered spectator with reward address %s and remote address %s%s", s.user.Address(), s.remoteAddress, activityChallengeInfo)
-
-	challengeAt := time.Time{}
-	if s.activityChallenge != nil {
-		challengeAt = s.activityChallenge.ChallengedAt
-	}
-	r.recentlyDisconnectedSpectators.SetDefault(s.user.Address(), recentlyDisconnectedSpectator{
-		legitimate:            s.legitimate,
-		user:                  s.user,
-		remoteAddress:         s.remoteAddress,
-		startedWatching:       s.startedWatching,
-		nextActivityCheckTime: s.nextActivityCheckTime,
-		activityChallengeAt:   challengeAt,
-		hardChallengesSolved:  s.hardChallengesSolved,
-	})
-
-	return nil
 }
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
@@ -286,6 +291,8 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 			}
 		case v := <-onPendingWithdrawalCreated:
 			r.onPendingWithdrawalCreated(ctx, v[0].([]*types.PendingWithdrawal))
+		case <-time.After(10 * time.Minute):
+			r.purgeOldDisconnectedSpectators()
 		case <-ctx.Done():
 			return nil
 		}
@@ -296,11 +303,9 @@ func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 	for _, p := range pending {
-		spectators, ok := r.spectatorsByRewardAddress[p.RewardsAddress]
+		spectator, ok := r.spectatorsByRewardAddress[p.RewardsAddress]
 		if ok {
-			for _, spectator := range spectators {
-				spectator.onWithdrew.Notify()
-			}
+			spectator.onWithdrew.Notify()
 		}
 	}
 }
@@ -343,11 +348,13 @@ func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, re
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
-	result := []string{}
-
-	spectators := r.spectatorsByRewardAddress[rewardAddress]
-	for _, s := range spectators {
-		result = append(result, s.remoteAddress)
+	spectator, ok := r.spectatorsByRewardAddress[rewardAddress]
+	if ok {
+		list := []string{}
+		for a := range spectator.remoteAddresses {
+			list = append(list, a)
+		}
+		return list
 	}
-	return result
+	return []string{}
 }

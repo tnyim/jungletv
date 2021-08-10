@@ -54,6 +54,7 @@
 
     let showCaptcha = false;
     let hasChallenge = false;
+    let challengesDone = 0;
     onMount(() => {
         document.addEventListener("visibilitychange", checkShowCaptcha);
     });
@@ -66,6 +67,7 @@
         if (c == null) {
             hasChallenge = false;
             showCaptcha = false;
+            challengesDone++;
             return;
         }
         hasChallenge = true;
@@ -82,7 +84,7 @@
 <div class="flex flex-col lg:flex-row lg-screen-height-minus-top-padding w-full overflow-x-hidden bg-black">
     <div class="lg:flex-1 player-container relative" bind:this={playerContainer}>
         {#if showCaptcha}
-            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} />
+            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} bind:challengesDone />
         {/if}
         <Player />
     </div>

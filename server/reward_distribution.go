@@ -99,6 +99,10 @@ func getEligibleSpectators(ctx context.Context,
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
 		for j := range spectators {
+			if !spectators[j].stoppedWatching.IsZero() {
+				// spectator not currently watching
+				continue
+			}
 			// do not reward spectators who didn't watch at least 40% of the video
 			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")

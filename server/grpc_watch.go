@@ -13,9 +13,14 @@ import (
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
 	// stream.Send is not safe to be called on concurrent goroutines
 	streamSendLock := sync.Mutex{}
+	var initialActivityChallenge *activityChallenge
 	send := func(cp *proto.MediaConsumptionCheckpoint) error {
 		streamSendLock.Lock()
 		defer streamSendLock.Unlock()
+		if initialActivityChallenge != nil {
+			cp.ActivityChallenge = initialActivityChallenge.SerializeForAPI()
+			initialActivityChallenge = nil
+		}
 		return stream.Send(cp)
 	}
 
@@ -57,12 +62,10 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
+		initialActivityChallenge = spectator.CurrentActivityChallenge()
 		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *activityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
-			cp.ActivityChallenge = &proto.ActivityChallenge{
-				Id:   challenge.ID,
-				Type: challenge.Type,
-			}
+			cp.ActivityChallenge = challenge.SerializeForAPI()
 			err := send(cp)
 			if err != nil {
 				errChan <- stacktrace.Propagate(err, "")

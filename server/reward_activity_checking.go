@@ -37,7 +37,7 @@ func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
 		return 100 * 24 * time.Hour
 	}
 	if first {
-		return 30*time.Second + time.Duration(rand.Intn(120))*time.Second
+		return 10 * time.Second
 	}
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second
 }
@@ -78,7 +78,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		r.log.Println("Unidentified spectator with remote address ", RemoteAddressFromContext(ctx), "submitted a solution to a missing challenge:", challenge)
 		return stacktrace.NewError("invalid challenge")
 	}
-	if RemoteAddressFromContext(ctx) != spectator.remoteAddress {
+	if _, found := spectator.remoteAddresses[RemoteAddressFromContext(ctx)]; !found {
 		r.log.Println("Spectator", spectator.user.Address(), RemoteAddressFromContext(ctx), "submitted a challenge solution from a mismatched remote address:", spectator.remoteAddress)
 		return stacktrace.NewError("mismatched remote address")
 	}
@@ -160,26 +160,20 @@ func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context,
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
-	spectators := r.spectatorsByRewardAddress[address]
-	for i := range spectators {
-		spectator := spectators[i]
-		if spectator.activityChallenge == nil {
-			spectator.activityCheckTimer.Stop()
-			d := durationUntilNextActivityChallenge(spectator.user, false)
-			spectator.nextActivityCheckTime = time.Now().Add(d)
-			spectator.activityCheckTimer.Reset(d)
-		}
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if ok && spectator.activityChallenge == nil {
+		spectator.activityCheckTimer.Stop()
+		d := durationUntilNextActivityChallenge(spectator.user, false)
+		spectator.nextActivityCheckTime = time.Now().Add(d)
+		spectator.activityCheckTimer.Reset(d)
 	}
 }
 
 func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address string) {
-	r.spectatorsMutex.Lock()
-	defer r.spectatorsMutex.Unlock()
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
 
-	spectators := r.spectatorsByRewardAddress[address]
-	for i := range spectators {
-		spectator := spectators[i]
-		spectator.legitimate = false
-		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
-	}
+	spectator := r.spectatorsByRewardAddress[address]
+	spectator.legitimate = false
+	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
 }

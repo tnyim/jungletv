@@ -6,6 +6,7 @@
     import { darkMode } from "./stores";
 
     export let activityChallenge: ActivityChallenge;
+    export let challengesDone: number;
 
     let captchaWidgetID: string;
     let clicked = false;
@@ -14,8 +15,11 @@
 
     async function stillWatching(event: MouseEvent) {
         clicked = true;
-        let sig = ((Document.prototype as any).__lookupGetter__("hidden") + "").replace(/\s+/g, '');
-        trusted = event.isTrusted && !document.hidden && (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
+        let sig = ((Document.prototype as any).__lookupGetter__("hidden") + "").replace(/\s+/g, "");
+        trusted =
+            event.isTrusted &&
+            !document.hidden &&
+            (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "hCaptcha") {
             executehCaptcha();
         } else {
@@ -88,10 +92,17 @@
 >
     <div class="flex flex-row space-x-2">
         <div>
-            <h3>Are you still watching?</h3>
-            <p class="text-xs text-gray-600 dark:text-gray-400 w-40">
-                To receive rewards, confirm you're still watching.
-            </p>
+            {#if challengesDone > 1}
+                <h3>Are you still watching?</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-400 w-40">
+                    To receive rewards, confirm you're still watching.
+                </p>
+            {:else}
+                <h3>Are you human?</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-400 w-40">
+                    To receive rewards, confirm that you are human.
+                </p>
+            {/if}
         </div>
         <button
             type="submit"
@@ -105,20 +116,18 @@
         >
             {#if clicked}
                 Awaiting captcha...
-            {:else}
+            {:else if challengesDone > 1}
                 Still watching
+            {:else}
+                I am human
             {/if}
         </button>
     </div>
     <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
         Protected by hCaptcha ●
-        <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy"
-            >Privacy</a
-        >
+        <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy">Privacy</a>
         ●
-        <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms"
-            >Terms</a
-        >
+        <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms">Terms</a>
     </div>
     {#if activityChallenge != null && activityChallenge.getType() == "hCaptcha"}
         <div

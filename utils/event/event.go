@@ -8,9 +8,11 @@ import (
 
 // Event is an event including dispatching mechanism
 type Event struct {
-	mu     sync.RWMutex
-	subs   []subscription
-	closed bool
+	mu                        sync.RWMutex
+	subs                      []subscription
+	closed                    bool
+	pendingNotification       bool
+	pendingNotificationParams []interface{}
 }
 
 type subscription struct {
@@ -60,6 +62,11 @@ func (e *Event) Subscribe(guaranteeType GuaranteeType) <-chan []interface{} {
 	}
 
 	e.subs = append(e.subs, s)
+	if e.pendingNotification {
+		e.notifyNowWithinMutex(e.pendingNotificationParams...)
+		e.pendingNotification = false
+		e.pendingNotificationParams = []interface{}{}
+	}
 	return s.ch
 }
 
@@ -111,6 +118,15 @@ func (e *Event) Notify(params ...interface{}) {
 		return
 	}
 
+	if len(e.subs) > 0 {
+		e.notifyNowWithinMutex(params...)
+	} else {
+		e.pendingNotification = true
+		e.pendingNotificationParams = params
+	}
+}
+
+func (e *Event) notifyNowWithinMutex(params ...interface{}) {
 	for _, sub := range e.subs {
 		if sub.blocking {
 			go func(sch chan []interface{}) {
