@@ -137,7 +137,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			if response.Privacy.Proxy || response.Privacy.Hosting {
 				r = 1.0
 				c.log.Printf("IP %v is bad actor", addressToCheck)
-			} else if response.ASN.ASN == 38247 {
+			} else if response.ASN.ASN == 38247 || response.ASN.ASN == 17390 {
 				r = 1.0
 				c.log.Printf("IP %v is from disallowed ASN %d", addressToCheck, response.ASN.ASN)
 			} else {
