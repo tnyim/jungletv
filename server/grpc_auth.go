@@ -13,9 +13,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type addressVerificationProcess struct {
+	accountIndex  uint32
+	remoteAddress string
+	completed     bool
+}
+
 func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignInServer) error {
 	ctx := stream.Context()
-	_, _, _, ok, err := s.signInRateLimiter.Take(ctx, RemoteAddressFromContext(ctx))
+	remoteAddress := RemoteAddressFromContext(ctx)
+	_, _, _, ok, err := s.signInRateLimiter.Take(ctx, remoteAddress)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -49,20 +56,28 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		return stacktrace.Propagate(err, "")
 	}
 
-	index := uint32(rand.Int31())
-	idxIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardAddress)
+	process := &addressVerificationProcess{
+		accountIndex:  uint32(rand.Int31()),
+		remoteAddress: remoteAddress,
+	}
+	procIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardAddress)
 	if hadExistingProcess {
-		index = idxIface.(uint32)
+		p := procIface.(*addressVerificationProcess)
+		if p.remoteAddress == remoteAddress {
+			process = p
+		} else {
+			hadExistingProcess = false
+		}
 	}
 
-	verifRep, err := s.wallet.NewAccount(&index)
+	verifRep, err := s.wallet.NewAccount(&process.accountIndex)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
 	if !hadExistingProcess {
 		expiration = time.Now().Add(5 * time.Minute)
-		s.verificationProcesses.Set(r.RewardAddress, index, 5*time.Minute)
+		s.verificationProcesses.Set(r.RewardAddress, process, 5*time.Minute)
 	}
 
 	accountOpened := true
@@ -84,8 +99,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	sendAccountUnopened := func() error {
 		return stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_AccountUnopened{AccountUnopened: &proto.SignInAccountUnopened{}}})
 	}
+	sendCompleted := func() error {
+		return stream.Send(&proto.SignInProgress{
+			Step: &proto.SignInProgress_Response{
+				Response: &proto.SignInResponse{
+					AuthToken:       jwtToken,
+					TokenExpiration: timestamppb.New(expiry),
+				},
+			},
+		})
+	}
 
-	if accountOpened {
+	if process.completed {
+		err = sendCompleted()
+	} else if accountOpened {
 		err = sendVerification()
 	} else {
 		err = sendAccountUnopened()
@@ -121,15 +148,9 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		}
 
 		if representative == verifRep.Address() {
+			process.completed = true
 			// verified!
-			err := stream.Send(&proto.SignInProgress{
-				Step: &proto.SignInProgress_Response{
-					Response: &proto.SignInResponse{
-						AuthToken:       jwtToken,
-						TokenExpiration: timestamppb.New(expiry),
-					},
-				},
-			})
+			err = sendCompleted()
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
