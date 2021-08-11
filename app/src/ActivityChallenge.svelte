@@ -86,7 +86,7 @@
 </script>
 
 <div
-    class="absolute left-0 bg-white dark:bg-gray-900 flex flex-col p-2 rounded-r"
+    class="absolute left-0 bg-white dark:bg-gray-900 flex flex-col p-2 rounded-r z-50"
     style="top: {top}%"
     transition:fly|local={{ x: -384, duration: 400 }}
 >

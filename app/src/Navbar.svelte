@@ -25,12 +25,10 @@
     });
 
     let isOnHomepage = false;
-    let hrefTarget = "";
 
     historyStore.subscribe((v) => {
         navbarOpen = false;
         isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
-        hrefTarget = isOnHomepage ? "_blank" : "";
     });
 
     function setNavbarOpen() {
@@ -45,9 +43,10 @@
 </script>
 
 <nav
-    class="top-0 fixed z-50 {navbarOpen
+    class="top-0 fixed {navbarOpen
         ? 'h-auto'
         : 'h-16'} w-full flex flex-wrap items-center justify-between py-3 lg:py-0 px-2 navbar-expand-lg bg-white shadow dark:bg-gray-950 dark:text-gray-300"
+    style="z-index: 60;"
 >
     <div class="container max-w-none w-full h-full px-4 mx-auto flex flex-wrap items-center justify-between">
         <div class="lg:py-3 w-full relative flex lg:w-auto lg:static lg:block lg:justify-start h-full">
@@ -122,7 +121,6 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        target="{hrefTarget}"
                         href="/about"
                     >
                         <i class="fas fa-info" />
@@ -134,7 +132,6 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        target="{hrefTarget}"
                         href="/faq"
                     >
                         <i class="fas fa-question" />
@@ -146,7 +143,6 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        target="{hrefTarget}"
                         href="/guidelines"
                     >
                         <i class="fas fa-scroll" />
@@ -159,7 +155,6 @@
                         <a
                             class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
-                            target="{hrefTarget}"
                             href="/leaderboards"
                         >
                             <i class="fas fa-trophy" />
@@ -172,7 +167,6 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        target="{hrefTarget}"
                         href={rAddress !== "" ? "/rewards" : "/rewards/address"}
                     >
                         <i class="fas fa-coins" />
@@ -190,7 +184,6 @@
                     <a
                         class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        target="{hrefTarget}"
                         href="/enqueue"
                     >
                         <i class="fas fa-plus" />

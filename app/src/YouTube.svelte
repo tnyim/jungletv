@@ -18,12 +18,12 @@
     import { onMount } from "svelte";
     import { createEventDispatcher } from "svelte";
     import YoutubePlayer from "youtube-player";
-    import type { YouTubePlayer } from "youtube-player/dist/types";
+    import type { Options, YouTubePlayer } from "youtube-player/dist/types";
 
     export { className as class }; // HTML class names for container element (optional)
     export let id = undefined; // HTML element ID for player (optional)
     export let videoId; // Youtube video ID (required)
-    export let options = undefined; // YouTube player options (optional)
+    export let options: Options = undefined; // YouTube player options (optional)
 
     let className; // HTML class names for container element
     let playerElem; // player DOM element reference

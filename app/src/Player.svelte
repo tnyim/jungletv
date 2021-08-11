@@ -2,17 +2,18 @@
     import YouTube from "./YouTube.svelte";
     import { apiClient } from "./api_client";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
-    import type { YouTubePlayer } from "youtube-player/dist/types";
+    import type { Options, YouTubePlayer } from "youtube-player/dist/types";
     import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { activityChallengeReceived, currentlyWatching, playerConnected, rewardBalance, rewardReceived } from "./stores";
 
-    const options = {
+    const options: Options = {
         height: "100%",
         width: "100%",
         //  see https://developers.google.com/youtube/player_parameters
         playerVars: {
             autoplay: 1,
+            playsinline: 1,
         },
     };
 
@@ -21,6 +22,7 @@
     let firstSeekTo = 0;
 
     onMount(() => {
+        console.log("player recreated");
         consumeMedia();
         player.on("stateChange", (event) => {
             if (!playerBecameReady && event.data == 1) {

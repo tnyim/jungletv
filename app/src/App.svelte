@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-
-	import { Router, Route, useParams } from "svelte-navigator";
+	import { Router, Route, globalHistory } from "svelte-navigator";
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
 	import Enqueue from "./Enqueue.svelte";
@@ -17,6 +16,8 @@
 	import Document from "./Document.svelte";
 	import Rewards from "./Rewards.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
+	import Player from "./Player.svelte";
+	import PlayerContainer from "./PlayerContainer.svelte";
 
 	export let url = "";
 
@@ -51,12 +52,45 @@
 		isAdmin = response.getPermissionLevel() == PermissionLevel.ADMIN;
 		permissionLevel.update((_) => response.getPermissionLevel());
 	});
+
+	const historyStore = { subscribe: globalHistory.listen };
+	let isOnHomepage = false;
+	historyStore.subscribe((v) => {
+		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
+	});
+
+	let mainContentBottomPadding = "";
+	let playerContainer: PlayerContainer;
+	let fullSizePlayerContainer: HTMLElement = null;
+	let fullSizePlayerContainerWidth: number = 0;
+	let fullSizePlayerContainerHeight: number = 0;
 </script>
 
 <Navbar />
-<div class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900 dark:text-gray-300">
+<div
+	class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
+	dark:text-gray-300 {mainContentBottomPadding}"
+>
+	<PlayerContainer
+		bind:this={playerContainer}
+		bind:mainContentBottomPadding
+		fullSize={isOnHomepage}
+		{fullSizePlayerContainer}
+		{fullSizePlayerContainerWidth}
+		{fullSizePlayerContainerHeight}
+	/>
 	<Router {url}>
-		<Route path="/" component={Homepage} />
+		<Route path="/">
+			<Homepage
+				bind:playerContainer={fullSizePlayerContainer}
+				bind:playerContainerWidth={fullSizePlayerContainerWidth}
+				bind:playerContainerHeight={fullSizePlayerContainerHeight}
+				on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
+				on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
+				on:sidebarOpenStart={playerContainer.onSidebarOpenStart}
+				on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
+			/>
+		</Route>
 		<Route path="/about" component={About} />
 		<Route path="/enqueue" component={Enqueue} />
 		<Route path="/rewards" component={Rewards} />
@@ -122,13 +156,13 @@
 		.markdown-document ul {
 			@apply list-disc list-outside;
 			margin: 1em 0;
-    		padding: 0 0 0 20px;
+			padding: 0 0 0 20px;
 		}
 
 		.markdown-document ol {
 			@apply list-decimal list-outside;
 			margin: 1em 0;
-    		padding: 0 0 0 30px;
+			padding: 0 0 0 30px;
 		}
 
 		.markdown-document li > p {
@@ -143,6 +177,15 @@
 
 		.markdown-document p {
 			@apply mb-4;
+		}
+
+		.player-minimized {
+			@apply fixed;
+			--tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+			box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+		}
+		.player-maximized {
+			@apply absolute;
 		}
 	}
 </style>
