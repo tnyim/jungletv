@@ -19,10 +19,18 @@ func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.Submi
 }
 
 func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
+	// this function runs once per spectator
+	// it keeps running until all connections of the spectator disconnect
+	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)
 	disconnected := spectator.onDisconnected.Subscribe(event.AtLeastOnceGuarantee)
 	defer spectator.onDisconnected.Unsubscribe(disconnected)
+	reconnected := spectator.onReconnected.Subscribe(event.AtLeastOnceGuarantee)
+	defer spectator.onReconnected.Unsubscribe(reconnected)
 	for {
 		select {
+		case <-reconnected:
+			// this lets us refresh the activityCheckTimer channel
+			continue
 		case <-spectator.activityCheckTimer.C:
 			r.produceActivityChallenge(spectator)
 		case <-disconnected:
@@ -37,7 +45,7 @@ func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
 		return 100 * 24 * time.Hour
 	}
 	if first {
-		return 10 * time.Second
+		return 10*time.Second + time.Duration(rand.Intn(20))*time.Second
 	}
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second
 }

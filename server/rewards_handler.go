@@ -66,6 +66,7 @@ type spectator struct {
 	onRewarded            *event.Event
 	onWithdrew            *event.Event
 	onDisconnected        *event.Event
+	onReconnected         *event.Event
 	onActivityChallenge   *event.Event
 	activityChallenge     *activityChallenge
 	hardChallengesSolved  int
@@ -157,7 +158,14 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	s, found := r.spectatorsByRewardAddress[user.Address()]
 	if found {
 		s.stoppedWatching = time.Time{}
-		s.remoteAddresses[remoteAddress] = struct{}{}
+		if s.remoteAddress != remoteAddress {
+			// changing IPs makes one lose human verification status
+			d := durationUntilNextActivityChallenge(user, true)
+			s.nextActivityCheckTime = now.Add(d)
+			s.activityCheckTimer = time.NewTimer(d)
+			s.remoteAddresses[remoteAddress] = struct{}{}
+		}
+		s.onReconnected.Notify()
 	} else {
 		d := durationUntilNextActivityChallenge(user, true)
 		s = &spectator{
@@ -170,6 +178,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			onRewarded:            event.New(),
 			onWithdrew:            event.New(),
 			onDisconnected:        event.New(),
+			onReconnected:         event.New(),
 			onActivityChallenge:   event.New(),
 			remoteAddresses: map[string]struct{}{
 				remoteAddress: {},
@@ -192,7 +201,9 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	}
 
 	r.log.Printf("Re%sgistered spectator with reward address %s and remote address %s, %d connections", reconnectingStr, s.user.Address(), s.remoteAddress, s.connectionCount)
-	go spectatorActivityWatchdog(s, r)
+	if s.connectionCount == 1 {
+		go spectatorActivityWatchdog(s, r)
+	}
 	return s, nil
 }
 
@@ -208,8 +219,8 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 
 	s.connectionCount--
 	if s.connectionCount <= 0 {
-		s.onDisconnected.Notify()
 		s.stoppedWatching = time.Now()
+		s.onDisconnected.Notify()
 	}
 
 	activityChallengeInfo := ""
