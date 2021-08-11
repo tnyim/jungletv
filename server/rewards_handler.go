@@ -163,6 +163,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			d := durationUntilNextActivityChallenge(user, true)
 			s.nextActivityCheckTime = now.Add(d)
 			s.activityCheckTimer = time.NewTimer(d)
+			s.hardChallengesSolved = 0
 			s.remoteAddresses[remoteAddress] = struct{}{}
 		}
 		s.onReconnected.Notify()
