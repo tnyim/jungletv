@@ -67,7 +67,9 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 			s.log.Printf("Error checking delegators count for address %s: %v", userClaims.RewardAddress, err)
 		case c := <-delegatorsCountChan:
 			badRepresentative = c < 2
-			s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, true)
+			if !badRepresentative {
+				s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, true)
+			}
 		case <-time.After(5 * time.Second):
 			break
 		}
