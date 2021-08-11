@@ -10,7 +10,7 @@ class APIClient {
 
     private host: string;
     private authNeededCallback = () => { };
-    private previouslySeenAPIVersion: string;
+    private versionHash: string;
 
     private constructor(host: string) {
         this.host = host;
@@ -29,10 +29,18 @@ class APIClient {
     }
 
     private handleVersionHeader(version: string) {
-        if (this.previouslySeenAPIVersion === undefined) {
-            this.previouslySeenAPIVersion = version;
-        } else if (version != this.previouslySeenAPIVersion) {
-            console.log("Reloading due to different API version");
+        if (this.versionHash === undefined) {
+            const metas = document.getElementsByTagName("meta");
+            for (let i = 0; i < metas.length; i++) {
+                if (metas[i].getAttribute("name") === "jungletv-version-hash") {
+                    this.versionHash = metas[i].getAttribute("content");
+                    break;
+                }
+            }
+        }
+
+        if (version != this.versionHash) {
+            console.log("Reloading due to different version hash in API response");
             location.reload();
         }
     }

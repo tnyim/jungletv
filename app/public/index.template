@@ -14,6 +14,8 @@
 	<meta property="og:description" content="A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!">
 	<meta property="og:image" content="/assets/brand/banner.png">
 
+	<meta name="jungletv-version-hash" content="{{ .VersionHash }}">
+
 	<link rel='icon' type='image/png' href='/favicon.png'>
 	<link rel='stylesheet' href='/build/bundle.css?v={{ .VersionHash }}'>
 	<link
