@@ -51,10 +51,13 @@ func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
 }
 
 func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
-	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress)
+	hadChallengeStr := ""
+	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress, hadChallengeStr)
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
-	if spectator.activityChallenge != nil {
+	hadChallenge := spectator.activityChallenge != nil
+	if hadChallenge {
+		hadChallengeStr = "(had previous challenge)"
 		// avoid keeping around old challenges for the same spectator
 		delete(r.spectatorByActivityChallenge, spectator.activityChallenge.ID)
 	}
@@ -67,6 +70,10 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	if spectator.hardChallengesSolved == 0 || int(time.Since(spectator.startedWatching).Hours()) > spectator.hardChallengesSolved-1 {
 		spectator.activityChallenge.Type = "hCaptcha"
 		spectator.activityChallenge.Tolerance = 2 * time.Minute
+	}
+	if hadChallenge || spectator.noToleranceOnNextChallenge {
+		spectator.activityChallenge.Tolerance = 0
+		spectator.noToleranceOnNextChallenge = false
 	}
 
 	r.spectatorByActivityChallenge[spectator.activityChallenge.ID] = spectator

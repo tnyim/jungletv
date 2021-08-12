@@ -54,23 +54,24 @@ type Spectator interface {
 }
 
 type spectator struct {
-	isDummy               bool // dummy spectators don't actually get rewarded but make the rest of the code happy
-	legitimate            bool
-	user                  User
-	remoteAddress         string
-	remoteAddresses       map[string]struct{}
-	startedWatching       time.Time
-	stoppedWatching       time.Time
-	activityCheckTimer    *time.Timer
-	nextActivityCheckTime time.Time
-	onRewarded            *event.Event
-	onWithdrew            *event.Event
-	onDisconnected        *event.Event
-	onReconnected         *event.Event
-	onActivityChallenge   *event.Event
-	activityChallenge     *activityChallenge
-	hardChallengesSolved  int
-	connectionCount       int
+	isDummy                    bool // dummy spectators don't actually get rewarded but make the rest of the code happy
+	legitimate                 bool
+	user                       User
+	remoteAddress              string
+	remoteAddresses            map[string]struct{}
+	startedWatching            time.Time
+	stoppedWatching            time.Time
+	activityCheckTimer         *time.Timer
+	nextActivityCheckTime      time.Time
+	onRewarded                 *event.Event
+	onWithdrew                 *event.Event
+	onDisconnected             *event.Event
+	onReconnected              *event.Event
+	onActivityChallenge        *event.Event
+	activityChallenge          *activityChallenge
+	hardChallengesSolved       int
+	connectionCount            int
+	noToleranceOnNextChallenge bool
 }
 
 type activityChallenge struct {
@@ -164,6 +165,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			s.nextActivityCheckTime = now.Add(d)
 			s.activityCheckTimer = time.NewTimer(d)
 			s.hardChallengesSolved = 0
+			s.noToleranceOnNextChallenge = true
 			s.remoteAddresses[remoteAddress] = struct{}{}
 		}
 		s.onReconnected.Notify()
