@@ -11,6 +11,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -40,7 +41,7 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 }
 
 func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
-	if permissionLevelOrder[user.PermissionLevel()] >= permissionLevelOrder[AdminPermissionLevel] {
+	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		// exempt admins/moderators from activity challenges
 		return 100 * 24 * time.Hour
 	}
@@ -87,14 +88,16 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
+	remoteAddress := auth.RemoteAddressFromContext(ctx)
+
 	var present bool
 	spectator, present = r.spectatorByActivityChallenge[challenge]
 	if !present {
-		r.log.Println("Unidentified spectator with remote address ", RemoteAddressFromContext(ctx), "submitted a solution to a missing challenge:", challenge)
+		r.log.Println("Unidentified spectator with remote address ", remoteAddress, "submitted a solution to a missing challenge:", challenge)
 		return stacktrace.NewError("invalid challenge")
 	}
-	if _, found := spectator.remoteAddresses[RemoteAddressFromContext(ctx)]; !found {
-		r.log.Println("Spectator", spectator.user.Address(), RemoteAddressFromContext(ctx), "submitted a challenge solution from a mismatched remote address:", spectator.remoteAddress)
+	if _, found := spectator.remoteAddresses[remoteAddress]; !found {
+		r.log.Println("Spectator", spectator.user.Address(), remoteAddress, "submitted a challenge solution from a mismatched remote address:", spectator.remoteAddress)
 		return stacktrace.NewError("mismatched remote address")
 	}
 

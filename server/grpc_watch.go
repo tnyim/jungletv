@@ -7,6 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -24,7 +25,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		return stream.Send(cp)
 	}
 
-	user := UserClaimsFromContext(stream.Context())
+	user := auth.UserClaimsFromContext(stream.Context())
 	err := stream.Send(s.produceMediaConsumptionCheckpoint(stream.Context()))
 	if err != nil {
 		return stacktrace.Propagate(err, "")

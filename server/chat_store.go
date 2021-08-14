@@ -8,6 +8,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/auth"
 )
 
 // ErrChatMessageNotFound is returned by a ChatStore when LoadMessage or DeleteMessage does not find the given message
@@ -342,7 +343,7 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWit
 		Content:   message.Content,
 	}
 	if message.Author != nil {
-		chatMessage.Author = NewAddressOnlyUserWithPermissionLevel(*message.Author, PermissionLevel(*message.PermissionLevel))
+		chatMessage.Author = NewAddressOnlyUserWithPermissionLevel(*message.Author, auth.PermissionLevel(*message.PermissionLevel))
 		chatMessage.Author.SetNickname(message.Nickname)
 	}
 	if message.ReferenceID != nil {

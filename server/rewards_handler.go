@@ -14,6 +14,7 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -140,7 +141,7 @@ func NewRewardsHandler(log *log.Logger,
 }
 
 func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spectator, error) {
-	ipCountry := IPCountryFromContext(ctx)
+	ipCountry := auth.IPCountryFromContext(ctx)
 	if ipCountry == "T1" {
 		return &spectator{
 			isDummy:             true,
@@ -151,13 +152,15 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	}
 
 	now := time.Now()
-	remoteAddress := RemoteAddressFromContext(ctx)
+	remoteAddress := auth.RemoteAddressFromContext(ctx)
 
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
 	s, found := r.spectatorsByRewardAddress[user.Address()]
 	if found {
+		// refresh user (e.g. to update permission level)
+		s.user = user
 		s.stoppedWatching = time.Time{}
 		if s.remoteAddress != remoteAddress {
 			// changing IPs makes one lose human verification status

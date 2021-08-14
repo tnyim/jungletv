@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gbl08ma/sqalx"
-	"github.com/tnyim/jungletv/server"
+	"github.com/tnyim/jungletv/server/auth"
 	"google.golang.org/grpc"
 )
 
@@ -34,7 +34,7 @@ func (interceptor *sqalxInterceptor) Stream() grpc.StreamServerInterceptor {
 		handler grpc.StreamHandler,
 	) error {
 		newCtx := context.WithValue(stream.Context(), "SqalxNode", rootSqalxNode)
-		wrapped := server.WrapServerStream(stream)
+		wrapped := auth.WrapServerStream(stream)
 		wrapped.WrappedContext = newCtx
 		return handler(srv, wrapped)
 	}

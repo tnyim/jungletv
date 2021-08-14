@@ -8,6 +8,7 @@ import (
 	"github.com/hectorchu/gonano/util"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -21,7 +22,7 @@ type addressVerificationProcess struct {
 
 func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignInServer) error {
 	ctx := stream.Context()
-	remoteAddress := RemoteAddressFromContext(ctx)
+	remoteAddress := auth.RemoteAddressFromContext(ctx)
 	_, _, _, ok, err := s.signInRateLimiter.Take(ctx, remoteAddress)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -36,21 +37,14 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		return status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}
 
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	var jwtToken string
 	expiry := time.Now().Add(180 * 24 * time.Hour)
-	if user != nil && permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[UserPermissionLevel] {
+	if user != nil && UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
 		// keep permissions of authenticated user
-		jwtToken, err = s.jwtManager.Generate(&userInfo{
-			RewardAddress: r.RewardAddress,
-			PermLevel:     user.PermLevel,
-			Username:      user.Username,
-		}, expiry)
+		jwtToken, err = s.jwtManager.Generate(r.RewardAddress, user.PermLevel, user.Username, expiry)
 	} else {
-		jwtToken, err = s.jwtManager.Generate(&userInfo{
-			RewardAddress: r.RewardAddress,
-			PermLevel:     UserPermissionLevel,
-		}, expiry)
+		jwtToken, err = s.jwtManager.Generate(r.RewardAddress, auth.UserPermissionLevel, "", expiry)
 	}
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -165,13 +159,13 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 }
 
 func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	level := proto.PermissionLevel_UNAUTHENTICATED
 	if user != nil {
 		switch user.PermissionLevel() {
-		case UserPermissionLevel:
+		case auth.UserPermissionLevel:
 			level = proto.PermissionLevel_USER
-		case AdminPermissionLevel:
+		case auth.AdminPermissionLevel:
 			level = proto.PermissionLevel_ADMIN
 		}
 	}

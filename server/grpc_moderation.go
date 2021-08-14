@@ -8,12 +8,13 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (s *grpcServer) ForciblyEnqueueTicket(ctx context.Context, r *proto.ForciblyEnqueueTicketRequest) (*proto.ForciblyEnqueueTicketResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -28,12 +29,12 @@ func (s *grpcServer) ForciblyEnqueueTicket(ctx context.Context, r *proto.Forcibl
 	}
 	ticket.ForceEnqueuing(r.EnqueueType)
 
-	s.log.Printf("Ticket %s forcibly enqueued by %s (remote address %s)", r.Id, user.Username, RemoteAddressFromContext(ctx))
+	s.log.Printf("Ticket %s forcibly enqueued by %s (remote address %s)", r.Id, user.Username, auth.RemoteAddressFromContext(ctx))
 	return &proto.ForciblyEnqueueTicketResponse{}, nil
 }
 
 func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueEntryRequest) (*proto.RemoveQueueEntryResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -44,7 +45,7 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 		return nil, stacktrace.Propagate(err, "failed to remove queue entry")
 	}
 
-	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.Username, RemoteAddressFromContext(ctx))
+	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.Username, auth.RemoteAddressFromContext(ctx))
 
 	requestedBy := "(unknown)"
 	if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
@@ -62,7 +63,7 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 }
 
 func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatMessageRequest) (*proto.RemoveChatMessageResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -85,7 +86,7 @@ func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatM
 }
 
 func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettingsRequest) (*proto.SetChatSettingsResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -120,7 +121,7 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 }
 
 func (s *grpcServer) SetVideoEnqueuingEnabled(ctx context.Context, r *proto.SetVideoEnqueuingEnabledRequest) (*proto.SetVideoEnqueuingEnabledResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -141,7 +142,7 @@ func (s *grpcServer) SetVideoEnqueuingEnabled(ctx context.Context, r *proto.SetV
 }
 
 func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*proto.BanUserResponse, error) {
-	moderator := UserClaimsFromContext(ctx)
+	moderator := auth.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -186,7 +187,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 		}
 
 		if s.modLogWebhook != nil {
-			s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+			s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
 			_, err = s.modLogWebhook.SendContent(
 				fmt.Sprintf("**Added ban with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
 					banID,
@@ -208,7 +209,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 }
 
 func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (*proto.RemoveBanResponse, error) {
-	moderator := UserClaimsFromContext(ctx)
+	moderator := auth.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -223,7 +224,7 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -241,7 +242,7 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 }
 
 func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMessagesRequest) (*proto.UserChatMessagesResponse, error) {
-	moderator := UserClaimsFromContext(ctx)
+	moderator := auth.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -264,7 +265,7 @@ func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMess
 }
 
 func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserChatNicknameRequest) (*proto.SetUserChatNicknameResponse, error) {
-	moderator := UserClaimsFromContext(ctx)
+	moderator := auth.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -287,7 +288,7 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Nickname for user %s set to \"%s\" by %s (remote address %s)", r.Address, r.Nickname, moderator.Username, RemoteAddressFromContext(ctx))
+	s.log.Printf("Nickname for user %s set to \"%s\" by %s (remote address %s)", r.Address, r.Nickname, moderator.Username, auth.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -305,7 +306,7 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 }
 
 func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPricesMultiplierRequest) (*proto.SetPricesMultiplierResponse, error) {
-	moderator := UserClaimsFromContext(ctx)
+	moderator := auth.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -317,7 +318,7 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 
 	s.enqueueManager.SetFinalPricesMultiplier(int(r.Multiplier))
 
-	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, RemoteAddressFromContext(ctx))
+	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, auth.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(

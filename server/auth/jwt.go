@@ -1,4 +1,4 @@
-package server
+package auth
 
 import (
 	"time"
@@ -20,12 +20,16 @@ func NewJWTManager(secretKey []byte) *JWTManager {
 }
 
 // Generate generates a JWT for a user
-func (manager *JWTManager) Generate(user *userInfo, tokenExpiration time.Time) (string, error) {
+func (manager *JWTManager) Generate(rewardAddress string, permissionLevel PermissionLevel, username string, tokenExpiration time.Time) (string, error) {
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: tokenExpiration.Unix(),
 		},
-		userInfo:      *user,
+		userInfo: userInfo{
+			RewardAddress: rewardAddress,
+			PermLevel:     permissionLevel,
+			Username:      username,
+		},
 		ClaimsVersion: CurrentTokenVersion,
 	}
 

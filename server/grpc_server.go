@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,12 +17,15 @@ import (
 	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
+	"github.com/lens-vm/gogl"
+	"github.com/lens-vm/gogl/graph/al"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/api/googleapi/transport"
@@ -39,7 +43,7 @@ type grpcServer struct {
 	collectorAccount               *wallet.Account
 	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
 	paymentAccountPendingWaitGroup *sync.WaitGroup
-	jwtManager                     *JWTManager
+	jwtManager                     *auth.JWTManager
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
@@ -67,8 +71,31 @@ type grpcServer struct {
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *JWTManager, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
+	youtubeAPIkey string, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
 	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string) (*grpcServer, error) {
+
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardInfo", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Withdraw", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SendChatMessage", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetChatNickname", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardHistory", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/WithdrawalHistory", auth.UserPermissionLevel)
+
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveChatMessage", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetChatSettings", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetVideoEnqueuingEnabled", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/BanUser", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveBan", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UserChatMessages", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/DisallowedVideos", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AddDisallowedVideo", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveDisallowedVideo", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateDocument", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetUserChatNickname", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetPricesMultiplier", auth.AdminPermissionLevel)
+
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -391,12 +418,12 @@ const (
 
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingContext, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
-	user := UserClaimsFromContext(ctx)
-	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, RemoteAddressFromContext(ctx)); err == nil && banned {
+	user := auth.UserClaimsFromContext(ctx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, auth.RemoteAddressFromContext(ctx)); err == nil && banned {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
 	if user != nil {
-		isAdmin = permissionLevelOrder[user.PermLevel] >= permissionLevelOrder[AdminPermissionLevel]
+		isAdmin = UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
 			return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 		}
@@ -481,7 +508,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		unskippable:  unskippable,
 	}
 
-	userClaims := UserClaimsFromContext(ctx)
+	userClaims := auth.UserClaimsFromContext(ctx)
 	if userClaims != nil {
 		request.requestedBy = userClaims
 	}

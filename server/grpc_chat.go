@@ -12,6 +12,7 @@ import (
 	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -33,7 +34,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	heartbeatC := time.NewTicker(5 * time.Second).C
 	var seq uint32
 
-	user := UserClaimsFromContext(stream.Context())
+	user := auth.UserClaimsFromContext(stream.Context())
 
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
@@ -129,7 +130,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 }
 
 func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessageRequest) (*proto.SendChatMessageResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -186,7 +187,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 var disallowedEmojiRegex = regexp.MustCompile("[🛡️🔰🛡⚔️⚔🗡️🗡🗡️]")
 
 func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNicknameRequest) (*proto.SetChatNicknameResponse, error) {
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

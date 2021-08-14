@@ -6,6 +6,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 )
 
@@ -16,7 +17,7 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := UserClaimsFromContext(ctx)
+	user := auth.UserClaimsFromContext(ctx)
 
 	mustInclude := []string{}
 	if user != nil && !user.IsUnknown() {

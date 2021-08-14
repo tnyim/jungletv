@@ -12,6 +12,7 @@ import (
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -92,13 +93,13 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
 
-	banned, err := c.moderationStore.LoadUserBannedFromChat(ctx, author.Address(), RemoteAddressFromContext(ctx))
+	banned, err := c.moderationStore.LoadUserBannedFromChat(ctx, author.Address(), auth.RemoteAddressFromContext(ctx))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	var ok bool
-	if (c.slowmode || banned) && permissionLevelOrder[author.PermissionLevel()] < permissionLevelOrder[AdminPermissionLevel] {
+	if (c.slowmode || banned) && !UserPermissionLevelIsAtLeast(author, auth.AdminPermissionLevel) {
 		_, _, _, ok, err = c.slowmodeRateLimiter.Take(ctx, author.Address())
 	} else {
 		_, _, _, ok, err = c.rateLimiter.Take(ctx, author.Address())

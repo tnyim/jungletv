@@ -28,6 +28,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -45,7 +46,7 @@ var (
 	webLog  = log.New(os.Stdout, "web ", log.Ldate|log.Ltime)
 	authLog = log.New(os.Stdout, "auth ", log.Ldate|log.Ltime)
 
-	jwtManager *server.JWTManager
+	jwtManager *auth.JWTManager
 
 	// GitCommit is provided by govvv at compile-time
 	GitCommit = "???"
@@ -226,9 +227,10 @@ func main() {
 		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
 	}
 
-	jwtManager = server.NewJWTManager(jwtKey)
+	jwtManager = auth.NewJWTManager(jwtKey)
+	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
+		authInterceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
 		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook)
 	if err != nil {
 		mainLog.Fatalln(err)
@@ -239,7 +241,7 @@ func main() {
 		listenAddr = ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, listenAddr)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -289,10 +291,9 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *server.JWTManager, listenAddr string) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, listenAddr string) (*http.Server, error) {
 	sqalxInterceptor := &sqalxInterceptor{rootNode: rootSqalxNode}
 	versionInterceptor := server.NewVersionInterceptor(versionHash)
-	authInterceptor := server.NewAuthInterceptor(jwtManager, &authorizer{})
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(sqalxInterceptor.Stream(), versionInterceptor.Stream(), authInterceptor.Stream())
