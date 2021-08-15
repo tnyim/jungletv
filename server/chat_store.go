@@ -27,11 +27,14 @@ type ChatStore interface {
 
 // ChatStoreDatabase stores messages in the database
 type ChatStoreDatabase struct {
+	nicknameCache NicknameCache
 }
 
 // NewChatStoreDatabase initializes and returns a new ChatStoreDatabase
-func NewChatStoreDatabase() *ChatStoreDatabase {
-	return &ChatStoreDatabase{}
+func NewChatStoreDatabase(nicknameCache NicknameCache) *ChatStoreDatabase {
+	return &ChatStoreDatabase{
+		nicknameCache: nicknameCache,
+	}
 }
 
 type dbChatMsg struct {
@@ -87,6 +90,10 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage)
 		RETURNING nickname`,
 			a, m.Author.PermissionLevel(), nil,
 		)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		err = s.nicknameCache.CacheNickname(ctx, a, nickname)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -373,6 +380,11 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user User, n
 		ON CONFLICT ("address") DO UPDATE SET nickname = $3`,
 		user.Address(), user.PermissionLevel(), nickname,
 	)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = s.nicknameCache.CacheNickname(ctx, user.Address(), nickname)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

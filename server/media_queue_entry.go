@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"math/big"
 	"time"
@@ -19,7 +20,7 @@ type MediaQueueEntry interface {
 	RequestCost() Amount
 	Unskippable() bool
 	MediaInfo() MediaInfo
-	SerializeForAPI() *proto.QueueEntry
+	SerializeForAPI(ctx context.Context, nicknameCache NicknameCache) *proto.QueueEntry
 	ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
@@ -96,7 +97,7 @@ func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI() *proto.QueueEntry {
+func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, nicknameCache NicknameCache) *proto.QueueEntry {
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
@@ -112,6 +113,10 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI() *proto.QueueEntry {
 		},
 	}
 	if !e.requestedBy.IsUnknown() {
+		nickname, err := nicknameCache.GetOrFetchNickname(ctx, e.requestedBy.Address())
+		if err == nil {
+			e.requestedBy.SetNickname(nickname)
+		}
 		entry.RequestedBy = e.requestedBy.SerializeForAPI()
 	}
 	return entry

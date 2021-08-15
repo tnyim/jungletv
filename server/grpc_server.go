@@ -64,6 +64,7 @@ type grpcServer struct {
 	statsHandler      *StatsHandler
 	chat              *ChatManager
 	moderationStore   ModerationStore
+	nicknameCache     NicknameCache
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -118,6 +119,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
 		moderationStore:                NewModerationStoreMemory(bansFile),
+		nicknameCache:                  NewMemoryNicknameCache(),
 	}
 
 	if modLogWebhook != "" {
@@ -170,7 +172,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(log, statsClient, NewChatStoreDatabase(), s.moderationStore)
+	s.chat, err = NewChatManager(log, statsClient, NewChatStoreDatabase(s.nicknameCache), s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
