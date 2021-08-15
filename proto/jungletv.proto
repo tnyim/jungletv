@@ -172,10 +172,11 @@ message QueueEntry {
     string id = 1;
     User requested_by = 2;
     string request_cost = 3;
-    google.protobuf.Duration length = 4;
-    bool unskippable = 5;
+    google.protobuf.Timestamp requested_at = 4;
+    google.protobuf.Duration length = 5;
+    bool unskippable = 6;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 6;
+        QueueYouTubeVideoData youtube_video_data = 7;
     }
 }
 

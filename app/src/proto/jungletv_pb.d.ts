@@ -637,6 +637,11 @@ export class QueueEntry extends jspb.Message {
   getRequestCost(): string;
   setRequestCost(value: string): void;
 
+  hasRequestedAt(): boolean;
+  clearRequestedAt(): void;
+  getRequestedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setRequestedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
   hasLength(): boolean;
   clearLength(): void;
   getLength(): google_protobuf_duration_pb.Duration | undefined;
@@ -666,6 +671,7 @@ export namespace QueueEntry {
     id: string,
     requestedBy?: User.AsObject,
     requestCost: string,
+    requestedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     length?: google_protobuf_duration_pb.Duration.AsObject,
     unskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
@@ -673,7 +679,7 @@ export namespace QueueEntry {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 6,
+    YOUTUBE_VIDEO_DATA = 7,
   }
 }
 

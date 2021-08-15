@@ -10,6 +10,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // MediaQueueEntry represents one entry in the media queue
@@ -18,6 +19,7 @@ type MediaQueueEntry interface {
 	json.Unmarshaler
 	RequestedBy() User
 	RequestCost() Amount
+	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
 	SerializeForAPI(ctx context.Context, nicknameCache NicknameCache) *proto.QueueEntry
@@ -51,6 +53,7 @@ type queueEntryYouTubeVideo struct {
 
 	requestedBy    User
 	requestCost    Amount
+	requestedAt    time.Time
 	startedPlaying time.Time
 	stoppedPlaying time.Time
 	played         bool
@@ -62,6 +65,7 @@ func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy User, reques
 	e.requestCost = requestCost
 	e.unskippable = unskippable
 	e.queueID = queueID
+	e.requestedAt = time.Now()
 	return e
 }
 
@@ -93,6 +97,10 @@ func (e *queueEntryYouTubeVideo) RequestCost() Amount {
 	return e.requestCost
 }
 
+func (e *queueEntryYouTubeVideo) RequestedAt() time.Time {
+	return e.requestedAt
+}
+
 func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
@@ -103,6 +111,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, nicknameCa
 		Length:      durationpb.New(e.duration),
 		Unskippable: e.unskippable,
 		RequestCost: e.requestCost.SerializeForAPI(),
+		RequestedAt: timestamppb.New(e.requestedAt),
 		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
 				Id:           e.id,
@@ -132,6 +141,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	Duration     time.Duration
 	RequestedBy  string
 	RequestCost  *big.Int
+	RequestedAt  time.Time
 	Unskippable  bool
 }
 
@@ -146,6 +156,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		Duration:     e.duration,
 		RequestedBy:  e.requestedBy.Address(),
 		RequestCost:  e.requestCost.Int,
+		RequestedAt:  e.requestedAt,
 		Unskippable:  e.unskippable,
 	})
 	if err != nil {
@@ -168,6 +179,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.duration = t.Duration
 	e.requestedBy = NewAddressOnlyUser(t.RequestedBy)
 	e.requestCost = Amount{t.RequestCost}
+	e.requestedAt = t.RequestedAt
 	e.unskippable = t.Unskippable
 	e.donePlaying = event.New()
 	return nil
