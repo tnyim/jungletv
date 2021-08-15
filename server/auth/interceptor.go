@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tnyim/jungletv/utils/wrappedstream"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -69,7 +70,7 @@ func (interceptor *Interceptor) Stream() grpc.StreamServerInterceptor {
 		if err != nil {
 			return err
 		}
-		wrapped := WrapServerStream(stream)
+		wrapped := wrappedstream.WrapServerStream(stream)
 		wrapped.WrappedContext = newCtx
 		return handler(srv, wrapped)
 	}
