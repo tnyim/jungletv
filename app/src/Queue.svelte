@@ -6,6 +6,8 @@
     import type * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { link } from "svelte-navigator";
+    import QueueEntryDetails from "./QueueEntryDetails.svelte";
+    import { editNicknameForUser, getReadableUserString } from "./utils";
 
     export let mode = "sidebar";
 
@@ -55,13 +57,25 @@
             await apiClient.addDisallowedVideo(entry.getYoutubeVideoData().getId());
         }
     }
+
+    let expandedEntryID = "";
+
+    function openOrCollapse(entry: QueueEntry) {
+        let entryID = entry.getId();
+        if (expandedEntryID == entryID) {
+            expandedEntryID = "";
+        } else {
+            expandedEntryID = entryID;
+        }
+    }
 </script>
 
 <div class="lg:overflow-y-auto overflow-x-hidden">
     {#each queueEntries as entry, i}
         <div
             class="px-2 py-1 flex flex-row text-sm
-            bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-default"
+            bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+            on:click={() => openOrCollapse(entry)}
         >
             <div class="w-32 flex-shrink-0 thumbnail">
                 <img
@@ -105,16 +119,13 @@
                                 .getRequestedBy()
                                 .getAddress()}?monkey=png"
                             alt="&nbsp;"
-                            title="Click to copy: {entry.getRequestedBy().getAddress()}"
                             class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                            on:click={() => copyAddress(entry.getRequestedBy().getAddress())}
                         />
                         <span
-                            class="font-mono cursor-pointer"
-                            style="font-size: 0.70rem;"
-                            title="Click to copy: {entry.getRequestedBy().getAddress()}"
-                            on:click={() => copyAddress(entry.getRequestedBy().getAddress())}
-                            >{entry.getRequestedBy().getAddress().substr(0, 14)}</span
+                            class="{entry.getRequestedBy().hasNickname()
+                                ? 'requester-user-nickname'
+                                : 'requester-user-address'} cursor-pointer"
+                            style="font-size: 0.70rem;">{getReadableUserString(entry.getRequestedBy())}</span
                         >
                     {:else}
                         Added by JungleTV (no reward)
@@ -134,6 +145,14 @@
                 </p>
             </div>
         </div>
+        {#if expandedEntryID == entry.getId()}
+            <QueueEntryDetails {entry}
+            on:remove={() => removeEntry(entry, false)}
+            on:disallow={() => removeEntry(entry, true)}
+            on:changeNickname={async () => {
+                await editNicknameForUser(entry.getRequestedBy())
+            }} />
+        {/if}
     {:else}
         <div class="px-2 py-2">
             Nothing playing. <a href="/enqueue" use:link>Get something going</a>!
@@ -153,7 +172,17 @@
     {/if}
 </div>
 
-<style>
+<style lang="postcss">
+    .requester-user-address {
+        font-size: 0.7rem;
+        @apply font-mono;
+    }
+
+    .requester-user-nickname {
+        font-size: 0.8rem;
+        @apply font-semibold;
+    }
+
     .queue-entry-title {
         overflow: hidden;
         height: 4.5rem;

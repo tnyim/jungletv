@@ -13,7 +13,7 @@
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
     import WarningMessage from "./WarningMessage.svelte";
-    import { copyToClipboard } from "./utils";
+    import { copyToClipboard, editNicknameForUser, getReadableUserString } from "./utils";
     import type { SidebarTab } from "./tabStores";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
     import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
@@ -301,27 +301,7 @@
     }
 
     async function editNicknameForAuthorOfMessage(message: ChatMessage) {
-        let address = message.getUserMessage().getAuthor().getAddress();
-        let nickname = prompt("Enter new nickname, leave empty to remove nickname");
-        if (nickname != "") {
-            if ([...nickname].length < 3) {
-                alert("The nickname must be at least 3 characters long.");
-                return;
-            } else if ([...nickname].length > 16) {
-                alert("The nickname must be at most 16 characters long.");
-                return;
-            }
-        }
-        try {
-            await apiClient.setUserChatNickname(address, nickname);
-            if (nickname != "") {
-                alert("Nickname set successfully");
-            } else {
-                alert("Nickname removed successfully");
-            }
-        } catch (e) {
-            alert("Error editing nickname: " + e);
-        }
+        await editNicknameForUser(message.getUserMessage().getAuthor());
     }
 
     function getBackgroundColorForMessage(msg: ChatMessage): string {
@@ -334,10 +314,7 @@
     }
 
     function getReadableMessageAuthor(msg: ChatMessage): string {
-        if (msg.getUserMessage().getAuthor().hasNickname()) {
-            return msg.getUserMessage().getAuthor().getNickname();
-        }
-        return msg.getUserMessage().getAuthor().getAddress().substr(0, 14);
+        return getReadableUserString(msg.getUserMessage().getAuthor());
     }
 
     function getClassForMessageAuthor(msg: ChatMessage): string {

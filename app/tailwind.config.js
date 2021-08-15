@@ -8,7 +8,9 @@ module.exports = {
     },
   },
   variants: {
-    extend: {},
+    extend: {
+      blur: ['hover', 'active'],
+    },
   },
   plugins: [],
   future: {
