@@ -74,7 +74,7 @@
                     {#if rAddress !== ""}
                         <div
                             class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
-                            on:click={() => isOnHomepage ? window.open("/rewards") : navigate("/rewards")}
+                            on:click={() => isOnHomepage ? navigate("/rewards") : navigate("/rewards")}
                         >
                             <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
