@@ -280,21 +280,30 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					errChan <- stacktrace.Propagate(err, "")
 				}
 			case v := <-entryAddedC:
-				var err error
 				t := v[0].(string)
 				entry := v[1].(MediaQueueEntry)
 				if !entry.RequestedBy().IsUnknown() {
+					address := entry.RequestedBy().Address()
+					name := address[:14]
+					nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
+					if err != nil {
+						errChan <- stacktrace.Propagate(err, "")
+						break
+					}
+					if nickname != nil {
+						name = *nickname
+					}
 					switch t {
 					case "enqueue":
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-							"_%s just enqueued_ %s", entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+							"_%s just enqueued_ %s", name, entry.MediaInfo().Title()))
 					case "play_after_next":
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 							"_%s just set_ %s _to play after the current video_",
-							entry.RequestedBy().Address()[:14], entry.MediaInfo().Title()))
+							name, entry.MediaInfo().Title()))
 					case "play_now":
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-							"_%s just skipped the previous video!_", entry.RequestedBy().Address()[:14]))
+							"_%s just skipped the previous video!_", name))
 					}
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")

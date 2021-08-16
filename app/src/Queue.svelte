@@ -43,14 +43,6 @@
         return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
     }
 
-    async function copyAddress(address: string) {
-        try {
-            await navigator.clipboard.writeText(address);
-        } catch (err) {
-            console.error("Failed to copy!", err);
-        }
-    }
-
     async function removeEntry(entry: QueueEntry, disallow: boolean) {
         await apiClient.removeQueueEntry(entry.getId());
         if (disallow) {
