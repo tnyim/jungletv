@@ -55,6 +55,17 @@ func GetPlayedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*PlayedMed
 	return result, nil
 }
 
+// GetPlayedMediaRequestedBySince returns the played media that had been requested by the given address and which is
+// playing or has finished playing since the specified moment
+func GetPlayedMediaRequestedBySince(node sqalx.Node, requestedBy string, since time.Time) ([]*PlayedMedia, error) {
+	s := sdb.Select().
+		From("played_media").
+		Where(sq.Eq{"played_media.requested_by": requestedBy}).
+		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since})
+	m, _, err := getPlayedMediaWithSelect(node, s)
+	return m, stacktrace.Propagate(err, "")
+}
+
 // LastPlayTimeOfMedia returns the last time the specified media was played, or a zero time if it has never been played
 func LastPlayTimeOfMedia(node sqalx.Node, mediaType MediaType, ytVideoID string) (time.Time, error) {
 	s := sdb.Select()

@@ -47,6 +47,7 @@ type grpcServer struct {
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
+	userSerializer                 APIUserSerializer
 
 	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
@@ -120,6 +121,9 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		ticketCheckPeriod:              ticketCheckPeriod,
 		moderationStore:                NewModerationStoreMemory(bansFile),
 		nicknameCache:                  NewMemoryNicknameCache(),
+	}
+	s.userSerializer = func(user User) *proto.User {
+		return s.serializeUserForAPI(ctx, user)
 	}
 
 	if modLogWebhook != "" {

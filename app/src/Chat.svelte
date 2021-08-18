@@ -290,7 +290,7 @@
                 component: ModerateUserChatHistory,
                 props: {
                     address: message.getUserMessage().getAuthor().getAddress(),
-                    mode: "sidebar"
+                    mode: "sidebar",
                 },
                 closeable: true,
             };
@@ -318,10 +318,20 @@
     }
 
     function getClassForMessageAuthor(msg: ChatMessage): string {
+        let c = "chat-user-address";
         if (msg.getUserMessage().getAuthor().hasNickname()) {
-            return "chat-user-nickname";
+            c = "chat-user-nickname";
         }
-        return "chat-user-address";
+        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_1_REQUESTER)) {
+            c += " text-blue-600 dark:text-blue-400";
+        }
+        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_2_REQUESTER)) {
+            c += " text-yellow-600 dark:text-yellow-200";
+        }
+        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)) {
+            c += " text-green-500 dark:text-green-300 chat-user-glow";
+        }
+        return c;
     }
 
     function dismissGuidelinesWarning() {
@@ -443,7 +453,16 @@
                                 <i
                                     class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
                                     title="Chat moderator"
-                                />{/if}:
+                                />{/if}{#if msg
+                                .getUserMessage()
+                                .getAuthor()
+                                .getRolesList()
+                                .includes(UserRole.CURRENT_ENTRY_REQUESTER)}
+                                <i
+                                    class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
+                                    title="Requester of currently playing video"
+                                />
+                            {/if}:
                         </span>
                         {@html marked
                             .parseInline(
@@ -582,5 +601,22 @@
     .chat-user-nickname {
         font-size: 0.8rem;
         @apply font-semibold;
+    }
+
+    .chat-user-glow {
+        animation-duration: 3s;
+        animation-name: text-glow;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        animation-timing-function: ease-in-out;
+    }
+
+    @keyframes text-glow {
+        from {
+            text-shadow: rgba(167, 139, 250, 1) 0px 0px 10px;
+        }
+        to {
+            text-shadow: rgba(167, 139, 250, 1) 0px 0px 0px;
+        }
     }
 </style>

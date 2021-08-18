@@ -12,18 +12,24 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/vburenin/nsync"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // MediaQueue queues media for synced broadcast
 type MediaQueue struct {
-	log         *log.Logger
-	statsClient *statsd.Client
-	queue       []MediaQueueEntry
-	queueMutex  sync.RWMutex
+	log                             *log.Logger
+	statsClient                     *statsd.Client
+	queue                           []MediaQueueEntry
+	queueMutex                      sync.RWMutex
+	recentEntryCounts               map[string]int
+	recentEntryCountsMutex          sync.RWMutex
+	recentEntryCountsCache          *cache.Cache
+	recentEntryCountsCacheUserMutex *nsync.NamedMutex
 
 	queueUpdated *event.Event
 	mediaChanged *event.Event
@@ -36,12 +42,15 @@ type MediaQueue struct {
 
 func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string) (*MediaQueue, error) {
 	q := &MediaQueue{
-		log:              log,
-		statsClient:      statsClient,
-		queueUpdated:     event.New(),
-		mediaChanged:     event.New(),
-		entryAdded:       event.New(),
-		deepEntryRemoved: event.New(),
+		log:                             log,
+		statsClient:                     statsClient,
+		recentEntryCounts:               make(map[string]int),
+		recentEntryCountsCacheUserMutex: nsync.NewNamedMutex(),
+		queueUpdated:                    event.New(),
+		mediaChanged:                    event.New(),
+		entryAdded:                      event.New(),
+		deepEntryRemoved:                event.New(),
+		recentEntryCountsCache:          cache.New(10*time.Second, 30*time.Second),
 	}
 	if persistenceFile != "" {
 		err := q.restoreQueueFromFile(persistenceFile)
@@ -214,13 +223,13 @@ func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
 	return q.queue[0], true
 }
 
-func (q *MediaQueue) ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint {
-	q.queueMutex.RLock()
-	defer q.queueMutex.RUnlock()
-	if len(q.queue) == 0 {
+func (q *MediaQueue) ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
+	currentEntry, playingSomething := q.CurrentlyPlaying()
+	if !playingSomething {
 		return &proto.MediaConsumptionCheckpoint{}
 	}
-	return q.queue[0].ProduceCheckpointForAPI()
+	// the user serializer may request the queue lock. hence why we get the currently playing entry separately
+	return currentEntry.ProduceCheckpointForAPI(userSerializer)
 }
 
 func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
@@ -294,6 +303,10 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
+		ctx.DeferToCommit(func() {
+			q.recentEntryCountsCache.Delete(prevPlayedMedia.RequestedBy)
+			go q.incrementRecentlyPlayedFor(prevMedia.RequestedBy(), recentPlayDuration)
+		})
 	}
 
 	if newMedia != nil {
@@ -320,7 +333,134 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
+		ctx.DeferToCommit(func() {
+			q.recentEntryCountsCache.Delete(newPlayedMedia.RequestedBy)
+		})
 	}
 
 	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+const recentPlayDuration = 4 * time.Hour
+
+func (q *MediaQueue) incrementRecentlyPlayedFor(requester User, incrementFor time.Duration) {
+	if requester == nil || requester.IsUnknown() {
+		return
+	}
+
+	func() {
+		q.recentEntryCountsMutex.Lock()
+		defer q.recentEntryCountsMutex.Unlock()
+		q.recentEntryCounts[requester.Address()]++
+	}()
+
+	time.Sleep(incrementFor)
+
+	q.recentEntryCountsMutex.Lock()
+	defer q.recentEntryCountsMutex.Unlock()
+	q.recentEntryCounts[requester.Address()]--
+}
+
+func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, requester User) (int, error) {
+	if requester == nil || requester.IsUnknown() {
+		return 0, nil
+	}
+
+	var count int
+	var present bool
+	func() {
+		q.recentEntryCountsMutex.RLock()
+		defer q.recentEntryCountsMutex.RUnlock()
+		count, present = q.recentEntryCounts[requester.Address()]
+	}()
+	if present {
+		return count, nil
+	}
+	count, err := q.fetchAndUpdateRecentlyPlayedVideosCount(ctx, requester)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	return count, nil
+}
+
+func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Context, requester User) (int, error) {
+	if requester == nil || requester.IsUnknown() {
+		return 0, nil
+	}
+
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	playedMedia, err := types.GetPlayedMediaRequestedBySince(ctx, requester.Address(), time.Now().Add(-recentPlayDuration))
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+
+	count := len(playedMedia)
+	for _, m := range playedMedia {
+		if !m.EndedAt.Valid {
+			// we subtract one because this function should only return the count for entries that have already finished playing
+			// (we include the currently playing entry in the total that is computed from the current queue in
+			// CountEnqueuedOrRecentlyPlayedVideosRequestedBy)
+			count--
+			continue
+		}
+		go q.incrementRecentlyPlayedFor(requester, recentPlayDuration-time.Since(m.EndedAt.Time))
+	}
+
+	return count, nil
+}
+
+// CountEnqueuedOrRecentlyPlayedVideosRequestedBy returns the number of videos which are currently in queue or which have
+// been recently enqueued by the specified user.
+func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.Context, requester User) (int, bool, error) {
+	if requester == nil || requester.IsUnknown() {
+		return 0, false, nil
+	}
+
+	reqAddress := requester.Address()
+
+	type cacheType struct {
+		count            int
+		requestedCurrent bool
+	}
+
+	cachedIface, present := q.recentEntryCountsCache.Get(reqAddress)
+	if present {
+		c := cachedIface.(cacheType)
+		return c.count, c.requestedCurrent, nil
+	}
+
+	// this is to ensure that we don't spawn concurrent cache filling processes for this user, even if this function is
+	// concurrently called with the same user as argument
+	q.recentEntryCountsCacheUserMutex.Lock(reqAddress)
+	defer q.recentEntryCountsCacheUserMutex.Unlock(reqAddress)
+
+	count := 0
+	requestedCurrent := false
+	func() {
+		q.queueMutex.RLock()
+		defer q.queueMutex.RUnlock()
+		for i, entry := range q.queue {
+			if entry.RequestedBy() != nil && entry.RequestedBy().Address() == reqAddress {
+				if i == 0 {
+					requestedCurrent = true
+				}
+				count++
+			}
+		}
+	}()
+
+	recentCount, err := q.getRecentlyPlayedVideosRequestedBy(ctx, requester)
+	if err != nil {
+		return 0, false, stacktrace.Propagate(err, "")
+	}
+	q.recentEntryCountsCache.SetDefault(reqAddress, cacheType{
+		count:            count + recentCount,
+		requestedCurrent: requestedCurrent,
+	})
+	return count + recentCount, requestedCurrent, nil
 }

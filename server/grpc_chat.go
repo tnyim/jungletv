@@ -54,7 +54,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageCreated{
 					MessageCreated: &proto.ChatMessageCreatedEvent{
-						Message: messages[i].SerializeForAPI(),
+						Message: messages[i].SerializeForAPI(s.userSerializer),
 					},
 				},
 			})
@@ -98,7 +98,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				err = stream.Send(&proto.ChatUpdate{
 					Event: &proto.ChatUpdate_MessageCreated{
 						MessageCreated: &proto.ChatMessageCreatedEvent{
-							Message: msg.SerializeForAPI(),
+							Message: msg.SerializeForAPI(s.userSerializer),
 						},
 					},
 				})

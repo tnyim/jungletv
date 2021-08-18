@@ -12,9 +12,8 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	getEntries := func() []*proto.QueueEntry {
 		entries := s.mediaQueue.Entries()
 		protoEntries := make([]*proto.QueueEntry, len(entries))
-		ctx := stream.Context()
 		for i, entry := range entries {
-			protoEntries[i] = entry.SerializeForAPI(ctx, s.nicknameCache)
+			protoEntries[i] = entry.SerializeForAPI(s.userSerializer)
 		}
 		return protoEntries
 	}

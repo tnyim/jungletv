@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 )
@@ -8,8 +10,8 @@ import (
 // User represents an identity on the service
 type User interface {
 	Address() string
+	Nickname() *string
 	PermissionLevel() auth.PermissionLevel
-	SerializeForAPI() *proto.User
 	IsUnknown() bool
 	SetNickname(*string)
 }
@@ -38,20 +40,12 @@ func (u *addressOnlyUser) Address() string {
 	return u.address
 }
 
-func (u *addressOnlyUser) PermissionLevel() auth.PermissionLevel {
-	return u.permissionLevel
+func (u *addressOnlyUser) Nickname() *string {
+	return u.nickname
 }
 
-func (u *addressOnlyUser) SerializeForAPI() *proto.User {
-	roles := []proto.UserRole{}
-	if UserPermissionLevelIsAtLeast(u, auth.AdminPermissionLevel) {
-		roles = append(roles, proto.UserRole_MODERATOR)
-	}
-	return &proto.User{
-		Address:  u.address,
-		Roles:    roles,
-		Nickname: u.nickname,
-	}
+func (u *addressOnlyUser) PermissionLevel() auth.PermissionLevel {
+	return u.permissionLevel
 }
 
 func (u *addressOnlyUser) IsUnknown() bool {
@@ -67,6 +61,10 @@ type unknownUser struct {
 
 func (u *unknownUser) Address() string {
 	return ""
+}
+
+func (u *unknownUser) Nickname() *string {
+	return nil
 }
 
 func (u *unknownUser) PermissionLevel() auth.PermissionLevel {
@@ -86,4 +84,41 @@ func (u *unknownUser) SetNickname(s *string) {
 
 func UserPermissionLevelIsAtLeast(user User, level auth.PermissionLevel) bool {
 	return auth.PermissionLevelOrder[user.PermissionLevel()] >= auth.PermissionLevelOrder[level]
+}
+
+// APIUserSerializer is a function that is able to return the protobuf representation of a user
+type APIUserSerializer func(user User) *proto.User
+
+func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.User {
+	roles := []proto.UserRole{}
+	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
+		roles = append(roles, proto.UserRole_MODERATOR)
+	}
+	videoCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx, user)
+	if err == nil {
+		switch {
+		case videoCount >= 10:
+			roles = append(roles, proto.UserRole_TIER_3_REQUESTER)
+		case videoCount >= 5:
+			roles = append(roles, proto.UserRole_TIER_2_REQUESTER)
+		case videoCount > 0:
+			roles = append(roles, proto.UserRole_TIER_1_REQUESTER)
+		}
+		if requestedCurrent {
+			roles = append(roles, proto.UserRole_CURRENT_ENTRY_REQUESTER)
+		}
+	}
+
+	nickname := user.Nickname()
+	if nickname == nil {
+		nickname, err = s.nicknameCache.GetOrFetchNickname(ctx, user.Address())
+		if err != nil {
+			nickname = nil
+		}
+	}
+	return &proto.User{
+		Address:  user.Address(),
+		Roles:    roles,
+		Nickname: nickname,
+	}
 }

@@ -63,6 +63,21 @@
                         <i class="fas fa-shield-alt text-purple-700 dark:text-purple-500" title="" />
                         Chat moderator
                     </span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.CURRENT_ENTRY_REQUESTER)}
+                    <br />
+                    <span class="text-sm">
+                        <i class="fas fa-coins text-green-700 dark:text-green-500" title="" />
+                        Video requester
+                    </span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_1_REQUESTER)}
+                    <br />
+                    <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 video requester</span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_2_REQUESTER)}
+                    <br />
+                    <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 video requester</span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)}
+                    <br />
+                    <span class="text-sm text-green-500 dark:text-green-300">Tier 3 video requester</span>
                 {/if}
             </div>
             <QrCode
@@ -85,7 +100,10 @@
                     <i class="fas fa-edit" /> Nickname
                 </div>
             {/if}
-            <div class="{commonButtonClasses} {isChatModerator ? "col-span-3 text-xs" : "col-span-6"}" on:click={tipAuthor}>
+            <div
+                class="{commonButtonClasses} {isChatModerator ? 'col-span-3 text-xs' : 'col-span-6'}"
+                on:click={tipAuthor}
+            >
                 <i class="fas fa-heart" /> Tip in BananoVault
             </div>
             {#if isChatModerator}

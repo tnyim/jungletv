@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"math/big"
 	"time"
@@ -22,8 +21,8 @@ type MediaQueueEntry interface {
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
-	SerializeForAPI(ctx context.Context, nicknameCache NicknameCache) *proto.QueueEntry
-	ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint
+	SerializeForAPI(userSerializer APIUserSerializer) *proto.QueueEntry
+	ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
 	Played() bool
@@ -105,7 +104,7 @@ func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, nicknameCache NicknameCache) *proto.QueueEntry {
+func (e *queueEntryYouTubeVideo) SerializeForAPI(userSerializer APIUserSerializer) *proto.QueueEntry {
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
@@ -122,11 +121,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, nicknameCa
 		},
 	}
 	if !e.requestedBy.IsUnknown() {
-		nickname, err := nicknameCache.GetOrFetchNickname(ctx, e.requestedBy.Address())
-		if err == nil {
-			e.requestedBy.SetNickname(nickname)
-		}
-		entry.RequestedBy = e.requestedBy.SerializeForAPI()
+		entry.RequestedBy = userSerializer(e.requestedBy)
 	}
 	return entry
 }
@@ -196,7 +191,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI() *proto.MediaConsumptionCheckpoint {
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.PlayedFor()),
@@ -209,7 +204,7 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI() *proto.MediaConsumpti
 		},
 	}
 	if !e.requestedBy.IsUnknown() {
-		cp.RequestedBy = e.requestedBy.SerializeForAPI()
+		cp.RequestedBy = userSerializer(e.requestedBy)
 	}
 	return cp
 }

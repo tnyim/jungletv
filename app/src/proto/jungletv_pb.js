@@ -17014,7 +17014,11 @@ proto.jungletv.EnqueueMediaTicketStatus = {
  * @enum {number}
  */
 proto.jungletv.UserRole = {
-  MODERATOR: 0
+  MODERATOR: 0,
+  TIER_1_REQUESTER: 1,
+  TIER_2_REQUESTER: 2,
+  TIER_3_REQUESTER: 3,
+  CURRENT_ENTRY_REQUESTER: 4
 };
 
 /**
