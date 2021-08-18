@@ -428,16 +428,16 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.
 		requestedCurrent bool
 	}
 
+	// this is to ensure that we don't spawn concurrent cache filling processes for this user, even if this function is
+	// concurrently called with the same user as argument
+	q.recentEntryCountsCacheUserMutex.Lock(reqAddress)
+	defer q.recentEntryCountsCacheUserMutex.Unlock(reqAddress)
+
 	cachedIface, present := q.recentEntryCountsCache.Get(reqAddress)
 	if present {
 		c := cachedIface.(cacheType)
 		return c.count, c.requestedCurrent, nil
 	}
-
-	// this is to ensure that we don't spawn concurrent cache filling processes for this user, even if this function is
-	// concurrently called with the same user as argument
-	q.recentEntryCountsCacheUserMutex.Lock(reqAddress)
-	defer q.recentEntryCountsCacheUserMutex.Unlock(reqAddress)
 
 	count := 0
 	requestedCurrent := false
