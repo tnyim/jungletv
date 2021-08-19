@@ -47,9 +47,11 @@
     let chatContainer: HTMLElement;
     let composeTextArea: HTMLTextAreaElement;
     let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
+    let allowExpensiveCSSAnimations = false;
 
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
+        allowExpensiveCSSAnimations = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         consumeChat();
     });
     function consumeChat() {
@@ -329,7 +331,10 @@
             c += " text-yellow-600 dark:text-yellow-200";
         }
         if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)) {
-            c += " text-green-500 dark:text-green-300 chat-user-glow";
+            c += " text-green-500 dark:text-green-300";
+            if (allowExpensiveCSSAnimations) {
+                c += " chat-user-glow";
+            }
         }
         return c;
     }
@@ -609,6 +614,12 @@
         animation-iteration-count: infinite;
         animation-direction: alternate;
         animation-timing-function: ease-in-out;
+    }
+
+    @media (prefers-reduced-motion) {
+        .chat-user-glow {
+            animation-name: none;
+        }
     }
 
     @keyframes text-glow {
