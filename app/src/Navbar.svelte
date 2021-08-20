@@ -2,12 +2,10 @@
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
-    import { globalHistory } from "svelte-navigator";
     import Toggle from "svelte-toggle";
     import watchMedia from "svelte-media";
     import NavbarAlert from "./NavbarAlert.svelte";
 
-    const historyStore = { subscribe: globalHistory.listen };
     const media = watchMedia({
         large: "(min-width: 1024px)",
         largeEnoughForLeaderboardsButton: "(min-width: 1100px)",
@@ -22,13 +20,6 @@
             navbarOpen = false;
         }
         canShowLeaderboardsButton = !obj.large || obj.largeEnoughForLeaderboardsButton;
-    });
-
-    let isOnHomepage = false;
-
-    historyStore.subscribe((v) => {
-        navbarOpen = false;
-        isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
     });
 
     function setNavbarOpen() {
@@ -73,8 +64,8 @@
                 <li class="flex items-center">
                     {#if rAddress !== ""}
                         <div
-                            class="text-xs text-gray-500 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
-                            on:click={() => isOnHomepage ? navigate("/rewards") : navigate("/rewards")}
+                            class="text-xs text-gray-700 dark:text-gray-300 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
+                            on:click={() => navigate("/rewards")}
                         >
                             <img
                                 src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
