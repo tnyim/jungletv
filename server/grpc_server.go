@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -17,8 +16,6 @@ import (
 	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
-	"github.com/lens-vm/gogl"
-	"github.com/lens-vm/gogl/graph/al"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/rickb777/date/period"
