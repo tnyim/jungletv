@@ -284,13 +284,20 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				if !entry.RequestedBy().IsUnknown() {
 					address := entry.RequestedBy().Address()
 					name := address[:14]
-					nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
+					chatBanned, err := s.moderationStore.LoadUserBannedFromChat(ctx, address, "")
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
 						break
 					}
-					if nickname != nil {
-						name = *nickname
+					if !chatBanned {
+						nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
+						if err != nil {
+							errChan <- stacktrace.Propagate(err, "")
+							break
+						}
+						if nickname != nil {
+							name = *nickname
+						}
 					}
 					switch t {
 					case "enqueue":
