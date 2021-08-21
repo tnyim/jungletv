@@ -289,6 +289,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 	if len(entries) > 0 {
 		r.lastMedia = entries[0]
 	}
+	purgeTicker := time.NewTicker(10 * time.Minute)
 	for {
 		select {
 		case v := <-onMediaChanged:
@@ -308,7 +309,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 			}
 		case v := <-onPendingWithdrawalCreated:
 			r.onPendingWithdrawalCreated(ctx, v[0].([]*types.PendingWithdrawal))
-		case <-time.After(10 * time.Minute):
+		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
 		case <-ctx.Done():
 			return nil
