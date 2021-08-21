@@ -87,7 +87,7 @@ func UserPermissionLevelIsAtLeast(user User, level auth.PermissionLevel) bool {
 }
 
 // APIUserSerializer is a function that is able to return the protobuf representation of a user
-type APIUserSerializer func(user User) *proto.User
+type APIUserSerializer func(ctx context.Context, user User) *proto.User
 
 func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.User {
 	roles := []proto.UserRole{}
@@ -109,13 +109,19 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.
 		}
 	}
 
-	nickname := user.Nickname()
-	if nickname == nil {
-		nickname, err = s.nicknameCache.GetOrFetchNickname(ctx, user.Address())
-		if err != nil {
-			nickname = nil
+	var nickname *string
+	bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, user.Address(), "")
+	serializingForUser := auth.UserClaimsFromContext(ctx)
+	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.RewardAddress == user.Address())) {
+		nickname = user.Nickname()
+		if nickname == nil {
+			nickname, err = s.nicknameCache.GetOrFetchNickname(ctx, user.Address())
+			if err != nil {
+				nickname = nil
+			}
 		}
 	}
+
 	return &proto.User{
 		Address:  user.Address(),
 		Roles:    roles,

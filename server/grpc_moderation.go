@@ -257,7 +257,7 @@ func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMess
 	}
 	protoMsgs := make([]*proto.ChatMessage, len(messages))
 	for i := range messages {
-		protoMsgs[i] = messages[i].SerializeForAPI(s.userSerializer)
+		protoMsgs[i] = messages[i].SerializeForAPI(ctx, s.userSerializer)
 	}
 	return &proto.UserChatMessagesResponse{
 		Messages: protoMsgs,

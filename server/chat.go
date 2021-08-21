@@ -226,7 +226,7 @@ type ChatMessage struct {
 	Shadowbanned bool
 }
 
-func (m *ChatMessage) SerializeForAPI(userSerializer APIUserSerializer) *proto.ChatMessage {
+func (m *ChatMessage) SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.ChatMessage {
 	msg := &proto.ChatMessage{
 		Id:        m.ID.Int64(),
 		CreatedAt: timestamppb.New(m.CreatedAt),
@@ -234,7 +234,7 @@ func (m *ChatMessage) SerializeForAPI(userSerializer APIUserSerializer) *proto.C
 	if m.Author != nil {
 		msg.Message = &proto.ChatMessage_UserMessage{
 			UserMessage: &proto.UserChatMessage{
-				Author:  userSerializer(m.Author),
+				Author:  userSerializer(ctx, m.Author),
 				Content: m.Content,
 			},
 		}
@@ -246,7 +246,7 @@ func (m *ChatMessage) SerializeForAPI(userSerializer APIUserSerializer) *proto.C
 		}
 	}
 	if m.Reference != nil {
-		msg.Reference = m.Reference.SerializeForAPI(userSerializer)
+		msg.Reference = m.Reference.SerializeForAPI(ctx, userSerializer)
 	}
 	return msg
 }

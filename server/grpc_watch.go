@@ -106,7 +106,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 }
 
 func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context) *proto.MediaConsumptionCheckpoint {
-	cp := s.mediaQueue.ProduceCheckpointForAPI(s.userSerializer)
+	cp := s.mediaQueue.ProduceCheckpointForAPI(ctx, s.userSerializer)
 	cp.CurrentlyWatching = uint32(s.statsHandler.CurrentlyWatching(ctx))
 	return cp
 }

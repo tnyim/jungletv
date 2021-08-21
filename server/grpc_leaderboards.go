@@ -20,8 +20,10 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 	user := auth.UserClaimsFromContext(ctx)
 
 	mustInclude := []string{}
+	userAddress := ""
 	if user != nil && !user.IsUnknown() {
 		mustInclude = append(mustInclude, user.RewardAddress)
+		userAddress = user.RewardAddress
 	}
 
 	now := time.Now()
@@ -53,7 +55,11 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 					},
 				},
 			}
-			if row.Nickname != "" {
+			bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, row.Address, "")
+			if err != nil {
+				continue
+			}
+			if row.Nickname != "" && (!bannedFromChat || row.Address == userAddress) {
 				n := row.Nickname
 				protoRows[i].Nickname = &n
 			}

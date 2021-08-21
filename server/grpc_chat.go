@@ -34,7 +34,8 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	heartbeatC := time.NewTicker(5 * time.Second).C
 	var seq uint32
 
-	user := auth.UserClaimsFromContext(stream.Context())
+	ctx := stream.Context()
+	user := auth.UserClaimsFromContext(ctx)
 
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
@@ -46,7 +47,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if user != nil {
 			u = user
 		}
-		messages, err := s.chat.store.LoadNumLatestMessages(stream.Context(), u, int(initialHistorySize))
+		messages, err := s.chat.store.LoadNumLatestMessages(ctx, u, int(initialHistorySize))
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}
@@ -54,7 +55,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageCreated{
 					MessageCreated: &proto.ChatMessageCreatedEvent{
-						Message: messages[i].SerializeForAPI(s.userSerializer),
+						Message: messages[i].SerializeForAPI(ctx, s.userSerializer),
 					},
 				},
 			})
@@ -98,7 +99,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				err = stream.Send(&proto.ChatUpdate{
 					Event: &proto.ChatUpdate_MessageCreated{
 						MessageCreated: &proto.ChatMessageCreatedEvent{
-							Message: msg.SerializeForAPI(s.userSerializer),
+							Message: msg.SerializeForAPI(ctx, s.userSerializer),
 						},
 					},
 				})

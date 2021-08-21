@@ -223,13 +223,13 @@ func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
 	return q.queue[0], true
 }
 
-func (q *MediaQueue) ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
+func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
 	currentEntry, playingSomething := q.CurrentlyPlaying()
 	if !playingSomething {
 		return &proto.MediaConsumptionCheckpoint{}
 	}
 	// the user serializer may request the queue lock. hence why we get the currently playing entry separately
-	return currentEntry.ProduceCheckpointForAPI(userSerializer)
+	return currentEntry.ProduceCheckpointForAPI(ctx, userSerializer)
 }
 
 func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {

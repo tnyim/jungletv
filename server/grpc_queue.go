@@ -10,10 +10,11 @@ import (
 
 func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.JungleTV_MonitorQueueServer) error {
 	getEntries := func() []*proto.QueueEntry {
+		ctx := stream.Context()
 		entries := s.mediaQueue.Entries()
 		protoEntries := make([]*proto.QueueEntry, len(entries))
 		for i, entry := range entries {
-			protoEntries[i] = entry.SerializeForAPI(s.userSerializer)
+			protoEntries[i] = entry.SerializeForAPI(ctx, s.userSerializer)
 		}
 		return protoEntries
 	}

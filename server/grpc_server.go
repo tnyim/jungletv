@@ -119,9 +119,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		moderationStore:                NewModerationStoreMemory(bansFile),
 		nicknameCache:                  NewMemoryNicknameCache(),
 	}
-	s.userSerializer = func(user User) *proto.User {
-		return s.serializeUserForAPI(ctx, user)
-	}
+	s.userSerializer = s.serializeUserForAPI
 
 	if modLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log, false), modLogWebhook)

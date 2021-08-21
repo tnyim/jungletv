@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"math/big"
 	"time"
@@ -21,8 +22,8 @@ type MediaQueueEntry interface {
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
-	SerializeForAPI(userSerializer APIUserSerializer) *proto.QueueEntry
-	ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint
+	SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.QueueEntry
+	ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
 	Played() bool
@@ -104,7 +105,7 @@ func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI(userSerializer APIUserSerializer) *proto.QueueEntry {
+func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.QueueEntry {
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
@@ -121,7 +122,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(userSerializer APIUserSerialize
 		},
 	}
 	if !e.requestedBy.IsUnknown() {
-		entry.RequestedBy = userSerializer(e.requestedBy)
+		entry.RequestedBy = userSerializer(ctx, e.requestedBy)
 	}
 	return entry
 }
@@ -191,7 +192,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.PlayedFor()),
@@ -204,7 +205,7 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(userSerializer APIUserS
 		},
 	}
 	if !e.requestedBy.IsUnknown() {
-		cp.RequestedBy = userSerializer(e.requestedBy)
+		cp.RequestedBy = userSerializer(ctx, e.requestedBy)
 	}
 	return cp
 }
