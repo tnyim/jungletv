@@ -116,7 +116,7 @@
                 />
             </div>
             {#if ticket.getUnskippable()}
-                <div class="flex justify-center text-yellow-800">
+                <div class="flex justify-center text-yellow-800 dark:text-yellow-400">
                     <strong>Prices have been heavily increased as you wish for this video to be unskippable.</strong>
                 </div>
             {/if}
