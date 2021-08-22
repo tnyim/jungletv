@@ -145,6 +145,7 @@ func (w *WithdrawalHandler) CompleteAllPendingWithdrawals(ctxCtx context.Context
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
+	go w.statsClient.Gauge("pending_withdrawals", len(pendingWithdrawals))
 	if len(pendingWithdrawals) == 0 {
 		return nil
 	}
@@ -152,7 +153,11 @@ func (w *WithdrawalHandler) CompleteAllPendingWithdrawals(ctxCtx context.Context
 	// CompleteWithdrawals should not use this transaction, it should use individual transactions internally
 	// that will lock-delete the specific pending_withdrawal row as it proceeds
 	err = w.CompleteWithdrawals(ctxCtx, pendingWithdrawals)
-	return stacktrace.Propagate(err, "")
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	go w.statsClient.Gauge("pending_withdrawals", 0)
+	return nil
 }
 
 // CompleteWithdrawals completes the specified pending withdrawals
