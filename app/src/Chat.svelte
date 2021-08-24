@@ -48,6 +48,7 @@
     let composeTextArea: HTMLTextAreaElement;
     let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
     let allowExpensiveCSSAnimations = false;
+    let consumeChatTimeoutHandle: number = null;
 
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
@@ -60,10 +61,19 @@
             setTimeout(consumeChat, 5000);
         });
     }
+    function consumeChatTimeout() {
+        if (consumeChatRequest !== undefined) {
+            consumeChatRequest.close();
+        }
+        consumeChat();
+    }
     onDestroy(() => {
         document.removeEventListener("visibilitychange", handleVisibilityChanged);
         if (consumeChatRequest !== undefined) {
             consumeChatRequest.close();
+        }
+        if (consumeChatTimeoutHandle != null) {
+            clearTimeout(consumeChatTimeoutHandle);
         }
     });
 
@@ -109,6 +119,10 @@
     }
 
     function handleChatUpdated(update: ChatUpdate): void {
+        if (consumeChatTimeoutHandle != null) {
+            clearTimeout(consumeChatTimeoutHandle);
+        }
+        consumeChatTimeoutHandle = setTimeout(consumeChatTimeout, 20000);
         if (update.hasMessageCreated()) {
             let msg = update.getMessageCreated().getMessage();
             if (seenMessageIDs[msg.getId()]) {

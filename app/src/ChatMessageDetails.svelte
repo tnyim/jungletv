@@ -23,7 +23,7 @@
     }
 
     function openExplorer() {
-        window.open("https://www.yellowspyglass.com/search?address=" + msg.getUserMessage().getAuthor().getAddress());
+        window.open("https://www.yellowspyglass.com/account/" + msg.getUserMessage().getAuthor().getAddress());
     }
 
     async function copyAddress() {

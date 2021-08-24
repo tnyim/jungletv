@@ -14,6 +14,7 @@
     let queueEntries: QueueEntry[] = [];
     let totalQueueLength: Duration;
     let monitorQueueRequest: Request;
+    let monitorQueueTimeoutHandle: number = null;
     onMount(monitorQueue);
     function monitorQueue() {
         monitorQueueRequest = apiClient.monitorQueue(handleQueueUpdated, (code, msg) => {
@@ -24,9 +25,23 @@
         if (monitorQueueRequest !== undefined) {
             monitorQueueRequest.close();
         }
+        if (monitorQueueTimeoutHandle != null) {
+            clearTimeout(monitorQueueTimeoutHandle);
+        }
     });
 
+    function monitorQueueTimeout() {
+        if (monitorQueueRequest !== undefined) {
+            monitorQueueRequest.close();
+        }
+        monitorQueue();
+    }
+
     function handleQueueUpdated(queue: Queue) {
+        if (monitorQueueTimeoutHandle != null) {
+            clearTimeout(monitorQueueTimeoutHandle);
+        }
+        monitorQueueTimeoutHandle = setTimeout(monitorQueueTimeout, 20000);
         if (!queue.getIsHeartbeat()) {
             queueEntries = queue.getEntriesList();
             let tl = Duration.fromMillis(0);

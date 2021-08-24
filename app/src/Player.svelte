@@ -5,7 +5,13 @@
     import type { Options, YouTubePlayer } from "youtube-player/dist/types";
     import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { activityChallengeReceived, currentlyWatching, playerConnected, rewardBalance, rewardReceived } from "./stores";
+    import {
+        activityChallengeReceived,
+        currentlyWatching,
+        playerConnected,
+        rewardBalance,
+        rewardReceived,
+    } from "./stores";
 
     const options: Options = {
         height: "100%",
@@ -18,11 +24,11 @@
     };
 
     let consumeMediaRequest: Request;
+    let consumeMediaTimeoutHandle: number = null;
     let playerBecameReady = false;
     let firstSeekTo = 0;
 
     onMount(() => {
-        console.log("player recreated");
         consumeMedia();
         player.on("stateChange", (event) => {
             if (!playerBecameReady && event.data == 1) {
@@ -38,9 +44,18 @@
             setTimeout(consumeMedia, 5000);
         });
     }
+    function consumeMediaTimeout() {
+        if (consumeMediaRequest !== undefined) {
+            consumeMediaRequest.close();
+        }
+        consumeMedia();
+    }
     onDestroy(() => {
         if (consumeMediaRequest !== undefined) {
             consumeMediaRequest.close();
+        }
+        if (consumeMediaTimeoutHandle != null) {
+            clearTimeout(consumeMediaTimeoutHandle);
         }
         activityChallengeReceived.update((_) => null);
     });
@@ -48,6 +63,10 @@
     let videoId = "";
 
     async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
+        if (consumeMediaTimeoutHandle != null) {
+            clearTimeout(consumeMediaTimeoutHandle);
+        }
+        consumeMediaTimeoutHandle = setTimeout(consumeMediaTimeout, 20000);
         playerConnected.update(() => true);
         if (checkpoint.getMediaPresent()) {
             videoId = checkpoint.getYoutubeVideoData().getId();
@@ -55,7 +74,7 @@
             firstSeekTo = currentTimeFromServer;
             let currentPlayerTime = await player.getCurrentTime();
             let leniencySeconds = 3;
-            if (player.getVideoLoadedFraction()*player.getDuration() < 10) {
+            if (player.getVideoLoadedFraction() * player.getDuration() < 10) {
                 leniencySeconds = 10;
             }
             if (Math.abs(currentPlayerTime - currentTimeFromServer) > leniencySeconds) {
@@ -63,7 +82,7 @@
             }
         } else {
             player.stopVideo();
-            if(videoId != "") {
+            if (videoId != "") {
                 videoId = "cdwal5Kw3Fc"; // ensure whatever video was there is really gone
             } else {
                 videoId = "";
