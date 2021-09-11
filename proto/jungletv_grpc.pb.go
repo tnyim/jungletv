@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 type JungleTVClient interface {
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error)
 	EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error)
+	RemoveOwnQueueEntry(ctx context.Context, in *RemoveOwnQueueEntryRequest, opts ...grpc.CallOption) (*RemoveOwnQueueEntryResponse, error)
 	MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error)
 	ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error)
 	MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error)
@@ -93,6 +94,15 @@ func (x *jungleTVSignInClient) Recv() (*SignInProgress, error) {
 func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error) {
 	out := new(EnqueueMediaResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/EnqueueMedia", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RemoveOwnQueueEntry(ctx context.Context, in *RemoveOwnQueueEntryRequest, opts ...grpc.CallOption) (*RemoveOwnQueueEntryResponse, error) {
+	out := new(RemoveOwnQueueEntryResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveOwnQueueEntry", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -449,6 +459,7 @@ func (c *jungleTVClient) SetPricesMultiplier(ctx context.Context, in *SetPricesM
 type JungleTVServer interface {
 	SignIn(*SignInRequest, JungleTV_SignInServer) error
 	EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error)
+	RemoveOwnQueueEntry(context.Context, *RemoveOwnQueueEntryRequest) (*RemoveOwnQueueEntryResponse, error)
 	MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error
 	ConsumeMedia(*ConsumeMediaRequest, JungleTV_ConsumeMediaServer) error
 	MonitorQueue(*MonitorQueueRequest, JungleTV_MonitorQueueServer) error
@@ -490,6 +501,9 @@ func (UnimplementedJungleTVServer) SignIn(*SignInRequest, JungleTV_SignInServer)
 }
 func (UnimplementedJungleTVServer) EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnqueueMedia not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveOwnQueueEntry(context.Context, *RemoveOwnQueueEntryRequest) (*RemoveOwnQueueEntryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveOwnQueueEntry not implemented")
 }
 func (UnimplementedJungleTVServer) MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorTicket not implemented")
@@ -623,6 +637,24 @@ func _JungleTV_EnqueueMedia_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).EnqueueMedia(ctx, req.(*EnqueueMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RemoveOwnQueueEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveOwnQueueEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveOwnQueueEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveOwnQueueEntry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveOwnQueueEntry(ctx, req.(*RemoveOwnQueueEntryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1150,6 +1182,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EnqueueMedia",
 			Handler:    _JungleTV_EnqueueMedia_Handler,
+		},
+		{
+			MethodName: "RemoveOwnQueueEntry",
+			Handler:    _JungleTV_RemoveOwnQueueEntry_Handler,
 		},
 		{
 			MethodName: "RewardInfo",

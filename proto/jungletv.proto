@@ -10,6 +10,7 @@ package jungletv;
 service JungleTV {
     rpc SignIn (SignInRequest) returns (stream SignInProgress) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
+    rpc RemoveOwnQueueEntry (RemoveOwnQueueEntryRequest) returns (RemoveOwnQueueEntryResponse) {}
     rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
     rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
     rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
@@ -124,6 +125,12 @@ message EnqueueMediaTicket {
 message MonitorTicketRequest {
     string ticket_id = 1;
 }
+
+message RemoveOwnQueueEntryRequest {
+    string id = 1;
+}
+
+message RemoveOwnQueueEntryResponse {}
 
 message ConsumeMediaRequest {}
 

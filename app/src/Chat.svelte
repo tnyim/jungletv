@@ -239,7 +239,6 @@
                 await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
             }
         } catch (ex) {
-            console.log(ex);
             composedMessage = msg;
             sendError = true;
             if (ex.includes("rate limit reached")) {

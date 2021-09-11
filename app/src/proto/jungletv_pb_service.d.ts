@@ -22,6 +22,15 @@ type JungleTVEnqueueMedia = {
   readonly responseType: typeof jungletv_pb.EnqueueMediaResponse;
 };
 
+type JungleTVRemoveOwnQueueEntry = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RemoveOwnQueueEntryRequest;
+  readonly responseType: typeof jungletv_pb.RemoveOwnQueueEntryResponse;
+};
+
 type JungleTVMonitorTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -278,6 +287,7 @@ export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
   static readonly EnqueueMedia: JungleTVEnqueueMedia;
+  static readonly RemoveOwnQueueEntry: JungleTVRemoveOwnQueueEntry;
   static readonly MonitorTicket: JungleTVMonitorTicket;
   static readonly ConsumeMedia: JungleTVConsumeMedia;
   static readonly MonitorQueue: JungleTVMonitorQueue;
@@ -349,6 +359,15 @@ export class JungleTVClient {
   enqueueMedia(
     requestMessage: jungletv_pb.EnqueueMediaRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.EnqueueMediaResponse|null) => void
+  ): UnaryResponse;
+  removeOwnQueueEntry(
+    requestMessage: jungletv_pb.RemoveOwnQueueEntryRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveOwnQueueEntryResponse|null) => void
+  ): UnaryResponse;
+  removeOwnQueueEntry(
+    requestMessage: jungletv_pb.RemoveOwnQueueEntryRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveOwnQueueEntryResponse|null) => void
   ): UnaryResponse;
   monitorTicket(requestMessage: jungletv_pb.MonitorTicketRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.EnqueueMediaTicket>;
   consumeMedia(requestMessage: jungletv_pb.ConsumeMediaRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaConsumptionCheckpoint>;

@@ -17,7 +17,7 @@ var (
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	expiry := time.Now().Add(7 * 24 * 60 * 60 * time.Second)
+	expiry := time.Now().Add(180 * 24 * 60 * 60 * time.Second)
 	adminToken, err := jwtManager.GenerateAdminToken("DEBUG_USER", expiry)
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)

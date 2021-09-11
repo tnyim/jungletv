@@ -43,6 +43,7 @@ type grpcServer struct {
 	jwtManager                     *auth.JWTManager
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
+	ownEntryRemovalRateLimiter     limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
 	userSerializer                 APIUserSerializer
 
@@ -79,6 +80,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetChatNickname", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardHistory", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/WithdrawalHistory", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveOwnQueueEntry", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
@@ -138,6 +140,13 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   10,
 		Interval: 5 * time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	s.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   4,
+		Interval: 4 * time.Hour,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -262,6 +271,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		entryAddedC := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.mediaQueue.entryAdded.Unsubscribe(entryAddedC)
 
+		ownEntryRemovedC := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.mediaQueue.ownEntryRemoved.Unsubscribe(ownEntryRemovedC)
+
 		rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
 
@@ -282,22 +294,10 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				t := v[0].(string)
 				entry := v[1].(MediaQueueEntry)
 				if !entry.RequestedBy().IsUnknown() {
-					address := entry.RequestedBy().Address()
-					name := address[:14]
-					chatBanned, err := s.moderationStore.LoadUserBannedFromChat(ctx, address, "")
+					name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
 						break
-					}
-					if !chatBanned {
-						nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
-						if err != nil {
-							errChan <- stacktrace.Propagate(err, "")
-							break
-						}
-						if nickname != nil {
-							name = *nickname
-						}
 					}
 					switch t {
 					case "enqueue":
@@ -314,6 +314,18 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
 					}
+				}
+			case v := <-ownEntryRemovedC:
+				entry := v[0].(MediaQueueEntry)
+				name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
+					break
+				}
+				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_%s just removed their own queue entry_ %s", name, entry.MediaInfo().Title()))
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
 				}
 			case v := <-rewardsDistributedC:
 				amount := v[0].(Amount)
@@ -379,6 +391,24 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			return
 		}
 	}
+}
+
+func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string) (string, error) {
+	name := address[:14]
+	chatBanned, err := s.moderationStore.LoadUserBannedFromChat(ctx, address, "")
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	if !chatBanned {
+		nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
+		if err != nil {
+			return "", stacktrace.Propagate(err, "")
+		}
+		if nickname != nil {
+			name = *nickname
+		}
+	}
+	return name, nil
 }
 
 func (s *grpcServer) autoEnqueueNewVideo(ctx *TransactionWrappingContext) error {

@@ -2,7 +2,7 @@
     import { apiClient } from "./api_client";
     import QrCode from "svelte-qrcode";
     import { PermissionLevel, QueueEntry, User } from "./proto/jungletv_pb";
-    import { darkMode, permissionLevel } from "./stores";
+    import { darkMode, permissionLevel, rewardAddress } from "./stores";
     import { DateTime, DurationUnit } from "luxon";
     import { slide } from "svelte/transition";
     import { copyToClipboard } from "./utils";
@@ -26,6 +26,12 @@
         isChatModerator = level == PermissionLevel.ADMIN;
     });
 
+    let rAddress = "";
+
+    rewardAddress.subscribe((address) => {
+        rAddress = address;
+    });
+
     const units: DurationUnit[] = ["year", "month", "week", "day", "hour", "minute", "second"];
 
     function formatEnqueuedAt(entry: QueueEntry): string {
@@ -44,6 +50,16 @@
 
     function openExplorer() {
         window.open("https://www.yellowspyglass.com/account/" + requestedBy.getAddress());
+    }
+
+    async function removeOwnEntry() {
+        try {
+        await apiClient.removeOwnQueueEntry(entry.getId());
+        } catch (ex) {
+            if (ex.includes("rate limit reached")) {
+                alert("Queue entry not removed because you have removed too many of your own queue entries recently. This is a safeguard to prevent certain kinds of abuse.");
+            }
+        }
     }
 
     let copied = false;
@@ -120,7 +136,8 @@
                 </div>
                 <div
                     class="{commonButtonClasses} col-span-3"
-                    on:click={() => window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId())}
+                    on:click={() =>
+                        window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId())}
                 >
                     <i class="fab fa-youtube" /> Watch on YouTube
                 </div>
@@ -137,6 +154,11 @@
             <div class="{commonButtonClasses} col-span-3" on:click={tipAuthor}>
                 <i class="fas fa-heart" /> Tip in BananoVault
             </div>
+            {#if requestedBy.getAddress() === rAddress && !isChatModerator}
+                <div class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
+                    <i class="fas fa-trash" /> Remove
+                </div>
+            {/if}
         {/if}
     </div>
 </div>

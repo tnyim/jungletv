@@ -38,7 +38,11 @@ type MediaQueue struct {
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
 	deepEntryRemoved *event.Event
+	ownEntryRemoved  *event.Event // receives the removed entry as an argument
 }
+
+// ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
+var ErrInsufficientPermissionsToRemoveEntry = errors.New("insufficient permissions to remove queue entry")
 
 func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string) (*MediaQueue, error) {
 	q := &MediaQueue{
@@ -50,6 +54,7 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		mediaChanged:                    event.New(),
 		entryAdded:                      event.New(),
 		deepEntryRemoved:                event.New(),
+		ownEntryRemoved:                 event.New(),
 		recentEntryCountsCache:          cache.New(10*time.Second, 30*time.Second),
 	}
 	if persistenceFile != "" {
@@ -124,6 +129,33 @@ func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
+	entry, err := q.removeEntryInMutex(entryID)
+	return entry, stacktrace.Propagate(err, "")
+}
+
+func (q *MediaQueue) RemoveOwnEntry(entryID string, user User) error {
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	for _, entry := range q.queue {
+		if entryID == entry.QueueID() {
+			reqBy := entry.RequestedBy()
+			if reqBy == nil || reqBy.IsUnknown() || (reqBy != nil && reqBy.Address() != user.Address()) {
+				return ErrInsufficientPermissionsToRemoveEntry
+			}
+			entry, err := q.removeEntryInMutex(entryID)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			q.ownEntryRemoved.Notify(entry)
+			return nil
+		}
+	}
+
+	return stacktrace.NewError("queue entry not found")
+}
+
+func (q *MediaQueue) removeEntryInMutex(entryID string) (MediaQueueEntry, error) {
 	if len(q.queue) == 0 {
 		return nil, stacktrace.NewError("the queue is empty")
 	}

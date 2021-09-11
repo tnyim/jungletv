@@ -398,6 +398,42 @@ export namespace MonitorTicketRequest {
   }
 }
 
+export class RemoveOwnQueueEntryRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveOwnQueueEntryRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveOwnQueueEntryRequest): RemoveOwnQueueEntryRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveOwnQueueEntryRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveOwnQueueEntryRequest;
+  static deserializeBinaryFromReader(message: RemoveOwnQueueEntryRequest, reader: jspb.BinaryReader): RemoveOwnQueueEntryRequest;
+}
+
+export namespace RemoveOwnQueueEntryRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class RemoveOwnQueueEntryResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveOwnQueueEntryResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveOwnQueueEntryResponse): RemoveOwnQueueEntryResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveOwnQueueEntryResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveOwnQueueEntryResponse;
+  static deserializeBinaryFromReader(message: RemoveOwnQueueEntryResponse, reader: jspb.BinaryReader): RemoveOwnQueueEntryResponse;
+}
+
+export namespace RemoveOwnQueueEntryResponse {
+  export type AsObject = {
+  }
+}
+
 export class ConsumeMediaRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConsumeMediaRequest.AsObject;
