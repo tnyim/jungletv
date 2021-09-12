@@ -11,7 +11,7 @@ export const copyToClipboard = async function (content: string) {
     }
 }
 
-export const getReadableUserString = function(user: User): string {
+export const getReadableUserString = function (user: User): string {
     if (user.hasNickname()) {
         return user.getNickname();
     }
@@ -44,4 +44,12 @@ export const editNicknameForUser = async function (user: User) {
 
 export const formatQueueEntryThumbnailDuration = function (duration: google_protobuf_duration_pb.Duration): string {
     return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
+}
+
+export const insertAtCursor = function (input: HTMLInputElement | HTMLTextAreaElement, textToInsert: string) {
+    const value = input.value;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    input.value = value.slice(0, start) + textToInsert + value.slice(end);
+    input.selectionStart = input.selectionEnd = start + textToInsert.length;
 }
