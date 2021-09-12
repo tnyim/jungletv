@@ -64,20 +64,19 @@
         send a "One Time Tip", or set up a recurring "Monthly" contribution.
     </p>
     <p class="mt-3">
-        JungleTV is open source software licensed under the Apache License 2.0. Head over to the <a
-            href="https://github.com/tnyim/jungletv"
-            target="_blank"
-            rel="noopener"
-        >
-            JungleTV GitHub
-        </a> to take a look at the source code, report issues, or to maybe even make some contributions of your own!
+        JungleTV is source-available software licensed under the Apache License 2.0 with Commons Clause. Head over to
+        the <a href="https://github.com/tnyim/jungletv" target="_blank" rel="noopener">JungleTV GitHub</a> to take a look
+        at the source code, report issues, or to maybe even make some contributions of your own!
     </p>
     <hr class="mt-3" />
     <div class="my-5 flex justify-center">
         <a
             use:link
             href="/"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md
+            text-white dark:text-white bg-yellow-600 hover:bg-yellow-700
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg
+            ease-linear transition-all duration-150"
         >
             Watch JungleTV
         </a>

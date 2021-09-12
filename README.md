@@ -31,8 +31,12 @@ ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
 
 # :copyright: License
 
-JungleTV is open source software licensed under the Apache License 2.0. 
+JungleTV is source-available software licensed under the Apache License 2.0 with Commons Clause.
+Put simply, this gives you all the freedoms of the Apache License 2.0 minus the ability to commercialize the JungleTV
+project, including a restriction on publicly hosting a JungleTV derivative service without obtaining explicit prior
+approval from the JungleTV authors. See the LICENSE file for the legally binding formulation.
 
-[Apache License 2.0](https://opensource.org/licenses/Apache-2.0)
+The Commons Clause came into effect in this project on September 12th 2021, and applies to all commits made on or after
+this date.
 
 Made with :yellow_heart: and :banana: potassium in the BANANO Jungle :monkey::monkey:.
