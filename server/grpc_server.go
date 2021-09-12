@@ -453,7 +453,8 @@ const (
 	youTubeVideoEnqueueRequestCreationFailed
 	youTubeVideoEnqueueRequestCreationVideoNotFound
 	youTubeVideoEnqueueRequestCreationVideoAgeRestricted
-	youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast
+	youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast
+	youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast
 	youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable
 	youTubeVideoEnqueueRequestCreationVideoIsTooLong
 	youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue
@@ -496,7 +497,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		}
 	}
 
-	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status"}).Id(videoID).MaxResults(1).Do()
+	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status", "liveStreamingDetails"}).Id(videoID).MaxResults(1).Do()
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -531,28 +532,36 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable, nil
 	}
 
-	if videoItem.Snippet.LiveBroadcastContent != "none" {
-		return nil, youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast, nil
+	if videoItem.Snippet.LiveBroadcastContent == "upcoming" {
+		return nil, youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast, nil
 	}
 
-	videoDuration, err := period.Parse(videoItem.ContentDetails.Duration)
-	if err != nil {
-		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
-	}
+	var videoDuration = period.NewHMS(0, 10, 0)
+	if videoItem.Snippet.LiveBroadcastContent == "live" {
+		if videoItem.LiveStreamingDetails.ConcurrentViewers < 50 {
+			return nil, youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast, nil
+		}
+	} else {
+		videoDuration, err = period.Parse(videoItem.ContentDetails.Duration)
+		if err != nil {
+			return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
+		}
 
-	if videoDuration.DurationApprox() > 35*time.Minute {
-		return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
+		if videoDuration.DurationApprox() > 35*time.Minute {
+			return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
+		}
 	}
 
 	request := &queueEntryYouTubeVideo{
-		id:           videoItem.Id,
-		title:        videoItem.Snippet.Title,
-		channelTitle: videoItem.Snippet.ChannelTitle,
-		thumbnailURL: videoItem.Snippet.Thumbnails.Default.Url,
-		duration:     videoDuration.DurationApprox(),
-		donePlaying:  event.New(),
-		requestedBy:  &unknownUser{},
-		unskippable:  unskippable,
+		id:            videoItem.Id,
+		title:         videoItem.Snippet.Title,
+		channelTitle:  videoItem.Snippet.ChannelTitle,
+		thumbnailURL:  videoItem.Snippet.Thumbnails.Default.Url,
+		duration:      videoDuration.DurationApprox(),
+		donePlaying:   event.New(),
+		requestedBy:   &unknownUser{},
+		unskippable:   unskippable,
+		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",
 	}
 
 	userClaims := auth.UserClaimsFromContext(ctx)

@@ -3,11 +3,10 @@
     import { onDestroy, onMount } from "svelte";
     import type { Queue, QueueEntry } from "./proto/jungletv_pb";
     import { Duration } from "luxon";
-    import type * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { link } from "svelte-navigator";
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
-    import { editNicknameForUser, getReadableUserString } from "./utils";
+    import { editNicknameForUser, formatQueueEntryThumbnailDuration, getReadableUserString } from "./utils";
 
     export let mode = "sidebar";
 
@@ -54,10 +53,6 @@
         }
     }
 
-    function formatDuration(duration: google_protobuf_duration_pb.Duration): string {
-        return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
-    }
-
     async function removeEntry(entry: QueueEntry, disallow: boolean) {
         await apiClient.removeQueueEntry(entry.getId());
         if (disallow) {
@@ -94,8 +89,16 @@
                         class="absolute bottom-0.5 right-2.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
                         style="font-size: 0.7rem; line-height: 0.8rem;"
                     >
-                        {formatDuration(entry.getLength())}
+                        {formatQueueEntryThumbnailDuration(entry.getLength())}
                     </div>
+                    {#if entry.getYoutubeVideoData().getLiveBroadcast()}
+                        <div
+                            style="font-size: 0.7rem; line-height: 0.8rem;"
+                            class="absolute bottom-0.5 left-0.5 bg-black border border-red-500 text-red-500 bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+                        >
+                            LIVE
+                        </div>
+                    {/if}
                 </div>
                 {#if i == 0}
                     <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center pr-2">
@@ -153,12 +156,14 @@
             </div>
         </div>
         {#if expandedEntryID == entry.getId()}
-            <QueueEntryDetails {entry}
-            on:remove={() => removeEntry(entry, false)}
-            on:disallow={() => removeEntry(entry, true)}
-            on:changeNickname={async () => {
-                await editNicknameForUser(entry.getRequestedBy())
-            }} />
+            <QueueEntryDetails
+                {entry}
+                on:remove={() => removeEntry(entry, false)}
+                on:disallow={() => removeEntry(entry, true)}
+                on:changeNickname={async () => {
+                    await editNicknameForUser(entry.getRequestedBy());
+                }}
+            />
         {/if}
     {:else}
         <div class="px-2 py-2">

@@ -82,8 +82,10 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 		failureReason = "Video not found"
 	case youTubeVideoEnqueueRequestCreationVideoAgeRestricted:
 		failureReason = "This video is age restricted"
-	case youTubeVideoEnqueueRequestCreationVideoIsLiveBroadcast:
-		failureReason = "This is a live broadcast"
+	case youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast:
+		failureReason = "This is an upcoming live broadcast"
+	case youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast:
+		failureReason = "This live broadcast has insufficient viewers to be allowed on JungleTV"
 	case youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable:
 		failureReason = "This video can't be played outside of YouTube"
 	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:

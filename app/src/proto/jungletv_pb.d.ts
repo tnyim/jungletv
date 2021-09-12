@@ -342,6 +342,11 @@ export class EnqueueMediaTicket extends jspb.Message {
   getCurrentlyPlayingIsUnskippable(): boolean;
   setCurrentlyPlayingIsUnskippable(value: boolean): void;
 
+  hasMediaLength(): boolean;
+  clearMediaLength(): void;
+  getMediaLength(): google_protobuf_duration_pb.Duration | undefined;
+  setMediaLength(value?: google_protobuf_duration_pb.Duration): void;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -369,12 +374,13 @@ export namespace EnqueueMediaTicket {
     expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     unskippable: boolean,
     currentlyPlayingIsUnskippable: boolean,
+    mediaLength?: google_protobuf_duration_pb.Duration.AsObject,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 10,
+    YOUTUBE_VIDEO_DATA = 11,
   }
 }
 
@@ -495,6 +501,9 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getCurrentPosition(): google_protobuf_duration_pb.Duration | undefined;
   setCurrentPosition(value?: google_protobuf_duration_pb.Duration): void;
 
+  getLiveBroadcast(): boolean;
+  setLiveBroadcast(value: boolean): void;
+
   hasRequestedBy(): boolean;
   clearRequestedBy(): void;
   getRequestedBy(): User | undefined;
@@ -546,6 +555,7 @@ export namespace MediaConsumptionCheckpoint {
   export type AsObject = {
     mediaPresent: boolean,
     currentPosition?: google_protobuf_duration_pb.Duration.AsObject,
+    liveBroadcast: boolean,
     requestedBy?: User.AsObject,
     requestCost: string,
     currentlyWatching: number,
@@ -558,8 +568,8 @@ export namespace MediaConsumptionCheckpoint {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 9,
-    YOUTUBE_VIDEO_DATA = 10,
+    STUB_DATA = 10,
+    YOUTUBE_VIDEO_DATA = 11,
   }
 }
 
@@ -642,6 +652,9 @@ export class QueueYouTubeVideoData extends jspb.Message {
   getChannelTitle(): string;
   setChannelTitle(value: string): void;
 
+  getLiveBroadcast(): boolean;
+  setLiveBroadcast(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueueYouTubeVideoData.AsObject;
   static toObject(includeInstance: boolean, msg: QueueYouTubeVideoData): QueueYouTubeVideoData.AsObject;
@@ -658,6 +671,7 @@ export namespace QueueYouTubeVideoData {
     title: string,
     thumbnailUrl: string,
     channelTitle: string,
+    liveBroadcast: boolean,
   }
 }
 

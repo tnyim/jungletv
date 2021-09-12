@@ -43,13 +43,14 @@ type MediaInfo interface {
 }
 
 type queueEntryYouTubeVideo struct {
-	queueID      string
-	id           string
-	title        string
-	channelTitle string
-	thumbnailURL string
-	duration     time.Duration
-	unskippable  bool
+	queueID       string
+	id            string
+	title         string
+	channelTitle  string
+	thumbnailURL  string
+	duration      time.Duration
+	unskippable   bool
+	liveBroadcast bool
 
 	requestedBy    User
 	requestCost    Amount
@@ -114,10 +115,11 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerial
 		RequestedAt: timestamppb.New(e.requestedAt),
 		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
-				Id:           e.id,
-				Title:        e.title,
-				ThumbnailUrl: e.thumbnailURL,
-				ChannelTitle: e.channelTitle,
+				Id:            e.id,
+				Title:         e.title,
+				ThumbnailUrl:  e.thumbnailURL,
+				ChannelTitle:  e.channelTitle,
+				LiveBroadcast: e.liveBroadcast,
 			},
 		},
 	}
@@ -128,32 +130,34 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerial
 }
 
 type queueEntryYouTubeVideoJsonRepresentation struct {
-	QueueID      string
-	Type         string
-	ID           string
-	Title        string
-	ChannelTitle string
-	ThumbnailURL string
-	Duration     time.Duration
-	RequestedBy  string
-	RequestCost  *big.Int
-	RequestedAt  time.Time
-	Unskippable  bool
+	QueueID       string
+	Type          string
+	ID            string
+	Title         string
+	ChannelTitle  string
+	ThumbnailURL  string
+	Duration      time.Duration
+	LiveBroadcast bool
+	RequestedBy   string
+	RequestCost   *big.Int
+	RequestedAt   time.Time
+	Unskippable   bool
 }
 
 func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 	j, err := json.Marshal(queueEntryYouTubeVideoJsonRepresentation{
-		QueueID:      e.queueID,
-		Type:         "youtube-video",
-		ID:           e.id,
-		Title:        e.title,
-		ChannelTitle: e.channelTitle,
-		ThumbnailURL: e.thumbnailURL,
-		Duration:     e.duration,
-		RequestedBy:  e.requestedBy.Address(),
-		RequestCost:  e.requestCost.Int,
-		RequestedAt:  e.requestedAt,
-		Unskippable:  e.unskippable,
+		QueueID:       e.queueID,
+		Type:          "youtube-video",
+		ID:            e.id,
+		Title:         e.title,
+		ChannelTitle:  e.channelTitle,
+		ThumbnailURL:  e.thumbnailURL,
+		Duration:      e.duration,
+		LiveBroadcast: e.liveBroadcast,
+		RequestedBy:   e.requestedBy.Address(),
+		RequestCost:   e.requestCost.Int,
+		RequestedAt:   e.requestedAt,
+		Unskippable:   e.unskippable,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.id)
@@ -173,6 +177,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.channelTitle = t.ChannelTitle
 	e.thumbnailURL = t.ThumbnailURL
 	e.duration = t.Duration
+	e.liveBroadcast = t.LiveBroadcast
 	e.requestedBy = NewAddressOnlyUser(t.RequestedBy)
 	e.requestCost = Amount{t.RequestCost}
 	e.requestedAt = t.RequestedAt
@@ -182,12 +187,14 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 }
 
 func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket) {
+	ticket.MediaLength = durationpb.New(e.duration)
 	ticket.MediaInfo = &proto.EnqueueMediaTicket_YoutubeVideoData{
 		YoutubeVideoData: &proto.QueueYouTubeVideoData{
-			Id:           e.id,
-			Title:        e.title,
-			ChannelTitle: e.channelTitle,
-			ThumbnailUrl: e.thumbnailURL,
+			Id:            e.id,
+			Title:         e.title,
+			ChannelTitle:  e.channelTitle,
+			ThumbnailUrl:  e.thumbnailURL,
+			LiveBroadcast: e.liveBroadcast,
 		},
 	}
 }
@@ -196,6 +203,7 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, us
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.PlayedFor()),
+		LiveBroadcast:   e.liveBroadcast,
 		RequestCost:     e.requestCost.SerializeForAPI(),
 		// Reward is optionally filled outside this function
 		MediaInfo: &proto.MediaConsumptionCheckpoint_YoutubeVideoData{

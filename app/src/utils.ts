@@ -1,5 +1,7 @@
 import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
+import type * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import { Duration } from "luxon";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -38,4 +40,8 @@ export const editNicknameForUser = async function (user: User) {
     } catch (e) {
         alert("Error editing nickname: " + e);
     }
+}
+
+export const formatQueueEntryThumbnailDuration = function (duration: google_protobuf_duration_pb.Duration): string {
+    return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
 }

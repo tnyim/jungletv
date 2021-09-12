@@ -26,12 +26,14 @@
     let consumeMediaRequest: Request;
     let consumeMediaTimeoutHandle: number = null;
     let playerBecameReady = false;
-    let firstSeekTo = 0;
+    let firstSeekTo: number;
+    let highestSeenLiveStreamCurrentTime: number;
+    let highestSeenLiveStreamCurrentTimeIsForVideo: string;
 
     onMount(() => {
         consumeMedia();
         player.on("stateChange", (event) => {
-            if (!playerBecameReady && event.data == 1) {
+            if (!playerBecameReady && event.data == 1 && firstSeekTo !== undefined) {
                 playerBecameReady = true;
                 player.seekTo(firstSeekTo, true);
             }
@@ -70,15 +72,29 @@
         playerConnected.update(() => true);
         if (checkpoint.getMediaPresent()) {
             videoId = checkpoint.getYoutubeVideoData().getId();
-            let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
-            firstSeekTo = currentTimeFromServer;
             let currentPlayerTime = await player.getCurrentTime();
-            let leniencySeconds = 3;
-            if (player.getVideoLoadedFraction() * player.getDuration() < 10) {
-                leniencySeconds = 10;
-            }
-            if (Math.abs(currentPlayerTime - currentTimeFromServer) > leniencySeconds) {
-                player.seekTo(currentTimeFromServer, true);
+            if (!checkpoint.getLiveBroadcast()) {
+                highestSeenLiveStreamCurrentTime = undefined;
+                let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
+                firstSeekTo = currentTimeFromServer;
+                let leniencySeconds = 3;
+                if (player.getVideoLoadedFraction() * player.getDuration() < 10) {
+                    leniencySeconds = 10;
+                }
+                if (Math.abs(currentPlayerTime - currentTimeFromServer) > leniencySeconds) {
+                    player.seekTo(currentTimeFromServer, true);
+                }
+            } else {
+                if (
+                    highestSeenLiveStreamCurrentTime === undefined ||
+                    highestSeenLiveStreamCurrentTime < currentPlayerTime ||
+                    highestSeenLiveStreamCurrentTimeIsForVideo != videoId
+                ) {
+                    highestSeenLiveStreamCurrentTime = currentPlayerTime;
+                    highestSeenLiveStreamCurrentTimeIsForVideo = videoId;
+                } else if (currentPlayerTime < highestSeenLiveStreamCurrentTime) {
+                    player.seekTo(Number.MAX_VALUE, true);
+                }
             }
         } else {
             player.stopVideo();

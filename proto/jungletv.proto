@@ -117,8 +117,9 @@ message EnqueueMediaTicket {
     google.protobuf.Timestamp expiration = 7;
     bool unskippable = 8;
     bool currently_playing_is_unskippable = 9;
+    google.protobuf.Duration media_length = 10;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 10;
+        QueueYouTubeVideoData youtube_video_data = 11;
     }
 }
 
@@ -144,15 +145,16 @@ message NowPlayingYouTubeVideoData {
 message MediaConsumptionCheckpoint {
     bool media_present = 1;
     google.protobuf.Duration current_position = 2;
-    User requested_by = 3;
-    string request_cost = 4;
-    uint32 currently_watching = 5;
-    optional string reward = 6;
-    optional string reward_balance = 7;
-    optional ActivityChallenge activity_challenge = 8;
+    bool live_broadcast = 3;
+    User requested_by = 4;
+    string request_cost = 5;
+    uint32 currently_watching = 6;
+    optional string reward = 7;
+    optional string reward_balance = 8;
+    optional ActivityChallenge activity_challenge = 9;
     oneof media_info {
-        NowPlayingStubData stub_data = 9;
-        NowPlayingYouTubeVideoData youtube_video_data = 10;
+        NowPlayingStubData stub_data = 10;
+        NowPlayingYouTubeVideoData youtube_video_data = 11;
     }
 }
 
@@ -173,6 +175,7 @@ message QueueYouTubeVideoData {
     string title = 2;
     string thumbnail_url = 3;
     string channel_title = 4;
+    bool live_broadcast = 5;
 }
 
 message QueueEntry {

@@ -4,6 +4,7 @@
     import { navigate } from "svelte-navigator";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
+import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -28,20 +29,7 @@
         </p>
     </div>
     <div slot="main-content">
-        <div class="px-2 py-1 flex flex-row space-x-1 shadow-sm rounded-md border border-gray-300">
-            <div class="w-32 flex-shrink-0">
-                <img
-                    alt="{ticket.getYoutubeVideoData().getTitle()} thumbnail"
-                    src={ticket.getYoutubeVideoData().getThumbnailUrl()}
-                />
-            </div>
-            <div class="flex flex-col flex-grow">
-                <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {ticket.getYoutubeVideoData().getChannelTitle()}
-                </p>
-            </div>
-        </div>
+        <EnqueueTicketPreview {ticket} />
         <div class="mt-8">
             <ErrorMessage>
                 {#if connectionLost}
