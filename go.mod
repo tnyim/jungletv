@@ -22,6 +22,7 @@ require (
 	github.com/icza/gox v0.0.0-20201215141822-6edfac6c05b5
 	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.0.0
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177

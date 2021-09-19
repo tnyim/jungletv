@@ -5,6 +5,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/sqalx"
+	"github.com/lann/builder"
+	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,9 +21,29 @@ type Withdrawal struct {
 
 // getWithdrawalWithSelect returns a slice with all withdrawals that match the conditions in sbuilder
 func getWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Withdrawal, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &Withdrawal{}, sbuilder, true)
+	tx, err := node.Beginx()
 	if err != nil {
-		return nil, totalCount, err
+		return nil, 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	values, _, err := GetWithSelect(tx, &Withdrawal{}, sbuilder, false)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// let's get the total count with a separate query, as it's much more performant than using the window function on large tables
+
+	// bit of a dirty hack
+	sbuilder = builder.Delete(sbuilder, "Columns").(sq.SelectBuilder)
+	sbuilder = builder.Delete(sbuilder, "OrderByParts").(sq.SelectBuilder)
+	sbuilder = sbuilder.Column("COUNT(*)").From("withdrawal").RemoveLimit().RemoveOffset()
+
+	logger.Println(sbuilder.ToSql())
+	totalCount := uint64(0)
+	err = sbuilder.RunWith(tx).QueryRow().Scan(&totalCount)
+	if err != nil {
+		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*Withdrawal, len(values))

@@ -5,6 +5,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/sqalx"
+	"github.com/lann/builder"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
 )
@@ -20,9 +21,29 @@ type ReceivedReward struct {
 
 // getReceivedRewardWithSelect returns a slice with all received rewards that match the conditions in sbuilder
 func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*ReceivedReward, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &ReceivedReward{}, sbuilder, true)
+	tx, err := node.Beginx()
 	if err != nil {
-		return nil, totalCount, err
+		return nil, 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	values, _, err := GetWithSelect(tx, &ReceivedReward{}, sbuilder, false)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// let's get the total count with a separate query, as it's much more performant than using the window function on large tables
+
+	// bit of a dirty hack
+	sbuilder = builder.Delete(sbuilder, "Columns").(sq.SelectBuilder)
+	sbuilder = builder.Delete(sbuilder, "OrderByParts").(sq.SelectBuilder)
+	sbuilder = sbuilder.Column("COUNT(*)").From("received_reward").RemoveLimit().RemoveOffset()
+
+	logger.Println(sbuilder.ToSql())
+	totalCount := uint64(0)
+	err = sbuilder.RunWith(tx).QueryRow().Scan(&totalCount)
+	if err != nil {
+		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*ReceivedReward, len(values))
