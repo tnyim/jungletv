@@ -1,4 +1,5 @@
-
+DROP TABLE IF EXISTS "crowdfunded_transaction";
+DROP TABLE IF EXISTS "crowdfunded_transaction_type";
 DROP TABLE IF EXISTS "withdrawal";
 DROP TABLE IF EXISTS "pending_withdrawal";
 DROP TABLE IF EXISTS "reward_balance";
@@ -94,3 +95,17 @@ CREATE TABLE IF NOT EXISTS "withdrawal" (
 );
 CREATE INDEX index_rewards_address_on_withdrawal ON withdrawal USING HASH (rewards_address);
 CREATE INDEX index_started_at_on_withdrawal ON withdrawal USING BTREE (started_at);
+
+CREATE TABLE IF NOT EXISTS "crowdfunded_transaction_type" (
+    transaction_type VARCHAR(10) PRIMARY KEY
+);
+INSERT INTO "crowdfunded_transaction_type" VALUES ('skip'), ('rain');
+
+CREATE TABLE IF NOT EXISTS "crowdfunded_transaction" (
+    tx_hash VARCHAR(64) PRIMARY KEY,
+    from_address VARCHAR(64) NOT NULL,
+    amount NUMERIC(39, 0) NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    transaction_type VARCHAR(10) NOT NULL REFERENCES crowdfunded_transaction_type (transaction_type),
+    for_media VARCHAR(36) REFERENCES played_media (id) -- nullable
+);

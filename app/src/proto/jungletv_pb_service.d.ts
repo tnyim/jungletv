@@ -58,6 +58,15 @@ type JungleTVMonitorQueue = {
   readonly responseType: typeof jungletv_pb.Queue;
 };
 
+type JungleTVMonitorSkipAndTip = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.MonitorSkipAndTipRequest;
+  readonly responseType: typeof jungletv_pb.SkipAndTipStatus;
+};
+
 type JungleTVRewardInfo = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -283,6 +292,24 @@ type JungleTVSetPricesMultiplier = {
   readonly responseType: typeof jungletv_pb.SetPricesMultiplierResponse;
 };
 
+type JungleTVSetCrowdfundedSkippingEnabled = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetCrowdfundedSkippingEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetCrowdfundedSkippingEnabledResponse;
+};
+
+type JungleTVSetSkipPriceMultiplier = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetSkipPriceMultiplierRequest;
+  readonly responseType: typeof jungletv_pb.SetSkipPriceMultiplierResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -291,6 +318,7 @@ export class JungleTV {
   static readonly MonitorTicket: JungleTVMonitorTicket;
   static readonly ConsumeMedia: JungleTVConsumeMedia;
   static readonly MonitorQueue: JungleTVMonitorQueue;
+  static readonly MonitorSkipAndTip: JungleTVMonitorSkipAndTip;
   static readonly RewardInfo: JungleTVRewardInfo;
   static readonly SubmitActivityChallenge: JungleTVSubmitActivityChallenge;
   static readonly ConsumeChat: JungleTVConsumeChat;
@@ -316,6 +344,8 @@ export class JungleTV {
   static readonly UpdateDocument: JungleTVUpdateDocument;
   static readonly SetUserChatNickname: JungleTVSetUserChatNickname;
   static readonly SetPricesMultiplier: JungleTVSetPricesMultiplier;
+  static readonly SetCrowdfundedSkippingEnabled: JungleTVSetCrowdfundedSkippingEnabled;
+  static readonly SetSkipPriceMultiplier: JungleTVSetSkipPriceMultiplier;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -372,6 +402,7 @@ export class JungleTVClient {
   monitorTicket(requestMessage: jungletv_pb.MonitorTicketRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.EnqueueMediaTicket>;
   consumeMedia(requestMessage: jungletv_pb.ConsumeMediaRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaConsumptionCheckpoint>;
   monitorQueue(requestMessage: jungletv_pb.MonitorQueueRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.Queue>;
+  monitorSkipAndTip(requestMessage: jungletv_pb.MonitorSkipAndTipRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.SkipAndTipStatus>;
   rewardInfo(
     requestMessage: jungletv_pb.RewardInfoRequest,
     metadata: grpc.Metadata,
@@ -588,6 +619,24 @@ export class JungleTVClient {
   setPricesMultiplier(
     requestMessage: jungletv_pb.SetPricesMultiplierRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetPricesMultiplierResponse|null) => void
+  ): UnaryResponse;
+  setCrowdfundedSkippingEnabled(
+    requestMessage: jungletv_pb.SetCrowdfundedSkippingEnabledRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetCrowdfundedSkippingEnabledResponse|null) => void
+  ): UnaryResponse;
+  setCrowdfundedSkippingEnabled(
+    requestMessage: jungletv_pb.SetCrowdfundedSkippingEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetCrowdfundedSkippingEnabledResponse|null) => void
+  ): UnaryResponse;
+  setSkipPriceMultiplier(
+    requestMessage: jungletv_pb.SetSkipPriceMultiplierRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkipPriceMultiplierResponse|null) => void
+  ): UnaryResponse;
+  setSkipPriceMultiplier(
+    requestMessage: jungletv_pb.SetSkipPriceMultiplierRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkipPriceMultiplierResponse|null) => void
   ): UnaryResponse;
 }
 

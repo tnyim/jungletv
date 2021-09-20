@@ -316,7 +316,7 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 10")
 	}
 
-	s.enqueueManager.SetFinalPricesMultiplier(int(r.Multiplier))
+	s.pricer.SetFinalPricesMultiplier(int(r.Multiplier))
 
 	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, auth.RemoteAddressFromContext(ctx))
 
@@ -332,4 +332,58 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 	}
 
 	return &proto.SetPricesMultiplierResponse{}, nil
+}
+
+func (s *grpcServer) SetCrowdfundedSkippingEnabled(ctx context.Context, r *proto.SetCrowdfundedSkippingEnabledRequest) (*proto.SetCrowdfundedSkippingEnabledResponse, error) {
+	user := auth.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.skipManager.SetCrowdfundedSkippingEnabled(r.Enabled)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Enabled {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s crowdfunded skipping",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetCrowdfundedSkippingEnabledResponse{}, nil
+}
+
+func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSkipPriceMultiplierRequest) (*proto.SetSkipPriceMultiplierResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.Multiplier < 10 {
+		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 10")
+	}
+
+	s.pricer.SetSkipPriceMultiplier(int(r.Multiplier))
+
+	s.log.Printf("Skip price multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Skip price multiplier set to %d by moderator: %s (%s)",
+				r.Multiplier,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetSkipPriceMultiplierResponse{}, nil
 }

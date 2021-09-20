@@ -23,6 +23,7 @@ type JungleTVClient interface {
 	MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error)
 	ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error)
 	MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error)
+	MonitorSkipAndTip(ctx context.Context, in *MonitorSkipAndTipRequest, opts ...grpc.CallOption) (JungleTV_MonitorSkipAndTipClient, error)
 	RewardInfo(ctx context.Context, in *RewardInfoRequest, opts ...grpc.CallOption) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
@@ -49,6 +50,8 @@ type JungleTVClient interface {
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
+	SetCrowdfundedSkippingEnabled(ctx context.Context, in *SetCrowdfundedSkippingEnabledRequest, opts ...grpc.CallOption) (*SetCrowdfundedSkippingEnabledResponse, error)
+	SetSkipPriceMultiplier(ctx context.Context, in *SetSkipPriceMultiplierRequest, opts ...grpc.CallOption) (*SetSkipPriceMultiplierResponse, error)
 }
 
 type jungleTVClient struct {
@@ -205,6 +208,38 @@ func (x *jungleTVMonitorQueueClient) Recv() (*Queue, error) {
 	return m, nil
 }
 
+func (c *jungleTVClient) MonitorSkipAndTip(ctx context.Context, in *MonitorSkipAndTipRequest, opts ...grpc.CallOption) (JungleTV_MonitorSkipAndTipClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[4], "/jungletv.JungleTV/MonitorSkipAndTip", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVMonitorSkipAndTipClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_MonitorSkipAndTipClient interface {
+	Recv() (*SkipAndTipStatus, error)
+	grpc.ClientStream
+}
+
+type jungleTVMonitorSkipAndTipClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVMonitorSkipAndTipClient) Recv() (*SkipAndTipStatus, error) {
+	m := new(SkipAndTipStatus)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *jungleTVClient) RewardInfo(ctx context.Context, in *RewardInfoRequest, opts ...grpc.CallOption) (*RewardInfoResponse, error) {
 	out := new(RewardInfoResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RewardInfo", in, out, opts...)
@@ -224,7 +259,7 @@ func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *Submit
 }
 
 func (c *jungleTVClient) ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[4], "/jungletv.JungleTV/ConsumeChat", opts...)
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[5], "/jungletv.JungleTV/ConsumeChat", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -453,6 +488,24 @@ func (c *jungleTVClient) SetPricesMultiplier(ctx context.Context, in *SetPricesM
 	return out, nil
 }
 
+func (c *jungleTVClient) SetCrowdfundedSkippingEnabled(ctx context.Context, in *SetCrowdfundedSkippingEnabledRequest, opts ...grpc.CallOption) (*SetCrowdfundedSkippingEnabledResponse, error) {
+	out := new(SetCrowdfundedSkippingEnabledResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetCrowdfundedSkippingEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SetSkipPriceMultiplier(ctx context.Context, in *SetSkipPriceMultiplierRequest, opts ...grpc.CallOption) (*SetSkipPriceMultiplierResponse, error) {
+	out := new(SetSkipPriceMultiplierResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetSkipPriceMultiplier", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -463,6 +516,7 @@ type JungleTVServer interface {
 	MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error
 	ConsumeMedia(*ConsumeMediaRequest, JungleTV_ConsumeMediaServer) error
 	MonitorQueue(*MonitorQueueRequest, JungleTV_MonitorQueueServer) error
+	MonitorSkipAndTip(*MonitorSkipAndTipRequest, JungleTV_MonitorSkipAndTipServer) error
 	RewardInfo(context.Context, *RewardInfoRequest) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
 	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
@@ -489,6 +543,8 @@ type JungleTVServer interface {
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
+	SetCrowdfundedSkippingEnabled(context.Context, *SetCrowdfundedSkippingEnabledRequest) (*SetCrowdfundedSkippingEnabledResponse, error)
+	SetSkipPriceMultiplier(context.Context, *SetSkipPriceMultiplierRequest) (*SetSkipPriceMultiplierResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -513,6 +569,9 @@ func (UnimplementedJungleTVServer) ConsumeMedia(*ConsumeMediaRequest, JungleTV_C
 }
 func (UnimplementedJungleTVServer) MonitorQueue(*MonitorQueueRequest, JungleTV_MonitorQueueServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorQueue not implemented")
+}
+func (UnimplementedJungleTVServer) MonitorSkipAndTip(*MonitorSkipAndTipRequest, JungleTV_MonitorSkipAndTipServer) error {
+	return status.Errorf(codes.Unimplemented, "method MonitorSkipAndTip not implemented")
 }
 func (UnimplementedJungleTVServer) RewardInfo(context.Context, *RewardInfoRequest) (*RewardInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RewardInfo not implemented")
@@ -588,6 +647,12 @@ func (UnimplementedJungleTVServer) SetUserChatNickname(context.Context, *SetUser
 }
 func (UnimplementedJungleTVServer) SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPricesMultiplier not implemented")
+}
+func (UnimplementedJungleTVServer) SetCrowdfundedSkippingEnabled(context.Context, *SetCrowdfundedSkippingEnabledRequest) (*SetCrowdfundedSkippingEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCrowdfundedSkippingEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) SetSkipPriceMultiplier(context.Context, *SetSkipPriceMultiplierRequest) (*SetSkipPriceMultiplierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSkipPriceMultiplier not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -719,6 +784,27 @@ type jungleTVMonitorQueueServer struct {
 }
 
 func (x *jungleTVMonitorQueueServer) Send(m *Queue) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_MonitorSkipAndTip_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MonitorSkipAndTipRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).MonitorSkipAndTip(m, &jungleTVMonitorSkipAndTipServer{stream})
+}
+
+type JungleTV_MonitorSkipAndTipServer interface {
+	Send(*SkipAndTipStatus) error
+	grpc.ServerStream
+}
+
+type jungleTVMonitorSkipAndTipServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVMonitorSkipAndTipServer) Send(m *SkipAndTipStatus) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1175,6 +1261,42 @@ func _JungleTV_SetPricesMultiplier_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetCrowdfundedSkippingEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetCrowdfundedSkippingEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetCrowdfundedSkippingEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetCrowdfundedSkippingEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetCrowdfundedSkippingEnabled(ctx, req.(*SetCrowdfundedSkippingEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetSkipPriceMultiplier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSkipPriceMultiplierRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetSkipPriceMultiplier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetSkipPriceMultiplier",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetSkipPriceMultiplier(ctx, req.(*SetSkipPriceMultiplierRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1283,6 +1405,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 			MethodName: "SetPricesMultiplier",
 			Handler:    _JungleTV_SetPricesMultiplier_Handler,
 		},
+		{
+			MethodName: "SetCrowdfundedSkippingEnabled",
+			Handler:    _JungleTV_SetCrowdfundedSkippingEnabled_Handler,
+		},
+		{
+			MethodName: "SetSkipPriceMultiplier",
+			Handler:    _JungleTV_SetSkipPriceMultiplier_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1303,6 +1433,11 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "MonitorQueue",
 			Handler:       _JungleTV_MonitorQueue_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "MonitorSkipAndTip",
+			Handler:       _JungleTV_MonitorSkipAndTip_Handler,
 			ServerStreams: true,
 		},
 		{

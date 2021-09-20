@@ -65,8 +65,8 @@
     let blW = 0;
     let blSW = 1,
         wDiff = blSW / blW - 1, // widths difference ratio
-        mPadd = 120, // Mousemove Padding
-        damp = 10, // Mousemove response softness
+        mPadd = 50, // Mousemove Padding
+        damp = 12, // Mousemove response softness
         mX = 0, // Real mouse position
         mX2 = 0, // Modified mouse position
         posX = 0,
@@ -135,7 +135,7 @@
     </div>
     <div class="flex flex-row lg:ml-10">
         <div
-            class="flex-1 flex flex-row h-9 lg: overflow-x-scroll disable-scrollbars relative"
+            class="flex-1 flex flex-row h-9 overflow-x-scroll disable-scrollbars relative"
             on:mousemove={onTabBarMouseMove}
             on:touchstart={() => (touchingTabBar = true)}
             on:touchend={() => {

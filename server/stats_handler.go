@@ -54,7 +54,7 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 	}, nil
 }
 
-func (s *StatsHandler) CurrentlyWatching(ctx context.Context) int {
+func (s *StatsHandler) CurrentlyWatching() int {
 	s.spectatorsMutex.RLock()
 	defer s.spectatorsMutex.RUnlock()
 	return len(s.spectatorsByRemoteAddress)

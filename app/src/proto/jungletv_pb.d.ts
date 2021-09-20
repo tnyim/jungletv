@@ -733,6 +733,62 @@ export namespace QueueEntry {
   }
 }
 
+export class MonitorSkipAndTipRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MonitorSkipAndTipRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorSkipAndTipRequest): MonitorSkipAndTipRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MonitorSkipAndTipRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorSkipAndTipRequest;
+  static deserializeBinaryFromReader(message: MonitorSkipAndTipRequest, reader: jspb.BinaryReader): MonitorSkipAndTipRequest;
+}
+
+export namespace MonitorSkipAndTipRequest {
+  export type AsObject = {
+  }
+}
+
+export class SkipAndTipStatus extends jspb.Message {
+  getSkipStatus(): SkipStatusMap[keyof SkipStatusMap];
+  setSkipStatus(value: SkipStatusMap[keyof SkipStatusMap]): void;
+
+  getSkipAddress(): string;
+  setSkipAddress(value: string): void;
+
+  getSkipBalance(): string;
+  setSkipBalance(value: string): void;
+
+  getSkipThreshold(): string;
+  setSkipThreshold(value: string): void;
+
+  getRainAddress(): string;
+  setRainAddress(value: string): void;
+
+  getRainBalance(): string;
+  setRainBalance(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SkipAndTipStatus.AsObject;
+  static toObject(includeInstance: boolean, msg: SkipAndTipStatus): SkipAndTipStatus.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SkipAndTipStatus, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SkipAndTipStatus;
+  static deserializeBinaryFromReader(message: SkipAndTipStatus, reader: jspb.BinaryReader): SkipAndTipStatus;
+}
+
+export namespace SkipAndTipStatus {
+  export type AsObject = {
+    skipStatus: SkipStatusMap[keyof SkipStatusMap],
+    skipAddress: string,
+    skipBalance: string,
+    skipThreshold: string,
+    rainAddress: string,
+    rainBalance: string,
+  }
+}
+
 export class User extends jspb.Message {
   getAddress(): string;
   setAddress(value: string): void;
@@ -2272,6 +2328,78 @@ export namespace WithdrawalHistoryResponse {
   }
 }
 
+export class SetCrowdfundedSkippingEnabledRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetCrowdfundedSkippingEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetCrowdfundedSkippingEnabledRequest): SetCrowdfundedSkippingEnabledRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetCrowdfundedSkippingEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetCrowdfundedSkippingEnabledRequest;
+  static deserializeBinaryFromReader(message: SetCrowdfundedSkippingEnabledRequest, reader: jspb.BinaryReader): SetCrowdfundedSkippingEnabledRequest;
+}
+
+export namespace SetCrowdfundedSkippingEnabledRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetCrowdfundedSkippingEnabledResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetCrowdfundedSkippingEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetCrowdfundedSkippingEnabledResponse): SetCrowdfundedSkippingEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetCrowdfundedSkippingEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetCrowdfundedSkippingEnabledResponse;
+  static deserializeBinaryFromReader(message: SetCrowdfundedSkippingEnabledResponse, reader: jspb.BinaryReader): SetCrowdfundedSkippingEnabledResponse;
+}
+
+export namespace SetCrowdfundedSkippingEnabledResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetSkipPriceMultiplierRequest extends jspb.Message {
+  getMultiplier(): number;
+  setMultiplier(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetSkipPriceMultiplierRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetSkipPriceMultiplierRequest): SetSkipPriceMultiplierRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetSkipPriceMultiplierRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetSkipPriceMultiplierRequest;
+  static deserializeBinaryFromReader(message: SetSkipPriceMultiplierRequest, reader: jspb.BinaryReader): SetSkipPriceMultiplierRequest;
+}
+
+export namespace SetSkipPriceMultiplierRequest {
+  export type AsObject = {
+    multiplier: number,
+  }
+}
+
+export class SetSkipPriceMultiplierResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetSkipPriceMultiplierResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetSkipPriceMultiplierResponse): SetSkipPriceMultiplierResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetSkipPriceMultiplierResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetSkipPriceMultiplierResponse;
+  static deserializeBinaryFromReader(message: SetSkipPriceMultiplierResponse, reader: jspb.BinaryReader): SetSkipPriceMultiplierResponse;
+}
+
+export namespace SetSkipPriceMultiplierResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -2279,6 +2407,17 @@ export interface EnqueueMediaTicketStatusMap {
 }
 
 export const EnqueueMediaTicketStatus: EnqueueMediaTicketStatusMap;
+
+export interface SkipStatusMap {
+  SKIP_STATUS_ALLOWED: 0;
+  SKIP_STATUS_UNSKIPPABLE: 1;
+  SKIP_STATUS_END_OF_MEDIA_PERIOD: 2;
+  SKIP_STATUS_NO_MEDIA: 3;
+  SKIP_STATUS_UNAVAILABLE: 4;
+  SKIP_STATUS_DISABLED: 5;
+}
+
+export const SkipStatus: SkipStatusMap;
 
 export interface UserRoleMap {
   MODERATOR: 0;

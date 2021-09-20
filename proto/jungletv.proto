@@ -14,6 +14,7 @@ service JungleTV {
     rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
     rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
     rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
+    rpc MonitorSkipAndTip (MonitorSkipAndTipRequest) returns (stream SkipAndTipStatus) {}
     rpc RewardInfo (RewardInfoRequest) returns (RewardInfoResponse) {}
     rpc SubmitActivityChallenge (SubmitActivityChallengeRequest) returns (SubmitActivityChallengeResponse) {}
     rpc ConsumeChat (ConsumeChatRequest) returns (stream ChatUpdate) {}
@@ -41,6 +42,8 @@ service JungleTV {
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
+    rpc SetCrowdfundedSkippingEnabled(SetCrowdfundedSkippingEnabledRequest) returns (SetCrowdfundedSkippingEnabledResponse) {}
+    rpc SetSkipPriceMultiplier(SetSkipPriceMultiplierRequest) returns (SetSkipPriceMultiplierResponse) {}
 }
 
 message PaginationParameters {
@@ -188,6 +191,26 @@ message QueueEntry {
     oneof media_info {
         QueueYouTubeVideoData youtube_video_data = 7;
     }
+}
+
+message MonitorSkipAndTipRequest {}
+
+enum SkipStatus {
+    SKIP_STATUS_ALLOWED = 0;
+    SKIP_STATUS_UNSKIPPABLE = 1;
+    SKIP_STATUS_END_OF_MEDIA_PERIOD = 2;
+    SKIP_STATUS_NO_MEDIA = 3;
+    SKIP_STATUS_UNAVAILABLE = 4;
+    SKIP_STATUS_DISABLED = 5;
+}
+
+message SkipAndTipStatus {
+    SkipStatus skip_status = 1;
+    string skip_address = 2;
+    string skip_balance = 3;
+    string skip_threshold = 4;
+    string rain_address = 5;
+    string rain_balance = 6;
 }
 
 enum UserRole {
@@ -506,3 +529,15 @@ message WithdrawalHistoryResponse {
     uint64 offset = 2;
     uint64 total = 3;
 }
+
+message SetCrowdfundedSkippingEnabledRequest {
+    bool enabled = 1;
+}
+
+message SetCrowdfundedSkippingEnabledResponse {}
+
+message SetSkipPriceMultiplierRequest {
+    int32 multiplier = 1;
+}
+
+message SetSkipPriceMultiplierResponse {}

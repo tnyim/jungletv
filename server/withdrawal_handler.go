@@ -165,8 +165,8 @@ func (w *WithdrawalHandler) CompleteAllPendingWithdrawals(ctxCtx context.Context
 // If the process is interrupted, it's possible that not all pending withdrawals will have gone out
 // In that case, the ones that did not go out will remain as pending withdrawals
 func (w *WithdrawalHandler) CompleteWithdrawals(ctxCtx context.Context, pending []*types.PendingWithdrawal) error {
-	for _, p := range pending {
-		err := w.CompleteWithdrawal(ctxCtx, p)
+	for i, p := range pending {
+		err := w.CompleteWithdrawal(ctxCtx, p, i == 0)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
@@ -177,7 +177,7 @@ func (w *WithdrawalHandler) CompleteWithdrawals(ctxCtx context.Context, pending 
 // CompleteWithdrawal completes the specified withdrawal in a fully separate database transaction
 // (do not pass a transaction as context)
 // It removes the pending withdrawal, sends the transaction to the network and creates a matching completed withdrawal
-func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *types.PendingWithdrawal) error {
+func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *types.PendingWithdrawal, recvPending bool) error {
 	timing := w.statsClient.NewTiming()
 	defer timing.Send("complete_withdrawal")
 	ctx, err := BeginTransaction(ctxCtx)
@@ -195,6 +195,12 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	done := make(chan struct{})
 	var blockHash rpc.BlockHash
 	w.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
+		if recvPending {
+			err = collectorAccount.ReceivePendings(dustThreshold)
+			if err != nil {
+				w.log.Printf("Error receiving pendings on collector account: %v", err)
+			}
+		}
 		blockHash, err = collectorAccount.Send(pending.RewardsAddress, pending.Amount.BigInt())
 		done <- struct{}{}
 	}

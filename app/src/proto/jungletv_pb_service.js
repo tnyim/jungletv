@@ -64,6 +64,15 @@ JungleTV.MonitorQueue = {
   responseType: jungletv_pb.Queue
 };
 
+JungleTV.MonitorSkipAndTip = {
+  methodName: "MonitorSkipAndTip",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: true,
+  requestType: jungletv_pb.MonitorSkipAndTipRequest,
+  responseType: jungletv_pb.SkipAndTipStatus
+};
+
 JungleTV.RewardInfo = {
   methodName: "RewardInfo",
   service: JungleTV,
@@ -289,6 +298,24 @@ JungleTV.SetPricesMultiplier = {
   responseType: jungletv_pb.SetPricesMultiplierResponse
 };
 
+JungleTV.SetCrowdfundedSkippingEnabled = {
+  methodName: "SetCrowdfundedSkippingEnabled",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetCrowdfundedSkippingEnabledRequest,
+  responseType: jungletv_pb.SetCrowdfundedSkippingEnabledResponse
+};
+
+JungleTV.SetSkipPriceMultiplier = {
+  methodName: "SetSkipPriceMultiplier",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetSkipPriceMultiplierRequest,
+  responseType: jungletv_pb.SetSkipPriceMultiplierResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -482,6 +509,45 @@ JungleTVClient.prototype.monitorQueue = function monitorQueue(requestMessage, me
     status: []
   };
   var client = grpc.invoke(JungleTV.MonitorQueue, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onMessage: function (responseMessage) {
+      listeners.data.forEach(function (handler) {
+        handler(responseMessage);
+      });
+    },
+    onEnd: function (status, statusMessage, trailers) {
+      listeners.status.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners.end.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners = null;
+    }
+  });
+  return {
+    on: function (type, handler) {
+      listeners[type].push(handler);
+      return this;
+    },
+    cancel: function () {
+      listeners = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.monitorSkipAndTip = function monitorSkipAndTip(requestMessage, metadata) {
+  var listeners = {
+    data: [],
+    end: [],
+    status: []
+  };
+  var client = grpc.invoke(JungleTV.MonitorSkipAndTip, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -1271,6 +1337,68 @@ JungleTVClient.prototype.setPricesMultiplier = function setPricesMultiplier(requ
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetPricesMultiplier, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setCrowdfundedSkippingEnabled = function setCrowdfundedSkippingEnabled(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetCrowdfundedSkippingEnabled, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setSkipPriceMultiplier = function setSkipPriceMultiplier(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetSkipPriceMultiplier, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

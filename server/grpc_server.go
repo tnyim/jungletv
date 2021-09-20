@@ -39,6 +39,8 @@ type grpcServer struct {
 	wallet                         *wallet.Wallet
 	collectorAccount               *wallet.Account
 	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
+	skipAccount                    *wallet.Account
+	rainAccount                    *wallet.Account
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	jwtManager                     *auth.JWTManager
 	enqueueRequestRateLimiter      limiter.Store
@@ -57,7 +59,9 @@ type grpcServer struct {
 	addressesWithGoodRepCache *cache.Cache
 
 	mediaQueue        *MediaQueue
+	pricer            *Pricer
 	enqueueManager    *EnqueueManager
+	skipManager       *SkipManager
 	rewardsHandler    *RewardsHandler
 	withdrawalHandler *WithdrawalHandler
 	statsHandler      *StatsHandler
@@ -96,6 +100,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateDocument", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetUserChatNickname", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetPricesMultiplier", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetCrowdfundedSkippingEnabled", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetSkipPriceMultiplier", auth.AdminPermissionLevel)
 
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
@@ -152,9 +158,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	collectorAccountIdx := uint32(0)
-	s.collectorAccount, err = w.NewAccount(&collectorAccountIdx)
-	s.collectorAccount.SetRep(repAddress)
+	err = s.setupSpecialAccounts(repAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -164,17 +168,22 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	s.pricer = NewPricer(log, s.mediaQueue, s.rewardsHandler, s.statsHandler)
+
+	s.skipManager = NewSkipManager(log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
+
 	s.withdrawalHandler = NewWithdrawalHandler(log, s.statsClient, s.collectorAccountQueue)
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		log, statsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, hCaptchaSecret, w,
-		s.collectorAccountQueue, s.paymentAccountPendingWaitGroup, s.moderationStore)
+		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	s.pricer.rewardsHandler = s.rewardsHandler
 
-	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, w, NewPaymentAccountPool(w, repAddress),
-		s.paymentAccountPendingWaitGroup, s.statsHandler, s.rewardsHandler, s.collectorAccount.Address(),
+	s.enqueueManager, err = NewEnqueueManager(log, statsClient, s.mediaQueue, s.pricer, w, NewPaymentAccountPool(w, repAddress),
+		s.paymentAccountPendingWaitGroup, s.rewardsHandler, s.collectorAccount.Address(),
 		s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -194,6 +203,43 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
 	return s, nil
+}
+
+func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
+	var err error
+	collectorAccountIdx := uint32(0)
+	s.collectorAccount, err = s.wallet.NewAccount(&collectorAccountIdx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = s.collectorAccount.SetRep(repAddress)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	skipAccountIdx := uint32(11575)
+	s.skipAccount, err = s.wallet.NewAccount(&skipAccountIdx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = s.skipAccount.SetRep(repAddress)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	rainAccountIdx := uint32(397007)
+	s.rainAccount, err = s.wallet.NewAccount(&rainAccountIdx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = s.rainAccount.SetRep(repAddress)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	return nil
 }
 
 func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
@@ -251,6 +297,23 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 
 	go func(ctx context.Context) {
 		for {
+			s.log.Println("Skip manager starting/restarting")
+			err := s.skipManager.Worker(ctx, s.ticketCheckPeriod)
+			if err == nil {
+				return
+			}
+			errChan <- stacktrace.Propagate(err, "skip manager error")
+			select {
+			case <-ctx.Done():
+				s.log.Println("Skip manager done")
+				return
+			default:
+			}
+		}
+	}(ctx)
+
+	go func(ctx context.Context) {
+		for {
 			select {
 			case f := <-s.collectorAccountQueue:
 				f(s.collectorAccount, s.wallet.RPC, s.wallet.RPCWork)
@@ -276,6 +339,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 
 		rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
+
+		crowdfundedSkippedC := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.skipManager.crowdfundedSkip.Unsubscribe(crowdfundedSkippedC)
 
 		for {
 			select {
@@ -335,6 +401,16 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 
 				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 					"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
+				}
+			case v := <-crowdfundedSkippedC:
+				amount := v[0].(Amount)
+				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
+				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
+
+				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_Spectators paid **%s BAN** to skip the previous video!_", banStr))
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
 				}
@@ -520,7 +596,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
-	if time.Since(lastPlayed) < 2*time.Hour {
+	if time.Since(lastPlayed) < 2*time.Hour && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
 		return nil, youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
 	}
 
@@ -537,8 +613,12 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	}
 
 	var videoDuration = period.NewHMS(0, 10, 0)
+	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+		// temporary solution to allow staff to enqueue livestreams for longer
+		videoDuration = period.NewHMS(1, 0, 0)
+	}
 	if videoItem.Snippet.LiveBroadcastContent == "live" {
-		if videoItem.LiveStreamingDetails.ConcurrentViewers < 50 {
+		if videoItem.LiveStreamingDetails.ConcurrentViewers < 50 && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
 			return nil, youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast, nil
 		}
 	} else {

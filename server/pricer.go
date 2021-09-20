@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"math"
 	"math/big"
 	"time"
@@ -18,6 +19,47 @@ var PriceRoundingFactor *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(100))
 // RewardRoundingFactor is the rounding factor for per-user rewards
 var RewardRoundingFactor *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(100))
 
+var dustThreshold *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(1000))
+
+// Pricer manages pricing
+type Pricer struct {
+	log                       *log.Logger
+	mediaQueue                *MediaQueue
+	rewardsHandler            *RewardsHandler
+	statsHandler              *StatsHandler
+	finalPricesMultiplier     int
+	crowdfundedSkipMultiplier int
+}
+
+// NewPricer returns an initialized pricer
+func NewPricer(log *log.Logger,
+	mediaQueue *MediaQueue,
+	rewardsHandler *RewardsHandler,
+	statsHandler *StatsHandler) *Pricer {
+	return &Pricer{
+		log:                       log,
+		mediaQueue:                mediaQueue,
+		rewardsHandler:            rewardsHandler,
+		statsHandler:              statsHandler,
+		finalPricesMultiplier:     100,
+		crowdfundedSkipMultiplier: 150, // this means crowdfunded skipping will be 1.5x as expensive as normal individual skipping
+	}
+}
+
+func (p *Pricer) SetFinalPricesMultiplier(m int) {
+	if m < 1 {
+		return
+	}
+	p.finalPricesMultiplier = m
+}
+
+func (p *Pricer) SetSkipPriceMultiplier(m int) {
+	if m < 1 {
+		return
+	}
+	p.crowdfundedSkipMultiplier = m
+}
+
 // EnqueuePricing contains the price for different enqueuing modes
 type EnqueuePricing struct {
 	EnqueuePrice  Amount
@@ -26,7 +68,7 @@ type EnqueuePricing struct {
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
-func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoDuration time.Duration, unskippable bool, finalMultiplier int) EnqueuePricing {
+func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.2))
 	// LengthPenalty is ... see the switch below
@@ -35,7 +77,8 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	// or: EnqueuePrice = ( BaseEnqueuePrice * (1000 + QueueLengthFactor + currentlyWatching * 100 + LengthPenalty * 1000) ) / 1000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
-	queueLength := mediaQueue.Length() - 1
+	currentlyWatching := p.currentlyWatchingEligible()
+	queueLength := p.mediaQueue.Length() - 1
 	if queueLength < 0 {
 		queueLength = 0
 	}
@@ -81,7 +124,7 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	}
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(100))
-	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(int64(finalMultiplier)))
+	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(int64(p.finalPricesMultiplier)))
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)
@@ -97,12 +140,27 @@ func ComputeEnqueuePricing(mediaQueue *MediaQueue, currentlyWatching int, videoD
 	return pricing
 }
 
-// ComputeReward calculates how much each user should receive
-func ComputeReward(totalAmount Amount, numUsers int) Amount {
-	amountForEach := Amount{new(big.Int)}
-	amountForEach.Div(totalAmount.Int, big.NewInt(int64(numUsers)))
-	// "floor" (round down) reward to prevent dust amounts
-	amountForEach.Div(amountForEach.Int, RewardRoundingFactor)
-	amountForEach.Mul(amountForEach.Int, RewardRoundingFactor)
-	return amountForEach
+func (p *Pricer) ComputeCrowdfundedSkipPricing() Amount {
+	pricing := p.ComputeEnqueuePricing(3*time.Minute, false)
+	v := big.NewInt(0).Div(
+		big.NewInt(0).Mul(
+			pricing.PlayNowPrice.Int,
+			big.NewInt(int64(p.crowdfundedSkipMultiplier)),
+		),
+		big.NewInt(100),
+	)
+	v.Div(v, PriceRoundingFactor)
+	v.Mul(v, PriceRoundingFactor)
+	return Amount{v}
+}
+
+func (p *Pricer) currentlyWatchingEligible() int {
+	currentlyWatchingEligible := int(p.rewardsHandler.eligibleMovingAverage.Avg())
+	if p.rewardsHandler.eligibleMovingAverage.Count() == 0 {
+		// we didn't send rewards yet since restarting, take the total number of spectators and assume 50% are eligible
+		// (50% figure chosen based on observed data)
+		currentlyWatchingTotal := p.statsHandler.CurrentlyWatching()
+		currentlyWatchingEligible = currentlyWatchingTotal / 2
+	}
+	return currentlyWatchingEligible
 }

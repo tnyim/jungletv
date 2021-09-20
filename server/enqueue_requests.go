@@ -26,16 +26,15 @@ const TicketExpiration = 2 * time.Minute
 type EnqueueManager struct {
 	statsClient                    *statsd.Client
 	mediaQueue                     *MediaQueue
+	pricer                         *Pricer
 	wallet                         *wallet.Wallet
 	paymentAccountPool             *PaymentAccountPool
 	paymentAccountPendingWaitGroup *sync.WaitGroup
-	statsHandler                   *StatsHandler
 	rewardsHandler                 *RewardsHandler
 	collectorAccountAddress        string
 	log                            *log.Logger
 	moderationStore                ModerationStore
 	modLogWebhook                  api.WebhookClient
-	finalPricesMultiplier          int
 
 	requests                map[string]EnqueueTicket
 	requestsLock            sync.RWMutex
@@ -69,10 +68,10 @@ type EnqueueTicket interface {
 func NewEnqueueManager(log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *MediaQueue,
+	pricer *Pricer,
 	wallet *wallet.Wallet,
 	paymentAccountPool *PaymentAccountPool,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
-	statsHandler *StatsHandler,
 	rewardsHandler *RewardsHandler,
 	collectorAccountAddress string,
 	moderationStore ModerationStore,
@@ -81,25 +80,17 @@ func NewEnqueueManager(log *log.Logger,
 		log:                            log,
 		statsClient:                    statsClient,
 		mediaQueue:                     mediaQueue,
+		pricer:                         pricer,
 		wallet:                         wallet,
 		paymentAccountPool:             paymentAccountPool,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
-		statsHandler:                   statsHandler,
 		rewardsHandler:                 rewardsHandler,
 		collectorAccountAddress:        collectorAccountAddress,
 		requests:                       make(map[string]EnqueueTicket),
 		moderationStore:                moderationStore,
 		modLogWebhook:                  modLogWebhook,
-		finalPricesMultiplier:          100,
 		recentlyEvictedRequests:        cache.New(10*time.Minute, 1*time.Minute),
 	}, nil
-}
-
-func (e *EnqueueManager) SetFinalPricesMultiplier(m int) {
-	if m < 1 {
-		return
-	}
-	e.finalPricesMultiplier = m
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
@@ -130,21 +121,13 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 			paymentAccount.Address()))
 	}
 
-	currentlyWatchingEligible := int(e.rewardsHandler.eligibleMovingAverage.Avg())
-	if e.rewardsHandler.eligibleMovingAverage.Count() == 0 {
-		// we didn't send rewards yet since restarting, take the total number of spectators and assume 50% are eligible
-		// (50% figure chosen based on observed data)
-		currentlyWatchingTotal := e.statsHandler.CurrentlyWatching(ctx)
-		currentlyWatchingEligible = currentlyWatchingTotal / 2
-	}
-
 	t := &ticket{
 		id:            uuid.NewV4().String(),
 		createdAt:     time.Now(),
 		requestedBy:   request.RequestedBy(),
 		mediaInfo:     request.MediaInfo(),
 		unskippable:   request.Unskippable(),
-		pricing:       ComputeEnqueuePricing(e.mediaQueue, currentlyWatchingEligible, request.MediaInfo().Length(), request.Unskippable(), e.finalPricesMultiplier),
+		pricing:       e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable()),
 		account:       paymentAccount,
 		statusChanged: event.New(),
 	}
@@ -236,7 +219,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		// requested by unauthenticated user, set the user to be who paid
 
 		// we must receive pendings otherwise the history might not contain the latest tx
-		err := request.PaymentAccount().ReceivePendings()
+		err := request.PaymentAccount().ReceivePendings(dustThreshold)
 		if err != nil {
 			e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
 			return nil
@@ -287,7 +270,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 
 		retry := 0
 		for ; retry < 5; retry++ {
-			err := request.PaymentAccount().ReceivePendings()
+			err := request.PaymentAccount().ReceivePendings(dustThreshold)
 			if err != nil {
 				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
 				time.Sleep(5 * time.Second)

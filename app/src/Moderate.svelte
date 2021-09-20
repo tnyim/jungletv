@@ -35,6 +35,13 @@
         await apiClient.setVideoEnqueuingEnabled(AllowedVideoEnqueuingType.DISABLED);
     }
 
+    async function setCrowdfundedSkippingEnabled() {
+        await apiClient.setCrowdfundedSkippingEnabled(true);
+    }
+    async function setCrowdfundedSkippingDisabled() {
+        await apiClient.setCrowdfundedSkippingEnabled(false);
+    }
+
     let banRewardAddress = "";
     let banRemoteAddress = "";
     let banFromChat = false;
@@ -90,6 +97,23 @@
             alert("Prices multiplier set successfully");
         } catch (e) {
             alert("An error occurred when setting the prices multiplier: " + e);
+        }
+    }
+
+    async function setSkipPriceMultiplier() {
+        let multiplierStr = prompt(
+            "Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the \"Play now\" option).\nMinimum is 10, default is 150."
+        );
+        let multiplier = parseInt(multiplierStr);
+        if (Object.is(NaN, multiplier)) {
+            alert("Invalid multiplier");
+            return;
+        }
+        try {
+            await apiClient.setSkipPriceMultiplier(multiplier);
+            alert("Skip price multiplier set successfully");
+        } catch (e) {
+            alert("An error occurred when setting the skip price multiplier: " + e);
         }
     }
 </script>
@@ -158,6 +182,35 @@
                 on:click={setPricesMultiplier}
             >
                 Set prices multiplier
+            </button>
+        </div>
+        <p class="px-2 py-2 text-lg">
+            <a href="/moderate/media/disallowed" use:link>Manage disallowed videos</a>
+        </p>
+    </div>
+    <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">Crowdfunded skipping</p>
+        <div class="px-2 grid grid-cols-3 gap-6">
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={setCrowdfundedSkippingEnabled}
+            >
+                Enable crowdfunded skipping
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={setCrowdfundedSkippingDisabled}
+            >
+                Disable crowdfunded skipping
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={setSkipPriceMultiplier}
+            >
+                Set skip price multiplier
             </button>
         </div>
         <p class="px-2 py-2 text-lg">

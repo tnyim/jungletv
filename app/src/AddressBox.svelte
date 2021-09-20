@@ -49,7 +49,7 @@
 
 <div class="flex justify-center">
     <div
-        class="bg-white dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2 overflow-auto"
+        class="bg-white dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2 overflow-auto hide-scrollbar"
         on:click={selectAddress}
     >
         {address}
@@ -91,3 +91,13 @@
         </p>
     </div>
 {/if}
+
+<style>
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>

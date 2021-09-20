@@ -29,6 +29,7 @@ type RewardsHandler struct {
 	withdrawalHandler              *WithdrawalHandler
 	wallet                         *wallet.Wallet
 	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
+	skipManager                    *SkipManager
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
 	hCaptchaSecret                 string
@@ -114,6 +115,7 @@ func NewRewardsHandler(log *log.Logger,
 	hCaptchaSecret string,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
+	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore ModerationStore) (*RewardsHandler, error) {
 	return &RewardsHandler{
@@ -124,6 +126,7 @@ func NewRewardsHandler(log *log.Logger,
 		withdrawalHandler:              withdrawalHandler,
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
+		skipManager:                    skipManager,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
 		hCaptchaSecret:                 hCaptchaSecret,
 		hCaptchaHTTPClient: http.Client{

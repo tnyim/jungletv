@@ -125,6 +125,18 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 	q.entryAdded.Notify("play_now", entry)
 }
 
+func (q *MediaQueue) SkipCurrentEntry() {
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	if len(q.queue) > 0 && !q.queue[0].Unskippable() {
+		q.queue[0].Stop()
+
+		go q.statsClient.Gauge("queue_length", len(q.queue))
+		q.queueUpdated.Notify()
+	}
+}
+
 func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()

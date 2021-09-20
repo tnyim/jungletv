@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import Queue from "./Queue.svelte";
 import Chat from "./Chat.svelte";
 import Document from "./Document.svelte";
+import SkipAndTip from "./SkipAndTip.svelte";
 
 export type SidebarTab = {
     id: string;
@@ -16,6 +17,13 @@ export const sidebarTabs = writable([
         id: "queue",
         component: Queue,
         tabTitle: "Queue",
+        props: { mode: "sidebar" },
+        closeable: false,
+    },
+    {
+        id: "skipandtip",
+        component: SkipAndTip,
+        tabTitle: "Skip\u200A&\u200ATip",
         props: { mode: "sidebar" },
         closeable: false,
     },
