@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
@@ -153,9 +155,9 @@ func main() {
 	ssoKeybox, present := secrets.GetBox("sso")
 	if !present {
 		if DEBUG {
-			mainLog.Println("SSO keybox not present in web keybox. Anyone will be signed in as admin as soon as they ask. This is UNSAFE.")
+			mainLog.Println("SSO keybox not present in keybox. Anyone will be signed in as admin as soon as they ask. This is UNSAFE.")
 		} else {
-			mainLog.Fatalln("SSO keybox not present in web keybox")
+			mainLog.Fatalln("SSO keybox not present in keybox")
 		}
 	} else {
 		ssoCookieAuthKey, present := ssoKeybox.Get("cookieAuthKey")
@@ -227,11 +229,31 @@ func main() {
 		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
 	}
 
+	segchaKeybox, present := secrets.GetBox("segcha")
+	if !present {
+		mainLog.Fatalln("segcha keybox not present in keybox")
+	}
+
+	segchaImageDBPath, present := segchaKeybox.Get("imageDBPath")
+	if !present {
+		mainLog.Fatalln("Image DB path not present in segcha keybox")
+	}
+
+	segchaFontPath, present := segchaKeybox.Get("fontPath")
+	if !present {
+		mainLog.Fatalln("Font path not present in segcha keybox")
+	}
+
+	imageDB, err := captcha.NewImageDatabase(segchaImageDBPath)
+	if err != nil {
+		mainLog.Fatalln("error building segcha image DB:", err)
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey)
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
 	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
 		authInterceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
-		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook)
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, imageDB, segchaFontPath)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -338,6 +360,15 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 
 func configureRouter(router *mux.Router) {
 	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
+
+	if DEBUG {
+		router.HandleFunc("/debug/pprof/", pprof.Index)
+		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		router.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		router.PathPrefix("/debug/pprof/").HandlerFunc(pprof.Index)
+	}
 
 	if DEBUG && daClient == nil {
 		router.HandleFunc("/admin/signin", directUnsafeAuthHandler)

@@ -17,6 +17,7 @@ service JungleTV {
     rpc MonitorSkipAndTip (MonitorSkipAndTipRequest) returns (stream SkipAndTipStatus) {}
     rpc RewardInfo (RewardInfoRequest) returns (RewardInfoResponse) {}
     rpc SubmitActivityChallenge (SubmitActivityChallengeRequest) returns (SubmitActivityChallengeResponse) {}
+    rpc ProduceSegchaChallenge (ProduceSegchaChallengeRequest) returns (ProduceSegchaChallengeResponse) {}
     rpc ConsumeChat (ConsumeChatRequest) returns (stream ChatUpdate) {}
     rpc SendChatMessage (SendChatMessageRequest) returns (SendChatMessageResponse) {}
     rpc UserPermissionLevel (UserPermissionLevelRequest) returns (UserPermissionLevelResponse) {}
@@ -541,3 +542,14 @@ message SetSkipPriceMultiplierRequest {
 }
 
 message SetSkipPriceMultiplierResponse {}
+
+message ProduceSegchaChallengeRequest {}
+
+message ProduceSegchaChallengeResponse {
+    string challenge_id = 1;
+    repeated SegchaChallengeStep steps = 2;
+}
+
+message SegchaChallengeStep {
+    bytes image = 1;
+}

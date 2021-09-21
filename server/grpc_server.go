@@ -21,6 +21,7 @@ import (
 	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
@@ -46,8 +47,13 @@ type grpcServer struct {
 	enqueueRequestRateLimiter      limiter.Store
 	signInRateLimiter              limiter.Store
 	ownEntryRemovalRateLimiter     limiter.Store
+	segchaRateLimiter              limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
 	userSerializer                 APIUserSerializer
+	captchaImageDB                 *captcha.ImageDatabase
+	captchaFontPath                string
+	captchaAnswers                 *cache.Cache
+	captchaChallengesQueue         chan *captcha.Challenge
 
 	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
@@ -76,7 +82,8 @@ type grpcServer struct {
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
 	youtubeAPIkey string, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
-	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string) (*grpcServer, error) {
+	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string,
+	captchaImageDB *captcha.ImageDatabase, captchaFontPath string) (*grpcServer, error) {
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardInfo", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Withdraw", auth.UserPermissionLevel)
@@ -85,6 +92,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardHistory", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/WithdrawalHistory", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveOwnQueueEntry", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ProduceSegchaChallenge", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
@@ -126,6 +134,10 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		ticketCheckPeriod:              ticketCheckPeriod,
 		moderationStore:                NewModerationStoreMemory(bansFile),
 		nicknameCache:                  NewMemoryNicknameCache(),
+		captchaAnswers:                 cache.New(1*time.Hour, 5*time.Minute),
+		captchaImageDB:                 captchaImageDB,
+		captchaFontPath:                captchaFontPath,
+		captchaChallengesQueue:         make(chan *captcha.Challenge, segchaPremadeQueueSize),
 	}
 	s.userSerializer = s.serializeUserForAPI
 
@@ -158,6 +170,14 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	s.segchaRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   4,
+		Interval: 2 * time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	err = s.setupSpecialAccounts(repAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -176,7 +196,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		log, statsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, hCaptchaSecret, w,
-		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore)
+		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -319,6 +339,36 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				f(s.collectorAccount, s.wallet.RPC, s.wallet.RPCWork)
 			case <-ctx.Done():
 				s.log.Println("Collector account worker done")
+				return
+			}
+		}
+	}(ctx)
+
+	// challenge creation is unfortunately slower than it should, so we have this as a temporary solution
+	// we generate challenges and place them in a queue (100 entries) to be used later
+	go func(ctx context.Context) {
+		makeChallenge := func() *captcha.Challenge {
+			for {
+				challenge, err := captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "failed to create segcha challenge")
+				} else {
+					return challenge
+				}
+			}
+		}
+
+		t := time.NewTicker(5 * time.Second)
+
+		for {
+			select {
+			case <-t.C:
+				if len(s.captchaChallengesQueue) < segchaPremadeQueueSize {
+					s.captchaChallengesQueue <- makeChallenge()
+					s.log.Println("generated cached segcha challenge")
+				}
+			case <-ctx.Done():
+				s.log.Println("segcha challenge creator worker done")
 				return
 			}
 		}

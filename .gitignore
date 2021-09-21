@@ -5,6 +5,7 @@
 /misc/*.pem
 /misc/*.csr
 /misc/*.srl
+/captchatest
 /private
 *.exe
 /jungletv

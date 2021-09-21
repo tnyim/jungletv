@@ -20,6 +20,8 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
+type captchaResponseCheckFn func(context.Context, string) (bool, error)
+
 // RewardsHandler handles reward distribution among spectators
 type RewardsHandler struct {
 	log                            *log.Logger
@@ -36,6 +38,7 @@ type RewardsHandler struct {
 	hCaptchaHTTPClient             http.Client
 	moderationStore                ModerationStore
 	eligibleMovingAverage          *movingaverage.MovingAverage
+	segchaCheckFn                  captchaResponseCheckFn
 
 	rewardsDistributed *event.Event
 
@@ -58,6 +61,8 @@ type Spectator interface {
 type spectator struct {
 	isDummy                    bool // dummy spectators don't actually get rewarded but make the rest of the code happy
 	legitimate                 bool
+	legitimacyFailures         int
+	stoppedBeingLegitimate     time.Time
 	user                       User
 	remoteAddress              string
 	remoteAddresses            map[string]struct{}
@@ -117,7 +122,8 @@ func NewRewardsHandler(log *log.Logger,
 	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
 	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
-	moderationStore ModerationStore) (*RewardsHandler, error) {
+	moderationStore ModerationStore,
+	segchaCheckFn captchaResponseCheckFn) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -134,6 +140,7 @@ func NewRewardsHandler(log *log.Logger,
 		},
 		moderationStore:       moderationStore,
 		eligibleMovingAverage: movingaverage.New(3),
+		segchaCheckFn:         segchaCheckFn,
 
 		rewardsDistributed: event.New(),
 

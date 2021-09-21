@@ -2400,6 +2400,70 @@ export namespace SetSkipPriceMultiplierResponse {
   }
 }
 
+export class ProduceSegchaChallengeRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ProduceSegchaChallengeRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ProduceSegchaChallengeRequest): ProduceSegchaChallengeRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ProduceSegchaChallengeRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ProduceSegchaChallengeRequest;
+  static deserializeBinaryFromReader(message: ProduceSegchaChallengeRequest, reader: jspb.BinaryReader): ProduceSegchaChallengeRequest;
+}
+
+export namespace ProduceSegchaChallengeRequest {
+  export type AsObject = {
+  }
+}
+
+export class ProduceSegchaChallengeResponse extends jspb.Message {
+  getChallengeId(): string;
+  setChallengeId(value: string): void;
+
+  clearStepsList(): void;
+  getStepsList(): Array<SegchaChallengeStep>;
+  setStepsList(value: Array<SegchaChallengeStep>): void;
+  addSteps(value?: SegchaChallengeStep, index?: number): SegchaChallengeStep;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ProduceSegchaChallengeResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ProduceSegchaChallengeResponse): ProduceSegchaChallengeResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ProduceSegchaChallengeResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ProduceSegchaChallengeResponse;
+  static deserializeBinaryFromReader(message: ProduceSegchaChallengeResponse, reader: jspb.BinaryReader): ProduceSegchaChallengeResponse;
+}
+
+export namespace ProduceSegchaChallengeResponse {
+  export type AsObject = {
+    challengeId: string,
+    stepsList: Array<SegchaChallengeStep.AsObject>,
+  }
+}
+
+export class SegchaChallengeStep extends jspb.Message {
+  getImage(): Uint8Array | string;
+  getImage_asU8(): Uint8Array;
+  getImage_asB64(): string;
+  setImage(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SegchaChallengeStep.AsObject;
+  static toObject(includeInstance: boolean, msg: SegchaChallengeStep): SegchaChallengeStep.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SegchaChallengeStep, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SegchaChallengeStep;
+  static deserializeBinaryFromReader(message: SegchaChallengeStep, reader: jspb.BinaryReader): SegchaChallengeStep;
+}
+
+export namespace SegchaChallengeStep {
+  export type AsObject = {
+    image: Uint8Array | string,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

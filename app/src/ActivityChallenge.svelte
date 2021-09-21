@@ -3,7 +3,8 @@
     import { fly } from "svelte/transition";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
     import { afterUpdate, onMount } from "svelte";
-    import { darkMode } from "./stores";
+    import { darkMode, modal } from "./stores";
+    import Segcha from "./Segcha.svelte";
 
     export let activityChallenge: ActivityChallenge;
     export let challengesDone: number;
@@ -22,6 +23,8 @@
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "hCaptcha") {
             executehCaptcha();
+        } else if (activityChallenge.getType() == "segcha") {
+            await executeSegcha();
         } else {
             try {
                 await apiClient.submitActivityChallenge(activityChallenge.getId(), "", trusted);
@@ -82,6 +85,29 @@
             alert("An error occurred when loading the captcha. The page will now reload.");
             location.reload();
         }
+    }
+
+    async function executeSegcha() {
+        try {
+            let challenge = await apiClient.produceSegchaChallenge();
+            modal.set({
+                component: Segcha,
+                props: { challenge: challenge, successCallback: onSegchaComplete },
+                options: {
+                    closeButton: false,
+                    closeOnEsc: false,
+                    closeOnOuterClick: false,
+                },
+            });
+        } catch {
+            alert("An error occurred when loading the captcha. The page will now reload.");
+            location.reload();
+        }
+    }
+
+    async function onSegchaComplete(answer: string) {
+        modal.set(null);
+        activityCaptchaOnSubmit(answer);
     }
 </script>
 

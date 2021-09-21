@@ -85,6 +85,15 @@ type JungleTVSubmitActivityChallenge = {
   readonly responseType: typeof jungletv_pb.SubmitActivityChallengeResponse;
 };
 
+type JungleTVProduceSegchaChallenge = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ProduceSegchaChallengeRequest;
+  readonly responseType: typeof jungletv_pb.ProduceSegchaChallengeResponse;
+};
+
 type JungleTVConsumeChat = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -321,6 +330,7 @@ export class JungleTV {
   static readonly MonitorSkipAndTip: JungleTVMonitorSkipAndTip;
   static readonly RewardInfo: JungleTVRewardInfo;
   static readonly SubmitActivityChallenge: JungleTVSubmitActivityChallenge;
+  static readonly ProduceSegchaChallenge: JungleTVProduceSegchaChallenge;
   static readonly ConsumeChat: JungleTVConsumeChat;
   static readonly SendChatMessage: JungleTVSendChatMessage;
   static readonly UserPermissionLevel: JungleTVUserPermissionLevel;
@@ -420,6 +430,15 @@ export class JungleTVClient {
   submitActivityChallenge(
     requestMessage: jungletv_pb.SubmitActivityChallengeRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SubmitActivityChallengeResponse|null) => void
+  ): UnaryResponse;
+  produceSegchaChallenge(
+    requestMessage: jungletv_pb.ProduceSegchaChallengeRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ProduceSegchaChallengeResponse|null) => void
+  ): UnaryResponse;
+  produceSegchaChallenge(
+    requestMessage: jungletv_pb.ProduceSegchaChallengeRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ProduceSegchaChallengeResponse|null) => void
   ): UnaryResponse;
   consumeChat(requestMessage: jungletv_pb.ConsumeChatRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ChatUpdate>;
   sendChatMessage(

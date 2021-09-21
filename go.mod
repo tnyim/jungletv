@@ -9,10 +9,13 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/disintegration/imaging v1.6.2
+	github.com/fogleman/gg v1.3.0
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
 	github.com/gbl08ma/sqalx v0.5.3
 	github.com/gbl08ma/ssoclient v0.0.0-20180119211306-11586264f66c
 	github.com/go-errors/errors v1.4.0 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1

@@ -10,7 +10,7 @@
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
-	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance } from "./stores";
+	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance, modal } from "./stores";
 	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
 	import ModerateEditDocument from "./ModerateEditDocument.svelte";
 	import Document from "./Document.svelte";
@@ -18,6 +18,7 @@
 	import Leaderboards from "./Leaderboards.svelte";
 	import Player from "./Player.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
+	import Modal from 'svelte-simple-modal';
 
 	export let url = "";
 
@@ -64,8 +65,24 @@
 	let fullSizePlayerContainer: HTMLElement = null;
 	let fullSizePlayerContainerWidth: number = 0;
 	let fullSizePlayerContainerHeight: number = 0;
-</script>
 
+	let modalOpen: any;
+	let modalClose: any;
+	function modalSetContext(key: string, props: any) {
+		modalOpen = props.open;
+		modalClose = props.close;
+	}
+	modal.subscribe(p => {
+		if (p == null || p == undefined) {
+			if (modalClose !== undefined) {
+				modalClose();
+			}
+		} else {
+			modalOpen(p.component, p.props, p.options, p.callbacks);
+		}
+	});
+</script>
+<Modal setContext={modalSetContext} />
 <Navbar />
 <div
 	class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900

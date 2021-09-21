@@ -16,3 +16,11 @@ export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 })());
 
+type modalInfo = {
+    component: any,
+    props?: any,
+    options?: any,
+    callbacks?: any,
+};
+
+export const modal = writable(null as modalInfo);

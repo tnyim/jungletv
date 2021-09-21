@@ -26,6 +26,7 @@ type JungleTVClient interface {
 	MonitorSkipAndTip(ctx context.Context, in *MonitorSkipAndTipRequest, opts ...grpc.CallOption) (JungleTV_MonitorSkipAndTipClient, error)
 	RewardInfo(ctx context.Context, in *RewardInfoRequest, opts ...grpc.CallOption) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error)
+	ProduceSegchaChallenge(ctx context.Context, in *ProduceSegchaChallengeRequest, opts ...grpc.CallOption) (*ProduceSegchaChallengeResponse, error)
 	ConsumeChat(ctx context.Context, in *ConsumeChatRequest, opts ...grpc.CallOption) (JungleTV_ConsumeChatClient, error)
 	SendChatMessage(ctx context.Context, in *SendChatMessageRequest, opts ...grpc.CallOption) (*SendChatMessageResponse, error)
 	UserPermissionLevel(ctx context.Context, in *UserPermissionLevelRequest, opts ...grpc.CallOption) (*UserPermissionLevelResponse, error)
@@ -252,6 +253,15 @@ func (c *jungleTVClient) RewardInfo(ctx context.Context, in *RewardInfoRequest, 
 func (c *jungleTVClient) SubmitActivityChallenge(ctx context.Context, in *SubmitActivityChallengeRequest, opts ...grpc.CallOption) (*SubmitActivityChallengeResponse, error) {
 	out := new(SubmitActivityChallengeResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SubmitActivityChallenge", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ProduceSegchaChallenge(ctx context.Context, in *ProduceSegchaChallengeRequest, opts ...grpc.CallOption) (*ProduceSegchaChallengeResponse, error) {
+	out := new(ProduceSegchaChallengeResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ProduceSegchaChallenge", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -519,6 +529,7 @@ type JungleTVServer interface {
 	MonitorSkipAndTip(*MonitorSkipAndTipRequest, JungleTV_MonitorSkipAndTipServer) error
 	RewardInfo(context.Context, *RewardInfoRequest) (*RewardInfoResponse, error)
 	SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error)
+	ProduceSegchaChallenge(context.Context, *ProduceSegchaChallengeRequest) (*ProduceSegchaChallengeResponse, error)
 	ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error
 	SendChatMessage(context.Context, *SendChatMessageRequest) (*SendChatMessageResponse, error)
 	UserPermissionLevel(context.Context, *UserPermissionLevelRequest) (*UserPermissionLevelResponse, error)
@@ -578,6 +589,9 @@ func (UnimplementedJungleTVServer) RewardInfo(context.Context, *RewardInfoReques
 }
 func (UnimplementedJungleTVServer) SubmitActivityChallenge(context.Context, *SubmitActivityChallengeRequest) (*SubmitActivityChallengeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitActivityChallenge not implemented")
+}
+func (UnimplementedJungleTVServer) ProduceSegchaChallenge(context.Context, *ProduceSegchaChallengeRequest) (*ProduceSegchaChallengeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProduceSegchaChallenge not implemented")
 }
 func (UnimplementedJungleTVServer) ConsumeChat(*ConsumeChatRequest, JungleTV_ConsumeChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method ConsumeChat not implemented")
@@ -840,6 +854,24 @@ func _JungleTV_SubmitActivityChallenge_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).SubmitActivityChallenge(ctx, req.(*SubmitActivityChallengeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ProduceSegchaChallenge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProduceSegchaChallengeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ProduceSegchaChallenge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ProduceSegchaChallenge",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ProduceSegchaChallenge(ctx, req.(*ProduceSegchaChallengeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1316,6 +1348,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitActivityChallenge",
 			Handler:    _JungleTV_SubmitActivityChallenge_Handler,
+		},
+		{
+			MethodName: "ProduceSegchaChallenge",
+			Handler:    _JungleTV_ProduceSegchaChallenge_Handler,
 		},
 		{
 			MethodName: "SendChatMessage",
