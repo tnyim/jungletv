@@ -102,7 +102,7 @@
             {/if}
         </div>
 
-        <div class="px-2 py-2">
+        <div class="px-2 py-2 mt-4">
             <h3 class="text-lg font-bold">Community tipping</h3>
             {#if Number(BigInt(skipAndTipStatus.getRainBalance())) > 0}
                 <p>

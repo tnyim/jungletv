@@ -38,7 +38,11 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 	case challenge = <-s.captchaChallengesQueue:
 		break
 	default:
-		challenge, err = captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+		func() {
+			s.captchaGenerationMutex.Lock()
+			defer s.captchaGenerationMutex.Unlock()
+			challenge, err = captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+		}()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

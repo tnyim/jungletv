@@ -54,6 +54,7 @@ type grpcServer struct {
 	captchaFontPath                string
 	captchaAnswers                 *cache.Cache
 	captchaChallengesQueue         chan *captcha.Challenge
+	captchaGenerationMutex         sync.Mutex
 
 	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
@@ -364,8 +365,12 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			select {
 			case <-t.C:
 				if len(s.captchaChallengesQueue) < segchaPremadeQueueSize {
-					s.captchaChallengesQueue <- makeChallenge()
-					s.log.Println("generated cached segcha challenge")
+					func() {
+						s.captchaGenerationMutex.Lock()
+						defer s.captchaGenerationMutex.Unlock()
+						s.captchaChallengesQueue <- makeChallenge()
+						s.log.Println("generated cached segcha challenge")
+					}()
 				}
 			case <-ctx.Done():
 				s.log.Println("segcha challenge creator worker done")
