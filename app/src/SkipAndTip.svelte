@@ -62,6 +62,8 @@
             <h3 class="text-lg font-bold">Crowdfunded skipping</h3>
             {#if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_UNSKIPPABLE}
                 <p>The currently playing video is unskippable; crowdfunded skipping is unavailable.</p>
+            {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_START_OF_MEDIA_PERIOD}
+                <p>Crowdfunded skipping is presently unavailable as the current video just started.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_END_OF_MEDIA_PERIOD}
                 <p>Crowdfunded skipping is presently unavailable as the current video is about to end.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_UNAVAILABLE}

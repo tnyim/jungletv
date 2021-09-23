@@ -2479,6 +2479,7 @@ export interface SkipStatusMap {
   SKIP_STATUS_NO_MEDIA: 3;
   SKIP_STATUS_UNAVAILABLE: 4;
   SKIP_STATUS_DISABLED: 5;
+  SKIP_STATUS_START_OF_MEDIA_PERIOD: 6;
 }
 
 export const SkipStatus: SkipStatusMap;

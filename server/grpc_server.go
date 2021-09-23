@@ -398,6 +398,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		crowdfundedSkippedC := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.skipManager.crowdfundedSkip.Unsubscribe(crowdfundedSkippedC)
 
+		crowdfundedTransactionReceivedC := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.skipManager.crowdfundedTransactionReceived.Unsubscribe(crowdfundedTransactionReceivedC)
+
 		for {
 			select {
 			case v := <-mediaChangedC:
@@ -468,6 +471,31 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					"_Spectators paid **%s BAN** to skip the previous video!_", banStr))
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
+				}
+			case v := <-crowdfundedTransactionReceivedC:
+				tx := v[0].(*types.CrowdfundedTransaction)
+
+				name, err := s.getChatFriendlyUserName(ctx, tx.FromAddress)
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
+					break
+				}
+
+				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
+				banStr := new(big.Rat).SetFrac(tx.Amount.BigInt(), exp).FloatString(2)
+
+				msg := ""
+				switch tx.TransactionType {
+				case types.CrowdfundedTransactionTypeSkip:
+					msg = fmt.Sprintf("_%s just contributed **%s BAN** to skipping the current video!_", name, banStr)
+				case types.CrowdfundedTransactionTypeRain:
+					msg = fmt.Sprintf("_%s just increased the rewards for the current video by **%s BAN**!_", name, banStr)
+				}
+				if msg != "" {
+					_, err = s.chat.CreateSystemMessage(ctx, msg)
+					if err != nil {
+						errChan <- stacktrace.Propagate(err, "")
+					}
 				}
 			case <-ctx.Done():
 				s.log.Println("Chat system message sender done")
