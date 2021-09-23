@@ -411,8 +411,12 @@
     function toggleEmojiPicker() {
         if (emojiPicker.classList.contains("hidden")) {
             emojiPicker.classList.remove("hidden");
+            let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
+            searchBox.setSelectionRange(0, searchBox.value.length);
+            searchBox.focus();
         } else {
             emojiPicker.classList.add("hidden");
+            composeTextArea.focus();
         }
     }
 
