@@ -216,8 +216,8 @@ func (r *RewardsHandler) SpectatorHasActivityChallenge(address string, challenge
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
-	spectator := r.spectatorsByRewardAddress[address]
-	if spectator.activityChallenge == nil {
+	spectator, present := r.spectatorsByRewardAddress[address]
+	if !present || spectator.activityChallenge == nil {
 		return false
 	}
 	return spectator.activityChallenge.Type == challengeType
