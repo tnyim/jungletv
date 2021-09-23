@@ -149,13 +149,13 @@
             {/if}
         </button>
     </div>
-    <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
-        Protected by hCaptcha ●
-        <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy">Privacy</a>
-        ●
-        <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms">Terms</a>
-    </div>
     {#if activityChallenge != null && activityChallenge.getType() == "hCaptcha"}
+        <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
+            Protected by hCaptcha ●
+            <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy">Privacy</a>
+            ●
+            <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms">Terms</a>
+        </div>
         <div
             id="activity-captcha"
             class="h-captcha"
