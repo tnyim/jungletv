@@ -39,6 +39,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
+	requesterReward := Amount{big.NewInt(0)}
 	requesterSpectator, requesterIsSpectator := r.spectatorsByRewardAddress[media.RequestedBy().Address()]
 	if !media.RequestedBy().IsUnknown() && requesterIsSpectator && rainBudget.Cmp(big.NewInt(0)) > 0 {
 		banned, err := r.moderationStore.LoadPaymentAddressBannedFromRewards(ctx, requesterSpectator.user.Address())
@@ -51,7 +52,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 			tmp := Amount{big.NewInt(0).Set(rainBudget.Int)}
 			tmp.Mul(rainBudget.Int, big.NewInt(8000))
 			eightyPctOfRainBudget := Amount{tmp.Div(tmp.Int, big.NewInt(10000))}
-			requesterReward := Amount{big.NewInt(0).Sub(rainBudget.Int, eightyPctOfRainBudget.Int)}
+			requesterReward = Amount{big.NewInt(0).Sub(rainBudget.Int, eightyPctOfRainBudget.Int)}
 			requesterReward.Div(requesterReward.Int, RewardRoundingFactor)
 			requesterReward.Mul(requesterReward.Int, RewardRoundingFactor)
 			rainBudget = eightyPctOfRainBudget
@@ -98,7 +99,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		}
 	}
 
-	r.rewardsDistributed.Notify(rewardBudget, len(eligible))
+	r.rewardsDistributed.Notify(rewardBudget, len(eligible), requesterReward, media)
 	return nil
 }
 

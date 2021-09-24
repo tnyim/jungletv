@@ -454,11 +454,26 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			case v := <-rewardsDistributedC:
 				amount := v[0].(Amount)
 				eligibleCount := v[1].(int)
+				enqueuerTip := v[2].(Amount)
+				mediaEntry := v[3].(MediaQueueEntry)
 				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
-				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-					"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount))
+				message := ""
+				if enqueuerTip.Cmp(big.NewInt(0)) > 0 && !mediaEntry.RequestedBy().IsUnknown() {
+					name, err := s.getChatFriendlyUserName(ctx, mediaEntry.RequestedBy().Address())
+					if err != nil {
+						errChan <- stacktrace.Propagate(err, "")
+						break
+					}
+					tipBanStr := new(big.Rat).SetFrac(enqueuerTip.Int, exp).FloatString(2)
+					message = fmt.Sprintf(
+						"_**%s BAN** distributed among %d spectators and **%s BAN** tipped to %s._", banStr, eligibleCount, tipBanStr, name)
+				} else {
+					message = fmt.Sprintf(
+						"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount)
+				}
+				_, err := s.chat.CreateSystemMessage(ctx, message)
 				if err != nil {
 					errChan <- stacktrace.Propagate(err, "")
 				}
