@@ -109,7 +109,7 @@
             {#if Number(BigInt(skipAndTipStatus.getRainBalance())) > 0}
                 <p>
                     This video will pay out an additional reward of
-                    <span class="font-semibold">
+                    <span class="font-semibold text-xl">
                         {apiClient.formatBANPriceFixed(skipAndTipStatus.getRainBalance())} BAN</span
                     >, that will be distributed among active viewers at the end of the video.
                 </p>
