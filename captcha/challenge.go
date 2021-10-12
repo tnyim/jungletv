@@ -126,6 +126,7 @@ func (c *Challenge) createStep(rng *rand.Rand) (int, image.Image, error) {
 	dc.DrawStringWrapped(instructions, 300, 25, 0.5, 0.5, 500, 1.2, gg.AlignCenter)
 	pic = dc.Image()
 
+	pic = imaging.Paste(pic, imaging.New(600, 600, color.White), image.Pt(0, 50))
 	pic = imaging.Paste(pic, fourPics[0], image.Pt(0, 50))
 	pic = imaging.Paste(pic, fourPics[1], image.Pt(300, 50))
 	pic = imaging.Paste(pic, fourPics[2], image.Pt(0, 350))
