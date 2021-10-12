@@ -70,9 +70,7 @@ func NewSkipManager(log *log.Logger,
 	}
 }
 
-func (s *SkipManager) Worker(ctx context.Context, interval time.Duration) error {
-	t := time.NewTicker(interval)
-
+func (s *SkipManager) Worker(ctx context.Context) error {
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
 
@@ -84,11 +82,6 @@ func (s *SkipManager) Worker(ctx context.Context, interval time.Duration) error 
 	for {
 		mediaEndTimer := s.computeMediaEndTimer()
 		select {
-		case <-t.C:
-			err := s.checkBalances(ctx)
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
 		case v := <-onMediaChanged:
 			s.mediaStartNoSkipPeriodOver = false
 			if v[0] == nil {
@@ -113,6 +106,23 @@ func (s *SkipManager) Worker(ctx context.Context, interval time.Duration) error 
 			if !s.startupNoSkipPeriodOver {
 				s.startupNoSkipPeriodOver = true
 				s.UpdateSkipThreshold()
+			}
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (s *SkipManager) BalancesWorker(ctx context.Context, interval time.Duration) error {
+	// since this operation takes time, runs on a separate goroutine from the main worker select{}
+	// this should help the onMediaChanged handler run in time
+	t := time.NewTicker(interval)
+	for {
+		select {
+		case <-t.C:
+			err := s.checkBalances(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
 			}
 		case <-ctx.Done():
 			return nil

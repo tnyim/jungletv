@@ -319,7 +319,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	go func(ctx context.Context) {
 		for {
 			s.log.Println("Skip manager starting/restarting")
-			err := s.skipManager.Worker(ctx, s.ticketCheckPeriod)
+			err := s.skipManager.Worker(ctx)
 			if err == nil {
 				return
 			}
@@ -327,6 +327,23 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			select {
 			case <-ctx.Done():
 				s.log.Println("Skip manager done")
+				return
+			default:
+			}
+		}
+	}(ctx)
+
+	go func(ctx context.Context) {
+		for {
+			s.log.Println("Skip manager balances checker starting/restarting")
+			err := s.skipManager.BalancesWorker(ctx, s.ticketCheckPeriod)
+			if err == nil {
+				return
+			}
+			errChan <- stacktrace.Propagate(err, "skip manager balances worker error")
+			select {
+			case <-ctx.Done():
+				s.log.Println("Skip manager balances worker done")
 				return
 			default:
 			}
