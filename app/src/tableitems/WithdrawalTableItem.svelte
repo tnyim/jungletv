@@ -47,7 +47,7 @@
 <td
     class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-s whitespace-nowrap p-4 text-gray-700 dark:text-white"
 >
-    <a href="https://creeper.banano.cc/explorer/block/{withdrawal.getTxHash()}" target="_blank" rel="noopener">
+    <a href="https://yellowspyglass.com/hash/{withdrawal.getTxHash()}" target="_blank" rel="noopener">
         <i class="fas fa-external-link-alt" />
     </a>
 </td>
