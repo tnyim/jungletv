@@ -16,6 +16,7 @@ import (
 )
 
 const dbColumnTagName = "dbColumn"
+const dbColumnRawTagName = "dbColumnRaw"
 const dbIgnoreTagName = "dbIgnore"
 const dbKeyTagName = "dbKey"
 const dbTypeTagName = "dbType"
@@ -35,11 +36,12 @@ func registerCustomDBtype(t customDBType) {
 }
 
 type structDBfield struct {
-	column      string
-	value       interface{}
-	key         bool
-	ignore      bool
-	specialType reflect.Type // a customDBtype
+	column        string
+	value         interface{}
+	key           bool
+	ignore        bool
+	rawColumnName bool
+	specialType   reflect.Type // a customDBtype
 }
 
 type tableNameSpecifier interface {
@@ -73,16 +75,17 @@ func getStructInfo(t interface{}) (fields []structDBfield, tableName string) {
 		field := rv.Field(i)
 		fieldType := rv.Type().Field(i)
 
-		columnName, ignore, key, specialType := parseFieldTag(fieldType.Tag, fieldType.Name)
+		columnName, rawColumnName, ignore, key, specialType := parseFieldTag(fieldType.Tag, fieldType.Name)
 		if ignore {
 			fields = append(fields, structDBfield{ignore: true})
 			continue
 		}
 
 		f := structDBfield{
-			column:      columnName,
-			key:         key,
-			specialType: specialType,
+			column:        columnName,
+			rawColumnName: rawColumnName,
+			key:           key,
+			specialType:   specialType,
 		}
 
 		if !field.CanInterface() {
@@ -97,16 +100,20 @@ func getStructInfo(t interface{}) (fields []structDBfield, tableName string) {
 	return fields, tableName
 }
 
-func parseFieldTag(tag reflect.StructTag, fieldName string) (columnName string, mustIgnore bool, isKey bool, specialType reflect.Type) {
+func parseFieldTag(tag reflect.StructTag, fieldName string) (columnName string, isRawColumnName, mustIgnore bool, isKey bool, specialType reflect.Type) {
 	if tag.Get(dbIgnoreTagName) == "true" {
-		return "", true, false, nil
+		return "", true, false, false, nil
 	}
 	columnName = strcase.ToSnake(fieldName)
+	if tn := tag.Get(dbColumnRawTagName); tn != "" {
+		columnName = tn
+		isRawColumnName = true
+	}
 	if tn := tag.Get(dbColumnTagName); tn != "" {
 		columnName = tn
 	}
 	isKey = tag.Get(dbKeyTagName) == "true"
-	return columnName, false, isKey, dbTypes[tag.Get(dbTypeTagName)]
+	return columnName, isRawColumnName, false, isKey, dbTypes[tag.Get(dbTypeTagName)]
 }
 
 // GetWithSelect returns a slice with all values that match the conditions in sbuilder and that have the same type as t
@@ -123,7 +130,12 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 	columns := []string{}
 	for _, f := range fields {
 		if !f.ignore {
-			columns = append(columns, tableName+"."+f.column)
+			if f.rawColumnName {
+				columns = append(columns, f.column)
+			} else {
+				columns = append(columns, tableName+"."+f.column)
+			}
+
 		}
 	}
 	if withGlobalCount {

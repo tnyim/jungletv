@@ -1,8 +1,8 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
-import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse, Document, GetDocumentRequest, UpdateDocumentResponse, SetChatNicknameResponse, SetChatNicknameRequest, SetUserChatNicknameRequest, SetUserChatNicknameResponse, WithdrawResponse, WithdrawRequest, LeaderboardsResponse, LeaderboardsRequest, SetPricesMultiplierResponse, SetPricesMultiplierRequest, WithdrawalHistoryResponse, WithdrawalHistoryRequest, RewardHistoryRequest, RewardHistoryResponse, RemoveOwnQueueEntryResponse, RemoveOwnQueueEntryRequest, MonitorSkipAndTipRequest, SkipAndTipStatus, SetCrowdfundedSkippingEnabledResponse, SetCrowdfundedSkippingEnabledRequest, SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse, ProduceSegchaChallengeResponse, ProduceSegchaChallengeRequest } from "./proto/jungletv_pb";
+import { deleteCookie, getCookie } from "./cookie_utils";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse, Document, GetDocumentRequest, UpdateDocumentResponse, SetChatNicknameResponse, SetChatNicknameRequest, SetUserChatNicknameRequest, SetUserChatNicknameResponse, WithdrawResponse, WithdrawRequest, LeaderboardsResponse, LeaderboardsRequest, SetPricesMultiplierResponse, SetPricesMultiplierRequest, WithdrawalHistoryResponse, WithdrawalHistoryRequest, RewardHistoryRequest, RewardHistoryResponse, RemoveOwnQueueEntryResponse, RemoveOwnQueueEntryRequest, MonitorSkipAndTipRequest, SkipAndTipStatus, SetCrowdfundedSkippingEnabledResponse, SetCrowdfundedSkippingEnabledRequest, SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse, ProduceSegchaChallengeResponse, ProduceSegchaChallengeRequest, ConfirmRaffleWinnerResponse, CompleteRaffleResponse, RedrawRaffleResponse, ConfirmRaffleWinnerRequest, CompleteRaffleRequest, RedrawRaffleRequest, OngoingRaffleInfoResponse, OngoingRaffleInfoRequest } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 
 class APIClient {
@@ -236,6 +236,11 @@ class APIClient {
         return this.unaryRPC<WithdrawalHistoryRequest, WithdrawalHistoryResponse>(JungleTV.WithdrawalHistory, request);
     }
 
+    async ongoingRaffleInfo(): Promise<OngoingRaffleInfoResponse> {
+        let request = new OngoingRaffleInfoRequest();
+        return this.unaryRPC<OngoingRaffleInfoRequest, OngoingRaffleInfoResponse>(JungleTV.OngoingRaffleInfo, request);
+    }
+
     async forciblyEnqueueTicket(id: string, type: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<ForciblyEnqueueTicketResponse> {
         let request = new ForciblyEnqueueTicketRequest();
         request.setId(id);
@@ -335,6 +340,26 @@ class APIClient {
         let request = new SetSkipPriceMultiplierRequest();
         request.setMultiplier(multiplier);
         return this.unaryRPC<SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse>(JungleTV.SetSkipPriceMultiplier, request);
+    }
+
+    async confirmRaffleWinner(raffleID: string): Promise<ConfirmRaffleWinnerResponse> {
+        let request = new ConfirmRaffleWinnerRequest();
+        request.setRaffleId(raffleID);
+        return this.unaryRPC<ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse>(JungleTV.ConfirmRaffleWinner, request);
+    }
+
+    async completeRaffle(raffleID: string, prizeTxHash: string): Promise<CompleteRaffleResponse> {
+        let request = new CompleteRaffleRequest();
+        request.setRaffleId(raffleID);
+        request.setPrizeTxHash(prizeTxHash);
+        return this.unaryRPC<CompleteRaffleRequest, CompleteRaffleResponse>(JungleTV.CompleteRaffle, request);
+    }
+
+    async redrawRaffle(raffleID: string, reason: string): Promise<RedrawRaffleResponse> {
+        let request = new RedrawRaffleRequest();
+        request.setRaffleId(raffleID);
+        request.setReason(reason);
+        return this.unaryRPC<RedrawRaffleRequest, RedrawRaffleResponse>(JungleTV.RedrawRaffle, request);
     }
 
     async userPermissionLevel(): Promise<UserPermissionLevelResponse> {

@@ -6,6 +6,7 @@ require (
 	github.com/DisgoOrg/disgohook v1.4.0
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/RobinUS2/golang-moving-average v1.0.0
+	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -22,7 +23,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hectorchu/gonano v0.1.15
 	github.com/iancoleman/strcase v0.1.3
-	github.com/icza/gox v0.0.0-20201215141822-6edfac6c05b5
+	github.com/icza/gox v0.0.0-20210726201659-cd40a3f8d324
 	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
@@ -36,6 +37,7 @@ require (
 	github.com/sethvargo/go-limiter v0.7.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
+	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906 // indirect
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0

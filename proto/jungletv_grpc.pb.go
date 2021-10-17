@@ -36,6 +36,7 @@ type JungleTVClient interface {
 	Leaderboards(ctx context.Context, in *LeaderboardsRequest, opts ...grpc.CallOption) (*LeaderboardsResponse, error)
 	RewardHistory(ctx context.Context, in *RewardHistoryRequest, opts ...grpc.CallOption) (*RewardHistoryResponse, error)
 	WithdrawalHistory(ctx context.Context, in *WithdrawalHistoryRequest, opts ...grpc.CallOption) (*WithdrawalHistoryResponse, error)
+	OngoingRaffleInfo(ctx context.Context, in *OngoingRaffleInfoRequest, opts ...grpc.CallOption) (*OngoingRaffleInfoResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -53,6 +54,9 @@ type JungleTVClient interface {
 	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
 	SetCrowdfundedSkippingEnabled(ctx context.Context, in *SetCrowdfundedSkippingEnabledRequest, opts ...grpc.CallOption) (*SetCrowdfundedSkippingEnabledResponse, error)
 	SetSkipPriceMultiplier(ctx context.Context, in *SetSkipPriceMultiplierRequest, opts ...grpc.CallOption) (*SetSkipPriceMultiplierResponse, error)
+	ConfirmRaffleWinner(ctx context.Context, in *ConfirmRaffleWinnerRequest, opts ...grpc.CallOption) (*ConfirmRaffleWinnerResponse, error)
+	CompleteRaffle(ctx context.Context, in *CompleteRaffleRequest, opts ...grpc.CallOption) (*CompleteRaffleResponse, error)
+	RedrawRaffle(ctx context.Context, in *RedrawRaffleRequest, opts ...grpc.CallOption) (*RedrawRaffleResponse, error)
 }
 
 type jungleTVClient struct {
@@ -372,6 +376,15 @@ func (c *jungleTVClient) WithdrawalHistory(ctx context.Context, in *WithdrawalHi
 	return out, nil
 }
 
+func (c *jungleTVClient) OngoingRaffleInfo(ctx context.Context, in *OngoingRaffleInfoRequest, opts ...grpc.CallOption) (*OngoingRaffleInfoResponse, error) {
+	out := new(OngoingRaffleInfoResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/OngoingRaffleInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -516,6 +529,33 @@ func (c *jungleTVClient) SetSkipPriceMultiplier(ctx context.Context, in *SetSkip
 	return out, nil
 }
 
+func (c *jungleTVClient) ConfirmRaffleWinner(ctx context.Context, in *ConfirmRaffleWinnerRequest, opts ...grpc.CallOption) (*ConfirmRaffleWinnerResponse, error) {
+	out := new(ConfirmRaffleWinnerResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ConfirmRaffleWinner", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) CompleteRaffle(ctx context.Context, in *CompleteRaffleRequest, opts ...grpc.CallOption) (*CompleteRaffleResponse, error) {
+	out := new(CompleteRaffleResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CompleteRaffle", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RedrawRaffle(ctx context.Context, in *RedrawRaffleRequest, opts ...grpc.CallOption) (*RedrawRaffleResponse, error) {
+	out := new(RedrawRaffleResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RedrawRaffle", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -539,6 +579,7 @@ type JungleTVServer interface {
 	Leaderboards(context.Context, *LeaderboardsRequest) (*LeaderboardsResponse, error)
 	RewardHistory(context.Context, *RewardHistoryRequest) (*RewardHistoryResponse, error)
 	WithdrawalHistory(context.Context, *WithdrawalHistoryRequest) (*WithdrawalHistoryResponse, error)
+	OngoingRaffleInfo(context.Context, *OngoingRaffleInfoRequest) (*OngoingRaffleInfoResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -556,6 +597,9 @@ type JungleTVServer interface {
 	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
 	SetCrowdfundedSkippingEnabled(context.Context, *SetCrowdfundedSkippingEnabledRequest) (*SetCrowdfundedSkippingEnabledResponse, error)
 	SetSkipPriceMultiplier(context.Context, *SetSkipPriceMultiplierRequest) (*SetSkipPriceMultiplierResponse, error)
+	ConfirmRaffleWinner(context.Context, *ConfirmRaffleWinnerRequest) (*ConfirmRaffleWinnerResponse, error)
+	CompleteRaffle(context.Context, *CompleteRaffleRequest) (*CompleteRaffleResponse, error)
+	RedrawRaffle(context.Context, *RedrawRaffleRequest) (*RedrawRaffleResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -620,6 +664,9 @@ func (UnimplementedJungleTVServer) RewardHistory(context.Context, *RewardHistory
 func (UnimplementedJungleTVServer) WithdrawalHistory(context.Context, *WithdrawalHistoryRequest) (*WithdrawalHistoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawalHistory not implemented")
 }
+func (UnimplementedJungleTVServer) OngoingRaffleInfo(context.Context, *OngoingRaffleInfoRequest) (*OngoingRaffleInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OngoingRaffleInfo not implemented")
+}
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
 }
@@ -667,6 +714,15 @@ func (UnimplementedJungleTVServer) SetCrowdfundedSkippingEnabled(context.Context
 }
 func (UnimplementedJungleTVServer) SetSkipPriceMultiplier(context.Context, *SetSkipPriceMultiplierRequest) (*SetSkipPriceMultiplierResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSkipPriceMultiplier not implemented")
+}
+func (UnimplementedJungleTVServer) ConfirmRaffleWinner(context.Context, *ConfirmRaffleWinnerRequest) (*ConfirmRaffleWinnerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmRaffleWinner not implemented")
+}
+func (UnimplementedJungleTVServer) CompleteRaffle(context.Context, *CompleteRaffleRequest) (*CompleteRaffleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteRaffle not implemented")
+}
+func (UnimplementedJungleTVServer) RedrawRaffle(context.Context, *RedrawRaffleRequest) (*RedrawRaffleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RedrawRaffle not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1041,6 +1097,24 @@ func _JungleTV_WithdrawalHistory_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_OngoingRaffleInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OngoingRaffleInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).OngoingRaffleInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/OngoingRaffleInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).OngoingRaffleInfo(ctx, req.(*OngoingRaffleInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -1329,6 +1403,60 @@ func _JungleTV_SetSkipPriceMultiplier_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ConfirmRaffleWinner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmRaffleWinnerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ConfirmRaffleWinner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ConfirmRaffleWinner",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ConfirmRaffleWinner(ctx, req.(*ConfirmRaffleWinnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_CompleteRaffle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteRaffleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).CompleteRaffle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/CompleteRaffle",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).CompleteRaffle(ctx, req.(*CompleteRaffleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RedrawRaffle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedrawRaffleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RedrawRaffle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RedrawRaffle",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RedrawRaffle(ctx, req.(*RedrawRaffleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1384,6 +1512,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithdrawalHistory",
 			Handler:    _JungleTV_WithdrawalHistory_Handler,
+		},
+		{
+			MethodName: "OngoingRaffleInfo",
+			Handler:    _JungleTV_OngoingRaffleInfo_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",
@@ -1448,6 +1580,18 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetSkipPriceMultiplier",
 			Handler:    _JungleTV_SetSkipPriceMultiplier_Handler,
+		},
+		{
+			MethodName: "ConfirmRaffleWinner",
+			Handler:    _JungleTV_ConfirmRaffleWinner_Handler,
+		},
+		{
+			MethodName: "CompleteRaffle",
+			Handler:    _JungleTV_CompleteRaffle_Handler,
+		},
+		{
+			MethodName: "RedrawRaffle",
+			Handler:    _JungleTV_RedrawRaffle_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

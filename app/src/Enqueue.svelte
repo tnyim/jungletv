@@ -1,11 +1,14 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { navigate } from "svelte-navigator";
+    import { apiClient } from "./api_client";
 
     import EnqueueFailure from "./EnqueueFailure.svelte";
     import EnqueueMediaSelection from "./EnqueueMediaSelection.svelte";
     import EnqueuePayment from "./EnqueuePayment.svelte";
+    import EnqueueRafflePromotion from "./EnqueueRafflePromotion.svelte";
     import EnqueueSuccess from "./EnqueueSuccess.svelte";
-    import type { EnqueueMediaResponse, EnqueueMediaTicket } from "./proto/jungletv_pb";
+    import type { EnqueueMediaResponse, EnqueueMediaTicket, OngoingRaffleInfo } from "./proto/jungletv_pb";
 
     let step = 0;
     let ticket: EnqueueMediaTicket;
@@ -26,10 +29,25 @@
     function onConnectionLost() {
         step = 4;
     }
+
+    let ongoingRaffleInfo: OngoingRaffleInfo;
+
+    onMount(async () => {
+        let resp = await apiClient.ongoingRaffleInfo();
+        if (resp.hasRaffleInfo()) {
+            ongoingRaffleInfo = resp.getRaffleInfo();
+        }
+    });
 </script>
 
 {#if step == 0}
-    <EnqueueMediaSelection on:mediaSelected={onMediaSelected} on:userCanceled={() => navigate("/")} />
+    <EnqueueMediaSelection on:mediaSelected={onMediaSelected} on:userCanceled={() => navigate("/")}>
+        <svelte:fragment slot="raffle-info">
+            {#if ongoingRaffleInfo !== undefined}
+                <EnqueueRafflePromotion {ongoingRaffleInfo} />
+            {/if}
+        </svelte:fragment>
+    </EnqueueMediaSelection>
 {:else if step == 1}
     <EnqueuePayment
         on:userCanceled={onUserCanceled}
@@ -37,11 +55,35 @@
         on:ticketExpired={onTicketExpired}
         on:connectionLost={onConnectionLost}
         bind:ticket
-    />
+    >
+        <svelte:fragment slot="raffle-info">
+            {#if ongoingRaffleInfo !== undefined}
+                <EnqueueRafflePromotion {ongoingRaffleInfo} />
+            {/if}
+        </svelte:fragment>
+    </EnqueuePayment>
 {:else if step == 2}
-    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket />
+    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket>
+        <svelte:fragment slot="raffle-info">
+            {#if ongoingRaffleInfo !== undefined}
+                <EnqueueRafflePromotion {ongoingRaffleInfo} />
+            {/if}
+        </svelte:fragment>
+    </EnqueueSuccess>
 {:else if step == 3}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket />
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket>
+        <svelte:fragment slot="raffle-info">
+            {#if ongoingRaffleInfo !== undefined}
+                <EnqueueRafflePromotion {ongoingRaffleInfo} />
+            {/if}
+        </svelte:fragment>
+    </EnqueueFailure>
 {:else if step == 4}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true} />
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true}>
+        <svelte:fragment slot="raffle-info">
+            {#if ongoingRaffleInfo !== undefined}
+                <EnqueueRafflePromotion {ongoingRaffleInfo} />
+            {/if}
+        </svelte:fragment>
+    </EnqueueFailure>
 {/if}

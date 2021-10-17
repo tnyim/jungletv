@@ -137,4 +137,7 @@
             Next
         </button>
     </div>
+    <div slot="secondary_1">
+        <slot name="raffle-info" />
+    </div>
 </Wizard>

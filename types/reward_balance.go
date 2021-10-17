@@ -20,7 +20,7 @@ type RewardBalance struct {
 func getRewardBalanceWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*RewardBalance, uint64, error) {
 	values, totalCount, err := GetWithSelect(node, &RewardBalance{}, sbuilder, true)
 	if err != nil {
-		return nil, totalCount, err
+		return nil, totalCount, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*RewardBalance, len(values))

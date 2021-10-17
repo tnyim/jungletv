@@ -28,7 +28,7 @@ type CrowdfundedTransaction struct {
 func getCrowdfundedTransactionWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*CrowdfundedTransaction, uint64, error) {
 	values, totalCount, err := GetWithSelect(node, &CrowdfundedTransaction{}, sbuilder, false)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*CrowdfundedTransaction, len(values))

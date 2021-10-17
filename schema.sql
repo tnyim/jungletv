@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS "raffle_drawing";
+DROP TABLE IF EXISTS "raffle_drawing_status";
 DROP TABLE IF EXISTS "crowdfunded_transaction";
 DROP TABLE IF EXISTS "crowdfunded_transaction_type";
 DROP TABLE IF EXISTS "withdrawal";
@@ -28,11 +30,13 @@ CREATE TABLE IF NOT EXISTS "played_media" (
     yt_video_id VARCHAR(11),
     yt_video_title VARCHAR(150)
 );
+CREATE INDEX index_requested_by_on_played_media ON played_media USING BTREE (requested_by);
+CREATE INDEX index_started_at_on_played_media ON played_media USING BTREE (started_at);
 
 CREATE TABLE IF NOT EXISTS "disallowed_media" (
     id VARCHAR(36) PRIMARY KEY,
     disallowed_by VARCHAR(64),
-    disallowed_at TIMESTAMP WITH TIME ZONE,
+    disallowed_at TIMESTAMP WITH TIME ZONE NOT NULL,
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),
     yt_video_id VARCHAR(11),
     yt_video_title VARCHAR(150)
@@ -108,4 +112,32 @@ CREATE TABLE IF NOT EXISTS "crowdfunded_transaction" (
     received_at TIMESTAMP WITH TIME ZONE NOT NULL,
     transaction_type VARCHAR(10) NOT NULL REFERENCES crowdfunded_transaction_type (transaction_type),
     for_media VARCHAR(36) REFERENCES played_media (id) -- nullable
+);
+
+CREATE TABLE IF NOT EXISTS "raffle_drawing_status" (
+    drawing_status VARCHAR(10) PRIMARY KEY
+);
+INSERT INTO "raffle_drawing_status" VALUES ('ongoing'), ('pending'), ('confirmed'), ('voided'), ('complete');
+
+-- (drawing created) -> ongoing
+--   (no tickets) -> complete
+--   (draw happens) -> pending
+--     (raffle supervisor rejects winner) -> voided (a new drawing is created with the reason added to the plaintext)
+--     (raffle supervisor approves winner) -> confirmed
+--       (winner is paid) -> complete
+
+CREATE TABLE IF NOT EXISTS "raffle_drawing" (
+    raffle_id VARCHAR(36),
+    drawing_number INTEGER NOT NULL,
+    period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(10) NOT NULL REFERENCES raffle_drawing_status (drawing_status),
+    reason TEXT NOT NULL,
+    plaintext TEXT, -- nullable
+    vrf_hash TEXT, -- nullable
+    vrf_proof TEXT, -- nullable
+    winning_ticket_number INTEGER, -- nullable
+    winning_rewards_address VARCHAR(64), -- nullable
+    prize_tx_hash VARCHAR(64), -- nullable
+    PRIMARY KEY (raffle_id, drawing_number)
 );

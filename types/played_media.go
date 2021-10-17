@@ -28,7 +28,7 @@ type PlayedMedia struct {
 func getPlayedMediaWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*PlayedMedia, uint64, error) {
 	values, totalCount, err := GetWithSelect(node, &PlayedMedia{}, sbuilder, true)
 	if err != nil {
-		return nil, totalCount, err
+		return nil, totalCount, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*PlayedMedia, len(values))
@@ -97,4 +97,74 @@ func (obj *PlayedMedia) Update(node sqalx.Node) error {
 // Delete deletes the PlayedMedia
 func (obj *PlayedMedia) Delete(node sqalx.Node) error {
 	return Delete(node, obj)
+}
+
+// PlayedMediaRaffleEntry is the raffle entry representation of a played media entry
+// It corresponds to the same DB entry as PlayedMedia, it's just a different "view" over it
+type PlayedMediaRaffleEntry struct {
+	TicketNumber   int `dbColumnRaw:"ROW_NUMBER() OVER (ORDER BY played_media.started_at) AS ticket_number"`
+	RequestedBy    string
+	YouTubeVideoID *string `dbColumn:"yt_video_id"`
+}
+
+func (p *PlayedMediaRaffleEntry) tableName() string {
+	return "played_media"
+}
+
+// GetPlayedMediaRaffleEntriesBetween returns the played media raffle entries in the specified time period
+func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before time.Time) ([]*PlayedMediaRaffleEntry, error) {
+	s := sdb.Select().
+		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
+		Where(sq.Lt{"played_media.started_at": before}).
+		Where(sq.NotEq{"requested_by": ""}).
+		OrderBy("played_media.started_at")
+
+	values, _, err := GetWithSelect(node, &PlayedMediaRaffleEntry{}, s, false)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	converted := make([]*PlayedMediaRaffleEntry, len(values))
+	for i := range values {
+		converted[i] = values[i].(*PlayedMediaRaffleEntry)
+	}
+	return converted, nil
+}
+
+// CountMediaRaffleEntriesBetween counts the played media raffle entries in the specified time period
+func CountMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before time.Time) (int, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	s := sdb.Select("COUNT(*)").
+		From("played_media").
+		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
+		Where(sq.Lt{"played_media.started_at": before}).
+		Where(sq.NotEq{"requested_by": ""})
+
+	var count int
+	err = s.RunWith(tx).QueryRow().Scan(&count)
+	return count, stacktrace.Propagate(err, "")
+}
+
+// CountMediaRaffleEntriesRequestedByBetween counts the played media raffle entries in the specified time period that belong to the specified user
+func CountMediaRaffleEntriesRequestedByBetween(node sqalx.Node, onOrAfter time.Time, before time.Time, user string) (int, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	s := sdb.Select("COUNT(*)").
+		From("played_media").
+		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
+		Where(sq.Lt{"played_media.started_at": before}).
+		Where(sq.Eq{"requested_by": user})
+
+	var count int
+	err = s.RunWith(tx).QueryRow().Scan(&count)
+	return count, stacktrace.Propagate(err, "")
 }

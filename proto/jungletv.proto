@@ -27,6 +27,7 @@ service JungleTV {
     rpc Leaderboards (LeaderboardsRequest) returns (LeaderboardsResponse) {}
     rpc RewardHistory (RewardHistoryRequest) returns (RewardHistoryResponse) {}
     rpc WithdrawalHistory (WithdrawalHistoryRequest) returns (WithdrawalHistoryResponse) {}
+    rpc OngoingRaffleInfo (OngoingRaffleInfoRequest) returns (OngoingRaffleInfoResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -45,6 +46,9 @@ service JungleTV {
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
     rpc SetCrowdfundedSkippingEnabled(SetCrowdfundedSkippingEnabledRequest) returns (SetCrowdfundedSkippingEnabledResponse) {}
     rpc SetSkipPriceMultiplier(SetSkipPriceMultiplierRequest) returns (SetSkipPriceMultiplierResponse) {}
+    rpc ConfirmRaffleWinner(ConfirmRaffleWinnerRequest) returns (ConfirmRaffleWinnerResponse) {}
+    rpc CompleteRaffle(CompleteRaffleRequest) returns (CompleteRaffleResponse) {}
+    rpc RedrawRaffle(RedrawRaffleRequest) returns (RedrawRaffleResponse) {}
 }
 
 message PaginationParameters {
@@ -553,4 +557,40 @@ message ProduceSegchaChallengeResponse {
 
 message SegchaChallengeStep {
     bytes image = 1;
+}
+
+message ConfirmRaffleWinnerRequest {
+    string raffle_id = 1;
+}
+
+message ConfirmRaffleWinnerResponse {}
+
+message CompleteRaffleRequest {
+    string raffle_id = 1;
+    string prize_tx_hash = 2;
+}
+
+message CompleteRaffleResponse {}
+
+message RedrawRaffleRequest {
+    string raffle_id = 1;
+    string reason = 2;
+}
+
+message RedrawRaffleResponse {}
+
+message OngoingRaffleInfoRequest {}
+
+message OngoingRaffleInfoResponse {
+    optional OngoingRaffleInfo raffle_info = 1;
+}
+
+message OngoingRaffleInfo {
+    string raffle_id = 1;
+    string entries_url = 2;
+    string info_url = 3;
+    google.protobuf.Timestamp period_start = 4;
+    google.protobuf.Timestamp period_end = 5;
+    uint32 total_tickets = 6;
+    optional uint32 user_tickets = 7;
 }

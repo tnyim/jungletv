@@ -52,11 +52,13 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 		requestedBy = entry.RequestedBy().Address()[:14]
 	}
 
-	_, err = s.modLogWebhook.SendContent(
-		fmt.Sprintf("Moderator %s (%s) removed queue entry requested by %s with title \"%s\"",
-			user.Address()[:14], user.Username, requestedBy, entry.MediaInfo().Title()))
-	if err != nil {
-		s.log.Println("Failed to send mod log webhook:", err)
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) removed queue entry requested by %s with title \"%s\"",
+				user.Address()[:14], user.Username, requestedBy, entry.MediaInfo().Title()))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
 	}
 
 	return &proto.RemoveQueueEntryResponse{}, nil

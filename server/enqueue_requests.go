@@ -20,7 +20,7 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
-const TicketExpiration = 2 * time.Minute
+const TicketExpiration = 20 * time.Minute
 
 // EnqueueManager manages requests for enqueuing that are pending payment
 type EnqueueManager struct {
@@ -115,10 +115,10 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 			break
 		}
 		e.modLogWebhook.SendContent(fmt.Sprintf(
-			"Address %v has unhandled balance! (gbl08ma will issue a refund)\n"+
+			"Address %v (%d) has unhandled balance! (gbl08ma will issue a refund)\n"+
 				"Most likely, someone sent money to this address after their payment ticket had already expired.\n"+
 				"This address has been removed from the payment account pool for the time being.",
-			paymentAccount.Address()))
+			paymentAccount.Address(), paymentAccount.Index()))
 	}
 
 	t := &ticket{

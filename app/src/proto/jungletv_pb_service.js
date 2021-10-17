@@ -181,6 +181,15 @@ JungleTV.WithdrawalHistory = {
   responseType: jungletv_pb.WithdrawalHistoryResponse
 };
 
+JungleTV.OngoingRaffleInfo = {
+  methodName: "OngoingRaffleInfo",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.OngoingRaffleInfoRequest,
+  responseType: jungletv_pb.OngoingRaffleInfoResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -323,6 +332,33 @@ JungleTV.SetSkipPriceMultiplier = {
   responseStream: false,
   requestType: jungletv_pb.SetSkipPriceMultiplierRequest,
   responseType: jungletv_pb.SetSkipPriceMultiplierResponse
+};
+
+JungleTV.ConfirmRaffleWinner = {
+  methodName: "ConfirmRaffleWinner",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.ConfirmRaffleWinnerRequest,
+  responseType: jungletv_pb.ConfirmRaffleWinnerResponse
+};
+
+JungleTV.CompleteRaffle = {
+  methodName: "CompleteRaffle",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.CompleteRaffleRequest,
+  responseType: jungletv_pb.CompleteRaffleResponse
+};
+
+JungleTV.RedrawRaffle = {
+  methodName: "RedrawRaffle",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RedrawRaffleRequest,
+  responseType: jungletv_pb.RedrawRaffleResponse
 };
 
 exports.JungleTV = JungleTV;
@@ -969,6 +1005,37 @@ JungleTVClient.prototype.withdrawalHistory = function withdrawalHistory(requestM
   };
 };
 
+JungleTVClient.prototype.ongoingRaffleInfo = function ongoingRaffleInfo(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.OngoingRaffleInfo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
 JungleTVClient.prototype.forciblyEnqueueTicket = function forciblyEnqueueTicket(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
@@ -1439,6 +1506,99 @@ JungleTVClient.prototype.setSkipPriceMultiplier = function setSkipPriceMultiplie
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetSkipPriceMultiplier, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.confirmRaffleWinner = function confirmRaffleWinner(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ConfirmRaffleWinner, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.completeRaffle = function completeRaffle(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.CompleteRaffle, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.redrawRaffle = function redrawRaffle(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RedrawRaffle, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

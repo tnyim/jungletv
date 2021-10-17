@@ -116,6 +116,53 @@
             alert("An error occurred when setting the skip price multiplier: " + e);
         }
     }
+
+    async function confirmRaffleWinner() {
+        let raffleID = prompt("Confirming the winner. Enter the raffle ID, or press cancel:")
+        if (raffleID === null) {
+            return;
+        }
+        try {
+            await apiClient.confirmRaffleWinner(raffleID);
+            alert("Raffle winner confirmed successfully");
+        } catch (e) {
+            alert("An error occurred when confirming the raffle winner: " + e);
+        }
+    }
+
+    async function redrawRaffle() {
+        let raffleID = prompt("Redrawing a raffle. Enter the raffle ID, or press cancel:")
+        if (raffleID === null) {
+            return;
+        }
+        let reason = prompt("Enter the reason for redrawing the raffle (this is public):")
+        if (reason === null) {
+            return;
+        }
+        try {
+            await apiClient.redrawRaffle(raffleID, reason);
+            alert("Raffle redrawn successfully");
+        } catch (e) {
+            alert("An error occurred when redrawing the raffle: " + e);
+        }
+    }
+
+    async function completeRaffle() {
+        let raffleID = prompt("Completing a raffle. Enter the raffle ID, or press cancel:")
+        if (raffleID === null) {
+            return;
+        }
+        let tx = prompt("Enter the hash of the send block for the raffle prize:")
+        if (tx === null) {
+            return;
+        }
+        try {
+            await apiClient.completeRaffle(raffleID, tx);
+            alert("Raffle completed successfully");
+        } catch (e) {
+            alert("An error occurred when completing the raffle: " + e);
+        }
+    }
 </script>
 
 <div class="flex-grow min-h-full overflow-x-hidden">
@@ -332,6 +379,32 @@
             <a use:link href="/moderate/documents/faq">Edit FAQ</a> |
             <a use:link href="/moderate/documents/announcements">Edit Announcements</a>
         </p>
+    </div>
+    <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">Raffles</p>
+        <div class="px-2 grid grid-cols-3 gap-6">
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => confirmRaffleWinner()}
+            >
+                Confirm winner
+            </button>
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => redrawRaffle()}
+            >
+                Redraw raffle
+            </button>
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => completeRaffle()}
+            >
+                Complete raffle
+            </button>
+        </div>
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Chat</p>

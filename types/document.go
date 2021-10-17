@@ -22,7 +22,7 @@ type Document struct {
 func getDocumentWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Document, uint64, error) {
 	values, totalCount, err := GetWithSelect(node, &Document{}, sbuilder, true)
 	if err != nil {
-		return nil, totalCount, err
+		return nil, totalCount, stacktrace.Propagate(err, "")
 	}
 
 	converted := make([]*Document, len(values))

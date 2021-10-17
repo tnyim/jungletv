@@ -175,6 +175,15 @@ type JungleTVWithdrawalHistory = {
   readonly responseType: typeof jungletv_pb.WithdrawalHistoryResponse;
 };
 
+type JungleTVOngoingRaffleInfo = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.OngoingRaffleInfoRequest;
+  readonly responseType: typeof jungletv_pb.OngoingRaffleInfoResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -319,6 +328,33 @@ type JungleTVSetSkipPriceMultiplier = {
   readonly responseType: typeof jungletv_pb.SetSkipPriceMultiplierResponse;
 };
 
+type JungleTVConfirmRaffleWinner = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ConfirmRaffleWinnerRequest;
+  readonly responseType: typeof jungletv_pb.ConfirmRaffleWinnerResponse;
+};
+
+type JungleTVCompleteRaffle = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.CompleteRaffleRequest;
+  readonly responseType: typeof jungletv_pb.CompleteRaffleResponse;
+};
+
+type JungleTVRedrawRaffle = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RedrawRaffleRequest;
+  readonly responseType: typeof jungletv_pb.RedrawRaffleResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -340,6 +376,7 @@ export class JungleTV {
   static readonly Leaderboards: JungleTVLeaderboards;
   static readonly RewardHistory: JungleTVRewardHistory;
   static readonly WithdrawalHistory: JungleTVWithdrawalHistory;
+  static readonly OngoingRaffleInfo: JungleTVOngoingRaffleInfo;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -356,6 +393,9 @@ export class JungleTV {
   static readonly SetPricesMultiplier: JungleTVSetPricesMultiplier;
   static readonly SetCrowdfundedSkippingEnabled: JungleTVSetCrowdfundedSkippingEnabled;
   static readonly SetSkipPriceMultiplier: JungleTVSetSkipPriceMultiplier;
+  static readonly ConfirmRaffleWinner: JungleTVConfirmRaffleWinner;
+  static readonly CompleteRaffle: JungleTVCompleteRaffle;
+  static readonly RedrawRaffle: JungleTVRedrawRaffle;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -513,6 +553,15 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.WithdrawalHistoryRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.WithdrawalHistoryResponse|null) => void
   ): UnaryResponse;
+  ongoingRaffleInfo(
+    requestMessage: jungletv_pb.OngoingRaffleInfoRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.OngoingRaffleInfoResponse|null) => void
+  ): UnaryResponse;
+  ongoingRaffleInfo(
+    requestMessage: jungletv_pb.OngoingRaffleInfoRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.OngoingRaffleInfoResponse|null) => void
+  ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,
@@ -656,6 +705,33 @@ export class JungleTVClient {
   setSkipPriceMultiplier(
     requestMessage: jungletv_pb.SetSkipPriceMultiplierRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkipPriceMultiplierResponse|null) => void
+  ): UnaryResponse;
+  confirmRaffleWinner(
+    requestMessage: jungletv_pb.ConfirmRaffleWinnerRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConfirmRaffleWinnerResponse|null) => void
+  ): UnaryResponse;
+  confirmRaffleWinner(
+    requestMessage: jungletv_pb.ConfirmRaffleWinnerRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConfirmRaffleWinnerResponse|null) => void
+  ): UnaryResponse;
+  completeRaffle(
+    requestMessage: jungletv_pb.CompleteRaffleRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CompleteRaffleResponse|null) => void
+  ): UnaryResponse;
+  completeRaffle(
+    requestMessage: jungletv_pb.CompleteRaffleRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CompleteRaffleResponse|null) => void
+  ): UnaryResponse;
+  redrawRaffle(
+    requestMessage: jungletv_pb.RedrawRaffleRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RedrawRaffleResponse|null) => void
+  ): UnaryResponse;
+  redrawRaffle(
+    requestMessage: jungletv_pb.RedrawRaffleRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RedrawRaffleResponse|null) => void
   ): UnaryResponse;
 }
 

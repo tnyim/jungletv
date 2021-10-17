@@ -29,7 +29,7 @@ func getWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Wit
 
 	values, _, err := GetWithSelect(tx, &Withdrawal{}, sbuilder, false)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
 	// let's get the total count with a separate query, as it's much more performant than using the window function on large tables

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -249,11 +250,17 @@ func main() {
 		mainLog.Fatalln("error building segcha image DB:", err)
 	}
 
+	raffleSecretKey, present := secrets.Get("raffleSecretKey")
+	if !present {
+		mainLog.Fatalln("Raffle secret key not present in segcha keybox")
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey)
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
-	apiServer, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
+	apiServer, extraHTTProutes, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
 		authInterceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
-		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, imageDB, segchaFontPath)
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, imageDB, segchaFontPath, raffleSecretKey,
+		websiteURL)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -263,7 +270,7 @@ func main() {
 		listenAddr = ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr)
+	httpServer, err := buildHTTPserver(apiServer, extraHTTProutes, jwtManager, authInterceptor, listenAddr)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -313,7 +320,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, listenAddr string) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request), jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, listenAddr string) (*http.Server, error) {
 	sqalxInterceptor := &sqalxInterceptor{rootNode: rootSqalxNode}
 	versionInterceptor := server.NewVersionInterceptor(versionHash)
 
@@ -325,7 +332,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
 	router := mux.NewRouter().StrictSlash(true)
-	configureRouter(router)
+	configureRouter(router, extraHTTProutes)
 
 	wrappedServer := grpcweb.WrapServer(grpcServer)
 	handler := func(resp http.ResponseWriter, req *http.Request) {
@@ -358,8 +365,27 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 	}
 }
 
-func configureRouter(router *mux.Router) {
+func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request)) {
 	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
+
+	type extraRoute struct {
+		Path    string
+		Handler func(w http.ResponseWriter, r *http.Request)
+	}
+	extraRoutes := []extraRoute{}
+	for path := range extraHTTProutes {
+		extraRoutes = append(extraRoutes, extraRoute{path, extraHTTProutes[path]})
+	}
+	sort.Slice(extraRoutes, func(i, j int) bool {
+		return len(extraRoutes[i].Path) >= len(extraRoutes[j].Path)
+	})
+	for i := range extraRoutes {
+		route := extraRoutes[i]
+		router.HandleFunc(route.Path, func(rw http.ResponseWriter, r *http.Request) {
+			newCtx := context.WithValue(r.Context(), "SqalxNode", rootSqalxNode)
+			route.Handler(rw, r.WithContext(newCtx))
+		})
+	}
 
 	if DEBUG {
 		router.HandleFunc("/debug/pprof/", pprof.Index)

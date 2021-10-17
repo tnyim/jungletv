@@ -2464,6 +2464,210 @@ export namespace SegchaChallengeStep {
   }
 }
 
+export class ConfirmRaffleWinnerRequest extends jspb.Message {
+  getRaffleId(): string;
+  setRaffleId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConfirmRaffleWinnerRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConfirmRaffleWinnerRequest): ConfirmRaffleWinnerRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConfirmRaffleWinnerRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConfirmRaffleWinnerRequest;
+  static deserializeBinaryFromReader(message: ConfirmRaffleWinnerRequest, reader: jspb.BinaryReader): ConfirmRaffleWinnerRequest;
+}
+
+export namespace ConfirmRaffleWinnerRequest {
+  export type AsObject = {
+    raffleId: string,
+  }
+}
+
+export class ConfirmRaffleWinnerResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConfirmRaffleWinnerResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ConfirmRaffleWinnerResponse): ConfirmRaffleWinnerResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConfirmRaffleWinnerResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConfirmRaffleWinnerResponse;
+  static deserializeBinaryFromReader(message: ConfirmRaffleWinnerResponse, reader: jspb.BinaryReader): ConfirmRaffleWinnerResponse;
+}
+
+export namespace ConfirmRaffleWinnerResponse {
+  export type AsObject = {
+  }
+}
+
+export class CompleteRaffleRequest extends jspb.Message {
+  getRaffleId(): string;
+  setRaffleId(value: string): void;
+
+  getPrizeTxHash(): string;
+  setPrizeTxHash(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CompleteRaffleRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CompleteRaffleRequest): CompleteRaffleRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CompleteRaffleRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CompleteRaffleRequest;
+  static deserializeBinaryFromReader(message: CompleteRaffleRequest, reader: jspb.BinaryReader): CompleteRaffleRequest;
+}
+
+export namespace CompleteRaffleRequest {
+  export type AsObject = {
+    raffleId: string,
+    prizeTxHash: string,
+  }
+}
+
+export class CompleteRaffleResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CompleteRaffleResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CompleteRaffleResponse): CompleteRaffleResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CompleteRaffleResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CompleteRaffleResponse;
+  static deserializeBinaryFromReader(message: CompleteRaffleResponse, reader: jspb.BinaryReader): CompleteRaffleResponse;
+}
+
+export namespace CompleteRaffleResponse {
+  export type AsObject = {
+  }
+}
+
+export class RedrawRaffleRequest extends jspb.Message {
+  getRaffleId(): string;
+  setRaffleId(value: string): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RedrawRaffleRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RedrawRaffleRequest): RedrawRaffleRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RedrawRaffleRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RedrawRaffleRequest;
+  static deserializeBinaryFromReader(message: RedrawRaffleRequest, reader: jspb.BinaryReader): RedrawRaffleRequest;
+}
+
+export namespace RedrawRaffleRequest {
+  export type AsObject = {
+    raffleId: string,
+    reason: string,
+  }
+}
+
+export class RedrawRaffleResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RedrawRaffleResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RedrawRaffleResponse): RedrawRaffleResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RedrawRaffleResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RedrawRaffleResponse;
+  static deserializeBinaryFromReader(message: RedrawRaffleResponse, reader: jspb.BinaryReader): RedrawRaffleResponse;
+}
+
+export namespace RedrawRaffleResponse {
+  export type AsObject = {
+  }
+}
+
+export class OngoingRaffleInfoRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OngoingRaffleInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: OngoingRaffleInfoRequest): OngoingRaffleInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OngoingRaffleInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OngoingRaffleInfoRequest;
+  static deserializeBinaryFromReader(message: OngoingRaffleInfoRequest, reader: jspb.BinaryReader): OngoingRaffleInfoRequest;
+}
+
+export namespace OngoingRaffleInfoRequest {
+  export type AsObject = {
+  }
+}
+
+export class OngoingRaffleInfoResponse extends jspb.Message {
+  hasRaffleInfo(): boolean;
+  clearRaffleInfo(): void;
+  getRaffleInfo(): OngoingRaffleInfo | undefined;
+  setRaffleInfo(value?: OngoingRaffleInfo): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OngoingRaffleInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: OngoingRaffleInfoResponse): OngoingRaffleInfoResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OngoingRaffleInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OngoingRaffleInfoResponse;
+  static deserializeBinaryFromReader(message: OngoingRaffleInfoResponse, reader: jspb.BinaryReader): OngoingRaffleInfoResponse;
+}
+
+export namespace OngoingRaffleInfoResponse {
+  export type AsObject = {
+    raffleInfo?: OngoingRaffleInfo.AsObject,
+  }
+}
+
+export class OngoingRaffleInfo extends jspb.Message {
+  getRaffleId(): string;
+  setRaffleId(value: string): void;
+
+  getEntriesUrl(): string;
+  setEntriesUrl(value: string): void;
+
+  getInfoUrl(): string;
+  setInfoUrl(value: string): void;
+
+  hasPeriodStart(): boolean;
+  clearPeriodStart(): void;
+  getPeriodStart(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setPeriodStart(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasPeriodEnd(): boolean;
+  clearPeriodEnd(): void;
+  getPeriodEnd(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setPeriodEnd(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getTotalTickets(): number;
+  setTotalTickets(value: number): void;
+
+  hasUserTickets(): boolean;
+  clearUserTickets(): void;
+  getUserTickets(): number;
+  setUserTickets(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OngoingRaffleInfo.AsObject;
+  static toObject(includeInstance: boolean, msg: OngoingRaffleInfo): OngoingRaffleInfo.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OngoingRaffleInfo, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OngoingRaffleInfo;
+  static deserializeBinaryFromReader(message: OngoingRaffleInfo, reader: jspb.BinaryReader): OngoingRaffleInfo;
+}
+
+export namespace OngoingRaffleInfo {
+  export type AsObject = {
+    raffleId: string,
+    entriesUrl: string,
+    infoUrl: string,
+    periodStart?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    periodEnd?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    totalTickets: number,
+    userTickets: number,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

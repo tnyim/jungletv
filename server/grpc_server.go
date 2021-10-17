@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/DisgoOrg/disgohook"
 	"github.com/DisgoOrg/disgohook/api"
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -50,11 +53,13 @@ type grpcServer struct {
 	segchaRateLimiter              limiter.Store
 	ipReputationChecker            *IPAddressReputationChecker
 	userSerializer                 APIUserSerializer
-	captchaImageDB                 *captcha.ImageDatabase
-	captchaFontPath                string
-	captchaAnswers                 *cache.Cache
-	captchaChallengesQueue         chan *captcha.Challenge
-	captchaGenerationMutex         sync.Mutex
+	websiteURL                     string
+
+	captchaImageDB         *captcha.ImageDatabase
+	captchaFontPath        string
+	captchaAnswers         *cache.Cache
+	captchaChallengesQueue chan *captcha.Challenge
+	captchaGenerationMutex sync.Mutex
 
 	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
@@ -78,13 +83,15 @@ type grpcServer struct {
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
+
+	raffleSecretKey *ecdsa.PrivateKey
 }
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
 	youtubeAPIkey string, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
 	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string,
-	captchaImageDB *captcha.ImageDatabase, captchaFontPath string) (*grpcServer, error) {
+	captchaImageDB *captcha.ImageDatabase, captchaFontPath, raffleSecretKey, websiteURL string) (*grpcServer, map[string]func(w http.ResponseWriter, r *http.Request), error) {
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardInfo", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Withdraw", auth.UserPermissionLevel)
@@ -111,10 +118,13 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetPricesMultiplier", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetCrowdfundedSkippingEnabled", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetSkipPriceMultiplier", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ConfirmRaffleWinner", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CompleteRaffle", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RedrawRaffle", auth.AdminPermissionLevel)
 
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	s := &grpcServer{
@@ -135,17 +145,19 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		ticketCheckPeriod:              ticketCheckPeriod,
 		moderationStore:                NewModerationStoreMemory(bansFile),
 		nicknameCache:                  NewMemoryNicknameCache(),
-		captchaAnswers:                 cache.New(1*time.Hour, 5*time.Minute),
-		captchaImageDB:                 captchaImageDB,
-		captchaFontPath:                captchaFontPath,
-		captchaChallengesQueue:         make(chan *captcha.Challenge, segchaPremadeQueueSize),
+		websiteURL:                     websiteURL,
+
+		captchaAnswers:         cache.New(1*time.Hour, 5*time.Minute),
+		captchaImageDB:         captchaImageDB,
+		captchaFontPath:        captchaFontPath,
+		captchaChallengesQueue: make(chan *captcha.Challenge, segchaPremadeQueueSize),
 	}
 	s.userSerializer = s.serializeUserForAPI
 
 	if modLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(log, false), modLogWebhook)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "")
+			return nil, nil, stacktrace.Propagate(err, "")
 		}
 	}
 
@@ -154,21 +166,21 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		Interval: time.Minute,
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   10,
 		Interval: 5 * time.Minute,
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 	s.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   4,
 		Interval: 4 * time.Hour,
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	s.segchaRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -176,17 +188,17 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		Interval: 2 * time.Minute,
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	err = s.setupSpecialAccounts(repAddress)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	s.statsHandler, err = NewStatsHandler(log, s.mediaQueue, s.statsClient)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	s.pricer = NewPricer(log, s.mediaQueue, s.rewardsHandler, s.statsHandler)
@@ -199,7 +211,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		log, statsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, hCaptchaSecret, w,
 		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 	s.pricer.rewardsHandler = s.rewardsHandler
 
@@ -207,12 +219,12 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		s.paymentAccountPendingWaitGroup, s.rewardsHandler, s.collectorAccount.Address(),
 		s.moderationStore, s.modLogWebhook)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	s.chat, err = NewChatManager(log, statsClient, NewChatStoreDatabase(s.nicknameCache), s.moderationStore)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
 	client := &http.Client{
@@ -221,9 +233,24 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 
 	s.youtube, err = youtube.New(client)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "error creating YouTube client")
+		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
-	return s, nil
+
+	skBytes, err := hex.DecodeString(raffleSecretKey)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+
+	sk, _ := btcec.PrivKeyFromBytes(btcec.S256(), skBytes)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+	s.raffleSecretKey = sk.ToECDSA()
+
+	return s, map[string]func(w http.ResponseWriter, r *http.Request){
+		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets": s.wrapHTTPHandler(s.RaffleTickets),
+		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/":        s.wrapHTTPHandler(s.RaffleInfo),
+	}, nil
 }
 
 func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
