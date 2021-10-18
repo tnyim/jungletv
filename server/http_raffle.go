@@ -123,11 +123,18 @@ section 4.3.6 of ANSI X9.62. This key is used across all drawings of all
 JungleTV raffles:
 
 %s`, *latestDrawing.VRFProof, publicKeyHex)
+	} else {
+		winnerStr += fmt.Sprintf(`Once the raffle is drawn, the result will be verifiable using a proof that will
+be disclosed together with the number of the winning ticket, plus the following
+public key, encoded into the compressed form specified in section 4.3.6 of ANSI
+X9.62. This key is used across all drawings of all JungleTV raffles:
+
+%s`, publicKeyHex)
 	}
 
 	switch latestDrawing.Status {
 	case types.RaffleDrawingStatusOngoing:
-		statusString += fmt.Sprintf("This raffle will be drawn by the end of its period, i.e, at the following time:\n%s", periodEnd.Format(time.RFC3339))
+		statusString += fmt.Sprintf("This raffle will be drawn by the end of its period, i.e, at the following time:\n%s\n\n%s", periodEnd.Format(time.RFC3339), winnerStr)
 	case types.RaffleDrawingStatusPending:
 		statusString += "This raffle has been drawn, but the winner has not been confirmed yet.\n"
 		if winnerStr != "" {
