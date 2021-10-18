@@ -393,7 +393,7 @@ Drawing and ticket numbers always start at 1, always use the decimal numeral
 system, never have leading zeros and are always consecutive.
 
 For each raffle, the valid drawing shall be the one with the highest drawing
-number that has a corresponding valid cryptograpic proof as produced by
+number that has a corresponding valid cryptographic proof as produced by
 JungleTV.
 
 -----BEGIN RAFFLE DRAWINGS LIST (CSV)-----
