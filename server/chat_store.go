@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/jmoiron/sqlx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 )
@@ -373,6 +374,29 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user User, n
 		return stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
+
+	levelsAbove := []string{}
+	for permLevel, order := range auth.PermissionLevelOrder {
+		if order > auth.PermissionLevelOrder[user.PermissionLevel()] {
+			levelsAbove = append(levelsAbove, string(permLevel))
+		}
+	}
+
+	if len(levelsAbove) > 0 {
+		rows := []int{}
+		query, args, err := sqlx.In(`
+		SELECT 1 FROM chat_user WHERE nickname = ? AND permission_level IN (?)`,
+			nickname, levelsAbove)
+		query = ctx.Rebind(query)
+		err = ctx.Tx().SelectContext(ctx, &rows, query, args...)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		if len(rows) > 0 {
+			return stacktrace.NewError("this nickname is in use by a user with more privileges")
+		}
+	}
 
 	_, err = ctx.ExecContext(ctx, `
 		INSERT INTO chat_user ("address", permission_level, nickname)
