@@ -39,13 +39,16 @@ func (manager *JWTManager) Generate(rewardAddress string, permissionLevel Permis
 }
 
 // Generate generates a JWT for an admin
-func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration time.Time) (string, error) {
+func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration time.Time, rewardAddress string) (string, error) {
+	if rewardAddress == "" {
+		rewardAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt"
+	}
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: tokenExpiration.Unix(),
 		},
 		userInfo: userInfo{
-			RewardAddress: "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt",
+			RewardAddress: rewardAddress,
 			PermLevel:     AdminPermissionLevel,
 			Username:      username,
 		},

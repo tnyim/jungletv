@@ -18,7 +18,7 @@ var (
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	expiry := time.Now().Add(180 * 24 * 60 * 60 * time.Second)
-	adminToken, err := jwtManager.GenerateAdminToken("DEBUG_USER", expiry)
+	adminToken, err := jwtManager.GenerateAdminToken("DEBUG_USER", expiry, "")
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -42,6 +42,10 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := uuid.NewV4()
 	session.Values["id"] = id.String()
+	rewardAddress := getCurrentRewardAddress(r)
+	if rewardAddress != "" {
+		session.Values["rewardAddress"] = rewardAddress
+	}
 
 	url, rid, err := daClient.InitLogin(websiteURL+"/admin/auth", false, "", nil, id.String(), websiteURL)
 	if err != nil {
@@ -55,6 +59,20 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, url, http.StatusFound)
+}
+
+func getCurrentRewardAddress(r *http.Request) string {
+	accessToken := r.Header.Get("authorization")
+	if accessToken == "" {
+		return ""
+	}
+
+	claims, err := jwtManager.Verify(accessToken)
+	if err != nil {
+		return ""
+	}
+
+	return claims.RewardAddress
 }
 
 // authHandler serves requests from users that come from the SSO login page
@@ -91,7 +109,11 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expiry := time.Now().Add(7 * 24 * 60 * 60 * time.Second)
-	adminToken, err := jwtManager.GenerateAdminToken(login.UserID, expiry)
+	rewardAddress := ""
+	if v, ok := session.Values["rewardAddress"]; ok {
+		rewardAddress = v.(string)
+	}
+	adminToken, err := jwtManager.GenerateAdminToken(login.UserID, expiry, rewardAddress)
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
