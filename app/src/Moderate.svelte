@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { Duration } from "google-protobuf/google/protobuf/duration_pb";
     import { link } from "svelte-navigator";
     import { navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
@@ -48,9 +49,15 @@
     let banFromEnqueuing = false;
     let banFromRewards = false;
     let banReason = "";
+    let banDurationHours = 0;
     let banIDs: string[] = [];
     let banError = "";
     async function createBan() {
+        let duration: Duration = undefined;
+        if (banDurationHours > 0) {
+            duration = new Duration();
+            duration.setSeconds(banDurationHours * 3600);
+        }
         try {
             let response = await apiClient.banUser(
                 banRewardAddress,
@@ -58,7 +65,8 @@
                 banFromChat,
                 banFromEnqueuing,
                 banFromRewards,
-                banReason
+                banReason,
+                duration
             );
             banIDs = response.getBanIdsList();
             banError = "";
@@ -321,6 +329,15 @@
                     type="text"
                     placeholder="Reason for ban"
                     bind:value={banReason}
+                />
+                <div class="text-s col-span-2 text-right text-gray-700">Ban duration in hours (0 for indefinite):</div>
+                <input
+                    class="dark:text-black"
+                    type="number"
+                    placeholder="Duration in hours (0 for indefinite ban)"
+                    min=0
+                    step=0.5
+                    bind:value={banDurationHours}
                 />
                 <button
                     type="submit"

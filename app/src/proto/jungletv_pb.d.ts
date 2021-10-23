@@ -1417,6 +1417,11 @@ export class BanUserRequest extends jspb.Message {
   getReason(): string;
   setReason(value: string): void;
 
+  hasDuration(): boolean;
+  clearDuration(): void;
+  getDuration(): google_protobuf_duration_pb.Duration | undefined;
+  setDuration(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BanUserRequest.AsObject;
   static toObject(includeInstance: boolean, msg: BanUserRequest): BanUserRequest.AsObject;
@@ -1435,6 +1440,7 @@ export namespace BanUserRequest {
     enqueuingBanned: boolean,
     rewardsBanned: boolean,
     reason: string,
+    duration?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 

@@ -4,6 +4,7 @@ import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/mess
 import { deleteCookie, getCookie } from "./cookie_utils";
 import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse, Document, GetDocumentRequest, UpdateDocumentResponse, SetChatNicknameResponse, SetChatNicknameRequest, SetUserChatNicknameRequest, SetUserChatNicknameResponse, WithdrawResponse, WithdrawRequest, LeaderboardsResponse, LeaderboardsRequest, SetPricesMultiplierResponse, SetPricesMultiplierRequest, WithdrawalHistoryResponse, WithdrawalHistoryRequest, RewardHistoryRequest, RewardHistoryResponse, RemoveOwnQueueEntryResponse, RemoveOwnQueueEntryRequest, MonitorSkipAndTipRequest, SkipAndTipStatus, SetCrowdfundedSkippingEnabledResponse, SetCrowdfundedSkippingEnabledRequest, SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse, ProduceSegchaChallengeResponse, ProduceSegchaChallengeRequest, ConfirmRaffleWinnerResponse, CompleteRaffleResponse, RedrawRaffleResponse, ConfirmRaffleWinnerRequest, CompleteRaffleRequest, RedrawRaffleRequest, OngoingRaffleInfoResponse, OngoingRaffleInfoRequest } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
+import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 
 class APIClient {
     private static instance: APIClient;
@@ -273,7 +274,7 @@ class APIClient {
         return this.unaryRPC<SetVideoEnqueuingEnabledRequest, SetVideoEnqueuingEnabledResponse>(JungleTV.SetVideoEnqueuingEnabled, request);
     }
 
-    async banUser(address: string, remoteAddress: string, chatBanned: boolean, enqueuingBanned: boolean, rewardsBanned: boolean, reason: string): Promise<BanUserResponse> {
+    async banUser(address: string, remoteAddress: string, chatBanned: boolean, enqueuingBanned: boolean, rewardsBanned: boolean, reason: string, duration?: Duration): Promise<BanUserResponse> {
         let request = new BanUserRequest();
         request.setAddress(address);
         request.setRemoteAddress(remoteAddress);
@@ -281,6 +282,7 @@ class APIClient {
         request.setEnqueuingBanned(enqueuingBanned);
         request.setRewardsBanned(rewardsBanned);
         request.setReason(reason);
+        request.setDuration(duration);
         return this.unaryRPC<BanUserRequest, BanUserResponse>(JungleTV.BanUser, request);
     }
 

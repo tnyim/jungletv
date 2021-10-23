@@ -357,6 +357,7 @@ message BanUserRequest {
     bool enqueuing_banned = 4;
     bool rewards_banned = 5;
     string reason = 6;
+    optional google.protobuf.Duration duration = 7;
 }
 
 message BanUserResponse {

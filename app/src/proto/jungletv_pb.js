@@ -11862,7 +11862,8 @@ proto.jungletv.BanUserRequest.toObject = function(includeInstance, msg) {
     chatBanned: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
     enqueuingBanned: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
     rewardsBanned: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
-    reason: jspb.Message.getFieldWithDefault(msg, 6, "")
+    reason: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    duration: (f = msg.getDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -11922,6 +11923,11 @@ proto.jungletv.BanUserRequest.deserializeBinaryFromReader = function(msg, reader
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setReason(value);
+      break;
+    case 7:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDuration(value);
       break;
     default:
       reader.skipField();
@@ -11992,6 +11998,14 @@ proto.jungletv.BanUserRequest.serializeBinaryToWriter = function(message, writer
     writer.writeString(
       6,
       f
+    );
+  }
+  f = message.getDuration();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -12102,6 +12116,43 @@ proto.jungletv.BanUserRequest.prototype.getReason = function() {
  */
 proto.jungletv.BanUserRequest.prototype.setReason = function(value) {
   return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration duration = 7;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.BanUserRequest.prototype.getDuration = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 7));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.BanUserRequest} returns this
+*/
+proto.jungletv.BanUserRequest.prototype.setDuration = function(value) {
+  return jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.BanUserRequest} returns this
+ */
+proto.jungletv.BanUserRequest.prototype.clearDuration = function() {
+  return this.setDuration(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.BanUserRequest.prototype.hasDuration = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

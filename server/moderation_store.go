@@ -220,6 +220,9 @@ func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reaso
 	if !present {
 		return stacktrace.NewError("ban not found")
 	}
+	if decision.BannedUntil.Valid && time.Now().After(decision.BannedUntil.Time) {
+		return stacktrace.NewError("ban already removed or expired")
+	}
 
 	decision.BannedUntil = sql.NullTime{
 		Time:  time.Now(),

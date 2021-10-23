@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
@@ -172,7 +173,13 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 
 	banIDs := []string{}
 	for _, remoteAddress := range remoteAddresses {
-		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned, nil, r.Address, remoteAddress, r.Reason, moderator, moderator.Username)
+		var banEnd *time.Time
+		if r.Duration != nil {
+			t := time.Now().Add(r.Duration.AsDuration())
+			banEnd = &t
+		}
+		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned,
+			banEnd, r.Address, remoteAddress, r.Reason, moderator, moderator.Username)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -189,9 +196,14 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 		}
 
 		if s.modLogWebhook != nil {
-			s.log.Printf("Ban ID %s added by %s (remote address %s) with reason %s", banID, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
+			banType := "Ban"
+			if r.Duration != nil {
+				banType = fmt.Sprintf("Temporary ban (%.2f hours)", r.Duration.AsDuration().Hours())
+			}
+			s.log.Printf("%s ID %s added by %s (remote address %s) with reason %s", banType, banID, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
 			_, err = s.modLogWebhook.SendContent(
-				fmt.Sprintf("**Added ban with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
+				fmt.Sprintf("**Added %s with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
+					strings.ToLower(banType),
 					banID,
 					r.Address,
 					strings.Join(places, ", "),
