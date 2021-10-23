@@ -2,14 +2,13 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"io/ioutil"
-	"os"
+	"database/sql"
 	"sync"
+	"time"
 
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/types"
 )
 
 // ModerationStore saves and loads moderation decisions
@@ -19,7 +18,7 @@ type ModerationStore interface {
 	LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error)
 	LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error)
 	LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error)
-	BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, address, remoteAddress, reason string, moderator User) (string, error)
+	BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error)
 	RemoveBan(ctx context.Context, banID, reason string, moderator User) error
 }
 
@@ -44,25 +43,15 @@ func (*ModerationStoreNoOp) LoadPaymentAddressBannedFromRewards(ctx context.Cont
 	return false, nil
 }
 
-func (*ModerationStoreNoOp) BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, address, remoteAddress, reason string, moderator User) (string, error) {
+func (*ModerationStoreNoOp) BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error) {
 	return "", nil
 }
 func (*ModerationStoreNoOp) RemoveBan(ctx context.Context, banID, reason string, moderator User) error {
 	return nil
 }
 
-type moderationDecision struct {
-	FromChat      bool
-	FromEnqueuing bool
-	FromRewards   bool
-	Address       string
-	RemoteAddress string
-	Reason        string
-	Moderator     string
-}
-
-// ModerationStoreMemory stores moderation decisions in memory
-type ModerationStoreMemory struct {
+// ModerationStoreDatabase stores moderation decisions in the database
+type ModerationStoreDatabase struct {
 	l sync.RWMutex
 	// reward address set
 	bannedFromChat map[string]struct{}
@@ -78,32 +67,35 @@ type ModerationStoreMemory struct {
 	bannedFromRewards map[string]struct{}
 	// remote address set
 	remoteAddressesBannedFromRewards map[string]struct{}
-
-	// maps ban ID -> moderationDecision
-	decisions map[string]moderationDecision
-
-	persistenceFile string
 }
 
-func NewModerationStoreMemory(persistenceFile string) ModerationStore {
-	m := &ModerationStoreMemory{
+func NewModerationStoreDatabase(ctx context.Context) (ModerationStore, error) {
+	m := &ModerationStoreDatabase{
 		bannedFromChat:                     make(map[string]struct{}),
 		remoteAddressesBannedFromChat:      make(map[string]struct{}),
 		bannedFromEnqueuing:                make(map[string]struct{}),
 		remoteAddressesBannedFromEnqueuing: make(map[string]struct{}),
 		bannedFromRewards:                  make(map[string]struct{}),
 		remoteAddressesBannedFromRewards:   make(map[string]struct{}),
-		decisions:                          make(map[string]moderationDecision),
-		persistenceFile:                    persistenceFile,
 	}
 
-	if m.persistenceFile != "" {
-		_ = m.restoreDecisionsFromFile(m.persistenceFile)
-	}
-	return m
+	go func() {
+		t := time.NewTicker(5 * time.Minute)
+		for {
+			select {
+			case <-t.C:
+				// updates temporary bans
+				_ = m.restoreDecisionsFromDatabase(ctx, false)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return m, stacktrace.Propagate(m.restoreDecisionsFromDatabase(ctx, false), "")
 }
 
-func (m *ModerationStoreMemory) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
+func (m *ModerationStoreDatabase) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromChat[address]
@@ -111,69 +103,82 @@ func (m *ModerationStoreMemory) LoadUserBannedFromChat(ctx context.Context, addr
 	return addrBan || remBan, nil
 }
 
-func (m *ModerationStoreMemory) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
+func (m *ModerationStoreDatabase) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, remBan := m.remoteAddressesBannedFromEnqueuing[getUniquifiedIP(remoteAddress)]
 	return remBan, nil
 }
 
-func (m *ModerationStoreMemory) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
+func (m *ModerationStoreDatabase) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromEnqueuing[address]
 	return addrBan, nil
 }
 
-func (m *ModerationStoreMemory) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
+func (m *ModerationStoreDatabase) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, remBan := m.remoteAddressesBannedFromRewards[getUniquifiedIP(remoteAddress)]
 	return remBan, nil
 }
 
-func (m *ModerationStoreMemory) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
+func (m *ModerationStoreDatabase) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromRewards[address]
 	return addrBan, nil
 }
 
-func (m *ModerationStoreMemory) BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, address, remoteAddress, reason string, moderator User) (string, error) {
+func (m *ModerationStoreDatabase) BanUser(ctxCtx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error) {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	decision := &types.BannedUser{
+		BanID:            uuid.NewV4().String(),
+		BannedAt:         time.Now(),
+		FromChat:         fromChat,
+		FromEnqueuing:    fromEnqueuing,
+		FromRewards:      fromRewards,
+		Address:          address,
+		RemoteAddress:    getUniquifiedIP(remoteAddress),
+		Reason:           reason,
+		ModeratorAddress: moderator.Address(),
+		ModeratorName:    moderatorUsername,
+	}
+	if until != nil {
+		decision.BannedUntil.Time = *until
+		decision.BannedUntil.Valid = true
+	}
+
+	err = decision.Update(ctx)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+
+	err = m.restoreDecisionsFromDatabase(ctx, true)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+
+	return decision.BanID, stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (m *ModerationStoreDatabase) recomputeBanMaps(decisions []*types.BannedUser) {
 	m.l.Lock()
 	defer m.l.Unlock()
 
-	id := uuid.NewV4().String()
-	m.decisions[id] = moderationDecision{
-		FromChat:      fromChat,
-		FromEnqueuing: fromEnqueuing,
-		FromRewards:   fromRewards,
-		Address:       address,
-		RemoteAddress: getUniquifiedIP(remoteAddress),
-		Reason:        reason,
-		Moderator:     moderator.Address(),
-	}
-
-	m.recomputeBanMapsInMutex()
-
-	if m.persistenceFile != "" {
-		err := m.persistDecisions(ctx, m.persistenceFile)
-		if err != nil {
-			return id, stacktrace.Propagate(err, "")
-		}
-	}
-
-	return id, nil
-}
-
-func (m *ModerationStoreMemory) recomputeBanMapsInMutex() {
 	m.bannedFromChat = make(map[string]struct{})
 	m.remoteAddressesBannedFromChat = make(map[string]struct{})
 	m.bannedFromEnqueuing = make(map[string]struct{})
 	m.remoteAddressesBannedFromEnqueuing = make(map[string]struct{})
 	m.bannedFromRewards = make(map[string]struct{})
 	m.remoteAddressesBannedFromRewards = make(map[string]struct{})
-	for _, decision := range m.decisions {
+	for _, decision := range decisions {
 		if decision.Address != "" {
 			if decision.FromChat {
 				m.bannedFromChat[decision.Address] = struct{}{}
@@ -199,47 +204,57 @@ func (m *ModerationStoreMemory) recomputeBanMapsInMutex() {
 	}
 }
 
-func (m *ModerationStoreMemory) RemoveBan(ctx context.Context, banID, reason string, moderator User) error {
-	m.l.Lock()
-	defer m.l.Unlock()
-	_, present := m.decisions[banID]
-	if !present {
-		return stacktrace.NewError("ban not found")
-	}
-	delete(m.decisions, banID)
-	m.recomputeBanMapsInMutex()
-	if m.persistenceFile != "" {
-		err := m.persistDecisions(ctx, m.persistenceFile)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-	}
-	return nil
-}
-
-func (m *ModerationStoreMemory) persistDecisions(ctx context.Context, file string) error {
-	marshalled, err := json.Marshal(m.decisions)
+func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reason string, moderator User) error {
+	ctx, err := BeginTransaction(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	return stacktrace.Propagate(ioutil.WriteFile(file, marshalled, 0644), "")
+	defer ctx.Rollback()
+
+	decisions, err := types.GetBannedUserWithIDs(ctx, []string{banID})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	decision, present := decisions[banID]
+	if !present {
+		return stacktrace.NewError("ban not found")
+	}
+
+	decision.BannedUntil = sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
+
+	decision.UnbanReason = reason
+
+	err = decision.Update(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = m.restoreDecisionsFromDatabase(ctx, true)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (m *ModerationStoreMemory) restoreDecisionsFromFile(file string) error {
-	b, err := ioutil.ReadFile(file)
+func (m *ModerationStoreDatabase) restoreDecisionsFromDatabase(ctxCtx context.Context, justChanged bool) error {
+	ctx, err := BeginTransaction(ctxCtx)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil
-		}
-		return stacktrace.Propagate(err, "error reading bans from file: %v", err)
+		return stacktrace.Propagate(err, "")
 	}
-	m.l.Lock()
-	defer m.l.Unlock()
+	defer ctx.Commit() // read-only tx
 
-	err = json.Unmarshal(b, &m.decisions)
-	if err != nil {
-		return stacktrace.Propagate(err, "error decoding bans from file: %v", err)
+	instant := time.Now()
+	if justChanged {
+		instant = instant.Add(1 * time.Second)
 	}
-	m.recomputeBanMapsInMutex()
+	decisions, err := types.GetBannedUsersAtInstant(ctx, instant)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	m.recomputeBanMaps(decisions)
 	return nil
 }

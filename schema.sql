@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "banned_user";
 DROP TABLE IF EXISTS "raffle_drawing";
 DROP TABLE IF EXISTS "raffle_drawing_status";
 DROP TABLE IF EXISTS "crowdfunded_transaction";
@@ -127,7 +128,7 @@ INSERT INTO "raffle_drawing_status" VALUES ('ongoing'), ('pending'), ('confirmed
 --       (winner is paid) -> complete
 
 CREATE TABLE IF NOT EXISTS "raffle_drawing" (
-    raffle_id VARCHAR(36),
+    raffle_id VARCHAR(36) NOT NULL,
     drawing_number INTEGER NOT NULL,
     period_start TIMESTAMP WITH TIME ZONE NOT NULL,
     period_end TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -140,4 +141,19 @@ CREATE TABLE IF NOT EXISTS "raffle_drawing" (
     winning_rewards_address VARCHAR(64), -- nullable
     prize_tx_hash VARCHAR(64), -- nullable
     PRIMARY KEY (raffle_id, drawing_number)
+);
+
+CREATE TABLE IF NOT EXISTS "banned_user" (
+    ban_id VARCHAR(36) PRIMARY KEY,
+    banned_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    banned_until TIMESTAMP WITH TIME ZONE, -- nullable
+    "address" VARCHAR(64) NOT NULL,
+    remote_address VARCHAR(50) NOT NULL,
+    from_chat BOOLEAN NOT NULL,
+    from_enqueuing BOOLEAN NOT NULL,
+    from_rewards BOOLEAN NOT NULL,
+    reason TEXT NOT NULL,
+    unban_reason TEXT NOT NULL,
+    moderator_address VARCHAR(64) NOT NULL,
+    moderator_name VARCHAR(32) NOT NULL
 );

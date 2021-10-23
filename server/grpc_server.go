@@ -127,6 +127,16 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
+	err = migrateModerationDecisionsFromFile(ctx, bansFile)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+
+	modStore, err := NewModerationStoreDatabase(ctx)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+
 	s := &grpcServer{
 		log:                            log,
 		wallet:                         w,
@@ -143,7 +153,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            NewIPAddressReputationChecker(log, ipCheckEndpoint, ipCheckToken),
 		ticketCheckPeriod:              ticketCheckPeriod,
-		moderationStore:                NewModerationStoreMemory(bansFile),
+		moderationStore:                modStore,
 		nicknameCache:                  NewMemoryNicknameCache(),
 		websiteURL:                     websiteURL,
 

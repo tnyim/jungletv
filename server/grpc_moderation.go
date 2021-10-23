@@ -172,7 +172,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 
 	banIDs := []string{}
 	for _, remoteAddress := range remoteAddresses {
-		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned, r.Address, remoteAddress, r.Reason, moderator)
+		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned, nil, r.Address, remoteAddress, r.Reason, moderator, moderator.Username)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
