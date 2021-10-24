@@ -2,7 +2,7 @@
     import { useFocus } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import marked from "marked/lib/marked.esm.js";
-import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
+    import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
     const registerFocus = useFocus();
 
     export let documentID = "";
@@ -13,6 +13,12 @@ import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
     $: if (documentID == "announcements") {
         unreadAnnouncement.update((_) => false);
         localStorage.setItem("lastSeenAnnouncement", $mostRecentAnnouncement.toString());
+    }
+
+    if (documentID == "announcements") {
+        mostRecentAnnouncement.subscribe((_) => {
+            documentPromise = apiClient.getDocument(documentID);
+        });
     }
 </script>
 
