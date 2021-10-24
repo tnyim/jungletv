@@ -10,6 +10,7 @@ export type SidebarTab = {
     tabTitle: string;
     props: {};
     closeable: boolean;
+    highlighted: boolean;
 };
 
 export const sidebarTabs = writable([
@@ -19,6 +20,7 @@ export const sidebarTabs = writable([
         tabTitle: "Queue",
         props: { mode: "sidebar" },
         closeable: false,
+        highlighted: false,
     },
     {
         id: "skipandtip",
@@ -26,6 +28,7 @@ export const sidebarTabs = writable([
         tabTitle: "Skip\u200A&\u200ATip",
         props: { mode: "sidebar" },
         closeable: false,
+        highlighted: false,
     },
     {
         id: "chat",
@@ -33,6 +36,7 @@ export const sidebarTabs = writable([
         tabTitle: "Chat",
         props: { mode: "sidebar" },
         closeable: false,
+        highlighted: false,
     },
     {
         id: "announcements",
@@ -40,5 +44,6 @@ export const sidebarTabs = writable([
         tabTitle: "Announcements",
         props: { mode: "sidebar", documentID: "announcements" },
         closeable: false,
+        highlighted: false,
     },
 ] as SidebarTab[]);

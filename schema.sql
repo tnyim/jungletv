@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "counter";
 DROP TABLE IF EXISTS "banned_user";
 DROP TABLE IF EXISTS "raffle_drawing";
 DROP TABLE IF EXISTS "raffle_drawing_status";
@@ -156,4 +157,10 @@ CREATE TABLE IF NOT EXISTS "banned_user" (
     unban_reason TEXT NOT NULL,
     moderator_address VARCHAR(64) NOT NULL,
     moderator_name VARCHAR(32) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "counter" (
+    counter_name VARCHAR(36) PRIMARY KEY,
+    counter_value INTEGER NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

@@ -58,6 +58,7 @@ type JungleTVClient interface {
 	ConfirmRaffleWinner(ctx context.Context, in *ConfirmRaffleWinnerRequest, opts ...grpc.CallOption) (*ConfirmRaffleWinnerResponse, error)
 	CompleteRaffle(ctx context.Context, in *CompleteRaffleRequest, opts ...grpc.CallOption) (*CompleteRaffleResponse, error)
 	RedrawRaffle(ctx context.Context, in *RedrawRaffleRequest, opts ...grpc.CallOption) (*RedrawRaffleResponse, error)
+	TriggerAnnouncementsNotification(ctx context.Context, in *TriggerAnnouncementsNotificationRequest, opts ...grpc.CallOption) (*TriggerAnnouncementsNotificationResponse, error)
 }
 
 type jungleTVClient struct {
@@ -566,6 +567,15 @@ func (c *jungleTVClient) RedrawRaffle(ctx context.Context, in *RedrawRaffleReque
 	return out, nil
 }
 
+func (c *jungleTVClient) TriggerAnnouncementsNotification(ctx context.Context, in *TriggerAnnouncementsNotificationRequest, opts ...grpc.CallOption) (*TriggerAnnouncementsNotificationResponse, error) {
+	out := new(TriggerAnnouncementsNotificationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/TriggerAnnouncementsNotification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -611,6 +621,7 @@ type JungleTVServer interface {
 	ConfirmRaffleWinner(context.Context, *ConfirmRaffleWinnerRequest) (*ConfirmRaffleWinnerResponse, error)
 	CompleteRaffle(context.Context, *CompleteRaffleRequest) (*CompleteRaffleResponse, error)
 	RedrawRaffle(context.Context, *RedrawRaffleRequest) (*RedrawRaffleResponse, error)
+	TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -737,6 +748,9 @@ func (UnimplementedJungleTVServer) CompleteRaffle(context.Context, *CompleteRaff
 }
 func (UnimplementedJungleTVServer) RedrawRaffle(context.Context, *RedrawRaffleRequest) (*RedrawRaffleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RedrawRaffle not implemented")
+}
+func (UnimplementedJungleTVServer) TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TriggerAnnouncementsNotification not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1489,6 +1503,24 @@ func _JungleTV_RedrawRaffle_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_TriggerAnnouncementsNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TriggerAnnouncementsNotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).TriggerAnnouncementsNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/TriggerAnnouncementsNotification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).TriggerAnnouncementsNotification(ctx, req.(*TriggerAnnouncementsNotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1628,6 +1660,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RedrawRaffle",
 			Handler:    _JungleTV_RedrawRaffle_Handler,
+		},
+		{
+			MethodName: "TriggerAnnouncementsNotification",
+			Handler:    _JungleTV_TriggerAnnouncementsNotification_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

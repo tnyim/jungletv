@@ -25,8 +25,16 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		return stream.Send(cp)
 	}
 
+	counter, err := s.getAnnouncementsCounter(stream.Context())
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	user := auth.UserClaimsFromContext(stream.Context())
-	err := stream.Send(s.produceMediaConsumptionCheckpoint(stream.Context()))
+	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context())
+	v := uint32(counter.CounterValue)
+	initialCp.LatestAnnouncement = &v
+	err = stream.Send(initialCp)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -75,6 +83,16 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
 	}
+
+	defer s.announcementsUpdated.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(counterValue int) {
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+		v := uint32(counterValue)
+		cp.LatestAnnouncement = &v
+		err := send(cp)
+		if err != nil {
+			errChan <- stacktrace.Propagate(err, "")
+		}
+	})()
 
 	statsCleanup, err := s.statsHandler.RegisterSpectator(stream.Context())
 	if err != nil {

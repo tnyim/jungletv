@@ -50,6 +50,7 @@ service JungleTV {
     rpc ConfirmRaffleWinner(ConfirmRaffleWinnerRequest) returns (ConfirmRaffleWinnerResponse) {}
     rpc CompleteRaffle(CompleteRaffleRequest) returns (CompleteRaffleResponse) {}
     rpc RedrawRaffle(RedrawRaffleRequest) returns (RedrawRaffleResponse) {}
+    rpc TriggerAnnouncementsNotification(TriggerAnnouncementsNotificationRequest) returns (TriggerAnnouncementsNotificationResponse) {}
 }
 
 message PaginationParameters {
@@ -165,6 +166,7 @@ message MediaConsumptionCheckpoint {
         NowPlayingStubData stub_data = 10;
         NowPlayingYouTubeVideoData youtube_video_data = 11;
     }
+    optional uint32 latest_announcement = 12;
 }
 
 message ActivityChallenge {
@@ -622,3 +624,7 @@ message OngoingRaffleInfo {
     uint32 total_tickets = 6;
     optional uint32 user_tickets = 7;
 }
+
+message TriggerAnnouncementsNotificationRequest {}
+
+message TriggerAnnouncementsNotificationResponse {}

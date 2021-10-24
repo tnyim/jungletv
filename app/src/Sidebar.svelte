@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { currentlyWatching, playerConnected, sidebarMode } from "./stores";
+    import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement } from "./stores";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
     import type { SidebarTab } from "./tabStores";
     import { sidebarTabs } from "./tabStores";
+    import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -15,6 +16,12 @@
     });
     playerConnected.subscribe((connected) => {
         playerIsConnected = connected;
+    });
+    unreadAnnouncement.subscribe((hasUnread) => {
+        sidebarTabs.update((currentTabs) => {
+            currentTabs.find((t) => "announcements" == t.id).highlighted = hasUnread;
+            return currentTabs;
+        });
     });
 
     let tabs: SidebarTab[] = [];
@@ -147,6 +154,11 @@
         >
             {#each tabs as tab}
                 <SidebarTabButton selected={selectedTabID == tab.id} on:click={() => sidebarMode.update((_) => tab.id)}>
+                    {#if tab.highlighted}
+                        <div class="inline-block">
+                            <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />
+                        </div>
+                    {/if}
                     {tab.tabTitle}
                     {#if tab.closeable}
                         <i

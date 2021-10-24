@@ -85,6 +85,8 @@ type grpcServer struct {
 	modLogWebhook api.WebhookClient
 
 	raffleSecretKey *ecdsa.PrivateKey
+
+	announcementsUpdated *event.Event
 }
 
 // NewServer returns a new JungleTVServer
@@ -122,6 +124,7 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ConfirmRaffleWinner", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CompleteRaffle", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RedrawRaffle", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/TriggerAnnouncementsNotification", auth.AdminPermissionLevel)
 
 	mediaQueue, err := NewMediaQueue(ctx, log, statsClient, queueFile)
 	if err != nil {
@@ -162,6 +165,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		captchaImageDB:         captchaImageDB,
 		captchaFontPath:        captchaFontPath,
 		captchaChallengesQueue: make(chan *captcha.Challenge, segchaPremadeQueueSize),
+
+		announcementsUpdated: event.New(),
 	}
 	s.userSerializer = s.serializeUserForAPI
 
@@ -456,6 +461,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		crowdfundedTransactionReceivedC := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
 		defer s.skipManager.crowdfundedTransactionReceived.Unsubscribe(crowdfundedTransactionReceivedC)
 
+		announcementsUpdatedC := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)
+		defer s.announcementsUpdated.Unsubscribe(announcementsUpdatedC)
+
 		for {
 			select {
 			case v := <-mediaChangedC:
@@ -566,6 +574,11 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					if err != nil {
 						errChan <- stacktrace.Propagate(err, "")
 					}
+				}
+			case <-announcementsUpdatedC:
+				_, err := s.chat.CreateSystemMessage(ctx, "_**Announcements updated!**_")
+				if err != nil {
+					errChan <- stacktrace.Propagate(err, "")
 				}
 			case <-ctx.Done():
 				s.log.Println("Chat system message sender done")

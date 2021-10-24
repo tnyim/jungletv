@@ -30,6 +30,11 @@
         alert("Document updated");
         editing = true;
     }
+
+    async function triggerAnnouncementsNotification() {
+        await apiClient.triggerAnnouncementsNotification();
+        alert("Announcements notification triggered");
+    }
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
@@ -48,6 +53,15 @@
     >
         Save
     </button>
+    {#if documentID == "announcements"}
+        <button
+            type="submit"
+            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            on:click={triggerAnnouncementsNotification}
+        >
+            Trigger new announcement notification
+        </button>
+    {/if}
     {#await fetchDocument()}
         <p>Loading document...</p>
     {:then}

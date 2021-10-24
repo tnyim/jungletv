@@ -88,3 +88,57 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 
 	return &proto.UpdateDocumentResponse{}, nil
 }
+
+func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r *proto.TriggerAnnouncementsNotificationRequest) (*proto.TriggerAnnouncementsNotificationResponse, error) {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	counter, err := s.getAnnouncementsCounter(ctx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	counter.CounterValue++
+	counter.UpdatedAt = time.Now()
+
+	err = counter.Update(ctx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.announcementsUpdated.Notify(counter.CounterValue)
+
+	return &proto.TriggerAnnouncementsNotificationResponse{}, nil
+
+}
+
+func (s *grpcServer) getAnnouncementsCounter(ctxCtx context.Context) (*types.Counter, error) {
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	counters, err := types.GetCountersWithNames(ctx, []string{"announcements"})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	counter, ok := counters["announcements"]
+	if !ok {
+		counter = &types.Counter{
+			CounterName:  "announcements",
+			CounterValue: 0,
+		}
+	}
+
+	return counter, nil
+}

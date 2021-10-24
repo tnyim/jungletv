@@ -540,6 +540,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getYoutubeVideoData(): NowPlayingYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: NowPlayingYouTubeVideoData): void;
 
+  hasLatestAnnouncement(): boolean;
+  clearLatestAnnouncement(): void;
+  getLatestAnnouncement(): number;
+  setLatestAnnouncement(value: number): void;
+
   getMediaInfoCase(): MediaConsumptionCheckpoint.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MediaConsumptionCheckpoint.AsObject;
@@ -564,6 +569,7 @@ export namespace MediaConsumptionCheckpoint {
     activityChallenge?: ActivityChallenge.AsObject,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
+    latestAnnouncement: number,
   }
 
   export enum MediaInfoCase {
@@ -2799,6 +2805,38 @@ export namespace OngoingRaffleInfo {
     periodEnd?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     totalTickets: number,
     userTickets: number,
+  }
+}
+
+export class TriggerAnnouncementsNotificationRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TriggerAnnouncementsNotificationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TriggerAnnouncementsNotificationRequest): TriggerAnnouncementsNotificationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TriggerAnnouncementsNotificationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TriggerAnnouncementsNotificationRequest;
+  static deserializeBinaryFromReader(message: TriggerAnnouncementsNotificationRequest, reader: jspb.BinaryReader): TriggerAnnouncementsNotificationRequest;
+}
+
+export namespace TriggerAnnouncementsNotificationRequest {
+  export type AsObject = {
+  }
+}
+
+export class TriggerAnnouncementsNotificationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TriggerAnnouncementsNotificationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TriggerAnnouncementsNotificationResponse): TriggerAnnouncementsNotificationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TriggerAnnouncementsNotificationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TriggerAnnouncementsNotificationResponse;
+  static deserializeBinaryFromReader(message: TriggerAnnouncementsNotificationResponse, reader: jspb.BinaryReader): TriggerAnnouncementsNotificationResponse;
+}
+
+export namespace TriggerAnnouncementsNotificationResponse {
+  export type AsObject = {
   }
 }
 

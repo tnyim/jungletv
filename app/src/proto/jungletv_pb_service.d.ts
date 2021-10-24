@@ -364,6 +364,15 @@ type JungleTVRedrawRaffle = {
   readonly responseType: typeof jungletv_pb.RedrawRaffleResponse;
 };
 
+type JungleTVTriggerAnnouncementsNotification = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.TriggerAnnouncementsNotificationRequest;
+  readonly responseType: typeof jungletv_pb.TriggerAnnouncementsNotificationResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -406,6 +415,7 @@ export class JungleTV {
   static readonly ConfirmRaffleWinner: JungleTVConfirmRaffleWinner;
   static readonly CompleteRaffle: JungleTVCompleteRaffle;
   static readonly RedrawRaffle: JungleTVRedrawRaffle;
+  static readonly TriggerAnnouncementsNotification: JungleTVTriggerAnnouncementsNotification;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -751,6 +761,15 @@ export class JungleTVClient {
   redrawRaffle(
     requestMessage: jungletv_pb.RedrawRaffleRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RedrawRaffleResponse|null) => void
+  ): UnaryResponse;
+  triggerAnnouncementsNotification(
+    requestMessage: jungletv_pb.TriggerAnnouncementsNotificationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.TriggerAnnouncementsNotificationResponse|null) => void
+  ): UnaryResponse;
+  triggerAnnouncementsNotification(
+    requestMessage: jungletv_pb.TriggerAnnouncementsNotificationRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.TriggerAnnouncementsNotificationResponse|null) => void
   ): UnaryResponse;
 }
 
