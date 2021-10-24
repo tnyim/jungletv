@@ -96,6 +96,12 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 	defer ctx.Rollback()
 
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
 	counter, err := s.getAnnouncementsCounter(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -115,6 +121,18 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 
 	s.announcementsUpdated.Notify(counter.CounterValue)
+
+	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Announcements notification triggered by moderator: %s (%s)",
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
 
 	return &proto.TriggerAnnouncementsNotificationResponse{}, nil
 
