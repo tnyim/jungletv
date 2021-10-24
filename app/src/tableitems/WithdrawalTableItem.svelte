@@ -29,25 +29,25 @@
     }
 </script>
 
-<td
-    class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-s whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
->
-    {apiClient.formatBANPriceFixed(withdrawal.getAmount())} BAN
-</td>
-<td
-    class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-s p-4 text-gray-700 dark:text-white"
->
-    {formatDate(withdrawal.getStartedAt().toDate())}
-</td>
-<td
-    class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-s whitespace-nowrap p-4 text-gray-700 dark:text-white"
->
-    {formatDifference(withdrawal.getStartedAt().toDate(), withdrawal.getCompletedAt().toDate())}
-</td>
-<td
-    class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-s whitespace-nowrap p-4 text-gray-700 dark:text-white"
->
-    <a href="https://yellowspyglass.com/hash/{withdrawal.getTxHash()}" target="_blank" rel="noopener">
-        <i class="fas fa-external-link-alt" />
-    </a>
-</td>
+<tr>
+    <td
+        class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
+    >
+        {apiClient.formatBANPriceFixed(withdrawal.getAmount())} BAN
+    </td>
+    <td class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white">
+        {formatDate(withdrawal.getStartedAt().toDate())}
+    </td>
+    <td
+        class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
+    >
+        {formatDifference(withdrawal.getStartedAt().toDate(), withdrawal.getCompletedAt().toDate())}
+    </td>
+    <td
+        class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
+    >
+        <a href="https://yellowspyglass.com/hash/{withdrawal.getTxHash()}" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt" />
+        </a>
+    </td>
+</tr>

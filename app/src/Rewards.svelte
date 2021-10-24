@@ -181,9 +181,9 @@
                 </th>
             </tr>
 
-            <tr slot="item" let:item class="hover:bg-gray-200 dark:hover:bg-gray-700">
+            <tbody slot="item" let:item class="hover:bg-gray-200 dark:hover:bg-gray-700">
                 <ReceivedRewardTableItem reward={item} />
-            </tr>
+            </tbody>
         </PaginatedTable>
     </div>
     <div slot="secondary_2">
@@ -224,9 +224,9 @@
                 />
             </tr>
 
-            <tr slot="item" let:item class="hover:bg-gray-200 dark:hover:bg-gray-700">
+            <tbody slot="item" let:item class="hover:bg-gray-200 dark:hover:bg-gray-700">
                 <WithdrawalTableItem withdrawal={item} />
-            </tr>
+            </tbody>
         </PaginatedTable>
     </div>
 </Wizard>

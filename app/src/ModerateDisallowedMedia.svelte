@@ -81,39 +81,21 @@
         bind:cur_page
         search_query={searchQuery}
     >
-        <tr slot="thead">
-            <th
-                class="px-4 sm:px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-                bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-            >
-                Video ID
-            </th>
-            <th
-                class="px-4 sm:px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-            bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-            >
-                Video Title
-            </th>
-            <th
-                class="px-4 sm:px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-            bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-            >
-                Disallowed by
-            </th>
-            <th
-                class="px-4 sm:px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-            bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-            >
-                Disallowed at
-            </th>
-            <th
-                class="px-4 sm:px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-            bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-            />
+        <tr
+            slot="thead"
+            class="border border-solid border-l-0 border-r-0
+        bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600
+        text-xs uppercase whitespace-nowrap text-left"
+        >
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Video ID </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Video Title </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed by </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed at </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
         </tr>
 
-        <tr slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
+        <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
             <DisallowedVideoTableItem video={item} {updateDataCallback} />
-        </tr>
+        </tbody>
     </PaginatedTable>
 </div>

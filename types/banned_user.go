@@ -40,6 +40,23 @@ func getBannedUserWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Ban
 	return converted, totalCount, nil
 }
 
+// GetBannedUsers returns all registered user bans, starting with the most recent one
+func GetBannedUsers(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
+	s := sdb.Select().
+		OrderBy("banned_user.banned_at DESC, banned_user.ban_id ASC")
+	if filter != "" {
+		s = s.Where(sq.Or{
+			sq.Eq{"banned_user.ban_id": filter},
+			sq.Expr("UPPER(banned_user.address) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.remote_address) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.reason) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.unban_reason) LIKE '%' || UPPER(?) || '%'", filter),
+		})
+	}
+	s = applyPaginationParameters(s, pagParams)
+	return getBannedUserWithSelect(node, s)
+}
+
 // GetBannedUserWithIDs returns the user bans with the specified IDs
 func GetBannedUserWithIDs(node sqalx.Node, ids []string) (map[string]*BannedUser, error) {
 	s := sdb.Select().
@@ -56,17 +73,27 @@ func GetBannedUserWithIDs(node sqalx.Node, ids []string) (map[string]*BannedUser
 	return result, nil
 }
 
-// GetBannedUsersAtInstant returns a slice with all user bans in effect at the specified instant
-func GetBannedUsersAtInstant(node sqalx.Node, instant time.Time) ([]*BannedUser, error) {
+// GetBannedUsersAtInstant returns a slice with all user bans in effect at the specified instant, starting with the most recent one
+func GetBannedUsersAtInstant(node sqalx.Node, instant time.Time, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
 	s := sdb.Select().
 		From("banned_user").
 		Where(sq.Lt{"banned_user.banned_at": instant}).
 		Where(sq.Or{
 			sq.Expr("banned_user.banned_until IS NULL"),
 			sq.GtOrEq{"banned_user.banned_until": instant},
+		}).
+		OrderBy("banned_user.banned_at DESC, banned_user.ban_id ASC")
+	if filter != "" {
+		s = s.Where(sq.Or{
+			sq.Eq{"banned_user.ban_id": filter},
+			sq.Expr("UPPER(banned_user.address) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.remote_address) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.reason) LIKE '%' || UPPER(?) || '%'", filter),
+			sq.Expr("UPPER(banned_user.unban_reason) LIKE '%' || UPPER(?) || '%'", filter),
 		})
-	m, _, err := getBannedUserWithSelect(node, s)
-	return m, stacktrace.Propagate(err, "")
+	}
+	s = applyPaginationParameters(s, pagParams)
+	return getBannedUserWithSelect(node, s)
 }
 
 // Update updates or inserts the BannedUser

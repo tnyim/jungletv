@@ -1506,6 +1506,134 @@ export namespace RemoveBanResponse {
   }
 }
 
+export class UserBan extends jspb.Message {
+  getBanId(): string;
+  setBanId(value: string): void;
+
+  hasBannedAt(): boolean;
+  clearBannedAt(): void;
+  getBannedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setBannedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasBannedUntil(): boolean;
+  clearBannedUntil(): void;
+  getBannedUntil(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setBannedUntil(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getRemoteAddress(): string;
+  setRemoteAddress(value: string): void;
+
+  getChatBanned(): boolean;
+  setChatBanned(value: boolean): void;
+
+  getEnqueuingBanned(): boolean;
+  setEnqueuingBanned(value: boolean): void;
+
+  getRewardsBanned(): boolean;
+  setRewardsBanned(value: boolean): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  hasUnbanReason(): boolean;
+  clearUnbanReason(): void;
+  getUnbanReason(): string;
+  setUnbanReason(value: string): void;
+
+  hasBannedBy(): boolean;
+  clearBannedBy(): void;
+  getBannedBy(): User | undefined;
+  setBannedBy(value?: User): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserBan.AsObject;
+  static toObject(includeInstance: boolean, msg: UserBan): UserBan.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserBan, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserBan;
+  static deserializeBinaryFromReader(message: UserBan, reader: jspb.BinaryReader): UserBan;
+}
+
+export namespace UserBan {
+  export type AsObject = {
+    banId: string,
+    bannedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    bannedUntil?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    address: string,
+    remoteAddress: string,
+    chatBanned: boolean,
+    enqueuingBanned: boolean,
+    rewardsBanned: boolean,
+    reason: string,
+    unbanReason: string,
+    bannedBy?: User.AsObject,
+  }
+}
+
+export class UserBansRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  getSearchQuery(): string;
+  setSearchQuery(value: string): void;
+
+  getActiveOnly(): boolean;
+  setActiveOnly(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserBansRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserBansRequest): UserBansRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserBansRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserBansRequest;
+  static deserializeBinaryFromReader(message: UserBansRequest, reader: jspb.BinaryReader): UserBansRequest;
+}
+
+export namespace UserBansRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+    searchQuery: string,
+    activeOnly: boolean,
+  }
+}
+
+export class UserBansResponse extends jspb.Message {
+  clearUserBansList(): void;
+  getUserBansList(): Array<UserBan>;
+  setUserBansList(value: Array<UserBan>): void;
+  addUserBans(value?: UserBan, index?: number): UserBan;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserBansResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserBansResponse): UserBansResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserBansResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserBansResponse;
+  static deserializeBinaryFromReader(message: UserBansResponse, reader: jspb.BinaryReader): UserBansResponse;
+}
+
+export namespace UserBansResponse {
+  export type AsObject = {
+    userBansList: Array<UserBan.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
 export class SetVideoEnqueuingEnabledRequest extends jspb.Message {
   getAllowed(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
   setAllowed(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;

@@ -43,6 +43,7 @@ type JungleTVClient interface {
 	RemoveChatMessage(ctx context.Context, in *RemoveChatMessageRequest, opts ...grpc.CallOption) (*RemoveChatMessageResponse, error)
 	SetChatSettings(ctx context.Context, in *SetChatSettingsRequest, opts ...grpc.CallOption) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(ctx context.Context, in *SetVideoEnqueuingEnabledRequest, opts ...grpc.CallOption) (*SetVideoEnqueuingEnabledResponse, error)
+	UserBans(ctx context.Context, in *UserBansRequest, opts ...grpc.CallOption) (*UserBansResponse, error)
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
 	RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error)
 	UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error)
@@ -430,6 +431,15 @@ func (c *jungleTVClient) SetVideoEnqueuingEnabled(ctx context.Context, in *SetVi
 	return out, nil
 }
 
+func (c *jungleTVClient) UserBans(ctx context.Context, in *UserBansRequest, opts ...grpc.CallOption) (*UserBansResponse, error) {
+	out := new(UserBansResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserBans", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error) {
 	out := new(BanUserResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/BanUser", in, out, opts...)
@@ -586,6 +596,7 @@ type JungleTVServer interface {
 	RemoveChatMessage(context.Context, *RemoveChatMessageRequest) (*RemoveChatMessageResponse, error)
 	SetChatSettings(context.Context, *SetChatSettingsRequest) (*SetChatSettingsResponse, error)
 	SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error)
+	UserBans(context.Context, *UserBansRequest) (*UserBansResponse, error)
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
 	RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error)
 	UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error)
@@ -681,6 +692,9 @@ func (UnimplementedJungleTVServer) SetChatSettings(context.Context, *SetChatSett
 }
 func (UnimplementedJungleTVServer) SetVideoEnqueuingEnabled(context.Context, *SetVideoEnqueuingEnabledRequest) (*SetVideoEnqueuingEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetVideoEnqueuingEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) UserBans(context.Context, *UserBansRequest) (*UserBansResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserBans not implemented")
 }
 func (UnimplementedJungleTVServer) BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BanUser not implemented")
@@ -1205,6 +1219,24 @@ func _JungleTV_SetVideoEnqueuingEnabled_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_UserBans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserBansRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserBans(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserBans",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserBans(ctx, req.(*UserBansRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_BanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BanUserRequest)
 	if err := dec(in); err != nil {
@@ -1536,6 +1568,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetVideoEnqueuingEnabled",
 			Handler:    _JungleTV_SetVideoEnqueuingEnabled_Handler,
+		},
+		{
+			MethodName: "UserBans",
+			Handler:    _JungleTV_UserBans_Handler,
 		},
 		{
 			MethodName: "BanUser",

@@ -19,6 +19,7 @@
 	import Player from "./Player.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
 	import Modal from 'svelte-simple-modal';
+import ModerateUserBans from "./ModerateUserBans.svelte";
 
 	export let url = "";
 
@@ -133,6 +134,13 @@
 		<Route path="/moderate/media/disallowed" let:params>
 			{#if isAdmin}
 				<ModerateDisallowedMedia />
+			{:else}
+				<a href="/admin/signin">Sign in</a>
+			{/if}
+		</Route>
+		<Route path="/moderate/bans" let:params>
+			{#if isAdmin}
+				<ModerateUserBans />
 			{:else}
 				<a href="/admin/signin">Sign in</a>
 			{/if}

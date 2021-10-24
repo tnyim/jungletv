@@ -35,6 +35,7 @@ service JungleTV {
     rpc RemoveChatMessage(RemoveChatMessageRequest) returns (RemoveChatMessageResponse) {}
     rpc SetChatSettings(SetChatSettingsRequest) returns (SetChatSettingsResponse) {}
     rpc SetVideoEnqueuingEnabled(SetVideoEnqueuingEnabledRequest) returns (SetVideoEnqueuingEnabledResponse) {}
+    rpc UserBans(UserBansRequest) returns (UserBansResponse) {}
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
     rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
     rpc UserChatMessages(UserChatMessagesRequest) returns (UserChatMessagesResponse) {}
@@ -370,6 +371,32 @@ message RemoveBanRequest {
 }
 
 message RemoveBanResponse {}
+
+message UserBan {
+    string ban_id = 1;
+    google.protobuf.Timestamp banned_at = 2;
+    optional google.protobuf.Timestamp banned_until = 3;
+    string address = 4;
+    string remote_address = 5;
+    bool chat_banned = 6;
+    bool enqueuing_banned = 7;
+    bool rewards_banned = 8;
+    string reason = 9;
+    optional string unban_reason = 10;
+    User banned_by = 11;
+}
+
+message UserBansRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+    bool active_only = 3;
+}
+
+message UserBansResponse {
+    repeated UserBan user_bans = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
 
 enum AllowedVideoEnqueuingType {
     DISABLED = 0;

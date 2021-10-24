@@ -254,7 +254,7 @@ func (m *ModerationStoreDatabase) restoreDecisionsFromDatabase(ctxCtx context.Co
 	if justChanged {
 		instant = instant.Add(1 * time.Second)
 	}
-	decisions, err := types.GetBannedUsersAtInstant(ctx, instant)
+	decisions, _, err := types.GetBannedUsersAtInstant(ctx, instant, "", nil)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

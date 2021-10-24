@@ -86,9 +86,7 @@
 </script>
 
 <div
-  class="relative flex flex-col min-w-0 break-words w-full {is_card
-    ? 'shadow rounded'
-    : ''} bg-white dark:bg-gray-800"
+  class="relative flex flex-col min-w-0 break-words w-full {is_card ? 'shadow rounded' : ''} bg-white dark:bg-gray-800"
 >
   <div class="rounded-t mb-0 px-4 py-3 border-0">
     <div class="flex flex-wrap items-center">
@@ -107,12 +105,12 @@
       <thead>
         <slot name="thead" />
       </thead>
-      <tbody>
-        {#await dataPromise}
-          {#each Array.from(new Array(Math.max(last_page_items, 1)).keys()) as rownum}
+      {#await dataPromise}
+        {#each Array.from(new Array(Math.max(last_page_items, 1)).keys()) as rownum}
+          <tbody>
             <tr>
               <td
-                class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-nowrap p-4"
+                class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 whitespace-nowrap p-4"
                 colspan={column_count}
               >
                 {#if rownum === 0}
@@ -121,25 +119,29 @@
                 {/if}
               </td>
             </tr>
-          {/each}
-        {:then response}
-          {#each response[0] as item}
-            <slot name="item" {item} {updateDataCallback} />
-          {:else}
+          </tbody>
+        {/each}
+      {:then response}
+        {#each response[0] as item}
+          <slot name="item" {item} {updateDataCallback} />
+        {:else}
+          <tbody>
             <td
-              class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-s whitespace-nowrap p-4"
+              class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 whitespace-nowrap p-4"
               colspan={column_count}>{search_query != "" ? no_results_message : no_items_message}</td
             >
-          {/each}
-        {:catch}
+          </tbody>
+        {/each}
+      {:catch}
+        <tbody>
           <tr>
             <td
               class="border-t-0 px-4 sm:px-6 align-middle text-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-red-600"
               colspan={column_count}>{error_message}</td
             >
           </tr>
-        {/await}
-      </tbody>
+        </tbody>
+      {/await}
     </table>
     {#if num_pages > 1}
       <div class="py-2 pb-3 align-middle">
@@ -151,7 +153,9 @@
                   <button
                     on:click={(event) => changePageWithElem(event.currentTarget, page)}
                     class="first:ml-0 text-xs font-semibold flex w-8 h-8 mx-1 p-0 rounded-full items-center justify-center leading-tight relative border border-solid border-yellow-800
-                    {page === cur_page ? 'bg-yellow-600 text-white' : ' bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-600 ease-linear transition-all duration-150'}
+                    {page === cur_page
+                      ? 'bg-yellow-600 text-white'
+                      : ' bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-600 ease-linear transition-all duration-150'}
                   ">{page + 1}</button
                   >
                 </li>

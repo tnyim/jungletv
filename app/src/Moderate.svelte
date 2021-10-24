@@ -43,54 +43,6 @@
         await apiClient.setCrowdfundedSkippingEnabled(false);
     }
 
-    let banRewardAddress = "";
-    let banRemoteAddress = "";
-    let banFromChat = false;
-    let banFromEnqueuing = false;
-    let banFromRewards = false;
-    let banReason = "";
-    let banDurationHours = 0;
-    let banIDs: string[] = [];
-    let banError = "";
-    async function createBan() {
-        let duration: Duration = undefined;
-        if (banDurationHours > 0) {
-            duration = new Duration();
-            duration.setSeconds(banDurationHours * 3600);
-        }
-        try {
-            let response = await apiClient.banUser(
-                banRewardAddress,
-                banRemoteAddress,
-                banFromChat,
-                banFromEnqueuing,
-                banFromRewards,
-                banReason,
-                duration
-            );
-            banIDs = response.getBanIdsList();
-            banError = "";
-        } catch (e) {
-            banIDs = [];
-            banError = e;
-        }
-    }
-
-    let removeBanID = "";
-    let removeBanReason = "";
-    let removeBanError = "";
-    let removeBanSuccessful = false;
-    async function removeBan() {
-        try {
-            await apiClient.removeBan(removeBanID, removeBanReason);
-            removeBanError = "";
-            removeBanSuccessful = true;
-        } catch (e) {
-            removeBanError = e;
-            removeBanSuccessful = false;
-        }
-    }
-
     async function setPricesMultiplier() {
         let multiplierStr = prompt(
             "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 10, default is 100."
@@ -110,7 +62,7 @@
 
     async function setSkipPriceMultiplier() {
         let multiplierStr = prompt(
-            "Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the \"Play now\" option).\nMinimum is 10, default is 150."
+            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the "Play now" option).\nMinimum is 10, default is 150.'
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
@@ -126,7 +78,7 @@
     }
 
     async function confirmRaffleWinner() {
-        let raffleID = prompt("Confirming the winner. Enter the raffle ID, or press cancel:")
+        let raffleID = prompt("Confirming the winner. Enter the raffle ID, or press cancel:");
         if (raffleID === null) {
             return;
         }
@@ -139,11 +91,11 @@
     }
 
     async function redrawRaffle() {
-        let raffleID = prompt("Redrawing a raffle. Enter the raffle ID, or press cancel:")
+        let raffleID = prompt("Redrawing a raffle. Enter the raffle ID, or press cancel:");
         if (raffleID === null) {
             return;
         }
-        let reason = prompt("Enter the reason for redrawing the raffle (this is public):")
+        let reason = prompt("Enter the reason for redrawing the raffle (this is public):");
         if (reason === null) {
             return;
         }
@@ -156,11 +108,11 @@
     }
 
     async function completeRaffle() {
-        let raffleID = prompt("Completing a raffle. Enter the raffle ID, or press cancel:")
+        let raffleID = prompt("Completing a raffle. Enter the raffle ID, or press cancel:");
         if (raffleID === null) {
             return;
         }
-        let tx = prompt("Enter the hash of the send block for the raffle prize:")
+        let tx = prompt("Enter the hash of the send block for the raffle prize:");
         if (tx === null) {
             return;
         }
@@ -268,126 +220,12 @@
                 Set skip price multiplier
             </button>
         </div>
-        <p class="px-2 py-2 text-lg">
-            <a href="/moderate/media/disallowed" use:link>Manage disallowed videos</a>
-        </p>
     </div>
-    <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">
-        <div>
-            <p class="px-2 font-semibold text-lg">Create ban</p>
-            <div class="px-2 grid grid-rows-5 grid-cols-3 gap-6 max-w-screen-sm">
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Banano address"
-                    bind:value={banRewardAddress}
-                />
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="IP address (leave empty if unknown)"
-                    bind:value={banRemoteAddress}
-                />
-                <div>
-                    <input
-                        id="banFromChat"
-                        name="banFromChat"
-                        type="checkbox"
-                        bind:checked={banFromChat}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                    <label for="banFromChat" class="font-medium text-gray-700 dark:text-gray-300">
-                        Ban from chat
-                    </label>
-                </div>
-                <div>
-                    <input
-                        id="banFromEnqueuing"
-                        name="banFromEnqueuing"
-                        type="checkbox"
-                        bind:checked={banFromEnqueuing}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                    <label for="banFromEnqueuing" class="font-medium text-gray-700 dark:text-gray-300">
-                        Ban from enqueuing
-                    </label>
-                </div>
-                <div>
-                    <input
-                        id="banFromRewards"
-                        name="banFromRewards"
-                        type="checkbox"
-                        bind:checked={banFromRewards}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                    <label for="banFromRewards" class="font-medium text-gray-700 dark:text-gray-300">
-                        Ban from receiving rewards
-                    </label>
-                </div>
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Reason for ban"
-                    bind:value={banReason}
-                />
-                <div class="text-s col-span-2 text-right text-gray-700">Ban duration in hours (0 for indefinite):</div>
-                <input
-                    class="dark:text-black"
-                    type="number"
-                    placeholder="Duration in hours (0 for indefinite ban)"
-                    min=0
-                    step=0.5
-                    bind:value={banDurationHours}
-                />
-                <button
-                    type="submit"
-                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    on:click={createBan}
-                >
-                    Create ban
-                </button>
-                <div class="col-span-3">
-                    {#if banIDs.length > 0}
-                        Take note of the following ban IDs:
-                        <ul>
-                            {#each banIDs as banID}
-                                <li>{banID}</li>
-                            {/each}
-                        </ul>
-                    {/if}
-                    {#if banError != ""}
-                        <ErrorMessage>{banError}</ErrorMessage>
-                    {/if}
-                </div>
-            </div>
-        </div>
-        <div>
-            <p class="px-2 font-semibold text-lg">Remove ban</p>
-            <div class="px-2 grid grid-rows-3 grid-cols-1 gap-6 max-w-screen-sm">
-                <input class="col-span-3 dark:text-black" type="text" placeholder="Ban ID" bind:value={removeBanID} />
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Reason for unban"
-                    bind:value={removeBanReason}
-                />
-                <button
-                    type="submit"
-                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    on:click={removeBan}
-                >
-                    Remove ban
-                </button>
-                <div class="col-span-3">
-                    {#if removeBanSuccessful}
-                        <SuccessMessage>Ban removed successfully</SuccessMessage>
-                    {/if}
-                    {#if removeBanError != ""}
-                        <ErrorMessage>{removeBanError}</ErrorMessage>
-                    {/if}
-                </div>
-            </div>
-        </div>
+    <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">User bans</p>
+        <p class="px-2 py-2 text-lg">
+            <a href="/moderate/bans" use:link>Manage user bans</a>
+        </p>
     </div>
     <div>
         <p class="px-2 font-semibold text-lg">Documents</p>
