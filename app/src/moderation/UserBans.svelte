@@ -1,13 +1,12 @@
 <script lang="ts">
     import { Duration } from "google-protobuf/google/protobuf/duration_pb";
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PaginatedTable from "./PaginatedTable.svelte";
-    import type { PaginationParameters, UserBan } from "./proto/jungletv_pb";
-    import SuccessMessage from "./SuccessMessage.svelte";
-    import DisallowedVideoTableItem from "./tableitems/DisallowedVideoTableItem.svelte";
-    import UserBanTableItem from "./tableitems/UserBanTableItem.svelte";
+    import { apiClient } from "../api_client";
+    import ErrorMessage from "../ErrorMessage.svelte";
+    import PaginatedTable from "../PaginatedTable.svelte";
+    import type { PaginationParameters, UserBan } from "../proto/jungletv_pb";
+    import SuccessMessage from "../SuccessMessage.svelte";
+    import UserBanTableItem from "../tableitems/UserBanTableItem.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -228,7 +227,7 @@
 
     <PaginatedTable
         title={"User bans"}
-        column_count={5}
+        column_count={4}
         error_message={"Error loading user bans"}
         no_items_message={"No user bans"}
         data_promise_factory={getPage}

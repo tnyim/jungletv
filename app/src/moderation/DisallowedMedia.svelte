@@ -1,11 +1,11 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PaginatedTable from "./PaginatedTable.svelte";
-    import type { DisallowedVideo, PaginationParameters } from "./proto/jungletv_pb";
-    import SuccessMessage from "./SuccessMessage.svelte";
-    import DisallowedVideoTableItem from "./tableitems/DisallowedVideoTableItem.svelte";
+    import { apiClient } from "../api_client";
+    import ErrorMessage from "../ErrorMessage.svelte";
+    import PaginatedTable from "../PaginatedTable.svelte";
+    import type { DisallowedVideo, PaginationParameters } from "../proto/jungletv_pb";
+    import SuccessMessage from "../SuccessMessage.svelte";
+    import DisallowedVideoTableItem from "../tableitems/DisallowedVideoTableItem.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";

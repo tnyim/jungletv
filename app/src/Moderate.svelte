@@ -1,13 +1,10 @@
 <script lang="ts">
-    import { Duration } from "google-protobuf/google/protobuf/duration_pb";
     import { link } from "svelte-navigator";
     import { navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
-    import ErrorMessage from "./ErrorMessage.svelte";
     import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
-    import SuccessMessage from "./SuccessMessage.svelte";
 
     let ticketID = "";
     let chatHistoryAddress = "";

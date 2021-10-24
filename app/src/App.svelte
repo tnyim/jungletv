@@ -9,17 +9,17 @@
 	import Navbar from "./Navbar.svelte";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
-	import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
+	import UserChatHistory from "./moderation/UserChatHistory.svelte";
 	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance, modal } from "./stores";
-	import ModerateDisallowedMedia from "./ModerateDisallowedMedia.svelte";
-	import ModerateEditDocument from "./ModerateEditDocument.svelte";
+	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
+	import EditDocument from "./moderation/EditDocument.svelte";
 	import Document from "./Document.svelte";
 	import Rewards from "./Rewards.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
 	import Player from "./Player.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
-	import Modal from 'svelte-simple-modal';
-import ModerateUserBans from "./ModerateUserBans.svelte";
+	import Modal from "svelte-simple-modal";
+	import UserBans from "./moderation/UserBans.svelte";
 
 	export let url = "";
 
@@ -73,7 +73,7 @@ import ModerateUserBans from "./ModerateUserBans.svelte";
 		modalOpen = props.open;
 		modalClose = props.close;
 	}
-	modal.subscribe(p => {
+	modal.subscribe((p) => {
 		if (p == null || p == undefined) {
 			if (modalClose !== undefined) {
 				modalClose();
@@ -83,6 +83,7 @@ import ModerateUserBans from "./ModerateUserBans.svelte";
 		}
 	});
 </script>
+
 <Modal setContext={modalSetContext} />
 <Navbar />
 <div
@@ -126,28 +127,28 @@ import ModerateUserBans from "./ModerateUserBans.svelte";
 		</Route>
 		<Route path="/moderate/users/:address/chathistory" let:params>
 			{#if isAdmin}
-				<ModerateUserChatHistory address={params.address} />
+				<UserChatHistory address={params.address} />
 			{:else}
 				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 		<Route path="/moderate/media/disallowed" let:params>
 			{#if isAdmin}
-				<ModerateDisallowedMedia />
+				<DisallowedMedia />
 			{:else}
 				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 		<Route path="/moderate/bans" let:params>
 			{#if isAdmin}
-				<ModerateUserBans />
+				<UserBans />
 			{:else}
 				<a href="/admin/signin">Sign in</a>
 			{/if}
 		</Route>
 		<Route path="/moderate/documents/:documentID" let:params>
 			{#if isAdmin}
-				<ModerateEditDocument documentID={params.documentID} />
+				<EditDocument documentID={params.documentID} />
 			{:else}
 				<a href="/admin/signin">Sign in</a>
 			{/if}

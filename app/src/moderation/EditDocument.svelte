@@ -1,7 +1,7 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import { Document } from "./proto/jungletv_pb";
+    import { apiClient } from "../api_client";
+    import { Document } from "../proto/jungletv_pb";
     import marked from "marked/lib/marked.esm.js";
 
     export let documentID = "";

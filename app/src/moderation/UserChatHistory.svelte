@@ -2,9 +2,9 @@
     import { DateTime } from "luxon";
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
+    import { apiClient } from "../api_client";
 
-    import type { ChatMessage } from "./proto/jungletv_pb";
+    import type { ChatMessage } from "../proto/jungletv_pb";
 
     const dispatch = createEventDispatcher();
 

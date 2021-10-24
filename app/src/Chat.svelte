@@ -19,7 +19,7 @@
     import { copyToClipboard, editNicknameForUser, getReadableUserString, insertAtCursor } from "./utils";
     import type { SidebarTab } from "./tabStores";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
-    import ModerateUserChatHistory from "./ModerateUserChatHistory.svelte";
+    import UserChatHistory from "./moderation/UserChatHistory.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -324,7 +324,7 @@
             let newTab: SidebarTab = {
                 id: message.getId() + Math.random().toString().substr(2, 8),
                 tabTitle: `${getReadableMessageAuthor(message)}'s chat history`,
-                component: ModerateUserChatHistory,
+                component: UserChatHistory,
                 props: {
                     address: message.getUserMessage().getAuthor().getAddress(),
                     mode: "sidebar",
