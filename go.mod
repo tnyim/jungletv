@@ -4,10 +4,10 @@ go 1.16
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.0
-	github.com/JohannesKaufmann/html-to-markdown v1.3.0 // indirect
+	github.com/JohannesKaufmann/html-to-markdown v1.3.0
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/RobinUS2/golang-moving-average v1.0.0
-	github.com/btcsuite/btcd v0.22.0-beta // indirect
+	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -38,7 +38,7 @@ require (
 	github.com/sethvargo/go-limiter v0.7.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
-	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906 // indirect
+	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0
