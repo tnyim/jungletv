@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.0
+	github.com/JohannesKaufmann/html-to-markdown v1.3.0 // indirect
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/RobinUS2/golang-moving-average v1.0.0
 	github.com/btcsuite/btcd v0.22.0-beta // indirect

@@ -4,10 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"math/big"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -443,146 +441,18 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	go s.ipReputationChecker.Worker(ctx)
 
 	go func() {
-		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
-
-		entryAddedC := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.mediaQueue.entryAdded.Unsubscribe(entryAddedC)
-
-		ownEntryRemovedC := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.mediaQueue.ownEntryRemoved.Unsubscribe(ownEntryRemovedC)
-
-		rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
-
-		crowdfundedSkippedC := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.skipManager.crowdfundedSkip.Unsubscribe(crowdfundedSkippedC)
-
-		crowdfundedTransactionReceivedC := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.skipManager.crowdfundedTransactionReceived.Unsubscribe(crowdfundedTransactionReceivedC)
-
-		announcementsUpdatedC := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.announcementsUpdated.Unsubscribe(announcementsUpdatedC)
-
 		for {
-			select {
-			case v := <-mediaChangedC:
-				var err error
-				if v[0] == nil {
-					_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
-				} else {
-					title := v[0].(MediaQueueEntry).MediaInfo().Title()
-					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_Now playing:_ %s", title))
-				}
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-				}
-			case v := <-entryAddedC:
-				t := v[0].(string)
-				entry := v[1].(MediaQueueEntry)
-				if !entry.RequestedBy().IsUnknown() {
-					name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
-					if err != nil {
-						errChan <- stacktrace.Propagate(err, "")
-						break
-					}
-					switch t {
-					case "enqueue":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-							"_%s just enqueued_ %s", name, entry.MediaInfo().Title()))
-					case "play_after_next":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-							"_%s just set_ %s _to play after the current video_",
-							name, entry.MediaInfo().Title()))
-					case "play_now":
-						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-							"_%s just skipped the previous video!_", name))
-					}
-					if err != nil {
-						errChan <- stacktrace.Propagate(err, "")
-					}
-				}
-			case v := <-ownEntryRemovedC:
-				entry := v[0].(MediaQueueEntry)
-				name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-					break
-				}
-				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-					"_%s just removed their own queue entry_ %s", name, entry.MediaInfo().Title()))
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-				}
-			case v := <-rewardsDistributedC:
-				amount := v[0].(Amount)
-				eligibleCount := v[1].(int)
-				enqueuerTip := v[2].(Amount)
-				mediaEntry := v[3].(MediaQueueEntry)
-				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
-				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
-
-				message := ""
-				if enqueuerTip.Cmp(big.NewInt(0)) > 0 && !mediaEntry.RequestedBy().IsUnknown() {
-					name, err := s.getChatFriendlyUserName(ctx, mediaEntry.RequestedBy().Address())
-					if err != nil {
-						errChan <- stacktrace.Propagate(err, "")
-						break
-					}
-					tipBanStr := new(big.Rat).SetFrac(enqueuerTip.Int, exp).FloatString(2)
-					message = fmt.Sprintf(
-						"_**%s BAN** distributed among %d spectators and **%s BAN** tipped to %s._", banStr, eligibleCount, tipBanStr, name)
-				} else {
-					message = fmt.Sprintf(
-						"_**%s BAN** distributed among %d spectators._", banStr, eligibleCount)
-				}
-				_, err := s.chat.CreateSystemMessage(ctx, message)
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-				}
-			case v := <-crowdfundedSkippedC:
-				amount := v[0].(Amount)
-				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
-				banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
-
-				_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-					"_Spectators paid **%s BAN** to skip the previous video!_", banStr))
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-				}
-			case v := <-crowdfundedTransactionReceivedC:
-				tx := v[0].(*types.CrowdfundedTransaction)
-
-				name, err := s.getChatFriendlyUserName(ctx, tx.FromAddress)
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-					break
-				}
-
-				exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
-				banStr := new(big.Rat).SetFrac(tx.Amount.BigInt(), exp).FloatString(2)
-
-				msg := ""
-				switch tx.TransactionType {
-				case types.CrowdfundedTransactionTypeSkip:
-					msg = fmt.Sprintf("_%s just contributed **%s BAN** to skipping the current video!_", name, banStr)
-				case types.CrowdfundedTransactionTypeRain:
-					msg = fmt.Sprintf("_%s just increased the rewards for the current video by **%s BAN**!_", name, banStr)
-				}
-				if msg != "" {
-					_, err = s.chat.CreateSystemMessage(ctx, msg)
-					if err != nil {
-						errChan <- stacktrace.Propagate(err, "")
-					}
-				}
-			case <-announcementsUpdatedC:
-				_, err := s.chat.CreateSystemMessage(ctx, "_**Announcements updated!**_")
-				if err != nil {
-					errChan <- stacktrace.Propagate(err, "")
-				}
-			case <-ctx.Done():
-				s.log.Println("Chat system message sender done")
+			s.log.Println("Chat system message worker starting/restarting")
+			err := s.chat.Worker(ctx, s)
+			if err == nil {
 				return
+			}
+			errChan <- stacktrace.Propagate(err, "chat system message worker error")
+			select {
+			case <-ctx.Done():
+				s.log.Println("Chat system message worker done")
+				return
+			default:
 			}
 		}
 	}()
