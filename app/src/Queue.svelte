@@ -108,7 +108,7 @@
                     </div>
                 {/if}
             </div>
-            <div class="flex flex-col flex-grow">
+            <div class="flex flex-col flex-grow overflow-hidden">
                 <p class="queue-entry-title break-words">
                     {entry.getYoutubeVideoData().getTitle()}
                     {#if mode == "moderation"}
@@ -122,7 +122,7 @@
                         >{entry.getYoutubeVideoData().getChannelTitle()}</span
                     >
                 </p>
-                <p class="text-xs">
+                <p class="text-xs whitespace-nowrap">
                     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
                         Enqueued by <img
                             src="https://monkey.banano.cc/api/v1/monkey/{entry

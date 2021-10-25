@@ -545,7 +545,9 @@
                 {:else if msg.hasSystemMessage()}
                     <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
                         <div class="flex-1" />
-                        <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded text-center">
+                        <div
+                            class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded text-center break-words max-w-full"
+                        >
                             {@html marked.parseInline(msg.getSystemMessage().getContent())}
                         </div>
                         <div class="flex-1" />
@@ -698,6 +700,12 @@
     .chat-user-nickname {
         font-size: 0.8rem;
         @apply font-semibold;
+        max-width: 160px;
+        display: inline-block;
+        overflow-x: hidden;
+        white-space: nowrap;
+        margin-bottom: 0;
+        vertical-align: bottom;
     }
 
     .chat-user-glow {

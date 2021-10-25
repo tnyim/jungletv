@@ -42,16 +42,16 @@
 
 <div class="absolute w-full max-w-md left-0" style="top: {topOffset}px" transition:fade|local={{ duration: 200 }}>
     <div class="bg-gray-200 dark:bg-black rounded flex flex-col shadow-md">
-        <div class="flex flex-row px-2 pt-2" on:mouseenter={() => dispatch("mouseLeft")}>
+        <div class="flex flex-row px-2 pt-2 overflow-x-hidden max-w-full" on:mouseenter={() => dispatch("mouseLeft")}>
             <img
                 src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
                 alt="&nbsp;"
                 title="monKey for this user's address"
                 class="h-20"
             />
-            <div class="flex-grow">
+            <div class="flex-grow overflow-x-hidden">
                 {#if msg.getUserMessage().getAuthor().hasNickname()}
-                    <span class="font-semibold text-md">{msg.getUserMessage().getAuthor().getNickname()}</span>
+                    <span class="font-semibold text-md whitespace-nowrap">{msg.getUserMessage().getAuthor().getNickname()}</span>
                     <br />
                 {/if}
                 <span class="font-mono text-md">
