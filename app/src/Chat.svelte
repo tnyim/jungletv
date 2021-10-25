@@ -704,7 +704,7 @@
         display: inline-block;
         overflow-x: hidden;
         white-space: nowrap;
-        margin-bottom: 0;
+        margin-bottom: 0.07rem;
         vertical-align: bottom;
     }
 
