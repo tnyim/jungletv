@@ -129,11 +129,6 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	err = migrateModerationDecisionsFromFile(ctx, bansFile)
-	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
-	}
-
 	modStore, err := NewModerationStoreDatabase(ctx)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
