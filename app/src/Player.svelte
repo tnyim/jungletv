@@ -114,7 +114,6 @@
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());
         }
         if (checkpoint.hasLatestAnnouncement()) {
-            console.log("latest announcement", checkpoint.getLatestAnnouncement() )
             unreadAnnouncement.set(parseInt(localStorage.getItem("lastSeenAnnouncement") ?? '-1') != checkpoint.getLatestAnnouncement());
             mostRecentAnnouncement.set(checkpoint.getLatestAnnouncement());
         }

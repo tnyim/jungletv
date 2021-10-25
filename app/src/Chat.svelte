@@ -701,11 +701,9 @@
         font-size: 0.8rem;
         @apply font-semibold;
         max-width: 160px;
-        display: inline-block;
-        overflow-x: hidden;
+        display: inline-flex;
+        overflow: hidden;
         white-space: nowrap;
-        margin-bottom: 0.07rem;
-        vertical-align: bottom;
     }
 
     .chat-user-glow {
