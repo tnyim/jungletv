@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/palantir/stacktrace"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -15,7 +16,8 @@ import (
 
 var segchaChallengeSteps = 4
 var segchaWrongAnswersTolerance = 1
-var segchaPremadeQueueSize = 100
+var segchaPremadeQueueSize = 150
+var latestGeneratedChallenge *captcha.Challenge
 
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
 	user := auth.UserClaimsFromContext(ctx)
@@ -33,25 +35,31 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 		return nil, status.Error(codes.FailedPrecondition, "no challenge active")
 	}
 
-	var challenge *captcha.Challenge
+	challenge := latestGeneratedChallenge
+	challengeID := uuid.NewV4().String()
 	select {
 	case challenge = <-s.captchaChallengesQueue:
+		challengeID = challenge.ID()
 		break
 	default:
-		func() {
-			s.captchaGenerationMutex.Lock()
-			defer s.captchaGenerationMutex.Unlock()
-			challenge, err = captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
-		}()
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "")
+		if challenge == nil {
+			func() {
+				s.captchaGenerationMutex.Lock()
+				defer s.captchaGenerationMutex.Unlock()
+				challenge, err = captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+				latestGeneratedChallenge = challenge
+				challengeID = challenge.ID()
+			}()
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "")
+			}
+			s.log.Println("generated on-demand segcha challenge")
 		}
-		s.log.Println("generated on-demand segcha challenge")
 	}
 
 	pictures := challenge.Pictures()
 
-	s.captchaAnswers.SetDefault(challenge.ID(), challenge.Answers())
+	s.captchaAnswers.SetDefault(challengeID, challenge.Answers())
 
 	steps := make([]*proto.SegchaChallengeStep, len(pictures))
 	for i := range pictures {
@@ -61,7 +69,7 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 	}
 
 	return &proto.ProduceSegchaChallengeResponse{
-		ChallengeId: challenge.ID(),
+		ChallengeId: challengeID,
 		Steps:       steps,
 	}, nil
 }

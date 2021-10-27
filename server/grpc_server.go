@@ -421,7 +421,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					func() {
 						s.captchaGenerationMutex.Lock()
 						defer s.captchaGenerationMutex.Unlock()
-						s.captchaChallengesQueue <- makeChallenge()
+						c := makeChallenge()
+						s.captchaChallengesQueue <- c
+						latestGeneratedChallenge = c
 						s.log.Println("generated cached segcha challenge")
 					}()
 				}
