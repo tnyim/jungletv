@@ -316,7 +316,7 @@
     // 1st capture group includes everything that precedes the shortcode
     // the 2nd capture group includes the beginning of the shortcode
     // because this regex is reused and designed to always match just once, do not set the 'g' flag
-    const shortcodeRegexp = /^(.*[^\\]){0,1}(:[a-zA-Z0-9_]+:{0,1})$/s;
+    const shortcodeRegexp = /^(.*[^\\]){0,1}(:[a-zA-Z0-9_\+\-]+:{0,1})$/s;
 
     async function handleCursorMoved() {
         if (composeTextArea.selectionStart != composeTextArea.selectionEnd) {
@@ -662,8 +662,9 @@
                 </ChatReplyingBanner>
             {/if}
             <div class="flex flex-row relative">
-                {#if !emojiPickerShown && emojiAutocompletePrefix != ""}
+                {#if emojiAutocompletePrefix != ""}
                     <ChatEmojiAutocomplete
+                        suppressPopup={emojiPickerShown}
                         enableReplyMargin={replyingToMessage !== undefined}
                         prefix={emojiAutocompletePrefix}
                         bind:currentSelection={emojiAutocompleteSelection}

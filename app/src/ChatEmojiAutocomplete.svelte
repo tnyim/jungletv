@@ -6,6 +6,7 @@
     const dispatch = createEventDispatcher();
 
     export let enableReplyMargin = false;
+    export let suppressPopup = false;
     export let prefix = "";
     let lastPrefix = "";
     export let currentSelection: NativeEmoji = null;
@@ -15,13 +16,22 @@
     let searchResults: NativeEmoji[] = [];
     let searchResultsElements: HTMLElement[] = [];
 
-    async function searchEmoji(searchText): Promise<NativeEmoji[]> {
+    async function searchEmoji(searchText: string): Promise<NativeEmoji[]> {
         let emojis = await emojiDatabase.getEmojiBySearchQuery(searchText);
 
+        let shortcode = searchText;
         if (searchText.endsWith(":")) {
             // exact shortcode search
-            const shortcode = searchText.substring(0, searchText.length - 1).toLowerCase();
+            shortcode = searchText.substring(0, searchText.length - 1).toLowerCase();
             emojis = emojis.filter((_) => _.shortcodes.includes(shortcode));
+        }
+        if (emojis.findIndex((e) => e.shortcodes.includes(shortcode)) < 0) {
+            // sometimes getEmojiBySearchQuery does not find the exact match for short queries
+            // e.g. :m won't bring up the :m: emoji
+            let exactMatch = await emojiDatabase.getEmojiByShortcode(shortcode);
+            if (exactMatch != null) {
+                emojis.push(exactMatch);
+            }
         }
 
         // prefer emojis whose beginning of first shortcode matches exactly the searchText
@@ -80,7 +90,7 @@
     }
 </script>
 
-{#if searchResults.length > 0}
+{#if searchResults.length > 0 && !suppressPopup}
     <div class="outer-container {enableReplyMargin ? 'reply-margin' : ''}">
         <div
             class="bg-gray-200 border-gray-300 dark:bg-gray-700 dark:border-gray-600
