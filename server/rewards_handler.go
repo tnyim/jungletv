@@ -54,6 +54,7 @@ type RewardsHandler struct {
 type Spectator interface {
 	OnRewarded() *event.Event
 	OnWithdrew() *event.Event
+	OnChatMentioned() *event.Event
 	OnActivityChallenge() *event.Event
 	CurrentActivityChallenge() *activityChallenge
 }
@@ -74,6 +75,7 @@ type spectator struct {
 	onWithdrew                 *event.Event
 	onDisconnected             *event.Event
 	onReconnected              *event.Event
+	onChatMentioned            *event.Event
 	onActivityChallenge        *event.Event
 	activityChallenge          *activityChallenge
 	hardChallengesSolved       int
@@ -101,6 +103,10 @@ func (s *spectator) OnRewarded() *event.Event {
 
 func (s *spectator) OnWithdrew() *event.Event {
 	return s.onWithdrew
+}
+
+func (s *spectator) OnChatMentioned() *event.Event {
+	return s.onChatMentioned
 }
 
 func (s *spectator) OnActivityChallenge() *event.Event {
@@ -157,6 +163,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			isDummy:             true,
 			onRewarded:          event.New(),
 			onWithdrew:          event.New(),
+			onChatMentioned:     event.New(),
 			onActivityChallenge: event.New(),
 		}, nil
 	}
@@ -193,6 +200,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			activityCheckTimer:    time.NewTimer(d),
 			onRewarded:            event.New(),
 			onWithdrew:            event.New(),
+			onChatMentioned:       event.New(),
 			onDisconnected:        event.New(),
 			onReconnected:         event.New(),
 			onActivityChallenge:   event.New(),
@@ -385,4 +393,14 @@ func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, re
 		return list
 	}
 	return []string{}
+}
+
+func (r *RewardsHandler) MarkAddressAsMentionedInChat(ctx context.Context, address string) {
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
+
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if ok {
+		spectator.onChatMentioned.Notify()
+	}
 }

@@ -5813,7 +5813,8 @@ proto.jungletv.MediaConsumptionCheckpoint.toObject = function(includeInstance, m
     activityChallenge: (f = msg.getActivityChallenge()) && proto.jungletv.ActivityChallenge.toObject(includeInstance, f),
     stubData: (f = msg.getStubData()) && proto.jungletv.NowPlayingStubData.toObject(includeInstance, f),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.NowPlayingYouTubeVideoData.toObject(includeInstance, f),
-    latestAnnouncement: jspb.Message.getFieldWithDefault(msg, 12, 0)
+    latestAnnouncement: jspb.Message.getFieldWithDefault(msg, 12, 0),
+    hasChatMention: jspb.Message.getBooleanFieldWithDefault(msg, 13, false)
   };
 
   if (includeInstance) {
@@ -5902,6 +5903,10 @@ proto.jungletv.MediaConsumptionCheckpoint.deserializeBinaryFromReader = function
     case 12:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setLatestAnnouncement(value);
+      break;
+    case 13:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setHasChatMention(value);
       break;
     default:
       reader.skipField();
@@ -6018,6 +6023,13 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
   if (f != null) {
     writer.writeUint32(
       12,
+      f
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 13));
+  if (f != null) {
+    writer.writeBool(
+      13,
       f
     );
   }
@@ -6386,6 +6398,42 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearLatestAnnouncement = fu
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasLatestAnnouncement = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional bool has_chat_mention = 13;
+ * @return {boolean}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.getHasChatMention = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 13, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.setHasChatMention = function(value) {
+  return jspb.Message.setField(this, 13, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.clearHasChatMention = function() {
+  return jspb.Message.setField(this, 13, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.hasHasChatMention = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

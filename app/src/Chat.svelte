@@ -6,7 +6,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import { darkMode, rewardAddress } from "./stores";
+    import { darkMode, rewardAddress, unreadChatMention } from "./stores";
     import { DateTime } from "luxon";
     import marked from "marked/lib/marked.esm.js";
     import type Picker from "emoji-picker-element/picker";
@@ -79,7 +79,9 @@
             navigator.userAgent
         );
         consumeChat();
+        unreadChatMention.set(false);
     });
+
     function consumeChat() {
         chatEnabled = true;
         consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {

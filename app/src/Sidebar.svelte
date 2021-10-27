@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement } from "./stores";
+    import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
@@ -8,6 +8,9 @@
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
 
     const dispatch = createEventDispatcher();
+
+    let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
+    let selectedTab: SidebarTab;
 
     let currentlyWatchingCount = 0;
     let playerIsConnected = false;
@@ -22,6 +25,16 @@
             currentTabs.find((t) => "announcements" == t.id).highlighted = hasUnread;
             return currentTabs;
         });
+    });
+    unreadChatMention.subscribe((hasUnread) => {
+        if (selectedTabID != "chat" || !hasUnread) {
+            sidebarTabs.update((currentTabs) => {
+                currentTabs.find((t) => "chat" == t.id).highlighted = hasUnread;
+                return currentTabs;
+            });
+        } else if (hasUnread) {
+            unreadChatMention.set(false);
+        }
     });
 
     let tabs: SidebarTab[] = [];
@@ -48,9 +61,6 @@
             sidebarTabs.update((_) => tabs);
         }
     }
-
-    let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
-    let selectedTab: SidebarTab;
 
     let tabInX = 384;
     const SLIDE_DURATION = 200;

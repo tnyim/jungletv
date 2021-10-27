@@ -545,6 +545,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getLatestAnnouncement(): number;
   setLatestAnnouncement(value: number): void;
 
+  hasHasChatMention(): boolean;
+  clearHasChatMention(): void;
+  getHasChatMention(): boolean;
+  setHasChatMention(value: boolean): void;
+
   getMediaInfoCase(): MediaConsumptionCheckpoint.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MediaConsumptionCheckpoint.AsObject;
@@ -570,6 +575,7 @@ export namespace MediaConsumptionCheckpoint {
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
     latestAnnouncement: number,
+    hasChatMention: boolean,
   }
 
   export enum MediaInfoCase {

@@ -81,6 +81,16 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
+		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			t := true
+			cp.HasChatMention = &t
+			err := send(cp)
+			if err != nil {
+				errChan <- stacktrace.Propagate(err, "")
+			}
+		})()
+
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
 	}
 

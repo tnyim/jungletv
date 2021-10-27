@@ -11,7 +11,7 @@
     let documentPromise = apiClient.getDocument(documentID);
 
     $: if (documentID == "announcements") {
-        unreadAnnouncement.update((_) => false);
+        unreadAnnouncement.set(false);
         localStorage.setItem("lastSeenAnnouncement", $mostRecentAnnouncement.toString());
     }
 

@@ -178,6 +178,10 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 				s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
 			}
 		}()
+
+		if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() {
+			s.rewardsHandler.MarkAddressAsMentionedInChat(ctx, m.Reference.Author.Address())
+		}
 	}
 
 	return &proto.SendChatMessageResponse{

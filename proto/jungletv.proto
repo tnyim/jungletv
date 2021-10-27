@@ -167,6 +167,7 @@ message MediaConsumptionCheckpoint {
         NowPlayingYouTubeVideoData youtube_video_data = 11;
     }
     optional uint32 latest_announcement = 12;
+    optional bool has_chat_mention = 13;
 }
 
 message ActivityChallenge {

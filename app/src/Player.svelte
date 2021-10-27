@@ -13,6 +13,7 @@
         rewardBalance,
         rewardReceived,
         unreadAnnouncement,
+        unreadChatMention,
     } from "./stores";
 
     const options: Options = {
@@ -114,8 +115,13 @@
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());
         }
         if (checkpoint.hasLatestAnnouncement()) {
-            unreadAnnouncement.set(parseInt(localStorage.getItem("lastSeenAnnouncement") ?? '-1') != checkpoint.getLatestAnnouncement());
+            unreadAnnouncement.set(
+                parseInt(localStorage.getItem("lastSeenAnnouncement") ?? "-1") != checkpoint.getLatestAnnouncement()
+            );
             mostRecentAnnouncement.set(checkpoint.getLatestAnnouncement());
+        }
+        if (checkpoint.hasHasChatMention() && checkpoint.getHasChatMention()) {
+            unreadChatMention.set(true);
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }
