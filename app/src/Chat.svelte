@@ -10,16 +10,19 @@
     import { DateTime } from "luxon";
     import marked from "marked/lib/marked.esm.js";
     import type Picker from "emoji-picker-element/picker";
-    import type { EmojiClickEvent } from "emoji-picker-element/shared";
+    import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
     import "emoji-picker-element";
 
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
     import WarningMessage from "./WarningMessage.svelte";
-    import { copyToClipboard, editNicknameForUser, getReadableUserString, insertAtCursor } from "./utils";
+    import { editNicknameForUser, insertAtCursor } from "./utils";
     import type { SidebarTab } from "./tabStores";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
+    import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
+    import { emojiDatabase, getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
+    import ChatEmojiAutocomplete from "./ChatEmojiAutocomplete.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -53,6 +56,9 @@
     let allowExpensiveCSSAnimations = false;
     let consumeChatTimeoutHandle: number = null;
     let emojiPicker: Picker;
+    let emojiAutocompletePrefix = "";
+    let emojiAutocompleteSelection: NativeEmoji = null;
+    let emojiAutocompleteSelectionIndex = -1;
 
     onMount(() => {
         // the i18n property appears to rely on some kind of custom setter
@@ -120,6 +126,13 @@
     afterUpdate(() => {
         if (!document.hidden && (shouldAutoScroll || mustAutoScroll)) {
             scrollToBottom();
+        }
+        if (
+            emojiAutocompletePrefix.endsWith(":") &&
+            emojiAutocompleteSelection !== null &&
+            emojiAutocompleteSelection.shortcodes.findIndex((s) => emojiAutocompletePrefix == s + ":") >= 0
+        ) {
+            insertAutocompleteSelectionEmoji();
         }
     });
 
@@ -272,9 +285,9 @@
         }
         composeTextArea.focus();
     }
-    async function handleEnter(event: KeyboardEvent) {
+    async function handleKeyboardOnComposeTextarea(event: KeyboardEvent) {
         let ta = event.target as HTMLTextAreaElement;
-        if (event.key === "Enter") {
+        if (event.key === "Enter" && emojiAutocompleteSelection == null) {
             if (event.altKey || event.ctrlKey || event.shiftKey) {
                 if (!event.shiftKey) ta.value += "\n";
                 autoresize(ta);
@@ -284,8 +297,64 @@
             await sendMessage(event);
             autoresize(ta);
             return false;
+        } else if (event.key === "ArrowUp" && emojiAutocompleteSelection != null) {
+            event.preventDefault();
+            emojiAutocompleteSelectionIndex--;
+            return false;
+        } else if (event.key === "ArrowDown" && emojiAutocompleteSelection != null) {
+            event.preventDefault();
+            emojiAutocompleteSelectionIndex++;
+            return false;
+        } else if ((event.key === "Tab" || event.key === "Enter") && emojiAutocompleteSelection != null) {
+            event.preventDefault();
+            insertAutocompleteSelectionEmoji();
+            return false;
         }
         return true;
+    }
+
+    // 1st capture group includes everything that precedes the shortcode
+    // the 2nd capture group includes the beginning of the shortcode
+    // because this regex is reused and designed to always match just once, do not set the 'g' flag
+    const shortcodeRegexp = /^(.*[^\\]){0,1}(:[a-zA-Z0-9_]+:{0,1})$/s;
+
+    async function handleCursorMoved() {
+        if (composeTextArea.selectionStart != composeTextArea.selectionEnd) {
+            emojiAutocompletePrefix = "";
+            emojiAutocompleteSelection = null;
+            return;
+        }
+        let textUpUntilCursor = composedMessage.substring(0, composeTextArea.selectionStart);
+        let matches = shortcodeRegexp.exec(textUpUntilCursor);
+        if (matches == null || matches.length < 3) {
+            emojiAutocompletePrefix = "";
+            emojiAutocompleteSelection = null;
+            return;
+        }
+        emojiAutocompletePrefix = matches[2].substr(1);
+    }
+    function insertAutocompleteSelectionEmoji() {
+        if (emojiAutocompleteSelection != null) {
+            replaceCurrentPartialEmojiShortcode(emojiAutocompleteSelection.unicode);
+            emojiDatabase.incrementFavoriteEmojiCount(emojiAutocompleteSelection.unicode);
+            emojiAutocompletePrefix = "";
+        }
+    }
+    function replaceCurrentPartialEmojiShortcode(replacement: string) {
+        let textUpUntilCursor = composeTextArea.value.substring(0, composeTextArea.selectionStart);
+        let matches = shortcodeRegexp.exec(textUpUntilCursor);
+        if (matches == null || matches.length < 3) {
+            // preconditions changed...
+            return;
+        }
+        if (matches[1] !== undefined) {
+            composeTextArea.selectionStart = matches[1].length; // place cursor at beginning of shortcode
+        } else {
+            composeTextArea.selectionStart = 0;
+        }
+        composeTextArea.selectionEnd = matches[0].length;
+        insertAtCursor(composeTextArea, replacement);
+        composedMessage = composeTextArea.value;
     }
 
     function replyToMessage(message: ChatMessage) {
@@ -330,6 +399,7 @@
                     mode: "sidebar",
                 },
                 closeable: true,
+                highlighted: false,
             };
             dispatch("openSidebarTab", newTab);
         } else {
@@ -348,30 +418,6 @@
             return "bg-yellow-100 dark:bg-yellow-800";
         }
         return "";
-    }
-
-    function getReadableMessageAuthor(msg: ChatMessage): string {
-        return getReadableUserString(msg.getUserMessage().getAuthor());
-    }
-
-    function getClassForMessageAuthor(msg: ChatMessage): string {
-        let c = "chat-user-address";
-        if (msg.getUserMessage().getAuthor().hasNickname()) {
-            c = "chat-user-nickname";
-        }
-        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_1_REQUESTER)) {
-            c += " text-blue-600 dark:text-blue-400";
-        }
-        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_2_REQUESTER)) {
-            c += " text-yellow-600 dark:text-yellow-200";
-        }
-        if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)) {
-            c += " text-green-500 dark:text-green-300";
-            if (allowExpensiveCSSAnimations) {
-                c += " chat-user-glow";
-            }
-        }
-        return c;
     }
 
     function dismissGuidelinesWarning() {
@@ -408,20 +454,28 @@
         detailsOpenForMsgID = "";
     }
 
+    let emojiPickerShown = false;
     function toggleEmojiPicker() {
         if (emojiPicker.classList.contains("hidden")) {
+            emojiPickerShown = true;
             emojiPicker.classList.remove("hidden");
             let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
+            if (emojiAutocompletePrefix != "") {
+                searchBox.value = emojiAutocompletePrefix;
+            }
             searchBox.setSelectionRange(0, searchBox.value.length);
             searchBox.focus();
         } else {
+            emojiPickerShown = false;
             emojiPicker.classList.add("hidden");
             composeTextArea.focus();
         }
     }
 
     function onEmojiPicked(event: EmojiClickEvent) {
+        emojiAutocompletePrefix = "";
         toggleEmojiPicker();
+        replaceCurrentPartialEmojiShortcode("");
         insertAtCursor(composeTextArea, event.detail.unicode);
         composedMessage = composeTextArea.value;
         composeTextArea.focus();
@@ -455,7 +509,7 @@
                             on:click={() => highlightMessage(msg.getReference())}
                         >
                             <i class="fas fa-reply" />
-                            <span class={getClassForMessageAuthor(msg.getReference())}
+                            <span class={getClassForMessageAuthor(msg.getReference(), allowExpensiveCSSAnimations)}
                                 >{getReadableMessageAuthor(msg.getReference())}</span
                             >:
                             {@html marked.parseInline(msg.getReference().getUserMessage().getContent())}
@@ -505,7 +559,7 @@
                                 on:click={() => replyToMessage(msg)}
                             />
                             <span
-                                class="{getClassForMessageAuthor(msg)} cursor-pointer"
+                                class="{getClassForMessageAuthor(msg, allowExpensiveCSSAnimations)} cursor-pointer"
                                 title="Click to reply"
                                 on:click={() => replyToMessage(msg)}>{getReadableMessageAuthor(msg)}</span
                             >{#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
@@ -597,40 +651,33 @@
                 </div>
             {/if}
             {#if replyingToMessage !== undefined}
-                <div class="flex flex-row">
-                    <div class="flex-grow px-2 text-xs">
-                        Replying to
-                        <span
-                            class="{getClassForMessageAuthor(replyingToMessage)} cursor-pointer"
-                            on:click={() =>
-                                copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
-                            >{getReadableMessageAuthor(replyingToMessage)}</span
-                        >
-                        <span
-                            class="cursor-pointer text-gray-600 dark:text-gray-400"
-                            on:click={() =>
-                                copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
-                            >(click to copy address)</span
-                        >
-                        <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-5">
-                            {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
-                        </div>
-                    </div>
-                    <button
-                        title="Stop replying"
-                        class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ease-linear transition-all duration-150"
-                        on:click={clearReplyToMessage}
-                    >
-                        <i class="fas fa-times-circle" />
-                    </button>
-                </div>
+                <ChatReplyingBanner
+                    {replyingToMessage}
+                    {allowExpensiveCSSAnimations}
+                    on:clearReply={clearReplyToMessage}
+                >
+                    <svelte:fragment slot="message-content">
+                        {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
+                    </svelte:fragment>
+                </ChatReplyingBanner>
             {/if}
-            <div class="flex flex-row">
+            <div class="flex flex-row relative">
+                {#if !emojiPickerShown && emojiAutocompletePrefix != ""}
+                    <ChatEmojiAutocomplete
+                        enableReplyMargin={replyingToMessage !== undefined}
+                        prefix={emojiAutocompletePrefix}
+                        bind:currentSelection={emojiAutocompleteSelection}
+                        bind:currentSelectionIndex={emojiAutocompleteSelectionIndex}
+                        on:emojiPicked={insertAutocompleteSelectionEmoji}
+                    />
+                {/if}
                 <textarea
                     use:autoresize
                     bind:this={composeTextArea}
                     bind:value={composedMessage}
-                    on:keydown={handleEnter}
+                    on:keydown={handleKeyboardOnComposeTextarea}
+                    on:click={handleCursorMoved}
+                    on:keyup={handleCursorMoved}
                     use:focusOnInit
                     class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
                     placeholder="Say something..."
@@ -689,43 +736,6 @@
     @media (min-width: 1024px) {
         emoji-picker {
             --num-columns: 8;
-        }
-    }
-
-    .chat-user-address {
-        font-size: 0.7rem;
-        @apply font-mono;
-    }
-
-    .chat-user-nickname {
-        font-size: 0.8rem;
-        @apply font-semibold;
-        max-width: 160px;
-        display: inline-flex;
-        overflow: hidden;
-        white-space: nowrap;
-    }
-
-    .chat-user-glow {
-        animation-duration: 3s;
-        animation-name: text-glow;
-        animation-iteration-count: infinite;
-        animation-direction: alternate;
-        animation-timing-function: ease-in-out;
-    }
-
-    @media (prefers-reduced-motion) {
-        .chat-user-glow {
-            animation-name: none;
-        }
-    }
-
-    @keyframes text-glow {
-        from {
-            text-shadow: rgba(167, 139, 250, 1) 0px 0px 10px;
-        }
-        to {
-            text-shadow: rgba(167, 139, 250, 1) 0px 0px 0px;
         }
     }
 </style>

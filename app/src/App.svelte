@@ -213,5 +213,42 @@
 		.player-maximized {
 			@apply absolute;
 		}
+
+		.chat-user-address {
+			font-size: 0.7rem;
+			@apply font-mono;
+		}
+
+		.chat-user-nickname {
+			font-size: 0.8rem;
+			@apply font-semibold;
+			max-width: 150px;
+			display: inline-flex;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+
+		.chat-user-glow {
+			animation-duration: 3s;
+			animation-name: text-glow;
+			animation-iteration-count: infinite;
+			animation-direction: alternate;
+			animation-timing-function: ease-in-out;
+		}
+
+		@media (prefers-reduced-motion) {
+			.chat-user-glow {
+				animation-name: none;
+			}
+		}
+
+		@keyframes text-glow {
+			from {
+				text-shadow: rgba(167, 139, 250, 1) 0px 0px 10px;
+			}
+			to {
+				text-shadow: rgba(167, 139, 250, 1) 0px 0px 0px;
+			}
+		}
 	}
 </style>
