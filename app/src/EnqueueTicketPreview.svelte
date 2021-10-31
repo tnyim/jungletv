@@ -28,9 +28,9 @@
             {/if}
         </div>
     </div>
-    <div class="flex flex-col flex-grow">
-        <p>{ticket.getYoutubeVideoData().getTitle()}</p>
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+    <div class="flex flex-col flex-grow overflow-hidden">
+        <p class="break-words">{ticket.getYoutubeVideoData().getTitle()}</p>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
             {ticket.getYoutubeVideoData().getChannelTitle()}
         </p>
     </div>
