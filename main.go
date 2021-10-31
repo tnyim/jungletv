@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/pprof"
@@ -28,8 +29,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
-	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/segcha"
+	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
@@ -46,6 +48,7 @@ var (
 	mainLog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	dbLog   = log.New(os.Stdout, "db ", log.Ldate|log.Ltime)
 	apiLog  = log.New(os.Stdout, "api ", log.Ldate|log.Ltime)
+	grpcLog = log.New(os.Stdout, "grpc ", log.Ldate|log.Ltime)
 	webLog  = log.New(os.Stdout, "web ", log.Ldate|log.Ltime)
 	authLog = log.New(os.Stdout, "auth ", log.Ldate|log.Ltime)
 
@@ -245,7 +248,24 @@ func main() {
 		mainLog.Fatalln("Font path not present in segcha keybox")
 	}
 
-	imageDB, err := captcha.NewImageDatabase(segchaImageDBPath)
+	var segchaClient segchaproto.SegchaClient
+	segchaServerAddress, present := segchaKeybox.Get("serverAddress")
+	if !present {
+		mainLog.Println("segcha server address not present in keybox, will use local challenge generation")
+	} else {
+		var segchaClientClose func() error
+		segchaClient, segchaClientClose, err = segcha.NewClient(ctx, segchaServerAddress)
+		if err != nil {
+			segchaClient = nil
+			mainLog.Println("Failed to create segcha client, will use local challenge generation: ", err)
+		} else {
+			defer func() {
+				_ = segchaClientClose()
+			}()
+		}
+	}
+
+	imageDB, err := segcha.NewImageDatabase(segchaImageDBPath)
 	if err != nil {
 		mainLog.Fatalln("error building segcha image DB:", err)
 	}
@@ -259,8 +279,8 @@ func main() {
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
 	apiServer, extraHTTProutes, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
 		authInterceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
-		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, imageDB, segchaFontPath, raffleSecretKey,
-		websiteURL)
+		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, segchaClient, imageDB, segchaFontPath,
+		raffleSecretKey, websiteURL)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -287,10 +307,13 @@ func main() {
 }
 
 func init() {
+	if !DEBUG {
+		grpcLog = log.New(ioutil.Discard, "grpc ", log.Ldate|log.Ltime)
+	}
 	h := sha256.New()
 	h.Write([]byte(BuildDate + GitCommit))
 	versionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
-	grpclog.SetLogger(apiLog)
+	grpclog.SetLogger(grpcLog)
 }
 
 func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {

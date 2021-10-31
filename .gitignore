@@ -6,6 +6,8 @@
 /misc/*.csr
 /misc/*.srl
 /captchatest
+/segcha/server/config.json
+/segcha/server/segchaserver
 /private
 *.exe
 /jungletv

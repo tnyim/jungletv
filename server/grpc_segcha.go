@@ -7,8 +7,8 @@ import (
 
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
-	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/server/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,7 +17,7 @@ import (
 var segchaChallengeSteps = 4
 var segchaWrongAnswersTolerance = 1
 var segchaPremadeQueueSize = 150
-var latestGeneratedChallenge *captcha.Challenge
+var latestGeneratedChallenge *segcha.Challenge
 
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
 	user := auth.UserClaimsFromContext(ctx)
@@ -46,7 +46,7 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 			func() {
 				s.captchaGenerationMutex.Lock()
 				defer s.captchaGenerationMutex.Unlock()
-				challenge, err = captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+				challenge, err = segcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
 				latestGeneratedChallenge = challenge
 				challengeID = challenge.ID()
 			}()
@@ -54,6 +54,8 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 				return nil, stacktrace.Propagate(err, "")
 			}
 			s.log.Println("generated on-demand segcha challenge")
+		} else {
+			s.log.Println("re-using previously generated segcha challenge")
 		}
 	}
 

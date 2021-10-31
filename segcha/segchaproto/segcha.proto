@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "github.com/tnyim/jungletv/segcha/segchaproto";
+
+package segcha;
+
+service Segcha {
+    rpc GenerateChallenge (GenerateChallengeRequest) returns (Challenge) {}
+}
+
+message GenerateChallengeRequest {
+    uint32 num_steps = 1;
+}
+
+message Challenge {
+    string id = 1;
+    repeated bytes pictures = 2;
+    repeated uint32 answers = 3;
+}

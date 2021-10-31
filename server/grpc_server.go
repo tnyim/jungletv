@@ -22,8 +22,9 @@ import (
 	"github.com/rickb777/date/period"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
-	"github.com/tnyim/jungletv/captcha"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/segcha"
+	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -53,11 +54,12 @@ type grpcServer struct {
 	userSerializer                 APIUserSerializer
 	websiteURL                     string
 
-	captchaImageDB         *captcha.ImageDatabase
+	captchaImageDB         *segcha.ImageDatabase
 	captchaFontPath        string
 	captchaAnswers         *cache.Cache
-	captchaChallengesQueue chan *captcha.Challenge
+	captchaChallengesQueue chan *segcha.Challenge
 	captchaGenerationMutex sync.Mutex
+	segchaClient           segchaproto.SegchaClient
 
 	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
 	autoEnqueueVideos        bool
@@ -89,9 +91,11 @@ type grpcServer struct {
 
 // NewServer returns a new JungleTVServer
 func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet,
-	youtubeAPIkey string, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress string,
-	ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string, hCaptchaSecret string, modLogWebhook string,
-	captchaImageDB *captcha.ImageDatabase, captchaFontPath, raffleSecretKey, websiteURL string) (*grpcServer, map[string]func(w http.ResponseWriter, r *http.Request), error) {
+	youtubeAPIkey string, jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, queueFile, bansFile,
+	autoEnqueueVideoListFile, repAddress string, ticketCheckPeriod time.Duration, ipCheckEndpoint, ipCheckToken string,
+	hCaptchaSecret string, modLogWebhook string, segchaClient segchaproto.SegchaClient,
+	captchaImageDB *segcha.ImageDatabase, captchaFontPath, raffleSecretKey, websiteURL string,
+) (*grpcServer, map[string]func(w http.ResponseWriter, r *http.Request), error) {
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardInfo", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Withdraw", auth.UserPermissionLevel)
@@ -157,7 +161,8 @@ func NewServer(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 		captchaAnswers:         cache.New(1*time.Hour, 5*time.Minute),
 		captchaImageDB:         captchaImageDB,
 		captchaFontPath:        captchaFontPath,
-		captchaChallengesQueue: make(chan *captcha.Challenge, segchaPremadeQueueSize),
+		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),
+		segchaClient:           segchaClient,
 
 		announcementsUpdated: event.New(),
 	}
@@ -398,14 +403,24 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		}
 	}(ctx)
 
-	// challenge creation is unfortunately slower than it should, so we have this as a temporary solution
-	// we generate challenges and place them in a queue (100 entries) to be used later
+	// challenge creation is unfortunately slower than it should, so we attempt to use a remote worker
+	// to cache challenges in a queue so they can be used later
 	go func(ctx context.Context) {
-		makeChallenge := func() *captcha.Challenge {
+		makeChallenge := func() *segcha.Challenge {
 			for {
-				challenge, err := captcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
+				if s.segchaClient != nil {
+					ctxT, _ := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+					challenge, err := segcha.NewChallengeUsingClient(ctxT, segchaChallengeSteps, s.segchaClient)
+					if err != nil {
+						s.log.Printf("remote segcha challenge creation failed: %v", err)
+						// fall through to local generation
+					} else {
+						return challenge
+					}
+				}
+				challenge, err := segcha.NewChallenge(segchaChallengeSteps, s.captchaImageDB, s.captchaFontPath)
 				if err != nil {
-					errChan <- stacktrace.Propagate(err, "failed to create segcha challenge")
+					errChan <- stacktrace.Propagate(err, "failed to locally create segcha challenge")
 				} else {
 					return challenge
 				}
@@ -417,14 +432,15 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case <-t.C:
-				if len(s.captchaChallengesQueue) < segchaPremadeQueueSize {
+				inCache := len(s.captchaChallengesQueue)
+				if inCache < segchaPremadeQueueSize {
 					func() {
 						s.captchaGenerationMutex.Lock()
 						defer s.captchaGenerationMutex.Unlock()
 						c := makeChallenge()
 						s.captchaChallengesQueue <- c
 						latestGeneratedChallenge = c
-						s.log.Println("generated cached segcha challenge")
+						s.log.Printf("generated cached segcha challenge (%d in cache)", inCache+1)
 					}()
 				}
 			case <-ctx.Done():
