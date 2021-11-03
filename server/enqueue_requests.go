@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/DisgoOrg/disgohook/api"
+	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
@@ -111,7 +112,14 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		}
 		balance.Add(balance, pending)
 
-		if balance.Cmp(big.NewInt(0)) == 0 {
+		// obtain the unconfirmed balance so this failsafe works properly when the network is super slow at confirming blocks
+		accountInfo, err := e.wallet.RPC.AccountInfo(paymentAccount.Address())
+		if err != nil {
+			// an error most likely means unopened account, just continue
+			accountInfo.Balance = &rpc.RawAmount{Int: *big.NewInt(0)}
+		}
+
+		if balance.Cmp(big.NewInt(0)) == 0 && accountInfo.Balance.Cmp(big.NewInt(0)) == 0 {
 			break
 		}
 		e.modLogWebhook.SendContent(fmt.Sprintf(

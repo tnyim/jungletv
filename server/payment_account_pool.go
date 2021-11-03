@@ -18,6 +18,7 @@ func NewPaymentAccountPool(w *wallet.Wallet, repAddress string) *PaymentAccountP
 	return &PaymentAccountPool{
 		availableAccounts: make(map[*wallet.Account]struct{}),
 		wallet:            w,
+		repAddress:        repAddress,
 	}
 }
 
@@ -34,7 +35,10 @@ func (p *PaymentAccountPool) RequestAccount() (*wallet.Account, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	newAccount.SetRep(p.repAddress)
+	err = newAccount.SetRep(p.repAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	return newAccount, nil
 }
 
