@@ -62,6 +62,7 @@
             <p>Loading spectator information...</p>
         {:then spectator}
             <p>Number of connections: {spectator.getNumConnections()}</p>
+            <p>Number of spectators with same IP address: {spectator.getNumSpectatorsWithSameRemoteAddress()}</p>
             <p>Watching since: {formatTimestamp(spectator.getWatchingSince())}</p>
             <p>Using VPN: {spectator.getRemoteAddressCanReceiveRewards() ? "no" : "yes"}</p>
             {#if spectator.getLegitimate()}

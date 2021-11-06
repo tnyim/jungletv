@@ -640,12 +640,13 @@ message SpectatorInfoRequest {
 message Spectator {
     string rewards_address = 1;
     uint32 num_connections = 2;
-    google.protobuf.Timestamp watching_since = 3;
-    bool remote_address_can_receive_rewards = 4;
-    bool legitimate = 5;
-    optional google.protobuf.Timestamp not_legitimate_since = 6;
-    optional google.protobuf.Timestamp stopped_watching_at = 7;
-    optional ActivityChallenge activity_challenge = 8;
+    uint32 num_spectators_with_same_remote_address = 3;
+    google.protobuf.Timestamp watching_since = 4;
+    bool remote_address_can_receive_rewards = 5;
+    bool legitimate = 6;
+    optional google.protobuf.Timestamp not_legitimate_since = 7;
+    optional google.protobuf.Timestamp stopped_watching_at = 8;
+    optional ActivityChallenge activity_challenge = 9;
 }
 
 message ResetSpectatorStatusRequest {

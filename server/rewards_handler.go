@@ -60,6 +60,7 @@ type Spectator interface {
 	CurrentActivityChallenge() *activityChallenge
 	Legitimate() (bool, time.Time)
 	RemoteAddressCanReceiveRewards(*IPAddressReputationChecker) bool
+	CountOtherConnectedSpectatorsOnSameRemoteAddress(*RewardsHandler) int
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
 	ConnectionCount() int
@@ -130,6 +131,14 @@ func (s *spectator) Legitimate() (bool, time.Time) {
 
 func (s *spectator) RemoteAddressCanReceiveRewards(checker *IPAddressReputationChecker) bool {
 	return checker.CanReceiveRewards(s.remoteAddress)
+}
+
+func (s *spectator) CountOtherConnectedSpectatorsOnSameRemoteAddress(r *RewardsHandler) int {
+	c := r.CountConnectedSpectatorsOnRemoteAddress(s.remoteAddress)
+	if c == 0 {
+		return c
+	}
+	return c - 1
 }
 
 func (s *spectator) WatchingSince() time.Time {
@@ -438,4 +447,24 @@ func (r *RewardsHandler) GetSpectator(address string) (Spectator, bool) {
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	return spectator, ok
+}
+
+func (r *RewardsHandler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress string) int {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	count := 0
+	uniquifiedNeedle := getUniquifiedIP(remoteAddress)
+	for k, spectators := range r.spectatorsByRemoteAddress {
+		uniquifiedIP := getUniquifiedIP(k)
+		if uniquifiedNeedle == uniquifiedIP {
+			for _, spectator := range spectators {
+				if spectator.connectionCount > 0 {
+					count++
+				}
+			}
+		}
+	}
+
+	return count
 }

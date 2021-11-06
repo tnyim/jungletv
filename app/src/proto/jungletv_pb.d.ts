@@ -2879,6 +2879,9 @@ export class Spectator extends jspb.Message {
   getNumConnections(): number;
   setNumConnections(value: number): void;
 
+  getNumSpectatorsWithSameRemoteAddress(): number;
+  setNumSpectatorsWithSameRemoteAddress(value: number): void;
+
   hasWatchingSince(): boolean;
   clearWatchingSince(): void;
   getWatchingSince(): google_protobuf_timestamp_pb.Timestamp | undefined;
@@ -2919,6 +2922,7 @@ export namespace Spectator {
   export type AsObject = {
     rewardsAddress: string,
     numConnections: number,
+    numSpectatorsWithSameRemoteAddress: number,
     watchingSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     remoteAddressCanReceiveRewards: boolean,
     legitimate: boolean,

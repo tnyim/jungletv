@@ -301,11 +301,12 @@ func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRe
 	activityChallenge := spectator.CurrentActivityChallenge()
 
 	ps := &proto.Spectator{
-		RewardsAddress:                 r.RewardsAddress,
-		NumConnections:                 uint32(spectator.ConnectionCount()),
-		WatchingSince:                  timestamppb.New(spectator.WatchingSince()),
-		RemoteAddressCanReceiveRewards: spectator.RemoteAddressCanReceiveRewards(s.ipReputationChecker),
-		Legitimate:                     legitimate,
+		RewardsAddress:                     r.RewardsAddress,
+		NumConnections:                     uint32(spectator.ConnectionCount()),
+		NumSpectatorsWithSameRemoteAddress: uint32(spectator.CountOtherConnectedSpectatorsOnSameRemoteAddress(s.rewardsHandler)),
+		WatchingSince:                      timestamppb.New(spectator.WatchingSince()),
+		RemoteAddressCanReceiveRewards:     spectator.RemoteAddressCanReceiveRewards(s.ipReputationChecker),
+		Legitimate:                         legitimate,
 	}
 	if !legitimate {
 		ps.NotLegitimateSince = timestamppb.New(notLegitimateSince)
