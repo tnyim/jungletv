@@ -373,6 +373,24 @@ type JungleTVTriggerAnnouncementsNotification = {
   readonly responseType: typeof jungletv_pb.TriggerAnnouncementsNotificationResponse;
 };
 
+type JungleTVSpectatorInfo = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SpectatorInfoRequest;
+  readonly responseType: typeof jungletv_pb.Spectator;
+};
+
+type JungleTVResetSpectatorStatus = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ResetSpectatorStatusRequest;
+  readonly responseType: typeof jungletv_pb.ResetSpectatorStatusResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -416,6 +434,8 @@ export class JungleTV {
   static readonly CompleteRaffle: JungleTVCompleteRaffle;
   static readonly RedrawRaffle: JungleTVRedrawRaffle;
   static readonly TriggerAnnouncementsNotification: JungleTVTriggerAnnouncementsNotification;
+  static readonly SpectatorInfo: JungleTVSpectatorInfo;
+  static readonly ResetSpectatorStatus: JungleTVResetSpectatorStatus;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -770,6 +790,24 @@ export class JungleTVClient {
   triggerAnnouncementsNotification(
     requestMessage: jungletv_pb.TriggerAnnouncementsNotificationRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.TriggerAnnouncementsNotificationResponse|null) => void
+  ): UnaryResponse;
+  spectatorInfo(
+    requestMessage: jungletv_pb.SpectatorInfoRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.Spectator|null) => void
+  ): UnaryResponse;
+  spectatorInfo(
+    requestMessage: jungletv_pb.SpectatorInfoRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.Spectator|null) => void
+  ): UnaryResponse;
+  resetSpectatorStatus(
+    requestMessage: jungletv_pb.ResetSpectatorStatusRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ResetSpectatorStatusResponse|null) => void
+  ): UnaryResponse;
+  resetSpectatorStatus(
+    requestMessage: jungletv_pb.ResetSpectatorStatusRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ResetSpectatorStatusResponse|null) => void
   ): UnaryResponse;
 }
 

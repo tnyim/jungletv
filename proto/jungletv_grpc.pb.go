@@ -59,6 +59,8 @@ type JungleTVClient interface {
 	CompleteRaffle(ctx context.Context, in *CompleteRaffleRequest, opts ...grpc.CallOption) (*CompleteRaffleResponse, error)
 	RedrawRaffle(ctx context.Context, in *RedrawRaffleRequest, opts ...grpc.CallOption) (*RedrawRaffleResponse, error)
 	TriggerAnnouncementsNotification(ctx context.Context, in *TriggerAnnouncementsNotificationRequest, opts ...grpc.CallOption) (*TriggerAnnouncementsNotificationResponse, error)
+	SpectatorInfo(ctx context.Context, in *SpectatorInfoRequest, opts ...grpc.CallOption) (*Spectator, error)
+	ResetSpectatorStatus(ctx context.Context, in *ResetSpectatorStatusRequest, opts ...grpc.CallOption) (*ResetSpectatorStatusResponse, error)
 }
 
 type jungleTVClient struct {
@@ -576,6 +578,24 @@ func (c *jungleTVClient) TriggerAnnouncementsNotification(ctx context.Context, i
 	return out, nil
 }
 
+func (c *jungleTVClient) SpectatorInfo(ctx context.Context, in *SpectatorInfoRequest, opts ...grpc.CallOption) (*Spectator, error) {
+	out := new(Spectator)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SpectatorInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpectatorStatusRequest, opts ...grpc.CallOption) (*ResetSpectatorStatusResponse, error) {
+	out := new(ResetSpectatorStatusResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ResetSpectatorStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -622,6 +642,8 @@ type JungleTVServer interface {
 	CompleteRaffle(context.Context, *CompleteRaffleRequest) (*CompleteRaffleResponse, error)
 	RedrawRaffle(context.Context, *RedrawRaffleRequest) (*RedrawRaffleResponse, error)
 	TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error)
+	SpectatorInfo(context.Context, *SpectatorInfoRequest) (*Spectator, error)
+	ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -751,6 +773,12 @@ func (UnimplementedJungleTVServer) RedrawRaffle(context.Context, *RedrawRaffleRe
 }
 func (UnimplementedJungleTVServer) TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TriggerAnnouncementsNotification not implemented")
+}
+func (UnimplementedJungleTVServer) SpectatorInfo(context.Context, *SpectatorInfoRequest) (*Spectator, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SpectatorInfo not implemented")
+}
+func (UnimplementedJungleTVServer) ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetSpectatorStatus not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1521,6 +1549,42 @@ func _JungleTV_TriggerAnnouncementsNotification_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SpectatorInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpectatorInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SpectatorInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SpectatorInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SpectatorInfo(ctx, req.(*SpectatorInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ResetSpectatorStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetSpectatorStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ResetSpectatorStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ResetSpectatorStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ResetSpectatorStatus(ctx, req.(*ResetSpectatorStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1664,6 +1728,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TriggerAnnouncementsNotification",
 			Handler:    _JungleTV_TriggerAnnouncementsNotification_Handler,
+		},
+		{
+			MethodName: "SpectatorInfo",
+			Handler:    _JungleTV_SpectatorInfo_Handler,
+		},
+		{
+			MethodName: "ResetSpectatorStatus",
+			Handler:    _JungleTV_ResetSpectatorStatus_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

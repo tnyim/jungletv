@@ -379,6 +379,24 @@ JungleTV.TriggerAnnouncementsNotification = {
   responseType: jungletv_pb.TriggerAnnouncementsNotificationResponse
 };
 
+JungleTV.SpectatorInfo = {
+  methodName: "SpectatorInfo",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SpectatorInfoRequest,
+  responseType: jungletv_pb.Spectator
+};
+
+JungleTV.ResetSpectatorStatus = {
+  methodName: "ResetSpectatorStatus",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.ResetSpectatorStatusRequest,
+  responseType: jungletv_pb.ResetSpectatorStatusResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -1679,6 +1697,68 @@ JungleTVClient.prototype.triggerAnnouncementsNotification = function triggerAnno
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.TriggerAnnouncementsNotification, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.spectatorInfo = function spectatorInfo(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SpectatorInfo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.resetSpectatorStatus = function resetSpectatorStatus(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ResetSpectatorStatus, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

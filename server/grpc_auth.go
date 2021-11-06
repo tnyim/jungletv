@@ -32,8 +32,8 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	}
 
 	// validate reward address
-	_, err = util.AddressToPubkey(r.RewardAddress)
-	if err != nil || r.RewardAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
+	_, err = util.AddressToPubkey(r.RewardsAddress)
+	if err != nil || r.RewardsAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
 		return status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}
 
@@ -42,9 +42,9 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	expiry := time.Now().Add(180 * 24 * time.Hour)
 	if user != nil && UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
 		// keep permissions of authenticated user
-		jwtToken, err = s.jwtManager.Generate(r.RewardAddress, user.PermLevel, user.Username, expiry)
+		jwtToken, err = s.jwtManager.Generate(r.RewardsAddress, user.PermLevel, user.Username, expiry)
 	} else {
-		jwtToken, err = s.jwtManager.Generate(r.RewardAddress, auth.UserPermissionLevel, "", expiry)
+		jwtToken, err = s.jwtManager.Generate(r.RewardsAddress, auth.UserPermissionLevel, "", expiry)
 	}
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -54,7 +54,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		accountIndex:  uint32(rand.Int31()),
 		remoteAddress: remoteAddress,
 	}
-	procIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardAddress)
+	procIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardsAddress)
 	if hadExistingProcess {
 		p := procIface.(*addressVerificationProcess)
 		if p.remoteAddress == remoteAddress {
@@ -71,11 +71,11 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 
 	if !hadExistingProcess {
 		expiration = time.Now().Add(5 * time.Minute)
-		s.verificationProcesses.Set(r.RewardAddress, process, 5*time.Minute)
+		s.verificationProcesses.Set(r.RewardsAddress, process, 5*time.Minute)
 	}
 
 	accountOpened := true
-	_, err = s.wallet.RPC.AccountRepresentative(r.RewardAddress)
+	_, err = s.wallet.RPC.AccountRepresentative(r.RewardsAddress)
 	if err != nil {
 		if err.Error() == "Account not found" {
 			accountOpened = false
@@ -129,7 +129,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 			}
 			return nil
 		}
-		representative, err := s.wallet.RPC.AccountRepresentative(r.RewardAddress)
+		representative, err := s.wallet.RPC.AccountRepresentative(r.RewardsAddress)
 		if err != nil {
 			if err.Error() == "Account not found" {
 				err = sendAccountUnopened()

@@ -30,8 +30,8 @@ export namespace PaginationParameters {
 }
 
 export class SignInRequest extends jspb.Message {
-  getRewardAddress(): string;
-  setRewardAddress(value: string): void;
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SignInRequest.AsObject;
@@ -45,7 +45,7 @@ export class SignInRequest extends jspb.Message {
 
 export namespace SignInRequest {
   export type AsObject = {
-    rewardAddress: string,
+    rewardsAddress: string,
   }
 }
 
@@ -592,6 +592,11 @@ export class ActivityChallenge extends jspb.Message {
   getType(): string;
   setType(value: string): void;
 
+  hasChallengedAt(): boolean;
+  clearChallengedAt(): void;
+  getChallengedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setChallengedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ActivityChallenge.AsObject;
   static toObject(includeInstance: boolean, msg: ActivityChallenge): ActivityChallenge.AsObject;
@@ -606,6 +611,7 @@ export namespace ActivityChallenge {
   export type AsObject = {
     id: string,
     type: string,
+    challengedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 
@@ -850,8 +856,8 @@ export namespace RewardInfoRequest {
 }
 
 export class RewardInfoResponse extends jspb.Message {
-  getRewardAddress(): string;
-  setRewardAddress(value: string): void;
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
 
   getRewardBalance(): string;
   setRewardBalance(value: string): void;
@@ -884,7 +890,7 @@ export class RewardInfoResponse extends jspb.Message {
 
 export namespace RewardInfoResponse {
   export type AsObject = {
-    rewardAddress: string,
+    rewardsAddress: string,
     rewardBalance: string,
     withdrawalPending: boolean,
     badRepresentative: boolean,
@@ -2842,6 +2848,118 @@ export class TriggerAnnouncementsNotificationResponse extends jspb.Message {
 }
 
 export namespace TriggerAnnouncementsNotificationResponse {
+  export type AsObject = {
+  }
+}
+
+export class SpectatorInfoRequest extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SpectatorInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SpectatorInfoRequest): SpectatorInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SpectatorInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SpectatorInfoRequest;
+  static deserializeBinaryFromReader(message: SpectatorInfoRequest, reader: jspb.BinaryReader): SpectatorInfoRequest;
+}
+
+export namespace SpectatorInfoRequest {
+  export type AsObject = {
+    rewardsAddress: string,
+  }
+}
+
+export class Spectator extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  getNumConnections(): number;
+  setNumConnections(value: number): void;
+
+  hasWatchingSince(): boolean;
+  clearWatchingSince(): void;
+  getWatchingSince(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setWatchingSince(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getRemoteAddressCanReceiveRewards(): boolean;
+  setRemoteAddressCanReceiveRewards(value: boolean): void;
+
+  getLegitimate(): boolean;
+  setLegitimate(value: boolean): void;
+
+  hasNotLegitimateSince(): boolean;
+  clearNotLegitimateSince(): void;
+  getNotLegitimateSince(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setNotLegitimateSince(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasStoppedWatchingAt(): boolean;
+  clearStoppedWatchingAt(): void;
+  getStoppedWatchingAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setStoppedWatchingAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasActivityChallenge(): boolean;
+  clearActivityChallenge(): void;
+  getActivityChallenge(): ActivityChallenge | undefined;
+  setActivityChallenge(value?: ActivityChallenge): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Spectator.AsObject;
+  static toObject(includeInstance: boolean, msg: Spectator): Spectator.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Spectator, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Spectator;
+  static deserializeBinaryFromReader(message: Spectator, reader: jspb.BinaryReader): Spectator;
+}
+
+export namespace Spectator {
+  export type AsObject = {
+    rewardsAddress: string,
+    numConnections: number,
+    watchingSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    remoteAddressCanReceiveRewards: boolean,
+    legitimate: boolean,
+    notLegitimateSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    stoppedWatchingAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    activityChallenge?: ActivityChallenge.AsObject,
+  }
+}
+
+export class ResetSpectatorStatusRequest extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ResetSpectatorStatusRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ResetSpectatorStatusRequest): ResetSpectatorStatusRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ResetSpectatorStatusRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ResetSpectatorStatusRequest;
+  static deserializeBinaryFromReader(message: ResetSpectatorStatusRequest, reader: jspb.BinaryReader): ResetSpectatorStatusRequest;
+}
+
+export namespace ResetSpectatorStatusRequest {
+  export type AsObject = {
+    rewardsAddress: string,
+  }
+}
+
+export class ResetSpectatorStatusResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ResetSpectatorStatusResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ResetSpectatorStatusResponse): ResetSpectatorStatusResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ResetSpectatorStatusResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ResetSpectatorStatusResponse;
+  static deserializeBinaryFromReader(message: ResetSpectatorStatusResponse, reader: jspb.BinaryReader): ResetSpectatorStatusResponse;
+}
+
+export namespace ResetSpectatorStatusResponse {
   export type AsObject = {
   }
 }

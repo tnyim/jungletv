@@ -207,7 +207,10 @@ func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
-	spectator := r.spectatorsByRewardAddress[address]
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if !ok {
+		return
+	}
 	spectator.legitimate = false
 	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
 }
@@ -221,4 +224,18 @@ func (r *RewardsHandler) SpectatorHasActivityChallenge(address string, challenge
 		return false
 	}
 	return spectator.activityChallenge.Type == challengeType
+}
+
+func (r *RewardsHandler) ResetAddressLegitimacyStatus(ctx context.Context, address string) error {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if !ok {
+		return stacktrace.NewError("spectator not found")
+	}
+	spectator.legitimate = true
+	spectator.noToleranceOnNextChallenge = false
+	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "legitimacy status reset")
+	return nil
 }

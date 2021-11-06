@@ -17,7 +17,7 @@
         try {
             let rewardInfo = await apiClient.rewardInfo();
 
-            rewardsAddress = rewardInfo.getRewardAddress();
+            rewardsAddress = rewardInfo.getRewardsAddress();
             rewardsBalance = rewardInfo.getRewardBalance();
             rewardAddress.update((_) => rewardsAddress);
             rewardBalance.update((_) => rewardsBalance);

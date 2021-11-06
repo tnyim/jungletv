@@ -32,7 +32,7 @@
         // this gets rid of the "switch representatives" message if the user really completed this step
         let rewardInfo = await apiClient.rewardInfo();
 
-        rewardAddress.update((_) => rewardInfo.getRewardAddress());
+        rewardAddress.update((_) => rewardInfo.getRewardsAddress());
         rewardBalance.update((_) => rewardInfo.getRewardBalance());
         badRepresentative.update((_) => rewardInfo.getBadRepresentative());
     });

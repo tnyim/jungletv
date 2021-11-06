@@ -51,6 +51,8 @@ service JungleTV {
     rpc CompleteRaffle(CompleteRaffleRequest) returns (CompleteRaffleResponse) {}
     rpc RedrawRaffle(RedrawRaffleRequest) returns (RedrawRaffleResponse) {}
     rpc TriggerAnnouncementsNotification(TriggerAnnouncementsNotificationRequest) returns (TriggerAnnouncementsNotificationResponse) {}
+    rpc SpectatorInfo(SpectatorInfoRequest) returns (Spectator) {}
+    rpc ResetSpectatorStatus(ResetSpectatorStatusRequest) returns (ResetSpectatorStatusResponse) {}
 }
 
 message PaginationParameters {
@@ -59,7 +61,7 @@ message PaginationParameters {
 }
 
 message SignInRequest {
-    string reward_address = 1;
+    string rewards_address = 1;
 }
 
 message SignInProgress {
@@ -173,6 +175,7 @@ message MediaConsumptionCheckpoint {
 message ActivityChallenge {
     string id = 1;
     string type = 2;
+    google.protobuf.Timestamp challenged_at = 3;
 }
 
 message MonitorQueueRequest {}
@@ -240,7 +243,7 @@ message User {
 message RewardInfoRequest {}
 
 message RewardInfoResponse {
-    string reward_address = 1;
+    string rewards_address = 1;
     string reward_balance = 2;
     bool withdrawal_pending = 3;
     bool bad_representative = 4;
@@ -629,3 +632,24 @@ message OngoingRaffleInfo {
 message TriggerAnnouncementsNotificationRequest {}
 
 message TriggerAnnouncementsNotificationResponse {}
+
+message SpectatorInfoRequest {
+    string rewards_address = 1;
+}
+
+message Spectator {
+    string rewards_address = 1;
+    uint32 num_connections = 2;
+    google.protobuf.Timestamp watching_since = 3;
+    bool remote_address_can_receive_rewards = 4;
+    bool legitimate = 5;
+    optional google.protobuf.Timestamp not_legitimate_since = 6;
+    optional google.protobuf.Timestamp stopped_watching_at = 7;
+    optional ActivityChallenge activity_challenge = 8;
+}
+
+message ResetSpectatorStatusRequest {
+    string rewards_address = 1;
+}
+
+message ResetSpectatorStatusResponse {}

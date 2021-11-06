@@ -43,7 +43,7 @@
 	onMount(async () => {
 		try {
 			let rewardInfo = await apiClient.rewardInfo();
-			rewardAddress.update((_) => rewardInfo.getRewardAddress());
+			rewardAddress.update((_) => rewardInfo.getRewardsAddress());
 			rewardBalance.update((_) => rewardInfo.getRewardBalance());
 			badRepresentative.update((_) => rewardInfo.getBadRepresentative());
 		} catch (ex) {

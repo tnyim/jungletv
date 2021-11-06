@@ -17,6 +17,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -57,6 +58,11 @@ type Spectator interface {
 	OnChatMentioned() *event.Event
 	OnActivityChallenge() *event.Event
 	CurrentActivityChallenge() *activityChallenge
+	Legitimate() (bool, time.Time)
+	RemoteAddressCanReceiveRewards(*IPAddressReputationChecker) bool
+	WatchingSince() time.Time
+	StoppedWatching() (bool, time.Time)
+	ConnectionCount() int
 }
 
 type spectator struct {
@@ -92,8 +98,9 @@ type activityChallenge struct {
 
 func (a *activityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	return &proto.ActivityChallenge{
-		Id:   a.ID,
-		Type: a.Type,
+		Id:           a.ID,
+		Type:         a.Type,
+		ChallengedAt: timestamppb.New(a.ChallengedAt),
 	}
 }
 
@@ -115,6 +122,26 @@ func (s *spectator) OnActivityChallenge() *event.Event {
 
 func (s *spectator) CurrentActivityChallenge() *activityChallenge {
 	return s.activityChallenge
+}
+
+func (s *spectator) Legitimate() (bool, time.Time) {
+	return s.legitimate, s.stoppedBeingLegitimate
+}
+
+func (s *spectator) RemoteAddressCanReceiveRewards(checker *IPAddressReputationChecker) bool {
+	return checker.CanReceiveRewards(s.remoteAddress)
+}
+
+func (s *spectator) WatchingSince() time.Time {
+	return s.startedWatching
+}
+
+func (s *spectator) StoppedWatching() (bool, time.Time) {
+	return !s.stoppedWatching.IsZero(), s.stoppedWatching
+}
+
+func (s *spectator) ConnectionCount() int {
+	return s.connectionCount
 }
 
 // NewRewardsHandler creates a new RewardsHandler
@@ -403,4 +430,12 @@ func (r *RewardsHandler) MarkAddressAsMentionedInChat(ctx context.Context, addre
 	if ok {
 		spectator.onChatMentioned.Notify()
 	}
+}
+
+func (r *RewardsHandler) GetSpectator(address string) (Spectator, bool) {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	return spectator, ok
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) ForciblyEnqueueTicket(ctx context.Context, r *proto.ForciblyEnqueueTicketRequest) (*proto.ForciblyEnqueueTicketResponse, error) {
@@ -287,4 +288,60 @@ func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSki
 	}
 
 	return &proto.SetSkipPriceMultiplierResponse{}, nil
+}
+
+func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRequest) (*proto.Spectator, error) {
+	spectator, ok := s.rewardsHandler.GetSpectator(r.RewardsAddress)
+	if !ok {
+		return nil, status.Error(codes.NotFound, "spectator not found")
+	}
+
+	legitimate, notLegitimateSince := spectator.Legitimate()
+	stoppedWatching, stoppedWatchingAt := spectator.StoppedWatching()
+	activityChallenge := spectator.CurrentActivityChallenge()
+
+	ps := &proto.Spectator{
+		RewardsAddress:                 r.RewardsAddress,
+		NumConnections:                 uint32(spectator.ConnectionCount()),
+		WatchingSince:                  timestamppb.New(spectator.WatchingSince()),
+		RemoteAddressCanReceiveRewards: spectator.RemoteAddressCanReceiveRewards(s.ipReputationChecker),
+		Legitimate:                     legitimate,
+	}
+	if !legitimate {
+		ps.NotLegitimateSince = timestamppb.New(notLegitimateSince)
+	}
+	if stoppedWatching {
+		ps.StoppedWatchingAt = timestamppb.New(stoppedWatchingAt)
+	}
+	if activityChallenge != nil {
+		ps.ActivityChallenge = activityChallenge.SerializeForAPI()
+	}
+	return ps, nil
+}
+
+func (s *grpcServer) ResetSpectatorStatus(ctx context.Context, r *proto.ResetSpectatorStatusRequest) (*proto.ResetSpectatorStatusResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.rewardsHandler.ResetAddressLegitimacyStatus(ctx, r.RewardsAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Spectator state of address %s reset by %s (remote address %s)", r.RewardsAddress, moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Spectator state of address %s reset by moderator: %s (%s)",
+				r.RewardsAddress,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+	return &proto.ResetSpectatorStatusResponse{}, nil
 }

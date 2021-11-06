@@ -121,7 +121,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 
 	response := &proto.RewardInfoResponse{
-		RewardAddress:     userClaims.RewardAddress,
+		RewardsAddress:    userClaims.RewardAddress,
 		RewardBalance:     NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
 		WithdrawalPending: pendingWithdrawal,
 		BadRepresentative: badRepresentative,
