@@ -27,8 +27,8 @@
         }
         let videoID = videoURL.replace("https://", "").replace("http://", "");
         videoID = videoID.replace("www.youtube.com/watch?v=", "");
-        videoID = videoID.replace("youtube.com/watch?v=", "");
         videoID = videoID.replace("m.youtube.com/watch?v=", "");
+        videoID = videoID.replace("youtube.com/watch?v=", "");
         videoID = videoID.replace("youtu.be/", "");
         videoID = videoID.replace("www.youtube.com/shorts/", "");
         videoID = videoID.replace("youtube.com/shorts/", "");
