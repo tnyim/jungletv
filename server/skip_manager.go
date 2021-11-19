@@ -33,7 +33,9 @@ type SkipManager struct {
 	cachedSkipBalance          Amount
 	cachedRainBalance          Amount
 	currentSkipThreshold       Amount
+	rainedByRequester          Amount
 	currentMediaID             *string
+	currentMediaRequester      *string
 	skippingEnabled            bool
 	startupNoSkipPeriodOver    bool
 	mediaStartNoSkipPeriodOver bool
@@ -65,6 +67,7 @@ func NewSkipManager(log *log.Logger,
 		cachedSkipBalance:              Amount{big.NewInt(0)},
 		cachedRainBalance:              Amount{big.NewInt(0)},
 		currentSkipThreshold:           Amount{big.NewInt(0)},
+		rainedByRequester:              Amount{big.NewInt(0)},
 		skippingEnabled:                true,
 		crowdfundedTransactionReceived: event.New(),
 	}
@@ -86,11 +89,19 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 			s.mediaStartNoSkipPeriodOver = false
 			if v[0] == nil {
 				s.currentMediaID = nil
+				s.currentMediaRequester = nil
 				mediaStartTimer.Reset(time.Duration(math.MaxInt64))
 			} else {
 				mediaStartTimer.Reset(10 * time.Second)
-				id := v[0].(MediaQueueEntry).QueueID()
+				entry := v[0].(MediaQueueEntry)
+				id := entry.QueueID()
 				s.currentMediaID = &id
+				if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
+					req := entry.RequestedBy().Address()
+					s.currentMediaRequester = &req
+				} else {
+					s.currentMediaRequester = nil
+				}
 				err := s.retroactivelyUpdateForMedia(ctx, id)
 				if err != nil {
 					return stacktrace.Propagate(err, "")
@@ -156,7 +167,7 @@ func (s *SkipManager) computeMediaEndTimer() *time.Timer {
 func (s *SkipManager) checkBalances(ctx context.Context) error {
 	s.accountMovementLock.Lock()
 	defer s.accountMovementLock.Unlock()
-	err := s.receiveAndRegisterPendings(ctx, s.skipAccount, types.CrowdfundedTransactionTypeSkip, s.currentMediaID)
+	_, err := s.receiveAndRegisterPendings(ctx, s.skipAccount, types.CrowdfundedTransactionTypeSkip, s.currentMediaID, s.currentMediaRequester)
 	if err != nil {
 		return stacktrace.Propagate(err, "failed to receive pendings in skip account")
 	}
@@ -179,10 +190,11 @@ func (s *SkipManager) checkBalances(ctx context.Context) error {
 	}
 	s.cachedSkipBalance = Amount{skipBalance}
 
-	err = s.receiveAndRegisterPendings(ctx, s.rainAccount, types.CrowdfundedTransactionTypeRain, s.currentMediaID)
+	rainedByRequester, err := s.receiveAndRegisterPendings(ctx, s.rainAccount, types.CrowdfundedTransactionTypeRain, s.currentMediaID, s.currentMediaRequester)
 	if err != nil {
 		return stacktrace.Propagate(err, "failed to receive pendings in rain account")
 	}
+	s.rainedByRequester.Add(s.rainedByRequester.Int, rainedByRequester.Int)
 
 	oldRainBalance := s.cachedRainBalance
 	rainBalance, _, err := s.rainAccount.Balance()
@@ -232,37 +244,39 @@ func (s *SkipManager) computeSkipStatus() proto.SkipStatus {
 }
 
 // EmptySkipAndRainAccounts empties the skipping and tipping accounts and returns the total balance that was contained in both
-func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia string) (skipTotal, rainTotal Amount, err error) {
+func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia string, mediaRequestedBy *string) (skipTotal, rainTotal, rainedByRequester Amount, err error) {
 	s.accountMovementLock.Lock()
 	defer s.accountMovementLock.Unlock()
 
-	skipTotal, err = s.sendFullBalanceToCollector(ctx, s.skipAccount, types.CrowdfundedTransactionTypeSkip, &forMedia)
+	skipTotal, _, err = s.sendFullBalanceToCollector(ctx, s.skipAccount, types.CrowdfundedTransactionTypeSkip, &forMedia, mediaRequestedBy)
 	if err != nil {
-		return Amount{}, Amount{}, stacktrace.Propagate(err, "failed to empty skip account")
+		return NewAmount(), NewAmount(), NewAmount(), stacktrace.Propagate(err, "failed to empty skip account")
 	}
 
-	rainTotal, err = s.sendFullBalanceToCollector(ctx, s.rainAccount, types.CrowdfundedTransactionTypeRain, &forMedia)
+	rainTotal, rainedByRequester, err = s.sendFullBalanceToCollector(ctx, s.rainAccount, types.CrowdfundedTransactionTypeRain, &forMedia, mediaRequestedBy)
 	if err != nil {
-		return Amount{}, Amount{}, stacktrace.Propagate(err, "failed to empty rain account")
+		return NewAmount(), NewAmount(), NewAmount(), stacktrace.Propagate(err, "failed to empty rain account")
 	}
+	totalRainedByRequester := Amount{big.NewInt(0).Add(rainedByRequester.Int, s.rainedByRequester.Int)}
+	s.rainedByRequester = NewAmount()
 
 	s.cachedSkipBalance = Amount{big.NewInt(0)}
 	s.cachedRainBalance = Amount{big.NewInt(0)}
 	s.statusUpdated.Notify(s.SkipAccountStatus(), s.RainAccountStatus())
 
-	return skipTotal, rainTotal, nil
+	return skipTotal, rainTotal, totalRainedByRequester, nil
 }
 
-func (s *SkipManager) sendFullBalanceToCollector(ctx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia *string) (Amount, error) {
-	err := s.receiveAndRegisterPendings(ctx, account, txType, forMedia)
+func (s *SkipManager) sendFullBalanceToCollector(ctx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia, mediaRequestedBy *string) (Amount, Amount, error) {
+	sentByRequester, err := s.receiveAndRegisterPendings(ctx, account, txType, forMedia, mediaRequestedBy)
 	if err != nil {
-		return Amount{}, stacktrace.Propagate(err, "failed to receive pendings in account")
+		return NewAmount(), NewAmount(), stacktrace.Propagate(err, "failed to receive pendings in account")
 	}
 
 	// we use AccountInfo instead of balance because we want the balance including unconfirmed blocks
 	info, err := s.rpc.AccountInfo(account.Address())
 	if err != nil {
-		return Amount{}, stacktrace.Propagate(err, "failed to get balance of account")
+		return NewAmount(), NewAmount(), stacktrace.Propagate(err, "failed to get balance of account")
 	}
 	balance := &info.Balance.Int
 
@@ -272,30 +286,31 @@ func (s *SkipManager) sendFullBalanceToCollector(ctx context.Context, account *w
 	if balance.Cmp(big.NewInt(0)) > 0 {
 		_, err = account.Send(s.collectorAccountAddress, balance)
 		if err != nil {
-			return Amount{}, stacktrace.Propagate(err, "failed to empty account")
+			return NewAmount(), NewAmount(), stacktrace.Propagate(err, "failed to empty account")
 		}
 	}
-	return totalBalance, nil
+	return totalBalance, sentByRequester, nil
 }
 
-func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia *string) error {
+func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia *string, mediaRequestedBy *string) (Amount, error) {
 	recvPendings, err := account.ReceiveAndReturnPendings(dustThreshold)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return NewAmount(), stacktrace.Propagate(err, "")
 	}
 
 	if len(recvPendings) == 0 {
-		return nil
+		return NewAmount(), nil
 	}
 
 	ctx, err := BeginTransaction(ctxCtx)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return NewAmount(), stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
 	transactions := []*types.CrowdfundedTransaction{}
 	now := time.Now()
+	fromMediaRequester := big.NewInt(0)
 	for hash, pending := range recvPendings {
 		tx := &types.CrowdfundedTransaction{
 			TxHash:          hash,
@@ -307,14 +322,17 @@ func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account
 		}
 		transactions = append(transactions, tx)
 		s.crowdfundedTransactionReceived.Notify(tx)
+		if mediaRequestedBy != nil && *mediaRequestedBy == pending.Source {
+			fromMediaRequester.Add(fromMediaRequester, &pending.Amount.Int)
+		}
 	}
 
 	err = types.InsertCrowdfundedTransactions(ctx, transactions)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return NewAmount(), stacktrace.Propagate(err, "")
 	}
 
-	return stacktrace.Propagate(ctx.Commit(), "")
+	return Amount{fromMediaRequester}, stacktrace.Propagate(ctx.Commit(), "")
 }
 
 // SkipAccountStatus returns the status of the skip account

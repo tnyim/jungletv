@@ -10,6 +10,10 @@ type Amount struct {
 	*big.Int
 }
 
+func NewAmount() Amount {
+	return Amount{big.NewInt(0)}
+}
+
 func NewAmountFromDecimal(d decimal.Decimal) Amount {
 	return Amount{d.BigInt()}
 }

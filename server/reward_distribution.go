@@ -26,8 +26,13 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	r.log.Printf("Rewarding users for \"%s\"", media.MediaInfo().Title())
 
 	mediaCostBudget := media.RequestCost()
+	var requestedBy *string
+	if media.RequestedBy() != nil && !media.RequestedBy().IsUnknown() {
+		address := media.RequestedBy().Address()
+		requestedBy = &address
+	}
 
-	skipBudget, rainBudget, err := r.skipManager.EmptySkipAndRainAccounts(ctx, media.QueueID())
+	skipBudget, rainBudget, rainedByRequester, err := r.skipManager.EmptySkipAndRainAccounts(ctx, media.QueueID(), requestedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -47,15 +52,16 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 			return stacktrace.Propagate(err, "")
 		}
 		if !banned {
-			// requester is eligible for receiving part of the rained amount
+			// requester is eligible for receiving part of the rained amount that was not added by themselves
 			// the crowd receives 80% of the rained amount, and the requester receives 20% (since they wouldn't receive anything otherwise)
-			tmp := Amount{big.NewInt(0).Set(rainBudget.Int)}
-			tmp.Mul(rainBudget.Int, big.NewInt(8000))
-			eightyPctOfRainBudget := Amount{tmp.Div(tmp.Int, big.NewInt(10000))}
-			requesterReward = Amount{big.NewInt(0).Sub(rainBudget.Int, eightyPctOfRainBudget.Int)}
+			totalRainMinusRequester := Amount{big.NewInt(0).Sub(rainBudget.Int, rainedByRequester.Int)}
+			// the requester receives 20% of the amount that wasn't rained by them
+			requesterReward = Amount{big.NewInt(0).Mul(totalRainMinusRequester.Int, big.NewInt(2000))}
+			requesterReward = Amount{big.NewInt(0).Div(requesterReward.Int, big.NewInt(10000))}
 			requesterReward.Div(requesterReward.Int, RewardRoundingFactor)
 			requesterReward.Mul(requesterReward.Int, RewardRoundingFactor)
-			rainBudget = eightyPctOfRainBudget
+
+			rainBudget.Sub(rainBudget.Int, requesterReward.Int)
 
 			if requesterReward.Cmp(big.NewInt(0)) > 0 {
 				err = r.rewardRequester(ctx, media.QueueID(), requesterSpectator, requesterReward)
