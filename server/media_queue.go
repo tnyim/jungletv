@@ -358,6 +358,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 			ID:          newMedia.QueueID(),
 			StartedAt:   time.Now(),
 			MediaLength: types.Duration(newMedia.MediaInfo().Length()),
+			MediaOffset: types.Duration(newMedia.MediaInfo().Offset()),
 			RequestedBy: newMedia.RequestedBy().Address(),
 			RequestCost: newMedia.RequestCost().Decimal(),
 			Unskippable: newMedia.Unskippable(),

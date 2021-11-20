@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS "played_media" (
     id VARCHAR(36) PRIMARY KEY,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL,
     ended_at TIMESTAMP WITH TIME ZONE,
+    media_offset INTERVAL NOT NULL,
     media_length INTERVAL NOT NULL,
     requested_by VARCHAR(64) NOT NULL,
     request_cost NUMERIC(39, 0) NOT NULL,

@@ -26,7 +26,7 @@
         <div class="grid grid-cols-3 gap-6">
             <div class="col-span-3">
                 <p>
-                    <span class="text-xl">New!</span> Earn prizes for enqueuing videos!
+                    <span class="text-lg">Earn prizes for enqueuing videos!</span>
                     <a use:link href="/documents/weeklyraffle">Learn more</a>
                 </p>
                 {#if ongoingRaffleInfo.hasUserTickets()}

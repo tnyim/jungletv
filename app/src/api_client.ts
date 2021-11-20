@@ -114,12 +114,18 @@ class APIClient {
         //this.authNeededCallback();
     }
 
-    async enqueueYouTubeVideo(id: string, unskippable: boolean): Promise<EnqueueMediaResponse> {
+    async enqueueYouTubeVideo(id: string, unskippable: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
-        let ytData = new EnqueueYouTubeVideoData()
+        let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(id);
-        request.setYoutubeVideoData(ytData)
+        if (typeof startOffset !== 'undefined') {
+            ytData.setStartOffset(startOffset);
+        }
+        if (typeof endOffset !== 'undefined') {
+            ytData.setEndOffset(endOffset);
+        }
+        request.setYoutubeVideoData(ytData);
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 

@@ -16,6 +16,7 @@ type PlayedMedia struct {
 	StartedAt         time.Time
 	EndedAt           sql.NullTime
 	MediaLength       Duration
+	MediaOffset       Duration
 	RequestedBy       string
 	RequestCost       decimal.Decimal
 	Unskippable       bool
@@ -66,9 +67,10 @@ func GetPlayedMediaRequestedBySince(node sqalx.Node, requestedBy string, since t
 	return m, stacktrace.Propagate(err, "")
 }
 
-// LastPlayTimeOfMedia returns the last time the specified media was played, or a zero time if it has never been played
-func LastPlayTimeOfMedia(node sqalx.Node, mediaType MediaType, ytVideoID string) (time.Time, error) {
-	s := sdb.Select()
+// LastPlaysOfMedia returns the times the specified media was played since the specified time
+func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, ytVideoID string) ([]*PlayedMedia, error) {
+	s := sdb.Select().
+		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since})
 	switch mediaType {
 	case MediaTypeYouTubeVideo:
 		s = s.Where(sq.And{
@@ -76,17 +78,11 @@ func LastPlayTimeOfMedia(node sqalx.Node, mediaType MediaType, ytVideoID string)
 			sq.Eq{"played_media.yt_video_id": ytVideoID},
 		})
 	default:
-		return time.Time{}, stacktrace.NewError("invalid media type")
+		return []*PlayedMedia{}, stacktrace.NewError("invalid media type")
 	}
 	s = s.OrderBy("started_at DESC").Limit(1)
 	m, _, err := getPlayedMediaWithSelect(node, s)
-	if err != nil {
-		return time.Time{}, stacktrace.Propagate(err, "")
-	}
-	if len(m) == 0 {
-		return time.Time{}, nil
-	}
-	return m[0].StartedAt, nil
+	return m, stacktrace.Propagate(err, "")
 }
 
 // Update updates or inserts the PlayedMedia

@@ -84,12 +84,20 @@
                     src={entry.getYoutubeVideoData().getThumbnailUrl()}
                     alt="{entry.getYoutubeVideoData().getTitle()} thumbnail"
                 />
+                {#if i == 0}
+                    <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center pr-2">
+                        <div style="width: auto;" class="flex flex-row place-content-center">
+                            <i class="fas fa-play text-5xl" />
+                        </div>
+                    </div>
+                {/if}
                 <div class="thumbnail-length-overlay text-white relative pr-2">
                     <div
                         class="absolute bottom-0.5 right-2.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
                         style="font-size: 0.7rem; line-height: 0.8rem;"
+                        title="{formatQueueEntryThumbnailDuration(entry.getLength())}"
                     >
-                        {formatQueueEntryThumbnailDuration(entry.getLength())}
+                        {formatQueueEntryThumbnailDuration(entry.getLength(), entry.getOffset())}
                     </div>
                     {#if entry.getYoutubeVideoData().getLiveBroadcast()}
                         <div
@@ -100,13 +108,6 @@
                         </div>
                     {/if}
                 </div>
-                {#if i == 0}
-                    <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center pr-2">
-                        <div style="width: auto;" class="flex flex-row place-content-center">
-                            <i class="fas fa-play text-5xl" />
-                        </div>
-                    </div>
-                {/if}
             </div>
             <div class="flex flex-col flex-grow overflow-hidden">
                 <p class="queue-entry-title break-words">

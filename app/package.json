@@ -17,6 +17,7 @@
     "@types/youtube-player": "^5.5.3",
     "autoprefixer": "^10.2.6",
     "postcss": "^8.3.5",
+    "postcss-load-config": "^3.1.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -25,6 +26,7 @@
     "svelte": "^3.0.0",
     "svelte-loading-spinners": "^0.1.7",
     "svelte-media": "^0.1.4",
+    "svelte-range-slider-pips": "^2.0.0",
     "svelte-toggle": "^3.0.0",
     "tailwindcss": "^2.2.4",
     "typescript": "^4.3.5"

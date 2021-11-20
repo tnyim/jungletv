@@ -186,6 +186,16 @@ export class EnqueueYouTubeVideoData extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
+  hasStartOffset(): boolean;
+  clearStartOffset(): void;
+  getStartOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setStartOffset(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasEndOffset(): boolean;
+  clearEndOffset(): void;
+  getEndOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setEndOffset(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EnqueueYouTubeVideoData.AsObject;
   static toObject(includeInstance: boolean, msg: EnqueueYouTubeVideoData): EnqueueYouTubeVideoData.AsObject;
@@ -199,6 +209,8 @@ export class EnqueueYouTubeVideoData extends jspb.Message {
 export namespace EnqueueYouTubeVideoData {
   export type AsObject = {
     id: string,
+    startOffset?: google_protobuf_duration_pb.Duration.AsObject,
+    endOffset?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 
@@ -715,6 +727,11 @@ export class QueueEntry extends jspb.Message {
   getLength(): google_protobuf_duration_pb.Duration | undefined;
   setLength(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasOffset(): boolean;
+  clearOffset(): void;
+  getOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setOffset(value?: google_protobuf_duration_pb.Duration): void;
+
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
 
@@ -741,13 +758,14 @@ export namespace QueueEntry {
     requestCost: string,
     requestedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     length?: google_protobuf_duration_pb.Duration.AsObject,
+    offset?: google_protobuf_duration_pb.Duration.AsObject,
     unskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 7,
+    YOUTUBE_VIDEO_DATA = 8,
   }
 }
 

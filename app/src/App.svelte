@@ -250,5 +250,27 @@
 				text-shadow: rgba(167, 139, 250, 1) 0px 0px 0px;
 			}
 		}
+
+		#videoRangeSlider .pip > .pipVal {
+			@apply text-gray-500 text-xs;
+		}
+		#videoRangeSlider .pip.first > .pipVal, #videoRangeSlider .pip.last > .pipVal {
+			@apply text-gray-500 text-base;
+		}
+		#videoRangeSlider .pip.selected > .pipVal {
+			@apply text-gray-700 dark:text-gray-300;
+		}
+
+		#videoRangeSlider {
+			--range-slider: theme('colors.gray.300');
+			--range-handle: theme('colors.purple.600');
+			--range-range: theme('colors.purple.400');
+			--range-handle-focus: theme('colors.purple.700');
+			--range-float: theme('colors.purple.600');
+		}
+
+		.dark #videoRangeSlider {
+			--range-slider: theme('colors.gray.600');
+		}
 	}
 </style>

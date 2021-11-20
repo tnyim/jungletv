@@ -2,13 +2,27 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onDestroy } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
+    import RangeSlider from "svelte-range-slider-pips";
+    import YouTube, { PlayerState } from "./YouTube.svelte";
+    import type { YouTubePlayer } from "youtube-player/dist/types";
+    import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
+    import { Duration } from "luxon";
 
     const dispatch = createEventDispatcher();
 
     let videoURL: string = "";
+    let videoID: string = "";
+    let videoIsBroadcast = false;
+    $: {
+        videoID = getVideoIDFromURL(videoURL);
+        videoRangeValuesFilled = false;
+        if (videoID.length == 11) {
+            instantiateTempPlayer = true;
+        }
+    }
     let unskippable: boolean = false;
     let failureReason: string = "";
 
@@ -20,11 +34,7 @@
         return true;
     }
 
-    async function submit() {
-        if (videoURL == "") {
-            failureReason = "A video URL must be provided";
-            return;
-        }
+    function getVideoIDFromURL(videoURL: string): string {
         let videoID = videoURL.replace("https://", "").replace("http://", "");
         videoID = videoID.replace("www.youtube.com/watch?v=", "");
         videoID = videoID.replace("m.youtube.com/watch?v=", "");
@@ -33,8 +43,39 @@
         videoID = videoID.replace("www.youtube.com/shorts/", "");
         videoID = videoID.replace("youtube.com/shorts/", "");
         videoID = videoID.split("&")[0];
+        videoID = videoID.trim();
+        return videoID;
+    }
 
-        let response = await apiClient.enqueueYouTubeVideo(videoID, unskippable);
+    async function submit() {
+        if (errorTimeout !== undefined) {
+            clearTimeout(errorTimeout);
+            errorTimeout = undefined;
+        }
+        if (videoID == "") {
+            failureReason = "A video URL must be provided";
+            return;
+        }
+
+        let reqPromise: Promise<EnqueueMediaResponse>;
+
+        if (enqueueRange && videoRangeValuesFilled) {
+            let startOffset = new PBDuration();
+            let endOffset = new PBDuration();
+            if (videoRange.length == 1) {
+                startOffset.setSeconds(0);
+                endOffset.setSeconds(videoRange[0]);
+            } else if (videoRange.length == 2) {
+                startOffset.setSeconds(videoRange[0]);
+                endOffset.setSeconds(videoRange[1]);
+            }
+
+            reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable, startOffset, endOffset);
+        } else {
+            reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable);
+        }
+
+        let response = await reqPromise;
         switch (response.getEnqueueResponseCase()) {
             case EnqueueMediaResponse.EnqueueResponseCase.TICKET:
                 failureReason = "";
@@ -48,6 +89,109 @@
 
     function cancel() {
         dispatch("userCanceled");
+    }
+
+    let enqueueRange = false;
+    let videoRangeValuesFilled = false;
+    let sliderRangeType: any = true;
+    let sliderMin = 0;
+    let videoRange = [0, 30];
+    let videoLengthInSeconds = 500;
+    let minRangeLength = 30;
+    const maxRangeLength = 35 * 60;
+    let pipStep = 60;
+    let tempPlayer: YouTubePlayer;
+    let instantiateTempPlayer = false;
+
+    $: {
+        if (minRangeLength > videoLengthInSeconds) {
+            minRangeLength = videoLengthInSeconds;
+        } else {
+            minRangeLength = 30;
+        }
+    }
+
+    $: {
+        if (videoRange.length == 2 && videoRange[1] - videoRange[0] < minRangeLength) {
+            videoRange[1] = Math.min(videoRange[0] + minRangeLength, videoLengthInSeconds);
+            if (videoRange[1] - videoRange[0] < minRangeLength) {
+                videoRange[0] = videoLengthInSeconds - minRangeLength;
+            }
+        }
+        if (videoRange.length == 2 && videoRange[1] - videoRange[0] > maxRangeLength) {
+            // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
+            let activeSlider = document.querySelector("#videoRangeSlider .rangeHandle.active");
+            if (activeSlider == null || activeSlider.getAttribute("data-handle") == "0") {
+                // user is adjusting the start slider, we adjust the end
+                videoRange[1] = Math.min(videoRange[0] + maxRangeLength, videoLengthInSeconds);
+            } else {
+                // user is adjusting the end slider, we adjust the start
+                videoRange[0] = Math.min(videoRange[1] - maxRangeLength, videoLengthInSeconds);
+            }
+        }
+    }
+
+    function sliderFormatter(v: number): string {
+        return Duration.fromMillis(v * 1000).toFormat(videoLengthInSeconds > 60 * 60 ? "hh:mm:ss" : "mm:ss");
+    }
+
+    let errorTimeout: number;
+
+    onDestroy(() => {
+        if (errorTimeout !== undefined) {
+            clearTimeout(errorTimeout);
+            errorTimeout = undefined;
+        }
+    });
+    async function tempPlayerStateChange(event: CustomEvent) {
+        if (event.detail.data == PlayerState.CUED) {
+            if (errorTimeout !== undefined) {
+                clearTimeout(errorTimeout);
+                errorTimeout = undefined;
+            }
+            videoLengthInSeconds = await tempPlayer.getDuration();
+            if (videoLengthInSeconds == 0) {
+                // this is either a broadcast or a video that does not exist
+                // we can only find out if we attempt to play it
+                tempPlayer.mute();
+                tempPlayer.playVideo();
+                // this should trigger a change to the playing state, so this callback will be called again and
+                // enter the conditional below for PlayerState.PLAYING
+                errorTimeout = setTimeout(() => {
+                    failureReason = "Video not found or not playable on JungleTV";
+                }, 10000);
+                return;
+            }
+            videoIsBroadcast = false;
+            sliderRangeType = true;
+            sliderMin = 0;
+            videoRange = [0, Math.min(videoLengthInSeconds, maxRangeLength)];
+
+            // convenience function: when pasting the URL for a video that is over 35 minutes long,
+            // immediately offer the option to adjust the length
+            enqueueRange = enqueueRange || videoLengthInSeconds > maxRangeLength;
+            pipStep = (Math.floor(videoLengthInSeconds / (10 * 60)) + 1) * 60;
+            videoRangeValuesFilled = true;
+        } else if (event.detail.data == PlayerState.PLAYING) {
+            if (errorTimeout !== undefined) {
+                clearTimeout(errorTimeout);
+            }
+            // turns out it is a broadcast
+            tempPlayer.pauseVideo();
+            // remove the player so it stops downloading data (apparently broadcasts keep buffering even if paused)
+            instantiateTempPlayer = false;
+            videoIsBroadcast = true;
+            videoLengthInSeconds = maxRangeLength;
+            sliderRangeType = "min";
+            sliderMin = 30;
+            videoRange = [10 * 60];
+
+            // convenience function: when pasting a broadcast URL, immediately offer the option to adjust the length
+            enqueueRange = true;
+
+            pipStep = (Math.floor(videoLengthInSeconds / (10 * 60)) + 1) * 60;
+            videoRangeValuesFilled = true;
+        }
     }
 </script>
 
@@ -91,8 +235,8 @@
             <ErrorMessage>{failureReason}</ErrorMessage>
         {/if}
         <p class="mt-2 text-sm text-gray-500">
-            Playlists are not supported. Videos must not be age-restricted and must not be longer than 35 minutes.<br />
-            Live broadcasts with more than 50 viewers are supported and will play for exactly 10 minutes.
+            Playlists are not supported. Videos must not be age-restricted.<br />
+            Live broadcasts with more than 50 viewers are supported.
         </p>
         <div class="mt-4 space-y-4">
             <div class="flex items-start">
@@ -115,6 +259,73 @@
                             This will increase the price to enqueue this video by 19 times.
                         </span>
                     </p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 space-y-4">
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input
+                        id="videorange"
+                        name="videorange"
+                        type="checkbox"
+                        bind:checked={enqueueRange}
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                    />
+                </div>
+                <div class="ml-3 text-sm">
+                    {#if videoIsBroadcast}
+                        <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
+                            Select for how long the live broadcast should play</label
+                        >
+                        <p class="text-gray-500">
+                            Broadcasts can play for up to {maxRangeLength / 60} minutes at a time and up to a total of 2
+                            hours in the last 4 hours. Prices will be relative to the length that plays.
+                        </p>
+                    {:else}
+                        <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
+                            Select a time range to play</label
+                        >
+                        <p class="text-gray-500">
+                            Enqueue just part of a longer video. Prices will be relative to the length that plays.
+                            {#if videoLengthInSeconds > maxRangeLength}
+                                <br />
+                                Videos longer than {maxRangeLength / 60} minutes must be enqueued in shorter non-overlapping
+                                segments, each up to {maxRangeLength / 60} minutes long.
+                            {/if}
+                        </p>
+                    {/if}
+                    {#if videoID.length == 11 && instantiateTempPlayer}
+                        <div class="hidden">
+                            <YouTube
+                                videoId={videoID}
+                                id="tmpplayer"
+                                bind:player={tempPlayer}
+                                on:stateChange={tempPlayerStateChange}
+                            />
+                        </div>
+                    {/if}
+                    {#if enqueueRange && videoID.length == 11}
+                        {#if videoRangeValuesFilled}
+                            <div class="mb-10 mx-3">
+                                <RangeSlider
+                                    id="videoRangeSlider"
+                                    bind:values={videoRange}
+                                    max={videoLengthInSeconds}
+                                    min={sliderMin}
+                                    range={sliderRangeType}
+                                    pips
+                                    pipstep={pipStep}
+                                    all="label"
+                                    float="true"
+                                    formatter={sliderFormatter}
+                                    pushy
+                                />
+                            </div>
+                        {:else if failureReason == ""}
+                            <div class="mt-2 mb-9">Loading video information...</div>
+                        {/if}
+                    {/if}
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
-import type * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { Duration } from "luxon";
 
 export const copyToClipboard = async function (content: string) {
@@ -42,7 +42,15 @@ export const editNicknameForUser = async function (user: User) {
     }
 }
 
-export const formatQueueEntryThumbnailDuration = function (duration: google_protobuf_duration_pb.Duration): string {
+export const formatQueueEntryThumbnailDuration = function (duration: google_protobuf_duration_pb.Duration, offset?: google_protobuf_duration_pb.Duration): string {
+    if (typeof offset !== 'undefined') {
+        let offsetEnd = new google_protobuf_duration_pb.Duration();
+        offsetEnd.setSeconds(offset.getSeconds() + duration.getSeconds());
+        offsetEnd.setNanos(offset.getNanos() + duration.getNanos());
+        let part = Duration.fromMillis(offset.getSeconds() * 1000 + offset.getNanos() / 1000000).toFormat("mm:ss");
+        let part2 = Duration.fromMillis(offsetEnd.getSeconds() * 1000 + offsetEnd.getNanos() / 1000000).toFormat("mm:ss");
+        return (part + " - " + part2).replace(/^00:00 - /, "");
+    }
     return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
 }
 

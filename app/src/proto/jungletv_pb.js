@@ -3806,7 +3806,9 @@ proto.jungletv.EnqueueYouTubeVideoData.prototype.toObject = function(opt_include
  */
 proto.jungletv.EnqueueYouTubeVideoData.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, "")
+    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    startOffset: (f = msg.getStartOffset()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    endOffset: (f = msg.getEndOffset()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3847,6 +3849,16 @@ proto.jungletv.EnqueueYouTubeVideoData.deserializeBinaryFromReader = function(ms
       var value = /** @type {string} */ (reader.readString());
       msg.setId(value);
       break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setStartOffset(value);
+      break;
+    case 3:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setEndOffset(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3883,6 +3895,22 @@ proto.jungletv.EnqueueYouTubeVideoData.serializeBinaryToWriter = function(messag
       f
     );
   }
+  f = message.getStartOffset();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getEndOffset();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -3901,6 +3929,80 @@ proto.jungletv.EnqueueYouTubeVideoData.prototype.getId = function() {
  */
 proto.jungletv.EnqueueYouTubeVideoData.prototype.setId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration start_offset = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.getStartOffset = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.EnqueueYouTubeVideoData} returns this
+*/
+proto.jungletv.EnqueueYouTubeVideoData.prototype.setStartOffset = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.EnqueueYouTubeVideoData} returns this
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.clearStartOffset = function() {
+  return this.setStartOffset(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.hasStartOffset = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration end_offset = 3;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.getEndOffset = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 3));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.EnqueueYouTubeVideoData} returns this
+*/
+proto.jungletv.EnqueueYouTubeVideoData.prototype.setEndOffset = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.EnqueueYouTubeVideoData} returns this
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.clearEndOffset = function() {
+  return this.setEndOffset(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.EnqueueYouTubeVideoData.prototype.hasEndOffset = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -7286,14 +7388,14 @@ proto.jungletv.QueueYouTubeVideoData.prototype.setLiveBroadcast = function(value
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.QueueEntry.oneofGroups_ = [[7]];
+proto.jungletv.QueueEntry.oneofGroups_ = [[8]];
 
 /**
  * @enum {number}
  */
 proto.jungletv.QueueEntry.MediaInfoCase = {
   MEDIA_INFO_NOT_SET: 0,
-  YOUTUBE_VIDEO_DATA: 7
+  YOUTUBE_VIDEO_DATA: 8
 };
 
 /**
@@ -7339,7 +7441,8 @@ proto.jungletv.QueueEntry.toObject = function(includeInstance, msg) {
     requestCost: jspb.Message.getFieldWithDefault(msg, 3, ""),
     requestedAt: (f = msg.getRequestedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     length: (f = msg.getLength()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    unskippable: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
+    offset: (f = msg.getOffset()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    unskippable: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.QueueYouTubeVideoData.toObject(includeInstance, f)
   };
 
@@ -7401,10 +7504,15 @@ proto.jungletv.QueueEntry.deserializeBinaryFromReader = function(msg, reader) {
       msg.setLength(value);
       break;
     case 6:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setOffset(value);
+      break;
+    case 7:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setUnskippable(value);
       break;
-    case 7:
+    case 8:
       var value = new proto.jungletv.QueueYouTubeVideoData;
       reader.readMessage(value,proto.jungletv.QueueYouTubeVideoData.deserializeBinaryFromReader);
       msg.setYoutubeVideoData(value);
@@ -7476,17 +7584,25 @@ proto.jungletv.QueueEntry.serializeBinaryToWriter = function(message, writer) {
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
+  f = message.getOffset();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
   f = message.getUnskippable();
   if (f) {
     writer.writeBool(
-      6,
+      7,
       f
     );
   }
   f = message.getYoutubeVideoData();
   if (f != null) {
     writer.writeMessage(
-      7,
+      8,
       f,
       proto.jungletv.QueueYouTubeVideoData.serializeBinaryToWriter
     );
@@ -7642,11 +7758,48 @@ proto.jungletv.QueueEntry.prototype.hasLength = function() {
 
 
 /**
- * optional bool unskippable = 6;
+ * optional google.protobuf.Duration offset = 6;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.QueueEntry.prototype.getOffset = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 6));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.QueueEntry} returns this
+*/
+proto.jungletv.QueueEntry.prototype.setOffset = function(value) {
+  return jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.QueueEntry} returns this
+ */
+proto.jungletv.QueueEntry.prototype.clearOffset = function() {
+  return this.setOffset(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.QueueEntry.prototype.hasOffset = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional bool unskippable = 7;
  * @return {boolean}
  */
 proto.jungletv.QueueEntry.prototype.getUnskippable = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 6, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 7, false));
 };
 
 
@@ -7655,17 +7808,17 @@ proto.jungletv.QueueEntry.prototype.getUnskippable = function() {
  * @return {!proto.jungletv.QueueEntry} returns this
  */
 proto.jungletv.QueueEntry.prototype.setUnskippable = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 6, value);
+  return jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 
 /**
- * optional QueueYouTubeVideoData youtube_video_data = 7;
+ * optional QueueYouTubeVideoData youtube_video_data = 8;
  * @return {?proto.jungletv.QueueYouTubeVideoData}
  */
 proto.jungletv.QueueEntry.prototype.getYoutubeVideoData = function() {
   return /** @type{?proto.jungletv.QueueYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 7));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 8));
 };
 
 
@@ -7674,7 +7827,7 @@ proto.jungletv.QueueEntry.prototype.getYoutubeVideoData = function() {
  * @return {!proto.jungletv.QueueEntry} returns this
 */
 proto.jungletv.QueueEntry.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 7, proto.jungletv.QueueEntry.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 8, proto.jungletv.QueueEntry.oneofGroups_[0], value);
 };
 
 
@@ -7692,7 +7845,7 @@ proto.jungletv.QueueEntry.prototype.clearYoutubeVideoData = function() {
  * @return {boolean}
  */
 proto.jungletv.QueueEntry.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

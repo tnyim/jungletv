@@ -30,6 +30,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -411,8 +412,9 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		makeChallenge := func() *segcha.Challenge {
 			for {
 				if s.segchaClient != nil {
-					ctxT, _ := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+					ctxT, cancelFn := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 					challenge, err := segcha.NewChallengeUsingClient(ctxT, segchaChallengeSteps, s.segchaClient)
+					cancelFn()
 					if err != nil {
 						s.log.Printf("remote segcha challenge creation failed: %v", err)
 						// fall through to local generation
@@ -544,7 +546,7 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *TransactionWrappingContext) error 
 		return stacktrace.Propagate(err, "")
 	}
 
-	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, videoID, false)
+	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, videoID, nil, nil, false)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -591,7 +593,7 @@ const (
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
 
-func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingContext, videoID string, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
+func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingContext, videoID string, startOffset, endOffset *durationpb.Duration, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
 	user := auth.UserClaimsFromContext(ctx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, auth.RemoteAddressFromContext(ctx)); err == nil && banned {
@@ -616,14 +618,6 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	}
 	defer ctx.Commit() // read-only tx
 
-	for _, entry := range s.mediaQueue.Entries() {
-		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
-			if ytEntry.id == videoID {
-				return nil, youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
-			}
-		}
-	}
-
 	response, err := s.youtube.Videos.List([]string{"snippet", "contentDetails", "status", "liveStreamingDetails"}).Id(videoID).MaxResults(1).Do()
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -643,14 +637,6 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsDisallowed, nil
 	}
 
-	lastPlayed, err := types.LastPlayTimeOfMedia(ctx, types.MediaTypeYouTubeVideo, videoItem.Id)
-	if err != nil {
-		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
-	}
-	if time.Since(lastPlayed) < 2*time.Hour && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
-		return nil, youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
-	}
-
 	if videoItem.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
 		return nil, youTubeVideoEnqueueRequestCreationVideoAgeRestricted, nil
 	}
@@ -663,23 +649,62 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast, nil
 	}
 
-	var videoDuration = period.NewHMS(0, 10, 0)
-	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
-		// temporary solution to allow staff to enqueue livestreams for longer
-		videoDuration = period.NewHMS(1, 0, 0)
+	var startOffsetDuration time.Duration
+	if startOffset != nil {
+		startOffsetDuration = startOffset.AsDuration()
 	}
+	var endOffsetDuration time.Duration
+	if endOffset != nil {
+		endOffsetDuration = endOffset.AsDuration()
+		if endOffsetDuration <= startOffsetDuration {
+			return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "video start offset past video end offset")
+		}
+	}
+
+	var playFor = 10 * time.Minute
+	var totalVideoDuration time.Duration
 	if videoItem.Snippet.LiveBroadcastContent == "live" {
 		if videoItem.LiveStreamingDetails.ConcurrentViewers < 50 && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
 			return nil, youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast, nil
 		}
+		if endOffset != nil {
+			playFor = endOffsetDuration - startOffsetDuration
+			startOffsetDuration = 0
+			endOffsetDuration = playFor
+		}
 	} else {
-		videoDuration, err = period.Parse(videoItem.ContentDetails.Duration)
+		videoDurationPeriod, err := period.Parse(videoItem.ContentDetails.Duration)
 		if err != nil {
 			return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
 		}
+		totalVideoDuration = videoDurationPeriod.DurationApprox()
 
-		if videoDuration.DurationApprox() > 35*time.Minute {
+		if startOffsetDuration > totalVideoDuration {
+			return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "video start offset past end of video")
+		}
+
+		if endOffsetDuration == 0 || endOffsetDuration > totalVideoDuration {
+			endOffsetDuration = totalVideoDuration
+		}
+
+		playFor = endOffsetDuration - startOffsetDuration
+	}
+
+	if s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+		if playFor > 35*time.Minute {
 			return nil, youTubeVideoEnqueueRequestCreationVideoIsTooLong, nil
+		}
+
+		if videoItem.Snippet.LiveBroadcastContent == "live" {
+			result, err := s.checkYouTubeBroadcastContentDuplication(ctx, videoItem.Id, playFor)
+			if err != nil || result != youTubeVideoEnqueueRequestCreationSucceeded {
+				return nil, result, stacktrace.Propagate(err, "")
+			}
+		} else {
+			result, err := s.checkYouTubeVideoContentDuplication(ctx, videoItem.Id, startOffsetDuration, playFor, totalVideoDuration)
+			if err != nil || result != youTubeVideoEnqueueRequestCreationSucceeded {
+				return nil, result, stacktrace.Propagate(err, "")
+			}
 		}
 	}
 
@@ -688,7 +713,8 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		title:         videoItem.Snippet.Title,
 		channelTitle:  videoItem.Snippet.ChannelTitle,
 		thumbnailURL:  videoItem.Snippet.Thumbnails.Default.Url,
-		duration:      videoDuration.DurationApprox(),
+		duration:      playFor,
+		offset:        startOffsetDuration,
 		donePlaying:   event.New(),
 		requestedBy:   &unknownUser{},
 		unskippable:   unskippable,
@@ -701,4 +727,96 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	}
 
 	return request, youTubeVideoEnqueueRequestCreationSucceeded, nil
+}
+
+func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
+	toleranceMargin := 1 * time.Minute
+	if totalVideoLength/10 < toleranceMargin {
+		toleranceMargin = totalVideoLength / 10
+	}
+
+	candidatePeriod := playPeriod{offset + toleranceMargin, offset + length - toleranceMargin}
+	if candidatePeriod.start > candidatePeriod.end {
+		candidatePeriod.start = candidatePeriod.end
+	}
+	// check range overlap with enqueued entries
+	for _, entry := range s.mediaQueue.Entries() {
+		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
+			if ytEntry.id == videoID {
+				enqueuedPeriod := playPeriod{ytEntry.Offset(), ytEntry.Offset() + ytEntry.Length()}
+				if periodsOverlap(enqueuedPeriod, candidatePeriod) {
+					return youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
+				}
+			}
+		}
+	}
+
+	now := time.Now()
+
+	// check range overlap with previously played entries
+	lookback := 2*time.Hour + totalVideoLength
+	lastPlays, err := types.LastPlaysOfMedia(ctx, now.Add(-lookback), types.MediaTypeYouTubeVideo, videoID)
+	if err != nil {
+		return youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	for _, play := range lastPlays {
+		endedAt := now
+		if play.EndedAt.Valid {
+			endedAt = play.EndedAt.Time
+		}
+		playedFor := endedAt.Sub(play.StartedAt)
+		playedPeriod := playPeriod{time.Duration(play.MediaOffset), time.Duration(play.MediaOffset) + playedFor}
+
+		if periodsOverlap(playedPeriod, candidatePeriod) {
+			return youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
+		}
+	}
+
+	return youTubeVideoEnqueueRequestCreationSucceeded, nil
+}
+
+func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWrappingContext, videoID string, length time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
+	// check total enqueued length
+	var totalPlayedOrEnqueuedLength time.Duration
+	for _, entry := range s.mediaQueue.Entries() {
+		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
+			if ytEntry.id == videoID {
+				totalPlayedOrEnqueuedLength += ytEntry.Length()
+			}
+		}
+	}
+	if totalPlayedOrEnqueuedLength > 2*time.Hour {
+		return youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
+	}
+
+	now := time.Now()
+
+	// add total played length
+	lastPlays, err := types.LastPlaysOfMedia(ctx, now.Add(-4*time.Hour), types.MediaTypeYouTubeVideo, videoID)
+	if err != nil {
+		return youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	for _, play := range lastPlays {
+		endedAt := now
+		if play.EndedAt.Valid {
+			endedAt = play.EndedAt.Time
+		}
+		playedFor := endedAt.Sub(play.StartedAt)
+		totalPlayedOrEnqueuedLength += playedFor
+	}
+
+	if totalPlayedOrEnqueuedLength > 2*time.Hour {
+		return youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
+	}
+
+	return youTubeVideoEnqueueRequestCreationSucceeded, nil
+}
+
+type playPeriod struct {
+	start time.Duration
+	end   time.Duration
+}
+
+func periodsOverlap(first, second playPeriod) bool {
+	return first.start <= second.end && first.end >= second.start
 }

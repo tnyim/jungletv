@@ -47,7 +47,7 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx (for now)
-	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, r.Id, origReq.Unskippable)
+	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, r.Id, r.StartOffset, r.EndOffset, origReq.Unskippable)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -81,19 +81,19 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 	case youTubeVideoEnqueueRequestCreationVideoNotFound:
 		failureReason = "Video not found"
 	case youTubeVideoEnqueueRequestCreationVideoAgeRestricted:
-		failureReason = "This video is age restricted"
+		failureReason = "This content is age-restricted"
 	case youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast:
 		failureReason = "This is an upcoming live broadcast"
 	case youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast:
 		failureReason = "This live broadcast has insufficient viewers to be allowed on JungleTV"
 	case youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable:
-		failureReason = "This video can't be played outside of YouTube"
+		failureReason = "This content can't be played outside of YouTube"
 	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:
 		failureReason = "This video is longer than 35 minutes"
 	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
-		failureReason = "This video is already in the queue"
+		failureReason = "This content (or the selected time range) is already in the queue"
 	case youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently:
-		failureReason = "This video was last played on JungleTV too recently"
+		failureReason = "This content (or the selected time range) was last played on JungleTV too recently"
 	case youTubeVideoEnqueueRequestCreationVideoIsDisallowed:
 		failureReason = "This video is disallowed on JungleTV"
 	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:

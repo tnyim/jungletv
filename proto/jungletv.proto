@@ -89,6 +89,8 @@ message SignInVerificationExpired {}
 
 message EnqueueYouTubeVideoData {
     string id = 1;
+    optional google.protobuf.Duration start_offset = 2;
+    optional google.protobuf.Duration end_offset = 3;
 }
 
 // EnqueueStubData allows us to prepare and confirm that polymorphism is working properly
@@ -199,9 +201,10 @@ message QueueEntry {
     string request_cost = 3;
     google.protobuf.Timestamp requested_at = 4;
     google.protobuf.Duration length = 5;
-    bool unskippable = 6;
+    google.protobuf.Duration offset = 6;
+    bool unskippable = 7;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 7;
+        QueueYouTubeVideoData youtube_video_data = 8;
     }
 }
 

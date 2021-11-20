@@ -37,6 +37,7 @@ type MediaQueueEntry interface {
 type MediaInfo interface {
 	Title() string
 	ThumbnailURL() string
+	Offset() time.Duration
 	Length() time.Duration
 	ProduceMediaQueueEntry(requestedBy User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
@@ -49,6 +50,7 @@ type queueEntryYouTubeVideo struct {
 	channelTitle  string
 	thumbnailURL  string
 	duration      time.Duration
+	offset        time.Duration
 	unskippable   bool
 	liveBroadcast bool
 
@@ -86,6 +88,10 @@ func (e *queueEntryYouTubeVideo) Length() time.Duration {
 	return e.duration
 }
 
+func (e *queueEntryYouTubeVideo) Offset() time.Duration {
+	return e.offset
+}
+
 func (e *queueEntryYouTubeVideo) MediaInfo() MediaInfo {
 	return e
 }
@@ -110,6 +116,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerial
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
+		Offset:      durationpb.New(e.offset),
 		Unskippable: e.unskippable,
 		RequestCost: e.requestCost.SerializeForAPI(),
 		RequestedAt: timestamppb.New(e.requestedAt),
@@ -137,6 +144,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	ChannelTitle  string
 	ThumbnailURL  string
 	Duration      time.Duration
+	Offset        time.Duration
 	LiveBroadcast bool
 	RequestedBy   string
 	RequestCost   *big.Int
@@ -153,6 +161,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		ChannelTitle:  e.channelTitle,
 		ThumbnailURL:  e.thumbnailURL,
 		Duration:      e.duration,
+		Offset:        e.offset,
 		LiveBroadcast: e.liveBroadcast,
 		RequestedBy:   e.requestedBy.Address(),
 		RequestCost:   e.requestCost.Int,
@@ -177,6 +186,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.channelTitle = t.ChannelTitle
 	e.thumbnailURL = t.ThumbnailURL
 	e.duration = t.Duration
+	e.offset = t.Offset
 	e.liveBroadcast = t.LiveBroadcast
 	e.requestedBy = NewAddressOnlyUser(t.RequestedBy)
 	e.requestCost = Amount{t.RequestCost}
@@ -202,7 +212,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
-		CurrentPosition: durationpb.New(e.PlayedFor()),
+		CurrentPosition: durationpb.New(e.Offset() + e.PlayedFor()),
 		LiveBroadcast:   e.liveBroadcast,
 		RequestCost:     e.requestCost.SerializeForAPI(),
 		// Reward is optionally filled outside this function
