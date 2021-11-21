@@ -31,7 +31,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	}
 
 	user := auth.UserClaimsFromContext(stream.Context())
-	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context())
+	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context(), true)
 	v := uint32(counter.CounterValue)
 	initialCp.LatestAnnouncement = &v
 	err = stream.Send(initialCp)
@@ -50,7 +50,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		// SubscribeUsingCallback returns a function that unsubscribes when called. That's the reason for the defers
 
 		defer spectator.OnRewarded().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(reward Amount, rewardBalance Amount) {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			s := reward.String()
 			cp.Reward = &s
 			s2 := rewardBalance.String()
@@ -62,7 +62,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		})()
 
 		defer spectator.OnWithdrew().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			s2 := "0"
 			cp.RewardBalance = &s2
 			err := send(cp)
@@ -73,7 +73,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 		initialActivityChallenge = spectator.CurrentActivityChallenge()
 		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *activityChallenge) {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			cp.ActivityChallenge = challenge.SerializeForAPI()
 			err := send(cp)
 			if err != nil {
@@ -82,7 +82,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		})()
 
 		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			t := true
 			cp.HasChatMention = &t
 			err := send(cp)
@@ -95,7 +95,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	}
 
 	defer s.announcementsUpdated.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(counterValue int) {
-		cp := s.produceMediaConsumptionCheckpoint(stream.Context())
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 		v := uint32(counterValue)
 		cp.LatestAnnouncement = &v
 		err := send(cp)
@@ -115,26 +115,37 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 	onMediaChanged, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer mediaChangedU()
+	sendTitle := false
+	lastTitleSend := time.Now()
 	for {
 		select {
 		case <-t.C:
 			break
 		case <-onMediaChanged:
+			sendTitle = true
 			break
 		case <-stream.Context().Done():
 			return nil
 		case err := <-errChan:
 			return err
 		}
-		err := send(s.produceMediaConsumptionCheckpoint(stream.Context()))
+		now := time.Now()
+		if now.Sub(lastTitleSend) > 30*time.Second {
+			sendTitle = true
+		}
+		if sendTitle {
+			lastTitleSend = now
+		}
+		err := send(s.produceMediaConsumptionCheckpoint(stream.Context(), sendTitle))
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
+		sendTitle = false
 	}
 }
 
-func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context) *proto.MediaConsumptionCheckpoint {
-	cp := s.mediaQueue.ProduceCheckpointForAPI(ctx, s.userSerializer)
+func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context, needsTitle bool) *proto.MediaConsumptionCheckpoint {
+	cp := s.mediaQueue.ProduceCheckpointForAPI(ctx, s.userSerializer, needsTitle)
 	cp.CurrentlyWatching = uint32(s.statsHandler.CurrentlyWatching())
 	return cp
 }

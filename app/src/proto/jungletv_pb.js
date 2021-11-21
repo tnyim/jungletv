@@ -6180,7 +6180,8 @@ proto.jungletv.MediaConsumptionCheckpoint.toObject = function(includeInstance, m
     stubData: (f = msg.getStubData()) && proto.jungletv.NowPlayingStubData.toObject(includeInstance, f),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.NowPlayingYouTubeVideoData.toObject(includeInstance, f),
     latestAnnouncement: jspb.Message.getFieldWithDefault(msg, 12, 0),
-    hasChatMention: jspb.Message.getBooleanFieldWithDefault(msg, 13, false)
+    hasChatMention: jspb.Message.getBooleanFieldWithDefault(msg, 13, false),
+    mediaTitle: jspb.Message.getFieldWithDefault(msg, 14, "")
   };
 
   if (includeInstance) {
@@ -6273,6 +6274,10 @@ proto.jungletv.MediaConsumptionCheckpoint.deserializeBinaryFromReader = function
     case 13:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setHasChatMention(value);
+      break;
+    case 14:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMediaTitle(value);
       break;
     default:
       reader.skipField();
@@ -6396,6 +6401,13 @@ proto.jungletv.MediaConsumptionCheckpoint.serializeBinaryToWriter = function(mes
   if (f != null) {
     writer.writeBool(
       13,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 14));
+  if (f != null) {
+    writer.writeString(
+      14,
       f
     );
   }
@@ -6800,6 +6812,42 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.clearHasChatMention = functi
  */
 proto.jungletv.MediaConsumptionCheckpoint.prototype.hasHasChatMention = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional string media_title = 14;
+ * @return {string}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.getMediaTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.setMediaTitle = function(value) {
+  return jspb.Message.setField(this, 14, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.MediaConsumptionCheckpoint} returns this
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.clearMediaTitle = function() {
+  return jspb.Message.setField(this, 14, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.MediaConsumptionCheckpoint.prototype.hasMediaTitle = function() {
+  return jspb.Message.getField(this, 14) != null;
 };
 
 

@@ -176,6 +176,7 @@ message MediaConsumptionCheckpoint {
     }
     optional uint32 latest_announcement = 12;
     optional bool has_chat_mention = 13;
+    optional string media_title = 14;
 }
 
 message ActivityChallenge {

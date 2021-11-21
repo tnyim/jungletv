@@ -27,6 +27,18 @@
         },
     };
 
+    export let fullSize: boolean;
+
+    let videoId = "";
+    let videoTitle = "";
+    $: {
+        if (fullSize && videoTitle != "") {
+            document.title = videoTitle + " - JungleTV";
+        } else {
+            document.title = "JungleTV";
+        }
+    }
+
     let consumeMediaRequest: Request;
     let consumeMediaTimeoutHandle: number = null;
     let playerBecameReady = false;
@@ -64,9 +76,8 @@
             clearTimeout(consumeMediaTimeoutHandle);
         }
         activityChallengeReceived.update((_) => null);
+        document.title = "JungleTV";
     });
-
-    let videoId = "";
 
     async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
         if (consumeMediaTimeoutHandle != null) {
@@ -109,6 +120,7 @@
             } else {
                 videoId = "";
             }
+            videoTitle = "";
         }
         rewardReceived.update((_) => checkpoint.getReward());
         if (checkpoint.getRewardBalance() !== "") {
@@ -125,6 +137,9 @@
         }
         if (checkpoint.hasHasChatMention() && checkpoint.getHasChatMention()) {
             unreadChatMention.set(true);
+        }
+        if (checkpoint.hasMediaTitle()) {
+            videoTitle = checkpoint.getMediaTitle();
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }

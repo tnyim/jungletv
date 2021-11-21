@@ -23,7 +23,7 @@ type MediaQueueEntry interface {
 	Unskippable() bool
 	MediaInfo() MediaInfo
 	SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.QueueEntry
-	ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint
+	ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
 	Played() bool
@@ -209,7 +209,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.MediaConsumptionCheckpoint {
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.Offset() + e.PlayedFor()),
@@ -221,6 +221,9 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, us
 				Id: e.id,
 			},
 		},
+	}
+	if needsTitle {
+		cp.MediaTitle = &e.title
 	}
 	if !e.requestedBy.IsUnknown() {
 		cp.RequestedBy = userSerializer(ctx, e.requestedBy)
