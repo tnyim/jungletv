@@ -782,7 +782,11 @@ func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappin
 func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWrappingContext, videoID string, length time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
 	// check total enqueued length
 	totalLength := length
-	for _, entry := range s.mediaQueue.Entries() {
+	for idx, entry := range s.mediaQueue.Entries() {
+		if idx == 0 {
+			// current entry will already be counted below
+			continue
+		}
 		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
 			if ytEntry.id == videoID {
 				totalLength += ytEntry.Length()
