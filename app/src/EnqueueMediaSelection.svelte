@@ -2,7 +2,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
-    import { createEventDispatcher, onDestroy } from "svelte";
+    import { createEventDispatcher, onDestroy, tick } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
     import RangeSlider from "svelte-range-slider-pips";
@@ -15,13 +15,16 @@
 
     let videoURL: string = "";
     let videoID: string = "";
+    let extractedTimestamp: number = 0;
     let videoIsBroadcast = false;
     $: {
-        videoID = getVideoIDFromURL(videoURL);
-        videoRangeValuesFilled = false;
+        getVideoIDFromURL(videoURL);
+    }
+    $: {
         if (videoID.length == 11) {
             instantiateTempPlayer = true;
         }
+        videoRangeValuesFilled = false;
     }
     let unskippable: boolean = false;
     let failureReason: string = "";
@@ -34,17 +37,48 @@
         return true;
     }
 
-    function getVideoIDFromURL(videoURL: string): string {
-        let videoID = videoURL.replace("https://", "").replace("http://", "");
-        videoID = videoID.replace("www.youtube.com/watch?v=", "");
-        videoID = videoID.replace("m.youtube.com/watch?v=", "");
-        videoID = videoID.replace("youtube.com/watch?v=", "");
-        videoID = videoID.replace("youtu.be/", "");
-        videoID = videoID.replace("www.youtube.com/shorts/", "");
-        videoID = videoID.replace("youtube.com/shorts/", "");
-        videoID = videoID.split("&")[0];
-        videoID = videoID.trim();
-        return videoID;
+    async function getVideoIDFromURL(videoURL: string) {
+        let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
+        if (idRegExp.test(videoURL)) {
+            // we were provided just a video ID
+            videoID = videoURL;
+        }
+
+        // this ensures that our reactive statements trigger, and the player always reloads the video,
+        // even if only the timestamp changes
+        videoID = "";
+        await tick();
+
+        try {
+            let url = new URL(videoURL);
+            let t = url.searchParams.get("t");
+            if (t != null && !isNaN(Number(t))) {
+                extractedTimestamp = Number(t);
+            } else {
+                extractedTimestamp = 0;
+            }
+            if (/^(.*\.){0,1}youtube.com$/.test(url.host)) {
+                if (url.pathname == "/watch") {
+                    let v = url.searchParams.get("v");
+                    if (idRegExp.test(v)) {
+                        videoID = v;
+                        return;
+                    }
+                } else if (url.pathname.startsWith("/shorts/")) {
+                    let parts = url.pathname.split("/");
+                    if (idRegExp.test(parts[parts.length - 1])) {
+                        videoID = parts[parts.length - 1];
+                        return;
+                    }
+                }
+            } else if (url.host == "youtu.be") {
+                let parts = url.pathname.split("/");
+                if (idRegExp.test(parts[parts.length - 1])) {
+                    videoID = parts[parts.length - 1];
+                    return;
+                }
+            }
+        } catch {}
     }
 
     async function submit() {
@@ -95,10 +129,11 @@
     let videoRangeValuesFilled = false;
     let sliderRangeType: any = true;
     let sliderMin = 0;
-    let videoRange = [0, 30];
-    let videoLengthInSeconds = 500;
-    let minRangeLength = 30;
+    const defaultMinRangeLength = 30;
+    let minRangeLength = defaultMinRangeLength;
     const maxRangeLength = 35 * 60;
+    let videoRange = [0, defaultMinRangeLength];
+    let videoLengthInSeconds = 500;
     let pipStep = 60;
     let tempPlayer: YouTubePlayer;
     let instantiateTempPlayer = false;
@@ -107,21 +142,34 @@
         if (minRangeLength > videoLengthInSeconds) {
             minRangeLength = videoLengthInSeconds;
         } else {
-            minRangeLength = 30;
+            minRangeLength = defaultMinRangeLength;
         }
     }
 
     $: {
+        let activeSlider = document.querySelector("#videoRangeSlider .rangeHandle.active");
+        let activeSliderIdx = activeSlider == null || activeSlider.getAttribute("data-handle") == "0" ? 0 : 1;
         if (videoRange.length == 2 && videoRange[1] - videoRange[0] < minRangeLength) {
-            videoRange[1] = Math.min(videoRange[0] + minRangeLength, videoLengthInSeconds);
-            if (videoRange[1] - videoRange[0] < minRangeLength) {
-                videoRange[0] = videoLengthInSeconds - minRangeLength;
+            // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
+            if (activeSliderIdx == 0) {
+                // user is adjusting the start slider, we adjust the end
+                videoRange[1] = Math.min(videoRange[0] + minRangeLength, videoLengthInSeconds);
+                if (videoRange[1] - videoRange[0] < minRangeLength) {
+                    // ...while making sure the range isn't too small
+                    videoRange[0] = videoLengthInSeconds - minRangeLength;
+                }
+            } else {
+                // user is adjusting the end slider, we adjust the start
+                videoRange[0] = Math.max(videoRange[1] - minRangeLength, 0);
+                if (videoRange[1] - videoRange[0] < minRangeLength) {
+                    // ...while making sure the range isn't too small
+                    videoRange[1] = minRangeLength;
+                }
             }
         }
         if (videoRange.length == 2 && videoRange[1] - videoRange[0] > maxRangeLength) {
             // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
-            let activeSlider = document.querySelector("#videoRangeSlider .rangeHandle.active");
-            if (activeSlider == null || activeSlider.getAttribute("data-handle") == "0") {
+            if (activeSliderIdx == 0) {
                 // user is adjusting the start slider, we adjust the end
                 videoRange[1] = Math.min(videoRange[0] + maxRangeLength, videoLengthInSeconds);
             } else {
@@ -165,25 +213,31 @@
             videoIsBroadcast = false;
             sliderRangeType = true;
             sliderMin = 0;
-            videoRange = [0, Math.min(videoLengthInSeconds, maxRangeLength)];
+            let rangeStart = 0;
+            let extractedValidTimestamp = extractedTimestamp > 0 && extractedTimestamp < videoLengthInSeconds;
+            if (extractedValidTimestamp) {
+                rangeStart = extractedTimestamp;
+            }
+            videoRange = [rangeStart, Math.min(videoLengthInSeconds, rangeStart + maxRangeLength)];
 
             // convenience function: when pasting the URL for a video that is over 35 minutes long,
             // immediately offer the option to adjust the length
-            enqueueRange = enqueueRange || videoLengthInSeconds > maxRangeLength;
+            // same when the pasted link contains a timestamp
+            enqueueRange = enqueueRange || videoLengthInSeconds > maxRangeLength || extractedValidTimestamp;
             pipStep = (Math.floor(videoLengthInSeconds / (10 * 60)) + 1) * 60;
             videoRangeValuesFilled = true;
         } else if (event.detail.data == PlayerState.PLAYING) {
+            // turns out it is a broadcast
             if (errorTimeout !== undefined) {
                 clearTimeout(errorTimeout);
             }
-            // turns out it is a broadcast
             tempPlayer.pauseVideo();
             // remove the player so it stops downloading data (apparently broadcasts keep buffering even if paused)
             instantiateTempPlayer = false;
             videoIsBroadcast = true;
             videoLengthInSeconds = maxRangeLength;
             sliderRangeType = "min";
-            sliderMin = 30;
+            sliderMin = defaultMinRangeLength;
             videoRange = [10 * 60];
 
             // convenience function: when pasting a broadcast URL, immediately offer the option to adjust the length
@@ -273,7 +327,7 @@
                         class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
                     />
                 </div>
-                <div class="ml-3 text-sm">
+                <div class="ml-3 text-sm w-full">
                     {#if videoIsBroadcast}
                         <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
                             Select for how long the live broadcast should play</label
@@ -307,7 +361,7 @@
                     {/if}
                     {#if enqueueRange && videoID.length == 11}
                         {#if videoRangeValuesFilled}
-                            <div class="mb-10 mx-3">
+                            <div class="mb-11 mx-3">
                                 <RangeSlider
                                     id="videoRangeSlider"
                                     bind:values={videoRange}
@@ -322,6 +376,12 @@
                                     pushy
                                 />
                             </div>
+                            {#if videoLengthInSeconds <= defaultMinRangeLength}
+                                <p class="text-red-500">
+                                    This video is shorter than {defaultMinRangeLength} seconds and can only be enqueued in
+                                    its entirety.
+                                </p>
+                            {/if}
                         {:else if failureReason == ""}
                             <div class="mt-2 mb-9">Loading video information...</div>
                         {/if}
