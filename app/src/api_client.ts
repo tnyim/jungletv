@@ -489,13 +489,10 @@ class APIClient {
         }
 
         const amountRaw = BigInt(amountRawStr);
-        //    console.log(`bananoRaw:    ${bananoRaw}`);
         const prefixDivisor = prefixDivisors[amountPrefix];
         const majorDivisor = prefixDivisor.majorDivisor;
         const minorDivisor = prefixDivisor.minorDivisor;
-        //    console.log(`bananoDivisor:   ${bananoDivisor}`);
         const major = amountRaw / majorDivisor;
-        //    console.log(`banano:${banano}`);
         const majorRawRemainder = amountRaw - (major * majorDivisor);
         const minor = majorRawRemainder / minorDivisor;
         const amountRawRemainder = majorRawRemainder - (minor * minorDivisor);

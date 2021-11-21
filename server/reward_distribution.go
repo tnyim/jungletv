@@ -84,7 +84,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 	}
 
 	if len(eligible) == 0 {
-		if !media.RequestedBy().IsUnknown() {
+		if !media.RequestedBy().IsUnknown() && media.RequestCost().Cmp(big.NewInt(0)) > 0 {
 			// reimburse who added to queue
 			go r.reimburseRequester(ctx, media.RequestedBy().Address(), mediaCostBudget)
 		}

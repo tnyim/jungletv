@@ -153,7 +153,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		t.statusChanged.Notify()
 	}()
 
-	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.account.Address())
+	e.log.Printf("Registered ticket %s with payment account %s (%d)", t.id, t.account.Address(), t.account.Index())
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
@@ -200,7 +200,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 			delete(e.requests, reqID)
 		}()
 		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-		e.log.Printf("Purged ticket %s with payment address %s", reqID, request.PaymentAccount().Address())
+		e.log.Printf("Purged ticket %s with payment address %s (%d)", reqID, request.PaymentAccount().Address(), request.PaymentAccount().Index())
 		return nil
 	}
 	t := e.statsClient.NewTiming()
@@ -226,7 +226,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		// yet to receive enough money
 		return nil
 	}
-	e.log.Printf("Ticket %s meets requirements for enqueuing", reqID)
+	e.log.Printf("Ticket %s (p.a. %d) meets requirements for enqueuing", reqID, request.PaymentAccount().Index())
 
 	t2 := e.statsClient.NewTiming()
 	defer t2.Send("enqueue_ticket")
@@ -238,7 +238,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		// we must receive pendings otherwise the history might not contain the latest tx
 		err := request.PaymentAccount().ReceivePendings(dustThreshold)
 		if err != nil {
-			e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
+			e.log.Printf("failed to receive pendings in account %v (%d): %v", request.PaymentAccount().Address(), request.PaymentAccount().Index(), err)
 			return nil
 		}
 
@@ -269,8 +269,9 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		e.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, requestedByStr)
 	}
 
-	e.log.Printf("Enqueued ticket %s - video \"%s\" with length %s - requested by %s with cost %s",
+	e.log.Printf("Enqueued ticket %s (p.a. %d) - video \"%s\" with length %s - requested by %s with cost %s",
 		reqID,
+		request.PaymentAccount().Index(),
 		mi.Title(),
 		mi.Length().String(),
 		requestedByStr,
