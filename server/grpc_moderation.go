@@ -290,6 +290,81 @@ func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSki
 	return &proto.SetSkipPriceMultiplierResponse{}, nil
 }
 
+func (s *grpcServer) SetSkippingEnabled(ctx context.Context, r *proto.SetSkippingEnabledRequest) (*proto.SetSkippingEnabledResponse, error) {
+	user := auth.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.mediaQueue.SetSkippingEnabled(r.Enabled)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Enabled {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s skipping in general",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetSkippingEnabledResponse{}, nil
+}
+
+func (s *grpcServer) SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, r *proto.SetNewQueueEntriesAlwaysUnskippableRequest) (*proto.SetNewQueueEntriesAlwaysUnskippableResponse, error) {
+	user := auth.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.enqueueManager.SetNewQueueEntriesAlwaysUnskippableForFree(r.Enabled)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Enabled {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s forced unskippability of new queue entries",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetNewQueueEntriesAlwaysUnskippableResponse{}, nil
+}
+
+func (s *grpcServer) SetOwnQueueEntryRemovalAllowed(ctx context.Context, r *proto.SetOwnQueueEntryRemovalAllowedRequest) (*proto.SetOwnQueueEntryRemovalAllowedResponse, error) {
+	user := auth.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.mediaQueue.SetRemovalOfOwnEntriesAllowed(r.Allowed)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Allowed {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s removal of own queue entries",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetOwnQueueEntryRemovalAllowedResponse{}, nil
+}
+
 func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRequest) (*proto.Spectator, error) {
 	spectator, ok := s.rewardsHandler.GetSpectator(r.RewardsAddress)
 	if !ok {

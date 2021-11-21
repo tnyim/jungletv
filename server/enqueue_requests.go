@@ -25,17 +25,18 @@ const TicketExpiration = 20 * time.Minute
 
 // EnqueueManager manages requests for enqueuing that are pending payment
 type EnqueueManager struct {
-	statsClient                    *statsd.Client
-	mediaQueue                     *MediaQueue
-	pricer                         *Pricer
-	wallet                         *wallet.Wallet
-	paymentAccountPool             *PaymentAccountPool
-	paymentAccountPendingWaitGroup *sync.WaitGroup
-	rewardsHandler                 *RewardsHandler
-	collectorAccountAddress        string
-	log                            *log.Logger
-	moderationStore                ModerationStore
-	modLogWebhook                  api.WebhookClient
+	statsClient                        *statsd.Client
+	mediaQueue                         *MediaQueue
+	pricer                             *Pricer
+	wallet                             *wallet.Wallet
+	paymentAccountPool                 *PaymentAccountPool
+	paymentAccountPendingWaitGroup     *sync.WaitGroup
+	rewardsHandler                     *RewardsHandler
+	collectorAccountAddress            string
+	log                                *log.Logger
+	moderationStore                    ModerationStore
+	modLogWebhook                      api.WebhookClient
+	newEntriesAlwaysUnskippableForFree bool
 
 	requests                map[string]EnqueueTicket
 	requestsLock            sync.RWMutex
@@ -92,6 +93,14 @@ func NewEnqueueManager(log *log.Logger,
 		modLogWebhook:                  modLogWebhook,
 		recentlyEvictedRequests:        cache.New(10*time.Minute, 1*time.Minute),
 	}, nil
+}
+
+func (e *EnqueueManager) NewEntriesAlwaysUnskippableForFree() bool {
+	return e.newEntriesAlwaysUnskippableForFree
+}
+
+func (e *EnqueueManager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
+	e.newEntriesAlwaysUnskippableForFree = enabled
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
@@ -242,7 +251,7 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 	// user can still be nil here, in case we couldn't find it in the last 10 account blocks
 	mi := request.MediaInfo()
 	e.paymentAccountPendingWaitGroup.Add(1)
-	playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable(), request.ID()))
+	playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable() || e.newEntriesAlwaysUnskippableForFree, request.ID()))
 
 	err = request.SetPaid()
 	if err != nil {

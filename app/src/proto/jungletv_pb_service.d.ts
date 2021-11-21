@@ -391,6 +391,42 @@ type JungleTVResetSpectatorStatus = {
   readonly responseType: typeof jungletv_pb.ResetSpectatorStatusResponse;
 };
 
+type JungleTVMonitorModerationSettings = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.MonitorModerationSettingsRequest;
+  readonly responseType: typeof jungletv_pb.ModerationSettingsOverview;
+};
+
+type JungleTVSetOwnQueueEntryRemovalAllowed = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetOwnQueueEntryRemovalAllowedRequest;
+  readonly responseType: typeof jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse;
+};
+
+type JungleTVSetNewQueueEntriesAlwaysUnskippable = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetNewQueueEntriesAlwaysUnskippableRequest;
+  readonly responseType: typeof jungletv_pb.SetNewQueueEntriesAlwaysUnskippableResponse;
+};
+
+type JungleTVSetSkippingEnabled = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetSkippingEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetSkippingEnabledResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -436,6 +472,10 @@ export class JungleTV {
   static readonly TriggerAnnouncementsNotification: JungleTVTriggerAnnouncementsNotification;
   static readonly SpectatorInfo: JungleTVSpectatorInfo;
   static readonly ResetSpectatorStatus: JungleTVResetSpectatorStatus;
+  static readonly MonitorModerationSettings: JungleTVMonitorModerationSettings;
+  static readonly SetOwnQueueEntryRemovalAllowed: JungleTVSetOwnQueueEntryRemovalAllowed;
+  static readonly SetNewQueueEntriesAlwaysUnskippable: JungleTVSetNewQueueEntriesAlwaysUnskippable;
+  static readonly SetSkippingEnabled: JungleTVSetSkippingEnabled;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -808,6 +848,34 @@ export class JungleTVClient {
   resetSpectatorStatus(
     requestMessage: jungletv_pb.ResetSpectatorStatusRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ResetSpectatorStatusResponse|null) => void
+  ): UnaryResponse;
+  monitorModerationSettings(requestMessage: jungletv_pb.MonitorModerationSettingsRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ModerationSettingsOverview>;
+  setOwnQueueEntryRemovalAllowed(
+    requestMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse|null) => void
+  ): UnaryResponse;
+  setOwnQueueEntryRemovalAllowed(
+    requestMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse|null) => void
+  ): UnaryResponse;
+  setNewQueueEntriesAlwaysUnskippable(
+    requestMessage: jungletv_pb.SetNewQueueEntriesAlwaysUnskippableRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetNewQueueEntriesAlwaysUnskippableResponse|null) => void
+  ): UnaryResponse;
+  setNewQueueEntriesAlwaysUnskippable(
+    requestMessage: jungletv_pb.SetNewQueueEntriesAlwaysUnskippableRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetNewQueueEntriesAlwaysUnskippableResponse|null) => void
+  ): UnaryResponse;
+  setSkippingEnabled(
+    requestMessage: jungletv_pb.SetSkippingEnabledRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkippingEnabledResponse|null) => void
+  ): UnaryResponse;
+  setSkippingEnabled(
+    requestMessage: jungletv_pb.SetSkippingEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkippingEnabledResponse|null) => void
   ): UnaryResponse;
 }
 

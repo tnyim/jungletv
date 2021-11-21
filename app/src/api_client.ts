@@ -2,7 +2,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import { deleteCookie, getCookie } from "./cookie_utils";
-import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse, Document, GetDocumentRequest, UpdateDocumentResponse, SetChatNicknameResponse, SetChatNicknameRequest, SetUserChatNicknameRequest, SetUserChatNicknameResponse, WithdrawResponse, WithdrawRequest, LeaderboardsResponse, LeaderboardsRequest, SetPricesMultiplierResponse, SetPricesMultiplierRequest, WithdrawalHistoryResponse, WithdrawalHistoryRequest, RewardHistoryRequest, RewardHistoryResponse, RemoveOwnQueueEntryResponse, RemoveOwnQueueEntryRequest, MonitorSkipAndTipRequest, SkipAndTipStatus, SetCrowdfundedSkippingEnabledResponse, SetCrowdfundedSkippingEnabledRequest, SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse, ProduceSegchaChallengeResponse, ProduceSegchaChallengeRequest, ConfirmRaffleWinnerResponse, CompleteRaffleResponse, RedrawRaffleResponse, ConfirmRaffleWinnerRequest, CompleteRaffleRequest, RedrawRaffleRequest, OngoingRaffleInfoResponse, OngoingRaffleInfoRequest, UserBansResponse, UserBansRequest, TriggerAnnouncementsNotificationRequest, TriggerAnnouncementsNotificationResponse, Spectator, SpectatorInfoRequest, ResetSpectatorStatusResponse, ResetSpectatorStatusRequest } from "./proto/jungletv_pb";
+import { ConsumeMediaRequest, EnqueueMediaRequest, EnqueueMediaResponse, EnqueueMediaTicket, EnqueueYouTubeVideoData, ForcedTicketEnqueueTypeMap, ForciblyEnqueueTicketRequest, ForciblyEnqueueTicketResponse, MonitorQueueRequest, MonitorTicketRequest, MediaConsumptionCheckpoint, Queue, RemoveQueueEntryRequest, RemoveQueueEntryResponse, RewardInfoRequest, RewardInfoResponse, SignInRequest, SignInResponse, SubmitActivityChallengeRequest, SubmitActivityChallengeResponse, ChatUpdate, ConsumeChatRequest, SendChatMessageResponse, SendChatMessageRequest, RemoveChatMessageResponse, RemoveChatMessageRequest, SetChatSettingsRequest, SetChatSettingsResponse, ChatMessage, SignInProgress, SetVideoEnqueuingEnabledResponse, SetVideoEnqueuingEnabledRequest, AllowedVideoEnqueuingTypeMap, BanUserRequest, BanUserResponse, RemoveBanRequest, RemoveBanResponse, UserPermissionLevelResponse, UserPermissionLevelRequest, UserChatMessagesResponse, UserChatMessagesRequest, DisallowedVideosRequest, DisallowedVideosResponse, PaginationParameters, AddDisallowedVideoResponse, AddDisallowedVideoRequest, RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse, Document, GetDocumentRequest, UpdateDocumentResponse, SetChatNicknameResponse, SetChatNicknameRequest, SetUserChatNicknameRequest, SetUserChatNicknameResponse, WithdrawResponse, WithdrawRequest, LeaderboardsResponse, LeaderboardsRequest, SetPricesMultiplierResponse, SetPricesMultiplierRequest, WithdrawalHistoryResponse, WithdrawalHistoryRequest, RewardHistoryRequest, RewardHistoryResponse, RemoveOwnQueueEntryResponse, RemoveOwnQueueEntryRequest, MonitorSkipAndTipRequest, SkipAndTipStatus, SetCrowdfundedSkippingEnabledResponse, SetCrowdfundedSkippingEnabledRequest, SetSkipPriceMultiplierRequest, SetSkipPriceMultiplierResponse, ProduceSegchaChallengeResponse, ProduceSegchaChallengeRequest, ConfirmRaffleWinnerResponse, CompleteRaffleResponse, RedrawRaffleResponse, ConfirmRaffleWinnerRequest, CompleteRaffleRequest, RedrawRaffleRequest, OngoingRaffleInfoResponse, OngoingRaffleInfoRequest, UserBansResponse, UserBansRequest, TriggerAnnouncementsNotificationRequest, TriggerAnnouncementsNotificationResponse, Spectator, SpectatorInfoRequest, ResetSpectatorStatusResponse, ResetSpectatorStatusRequest, ModerationSettingsOverview, MonitorModerationSettingsRequest, SetOwnQueueEntryRemovalAllowedResponse, SetOwnQueueEntryRemovalAllowedRequest, SetNewQueueEntriesAlwaysUnskippableResponse, SetNewQueueEntriesAlwaysUnskippableRequest, SetSkippingEnabledResponse, SetSkippingEnabledRequest } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 
@@ -393,6 +393,32 @@ class APIClient {
         let request = new ResetSpectatorStatusRequest();
         request.setRewardsAddress(rewardsAddress);
         return this.unaryRPC<ResetSpectatorStatusRequest, ResetSpectatorStatusResponse>(JungleTV.ResetSpectatorStatus, request);
+    }
+
+    monitorModerationSettings(onModerationSettings: (settings: ModerationSettingsOverview) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        return this.serverStreamingRPC<MonitorModerationSettingsRequest, ModerationSettingsOverview>(
+            JungleTV.MonitorModerationSettings,
+            new MonitorModerationSettingsRequest(),
+            onModerationSettings,
+            onEnd);
+    }
+
+    async setOwnQueueEntryRemovalAllowed(allowed: boolean): Promise<SetOwnQueueEntryRemovalAllowedResponse> {
+        let request = new SetOwnQueueEntryRemovalAllowedRequest();
+        request.setAllowed(allowed);
+        return this.unaryRPC<SetOwnQueueEntryRemovalAllowedRequest, SetOwnQueueEntryRemovalAllowedResponse>(JungleTV.SetOwnQueueEntryRemovalAllowed, request);
+    }
+
+    async setNewQueueEntriesAlwaysUnskippable(enabled: boolean): Promise<SetNewQueueEntriesAlwaysUnskippableResponse> {
+        let request = new SetNewQueueEntriesAlwaysUnskippableRequest();
+        request.setEnabled(enabled);
+        return this.unaryRPC<SetNewQueueEntriesAlwaysUnskippableRequest, SetNewQueueEntriesAlwaysUnskippableResponse>(JungleTV.SetNewQueueEntriesAlwaysUnskippable, request);
+    }
+
+    async setSkippingEnabled(enabled: boolean): Promise<SetSkippingEnabledResponse> {
+        let request = new SetSkippingEnabledRequest();
+        request.setEnabled(enabled);
+        return this.unaryRPC<SetSkippingEnabledRequest, SetSkippingEnabledResponse>(JungleTV.SetSkippingEnabled, request);
     }
 
     async userPermissionLevel(): Promise<UserPermissionLevelResponse> {

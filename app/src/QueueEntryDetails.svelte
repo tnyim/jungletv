@@ -11,6 +11,7 @@
     const dispatch = createEventDispatcher();
 
     export let entry: QueueEntry;
+    export let removalOfOwnEntriesAllowed: boolean;
     let requestedBy: User;
 
     $: {
@@ -155,7 +156,7 @@
             <div class="{commonButtonClasses} col-span-3" on:click={tipAuthor}>
                 <i class="fas fa-heart" /> Tip in BananoVault
             </div>
-            {#if requestedBy.getAddress() === rAddress && !isChatModerator}
+            {#if requestedBy.getAddress() === rAddress && !isChatModerator && removalOfOwnEntriesAllowed}
                 <div class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
                     <i class="fas fa-trash" /> Remove
                 </div>

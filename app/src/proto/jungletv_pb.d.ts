@@ -652,6 +652,9 @@ export class Queue extends jspb.Message {
   getIsHeartbeat(): boolean;
   setIsHeartbeat(value: boolean): void;
 
+  getOwnEntryRemovalEnabled(): boolean;
+  setOwnEntryRemovalEnabled(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Queue.AsObject;
   static toObject(includeInstance: boolean, msg: Queue): Queue.AsObject;
@@ -666,6 +669,7 @@ export namespace Queue {
   export type AsObject = {
     entriesList: Array<QueueEntry.AsObject>,
     isHeartbeat: boolean,
+    ownEntryRemovalEnabled: boolean,
   }
 }
 
@@ -2982,6 +2986,174 @@ export class ResetSpectatorStatusResponse extends jspb.Message {
 }
 
 export namespace ResetSpectatorStatusResponse {
+  export type AsObject = {
+  }
+}
+
+export class MonitorModerationSettingsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MonitorModerationSettingsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorModerationSettingsRequest): MonitorModerationSettingsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MonitorModerationSettingsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorModerationSettingsRequest;
+  static deserializeBinaryFromReader(message: MonitorModerationSettingsRequest, reader: jspb.BinaryReader): MonitorModerationSettingsRequest;
+}
+
+export namespace MonitorModerationSettingsRequest {
+  export type AsObject = {
+  }
+}
+
+export class ModerationSettingsOverview extends jspb.Message {
+  getAllowedVideoEnqueuing(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
+  setAllowedVideoEnqueuing(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;
+
+  getEnqueuingPricesMultiplier(): number;
+  setEnqueuingPricesMultiplier(value: number): void;
+
+  getCrowdfundedSkippingEnabled(): boolean;
+  setCrowdfundedSkippingEnabled(value: boolean): void;
+
+  getCrowdfundedSkippingPricesMultiplier(): number;
+  setCrowdfundedSkippingPricesMultiplier(value: number): void;
+
+  getNewEntriesAlwaysUnskippable(): boolean;
+  setNewEntriesAlwaysUnskippable(value: boolean): void;
+
+  getOwnEntryRemovalEnabled(): boolean;
+  setOwnEntryRemovalEnabled(value: boolean): void;
+
+  getAllSkippingEnabled(): boolean;
+  setAllSkippingEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ModerationSettingsOverview.AsObject;
+  static toObject(includeInstance: boolean, msg: ModerationSettingsOverview): ModerationSettingsOverview.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ModerationSettingsOverview, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ModerationSettingsOverview;
+  static deserializeBinaryFromReader(message: ModerationSettingsOverview, reader: jspb.BinaryReader): ModerationSettingsOverview;
+}
+
+export namespace ModerationSettingsOverview {
+  export type AsObject = {
+    allowedVideoEnqueuing: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap],
+    enqueuingPricesMultiplier: number,
+    crowdfundedSkippingEnabled: boolean,
+    crowdfundedSkippingPricesMultiplier: number,
+    newEntriesAlwaysUnskippable: boolean,
+    ownEntryRemovalEnabled: boolean,
+    allSkippingEnabled: boolean,
+  }
+}
+
+export class SetOwnQueueEntryRemovalAllowedRequest extends jspb.Message {
+  getAllowed(): boolean;
+  setAllowed(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetOwnQueueEntryRemovalAllowedRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetOwnQueueEntryRemovalAllowedRequest): SetOwnQueueEntryRemovalAllowedRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetOwnQueueEntryRemovalAllowedRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetOwnQueueEntryRemovalAllowedRequest;
+  static deserializeBinaryFromReader(message: SetOwnQueueEntryRemovalAllowedRequest, reader: jspb.BinaryReader): SetOwnQueueEntryRemovalAllowedRequest;
+}
+
+export namespace SetOwnQueueEntryRemovalAllowedRequest {
+  export type AsObject = {
+    allowed: boolean,
+  }
+}
+
+export class SetOwnQueueEntryRemovalAllowedResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetOwnQueueEntryRemovalAllowedResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetOwnQueueEntryRemovalAllowedResponse): SetOwnQueueEntryRemovalAllowedResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetOwnQueueEntryRemovalAllowedResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetOwnQueueEntryRemovalAllowedResponse;
+  static deserializeBinaryFromReader(message: SetOwnQueueEntryRemovalAllowedResponse, reader: jspb.BinaryReader): SetOwnQueueEntryRemovalAllowedResponse;
+}
+
+export namespace SetOwnQueueEntryRemovalAllowedResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetNewQueueEntriesAlwaysUnskippableRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetNewQueueEntriesAlwaysUnskippableRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetNewQueueEntriesAlwaysUnskippableRequest): SetNewQueueEntriesAlwaysUnskippableRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetNewQueueEntriesAlwaysUnskippableRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetNewQueueEntriesAlwaysUnskippableRequest;
+  static deserializeBinaryFromReader(message: SetNewQueueEntriesAlwaysUnskippableRequest, reader: jspb.BinaryReader): SetNewQueueEntriesAlwaysUnskippableRequest;
+}
+
+export namespace SetNewQueueEntriesAlwaysUnskippableRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetNewQueueEntriesAlwaysUnskippableResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetNewQueueEntriesAlwaysUnskippableResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetNewQueueEntriesAlwaysUnskippableResponse): SetNewQueueEntriesAlwaysUnskippableResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetNewQueueEntriesAlwaysUnskippableResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetNewQueueEntriesAlwaysUnskippableResponse;
+  static deserializeBinaryFromReader(message: SetNewQueueEntriesAlwaysUnskippableResponse, reader: jspb.BinaryReader): SetNewQueueEntriesAlwaysUnskippableResponse;
+}
+
+export namespace SetNewQueueEntriesAlwaysUnskippableResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetSkippingEnabledRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetSkippingEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetSkippingEnabledRequest): SetSkippingEnabledRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetSkippingEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetSkippingEnabledRequest;
+  static deserializeBinaryFromReader(message: SetSkippingEnabledRequest, reader: jspb.BinaryReader): SetSkippingEnabledRequest;
+}
+
+export namespace SetSkippingEnabledRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetSkippingEnabledResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetSkippingEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetSkippingEnabledResponse): SetSkippingEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetSkippingEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetSkippingEnabledResponse;
+  static deserializeBinaryFromReader(message: SetSkippingEnabledResponse, reader: jspb.BinaryReader): SetSkippingEnabledResponse;
+}
+
+export namespace SetSkippingEnabledResponse {
   export type AsObject = {
   }
 }

@@ -14,6 +14,7 @@
 
     let firstLoaded = false;
     let queueEntries: QueueEntry[] = [];
+    let removalOfOwnEntriesAllowed = false;
     let totalQueueLength: Duration = Duration.fromMillis(0);
     let totalQueueValue = BigInt(0);
     let totalQueueParticipants = 0;
@@ -47,6 +48,7 @@
         }
         monitorQueueTimeoutHandle = setTimeout(monitorQueueTimeout, 20000);
         if (!queue.getIsHeartbeat()) {
+            removalOfOwnEntriesAllowed = queue.getOwnEntryRemovalEnabled();
             queueEntries = queue.getEntriesList();
             let tl = Duration.fromMillis(0);
             let tv = BigInt(0);
@@ -113,6 +115,7 @@
             {#if expandedEntryID == entry.getId()}
                 <QueueEntryDetails
                     {entry}
+                    {removalOfOwnEntriesAllowed}
                     on:remove={() => removeEntry(entry, false)}
                     on:disallow={() => removeEntry(entry, true)}
                     on:changeNickname={async () => {

@@ -3,7 +3,11 @@
     import { navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
-    import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
+    import SettingsOverview from "./moderation/SettingsOverview.svelte";
+    import {
+        AllowedVideoEnqueuingType,
+        ForcedTicketEnqueueType,
+    } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
 
     let ticketID = "";
@@ -152,30 +156,37 @@
             </div>
         </div>
     {/if}
-    <div>
-        <p class="px-2 font-semibold text-lg">Queue</p>
+    <details>
+        <summary class="px-2 font-semibold text-lg">Queue</summary>
         <Queue mode="moderation" />
+    </details>
+    <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">Moderation settings overview</p>
+        <div class="px-2">
+            <SettingsOverview />
+        </div>
     </div>
     <div class="mt-10">
-        <p class="px-2 font-semibold text-lg">Video enqueuing</p>
-        <div class="px-2 grid grid-cols-4 gap-6">
+        <p class="px-2 font-semibold text-lg">Queue flow control</p>
+        <p class="px-2 text-sm">Press all green buttons to revert to default settings</p>
+        <div class="px-2 grid grid-cols-3 gap-6">
             <button
                 type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 on:click={setVideoEnqueuingEnabled}
             >
                 Allow video enqueuing
             </button>
             <button
                 type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 on:click={setVideoEnqueuingStaffOnly}
             >
                 Allow only staff to enqueue
             </button>
             <button
                 type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 on:click={setVideoEnqueuingDisabled}
             >
                 Disable video enqueuing
@@ -187,36 +198,79 @@
             >
                 Set prices multiplier
             </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={() => apiClient.setSkippingEnabled(true)}
+            >
+                Enable skipping, in general
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={() => apiClient.setSkippingEnabled(false)}
+            >
+                Disable all forms of skipping
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(true)}
+            >
+                Make new queue entries unskippable at no additional cost
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(false)}
+            >
+                Stop making new queue entries unskippable
+            </button>
+            <div><!-- spacer --></div>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(false)}
+            >
+                Disallow removal of own queue entries
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(true)}
+            >
+                Allow removal of own queue entries
+            </button>
+        </div>
+        <div>
+            <p class="px-2 font-semibold text-md mt-4">Crowdfunded skipping</p>
+            <div class="px-2 grid grid-cols-3 gap-6">
+                <button
+                    type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    on:click={setCrowdfundedSkippingEnabled}
+                >
+                    Enable crowdfunded skipping
+                </button>
+                <button
+                    type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    on:click={setCrowdfundedSkippingDisabled}
+                >
+                    Disable crowdfunded skipping
+                </button>
+                <button
+                    type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    on:click={setSkipPriceMultiplier}
+                >
+                    Set skip price multiplier
+                </button>
+            </div>
         </div>
         <p class="px-2 py-2 text-lg">
             <a href="/moderate/media/disallowed" use:link>Manage disallowed videos</a>
         </p>
-    </div>
-    <div class="mt-10">
-        <p class="px-2 font-semibold text-lg">Crowdfunded skipping</p>
-        <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={setCrowdfundedSkippingEnabled}
-            >
-                Enable crowdfunded skipping
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={setCrowdfundedSkippingDisabled}
-            >
-                Disable crowdfunded skipping
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={setSkipPriceMultiplier}
-            >
-                Set skip price multiplier
-            </button>
-        </div>
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">User bans</p>

@@ -53,6 +53,10 @@ service JungleTV {
     rpc TriggerAnnouncementsNotification(TriggerAnnouncementsNotificationRequest) returns (TriggerAnnouncementsNotificationResponse) {}
     rpc SpectatorInfo(SpectatorInfoRequest) returns (Spectator) {}
     rpc ResetSpectatorStatus(ResetSpectatorStatusRequest) returns (ResetSpectatorStatusResponse) {}
+    rpc MonitorModerationSettings (MonitorModerationSettingsRequest) returns (stream ModerationSettingsOverview) {}
+    rpc SetOwnQueueEntryRemovalAllowed(SetOwnQueueEntryRemovalAllowedRequest) returns (SetOwnQueueEntryRemovalAllowedResponse) {}
+    rpc SetNewQueueEntriesAlwaysUnskippable(SetNewQueueEntriesAlwaysUnskippableRequest) returns (SetNewQueueEntriesAlwaysUnskippableResponse) {}
+    rpc SetSkippingEnabled(SetSkippingEnabledRequest) returns (SetSkippingEnabledResponse) {}
 }
 
 message PaginationParameters {
@@ -185,6 +189,7 @@ message MonitorQueueRequest {}
 message Queue {
     repeated QueueEntry entries = 1;
     bool is_heartbeat = 2;
+    bool own_entry_removal_enabled = 3;
 }
 
 message QueueYouTubeVideoData {
@@ -657,3 +662,33 @@ message ResetSpectatorStatusRequest {
 }
 
 message ResetSpectatorStatusResponse {}
+
+message MonitorModerationSettingsRequest {}
+
+message ModerationSettingsOverview {
+    AllowedVideoEnqueuingType allowed_video_enqueuing = 1;
+    int32 enqueuing_prices_multiplier = 2;
+    bool crowdfunded_skipping_enabled = 3;
+    int32 crowdfunded_skipping_prices_multiplier = 4;
+    bool new_entries_always_unskippable = 5;
+    bool own_entry_removal_enabled = 6;
+    bool all_skipping_enabled = 7;
+}
+
+message SetOwnQueueEntryRemovalAllowedRequest {
+    bool allowed = 1;
+}
+
+message SetOwnQueueEntryRemovalAllowedResponse {}
+
+message SetNewQueueEntriesAlwaysUnskippableRequest {
+    bool enabled = 1;
+}
+
+message SetNewQueueEntriesAlwaysUnskippableResponse {}
+
+message SetSkippingEnabledRequest {
+    bool enabled = 1;
+}
+
+message SetSkippingEnabledResponse {}

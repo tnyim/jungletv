@@ -72,7 +72,7 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 
 		resp := ticket.SerializeForAPI()
 		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
-		resp.CurrentlyPlayingIsUnskippable = playing && currentEntry.Unskippable()
+		resp.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
 		return &proto.EnqueueMediaResponse{
 			EnqueueResponse: &proto.EnqueueMediaResponse_Ticket{
 				Ticket: resp,
@@ -124,11 +124,16 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
 
+	onSkippingAllowedUpdated := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer s.mediaQueue.skippingAllowedUpdated.Unsubscribe(onSkippingAllowedUpdated)
+
 	c := ticket.StatusChanged().Subscribe(event.AtLeastOnceGuarantee)
 	defer ticket.StatusChanged().Unsubscribe(c)
 	for {
 		select {
 		case <-onMediaChanged:
+			break
+		case <-onSkippingAllowedUpdated:
 			break
 		case <-c:
 			break
@@ -138,7 +143,7 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 
 		response := ticket.SerializeForAPI()
 		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
-		response.CurrentlyPlayingIsUnskippable = playing && currentEntry.Unskippable()
+		response.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
 
 		if err := stream.Send(response); err != nil {
 			return stacktrace.Propagate(err, "")

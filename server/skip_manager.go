@@ -77,6 +77,9 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
 
+	onSkippingAllowedUpdated := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer s.mediaQueue.skippingAllowedUpdated.Unsubscribe(onSkippingAllowedUpdated)
+
 	s.UpdateSkipThreshold()
 
 	startupNoSkipTimer := time.NewTimer(30 * time.Second)
@@ -107,6 +110,8 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 					return stacktrace.Propagate(err, "")
 				}
 			}
+			s.UpdateSkipThreshold()
+		case <-onSkippingAllowedUpdated:
 			s.UpdateSkipThreshold()
 		case <-mediaStartTimer.C:
 			s.mediaStartNoSkipPeriodOver = true
@@ -224,7 +229,7 @@ func (s *SkipManager) computeSkipStatus() proto.SkipStatus {
 	if !isCurrentlyPlaying {
 		return proto.SkipStatus_SKIP_STATUS_NO_MEDIA
 	}
-	if !s.skippingEnabled {
+	if !s.skippingEnabled || !s.mediaQueue.SkippingEnabled() {
 		return proto.SkipStatus_SKIP_STATUS_DISABLED
 	}
 	if !s.startupNoSkipPeriodOver {
@@ -377,6 +382,10 @@ func (s *SkipManager) UpdateSkipThreshold() {
 		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing()
 	}
 	s.statusUpdated.Notify(s.SkipAccountStatus(), s.RainAccountStatus())
+}
+
+func (s *SkipManager) CrowdfundedSkippingEnabled() bool {
+	return s.skippingEnabled
 }
 
 func (s *SkipManager) SetCrowdfundedSkippingEnabled(enabled bool) {

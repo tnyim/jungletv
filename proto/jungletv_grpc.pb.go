@@ -61,6 +61,10 @@ type JungleTVClient interface {
 	TriggerAnnouncementsNotification(ctx context.Context, in *TriggerAnnouncementsNotificationRequest, opts ...grpc.CallOption) (*TriggerAnnouncementsNotificationResponse, error)
 	SpectatorInfo(ctx context.Context, in *SpectatorInfoRequest, opts ...grpc.CallOption) (*Spectator, error)
 	ResetSpectatorStatus(ctx context.Context, in *ResetSpectatorStatusRequest, opts ...grpc.CallOption) (*ResetSpectatorStatusResponse, error)
+	MonitorModerationSettings(ctx context.Context, in *MonitorModerationSettingsRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationSettingsClient, error)
+	SetOwnQueueEntryRemovalAllowed(ctx context.Context, in *SetOwnQueueEntryRemovalAllowedRequest, opts ...grpc.CallOption) (*SetOwnQueueEntryRemovalAllowedResponse, error)
+	SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
+	SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error)
 }
 
 type jungleTVClient struct {
@@ -596,6 +600,65 @@ func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpec
 	return out, nil
 }
 
+func (c *jungleTVClient) MonitorModerationSettings(ctx context.Context, in *MonitorModerationSettingsRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationSettingsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_JungleTV_serviceDesc.Streams[6], "/jungletv.JungleTV/MonitorModerationSettings", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVMonitorModerationSettingsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_MonitorModerationSettingsClient interface {
+	Recv() (*ModerationSettingsOverview, error)
+	grpc.ClientStream
+}
+
+type jungleTVMonitorModerationSettingsClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVMonitorModerationSettingsClient) Recv() (*ModerationSettingsOverview, error) {
+	m := new(ModerationSettingsOverview)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *jungleTVClient) SetOwnQueueEntryRemovalAllowed(ctx context.Context, in *SetOwnQueueEntryRemovalAllowedRequest, opts ...grpc.CallOption) (*SetOwnQueueEntryRemovalAllowedResponse, error) {
+	out := new(SetOwnQueueEntryRemovalAllowedResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetOwnQueueEntryRemovalAllowed", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error) {
+	out := new(SetNewQueueEntriesAlwaysUnskippableResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetNewQueueEntriesAlwaysUnskippable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error) {
+	out := new(SetSkippingEnabledResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetSkippingEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -644,6 +707,10 @@ type JungleTVServer interface {
 	TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error)
 	SpectatorInfo(context.Context, *SpectatorInfoRequest) (*Spectator, error)
 	ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error)
+	MonitorModerationSettings(*MonitorModerationSettingsRequest, JungleTV_MonitorModerationSettingsServer) error
+	SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error)
+	SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
+	SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -779,6 +846,18 @@ func (UnimplementedJungleTVServer) SpectatorInfo(context.Context, *SpectatorInfo
 }
 func (UnimplementedJungleTVServer) ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetSpectatorStatus not implemented")
+}
+func (UnimplementedJungleTVServer) MonitorModerationSettings(*MonitorModerationSettingsRequest, JungleTV_MonitorModerationSettingsServer) error {
+	return status.Errorf(codes.Unimplemented, "method MonitorModerationSettings not implemented")
+}
+func (UnimplementedJungleTVServer) SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetOwnQueueEntryRemovalAllowed not implemented")
+}
+func (UnimplementedJungleTVServer) SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetNewQueueEntriesAlwaysUnskippable not implemented")
+}
+func (UnimplementedJungleTVServer) SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSkippingEnabled not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1585,6 +1664,81 @@ func _JungleTV_ResetSpectatorStatus_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_MonitorModerationSettings_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MonitorModerationSettingsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).MonitorModerationSettings(m, &jungleTVMonitorModerationSettingsServer{stream})
+}
+
+type JungleTV_MonitorModerationSettingsServer interface {
+	Send(*ModerationSettingsOverview) error
+	grpc.ServerStream
+}
+
+type jungleTVMonitorModerationSettingsServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVMonitorModerationSettingsServer) Send(m *ModerationSettingsOverview) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_SetOwnQueueEntryRemovalAllowed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetOwnQueueEntryRemovalAllowedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetOwnQueueEntryRemovalAllowed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetOwnQueueEntryRemovalAllowed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetOwnQueueEntryRemovalAllowed(ctx, req.(*SetOwnQueueEntryRemovalAllowedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetNewQueueEntriesAlwaysUnskippable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNewQueueEntriesAlwaysUnskippableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetNewQueueEntriesAlwaysUnskippable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetNewQueueEntriesAlwaysUnskippable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetNewQueueEntriesAlwaysUnskippable(ctx, req.(*SetNewQueueEntriesAlwaysUnskippableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetSkippingEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSkippingEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetSkippingEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetSkippingEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetSkippingEnabled(ctx, req.(*SetSkippingEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -1737,6 +1891,18 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 			MethodName: "ResetSpectatorStatus",
 			Handler:    _JungleTV_ResetSpectatorStatus_Handler,
 		},
+		{
+			MethodName: "SetOwnQueueEntryRemovalAllowed",
+			Handler:    _JungleTV_SetOwnQueueEntryRemovalAllowed_Handler,
+		},
+		{
+			MethodName: "SetNewQueueEntriesAlwaysUnskippable",
+			Handler:    _JungleTV_SetNewQueueEntriesAlwaysUnskippable_Handler,
+		},
+		{
+			MethodName: "SetSkippingEnabled",
+			Handler:    _JungleTV_SetSkippingEnabled_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1767,6 +1933,11 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ConsumeChat",
 			Handler:       _JungleTV_ConsumeChat_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "MonitorModerationSettings",
+			Handler:       _JungleTV_MonitorModerationSettings_Handler,
 			ServerStreams: true,
 		},
 	},

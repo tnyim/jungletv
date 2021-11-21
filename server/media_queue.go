@@ -30,10 +30,13 @@ type MediaQueue struct {
 	recentEntryCountsMutex          sync.RWMutex
 	recentEntryCountsCache          *cache.Cache
 	recentEntryCountsCacheUserMutex *nsync.NamedMutex
+	removalOfOwnEntriesAllowed      bool
+	skippingEnabled                 bool // all entries will behave as unskippable when false
 
-	queueUpdated *event.Event
-	mediaChanged *event.Event
-	entryAdded   *event.Event
+	queueUpdated           *event.Event
+	skippingAllowedUpdated *event.Event
+	mediaChanged           *event.Event
+	entryAdded             *event.Event
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
@@ -52,10 +55,13 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		recentEntryCountsCacheUserMutex: nsync.NewNamedMutex(),
 		queueUpdated:                    event.New(),
 		mediaChanged:                    event.New(),
+		skippingAllowedUpdated:          event.New(),
 		entryAdded:                      event.New(),
 		deepEntryRemoved:                event.New(),
 		ownEntryRemoved:                 event.New(),
 		recentEntryCountsCache:          cache.New(10*time.Second, 30*time.Second),
+		removalOfOwnEntriesAllowed:      true,
+		skippingEnabled:                 true,
 	}
 	if persistenceFile != "" {
 		err := q.restoreQueueFromFile(persistenceFile)
@@ -65,6 +71,24 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		go q.persistenceWorker(ctx, persistenceFile)
 	}
 	return q, nil
+}
+
+func (q *MediaQueue) RemovalOfOwnEntriesAllowed() bool {
+	return q.removalOfOwnEntriesAllowed
+}
+
+func (q *MediaQueue) SetRemovalOfOwnEntriesAllowed(allowed bool) {
+	q.removalOfOwnEntriesAllowed = allowed
+	q.queueUpdated.Notify()
+}
+
+func (q *MediaQueue) SkippingEnabled() bool {
+	return q.skippingEnabled
+}
+
+func (q *MediaQueue) SetSkippingEnabled(enabled bool) {
+	q.skippingEnabled = enabled
+	q.skippingAllowedUpdated.Notify()
 }
 
 func (q *MediaQueue) Length() int {
@@ -116,7 +140,7 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 	defer q.queueMutex.Unlock()
 
 	q.playAfterNextNoMutex(entry)
-	if len(q.queue) > 1 && !q.queue[0].Unskippable() {
+	if len(q.queue) > 1 && !q.queue[0].Unskippable() && q.SkippingEnabled() {
 		q.queue[0].Stop()
 	}
 
@@ -146,6 +170,9 @@ func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
 }
 
 func (q *MediaQueue) RemoveOwnEntry(entryID string, user User) error {
+	if !q.removalOfOwnEntriesAllowed {
+		return stacktrace.NewError("queue entry removal disallowed")
+	}
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
