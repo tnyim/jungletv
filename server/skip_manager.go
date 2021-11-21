@@ -74,11 +74,11 @@ func NewSkipManager(log *log.Logger,
 }
 
 func (s *SkipManager) Worker(ctx context.Context) error {
-	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+	onMediaChanged, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer mediaChangedU()
 
-	onSkippingAllowedUpdated := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.skippingAllowedUpdated.Unsubscribe(onSkippingAllowedUpdated)
+	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer skippingAllowedUpdatedU()
 
 	s.UpdateSkipThreshold()
 

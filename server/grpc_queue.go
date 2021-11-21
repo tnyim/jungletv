@@ -42,8 +42,8 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		}), "")
 	}
 
-	onQueueChanged := s.mediaQueue.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.queueUpdated.Unsubscribe(onQueueChanged)
+	onQueueChanged, queueUpdatedU := s.mediaQueue.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer queueUpdatedU()
 
 	err := send()
 	if err != nil {

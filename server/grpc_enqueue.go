@@ -121,14 +121,14 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 		return stacktrace.Propagate(err, "")
 	}
 
-	onMediaChanged := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+	onMediaChanged, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer mediaChangedU()
 
-	onSkippingAllowedUpdated := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.skippingAllowedUpdated.Unsubscribe(onSkippingAllowedUpdated)
+	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer skippingAllowedUpdatedU()
 
-	c := ticket.StatusChanged().Subscribe(event.AtLeastOnceGuarantee)
-	defer ticket.StatusChanged().Unsubscribe(c)
+	c, unsub := ticket.StatusChanged().Subscribe(event.AtLeastOnceGuarantee)
+	defer unsub()
 	for {
 		select {
 		case <-onMediaChanged:

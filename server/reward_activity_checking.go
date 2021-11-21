@@ -23,10 +23,10 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 	// this function runs once per spectator
 	// it keeps running until all connections of the spectator disconnect
 	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)
-	disconnected := spectator.onDisconnected.Subscribe(event.AtLeastOnceGuarantee)
-	defer spectator.onDisconnected.Unsubscribe(disconnected)
-	reconnected := spectator.onReconnected.Subscribe(event.AtLeastOnceGuarantee)
-	defer spectator.onReconnected.Unsubscribe(reconnected)
+	disconnected, onDisconnectedU := spectator.onDisconnected.Subscribe(event.AtLeastOnceGuarantee)
+	defer onDisconnectedU()
+	reconnected, onReconnectedU := spectator.onReconnected.Subscribe(event.AtLeastOnceGuarantee)
+	defer onReconnectedU()
 	for {
 		select {
 		case <-reconnected:

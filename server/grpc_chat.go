@@ -19,17 +19,17 @@ import (
 )
 
 func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.JungleTV_ConsumeChatServer) error {
-	onChatDisabled := s.chat.chatDisabled.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.chat.chatDisabled.Unsubscribe(onChatDisabled)
+	onChatDisabled, chatDisabledU := s.chat.chatDisabled.Subscribe(event.AtLeastOnceGuarantee)
+	defer chatDisabledU()
 
-	onChatEnabled := s.chat.chatEnabled.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.chat.chatEnabled.Unsubscribe(onChatEnabled)
+	onChatEnabled, chatEnabledU := s.chat.chatEnabled.Subscribe(event.AtLeastOnceGuarantee)
+	defer chatEnabledU()
 
-	onMessageCreated := s.chat.messageCreated.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.chat.messageCreated.Unsubscribe(onMessageCreated)
+	onMessageCreated, messageCreatedU := s.chat.messageCreated.Subscribe(event.AtLeastOnceGuarantee)
+	defer messageCreatedU()
 
-	onMessageDeleted := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.chat.messageCreated.Unsubscribe(onMessageDeleted)
+	onMessageDeleted, messageDeletedU := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
+	defer messageDeletedU()
 
 	heartbeatC := time.NewTicker(5 * time.Second).C
 	var seq uint32

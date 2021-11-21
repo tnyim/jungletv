@@ -9,8 +9,8 @@ import (
 )
 
 func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream proto.JungleTV_MonitorSkipAndTipServer) error {
-	onStatusUpdated := s.skipManager.StatusUpdated().Subscribe(event.AtLeastOnceGuarantee)
-	defer s.skipManager.StatusUpdated().Unsubscribe(onStatusUpdated)
+	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.AtLeastOnceGuarantee)
+	defer statusUpdatedU()
 
 	latestSkipStatus := s.skipManager.SkipAccountStatus()
 	latestRainStatus := s.skipManager.RainAccountStatus()

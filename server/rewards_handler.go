@@ -328,14 +328,14 @@ func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
 }
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
-	onMediaChanged := r.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
-	defer r.mediaQueue.mediaChanged.Unsubscribe(onMediaChanged)
+	onMediaChanged, mediaChangedU := r.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
+	defer mediaChangedU()
 
-	onEntryRemoved := r.mediaQueue.deepEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
-	defer r.mediaQueue.deepEntryRemoved.Unsubscribe(onEntryRemoved)
+	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.deepEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
+	defer deepEntryRemovedU()
 
-	onPendingWithdrawalCreated := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
-	defer r.withdrawalHandler.pendingWithdrawalCreated.Unsubscribe(onPendingWithdrawalCreated)
+	onPendingWithdrawalCreated, pendingWithdrawalCreatedU := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
+	defer pendingWithdrawalCreatedU()
 
 	// the rewards handler might be starting at a time when there are things already playing,
 	// in that case we need to update lastMedia

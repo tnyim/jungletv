@@ -36,7 +36,7 @@ func New() *Event {
 }
 
 // Subscribe returns a channel that will receive notification events.
-func (e *Event) Subscribe(guaranteeType GuaranteeType) <-chan []interface{} {
+func (e *Event) Subscribe(guaranteeType GuaranteeType) (<-chan []interface{}, func()) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -67,14 +67,14 @@ func (e *Event) Subscribe(guaranteeType GuaranteeType) <-chan []interface{} {
 		e.pendingNotification = false
 		e.pendingNotificationParams = []interface{}{}
 	}
-	return s.ch
+	return s.ch, func() { e.unsubscribe(s.ch) }
 }
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the arguments passed on Notify
 // The only type checking is performed at runtime when the event is fired, so be careful
 // The returned function should be called when one wishes to unsubscribe
 func (e *Event) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction interface{}) func() {
-	ch := e.Subscribe(guaranteeType)
+	ch, unsub := e.Subscribe(guaranteeType)
 	go func() {
 		for {
 			params, ok := <-ch
@@ -87,15 +87,12 @@ func (e *Event) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction i
 			}
 		}
 	}()
-	return func() {
-		// this will close ch and cause the goroutine above to return
-		e.Unsubscribe(ch)
-	}
+	return unsub
 }
 
-// Unsubscribe removes the provided channel from the list of subscriptions, i.e. the channel will no longer be notified.
+// unsubscribe removes the provided channel from the list of subscriptions, i.e. the channel will no longer be notified.
 // It also closes the channel.
-func (e *Event) Unsubscribe(ch <-chan []interface{}) {
+func (e *Event) unsubscribe(ch <-chan []interface{}) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 

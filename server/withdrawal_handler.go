@@ -39,8 +39,8 @@ func NewWithdrawalHandler(log *log.Logger,
 
 // Worker waits for pending withdrawals and completes them
 func (w *WithdrawalHandler) Worker(ctx context.Context) error {
-	onPendingWithdrawalCreated := w.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
-	defer w.pendingWithdrawalCreated.Unsubscribe(onPendingWithdrawalCreated)
+	onPendingWithdrawalCreated, pendingWithdrawalCreatedU := w.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
+	defer pendingWithdrawalCreatedU()
 
 	t := time.NewTicker(5 * time.Minute)
 	for {

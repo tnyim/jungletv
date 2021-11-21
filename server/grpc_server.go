@@ -479,8 +479,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}()
 
 	go func() {
-		mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
-		defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
+		mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+		defer mediaChangedU()
 
 		wait := time.Duration(90+rand.Intn(180)) * time.Second
 		t := time.NewTimer(wait)

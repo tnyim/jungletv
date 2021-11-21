@@ -217,8 +217,8 @@ func (q *MediaQueue) removeEntryInMutex(entryID string) (MediaQueueEntry, error)
 }
 
 func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
-	onQueueUpdated := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer q.queueUpdated.Unsubscribe(onQueueUpdated)
+	onQueueUpdated, queueUpdatedU := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer queueUpdatedU()
 	var prevQueueEntry MediaQueueEntry
 	for {
 		onNextMedia := make(<-chan []interface{})
@@ -251,10 +251,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 				currentQueueEntry.Play()
 			}
 			ev := currentQueueEntry.DonePlaying()
-			onNextMedia = ev.Subscribe(event.AtLeastOnceGuarantee)
-			unsubscribe = func() {
-				ev.Unsubscribe(onNextMedia)
-			}
+			onNextMedia, unsubscribe = ev.Subscribe(event.AtLeastOnceGuarantee)
 			q.log.Printf("Current queue entry: \"%s\" with length %s", currentQueueEntry.MediaInfo().Title(), currentQueueEntry.MediaInfo().Length())
 		} else {
 			q.log.Println("No current queue entry")
@@ -304,8 +301,8 @@ func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer
 }
 
 func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
-	c := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer q.queueUpdated.Unsubscribe(c)
+	c, queueUpdatedU := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer queueUpdatedU()
 
 	for {
 		select {

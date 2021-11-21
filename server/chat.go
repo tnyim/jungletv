@@ -91,26 +91,26 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 }
 
 func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
-	mediaChangedC := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.mediaChanged.Unsubscribe(mediaChangedC)
+	mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer mediaChangedU()
 
-	entryAddedC := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.entryAdded.Unsubscribe(entryAddedC)
+	entryAddedC, entryAddedU := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
+	defer entryAddedU()
 
-	ownEntryRemovedC := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.mediaQueue.ownEntryRemoved.Unsubscribe(ownEntryRemovedC)
+	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
+	defer ownEntryRemovedU()
 
-	rewardsDistributedC := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.rewardsHandler.rewardsDistributed.Unsubscribe(rewardsDistributedC)
+	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
+	defer rewardsDistributedU()
 
-	crowdfundedSkippedC := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.skipManager.crowdfundedSkip.Unsubscribe(crowdfundedSkippedC)
+	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
+	defer crowdfundedSkippedU()
 
-	crowdfundedTransactionReceivedC := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.skipManager.crowdfundedTransactionReceived.Unsubscribe(crowdfundedTransactionReceivedC)
+	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
+	defer crowdfundedTransactionReceivedU()
 
-	announcementsUpdatedC := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)
-	defer s.announcementsUpdated.Unsubscribe(announcementsUpdatedC)
+	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	defer announcementsUpdatedU()
 
 	for {
 		select {
