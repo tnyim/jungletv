@@ -781,15 +781,15 @@ func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappin
 
 func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWrappingContext, videoID string, length time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
 	// check total enqueued length
-	var totalPlayedOrEnqueuedLength time.Duration
+	totalLength := length
 	for _, entry := range s.mediaQueue.Entries() {
 		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
 			if ytEntry.id == videoID {
-				totalPlayedOrEnqueuedLength += ytEntry.Length()
+				totalLength += ytEntry.Length()
 			}
 		}
 	}
-	if totalPlayedOrEnqueuedLength > 2*time.Hour {
+	if totalLength > 2*time.Hour {
 		return youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
 	}
 
@@ -806,10 +806,10 @@ func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWra
 			endedAt = play.EndedAt.Time
 		}
 		playedFor := endedAt.Sub(play.StartedAt)
-		totalPlayedOrEnqueuedLength += playedFor
+		totalLength += playedFor
 	}
 
-	if totalPlayedOrEnqueuedLength > 2*time.Hour {
+	if totalLength > 2*time.Hour {
 		return youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently, nil
 	}
 
