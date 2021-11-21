@@ -11,7 +11,9 @@
     export let mode = "sidebar";
 
     let queueEntries: QueueEntry[] = [];
-    let totalQueueLength: Duration;
+    let totalQueueLength: Duration = Duration.fromMillis(0);
+    let totalQueueValue = BigInt(0);
+    let totalQueueParticipants = 0;
     let monitorQueueRequest: Request;
     let monitorQueueTimeoutHandle: number = null;
     onMount(monitorQueue);
@@ -44,12 +46,20 @@
         if (!queue.getIsHeartbeat()) {
             queueEntries = queue.getEntriesList();
             let tl = Duration.fromMillis(0);
+            let tv = BigInt(0);
+            let participantsSet = new Set();
             for (let entry of queueEntries) {
                 tl = tl.plus(
                     Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
                 );
+                tv += BigInt(entry.getRequestCost());
+                if (entry.hasRequestedBy()) {
+                    participantsSet.add(entry.getRequestedBy().getAddress());
+                }
             }
             totalQueueLength = tl;
+            totalQueueValue = tv;
+            totalQueueParticipants = participantsSet.size;
         }
     }
 
@@ -73,6 +83,26 @@
 </script>
 
 <div class="lg:overflow-y-auto overflow-x-hidden">
+    <div class="w-full grid grid-cols-2 grid-rows-2 gap-2 px-2 mb-2 text-gray-500 text-center">
+        <div title="Number of entries in queue">
+            <i class="fas fa-photo-video text-sm" />
+            {queueEntries.length}
+            {queueEntries.length == 1 ? "entry" : "entries"}
+        </div>
+        <div title="Total duration of the queue">
+            <i class="fas fa-stopwatch text-sm" />
+            {totalQueueLength.toFormat("d'd 'h'h 'm'm'").replace(/^0d /, "").replace(/^0h /, "")}
+        </div>
+        <div title="Request cost of all queue entries">
+            <i class="fas fa-coins text-sm" />
+            {apiClient.formatBANPriceFixed(totalQueueValue.toString())} BAN
+        </div>
+        <div title="Number of different entry requesters">
+            <i class="fas fa-users text-sm" />
+            {totalQueueParticipants}
+            {totalQueueParticipants == 1 ? "participant" : "participants"}
+        </div>
+    </div>
     {#each queueEntries as entry, i}
         <div
             class="px-2 py-1 flex flex-row text-sm
@@ -95,7 +125,7 @@
                     <div
                         class="absolute bottom-0.5 right-2.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
                         style="font-size: 0.7rem; line-height: 0.8rem;"
-                        title="{formatQueueEntryThumbnailDuration(entry.getLength())}"
+                        title={formatQueueEntryThumbnailDuration(entry.getLength())}
                     >
                         {formatQueueEntryThumbnailDuration(entry.getLength(), entry.getOffset())}
                     </div>
@@ -171,18 +201,6 @@
             Nothing playing. <a href="/enqueue" use:link>Get something going</a>!
         </div>
     {/each}
-    {#if queueEntries.length > 0}
-        <div class="px-2 py-2 text-center italic text-gray-500">
-            {queueEntries.length}
-            {queueEntries.length == 1 ? "video" : "videos"} in queue with a total length of {totalQueueLength
-                .toFormat("d 'days,' h 'hours and' m 'minutes'")
-                .replace("0 days, 0 hours and ", "")
-                .replace("0 days, ", "")
-                .replace(/^1 minutes/, "1 minute")
-                .replace(/^1 hours/, "1 hour")
-                .replace(/^1 days/, "1 day")}
-        </div>
-    {/if}
 </div>
 
 <style lang="postcss">
