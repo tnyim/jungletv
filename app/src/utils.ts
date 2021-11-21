@@ -49,6 +49,7 @@ export const formatQueueEntryThumbnailDuration = function (duration: google_prot
         offsetEnd.setNanos(offset.getNanos() + duration.getNanos());
         let part = Duration.fromMillis(offset.getSeconds() * 1000 + offset.getNanos() / 1000000).toFormat("mm:ss");
         let part2 = Duration.fromMillis(offsetEnd.getSeconds() * 1000 + offsetEnd.getNanos() / 1000000).toFormat("mm:ss");
+        console.log(part, part2);
         return (part + " - " + part2).replace(/^00:00 - /, "");
     }
     return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");

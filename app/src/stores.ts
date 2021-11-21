@@ -4,6 +4,7 @@ import { ActivityChallenge, PermissionLevel, PermissionLevelMap } from './proto/
 type valueof<T> = T[keyof T];
 
 export const playerConnected = writable(false);
+export const playerCurrentTime = writable(0);
 export const rewardAddress = writable("");
 export const rewardBalance = writable("");
 export const rewardReceived = writable("");

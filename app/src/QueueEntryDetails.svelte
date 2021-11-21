@@ -54,10 +54,12 @@
 
     async function removeOwnEntry() {
         try {
-        await apiClient.removeOwnQueueEntry(entry.getId());
+            await apiClient.removeOwnQueueEntry(entry.getId());
         } catch (ex) {
             if (ex.includes("rate limit reached")) {
-                alert("Queue entry not removed because you have removed too many of your own queue entries recently. This is a safeguard to prevent certain kinds of abuse.");
+                alert(
+                    "Queue entry not removed because you have removed too many of your own queue entries recently. This is a safeguard to prevent certain kinds of abuse."
+                );
             }
         }
     }
@@ -114,9 +116,8 @@
         <p>
             Added to the queue {formatEnqueuedAt(entry)}.
         </p>
-        <p>
-            This video was automatically enqueued by JungleTV because the queue was empty. Since nobody paid for this
-            video, it will pay no rewards.
+        <p class="mt-2">
+            This video was automatically enqueued by JungleTV. Since nobody paid for this video, it will pay no rewards.
         </p>
     {/if}
     <div class="grid grid-cols-6 gap-2 place-items-center">

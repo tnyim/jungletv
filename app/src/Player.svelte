@@ -10,6 +10,7 @@
         currentlyWatching,
         mostRecentAnnouncement,
         playerConnected,
+        playerCurrentTime,
         rewardBalance,
         rewardReceived,
         unreadAnnouncement,
@@ -74,11 +75,12 @@
         consumeMediaTimeoutHandle = setTimeout(consumeMediaTimeout, 20000);
         playerConnected.update(() => true);
         if (checkpoint.getMediaPresent()) {
+            let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
+            playerCurrentTime.set(currentTimeFromServer);
             videoId = checkpoint.getYoutubeVideoData().getId();
             let currentPlayerTime = await player.getCurrentTime();
             if (!checkpoint.getLiveBroadcast()) {
                 highestSeenLiveStreamCurrentTime = undefined;
-                let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
                 firstSeekTo = currentTimeFromServer;
                 let leniencySeconds = 3;
                 if (player.getVideoLoadedFraction() * player.getDuration() < 10) {
@@ -100,6 +102,7 @@
                 }
             }
         } else {
+            playerCurrentTime.set(0);
             player.stopVideo();
             if (videoId != "") {
                 videoId = "cdwal5Kw3Fc"; // ensure whatever video was there is really gone
