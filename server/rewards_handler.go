@@ -85,7 +85,7 @@ type spectator struct {
 	onChatMentioned            *event.Event
 	onActivityChallenge        *event.Event
 	activityChallenge          *activityChallenge
-	hardChallengesSolved       int
+	lastHardChallengeSolvedAt  time.Time
 	connectionCount            int
 	noToleranceOnNextChallenge bool
 }
@@ -220,7 +220,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 			d := durationUntilNextActivityChallenge(user, true)
 			s.nextActivityCheckTime = now.Add(d)
 			s.activityCheckTimer = time.NewTimer(d)
-			s.hardChallengesSolved = 0
+			s.lastHardChallengeSolvedAt = time.Time{}
 			s.noToleranceOnNextChallenge = true
 			s.remoteAddresses[remoteAddress] = struct{}{}
 		}

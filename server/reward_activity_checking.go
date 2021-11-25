@@ -68,7 +68,7 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 		Type:         "button",
 		Tolerance:    1 * time.Minute,
 	}
-	if spectator.hardChallengesSolved == 0 || int(time.Since(spectator.startedWatching).Hours()) > spectator.hardChallengesSolved-1 {
+	if time.Since(spectator.lastHardChallengeSolvedAt) > 1*time.Hour {
 		spectator.activityChallenge.Type = "segcha"
 		spectator.activityChallenge.Tolerance = 2 * time.Minute
 	}
@@ -101,7 +101,8 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		return stacktrace.NewError("mismatched remote address")
 	}
 
-	timeUntilChallengeResponse = time.Since(spectator.activityChallenge.ChallengedAt)
+	now := time.Now()
+	timeUntilChallengeResponse = now.Sub(spectator.activityChallenge.ChallengedAt)
 
 	newLegitimate := trusted
 	var checkFn captchaResponseCheckFn
@@ -122,7 +123,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 			// this way, they'll stop receiving rewards until the next challenge
 			r.log.Println("Activity challenge captcha verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeResponse)
 		} else if captchaValid {
-			spectator.hardChallengesSolved++
+			spectator.lastHardChallengeSolvedAt = now
 		}
 	}
 
@@ -130,7 +131,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress,
 			"solved", spectator.activityChallenge.Type,
 			"activity challenge after", timeUntilChallengeResponse)
-		if !spectator.legitimate && time.Since(spectator.stoppedBeingLegitimate) > time.Duration(spectator.legitimacyFailures)*time.Hour {
+		if !spectator.legitimate && now.Sub(spectator.stoppedBeingLegitimate) > time.Duration(spectator.legitimacyFailures)*time.Hour {
 			// give spectator another chance
 			spectator.legitimate = true
 			spectator.stoppedBeingLegitimate = time.Time{}
@@ -139,12 +140,12 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	} else if spectator.legitimate && !newLegitimate {
 		spectator.legitimate = false
 		spectator.legitimacyFailures++
-		spectator.stoppedBeingLegitimate = time.Now()
+		spectator.stoppedBeingLegitimate = now
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "considered not legitimate")
 	}
 
 	d := durationUntilNextActivityChallenge(spectator.user, false)
-	spectator.nextActivityCheckTime = time.Now().Add(d)
+	spectator.nextActivityCheckTime = now.Add(d)
 	spectator.activityCheckTimer.Reset(d)
 	spectator.activityChallenge = nil
 
