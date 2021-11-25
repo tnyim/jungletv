@@ -8,6 +8,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -36,6 +37,7 @@ type MediaQueueEntry interface {
 
 type MediaInfo interface {
 	Title() string
+	MediaID() (types.MediaType, string)
 	ThumbnailURL() string
 	Offset() time.Duration
 	Length() time.Duration
@@ -78,6 +80,10 @@ func (e *queueEntryYouTubeVideo) QueueID() string {
 
 func (e *queueEntryYouTubeVideo) Title() string {
 	return e.title
+}
+
+func (e *queueEntryYouTubeVideo) MediaID() (types.MediaType, string) {
+	return types.MediaTypeYouTubeVideo, e.id
 }
 
 func (e *queueEntryYouTubeVideo) ThumbnailURL() string {

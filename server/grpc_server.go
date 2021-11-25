@@ -745,12 +745,12 @@ func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappin
 	}
 	// check range overlap with enqueued entries
 	for _, entry := range s.mediaQueue.Entries() {
-		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
-			if ytEntry.id == videoID {
-				enqueuedPeriod := playPeriod{ytEntry.Offset(), ytEntry.Offset() + ytEntry.Length()}
-				if periodsOverlap(enqueuedPeriod, candidatePeriod) {
-					return youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
-				}
+		mediaInfo := entry.MediaInfo()
+		entryType, entryMediaID := mediaInfo.MediaID()
+		if entryType == types.MediaTypeYouTubeVideo && entryMediaID == videoID {
+			enqueuedPeriod := playPeriod{mediaInfo.Offset(), mediaInfo.Offset() + mediaInfo.Length()}
+			if periodsOverlap(enqueuedPeriod, candidatePeriod) {
+				return youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue, nil
 			}
 		}
 	}
@@ -787,10 +787,10 @@ func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWra
 			// current entry will already be counted below
 			continue
 		}
-		if ytEntry, ok := entry.(*queueEntryYouTubeVideo); ok {
-			if ytEntry.id == videoID {
-				totalLength += ytEntry.Length()
-			}
+		mediaInfo := entry.MediaInfo()
+		entryType, entryMediaID := mediaInfo.MediaID()
+		if entryType == types.MediaTypeYouTubeVideo && entryMediaID == videoID {
+			totalLength += mediaInfo.Length()
 		}
 	}
 	if totalLength > 2*time.Hour {

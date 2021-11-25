@@ -269,10 +269,12 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 		e.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, requestedByStr)
 	}
 
-	e.log.Printf("Enqueued ticket %s (p.a. %d) - video \"%s\" with length %s - requested by %s with cost %s",
+	_, mediaID := mi.MediaID()
+	e.log.Printf("Enqueued ticket %s (p.a. %d) - video \"%s\" (%s) with length %s - requested by %s with cost %s",
 		reqID,
 		request.PaymentAccount().Index(),
 		mi.Title(),
+		mediaID,
 		mi.Length().String(),
 		requestedByStr,
 		balance.String())
