@@ -182,3 +182,4 @@ CREATE TABLE IF NOT EXISTS "connection" (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     oauth_refresh_token TEXT -- nullable
 );
+CREATE INDEX index_rewards_address_on_connection ON connection USING HASH (rewards_address);
