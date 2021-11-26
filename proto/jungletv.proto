@@ -28,6 +28,9 @@ service JungleTV {
     rpc RewardHistory (RewardHistoryRequest) returns (RewardHistoryResponse) {}
     rpc WithdrawalHistory (WithdrawalHistoryRequest) returns (WithdrawalHistoryResponse) {}
     rpc OngoingRaffleInfo (OngoingRaffleInfoRequest) returns (OngoingRaffleInfoResponse) {}
+    rpc Connections (ConnectionsRequest) returns (ConnectionsResponse) {}
+    rpc CreateConnection (CreateConnectionRequest) returns (CreateConnectionResponse) {}
+    rpc RemoveConnection (RemoveConnectionRequest) returns (RemoveConnectionResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -693,3 +696,41 @@ message SetSkippingEnabledRequest {
 }
 
 message SetSkippingEnabledResponse {}
+
+message ConnectionsRequest {}
+
+enum ConnectionService {
+    UNKNOWN = 0;
+    CRYPTOMONKEYS = 1;
+}
+
+message Connection {
+    string id = 1;
+    ConnectionService service = 2;
+    string name = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+message ServiceInfo {
+    ConnectionService service = 1;
+    optional int32 max_connections = 2;
+}
+
+message ConnectionsResponse {
+    repeated Connection connections = 1;
+    repeated ServiceInfo service_infos = 2;
+}
+
+message CreateConnectionRequest {
+    ConnectionService service = 1;
+}
+
+message CreateConnectionResponse {
+    string auth_url = 1;
+}
+
+message RemoveConnectionRequest {
+    string id = 1;
+}
+
+message RemoveConnectionResponse {}

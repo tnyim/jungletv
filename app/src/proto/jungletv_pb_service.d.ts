@@ -184,6 +184,33 @@ type JungleTVOngoingRaffleInfo = {
   readonly responseType: typeof jungletv_pb.OngoingRaffleInfoResponse;
 };
 
+type JungleTVConnections = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ConnectionsRequest;
+  readonly responseType: typeof jungletv_pb.ConnectionsResponse;
+};
+
+type JungleTVCreateConnection = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.CreateConnectionRequest;
+  readonly responseType: typeof jungletv_pb.CreateConnectionResponse;
+};
+
+type JungleTVRemoveConnection = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RemoveConnectionRequest;
+  readonly responseType: typeof jungletv_pb.RemoveConnectionResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -449,6 +476,9 @@ export class JungleTV {
   static readonly RewardHistory: JungleTVRewardHistory;
   static readonly WithdrawalHistory: JungleTVWithdrawalHistory;
   static readonly OngoingRaffleInfo: JungleTVOngoingRaffleInfo;
+  static readonly Connections: JungleTVConnections;
+  static readonly CreateConnection: JungleTVCreateConnection;
+  static readonly RemoveConnection: JungleTVRemoveConnection;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -641,6 +671,33 @@ export class JungleTVClient {
   ongoingRaffleInfo(
     requestMessage: jungletv_pb.OngoingRaffleInfoRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.OngoingRaffleInfoResponse|null) => void
+  ): UnaryResponse;
+  connections(
+    requestMessage: jungletv_pb.ConnectionsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConnectionsResponse|null) => void
+  ): UnaryResponse;
+  connections(
+    requestMessage: jungletv_pb.ConnectionsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConnectionsResponse|null) => void
+  ): UnaryResponse;
+  createConnection(
+    requestMessage: jungletv_pb.CreateConnectionRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CreateConnectionResponse|null) => void
+  ): UnaryResponse;
+  createConnection(
+    requestMessage: jungletv_pb.CreateConnectionRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CreateConnectionResponse|null) => void
+  ): UnaryResponse;
+  removeConnection(
+    requestMessage: jungletv_pb.RemoveConnectionRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveConnectionResponse|null) => void
+  ): UnaryResponse;
+  removeConnection(
+    requestMessage: jungletv_pb.RemoveConnectionRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveConnectionResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

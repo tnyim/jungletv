@@ -8,7 +8,7 @@
     import AddressBox from "./AddressBox.svelte";
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
-import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -190,7 +190,7 @@ import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
             Awaiting payment
         </button>
     </div>
-    <div slot="secondary_1">
+    <div slot="extra_1">
         <slot name="raffle-info" />
     </div>
 </Wizard>

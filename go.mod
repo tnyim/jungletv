@@ -39,6 +39,7 @@ require (
 	github.com/shopspring/decimal v1.2.0
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	google.golang.org/api v0.46.0
 	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0

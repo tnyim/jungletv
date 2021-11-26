@@ -1,9 +1,16 @@
 <script lang="ts">
     import { navigate, link } from "svelte-navigator";
+import AccountConnections from "./AccountConnections.svelte";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import PaginatedTable from "./PaginatedTable.svelte";
-    import type { PaginationParameters, ReceivedReward, Withdrawal } from "./proto/jungletv_pb";
+    import type {
+        Connection,
+        PaginationParameters,
+        ReceivedReward,
+        ServiceInfo,
+        Withdrawal,
+    } from "./proto/jungletv_pb";
 
     import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
@@ -15,6 +22,8 @@
     let pendingWithdrawal = false;
     let withdrawalPositionInQueue = 0;
     let withdrawalsInQueue = 0;
+    let connections: Connection[];
+    let services: ServiceInfo[];
 
     let rewardInfoPromise = (async function () {
         try {
@@ -35,6 +44,19 @@
             navigate("/rewards/address");
         }
     })();
+
+    async function loadConnections() {
+        try {
+            let r = await apiClient.connections();
+            connections = r.getConnectionsList();
+            services = r.getServiceInfosList();
+        } catch (ex) {
+            console.log(ex);
+            navigate("/rewards/address");
+        }
+    }
+
+    let connectionsPromise = (loadConnections)();
 
     let withdrawClicked = false;
     let withdrawSuccessful = false;
@@ -148,7 +170,22 @@
             </p>
         {/await}
     </div>
-    <div slot="secondary_1">
+    <div slot="extra_1">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+            <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="col-span-3">
+                        {#await connectionsPromise}
+                            <p>Loading...</p>
+                        {:then}
+                            <AccountConnections {connections} {services} on:needsUpdate={loadConnections} />
+                        {/await}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div slot="extra_2">
         <PaginatedTable
             title={"Received rewards"}
             column_count={3}
@@ -186,7 +223,7 @@
             </tbody>
         </PaginatedTable>
     </div>
-    <div slot="secondary_2">
+    <div slot="extra_3">
         <PaginatedTable
             title={"Completed withdrawals"}
             column_count={4}

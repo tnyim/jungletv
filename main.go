@@ -141,11 +141,6 @@ func main() {
 		mainLog.Println("Queue file path not present in keybox, will not persist queue")
 	}
 
-	bansFile, present := secrets.Get("bansFile")
-	if !present {
-		mainLog.Println("Bans file path not present in keybox, will not persist moderation decisions")
-	}
-
 	autoEnqueueVideoListFile, present := secrets.Get("autoEnqueueVideosFile")
 	if !present {
 		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
@@ -275,12 +270,54 @@ func main() {
 		mainLog.Fatalln("Raffle secret key not present in segcha keybox")
 	}
 
+	oauthKeybox, present := secrets.GetBox("oauth")
+	if !present {
+		mainLog.Fatalln("OAuth keybox not present in keybox")
+	}
+
+	cmKeybox, present := oauthKeybox.GetBox("cryptomonkeys")
+	if !present {
+		mainLog.Fatalln("cryptomonKeys keybox not present in OAuth keybox")
+	}
+
+	cmClientID, present := cmKeybox.Get("clientID")
+	if !present {
+		mainLog.Fatalln("client ID not present in cryptomonKeys keybox")
+	}
+
+	cmClientSecret, present := cmKeybox.Get("clientSecret")
+	if !present {
+		mainLog.Fatalln("client secret not present in cryptomonKeys keybox")
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey)
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
-	apiServer, extraHTTProutes, err := server.NewServer(ctx, apiLog, statsClient, wallet, youtubeAPIkey, jwtManager,
-		authInterceptor, queueFile, bansFile, autoEnqueueVideoListFile, repAddress, ticketCheckPeriod,
-		ipCheckEndpoint, ipCheckToken, hCaptchaSecret, modLogWebhook, segchaClient, imageDB, segchaFontPath,
-		raffleSecretKey, websiteURL)
+
+	options := server.Options{
+		Log:                       apiLog,
+		StatsClient:               statsClient,
+		Wallet:                    wallet,
+		RepresentativeAddress:     repAddress,
+		JWTManager:                jwtManager,
+		AuthInterceptor:           authInterceptor,
+		TicketCheckPeriod:         ticketCheckPeriod,
+		IPCheckEndpoint:           ipCheckEndpoint,
+		IPCheckToken:              ipCheckToken,
+		YoutubeAPIkey:             youtubeAPIkey,
+		RaffleSecretKey:           raffleSecretKey,
+		HCaptchaSecret:            hCaptchaSecret,
+		ModLogWebhook:             modLogWebhook,
+		SegchaClient:              segchaClient,
+		CaptchaImageDB:            imageDB,
+		CaptchaFontPath:           segchaFontPath,
+		AutoEnqueueVideoListFile:  autoEnqueueVideoListFile,
+		QueueFile:                 queueFile,
+		CryptomonKeysClientID:     cmClientID,
+		CryptomonKeysClientSecret: cmClientSecret,
+		WebsiteURL:                websiteURL,
+	}
+
+	apiServer, extraHTTProutes, err := server.NewServer(ctx, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}

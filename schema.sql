@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS "connection_service";
+DROP TABLE IF EXISTS "connection";
 DROP TABLE IF EXISTS "counter";
 DROP TABLE IF EXISTS "banned_user";
 DROP TABLE IF EXISTS "raffle_drawing";
@@ -164,4 +166,19 @@ CREATE TABLE IF NOT EXISTS "counter" (
     counter_name VARCHAR(36) PRIMARY KEY,
     counter_value INTEGER NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "connection_service" (
+    connection_service VARCHAR(20) PRIMARY KEY
+);
+INSERT INTO "connection_service" VALUES ('cryptomonkeys');
+
+CREATE TABLE IF NOT EXISTS "connection" (
+    id VARCHAR(36) PRIMARY KEY,
+    "service" VARCHAR(20) NOT NULL REFERENCES connection_service (connection_service),
+    rewards_address VARCHAR(64) NOT NULL,
+    "name" TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    oauth_refresh_token TEXT -- nullable
 );

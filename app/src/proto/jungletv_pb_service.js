@@ -190,6 +190,33 @@ JungleTV.OngoingRaffleInfo = {
   responseType: jungletv_pb.OngoingRaffleInfoResponse
 };
 
+JungleTV.Connections = {
+  methodName: "Connections",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.ConnectionsRequest,
+  responseType: jungletv_pb.ConnectionsResponse
+};
+
+JungleTV.CreateConnection = {
+  methodName: "CreateConnection",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.CreateConnectionRequest,
+  responseType: jungletv_pb.CreateConnectionResponse
+};
+
+JungleTV.RemoveConnection = {
+  methodName: "RemoveConnection",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveConnectionRequest,
+  responseType: jungletv_pb.RemoveConnectionResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -1082,6 +1109,99 @@ JungleTVClient.prototype.ongoingRaffleInfo = function ongoingRaffleInfo(requestM
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.OngoingRaffleInfo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.connections = function connections(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.Connections, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.createConnection = function createConnection(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.CreateConnection, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeConnection = function removeConnection(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveConnection, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
