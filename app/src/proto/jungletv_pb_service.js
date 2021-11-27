@@ -460,6 +460,24 @@ JungleTV.SetSkippingEnabled = {
   responseType: jungletv_pb.SetSkippingEnabledResponse
 };
 
+JungleTV.SetQueueInsertCursor = {
+  methodName: "SetQueueInsertCursor",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetQueueInsertCursorRequest,
+  responseType: jungletv_pb.SetQueueInsertCursorResponse
+};
+
+JungleTV.ClearQueueInsertCursor = {
+  methodName: "ClearQueueInsertCursor",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.ClearQueueInsertCursorRequest,
+  responseType: jungletv_pb.ClearQueueInsertCursorResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -2047,6 +2065,68 @@ JungleTVClient.prototype.setSkippingEnabled = function setSkippingEnabled(reques
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetSkippingEnabled, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setQueueInsertCursor = function setQueueInsertCursor(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetQueueInsertCursor, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.clearQueueInsertCursor = function clearQueueInsertCursor(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ClearQueueInsertCursor, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

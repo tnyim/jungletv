@@ -88,5 +88,12 @@
                 Entry skipping, in general, is disabled
             {/if}
         </div>
+        <div>
+            {#if settingsOverview.hasQueueInsertCursor()}
+                Queue insert cursor set
+            {:else}
+                Queue insert cursor not set
+            {/if}
+        </div>
     </div>
 {/if}

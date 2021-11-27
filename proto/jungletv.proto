@@ -60,6 +60,8 @@ service JungleTV {
     rpc SetOwnQueueEntryRemovalAllowed(SetOwnQueueEntryRemovalAllowedRequest) returns (SetOwnQueueEntryRemovalAllowedResponse) {}
     rpc SetNewQueueEntriesAlwaysUnskippable(SetNewQueueEntriesAlwaysUnskippableRequest) returns (SetNewQueueEntriesAlwaysUnskippableResponse) {}
     rpc SetSkippingEnabled(SetSkippingEnabledRequest) returns (SetSkippingEnabledResponse) {}
+    rpc SetQueueInsertCursor(SetQueueInsertCursorRequest) returns (SetQueueInsertCursorResponse) {}
+    rpc ClearQueueInsertCursor(ClearQueueInsertCursorRequest) returns (ClearQueueInsertCursorResponse) {}
 }
 
 message PaginationParameters {
@@ -194,6 +196,7 @@ message Queue {
     repeated QueueEntry entries = 1;
     bool is_heartbeat = 2;
     bool own_entry_removal_enabled = 3;
+    optional string insert_cursor = 4;
 }
 
 message QueueYouTubeVideoData {
@@ -677,6 +680,7 @@ message ModerationSettingsOverview {
     bool new_entries_always_unskippable = 5;
     bool own_entry_removal_enabled = 6;
     bool all_skipping_enabled = 7;
+    optional string queue_insert_cursor = 8;
 }
 
 message SetOwnQueueEntryRemovalAllowedRequest {
@@ -734,3 +738,13 @@ message RemoveConnectionRequest {
 }
 
 message RemoveConnectionResponse {}
+
+message SetQueueInsertCursorRequest {
+    string id = 1;
+}
+
+message SetQueueInsertCursorResponse {}
+
+message ClearQueueInsertCursorRequest {}
+
+message ClearQueueInsertCursorResponse {}

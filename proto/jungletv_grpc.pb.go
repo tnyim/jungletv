@@ -68,6 +68,8 @@ type JungleTVClient interface {
 	SetOwnQueueEntryRemovalAllowed(ctx context.Context, in *SetOwnQueueEntryRemovalAllowedRequest, opts ...grpc.CallOption) (*SetOwnQueueEntryRemovalAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error)
+	SetQueueInsertCursor(ctx context.Context, in *SetQueueInsertCursorRequest, opts ...grpc.CallOption) (*SetQueueInsertCursorResponse, error)
+	ClearQueueInsertCursor(ctx context.Context, in *ClearQueueInsertCursorRequest, opts ...grpc.CallOption) (*ClearQueueInsertCursorResponse, error)
 }
 
 type jungleTVClient struct {
@@ -689,6 +691,24 @@ func (c *jungleTVClient) SetSkippingEnabled(ctx context.Context, in *SetSkipping
 	return out, nil
 }
 
+func (c *jungleTVClient) SetQueueInsertCursor(ctx context.Context, in *SetQueueInsertCursorRequest, opts ...grpc.CallOption) (*SetQueueInsertCursorResponse, error) {
+	out := new(SetQueueInsertCursorResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetQueueInsertCursor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ClearQueueInsertCursor(ctx context.Context, in *ClearQueueInsertCursorRequest, opts ...grpc.CallOption) (*ClearQueueInsertCursorResponse, error) {
+	out := new(ClearQueueInsertCursorResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ClearQueueInsertCursor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -744,6 +764,8 @@ type JungleTVServer interface {
 	SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error)
+	SetQueueInsertCursor(context.Context, *SetQueueInsertCursorRequest) (*SetQueueInsertCursorResponse, error)
+	ClearQueueInsertCursor(context.Context, *ClearQueueInsertCursorRequest) (*ClearQueueInsertCursorResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -900,6 +922,12 @@ func (UnimplementedJungleTVServer) SetNewQueueEntriesAlwaysUnskippable(context.C
 }
 func (UnimplementedJungleTVServer) SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSkippingEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) SetQueueInsertCursor(context.Context, *SetQueueInsertCursorRequest) (*SetQueueInsertCursorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetQueueInsertCursor not implemented")
+}
+func (UnimplementedJungleTVServer) ClearQueueInsertCursor(context.Context, *ClearQueueInsertCursorRequest) (*ClearQueueInsertCursorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearQueueInsertCursor not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1835,6 +1863,42 @@ func _JungleTV_SetSkippingEnabled_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetQueueInsertCursor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetQueueInsertCursorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetQueueInsertCursor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetQueueInsertCursor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetQueueInsertCursor(ctx, req.(*SetQueueInsertCursorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ClearQueueInsertCursor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearQueueInsertCursorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ClearQueueInsertCursor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ClearQueueInsertCursor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ClearQueueInsertCursor(ctx, req.(*ClearQueueInsertCursorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -2010,6 +2074,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetSkippingEnabled",
 			Handler:    _JungleTV_SetSkippingEnabled_Handler,
+		},
+		{
+			MethodName: "SetQueueInsertCursor",
+			Handler:    _JungleTV_SetQueueInsertCursor_Handler,
+		},
+		{
+			MethodName: "ClearQueueInsertCursor",
+			Handler:    _JungleTV_ClearQueueInsertCursor_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

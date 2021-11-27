@@ -32,6 +32,7 @@ type MediaQueue struct {
 	recentEntryCountsCacheUserMutex *nsync.NamedMutex
 	removalOfOwnEntriesAllowed      bool
 	skippingEnabled                 bool // all entries will behave as unskippable when false
+	insertCursor                    string
 
 	queueUpdated           *event.Event
 	skippingAllowedUpdated *event.Event
@@ -91,10 +92,60 @@ func (q *MediaQueue) SetSkippingEnabled(enabled bool) {
 	q.skippingAllowedUpdated.Notify()
 }
 
+func (q *MediaQueue) InsertCursor() (string, bool) {
+	q.queueMutex.RLock()
+	defer q.queueMutex.RUnlock()
+	return q.insertCursor, q.insertCursor != ""
+}
+
+func (q *MediaQueue) SetInsertCursor(entryID string) error {
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	for i, entry := range q.queue {
+		// never allow for setting the cursor to the currently playing entry
+		if i != 0 && entryID == entry.QueueID() {
+			q.insertCursor = entryID
+			q.queueUpdated.Notify()
+			return nil
+		}
+	}
+
+	return stacktrace.NewError("entry not found")
+}
+
+func (q *MediaQueue) ClearInsertCursor() {
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	if q.insertCursor != "" {
+		q.insertCursor = ""
+		q.queueUpdated.Notify()
+	}
+}
+
 func (q *MediaQueue) Length() int {
 	q.queueMutex.RLock()
 	defer q.queueMutex.RUnlock()
 	return len(q.queue)
+}
+
+func (q *MediaQueue) LengthUpToCursor() int {
+	q.queueMutex.RLock()
+	defer q.queueMutex.RUnlock()
+
+	if q.insertCursor == "" {
+		return len(q.queue)
+	}
+
+	l := 0
+	for _, entry := range q.queue {
+		if q.insertCursor == entry.QueueID() {
+			return l
+		}
+		l++
+	}
+	return l
 }
 
 func (q *MediaQueue) Entries() []MediaQueueEntry {
@@ -105,14 +156,31 @@ func (q *MediaQueue) Entries() []MediaQueueEntry {
 	return queueCopy
 }
 
-func (q *MediaQueue) Enqueue(entry MediaQueueEntry) {
+func (q *MediaQueue) Enqueue(newEntry MediaQueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	q.queue = append(q.queue, entry)
+	insertedAtCursor := false
+	if q.insertCursor != "" {
+		for i, entry := range q.queue {
+			if i == 0 {
+				// never insert at the beginning (skip) even if that's where the cursor is
+				continue
+			}
+			if q.insertCursor == entry.QueueID() {
+				q.queue = append(q.queue[:i+1], q.queue[i:]...)
+				q.queue[i] = newEntry
+				insertedAtCursor = true
+			}
+		}
+	}
+	if !insertedAtCursor {
+		q.insertCursor = "" // if we had a cursor, it has clearly become invalid, so clear it
+		q.queue = append(q.queue, newEntry)
+	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
-	q.entryAdded.Notify("enqueue", entry)
+	q.entryAdded.Notify("enqueue", newEntry)
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry MediaQueueEntry) {
@@ -225,11 +293,16 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 		unsubscribe := func() {}
 		var currentQueueEntry MediaQueueEntry
 		func() {
-			q.queueMutex.RLock()
-			defer q.queueMutex.RUnlock()
+			q.queueMutex.Lock()
+			defer q.queueMutex.Unlock()
 
 			if len(q.queue) > 0 {
 				currentQueueEntry = q.queue[0]
+				if currentQueueEntry.QueueID() == q.insertCursor {
+					q.insertCursor = ""
+				}
+			} else {
+				q.insertCursor = ""
 			}
 		}()
 

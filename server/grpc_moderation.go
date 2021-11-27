@@ -421,3 +421,55 @@ func (s *grpcServer) ResetSpectatorStatus(ctx context.Context, r *proto.ResetSpe
 	}
 	return &proto.ResetSpectatorStatusResponse{}, nil
 }
+
+func (s *grpcServer) SetQueueInsertCursor(ctx context.Context, r *proto.SetQueueInsertCursorRequest) (*proto.SetQueueInsertCursorResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.mediaQueue.SetInsertCursor(r.Id)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Queue insert cursor set to %s by %s (remote address %s)", r.Id, moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Queue insert cursor set to %s by moderator: %s (%s)",
+				r.Id,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetQueueInsertCursorResponse{}, nil
+}
+
+func (s *grpcServer) ClearQueueInsertCursor(ctx context.Context, r *proto.ClearQueueInsertCursorRequest) (*proto.ClearQueueInsertCursorResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.mediaQueue.ClearInsertCursor()
+
+	s.log.Printf("Queue insert cursor cleared by %s (remote address %s)", moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Queue insert cursor cleared by moderator: %s (%s)",
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.ClearQueueInsertCursorResponse{}, nil
+}

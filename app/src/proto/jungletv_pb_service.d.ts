@@ -454,6 +454,24 @@ type JungleTVSetSkippingEnabled = {
   readonly responseType: typeof jungletv_pb.SetSkippingEnabledResponse;
 };
 
+type JungleTVSetQueueInsertCursor = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetQueueInsertCursorRequest;
+  readonly responseType: typeof jungletv_pb.SetQueueInsertCursorResponse;
+};
+
+type JungleTVClearQueueInsertCursor = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ClearQueueInsertCursorRequest;
+  readonly responseType: typeof jungletv_pb.ClearQueueInsertCursorResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -506,6 +524,8 @@ export class JungleTV {
   static readonly SetOwnQueueEntryRemovalAllowed: JungleTVSetOwnQueueEntryRemovalAllowed;
   static readonly SetNewQueueEntriesAlwaysUnskippable: JungleTVSetNewQueueEntriesAlwaysUnskippable;
   static readonly SetSkippingEnabled: JungleTVSetSkippingEnabled;
+  static readonly SetQueueInsertCursor: JungleTVSetQueueInsertCursor;
+  static readonly ClearQueueInsertCursor: JungleTVClearQueueInsertCursor;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -933,6 +953,24 @@ export class JungleTVClient {
   setSkippingEnabled(
     requestMessage: jungletv_pb.SetSkippingEnabledRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetSkippingEnabledResponse|null) => void
+  ): UnaryResponse;
+  setQueueInsertCursor(
+    requestMessage: jungletv_pb.SetQueueInsertCursorRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetQueueInsertCursorResponse|null) => void
+  ): UnaryResponse;
+  setQueueInsertCursor(
+    requestMessage: jungletv_pb.SetQueueInsertCursorRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetQueueInsertCursorResponse|null) => void
+  ): UnaryResponse;
+  clearQueueInsertCursor(
+    requestMessage: jungletv_pb.ClearQueueInsertCursorRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearQueueInsertCursorResponse|null) => void
+  ): UnaryResponse;
+  clearQueueInsertCursor(
+    requestMessage: jungletv_pb.ClearQueueInsertCursorRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearQueueInsertCursorResponse|null) => void
   ): UnaryResponse;
 }
 

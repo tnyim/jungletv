@@ -16,14 +16,6 @@ import (
 func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.JungleTV_MonitorQueueServer) error {
 	ctx := stream.Context()
 	user := auth.UserClaimsFromContext(ctx)
-	getEntries := func() []*proto.QueueEntry {
-		entries := s.mediaQueue.Entries()
-		protoEntries := make([]*proto.QueueEntry, len(entries))
-		for i, entry := range entries {
-			protoEntries[i] = entry.SerializeForAPI(ctx, s.userSerializer)
-		}
-		return protoEntries
-	}
 
 	send := func() error {
 		tokensExhausted := false
@@ -35,11 +27,23 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 			// rate limiter memory store returns 0, 0 when it doesn't find a key, instead of returning the maximum for remaining...
 			tokensExhausted = remaining == 0 && used != 0
 		}
-		return stacktrace.Propagate(stream.Send(&proto.Queue{
+
+		queue := &proto.Queue{
 			IsHeartbeat:            false,
 			OwnEntryRemovalEnabled: !tokensExhausted && s.mediaQueue.RemovalOfOwnEntriesAllowed(),
-			Entries:                getEntries(),
-		}), "")
+		}
+		entries := s.mediaQueue.Entries()
+		queue.Entries = make([]*proto.QueueEntry, len(entries))
+		for i, entry := range entries {
+			queue.Entries[i] = entry.SerializeForAPI(ctx, s.userSerializer)
+		}
+
+		insertCursor, hasInsertCursor := s.mediaQueue.InsertCursor()
+		if hasInsertCursor {
+			queue.InsertCursor = &insertCursor
+		}
+
+		return stacktrace.Propagate(stream.Send(queue), "")
 	}
 
 	onQueueChanged, queueUpdatedU := s.mediaQueue.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)

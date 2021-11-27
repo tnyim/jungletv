@@ -661,6 +661,11 @@ export class Queue extends jspb.Message {
   getOwnEntryRemovalEnabled(): boolean;
   setOwnEntryRemovalEnabled(value: boolean): void;
 
+  hasInsertCursor(): boolean;
+  clearInsertCursor(): void;
+  getInsertCursor(): string;
+  setInsertCursor(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Queue.AsObject;
   static toObject(includeInstance: boolean, msg: Queue): Queue.AsObject;
@@ -676,6 +681,7 @@ export namespace Queue {
     entriesList: Array<QueueEntry.AsObject>,
     isHeartbeat: boolean,
     ownEntryRemovalEnabled: boolean,
+    insertCursor: string,
   }
 }
 
@@ -3034,6 +3040,11 @@ export class ModerationSettingsOverview extends jspb.Message {
   getAllSkippingEnabled(): boolean;
   setAllSkippingEnabled(value: boolean): void;
 
+  hasQueueInsertCursor(): boolean;
+  clearQueueInsertCursor(): void;
+  getQueueInsertCursor(): string;
+  setQueueInsertCursor(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModerationSettingsOverview.AsObject;
   static toObject(includeInstance: boolean, msg: ModerationSettingsOverview): ModerationSettingsOverview.AsObject;
@@ -3053,6 +3064,7 @@ export namespace ModerationSettingsOverview {
     newEntriesAlwaysUnskippable: boolean,
     ownEntryRemovalEnabled: boolean,
     allSkippingEnabled: boolean,
+    queueInsertCursor: string,
   }
 }
 
@@ -3340,6 +3352,74 @@ export class RemoveConnectionResponse extends jspb.Message {
 }
 
 export namespace RemoveConnectionResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetQueueInsertCursorRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetQueueInsertCursorRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetQueueInsertCursorRequest): SetQueueInsertCursorRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetQueueInsertCursorRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetQueueInsertCursorRequest;
+  static deserializeBinaryFromReader(message: SetQueueInsertCursorRequest, reader: jspb.BinaryReader): SetQueueInsertCursorRequest;
+}
+
+export namespace SetQueueInsertCursorRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class SetQueueInsertCursorResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetQueueInsertCursorResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetQueueInsertCursorResponse): SetQueueInsertCursorResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetQueueInsertCursorResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetQueueInsertCursorResponse;
+  static deserializeBinaryFromReader(message: SetQueueInsertCursorResponse, reader: jspb.BinaryReader): SetQueueInsertCursorResponse;
+}
+
+export namespace SetQueueInsertCursorResponse {
+  export type AsObject = {
+  }
+}
+
+export class ClearQueueInsertCursorRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClearQueueInsertCursorRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ClearQueueInsertCursorRequest): ClearQueueInsertCursorRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClearQueueInsertCursorRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClearQueueInsertCursorRequest;
+  static deserializeBinaryFromReader(message: ClearQueueInsertCursorRequest, reader: jspb.BinaryReader): ClearQueueInsertCursorRequest;
+}
+
+export namespace ClearQueueInsertCursorRequest {
+  export type AsObject = {
+  }
+}
+
+export class ClearQueueInsertCursorResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClearQueueInsertCursorResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ClearQueueInsertCursorResponse): ClearQueueInsertCursorResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClearQueueInsertCursorResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClearQueueInsertCursorResponse;
+  static deserializeBinaryFromReader(message: ClearQueueInsertCursorResponse, reader: jspb.BinaryReader): ClearQueueInsertCursorResponse;
+}
+
+export namespace ClearQueueInsertCursorResponse {
   export type AsObject = {
   }
 }

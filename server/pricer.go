@@ -78,7 +78,7 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * 10
 	currentlyWatching := p.currentlyWatchingEligible()
-	queueLength := p.mediaQueue.Length() - 1
+	queueLength := p.mediaQueue.LengthUpToCursor() - 1
 	if queueLength < 0 {
 		queueLength = 0
 	}

@@ -11,6 +11,7 @@
     const dispatch = createEventDispatcher();
 
     export let entry: QueueEntry;
+    export let entryIndex: number;
     export let removalOfOwnEntriesAllowed: boolean;
     let requestedBy: User;
 
@@ -51,6 +52,10 @@
 
     function openExplorer() {
         window.open("https://www.yellowspyglass.com/account/" + requestedBy.getAddress());
+    }
+
+    async function setCursor() {
+        await apiClient.setQueueInsertCursor(entry.getId());
     }
 
     async function removeOwnEntry() {
@@ -137,15 +142,20 @@
                     <i class="fas fa-edit" /> Nickname
                 </div>
                 <div
-                    class="{commonButtonClasses} col-span-3"
+                    class="{commonButtonClasses} col-span-2"
                     on:click={() =>
                         window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId())}
                 >
-                    <i class="fab fa-youtube" /> Watch on YouTube
+                    <i class="fab fa-youtube" /> YouTube
                 </div>
-                <div class="{commonButtonClasses} col-span-3" on:click={openExplorer}>
+                <div class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
                     <i class="fas fa-search-dollar" /> Explorer
                 </div>
+                {#if entryIndex > 0}
+                    <div class="{commonButtonClasses} col-span-2" on:click={setCursor}>
+                        <i class="fas fa-i-cursor" /> Set cursor
+                    </div>
+                {/if}
             {/if}
         {/if}
         {#if requestedBy !== undefined}

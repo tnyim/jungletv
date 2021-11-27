@@ -11,7 +11,7 @@ func (s *grpcServer) MonitorModerationSettings(r *proto.MonitorModerationSetting
 	heartbeatC := time.NewTicker(5 * time.Second).C
 
 	send := func() error {
-		return stacktrace.Propagate(stream.Send(&proto.ModerationSettingsOverview{
+		overview := &proto.ModerationSettingsOverview{
 			AllowedVideoEnqueuing:               s.allowVideoEnqueuing,
 			EnqueuingPricesMultiplier:           int32(s.pricer.finalPricesMultiplier),
 			CrowdfundedSkippingEnabled:          s.skipManager.CrowdfundedSkippingEnabled(),
@@ -19,7 +19,13 @@ func (s *grpcServer) MonitorModerationSettings(r *proto.MonitorModerationSetting
 			NewEntriesAlwaysUnskippable:         s.enqueueManager.NewEntriesAlwaysUnskippableForFree(),
 			OwnEntryRemovalEnabled:              s.mediaQueue.RemovalOfOwnEntriesAllowed(),
 			AllSkippingEnabled:                  s.mediaQueue.SkippingEnabled(),
-		}), "")
+		}
+		queueInsertCursor, hasQueueInsertCursor := s.mediaQueue.InsertCursor()
+		if hasQueueInsertCursor {
+			overview.QueueInsertCursor = &queueInsertCursor
+		}
+
+		return stacktrace.Propagate(stream.Send(overview), "")
 	}
 	err := send()
 	if err != nil {

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import { onDestroy, onMount } from "svelte";
-    import type { Queue, QueueEntry } from "./proto/jungletv_pb";
+    import { PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
     import { Duration } from "luxon";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { link } from "svelte-navigator";
@@ -9,11 +9,13 @@
     import { editNicknameForUser } from "./utils";
     import QueueTotals from "./QueueTotals.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
+    import { permissionLevel } from "./stores";
 
     export let mode = "sidebar";
 
     let firstLoaded = false;
     let queueEntries: QueueEntry[] = [];
+    let insertCursor: string = "";
     let removalOfOwnEntriesAllowed = false;
     let totalQueueLength: Duration = Duration.fromMillis(0);
     let totalQueueValue = BigInt(0);
@@ -50,6 +52,11 @@
         if (!queue.getIsHeartbeat()) {
             removalOfOwnEntriesAllowed = queue.getOwnEntryRemovalEnabled();
             queueEntries = queue.getEntriesList();
+            if (queue.hasInsertCursor()) {
+                insertCursor = queue.getInsertCursor();
+            } else {
+                insertCursor = "";
+            }
             let tl = Duration.fromMillis(0);
             let tv = BigInt(0);
             let participantsSet = new Set();
@@ -86,6 +93,11 @@
             expandedEntryID = entryID;
         }
     }
+
+    let isStaff = false;
+    permissionLevel.subscribe((level) => {
+        isStaff = level == PermissionLevel.ADMIN;
+    });
 </script>
 
 {#if !firstLoaded}
@@ -99,6 +111,22 @@
             {totalQueueValue}
         />
         {#each queueEntries as entry, i}
+            {#if insertCursor == entry.getId()}
+                <div class="border-t border-red-600 bg-red-600 flex flex-row mx-2 mb-1 pr-2 rounded-r-md">
+                    <div class="flex-grow bg-white dark:bg-gray-900 rounded-tr-md" />
+                    <div class="bg-white dark:bg-gray-900">
+                        <div class="text-xs text-white py-1 pl-2 bg-red-600 rounded-bl-md">
+                            New entries will be added here
+                            {#if isStaff}
+                                <i
+                                    class="ml-1 fas fa-times cursor-pointer hover:text-gray-300"
+                                    on:click={async () => await apiClient.clearQueueInsertCursor()}
+                                />
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            {/if}
             <div
                 class="px-2 py-1 flex flex-row text-sm
             bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
@@ -115,6 +143,7 @@
             {#if expandedEntryID == entry.getId()}
                 <QueueEntryDetails
                     {entry}
+                    entryIndex={i}
                     {removalOfOwnEntriesAllowed}
                     on:remove={() => removeEntry(entry, false)}
                     on:disallow={() => removeEntry(entry, true)}
