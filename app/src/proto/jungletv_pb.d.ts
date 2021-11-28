@@ -2183,6 +2183,9 @@ export namespace WithdrawResponse {
 }
 
 export class LeaderboardsRequest extends jspb.Message {
+  getPeriod(): LeaderboardPeriodMap[keyof LeaderboardPeriodMap];
+  setPeriod(value: LeaderboardPeriodMap[keyof LeaderboardPeriodMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): LeaderboardsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: LeaderboardsRequest): LeaderboardsRequest.AsObject;
@@ -2195,6 +2198,7 @@ export class LeaderboardsRequest extends jspb.Message {
 
 export namespace LeaderboardsRequest {
   export type AsObject = {
+    period: LeaderboardPeriodMap[keyof LeaderboardPeriodMap],
   }
 }
 
@@ -3485,8 +3489,17 @@ export interface PermissionLevelMap {
 
 export const PermissionLevel: PermissionLevelMap;
 
+export interface LeaderboardPeriodMap {
+  UNKNOWN_LEADERBOARD_PERIOD: 0;
+  LAST_24_HOURS: 1;
+  LAST_7_DAYS: 2;
+  LAST_30_DAYS: 3;
+}
+
+export const LeaderboardPeriod: LeaderboardPeriodMap;
+
 export interface ConnectionServiceMap {
-  UNKNOWN: 0;
+  UNKNOWN_CONNECTION_SERVICE: 0;
   CRYPTOMONKEYS: 1;
 }
 

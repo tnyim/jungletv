@@ -74,6 +74,7 @@ goog.exportSymbol('proto.jungletv.ForciblyEnqueueTicketRequest', null, global);
 goog.exportSymbol('proto.jungletv.ForciblyEnqueueTicketResponse', null, global);
 goog.exportSymbol('proto.jungletv.GetDocumentRequest', null, global);
 goog.exportSymbol('proto.jungletv.Leaderboard', null, global);
+goog.exportSymbol('proto.jungletv.LeaderboardPeriod', null, global);
 goog.exportSymbol('proto.jungletv.LeaderboardRow', null, global);
 goog.exportSymbol('proto.jungletv.LeaderboardValue', null, global);
 goog.exportSymbol('proto.jungletv.LeaderboardValue.ValueCase', null, global);
@@ -17909,7 +17910,7 @@ proto.jungletv.LeaderboardsRequest.prototype.toObject = function(opt_includeInst
  */
 proto.jungletv.LeaderboardsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    period: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -17946,6 +17947,10 @@ proto.jungletv.LeaderboardsRequest.deserializeBinaryFromReader = function(msg, r
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {!proto.jungletv.LeaderboardPeriod} */ (reader.readEnum());
+      msg.setPeriod(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -17975,6 +17980,31 @@ proto.jungletv.LeaderboardsRequest.prototype.serializeBinary = function() {
  */
 proto.jungletv.LeaderboardsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getPeriod();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional LeaderboardPeriod period = 1;
+ * @return {!proto.jungletv.LeaderboardPeriod}
+ */
+proto.jungletv.LeaderboardsRequest.prototype.getPeriod = function() {
+  return /** @type {!proto.jungletv.LeaderboardPeriod} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/**
+ * @param {!proto.jungletv.LeaderboardPeriod} value
+ * @return {!proto.jungletv.LeaderboardsRequest} returns this
+ */
+proto.jungletv.LeaderboardsRequest.prototype.setPeriod = function(value) {
+  return jspb.Message.setProto3EnumField(this, 1, value);
 };
 
 
@@ -26408,8 +26438,18 @@ proto.jungletv.PermissionLevel = {
 /**
  * @enum {number}
  */
+proto.jungletv.LeaderboardPeriod = {
+  UNKNOWN_LEADERBOARD_PERIOD: 0,
+  LAST_24_HOURS: 1,
+  LAST_7_DAYS: 2,
+  LAST_30_DAYS: 3
+};
+
+/**
+ * @enum {number}
+ */
 proto.jungletv.ConnectionService = {
-  UNKNOWN: 0,
+  UNKNOWN_CONNECTION_SERVICE: 0,
   CRYPTOMONKEYS: 1
 };
 
