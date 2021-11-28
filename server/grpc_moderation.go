@@ -214,8 +214,8 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if r.Multiplier < 10 {
-		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 10")
+	if r.Multiplier < 1 {
+		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 1")
 	}
 
 	s.pricer.SetFinalPricesMultiplier(int(r.Multiplier))
@@ -268,8 +268,8 @@ func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSki
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if r.Multiplier < 10 {
-		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 10")
+	if r.Multiplier < 1 {
+		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 1")
 	}
 
 	s.pricer.SetSkipPriceMultiplier(int(r.Multiplier))

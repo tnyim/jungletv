@@ -46,7 +46,7 @@
 
     async function setPricesMultiplier() {
         let multiplierStr = prompt(
-            "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 10, default is 100."
+            "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 1, default is 100."
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
@@ -63,7 +63,7 @@
 
     async function setSkipPriceMultiplier() {
         let multiplierStr = prompt(
-            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the "Play now" option).\nMinimum is 10, default is 150.'
+            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the "Play now" option).\nMinimum is 1, default is 150.'
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
