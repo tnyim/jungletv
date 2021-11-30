@@ -171,6 +171,7 @@ func (q *MediaQueue) Enqueue(newEntry MediaQueueEntry) {
 				q.queue = append(q.queue[:i+1], q.queue[i:]...)
 				q.queue[i] = newEntry
 				insertedAtCursor = true
+				break
 			}
 		}
 	}
