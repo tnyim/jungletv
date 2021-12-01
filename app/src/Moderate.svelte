@@ -61,6 +61,23 @@
         }
     }
 
+    async function setMinimumPricesMultiplier() {
+        let multiplierStr = prompt(
+            "Enter the multiplier (25 means a target of 0.025 BAN minimum per eligible spectator). Minimum is 20, default is 25."
+        );
+        let multiplier = parseInt(multiplierStr);
+        if (Object.is(NaN, multiplier)) {
+            alert("Invalid multiplier");
+            return;
+        }
+        try {
+            await apiClient.setMinimumPricesMultiplier(multiplier);
+            alert("Minimum prices multiplier set successfully");
+        } catch (e) {
+            alert("An error occurred when setting the minimum prices multiplier: " + e);
+        }
+    }
+
     async function setSkipPriceMultiplier() {
         let multiplierStr = prompt(
             'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the "Play now" option).\nMinimum is 1, default is 150.'
@@ -200,6 +217,14 @@
             </button>
             <button
                 type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={setMinimumPricesMultiplier}
+            >
+                Set minimum prices multiplier
+            </button>
+            <div><!-- spacer --></div>
+            <button
+                type="submit"
                 class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 on:click={() => apiClient.setSkippingEnabled(true)}
             >
@@ -211,6 +236,13 @@
                 on:click={() => apiClient.setSkippingEnabled(false)}
             >
                 Disable all forms of skipping
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={() => apiClient.clearQueueInsertCursor()}
+            >
+                Clear queue insert cursor
             </button>
             <button
                 type="submit"
@@ -226,13 +258,7 @@
             >
                 Stop making new queue entries unskippable
             </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.clearQueueInsertCursor()}
-            >
-                Clear queue insert cursor
-            </button>
+            <div><!-- spacer --></div>
             <button
                 type="submit"
                 class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

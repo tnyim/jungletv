@@ -2150,6 +2150,42 @@ export namespace SetPricesMultiplierResponse {
   }
 }
 
+export class SetMinimumPricesMultiplierRequest extends jspb.Message {
+  getMultiplier(): number;
+  setMultiplier(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetMinimumPricesMultiplierRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMinimumPricesMultiplierRequest): SetMinimumPricesMultiplierRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetMinimumPricesMultiplierRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMinimumPricesMultiplierRequest;
+  static deserializeBinaryFromReader(message: SetMinimumPricesMultiplierRequest, reader: jspb.BinaryReader): SetMinimumPricesMultiplierRequest;
+}
+
+export namespace SetMinimumPricesMultiplierRequest {
+  export type AsObject = {
+    multiplier: number,
+  }
+}
+
+export class SetMinimumPricesMultiplierResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetMinimumPricesMultiplierResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMinimumPricesMultiplierResponse): SetMinimumPricesMultiplierResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetMinimumPricesMultiplierResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMinimumPricesMultiplierResponse;
+  static deserializeBinaryFromReader(message: SetMinimumPricesMultiplierResponse, reader: jspb.BinaryReader): SetMinimumPricesMultiplierResponse;
+}
+
+export namespace SetMinimumPricesMultiplierResponse {
+  export type AsObject = {
+  }
+}
+
 export class WithdrawRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WithdrawRequest.AsObject;

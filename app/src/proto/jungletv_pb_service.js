@@ -352,6 +352,15 @@ JungleTV.SetPricesMultiplier = {
   responseType: jungletv_pb.SetPricesMultiplierResponse
 };
 
+JungleTV.SetMinimumPricesMultiplier = {
+  methodName: "SetMinimumPricesMultiplier",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetMinimumPricesMultiplierRequest,
+  responseType: jungletv_pb.SetMinimumPricesMultiplierResponse
+};
+
 JungleTV.SetCrowdfundedSkippingEnabled = {
   methodName: "SetCrowdfundedSkippingEnabled",
   service: JungleTV,
@@ -1685,6 +1694,37 @@ JungleTVClient.prototype.setPricesMultiplier = function setPricesMultiplier(requ
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetPricesMultiplier, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setMinimumPricesMultiplier = function setMinimumPricesMultiplier(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetMinimumPricesMultiplier, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

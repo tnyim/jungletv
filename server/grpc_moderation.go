@@ -236,6 +236,35 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 	return &proto.SetPricesMultiplierResponse{}, nil
 }
 
+func (s *grpcServer) SetMinimumPricesMultiplier(ctx context.Context, r *proto.SetMinimumPricesMultiplierRequest) (*proto.SetMinimumPricesMultiplierResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	if r.Multiplier < 20 {
+		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 20")
+	}
+
+	s.pricer.SetMinimumPricesMultiplier(int(r.Multiplier))
+
+	s.log.Printf("Minimum prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Minimum prices multiplier set to %d by moderator: %s (%s)",
+				r.Multiplier,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetMinimumPricesMultiplierResponse{}, nil
+}
+
 func (s *grpcServer) SetCrowdfundedSkippingEnabled(ctx context.Context, r *proto.SetCrowdfundedSkippingEnabledRequest) (*proto.SetCrowdfundedSkippingEnabledResponse, error) {
 	user := auth.UserClaimsFromContext(ctx)
 	if user == nil {

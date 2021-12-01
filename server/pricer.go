@@ -27,6 +27,7 @@ type Pricer struct {
 	mediaQueue                *MediaQueue
 	rewardsHandler            *RewardsHandler
 	statsHandler              *StatsHandler
+	minimumPricesMultiplier   int
 	finalPricesMultiplier     int
 	crowdfundedSkipMultiplier int
 }
@@ -41,6 +42,7 @@ func NewPricer(log *log.Logger,
 		mediaQueue:                mediaQueue,
 		rewardsHandler:            rewardsHandler,
 		statsHandler:              statsHandler,
+		minimumPricesMultiplier:   25,
 		finalPricesMultiplier:     100,
 		crowdfundedSkipMultiplier: 150, // this means crowdfunded skipping will be 1.5x as expensive as normal individual skipping
 	}
@@ -60,6 +62,13 @@ func (p *Pricer) SetSkipPriceMultiplier(m int) {
 	p.crowdfundedSkipMultiplier = m
 }
 
+func (p *Pricer) SetMinimumPricesMultiplier(m int) {
+	if m < 1 {
+		return
+	}
+	p.minimumPricesMultiplier = m
+}
+
 // EnqueuePricing contains the price for different enqueuing modes
 type EnqueuePricing struct {
 	EnqueuePrice  Amount
@@ -73,9 +82,9 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.3))
 	// UnskippableFactor is 19 if unskippable, else 0
 	// LengthInSeconds gets wonky for videos under 75 seconds
-	// EnqueuePrice = ( BaseEnqueuePrice * LengthInSeconds * (1000 + QueueLengthFactor + currentlyWatching * 350) ) / 500000 * UnskippableFactor
+	// EnqueuePrice = ( BaseEnqueuePrice * LengthInSeconds * (1000 + QueueLengthFactor + currentlyWatching * minimumPricesMultiplier) ) / 500000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
-	// PlayNowPrice = EnqueuePrice * 10
+	// PlayNowPrice = EnqueuePrice * (10 + floor(queueLength / 10))
 	currentlyWatching := p.currentlyWatchingEligible()
 	if currentlyWatching <= 0 {
 		currentlyWatching = 1
@@ -109,12 +118,13 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(100))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(int64(p.finalPricesMultiplier)))
 
-	// never allow prices to go below 0.02 BAN per spectator as otherwise we risk having 0 to distribute per user
+	// never allow prices to go below a certain amount per spectator as otherwise we risk having 0 to distribute per user
 	// (e.g. if the number of eligible spectators increases until the entry plays)
-	twoCents := big.NewInt(0).Div(BananoUnit, big.NewInt(50))
+	minimumUnit := big.NewInt(0).Div(BananoUnit, big.NewInt(1000))
+	minimumUnit.Mul(minimumUnit, big.NewInt(int64(p.minimumPricesMultiplier)))
 	currentlyWatchingBigInt := big.NewInt(int64(currentlyWatching))
-	if big.NewInt(0).Div(pricing.EnqueuePrice.Int, currentlyWatchingBigInt).Cmp(twoCents) < 0 {
-		pricing.EnqueuePrice.Mul(twoCents, currentlyWatchingBigInt)
+	if big.NewInt(0).Div(pricing.EnqueuePrice.Int, currentlyWatchingBigInt).Cmp(minimumUnit) < 0 {
+		pricing.EnqueuePrice.Mul(minimumUnit, currentlyWatchingBigInt)
 	}
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
@@ -126,7 +136,7 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 
 	pricing.PlayNowPrice = Amount{new(big.Int)}
 	pricing.PlayNowPrice.Set(pricing.EnqueuePrice.Int)
-	pricing.PlayNowPrice.Mul(pricing.PlayNowPrice.Int, big.NewInt(10))
+	pricing.PlayNowPrice.Mul(pricing.PlayNowPrice.Int, big.NewInt(8+int64(queueLength/8)))
 
 	return pricing
 }

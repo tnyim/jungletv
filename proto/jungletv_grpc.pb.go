@@ -56,6 +56,7 @@ type JungleTVClient interface {
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
+	SetMinimumPricesMultiplier(ctx context.Context, in *SetMinimumPricesMultiplierRequest, opts ...grpc.CallOption) (*SetMinimumPricesMultiplierResponse, error)
 	SetCrowdfundedSkippingEnabled(ctx context.Context, in *SetCrowdfundedSkippingEnabledRequest, opts ...grpc.CallOption) (*SetCrowdfundedSkippingEnabledResponse, error)
 	SetSkipPriceMultiplier(ctx context.Context, in *SetSkipPriceMultiplierRequest, opts ...grpc.CallOption) (*SetSkipPriceMultiplierResponse, error)
 	ConfirmRaffleWinner(ctx context.Context, in *ConfirmRaffleWinnerRequest, opts ...grpc.CallOption) (*ConfirmRaffleWinnerResponse, error)
@@ -560,6 +561,15 @@ func (c *jungleTVClient) SetPricesMultiplier(ctx context.Context, in *SetPricesM
 	return out, nil
 }
 
+func (c *jungleTVClient) SetMinimumPricesMultiplier(ctx context.Context, in *SetMinimumPricesMultiplierRequest, opts ...grpc.CallOption) (*SetMinimumPricesMultiplierResponse, error) {
+	out := new(SetMinimumPricesMultiplierResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetMinimumPricesMultiplier", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) SetCrowdfundedSkippingEnabled(ctx context.Context, in *SetCrowdfundedSkippingEnabledRequest, opts ...grpc.CallOption) (*SetCrowdfundedSkippingEnabledResponse, error) {
 	out := new(SetCrowdfundedSkippingEnabledResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetCrowdfundedSkippingEnabled", in, out, opts...)
@@ -752,6 +762,7 @@ type JungleTVServer interface {
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
+	SetMinimumPricesMultiplier(context.Context, *SetMinimumPricesMultiplierRequest) (*SetMinimumPricesMultiplierResponse, error)
 	SetCrowdfundedSkippingEnabled(context.Context, *SetCrowdfundedSkippingEnabledRequest) (*SetCrowdfundedSkippingEnabledResponse, error)
 	SetSkipPriceMultiplier(context.Context, *SetSkipPriceMultiplierRequest) (*SetSkipPriceMultiplierResponse, error)
 	ConfirmRaffleWinner(context.Context, *ConfirmRaffleWinnerRequest) (*ConfirmRaffleWinnerResponse, error)
@@ -886,6 +897,9 @@ func (UnimplementedJungleTVServer) SetUserChatNickname(context.Context, *SetUser
 }
 func (UnimplementedJungleTVServer) SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPricesMultiplier not implemented")
+}
+func (UnimplementedJungleTVServer) SetMinimumPricesMultiplier(context.Context, *SetMinimumPricesMultiplierRequest) (*SetMinimumPricesMultiplierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMinimumPricesMultiplier not implemented")
 }
 func (UnimplementedJungleTVServer) SetCrowdfundedSkippingEnabled(context.Context, *SetCrowdfundedSkippingEnabledRequest) (*SetCrowdfundedSkippingEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetCrowdfundedSkippingEnabled not implemented")
@@ -1644,6 +1658,24 @@ func _JungleTV_SetPricesMultiplier_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetMinimumPricesMultiplier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMinimumPricesMultiplierRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetMinimumPricesMultiplier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetMinimumPricesMultiplier",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetMinimumPricesMultiplier(ctx, req.(*SetMinimumPricesMultiplierRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_SetCrowdfundedSkippingEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetCrowdfundedSkippingEnabledRequest)
 	if err := dec(in); err != nil {
@@ -2030,6 +2062,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPricesMultiplier",
 			Handler:    _JungleTV_SetPricesMultiplier_Handler,
+		},
+		{
+			MethodName: "SetMinimumPricesMultiplier",
+			Handler:    _JungleTV_SetMinimumPricesMultiplier_Handler,
 		},
 		{
 			MethodName: "SetCrowdfundedSkippingEnabled",

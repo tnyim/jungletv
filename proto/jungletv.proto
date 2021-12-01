@@ -48,6 +48,7 @@ service JungleTV {
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
+    rpc SetMinimumPricesMultiplier(SetMinimumPricesMultiplierRequest) returns (SetMinimumPricesMultiplierResponse) {}
     rpc SetCrowdfundedSkippingEnabled(SetCrowdfundedSkippingEnabledRequest) returns (SetCrowdfundedSkippingEnabledResponse) {}
     rpc SetSkipPriceMultiplier(SetSkipPriceMultiplierRequest) returns (SetSkipPriceMultiplierResponse) {}
     rpc ConfirmRaffleWinner(ConfirmRaffleWinnerRequest) returns (ConfirmRaffleWinnerResponse) {}
@@ -515,6 +516,12 @@ message SetPricesMultiplierRequest {
 }
 
 message SetPricesMultiplierResponse {}
+
+message SetMinimumPricesMultiplierRequest {
+    int32 multiplier = 1;
+}
+
+message SetMinimumPricesMultiplierResponse {}
 
 message WithdrawRequest {}
 

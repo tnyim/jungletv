@@ -346,6 +346,15 @@ type JungleTVSetPricesMultiplier = {
   readonly responseType: typeof jungletv_pb.SetPricesMultiplierResponse;
 };
 
+type JungleTVSetMinimumPricesMultiplier = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetMinimumPricesMultiplierRequest;
+  readonly responseType: typeof jungletv_pb.SetMinimumPricesMultiplierResponse;
+};
+
 type JungleTVSetCrowdfundedSkippingEnabled = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -512,6 +521,7 @@ export class JungleTV {
   static readonly UpdateDocument: JungleTVUpdateDocument;
   static readonly SetUserChatNickname: JungleTVSetUserChatNickname;
   static readonly SetPricesMultiplier: JungleTVSetPricesMultiplier;
+  static readonly SetMinimumPricesMultiplier: JungleTVSetMinimumPricesMultiplier;
   static readonly SetCrowdfundedSkippingEnabled: JungleTVSetCrowdfundedSkippingEnabled;
   static readonly SetSkipPriceMultiplier: JungleTVSetSkipPriceMultiplier;
   static readonly ConfirmRaffleWinner: JungleTVConfirmRaffleWinner;
@@ -853,6 +863,15 @@ export class JungleTVClient {
   setPricesMultiplier(
     requestMessage: jungletv_pb.SetPricesMultiplierRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetPricesMultiplierResponse|null) => void
+  ): UnaryResponse;
+  setMinimumPricesMultiplier(
+    requestMessage: jungletv_pb.SetMinimumPricesMultiplierRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMinimumPricesMultiplierResponse|null) => void
+  ): UnaryResponse;
+  setMinimumPricesMultiplier(
+    requestMessage: jungletv_pb.SetMinimumPricesMultiplierRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMinimumPricesMultiplierResponse|null) => void
   ): UnaryResponse;
   setCrowdfundedSkippingEnabled(
     requestMessage: jungletv_pb.SetCrowdfundedSkippingEnabledRequest,
