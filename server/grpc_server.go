@@ -731,7 +731,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	var playFor = 10 * time.Minute
 	var totalVideoDuration time.Duration
 	if videoItem.Snippet.LiveBroadcastContent == "live" {
-		if videoItem.LiveStreamingDetails.ConcurrentViewers < 50 && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+		if videoItem.LiveStreamingDetails.ConcurrentViewers < 20 && s.allowVideoEnqueuing != proto.AllowedVideoEnqueuingType_STAFF_ONLY {
 			return nil, youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast, nil
 		}
 		if endOffset != nil {

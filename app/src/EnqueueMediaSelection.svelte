@@ -290,7 +290,7 @@
         {/if}
         <p class="mt-2 text-sm text-gray-500">
             Playlists are not supported. Videos must not be age-restricted.<br />
-            Live broadcasts with more than 50 viewers are supported.
+            Live broadcasts with more than 20 viewers are supported.
         </p>
         <div class="mt-4 space-y-4">
             <div class="flex items-start">
