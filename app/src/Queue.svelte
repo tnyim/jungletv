@@ -18,6 +18,7 @@
     let insertCursor: string = "";
     let removalOfOwnEntriesAllowed = false;
     let totalQueueLength: Duration = Duration.fromMillis(0);
+    let currentEntryOffset: Duration = Duration.fromMillis(0);
     let totalQueueValue = BigInt(0);
     let totalQueueParticipants = 0;
     let monitorQueueRequest: Request;
@@ -60,6 +61,11 @@
             let tl = Duration.fromMillis(0);
             let tv = BigInt(0);
             let participantsSet = new Set();
+            if (queueEntries.length > 0 && queueEntries[0].hasOffset()) {
+                currentEntryOffset = Duration.fromMillis(queueEntries[0].getOffset().getSeconds() * 1000 + queueEntries[0].getOffset().getNanos() / 1000000);
+            } else {
+                currentEntryOffset = Duration.fromMillis(0);
+            }
             for (let entry of queueEntries) {
                 tl = tl.plus(
                     Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
@@ -109,6 +115,7 @@
             totalLength={totalQueueLength}
             numParticipants={totalQueueParticipants}
             {totalQueueValue}
+            {currentEntryOffset}
         />
         {#each queueEntries as entry, i}
             {#if insertCursor == entry.getId()}

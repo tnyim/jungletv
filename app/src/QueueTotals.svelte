@@ -7,6 +7,7 @@
     export let totalLength: Duration;
     export let numParticipants = 0;
     export let totalQueueValue = BigInt(0);
+    export let currentEntryOffset: Duration;
 
     function updatingQueueDuration(totalLength: Duration, currentTime: number): string {
         let d = totalLength.minus(Duration.fromMillis(currentTime * 1000));
@@ -29,7 +30,7 @@
     </div>
     <div title="Total duration of the queue">
         <i class="fas fa-stopwatch text-sm" />
-        {updatingQueueDuration(totalLength, $playerCurrentTime)}
+        {updatingQueueDuration(totalLength, $playerCurrentTime - currentEntryOffset.toMillis() / 1000)}
     </div>
     <div title="Request cost of all queue entries">
         <i class="fas fa-coins text-sm" />
