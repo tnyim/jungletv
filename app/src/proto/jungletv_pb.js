@@ -23973,7 +23973,8 @@ proto.jungletv.ModerationSettingsOverview.toObject = function(includeInstance, m
     newEntriesAlwaysUnskippable: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
     ownEntryRemovalEnabled: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
     allSkippingEnabled: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
-    queueInsertCursor: jspb.Message.getFieldWithDefault(msg, 8, "")
+    queueInsertCursor: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    minimumPricesMultiplier: jspb.Message.getFieldWithDefault(msg, 9, 0)
   };
 
   if (includeInstance) {
@@ -24041,6 +24042,10 @@ proto.jungletv.ModerationSettingsOverview.deserializeBinaryFromReader = function
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setQueueInsertCursor(value);
+      break;
+    case 9:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setMinimumPricesMultiplier(value);
       break;
     default:
       reader.skipField();
@@ -24124,6 +24129,13 @@ proto.jungletv.ModerationSettingsOverview.serializeBinaryToWriter = function(mes
   if (f != null) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getMinimumPricesMultiplier();
+  if (f !== 0) {
+    writer.writeInt32(
+      9,
       f
     );
   }
@@ -24289,6 +24301,24 @@ proto.jungletv.ModerationSettingsOverview.prototype.clearQueueInsertCursor = fun
  */
 proto.jungletv.ModerationSettingsOverview.prototype.hasQueueInsertCursor = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional int32 minimum_prices_multiplier = 9;
+ * @return {number}
+ */
+proto.jungletv.ModerationSettingsOverview.prototype.getMinimumPricesMultiplier = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 9, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.ModerationSettingsOverview} returns this
+ */
+proto.jungletv.ModerationSettingsOverview.prototype.setMinimumPricesMultiplier = function(value) {
+  return jspb.Message.setProto3IntField(this, 9, value);
 };
 
 

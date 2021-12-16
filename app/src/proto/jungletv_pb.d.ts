@@ -3085,6 +3085,9 @@ export class ModerationSettingsOverview extends jspb.Message {
   getQueueInsertCursor(): string;
   setQueueInsertCursor(value: string): void;
 
+  getMinimumPricesMultiplier(): number;
+  setMinimumPricesMultiplier(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModerationSettingsOverview.AsObject;
   static toObject(includeInstance: boolean, msg: ModerationSettingsOverview): ModerationSettingsOverview.AsObject;
@@ -3105,6 +3108,7 @@ export namespace ModerationSettingsOverview {
     ownEntryRemovalEnabled: boolean,
     allSkippingEnabled: boolean,
     queueInsertCursor: string,
+    minimumPricesMultiplier: number,
   }
 }
 

@@ -19,6 +19,7 @@ func (s *grpcServer) MonitorModerationSettings(r *proto.MonitorModerationSetting
 			NewEntriesAlwaysUnskippable:         s.enqueueManager.NewEntriesAlwaysUnskippableForFree(),
 			OwnEntryRemovalEnabled:              s.mediaQueue.RemovalOfOwnEntriesAllowed(),
 			AllSkippingEnabled:                  s.mediaQueue.SkippingEnabled(),
+			MinimumPricesMultiplier:             int32(s.pricer.minimumPricesMultiplier),
 		}
 		queueInsertCursor, hasQueueInsertCursor := s.mediaQueue.InsertCursor()
 		if hasQueueInsertCursor {

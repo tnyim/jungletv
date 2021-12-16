@@ -56,6 +56,9 @@
             Enqueuing prices multiplier: {settingsOverview.getEnqueuingPricesMultiplier()}
         </div>
         <div>
+            Minimum prices multiplier: {settingsOverview.getMinimumPricesMultiplier()}
+        </div>
+        <div>
             {#if settingsOverview.getCrowdfundedSkippingEnabled()}
                 Crowdfunded skipping enabled
                 {#if !settingsOverview.getAllSkippingEnabled()}

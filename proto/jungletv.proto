@@ -697,6 +697,7 @@ message ModerationSettingsOverview {
     bool own_entry_removal_enabled = 6;
     bool all_skipping_enabled = 7;
     optional string queue_insert_cursor = 8;
+    int32 minimum_prices_multiplier = 9;
 }
 
 message SetOwnQueueEntryRemovalAllowedRequest {
