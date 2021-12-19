@@ -5,11 +5,12 @@
     import { createEventDispatcher, onDestroy, tick } from "svelte";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
-    import RangeSlider from "svelte-range-slider-pips";
+    import RangeSlider from "./slider/RangeSlider.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
+    import VideoRangeFloat from "./VideoRangeFloat.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -371,10 +372,22 @@
                                     pips
                                     pipstep={pipStep}
                                     all="label"
-                                    float="true"
+                                    float={true}
+                                    floatWithSlot={true}
                                     formatter={sliderFormatter}
                                     pushy
-                                />
+                                >
+                                    <div slot="float" let:formattedValue let:value let:index>
+                                        <VideoRangeFloat
+                                            {formattedValue}
+                                            {value}
+                                            {index}
+                                            min={sliderMin}
+                                            max={videoLengthInSeconds}
+                                            bind:values={videoRange}
+                                        />
+                                    </div>
+                                </RangeSlider>
                             </div>
                             {#if videoLengthInSeconds <= defaultMinRangeLength}
                                 <p class="text-red-500">
