@@ -112,7 +112,8 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(lengthInSeconds))
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(500000))
 	if unskippable {
-		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(19))
+		pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(10))
+		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(69))
 	}
 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(100))

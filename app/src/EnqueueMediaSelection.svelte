@@ -310,7 +310,7 @@
                     <p class="text-gray-500">
                         Prevent this video from being skipped even if users pay enough to do so.<br />
                         <span class="font-semibold">
-                            This will increase the price to enqueue this video by 19 times.
+                            This will increase the price to enqueue this video by 6.9 times.
                         </span>
                     </p>
                 </div>
