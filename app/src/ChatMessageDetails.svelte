@@ -7,6 +7,7 @@
     import { createEventDispatcher } from "svelte";
 
     export let msg: ChatMessage;
+    export let allowReplies: boolean;
     let copied = false;
 
     const dispatch = createEventDispatcher();
@@ -51,7 +52,9 @@
             />
             <div class="flex-grow overflow-x-hidden">
                 {#if msg.getUserMessage().getAuthor().hasNickname()}
-                    <span class="font-semibold text-md whitespace-nowrap">{msg.getUserMessage().getAuthor().getNickname()}</span>
+                    <span class="font-semibold text-md whitespace-nowrap"
+                        >{msg.getUserMessage().getAuthor().getNickname()}</span
+                    >
                     <br />
                 {/if}
                 <span class="font-mono text-md">
@@ -111,10 +114,12 @@
                     <i class="fas fa-search-dollar" /> Explorer
                 </div>
             {/if}
-            <div class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
-                <i class="fas fa-reply" /> Reply
-            </div>
-            <div class="{commonButtonClasses} col-span-3" on:click={copyAddress}>
+            {#if allowReplies}
+                <div class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
+                    <i class="fas fa-reply" /> Reply
+                </div>
+            {/if}
+            <div class="{commonButtonClasses} {allowReplies ? 'col-span-3' : 'col-span-6'}" on:click={copyAddress}>
                 <i class="fas fa-copy" />
                 {copied ? "Copied!" : "Copy address"}
             </div>

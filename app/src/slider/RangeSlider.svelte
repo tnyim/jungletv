@@ -12,7 +12,6 @@
     export let values = [(max + min) / 2];
     export let vertical = false;
     export let float = false;
-    export let floatWithSlot = false;
     export let reversed = false;
     export let hoverable = true;
     export let disabled = false;
@@ -622,12 +621,18 @@
         >
             <span class="rangeNub" />
             {#if float}
-                {#if floatWithSlot}
+                {#if $$slots.float}
                     <span
                         class="rangeFloat clickable"
-                        on:mousedown|stopPropagation={() => { handleActivated = false; return true; }}
+                        on:mousedown|stopPropagation={() => {
+                            handleActivated = false;
+                            return true;
+                        }}
                         on:mouseup|stopPropagation={() => true}
-                        on:touchstart|stopPropagation={() => { handleActivated = false; return true; }}
+                        on:touchstart|stopPropagation={() => {
+                            handleActivated = false;
+                            return true;
+                        }}
                         on:touchend|stopPropagation={() => true}
                         on:blur|stopPropagation={() => true}
                         on:focus|stopPropagation={() => true}

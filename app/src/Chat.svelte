@@ -589,6 +589,7 @@
                             .replaceAll("<a ", '<a target="_blank" rel="noopener" ')}
                         {#if detailsOpenForMsgID == msg.getId()}
                             <ChatMessageDetails
+                                allowReplies={rAddress != ""}
                                 {msg}
                                 on:reply={() => replyToMessage(msg)}
                                 on:delete={() => removeChatMessage(msg.getId())}

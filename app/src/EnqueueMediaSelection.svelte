@@ -373,7 +373,6 @@
                                     pipstep={pipStep}
                                     all="label"
                                     float={true}
-                                    floatWithSlot={true}
                                     formatter={sliderFormatter}
                                     pushy
                                 >
