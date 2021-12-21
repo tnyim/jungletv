@@ -17,6 +17,9 @@
 
     let hideRewardTimeout: number;
 
+    export let hasAlert = false;
+    $: hasAlert = badRep || lastReward != "";
+
     let lastReward = "";
     let badRep = false;
 

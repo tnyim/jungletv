@@ -31,6 +31,8 @@
     rewardAddress.subscribe(async (address) => {
         rAddress = address;
     });
+
+    let hasAlert = false;
 </script>
 
 <nav
@@ -49,15 +51,35 @@
                 <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-11 -mb-2" />
             </a>
             {#if !largeScreen}
-                <NavbarAlert />
+                <NavbarAlert bind:hasAlert />
             {/if}
-            <button
-                class="cursor-pointer ml-auto text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
-                type="button"
-                on:click={setNavbarOpen}
-            >
-                <i class="fas {navbarOpen ? 'fa-times' : 'fa-bars'}" />
-            </button>
+            <div class="ml-auto lg:hidden flex flex-row gap-3">
+                {#if !hasAlert && !navbarOpen}
+                    <a
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        use:link
+                        href={rAddress !== "" ? "/rewards" : "/rewards/address"}
+                    >
+                        <i class="fas fa-coins" />
+                        <div class="text-xs font-bold uppercase">Rewards</div>
+                    </a>
+                    <a
+                        class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        use:link
+                        href="/enqueue"
+                    >
+                        <i class="fas fa-plus" />
+                        <div class="text-xs font-bold uppercase">Enqueue</div>
+                    </a>
+                {/if}
+                <button
+                    class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent outline-none focus:outline-none"
+                    type="button"
+                    on:click={setNavbarOpen}
+                >
+                    <i class="fas {navbarOpen ? 'fa-times' : 'fa-bars'}" />
+                </button>
+            </div>
         </div>
         <div class="lg:flex flex-grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
             <ul class="flex flex-grow flex-row list-none mr-auto">
@@ -88,7 +110,7 @@
                         </div>
                     {/if}
                     {#if largeScreen}
-                        <NavbarAlert />
+                        <NavbarAlert bind:hasAlert />
                     {/if}
                 </li>
                 <li class="lg:py-3 flex items-center ml-auto">
