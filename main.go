@@ -294,6 +294,7 @@ func main() {
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
 
 	options := server.Options{
+		DebugBuild:                DEBUG,
 		Log:                       apiLog,
 		StatsClient:               statsClient,
 		Wallet:                    wallet,

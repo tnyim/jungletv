@@ -96,6 +96,7 @@ type grpcServer struct {
 
 // Options contains the required options to start the server
 type Options struct {
+	DebugBuild  bool
 	Log         *log.Logger
 	StatsClient *statsd.Client
 
@@ -219,6 +220,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(s.log, false), options.ModLogWebhook)
 		if err != nil {
 			return nil, nil, stacktrace.Propagate(err, "")
+		}
+
+		if !options.DebugBuild {
+			s.modLogWebhook.SendContent("Server started. If this is not a planned restart, the server may have crashed.")
 		}
 	}
 
