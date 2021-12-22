@@ -13,6 +13,7 @@ import (
 // PlayedMedia is media that has played on the service
 type PlayedMedia struct {
 	ID                string `dbKey:"true"`
+	EnqueuedAt        time.Time
 	StartedAt         time.Time
 	EndedAt           sql.NullTime
 	MediaLength       Duration

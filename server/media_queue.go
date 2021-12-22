@@ -455,6 +455,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 		mediaInfo := newMedia.MediaInfo()
 		newPlayedMedia := &types.PlayedMedia{
 			ID:          newMedia.QueueID(),
+			EnqueuedAt:  newMedia.RequestedAt(),
 			StartedAt:   time.Now(),
 			MediaLength: types.Duration(mediaInfo.Length()),
 			MediaOffset: types.Duration(mediaInfo.Offset()),

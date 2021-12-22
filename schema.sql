@@ -24,6 +24,7 @@ INSERT INTO "media_type" VALUES ('yt_video');
 
 CREATE TABLE IF NOT EXISTS "played_media" (
     id VARCHAR(36) PRIMARY KEY,
+    enqueued_at TIMESTAMP WITH TIME ZONE NOT NULL,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL,
     ended_at TIMESTAMP WITH TIME ZONE,
     media_offset INTERVAL NOT NULL,
