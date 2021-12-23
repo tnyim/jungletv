@@ -90,8 +90,12 @@ func UserPermissionLevelIsAtLeast(user User, level auth.PermissionLevel) bool {
 type APIUserSerializer func(ctx context.Context, user User) *proto.User
 
 func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.User {
+	userAddress := user.Address()
+	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
+
 	roles := []proto.UserRole{}
-	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
+	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
+		(fetchedUser != nil && UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
 	videoCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx, user)
@@ -110,21 +114,19 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.
 	}
 
 	var nickname *string
-	bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, user.Address(), "")
+	bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, userAddress, "")
 	serializingForUser := auth.UserClaimsFromContext(ctx)
-	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.RewardAddress == user.Address())) {
+	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.RewardAddress == userAddress)) {
 		nickname = user.Nickname()
-		if nickname == nil {
-			nickname, err = s.nicknameCache.GetOrFetchNickname(ctx, user.Address())
-			if err != nil {
-				nickname = nil
-			}
+		if nickname == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+			nickname = fetchedUser.Nickname()
 		}
 	}
 
 	return &proto.User{
-		Address:  user.Address(),
+		Address:  userAddress,
 		Roles:    roles,
 		Nickname: nickname,
+		Status:   s.rewardsHandler.GetSpectatorActivityStatus(userAddress),
 	}
 }

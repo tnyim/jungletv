@@ -436,7 +436,10 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 			return stacktrace.Propagate(err, "")
 		}
 
-		prevPlayedMedia := medias[prevMedia.QueueID()]
+		prevPlayedMedia, ok := medias[prevMedia.QueueID()]
+		if !ok {
+			return stacktrace.NewError("previous media not returned from database")
+		}
 		prevPlayedMedia.EndedAt = sql.NullTime{
 			Time:  time.Now(),
 			Valid: true,

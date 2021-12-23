@@ -5,6 +5,7 @@
     import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
     import { copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
+    import { openUserProfile } from "./profile_utils";
 
     export let msg: ChatMessage;
     export let allowReplies: boolean;
@@ -19,8 +20,8 @@
         isChatModerator = level == PermissionLevel.ADMIN;
     });
 
-    function tipAuthor() {
-        window.open("https://vault.banano.cc/send?to=" + msg.getUserMessage().getAuthor().getAddress());
+    function openProfile() {
+        openUserProfile(msg.getUserMessage().getAuthor().getAddress());
     }
 
     function openExplorer() {
@@ -104,10 +105,10 @@
                 </div>
             {/if}
             <div
-                class="{commonButtonClasses} {isChatModerator ? 'col-span-3 text-xs' : 'col-span-6'}"
-                on:click={tipAuthor}
+                class="{commonButtonClasses} {isChatModerator ? 'col-span-3' : 'col-span-6'}"
+                on:click={openProfile}
             >
-                <i class="fas fa-heart" /> Tip in BananoVault
+                <i class="fas fa-id-card" /> Profile
             </div>
             {#if isChatModerator}
                 <div class="{commonButtonClasses} col-span-3" on:click={() => openExplorer()}>

@@ -21,7 +21,7 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
-const TicketExpiration = 20 * time.Minute
+const TicketExpiration = 10 * time.Minute
 
 // EnqueueManager manages requests for enqueuing that are pending payment
 type EnqueueManager struct {

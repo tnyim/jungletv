@@ -31,6 +31,8 @@ service JungleTV {
     rpc Connections (ConnectionsRequest) returns (ConnectionsResponse) {}
     rpc CreateConnection (CreateConnectionRequest) returns (CreateConnectionResponse) {}
     rpc RemoveConnection (RemoveConnectionRequest) returns (RemoveConnectionResponse) {}
+    rpc UserProfile (UserProfileRequest) returns (UserProfileResponse) {}
+    rpc UserStats (UserStatsRequest) returns (UserStatsResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -250,10 +252,17 @@ enum UserRole {
     CURRENT_ENTRY_REQUESTER = 4;
 }
 
+enum UserStatus {
+    USER_STATUS_OFFLINE = 0;
+    USER_STATUS_WATCHING = 1;
+    USER_STATUS_AWAY = 2;
+}
+
 message User {
     string address = 1;
     repeated UserRole roles = 2;
     optional string nickname = 3;
+    UserStatus status = 4;
 }
 
 message RewardInfoRequest {}
@@ -765,3 +774,28 @@ message SetQueueInsertCursorResponse {}
 message ClearQueueInsertCursorRequest {}
 
 message ClearQueueInsertCursorResponse {}
+
+message UserProfileRequest {
+    string address = 1;
+}
+
+message UserProfileResponse {
+    User user = 1;
+}
+
+message UserStatsRequest {
+    string address = 1;
+}
+
+message UserStatsForPeriod {
+    string total_spent = 1;
+    string total_withdrawn = 2;
+    int32 requested_media_count = 3;
+    google.protobuf.Duration requested_media_play_time = 4;
+}
+
+message UserStatsResponse {
+    UserStatsForPeriod stats_all_time = 1;
+    UserStatsForPeriod stats_30_days = 2;
+    UserStatsForPeriod stats_7_days = 3;
+}

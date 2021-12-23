@@ -40,6 +40,8 @@ type JungleTVClient interface {
 	Connections(ctx context.Context, in *ConnectionsRequest, opts ...grpc.CallOption) (*ConnectionsResponse, error)
 	CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...grpc.CallOption) (*CreateConnectionResponse, error)
 	RemoveConnection(ctx context.Context, in *RemoveConnectionRequest, opts ...grpc.CallOption) (*RemoveConnectionResponse, error)
+	UserProfile(ctx context.Context, in *UserProfileRequest, opts ...grpc.CallOption) (*UserProfileResponse, error)
+	UserStats(ctx context.Context, in *UserStatsRequest, opts ...grpc.CallOption) (*UserStatsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -426,6 +428,24 @@ func (c *jungleTVClient) RemoveConnection(ctx context.Context, in *RemoveConnect
 	return out, nil
 }
 
+func (c *jungleTVClient) UserProfile(ctx context.Context, in *UserProfileRequest, opts ...grpc.CallOption) (*UserProfileResponse, error) {
+	out := new(UserProfileResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UserStats(ctx context.Context, in *UserStatsRequest, opts ...grpc.CallOption) (*UserStatsResponse, error) {
+	out := new(UserStatsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -746,6 +766,8 @@ type JungleTVServer interface {
 	Connections(context.Context, *ConnectionsRequest) (*ConnectionsResponse, error)
 	CreateConnection(context.Context, *CreateConnectionRequest) (*CreateConnectionResponse, error)
 	RemoveConnection(context.Context, *RemoveConnectionRequest) (*RemoveConnectionResponse, error)
+	UserProfile(context.Context, *UserProfileRequest) (*UserProfileResponse, error)
+	UserStats(context.Context, *UserStatsRequest) (*UserStatsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -852,6 +874,12 @@ func (UnimplementedJungleTVServer) CreateConnection(context.Context, *CreateConn
 }
 func (UnimplementedJungleTVServer) RemoveConnection(context.Context, *RemoveConnectionRequest) (*RemoveConnectionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveConnection not implemented")
+}
+func (UnimplementedJungleTVServer) UserProfile(context.Context, *UserProfileRequest) (*UserProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserProfile not implemented")
+}
+func (UnimplementedJungleTVServer) UserStats(context.Context, *UserStatsRequest) (*UserStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserStats not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1384,6 +1412,42 @@ func _JungleTV_RemoveConnection_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).RemoveConnection(ctx, req.(*RemoveConnectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserProfile(ctx, req.(*UserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UserStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserStats(ctx, req.(*UserStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2002,6 +2066,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveConnection",
 			Handler:    _JungleTV_RemoveConnection_Handler,
+		},
+		{
+			MethodName: "UserProfile",
+			Handler:    _JungleTV_UserProfile_Handler,
+		},
+		{
+			MethodName: "UserStats",
+			Handler:    _JungleTV_UserStats_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

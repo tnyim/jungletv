@@ -39,6 +39,26 @@ func getCrowdfundedTransactionWithSelect(node sqalx.Node, sbuilder sq.SelectBuil
 	return converted, totalCount, nil
 }
 
+// SumCrowdfundedTransactionsFromAddressSince returns the sum of all crowdfunded transactions from an address since the specified time
+func SumCrowdfundedTransactionsFromAddressSince(node sqalx.Node, address string, since time.Time) (decimal.Decimal, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var totalAmount decimal.Decimal
+	err = sdb.Select("COALESCE(SUM(crowdfunded_transaction.amount), 0)").
+		From("crowdfunded_transaction").
+		Where(sq.Eq{"crowdfunded_transaction.from_address": address}).
+		Where(sq.Gt{"crowdfunded_transaction.received_at": since}).
+		RunWith(tx).QueryRow().Scan(&totalAmount)
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	return totalAmount, nil
+}
+
 // InsertCrowdfundedTransactions inserts the passed received rewards in the database
 func InsertCrowdfundedTransactions(node sqalx.Node, items []*CrowdfundedTransaction) error {
 	c := make([]interface{}, len(items))

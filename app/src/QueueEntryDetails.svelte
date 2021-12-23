@@ -7,6 +7,7 @@
     import { slide } from "svelte/transition";
     import { copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
+    import { openUserProfile } from "./profile_utils";
 
     const dispatch = createEventDispatcher();
 
@@ -44,10 +45,6 @@
             numeric: "auto",
         });
         return relativeFormatter.format(Math.trunc(diff.as(unit)), unit as Intl.RelativeTimeFormatUnit);
-    }
-
-    function tipAuthor() {
-        window.open("https://vault.banano.cc/send?to=" + requestedBy.getAddress());
     }
 
     function openExplorer() {
@@ -163,8 +160,8 @@
                 <i class="fas fa-copy" />
                 {copied ? "Copied!" : "Copy address"}
             </div>
-            <div class="{commonButtonClasses} col-span-3" on:click={tipAuthor}>
-                <i class="fas fa-heart" /> Tip in BananoVault
+            <div class="{commonButtonClasses} col-span-3" on:click={() => openUserProfile(requestedBy.getAddress())}>
+                <i class="fas fa-id-card" /> Profile
             </div>
             {#if requestedBy.getAddress() === rAddress && !isChatModerator && removalOfOwnEntriesAllowed}
                 <div class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>

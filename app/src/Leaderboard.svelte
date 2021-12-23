@@ -1,8 +1,7 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
-
+    import { openUserProfile } from "./profile_utils";
     import type { Leaderboard, LeaderboardRow } from "./proto/jungletv_pb";
-    import { copyToClipboard } from "./utils";
 
     export let leaderboard: Leaderboard;
 
@@ -43,9 +42,9 @@
         </thead>
         <tbody>
             {#each leaderboard.getRowsList() as row, idx}
-                <tr class="{shouldShowSeparator(leaderboard.getRowsList(), idx) ? "border-t-2 border-gray-500" : ""}">
+                <tr class={shouldShowSeparator(leaderboard.getRowsList(), idx) ? "border-t-2 border-gray-500" : ""}>
                     <td class="p-2 text-right">{ordinalSuffix(row.getPosition())}</td>
-                    <td class="p-2">
+                    <td class="p-2 cursor-pointer" on:click={() => openUserProfile(row.getAddress())}>
                         <img
                             src="https://monkey.banano.cc/api/v1/monkey/{row.getAddress()}?format=png"
                             alt="&nbsp;"
@@ -56,13 +55,6 @@
                             <span class="font-semibold mr-4">{row.getNickname()}</span>
                         {/if}
                         <span class="font-mono">{row.getAddress().substr(0, 14)} </span>
-                        <span class="float-right">
-                            <i
-                                class="fas fa-copy cursor-pointer hover:text-purple-700 hover:dark:text-purple-500"
-                                title="Copy address"
-                                on:click={() => copyToClipboard(row.getAddress())}
-                            />
-                        </span>
                     </td>
                     {#each row.getValuesList() as value}
                         {#if value.hasAmount()}

@@ -211,6 +211,24 @@ type JungleTVRemoveConnection = {
   readonly responseType: typeof jungletv_pb.RemoveConnectionResponse;
 };
 
+type JungleTVUserProfile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UserProfileRequest;
+  readonly responseType: typeof jungletv_pb.UserProfileResponse;
+};
+
+type JungleTVUserStats = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UserStatsRequest;
+  readonly responseType: typeof jungletv_pb.UserStatsResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -506,6 +524,8 @@ export class JungleTV {
   static readonly Connections: JungleTVConnections;
   static readonly CreateConnection: JungleTVCreateConnection;
   static readonly RemoveConnection: JungleTVRemoveConnection;
+  static readonly UserProfile: JungleTVUserProfile;
+  static readonly UserStats: JungleTVUserStats;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -728,6 +748,24 @@ export class JungleTVClient {
   removeConnection(
     requestMessage: jungletv_pb.RemoveConnectionRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveConnectionResponse|null) => void
+  ): UnaryResponse;
+  userProfile(
+    requestMessage: jungletv_pb.UserProfileRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserProfileResponse|null) => void
+  ): UnaryResponse;
+  userProfile(
+    requestMessage: jungletv_pb.UserProfileRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserProfileResponse|null) => void
+  ): UnaryResponse;
+  userStats(
+    requestMessage: jungletv_pb.UserStatsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserStatsResponse|null) => void
+  ): UnaryResponse;
+  userStats(
+    requestMessage: jungletv_pb.UserStatsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserStatsResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

@@ -855,6 +855,9 @@ export class User extends jspb.Message {
   getNickname(): string;
   setNickname(value: string): void;
 
+  getStatus(): UserStatusMap[keyof UserStatusMap];
+  setStatus(value: UserStatusMap[keyof UserStatusMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): User.AsObject;
   static toObject(includeInstance: boolean, msg: User): User.AsObject;
@@ -870,6 +873,7 @@ export namespace User {
     address: string,
     rolesList: Array<UserRoleMap[keyof UserRoleMap]>,
     nickname: string,
+    status: UserStatusMap[keyof UserStatusMap],
   }
 }
 
@@ -3468,6 +3472,136 @@ export namespace ClearQueueInsertCursorResponse {
   }
 }
 
+export class UserProfileRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserProfileRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserProfileRequest): UserProfileRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserProfileRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserProfileRequest;
+  static deserializeBinaryFromReader(message: UserProfileRequest, reader: jspb.BinaryReader): UserProfileRequest;
+}
+
+export namespace UserProfileRequest {
+  export type AsObject = {
+    address: string,
+  }
+}
+
+export class UserProfileResponse extends jspb.Message {
+  hasUser(): boolean;
+  clearUser(): void;
+  getUser(): User | undefined;
+  setUser(value?: User): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserProfileResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserProfileResponse): UserProfileResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserProfileResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserProfileResponse;
+  static deserializeBinaryFromReader(message: UserProfileResponse, reader: jspb.BinaryReader): UserProfileResponse;
+}
+
+export namespace UserProfileResponse {
+  export type AsObject = {
+    user?: User.AsObject,
+  }
+}
+
+export class UserStatsRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserStatsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserStatsRequest): UserStatsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserStatsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserStatsRequest;
+  static deserializeBinaryFromReader(message: UserStatsRequest, reader: jspb.BinaryReader): UserStatsRequest;
+}
+
+export namespace UserStatsRequest {
+  export type AsObject = {
+    address: string,
+  }
+}
+
+export class UserStatsForPeriod extends jspb.Message {
+  getTotalSpent(): string;
+  setTotalSpent(value: string): void;
+
+  getTotalWithdrawn(): string;
+  setTotalWithdrawn(value: string): void;
+
+  getRequestedMediaCount(): number;
+  setRequestedMediaCount(value: number): void;
+
+  hasRequestedMediaPlayTime(): boolean;
+  clearRequestedMediaPlayTime(): void;
+  getRequestedMediaPlayTime(): google_protobuf_duration_pb.Duration | undefined;
+  setRequestedMediaPlayTime(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserStatsForPeriod.AsObject;
+  static toObject(includeInstance: boolean, msg: UserStatsForPeriod): UserStatsForPeriod.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserStatsForPeriod, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserStatsForPeriod;
+  static deserializeBinaryFromReader(message: UserStatsForPeriod, reader: jspb.BinaryReader): UserStatsForPeriod;
+}
+
+export namespace UserStatsForPeriod {
+  export type AsObject = {
+    totalSpent: string,
+    totalWithdrawn: string,
+    requestedMediaCount: number,
+    requestedMediaPlayTime?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
+export class UserStatsResponse extends jspb.Message {
+  hasStatsAllTime(): boolean;
+  clearStatsAllTime(): void;
+  getStatsAllTime(): UserStatsForPeriod | undefined;
+  setStatsAllTime(value?: UserStatsForPeriod): void;
+
+  hasStats30Days(): boolean;
+  clearStats30Days(): void;
+  getStats30Days(): UserStatsForPeriod | undefined;
+  setStats30Days(value?: UserStatsForPeriod): void;
+
+  hasStats7Days(): boolean;
+  clearStats7Days(): void;
+  getStats7Days(): UserStatsForPeriod | undefined;
+  setStats7Days(value?: UserStatsForPeriod): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserStatsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserStatsResponse): UserStatsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserStatsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserStatsResponse;
+  static deserializeBinaryFromReader(message: UserStatsResponse, reader: jspb.BinaryReader): UserStatsResponse;
+}
+
+export namespace UserStatsResponse {
+  export type AsObject = {
+    statsAllTime?: UserStatsForPeriod.AsObject,
+    stats30Days?: UserStatsForPeriod.AsObject,
+    stats7Days?: UserStatsForPeriod.AsObject,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -3497,6 +3631,14 @@ export interface UserRoleMap {
 }
 
 export const UserRole: UserRoleMap;
+
+export interface UserStatusMap {
+  USER_STATUS_OFFLINE: 0;
+  USER_STATUS_WATCHING: 1;
+  USER_STATUS_AWAY: 2;
+}
+
+export const UserStatus: UserStatusMap;
 
 export interface ForcedTicketEnqueueTypeMap {
   ENQUEUE: 0;

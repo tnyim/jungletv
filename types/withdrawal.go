@@ -63,6 +63,26 @@ func GetWithdrawalsForAddress(node sqalx.Node, address string, pagParams *Pagina
 	return getWithdrawalWithSelect(node, s)
 }
 
+// SumWithdrawalsToAddressSince returns the sum of all withdrawals to an address since the specified time
+func SumWithdrawalsToAddressSince(node sqalx.Node, address string, since time.Time) (decimal.Decimal, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var totalAmount decimal.Decimal
+	err = sdb.Select("COALESCE(SUM(withdrawal.amount), 0)").
+		From("withdrawal").
+		Where(sq.Eq{"withdrawal.rewards_address": address}).
+		Where(sq.Gt{"withdrawal.started_at": since}).
+		RunWith(tx).QueryRow().Scan(&totalAmount)
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	return totalAmount, nil
+}
+
 // Insert inserts the Withdrawal
 func (obj *Withdrawal) Insert(node sqalx.Node) error {
 	return Insert(node, obj)

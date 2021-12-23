@@ -86,6 +86,47 @@ func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, ytV
 	return m, stacktrace.Propagate(err, "")
 }
 
+// SumRequestCostsOfAddressSince returns the sum of all request costs of an address since the specified time
+func SumRequestCostsOfAddressSince(node sqalx.Node, address string, since time.Time) (decimal.Decimal, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var totalAmount decimal.Decimal
+	err = sdb.Select("COALESCE(SUM(played_media.request_cost), 0)").
+		From("played_media").
+		Where(sq.Eq{"played_media.requested_by": address}).
+		Where(sq.Gt{"played_media.started_at": since}).
+		RunWith(tx).QueryRow().Scan(&totalAmount)
+	if err != nil {
+		return decimal.Decimal{}, stacktrace.Propagate(err, "")
+	}
+	return totalAmount, nil
+}
+
+// CountRequestsOfAddressSince returns the count and total play time of all the requests by an address since the specified time
+func CountRequestsOfAddressSince(node sqalx.Node, address string, since time.Time) (int, Duration, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return 0, 0, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var count int
+	var length Duration
+	err = sdb.Select("COUNT(*), COALESCE(SUM(COALESCE(played_media.ended_at, NOW()) - played_media.started_at), '0 seconds')").
+		From("played_media").
+		Where(sq.Eq{"played_media.requested_by": address}).
+		Where(sq.Gt{"played_media.started_at": since}).
+		RunWith(tx).QueryRow().Scan(&count, &length)
+	if err != nil {
+		return 0, 0, stacktrace.Propagate(err, "")
+	}
+	return count, length, nil
+}
+
 // Update updates or inserts the PlayedMedia
 func (obj *PlayedMedia) Update(node sqalx.Node) error {
 	return Update(node, obj)

@@ -240,3 +240,19 @@ func (r *RewardsHandler) ResetAddressLegitimacyStatus(ctx context.Context, addre
 	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "legitimacy status reset")
 	return nil
 }
+
+func (r *RewardsHandler) GetSpectatorActivityStatus(address string) proto.UserStatus {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if !ok {
+		return proto.UserStatus_USER_STATUS_OFFLINE
+	}
+
+	if spectator.activityChallenge != nil && time.Since(spectator.activityChallenge.ChallengedAt) > spectator.activityChallenge.Tolerance {
+		return proto.UserStatus_USER_STATUS_AWAY
+	}
+
+	return proto.UserStatus_USER_STATUS_WATCHING
+}

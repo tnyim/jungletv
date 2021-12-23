@@ -84,7 +84,7 @@ type grpcServer struct {
 	statsHandler      *StatsHandler
 	chat              *ChatManager
 	moderationStore   ModerationStore
-	nicknameCache     NicknameCache
+	nicknameCache     UserCache
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -201,7 +201,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		ipReputationChecker:            NewIPAddressReputationChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
 		ticketCheckPeriod:              options.TicketCheckPeriod,
 		moderationStore:                modStore,
-		nicknameCache:                  NewMemoryNicknameCache(),
+		nicknameCache:                  NewMemoryUserCache(),
 		websiteURL:                     options.WebsiteURL,
 
 		oauthStates: cache.New(2*time.Hour, 15*time.Minute),
@@ -223,7 +223,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		}
 
 		if !options.DebugBuild {
-			s.modLogWebhook.SendContent("Server started. If this is not a planned restart, the server may have crashed.")
+			_, err := s.modLogWebhook.SendContent("Server started. If this is not a planned restart, the server may have crashed.")
+			if err != nil {
+				s.log.Println("Failed to send mod log webhook regarding server start:", err)
+			}
 		}
 	}
 
@@ -601,12 +604,12 @@ func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string
 		return "", stacktrace.Propagate(err, "")
 	}
 	if !chatBanned {
-		nickname, err := s.nicknameCache.GetOrFetchNickname(ctx, address)
+		user, err := s.nicknameCache.GetOrFetchUser(ctx, address)
 		if err != nil {
 			return "", stacktrace.Propagate(err, "")
 		}
-		if nickname != nil {
-			name = *nickname
+		if user != nil && !user.IsUnknown() && user.Nickname() != nil {
+			name = *user.Nickname()
 		}
 	}
 	return name, nil
