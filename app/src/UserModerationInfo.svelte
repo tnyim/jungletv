@@ -1,10 +1,13 @@
 <script lang="ts">
     import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
     import { DateTime } from "luxon";
+    import { createEventDispatcher } from "svelte";
     import { navigate } from "svelte-navigator";
 
     import { apiClient } from "./api_client";
     import { modal } from "./stores";
+
+    const dispatch = createEventDispatcher();
 
     export let userAddress: string;
 
@@ -12,6 +15,16 @@
         try {
             await apiClient.resetSpectatorStatus(userAddress);
             alert("Spectator status reset successfully");
+        } catch (e) {
+            alert("An error occurred: " + e);
+        }
+    }
+
+    async function clearProfile() {
+        try {
+            await apiClient.clearUserProfile(userAddress);
+            alert("User profile cleared successfully");
+            dispatch("cleared");
         } catch (e) {
             alert("An error occurred: " + e);
         }
@@ -73,4 +86,13 @@
     {:catch}
         <p>This address is not currently registered as a spectator.</p>
     {/await}
+    <p class="mt-6 mb-4">
+        <a
+            href={"#"}
+            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            on:click={clearProfile}
+        >
+            Clear user profile
+        </a>
+    </p>
 </div>

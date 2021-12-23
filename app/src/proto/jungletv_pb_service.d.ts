@@ -229,6 +229,24 @@ type JungleTVUserStats = {
   readonly responseType: typeof jungletv_pb.UserStatsResponse;
 };
 
+type JungleTVSetProfileBiography = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetProfileBiographyRequest;
+  readonly responseType: typeof jungletv_pb.SetProfileBiographyResponse;
+};
+
+type JungleTVSetProfileFeaturedMedia = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetProfileFeaturedMediaRequest;
+  readonly responseType: typeof jungletv_pb.SetProfileFeaturedMediaResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -499,6 +517,15 @@ type JungleTVClearQueueInsertCursor = {
   readonly responseType: typeof jungletv_pb.ClearQueueInsertCursorResponse;
 };
 
+type JungleTVClearUserProfile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ClearUserProfileRequest;
+  readonly responseType: typeof jungletv_pb.ClearUserProfileResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -526,6 +553,8 @@ export class JungleTV {
   static readonly RemoveConnection: JungleTVRemoveConnection;
   static readonly UserProfile: JungleTVUserProfile;
   static readonly UserStats: JungleTVUserStats;
+  static readonly SetProfileBiography: JungleTVSetProfileBiography;
+  static readonly SetProfileFeaturedMedia: JungleTVSetProfileFeaturedMedia;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -556,6 +585,7 @@ export class JungleTV {
   static readonly SetSkippingEnabled: JungleTVSetSkippingEnabled;
   static readonly SetQueueInsertCursor: JungleTVSetQueueInsertCursor;
   static readonly ClearQueueInsertCursor: JungleTVClearQueueInsertCursor;
+  static readonly ClearUserProfile: JungleTVClearUserProfile;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -766,6 +796,24 @@ export class JungleTVClient {
   userStats(
     requestMessage: jungletv_pb.UserStatsRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserStatsResponse|null) => void
+  ): UnaryResponse;
+  setProfileBiography(
+    requestMessage: jungletv_pb.SetProfileBiographyRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetProfileBiographyResponse|null) => void
+  ): UnaryResponse;
+  setProfileBiography(
+    requestMessage: jungletv_pb.SetProfileBiographyRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetProfileBiographyResponse|null) => void
+  ): UnaryResponse;
+  setProfileFeaturedMedia(
+    requestMessage: jungletv_pb.SetProfileFeaturedMediaRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetProfileFeaturedMediaResponse|null) => void
+  ): UnaryResponse;
+  setProfileFeaturedMedia(
+    requestMessage: jungletv_pb.SetProfileFeaturedMediaRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetProfileFeaturedMediaResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
@@ -1028,6 +1076,15 @@ export class JungleTVClient {
   clearQueueInsertCursor(
     requestMessage: jungletv_pb.ClearQueueInsertCursorRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearQueueInsertCursorResponse|null) => void
+  ): UnaryResponse;
+  clearUserProfile(
+    requestMessage: jungletv_pb.ClearUserProfileRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearUserProfileResponse|null) => void
+  ): UnaryResponse;
+  clearUserProfile(
+    requestMessage: jungletv_pb.ClearUserProfileRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearUserProfileResponse|null) => void
   ): UnaryResponse;
 }
 

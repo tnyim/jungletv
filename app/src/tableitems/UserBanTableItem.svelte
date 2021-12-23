@@ -1,5 +1,6 @@
 <script lang="ts">
     import { DateTime } from "luxon";
+    import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
     import { copyToClipboard } from "../utils";
 
@@ -59,7 +60,8 @@
         {formatScope()}
     </td>
     <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pb-4 pt-1 text-gray-700 dark:text-white font-mono"
+        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pb-4 pt-1 text-gray-700 dark:text-white font-mono cursor-pointer"
+        on:click={() => openUserProfile(ban.getAddress())}
     >
         <img
             src="https://monkey.banano.cc/api/v1/monkey/{ban.getAddress()}?format=png"
@@ -68,13 +70,6 @@
             class="inline h-7 -ml-1 -mt-4 -mb-3"
         />
         <span class="font-mono">{ban.getAddress().substr(0, 14)} </span>
-        <span class="float-right">
-            <i
-                class="fas fa-copy cursor-pointer hover:text-purple-700 hover:dark:text-purple-500"
-                title="Copy address"
-                on:click={() => copyToClipboard(ban.getAddress())}
-            />
-        </span>
     </td>
     <td
         colspan="2"

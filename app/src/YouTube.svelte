@@ -28,7 +28,7 @@
     let className; // HTML class names for container element
     let playerElem; // player DOM element reference
 
-    export let player: YouTubePlayer; // player API instance (bind)
+    export let player: YouTubePlayer = null; // player API instance (bind)
 
     // Create and tear down player as component mounts or unmounts
     onMount(() => createPlayer());

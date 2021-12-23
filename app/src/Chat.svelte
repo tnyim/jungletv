@@ -16,7 +16,7 @@
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
     import WarningMessage from "./WarningMessage.svelte";
-    import { editNicknameForUser, insertAtCursor } from "./utils";
+    import { editNicknameForUser, insertAtCursor, setNickname } from "./utils";
     import type { SidebarTab } from "./tabStores";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
@@ -259,19 +259,14 @@
                 let parts = splitAtFirstSpace(msg);
                 if (parts.length > 1) {
                     nickname = parts[1];
-                    if ([...nickname].length < 3) {
-                        sendError = true;
-                        sendErrorMessage = "The nickname must be at least 3 characters long.";
-                        setTimeout(() => (sendError = false), 5000);
-                        return;
-                    } else if ([...nickname].length > 16) {
-                        sendError = true;
-                        sendErrorMessage = "The nickname must be at most 16 characters long.";
-                        setTimeout(() => (sendError = false), 5000);
-                        return;
-                    }
                 }
-                await apiClient.setChatNickname(nickname);
+                let [valid, errMsg] = await setNickname(nickname);
+                if (!valid) {
+                    sendError = true;
+                    sendErrorMessage = errMsg;
+                    setTimeout(() => (sendError = false), 5000);
+                    return;
+                }
             } else {
                 await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
             }
@@ -633,14 +628,14 @@
             </div>
         {:else}
             {#if sendError}
-                <div class="px-2 pb-2 text-xs">
+                <div class="px-2 pb-2 text-xs mt-2">
                     <ErrorMessage>
                         {sendErrorMessage}
                     </ErrorMessage>
                 </div>
             {/if}
             {#if !showedGuidelinesChatWarning}
-                <div class="px-2 pb-2 text-xs">
+                <div class="px-2 pb-2 text-xs mt-2">
                     <WarningMessage>
                         Before participating in chat, make sure to read the
                         <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.

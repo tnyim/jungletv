@@ -42,6 +42,25 @@ export const editNicknameForUser = async function (user: User) {
     }
 }
 
+export const setNickname = async function (nickname: string): Promise<[boolean, string]> {
+    if (nickname != "") {
+        if ([...nickname].length < 3) {
+            return [false, "The nickname must be at least 3 characters long."];
+        } else if ([...nickname].length > 16) {
+            return [false, "The nickname must be at most 16 characters long."];
+        }
+    }
+    try {
+        await apiClient.setChatNickname(nickname);
+    } catch(ex) {
+        if (ex.includes("rate limit reached")) {
+            return [false, "You've set your nickname too recently. Please wait before trying again."];
+        }
+        return [false, "An error occurred when setting the nickname."];
+    }
+    return [true, ""];
+}
+
 export const formatQueueEntryThumbnailDuration = function (duration: google_protobuf_duration_pb.Duration, offset?: google_protobuf_duration_pb.Duration): string {
     if (typeof offset !== 'undefined') {
         let offsetEnd = new google_protobuf_duration_pb.Duration();

@@ -1,5 +1,6 @@
-DROP TABLE IF EXISTS "connection_service";
+DROP TABLE IF EXISTS "user_profile";
 DROP TABLE IF EXISTS "connection";
+DROP TABLE IF EXISTS "connection_service";
 DROP TABLE IF EXISTS "counter";
 DROP TABLE IF EXISTS "banned_user";
 DROP TABLE IF EXISTS "raffle_drawing";
@@ -184,3 +185,9 @@ CREATE TABLE IF NOT EXISTS "connection" (
     oauth_refresh_token TEXT -- nullable
 );
 CREATE INDEX index_rewards_address_on_connection ON connection USING HASH (rewards_address);
+
+CREATE TABLE IF NOT EXISTS "user_profile" (
+    "address" VARCHAR(64) PRIMARY KEY,
+    biography TEXT NOT NULL,
+    featured_media VARCHAR(36) REFERENCES played_media (id) -- nullable
+);

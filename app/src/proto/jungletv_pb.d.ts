@@ -3498,6 +3498,20 @@ export class UserProfileResponse extends jspb.Message {
   getUser(): User | undefined;
   setUser(value?: User): void;
 
+  clearRecentlyPlayedRequestsList(): void;
+  getRecentlyPlayedRequestsList(): Array<PlayedMedia>;
+  setRecentlyPlayedRequestsList(value: Array<PlayedMedia>): void;
+  addRecentlyPlayedRequests(value?: PlayedMedia, index?: number): PlayedMedia;
+
+  getBiography(): string;
+  setBiography(value: string): void;
+
+  hasYoutubeVideoData(): boolean;
+  clearYoutubeVideoData(): void;
+  getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
+  setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
+
+  getFeaturedMediaCase(): UserProfileResponse.FeaturedMediaCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserProfileResponse.AsObject;
   static toObject(includeInstance: boolean, msg: UserProfileResponse): UserProfileResponse.AsObject;
@@ -3511,6 +3525,14 @@ export class UserProfileResponse extends jspb.Message {
 export namespace UserProfileResponse {
   export type AsObject = {
     user?: User.AsObject,
+    recentlyPlayedRequestsList: Array<PlayedMedia.AsObject>,
+    biography: string,
+    youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+  }
+
+  export enum FeaturedMediaCase {
+    FEATURED_MEDIA_NOT_SET = 0,
+    YOUTUBE_VIDEO_DATA = 4,
   }
 }
 
@@ -3599,6 +3621,164 @@ export namespace UserStatsResponse {
     statsAllTime?: UserStatsForPeriod.AsObject,
     stats30Days?: UserStatsForPeriod.AsObject,
     stats7Days?: UserStatsForPeriod.AsObject,
+  }
+}
+
+export class PlayedMedia extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  hasRequestedBy(): boolean;
+  clearRequestedBy(): void;
+  getRequestedBy(): string;
+  setRequestedBy(value: string): void;
+
+  getRequestCost(): string;
+  setRequestCost(value: string): void;
+
+  hasStartedAt(): boolean;
+  clearStartedAt(): void;
+  getStartedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setStartedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasYoutubeVideoData(): boolean;
+  clearYoutubeVideoData(): void;
+  getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
+  setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
+
+  getMediaInfoCase(): PlayedMedia.MediaInfoCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PlayedMedia.AsObject;
+  static toObject(includeInstance: boolean, msg: PlayedMedia): PlayedMedia.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PlayedMedia, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PlayedMedia;
+  static deserializeBinaryFromReader(message: PlayedMedia, reader: jspb.BinaryReader): PlayedMedia;
+}
+
+export namespace PlayedMedia {
+  export type AsObject = {
+    id: string,
+    requestedBy: string,
+    requestCost: string,
+    startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+  }
+
+  export enum MediaInfoCase {
+    MEDIA_INFO_NOT_SET = 0,
+    YOUTUBE_VIDEO_DATA = 5,
+  }
+}
+
+export class SetProfileBiographyRequest extends jspb.Message {
+  getBiography(): string;
+  setBiography(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetProfileBiographyRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetProfileBiographyRequest): SetProfileBiographyRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetProfileBiographyRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetProfileBiographyRequest;
+  static deserializeBinaryFromReader(message: SetProfileBiographyRequest, reader: jspb.BinaryReader): SetProfileBiographyRequest;
+}
+
+export namespace SetProfileBiographyRequest {
+  export type AsObject = {
+    biography: string,
+  }
+}
+
+export class SetProfileBiographyResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetProfileBiographyResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetProfileBiographyResponse): SetProfileBiographyResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetProfileBiographyResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetProfileBiographyResponse;
+  static deserializeBinaryFromReader(message: SetProfileBiographyResponse, reader: jspb.BinaryReader): SetProfileBiographyResponse;
+}
+
+export namespace SetProfileBiographyResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetProfileFeaturedMediaRequest extends jspb.Message {
+  hasMediaId(): boolean;
+  clearMediaId(): void;
+  getMediaId(): string;
+  setMediaId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetProfileFeaturedMediaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetProfileFeaturedMediaRequest): SetProfileFeaturedMediaRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetProfileFeaturedMediaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetProfileFeaturedMediaRequest;
+  static deserializeBinaryFromReader(message: SetProfileFeaturedMediaRequest, reader: jspb.BinaryReader): SetProfileFeaturedMediaRequest;
+}
+
+export namespace SetProfileFeaturedMediaRequest {
+  export type AsObject = {
+    mediaId: string,
+  }
+}
+
+export class SetProfileFeaturedMediaResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetProfileFeaturedMediaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetProfileFeaturedMediaResponse): SetProfileFeaturedMediaResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetProfileFeaturedMediaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetProfileFeaturedMediaResponse;
+  static deserializeBinaryFromReader(message: SetProfileFeaturedMediaResponse, reader: jspb.BinaryReader): SetProfileFeaturedMediaResponse;
+}
+
+export namespace SetProfileFeaturedMediaResponse {
+  export type AsObject = {
+  }
+}
+
+export class ClearUserProfileRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClearUserProfileRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ClearUserProfileRequest): ClearUserProfileRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClearUserProfileRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClearUserProfileRequest;
+  static deserializeBinaryFromReader(message: ClearUserProfileRequest, reader: jspb.BinaryReader): ClearUserProfileRequest;
+}
+
+export namespace ClearUserProfileRequest {
+  export type AsObject = {
+    address: string,
+  }
+}
+
+export class ClearUserProfileResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClearUserProfileResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ClearUserProfileResponse): ClearUserProfileResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClearUserProfileResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClearUserProfileResponse;
+  static deserializeBinaryFromReader(message: ClearUserProfileResponse, reader: jspb.BinaryReader): ClearUserProfileResponse;
+}
+
+export namespace ClearUserProfileResponse {
+  export type AsObject = {
   }
 }
 

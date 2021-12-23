@@ -235,6 +235,24 @@ JungleTV.UserStats = {
   responseType: jungletv_pb.UserStatsResponse
 };
 
+JungleTV.SetProfileBiography = {
+  methodName: "SetProfileBiography",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetProfileBiographyRequest,
+  responseType: jungletv_pb.SetProfileBiographyResponse
+};
+
+JungleTV.SetProfileFeaturedMedia = {
+  methodName: "SetProfileFeaturedMedia",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetProfileFeaturedMediaRequest,
+  responseType: jungletv_pb.SetProfileFeaturedMediaResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -503,6 +521,15 @@ JungleTV.ClearQueueInsertCursor = {
   responseStream: false,
   requestType: jungletv_pb.ClearQueueInsertCursorRequest,
   responseType: jungletv_pb.ClearQueueInsertCursorResponse
+};
+
+JungleTV.ClearUserProfile = {
+  methodName: "ClearUserProfile",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.ClearUserProfileRequest,
+  responseType: jungletv_pb.ClearUserProfileResponse
 };
 
 exports.JungleTV = JungleTV;
@@ -1309,6 +1336,68 @@ JungleTVClient.prototype.userStats = function userStats(requestMessage, metadata
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.UserStats, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setProfileBiography = function setProfileBiography(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetProfileBiography, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setProfileFeaturedMedia = function setProfileFeaturedMedia(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetProfileFeaturedMedia, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -2247,6 +2336,37 @@ JungleTVClient.prototype.clearQueueInsertCursor = function clearQueueInsertCurso
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.ClearQueueInsertCursor, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.clearUserProfile = function clearUserProfile(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ClearUserProfile, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

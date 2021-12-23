@@ -58,7 +58,7 @@
     </div>
     {#if allowQR}
         <button
-            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
+            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
             on:click={() => {
                 showQR = !showQR;
             }}
@@ -67,13 +67,13 @@
         </button>
     {/if}
     <a
-        class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
+        class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
         href={uri}
     >
         <i class="fas fa-external-link-square-alt" />
     </a>
     <button
-        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-black hover:dark:bg-gray-950 text-gray-500 text-sm"
+        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
         on:click={copyAddress}
         disabled={!navigator.clipboard}
     >

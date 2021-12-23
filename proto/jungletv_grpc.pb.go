@@ -42,6 +42,8 @@ type JungleTVClient interface {
 	RemoveConnection(ctx context.Context, in *RemoveConnectionRequest, opts ...grpc.CallOption) (*RemoveConnectionResponse, error)
 	UserProfile(ctx context.Context, in *UserProfileRequest, opts ...grpc.CallOption) (*UserProfileResponse, error)
 	UserStats(ctx context.Context, in *UserStatsRequest, opts ...grpc.CallOption) (*UserStatsResponse, error)
+	SetProfileBiography(ctx context.Context, in *SetProfileBiographyRequest, opts ...grpc.CallOption) (*SetProfileBiographyResponse, error)
+	SetProfileFeaturedMedia(ctx context.Context, in *SetProfileFeaturedMediaRequest, opts ...grpc.CallOption) (*SetProfileFeaturedMediaResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -73,6 +75,7 @@ type JungleTVClient interface {
 	SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(ctx context.Context, in *SetQueueInsertCursorRequest, opts ...grpc.CallOption) (*SetQueueInsertCursorResponse, error)
 	ClearQueueInsertCursor(ctx context.Context, in *ClearQueueInsertCursorRequest, opts ...grpc.CallOption) (*ClearQueueInsertCursorResponse, error)
+	ClearUserProfile(ctx context.Context, in *ClearUserProfileRequest, opts ...grpc.CallOption) (*ClearUserProfileResponse, error)
 }
 
 type jungleTVClient struct {
@@ -446,6 +449,24 @@ func (c *jungleTVClient) UserStats(ctx context.Context, in *UserStatsRequest, op
 	return out, nil
 }
 
+func (c *jungleTVClient) SetProfileBiography(ctx context.Context, in *SetProfileBiographyRequest, opts ...grpc.CallOption) (*SetProfileBiographyResponse, error) {
+	out := new(SetProfileBiographyResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetProfileBiography", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) SetProfileFeaturedMedia(ctx context.Context, in *SetProfileFeaturedMediaRequest, opts ...grpc.CallOption) (*SetProfileFeaturedMediaResponse, error) {
+	out := new(SetProfileFeaturedMediaResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetProfileFeaturedMedia", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -739,6 +760,15 @@ func (c *jungleTVClient) ClearQueueInsertCursor(ctx context.Context, in *ClearQu
 	return out, nil
 }
 
+func (c *jungleTVClient) ClearUserProfile(ctx context.Context, in *ClearUserProfileRequest, opts ...grpc.CallOption) (*ClearUserProfileResponse, error) {
+	out := new(ClearUserProfileResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ClearUserProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -768,6 +798,8 @@ type JungleTVServer interface {
 	RemoveConnection(context.Context, *RemoveConnectionRequest) (*RemoveConnectionResponse, error)
 	UserProfile(context.Context, *UserProfileRequest) (*UserProfileResponse, error)
 	UserStats(context.Context, *UserStatsRequest) (*UserStatsResponse, error)
+	SetProfileBiography(context.Context, *SetProfileBiographyRequest) (*SetProfileBiographyResponse, error)
+	SetProfileFeaturedMedia(context.Context, *SetProfileFeaturedMediaRequest) (*SetProfileFeaturedMediaResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -799,6 +831,7 @@ type JungleTVServer interface {
 	SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(context.Context, *SetQueueInsertCursorRequest) (*SetQueueInsertCursorResponse, error)
 	ClearQueueInsertCursor(context.Context, *ClearQueueInsertCursorRequest) (*ClearQueueInsertCursorResponse, error)
+	ClearUserProfile(context.Context, *ClearUserProfileRequest) (*ClearUserProfileResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -880,6 +913,12 @@ func (UnimplementedJungleTVServer) UserProfile(context.Context, *UserProfileRequ
 }
 func (UnimplementedJungleTVServer) UserStats(context.Context, *UserStatsRequest) (*UserStatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserStats not implemented")
+}
+func (UnimplementedJungleTVServer) SetProfileBiography(context.Context, *SetProfileBiographyRequest) (*SetProfileBiographyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetProfileBiography not implemented")
+}
+func (UnimplementedJungleTVServer) SetProfileFeaturedMedia(context.Context, *SetProfileFeaturedMediaRequest) (*SetProfileFeaturedMediaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetProfileFeaturedMedia not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -970,6 +1009,9 @@ func (UnimplementedJungleTVServer) SetQueueInsertCursor(context.Context, *SetQue
 }
 func (UnimplementedJungleTVServer) ClearQueueInsertCursor(context.Context, *ClearQueueInsertCursorRequest) (*ClearQueueInsertCursorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearQueueInsertCursor not implemented")
+}
+func (UnimplementedJungleTVServer) ClearUserProfile(context.Context, *ClearUserProfileRequest) (*ClearUserProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearUserProfile not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -1448,6 +1490,42 @@ func _JungleTV_UserStats_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).UserStats(ctx, req.(*UserStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetProfileBiography_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetProfileBiographyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetProfileBiography(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetProfileBiography",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetProfileBiography(ctx, req.(*SetProfileBiographyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_SetProfileFeaturedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetProfileFeaturedMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetProfileFeaturedMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetProfileFeaturedMedia",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetProfileFeaturedMedia(ctx, req.(*SetProfileFeaturedMediaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1995,6 +2073,24 @@ func _JungleTV_ClearQueueInsertCursor_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ClearUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearUserProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ClearUserProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ClearUserProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ClearUserProfile(ctx, req.(*ClearUserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _JungleTV_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
@@ -2074,6 +2170,14 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserStats",
 			Handler:    _JungleTV_UserStats_Handler,
+		},
+		{
+			MethodName: "SetProfileBiography",
+			Handler:    _JungleTV_SetProfileBiography_Handler,
+		},
+		{
+			MethodName: "SetProfileFeaturedMedia",
+			Handler:    _JungleTV_SetProfileFeaturedMedia_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",
@@ -2190,6 +2294,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClearQueueInsertCursor",
 			Handler:    _JungleTV_ClearQueueInsertCursor_Handler,
+		},
+		{
+			MethodName: "ClearUserProfile",
+			Handler:    _JungleTV_ClearUserProfile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

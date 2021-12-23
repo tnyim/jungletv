@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -501,4 +502,48 @@ func (s *grpcServer) ClearQueueInsertCursor(ctx context.Context, r *proto.ClearQ
 	}
 
 	return &proto.ClearQueueInsertCursorResponse{}, nil
+}
+
+func (s *grpcServer) ClearUserProfile(ctxCtx context.Context, r *proto.ClearUserProfileRequest) (*proto.ClearUserProfileResponse, error) {
+	moderator := auth.UserClaimsFromContext(ctxCtx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	ctx, err := BeginTransaction(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	profile, err := types.GetUserProfileForAddress(ctx, r.Address)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	err = profile.Delete(ctx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Profile for user %s cleared by %s (remote address %s)", r.Address, moderator.Username, auth.RemoteAddressFromContext(ctx))
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Profile for user %s cleared by moderator: %s (%s)",
+				r.Address,
+				moderator.Address()[:14],
+				moderator.Username))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.ClearUserProfileResponse{}, nil
 }

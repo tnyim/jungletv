@@ -127,6 +127,21 @@ func CountRequestsOfAddressSince(node sqalx.Node, address string, since time.Tim
 	return count, length, nil
 }
 
+// LastRequestsOfAddress returns the most recent played medias requested by the specified address
+func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDisallowed bool) ([]*PlayedMedia, error) {
+	s := sdb.Select().
+		Where(sq.Eq{"played_media.requested_by": address})
+	if excludeDisallowed {
+		s = s.LeftJoin(`disallowed_media ON
+ 				disallowed_media.media_type = played_media.media_type AND
+				COALESCE(disallowed_media.yt_video_id, '') = COALESCE(played_media.yt_video_id, '')`).
+			Where(sq.Eq{"disallowed_media.media_type": nil})
+	}
+	s = s.OrderBy("started_at DESC").Limit(uint64(count))
+	m, _, err := getPlayedMediaWithSelect(node, s)
+	return m, stacktrace.Propagate(err, "")
+}
+
 // Update updates or inserts the PlayedMedia
 func (obj *PlayedMedia) Update(node sqalx.Node) error {
 	return Update(node, obj)
