@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import QrCode from "svelte-qrcode";
     import { apiClient } from "./api_client";
 
@@ -8,6 +8,8 @@
     export let showBananoVaultLink = false;
     export let paymentAmount = "";
     export let isRepresentativeChange = false;
+    export let qrCodeBackground = "";
+    export let qrCodeForeground = "";
 
     let uri = "";
     let bananoVaultURI = "";
@@ -80,7 +82,14 @@
 </div>
 {#if showQR}
     <div class="mt-4 flex justify-center">
-        <QrCode value={"ban:" + address + (paymentAmount != "" ? "?amount=" + paymentAmount : "")} size="150" />
+        {#key qrCodeBackground + qrCodeForeground}
+            <QrCode
+                value={"ban:" + address + (paymentAmount != "" ? "?amount=" + paymentAmount : "")}
+                size="150"
+                background={qrCodeBackground != "" ? qrCodeBackground : "#FFFFFF"}
+                color={qrCodeForeground != "" ? qrCodeForeground : "#000000"}
+            />
+        {/key}
     </div>
 {/if}
 {#if showBananoVaultLink}

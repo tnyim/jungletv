@@ -21,9 +21,7 @@
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">⏲💥😞</p>
     </div>
     <div slot="main-content">
-        <div>
-            <ErrorMessage>Verification not completed in time. Please try again.</ErrorMessage>
-        </div>
+        <ErrorMessage>Verification not completed in time. Please try again.</ErrorMessage>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <button

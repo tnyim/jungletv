@@ -63,7 +63,7 @@
         >
             Disallow video
         </button>
-        <div class="col-span-2">
+        <div class="col-span-2 mt-3">
             {#if disallowVideoSuccessful}
                 <SuccessMessage>Video disallowed successfully</SuccessMessage>
             {:else if disallowVideoError != ""}

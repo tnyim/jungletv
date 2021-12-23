@@ -4,7 +4,7 @@
     import { navigate } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
-    import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
+    import { badRepresentative, rewardAddress, rewardBalance, darkMode } from "./stores";
     import Wizard from "./Wizard.svelte";
 
     export let rewardsAddress: string;
@@ -21,7 +21,7 @@
         "ban_1gt4ti4gnzjre341pqakzme8z94atcyuuawoso8gqwdx5m4a77wu1mxxighh",
         "ban_1ry7kqi1msam7ay8qreo1mddc6ga6hg4s5tsqgtqhdhbxxwgcuo5mwfno379",
         "ban_3tacocatezozswnu8xkh66qa1dbcdujktzmfpdj7ax66wtfrio6h5sxikkep",
-        "ban_19potasho7ozny8r1drz3u3hb3r97fw4ndm4hegdsdzzns1c3nobdastcgaa"
+        "ban_19potasho7ozny8r1drz3u3hb3r97fw4ndm4hegdsdzzns1c3nobdastcgaa",
     ];
 
     function getGoodRepAddress(): string {
@@ -54,7 +54,14 @@
         <p class="font-mono">{rewardsAddress}</p>
         <p class="mt-8">You should now set the representative for your address back to a reputable one, for example:</p>
         <div class="mt-1 mb-4">
-            <AddressBox address={getGoodRepAddress()} allowQR={false} showQR={true} isRepresentativeChange={true} />
+            <AddressBox
+                address={getGoodRepAddress()}
+                allowQR={false}
+                showQR={true}
+                isRepresentativeChange={true}
+                qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
+                qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+            />
         </div>
         <p class="mt-8">
             If you are watching JungleTV in another window or tab, please refresh it to ensure you'll be rewarded.

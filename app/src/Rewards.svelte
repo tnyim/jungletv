@@ -1,6 +1,6 @@
 <script lang="ts">
     import { navigate, link } from "svelte-navigator";
-import AccountConnections from "./AccountConnections.svelte";
+    import AccountConnections from "./AccountConnections.svelte";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import PaginatedTable from "./PaginatedTable.svelte";
@@ -56,7 +56,7 @@ import AccountConnections from "./AccountConnections.svelte";
         }
     }
 
-    let connectionsPromise = (loadConnections)();
+    let connectionsPromise = loadConnections();
 
     let withdrawClicked = false;
     let withdrawSuccessful = false;
@@ -125,13 +125,15 @@ import AccountConnections from "./AccountConnections.svelte";
                 </a>
             </p>
             {#if pendingWithdrawal}
-                <WarningMessage>
-                    A withdrawal is pending for your account. This usually takes some seconds to complete, and
-                    occasionally can take some minutes. You'll be able to withdraw when it completes.
-                    <br />
-                    Your withdrawal is in position {withdrawalPositionInQueue} of {withdrawalsInQueue} withdrawals in queue
-                    to be processed.
-                </WarningMessage>
+                <div class="mt-3">
+                    <WarningMessage>
+                        A withdrawal is pending for your account. This usually takes some seconds to complete, and
+                        occasionally can take some minutes. You'll be able to withdraw when it completes.
+                        <br />
+                        Your withdrawal is in position {withdrawalPositionInQueue} of {withdrawalsInQueue} withdrawals in
+                        queue to be processed.
+                    </WarningMessage>
+                </div>
                 <p class="text-lg font-semibold">Current balance:</p>
             {:else}
                 <p class="text-lg font-semibold">Available to withdraw:</p>

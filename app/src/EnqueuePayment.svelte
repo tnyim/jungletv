@@ -9,6 +9,7 @@
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import { darkMode } from "./stores";
 
     const dispatch = createEventDispatcher();
 
@@ -101,6 +102,8 @@
                     showQR={true}
                     showBananoVaultLink={true}
                     paymentAmount={selectedPrice}
+                    qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
+                    qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
                 />
             </div>
             {#if ticket.getUnskippable()}
@@ -160,10 +163,12 @@
                 </table>
             </div>
             {#if ticket.getCurrentlyPlayingIsUnskippable()}
-                <WarningMessage>
-                    The currently playing video is unskippable; even if you pay the price to play immediately, it will
-                    still be enqueued to play after the current one.
-                </WarningMessage>
+                <div class="mt-3">
+                    <WarningMessage>
+                        The currently playing video is unskippable; even if you pay the price to play immediately, it
+                        will still be enqueued to play after the current one.
+                    </WarningMessage>
+                </div>
             {/if}
             <p class="mt-2">Sending more BAN will increase the rewards for viewers when watching this video.</p>
             <p class="mt-2">

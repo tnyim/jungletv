@@ -2,6 +2,7 @@
     import { link } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
     import { useFocus } from "svelte-navigator";
+    import { darkMode } from "./stores";
     const registerFocus = useFocus();
 
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";
@@ -54,7 +55,12 @@
         the address below:
     </p>
     <div class="mt-1">
-        <AddressBox address={donationAddress} allowQR={true} />
+        <AddressBox
+            address={donationAddress}
+            allowQR={true}
+            qrCodeBackground={$darkMode ? "#111827" : "#F3F4F6"}
+            qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+        />
     </div>
     <p class="mt-3">
         JungleTV is also a

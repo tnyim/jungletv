@@ -287,7 +287,9 @@
             />
         </div>
         {#if failureReason !== ""}
-            <ErrorMessage>{failureReason}</ErrorMessage>
+            <div class="mt-3">
+                <ErrorMessage>{failureReason}</ErrorMessage>
+            </div>
         {/if}
         <p class="mt-2 text-sm text-gray-500">
             Playlists are not supported. Videos must not be age-restricted.<br />

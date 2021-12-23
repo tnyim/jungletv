@@ -5,6 +5,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { link } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
+    import { darkMode } from "./stores";
 
     export const mode = "sidebar";
 
@@ -100,7 +101,13 @@
                     If you think this video should be skipped, contribute to the pool by sending to the following
                     address:
                 </p>
-                <AddressBox address={skipAndTipStatus.getSkipAddress()} allowQR={true} showBananoVaultLink={true} />
+                <AddressBox
+                    address={skipAndTipStatus.getSkipAddress()}
+                    allowQR={true}
+                    showBananoVaultLink={true}
+                    qrCodeBackground={$darkMode ? "#111827" : "#FFFFFF"}
+                    qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+                />
             {/if}
         </div>
 
@@ -121,7 +128,13 @@
                     following address:
                 </p>
             {/if}
-            <AddressBox address={skipAndTipStatus.getRainAddress()} allowQR={true} showBananoVaultLink={true} />
+            <AddressBox
+                address={skipAndTipStatus.getRainAddress()}
+                allowQR={true}
+                showBananoVaultLink={true}
+                qrCodeBackground={$darkMode ? "#111827" : "#FFFFFF"}
+                qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+            />
             <p class="text-xs mt-4">
                 The user who enqueued the video will receive 20% of the community tip if they are registered to receive
                 rewards and are currently watching JungleTV or have disconnected in the last 15 minutes.

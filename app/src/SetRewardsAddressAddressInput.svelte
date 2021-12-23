@@ -93,7 +93,9 @@
                 />
             </div>
             {#if failureReason !== ""}
-                <ErrorMessage>{failureReason}</ErrorMessage>
+                <div class="mt-3">
+                    <ErrorMessage>{failureReason}</ErrorMessage>
+                </div>
             {:else if successful}
                 {#if rewardsAddress == ""}
                     <SuccessMessage>

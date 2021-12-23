@@ -5,7 +5,7 @@
     import { Moon } from "svelte-loading-spinners";
     import AddressBox from "./AddressBox.svelte";
     import Wizard from "./Wizard.svelte";
-    import { rewardAddress } from "./stores";
+    import { rewardAddress, darkMode } from "./stores";
     import { setCookie } from "./cookie_utils";
 
     const dispatch = createEventDispatcher();
@@ -72,6 +72,8 @@
                 allowQR={false}
                 showQR={true}
                 isRepresentativeChange={true}
+                qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
+                qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
             />
         </div>
         <p class="mt-2">

@@ -16,7 +16,6 @@
 	import Document from "./Document.svelte";
 	import Rewards from "./Rewards.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
-	import Player from "./Player.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
 	import Modal from "svelte-simple-modal";
 	import UserBans from "./moderation/UserBans.svelte";
