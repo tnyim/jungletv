@@ -230,13 +230,15 @@
         >
             Tip user
         </SidebarTabButton>
-        <SidebarTabButton
-            bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-            selected={selectedTab == "recents"}
-            on:click={() => (selectedTab = "recents")}
-        >
-            Last requests
-        </SidebarTabButton>
+        {#if recentRequests.length > 0}
+            <SidebarTabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedTab == "recents"}
+                on:click={() => (selectedTab = "recents")}
+            >
+                Last requests
+            </SidebarTabButton>
+        {/if}
         <SidebarTabButton
             bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
             selected={selectedTab == "stats"}
