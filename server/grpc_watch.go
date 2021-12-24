@@ -120,10 +120,10 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	for {
 		select {
 		case <-t.C:
-			break
+			// unblock loop
 		case <-onMediaChanged:
 			sendTitle = true
-			break
+			// unblock loop
 		case <-stream.Context().Done():
 			return nil
 		case err := <-errChan:

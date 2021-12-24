@@ -16,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/keybox"
 	"github.com/gbl08ma/sqalx"
 	"github.com/gbl08ma/ssoclient"
@@ -35,13 +34,13 @@ import (
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 )
 
 var (
 	rdb           *sqlx.DB
-	sdb           sq.StatementBuilderType
 	rootSqalxNode sqalx.Node
 	secrets       *keybox.Keybox
 
@@ -88,13 +87,12 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 	rdb.SetMaxOpenConns(MaxDBconnectionPoolSize)
-	sdb = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(rdb)
 
 	rootSqalxNode, err = sqalx.New(rdb)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
-	ctx = context.WithValue(ctx, "SqalxNode", rootSqalxNode)
+	ctx = transaction.ContextWithSqalxNode(ctx, rootSqalxNode)
 
 	if LogDBQueries {
 		types.SetLogger(dbLog)
@@ -382,7 +380,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 }
 
 func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request), jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, listenAddr string) (*http.Server, error) {
-	sqalxInterceptor := &sqalxInterceptor{rootNode: rootSqalxNode}
+	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
 	versionInterceptor := server.NewVersionInterceptor(versionHash)
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
@@ -443,7 +441,7 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 	for i := range extraRoutes {
 		route := extraRoutes[i]
 		router.HandleFunc(route.Path, func(rw http.ResponseWriter, r *http.Request) {
-			newCtx := context.WithValue(r.Context(), "SqalxNode", rootSqalxNode)
+			newCtx := transaction.ContextWithSqalxNode(r.Context(), rootSqalxNode)
 			route.Handler(rw, r.WithContext(newCtx))
 		})
 	}

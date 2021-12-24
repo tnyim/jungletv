@@ -8,10 +8,11 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 func (s *grpcServer) OAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	ctx, err := BeginTransaction(r.Context())
+	ctx, err := transaction.Begin(r.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/icza/gox/timex"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"github.com/vechain/go-ecvrf"
 )
 
@@ -39,7 +40,7 @@ func (s *grpcServer) RaffleTickets(w http.ResponseWriter, r *http.Request) error
 		return nil
 	}
 
-	ctx, err := BeginTransaction(r.Context())
+	ctx, err := transaction.Begin(r.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -80,7 +81,7 @@ func (s *grpcServer) RaffleInfo(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 
-	ctx, err := BeginTransaction(r.Context())
+	ctx, err := transaction.Begin(r.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -220,7 +221,7 @@ func (s *grpcServer) raffleInfoURL(year, week int) string {
 }
 
 func processRaffle(ctxCtx context.Context, raffleID string, periodStart, periodEnd time.Time, secretKey *ecdsa.PrivateKey) ([]*types.RaffleDrawing, []*types.PlayedMediaRaffleEntry, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -280,7 +281,7 @@ func processOngoingRaffle(ctxCtx context.Context, drawing *types.RaffleDrawing, 
 		return nil
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -308,7 +309,7 @@ func computeRaffleDrawing(ctxCtx context.Context, drawing *types.RaffleDrawing, 
 		return nil
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -411,6 +412,9 @@ JungleTV.
 
 	drawingsWriter := csv.NewWriter(output)
 	err = drawingsWriter.Write([]string{"drawing_number", "reason"})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
 	for i, drawing := range drawings {
 		err = drawingsWriter.Write([]string{fmt.Sprintf("%d", i+1), drawing})
 		if err != nil {
@@ -467,7 +471,7 @@ JungleTV.
 }
 
 func confirmRaffleWinner(ctxCtx context.Context, raffleID string) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -497,7 +501,7 @@ func confirmRaffleWinner(ctxCtx context.Context, raffleID string) error {
 }
 
 func completeRaffle(ctxCtx context.Context, raffleID, txHash string) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -528,7 +532,7 @@ func completeRaffle(ctxCtx context.Context, raffleID, txHash string) error {
 }
 
 func redrawRaffle(ctxCtx context.Context, raffleID, reason string, secretKey *ecdsa.PrivateKey) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

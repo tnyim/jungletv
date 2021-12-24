@@ -10,13 +10,14 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) DisallowedVideos(ctxCtx context.Context, r *proto.DisallowedVideosRequest) (*proto.DisallowedVideosResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -60,7 +61,7 @@ func convertDisallowedVideo(orig *types.DisallowedMedia) *proto.DisallowedVideo 
 }
 
 func (s *grpcServer) AddDisallowedVideo(ctxCtx context.Context, r *proto.AddDisallowedVideoRequest) (*proto.AddDisallowedVideoResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -121,7 +122,7 @@ func (s *grpcServer) AddDisallowedVideo(ctxCtx context.Context, r *proto.AddDisa
 }
 
 func (s *grpcServer) RemoveDisallowedVideo(ctxCtx context.Context, r *proto.RemoveDisallowedVideoRequest) (*proto.RemoveDisallowedVideoResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -134,6 +135,9 @@ func (s *grpcServer) RemoveDisallowedVideo(ctxCtx context.Context, r *proto.Remo
 	}
 
 	disallowedMedias, err := types.GetDisallowedMediaWithIDs(ctx, []string{r.Id})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	if len(disallowedMedias) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "entry not found")
 	}

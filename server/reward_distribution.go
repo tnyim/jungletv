@@ -14,6 +14,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry) error {
@@ -246,7 +247,7 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 }
 
 func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -297,7 +298,7 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, 
 }
 
 func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string, requester *spectator, reward Amount) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

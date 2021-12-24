@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ErrChatMessageNotFound is returned by a ChatStore when LoadMessage or DeleteMessage does not find the given message
@@ -66,7 +67,7 @@ type dbChatMsgWithReference struct {
 }
 
 func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage) (*string, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -116,7 +117,7 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage)
 }
 
 func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.ID) (*ChatMessage, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -150,7 +151,7 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 }
 
 func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -198,7 +199,7 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 }
 
 func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includeShadowbanned User, num int) ([]*ChatMessage, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -256,7 +257,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 }
 
 func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context, user User, num int) ([]*ChatMessage, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -307,7 +308,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 }
 
 func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID) (*ChatMessage, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -371,7 +372,7 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWit
 }
 
 func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user User, nickname *string) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -389,6 +390,9 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user User, n
 		query, args, err := sqlx.In(`
 		SELECT 1 FROM chat_user WHERE nickname = ? AND permission_level IN (?)`,
 			nickname, levelsAbove)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 		query = ctx.Rebind(query)
 		err = ctx.Tx().SelectContext(ctx, &rows, query, args...)
 		if err != nil {

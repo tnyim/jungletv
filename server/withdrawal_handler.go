@@ -12,6 +12,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -67,7 +68,7 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 
 // AutoWithdrawBalances initiates withdrawals for all balances that match the automatic withdrawal criteria
 func (w *WithdrawalHandler) AutoWithdrawBalances(ctxCtx context.Context) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -93,7 +94,7 @@ func (w *WithdrawalHandler) WithdrawBalances(ctxCtx context.Context, balances []
 	if len(balances) == 0 {
 		return nil
 	}
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -135,7 +136,7 @@ func (w *WithdrawalHandler) CompleteAllPendingWithdrawals(ctxCtx context.Context
 	w.completingPendingWithdrawals = true
 	defer func() { w.completingPendingWithdrawals = false }()
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -180,7 +181,7 @@ func (w *WithdrawalHandler) CompleteWithdrawals(ctxCtx context.Context, pending 
 func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *types.PendingWithdrawal, recvPending bool) error {
 	timing := w.statsClient.NewTiming()
 	defer timing.Send("complete_withdrawal")
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

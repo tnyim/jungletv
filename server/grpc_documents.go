@@ -9,12 +9,13 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentRequest) (*proto.Document, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -42,7 +43,7 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 }
 
 func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (*proto.UpdateDocumentResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -90,7 +91,7 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 }
 
 func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r *proto.TriggerAnnouncementsNotificationRequest) (*proto.TriggerAnnouncementsNotificationResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -139,7 +140,7 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 }
 
 func (s *grpcServer) getAnnouncementsCounter(ctxCtx context.Context) (*types.Counter, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

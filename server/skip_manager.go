@@ -15,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 var NoSkipPeriodBeforeMediaEnd = 30 * time.Second
@@ -147,7 +148,7 @@ func (s *SkipManager) BalancesWorker(ctx context.Context, interval time.Duration
 }
 
 func (s *SkipManager) retroactivelyUpdateForMedia(ctxCtx context.Context, mediaID string) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -307,7 +308,7 @@ func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account
 		return NewAmount(), nil
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return NewAmount(), stacktrace.Propagate(err, "")
 	}

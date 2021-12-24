@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ModerationStore saves and loads moderation decisions
@@ -132,7 +133,7 @@ func (m *ModerationStoreDatabase) LoadPaymentAddressBannedFromRewards(ctx contex
 }
 
 func (m *ModerationStoreDatabase) BanUser(ctxCtx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")
 	}
@@ -205,7 +206,7 @@ func (m *ModerationStoreDatabase) recomputeBanMaps(decisions []*types.BannedUser
 }
 
 func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reason string, moderator User) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -244,7 +245,7 @@ func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reaso
 }
 
 func (m *ModerationStoreDatabase) restoreDecisionsFromDatabase(ctxCtx context.Context, justChanged bool) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

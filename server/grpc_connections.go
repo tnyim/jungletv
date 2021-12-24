@@ -11,6 +11,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,7 +24,7 @@ func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsReq
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -87,7 +88,7 @@ func (s *grpcServer) CreateConnection(ctxCtx context.Context, r *proto.CreateCon
 		return nil, status.Error(codes.InvalidArgument, "unknown service")
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -167,7 +168,7 @@ func (s *grpcServer) RemoveConnection(ctxCtx context.Context, r *proto.RemoveCon
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

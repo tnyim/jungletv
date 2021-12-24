@@ -270,7 +270,7 @@ func (e *queueEntryYouTubeVideo) PlayedFor() time.Duration {
 	if !e.Playing() {
 		return e.stoppedPlaying.Sub(e.startedPlaying)
 	}
-	return time.Now().Sub(e.startedPlaying)
+	return time.Since(e.startedPlaying)
 }
 
 func (e *queueEntryYouTubeVideo) DonePlaying() *event.Event {

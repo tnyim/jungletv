@@ -7,6 +7,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // UserCache caches public user information
@@ -31,7 +32,7 @@ func NewMemoryUserCache() *MemoryUserCache {
 func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string) (User, error) {
 	i, present := c.c.Get(address)
 	if !present {
-		ctx, err := BeginTransaction(ctxCtx)
+		ctx, err := transaction.Begin(ctxCtx)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

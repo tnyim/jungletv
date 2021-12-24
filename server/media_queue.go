@@ -16,6 +16,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"github.com/vburenin/nsync"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -424,7 +425,7 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 }
 
 func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueueEntry, newMedia MediaQueueEntry) error {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -538,7 +539,7 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Cont
 		return 0, nil
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}

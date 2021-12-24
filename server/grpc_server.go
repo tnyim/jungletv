@@ -28,8 +28,9 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -299,11 +300,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	client := &http.Client{
-		Transport: &transport.APIKey{Key: options.YoutubeAPIkey},
-	}
-
-	s.youtube, err = youtube.New(client)
+	s.youtube, err = youtube.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
@@ -570,7 +567,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := func() error {
-							tx, err := BeginTransaction(ctx)
+							tx, err := transaction.Begin(ctx)
 							if err != nil {
 								return stacktrace.Propagate(err, "")
 							}
@@ -618,7 +615,7 @@ func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string
 	return name, nil
 }
 
-func (s *grpcServer) autoEnqueueNewVideo(ctx *TransactionWrappingContext) error {
+func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error {
 	videoID, err := s.getRandomVideoForAutoEnqueue()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -671,7 +668,7 @@ const (
 	youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly
 )
 
-func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingContext, videoID string, startOffset, endOffset *durationpb.Duration, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
+func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingContext, videoID string, startOffset, endOffset *durationpb.Duration, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
 	user := auth.UserClaimsFromContext(ctx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, auth.RemoteAddressFromContext(ctx)); err == nil && banned {
@@ -690,7 +687,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
 
-	ctx, err := BeginTransaction(ctx)
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, youTubeVideoEnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -807,7 +804,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *TransactionWrappingConte
 	return request, youTubeVideoEnqueueRequestCreationSucceeded, nil
 }
 
-func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
+func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *transaction.WrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
 	toleranceMargin := 1 * time.Minute
 	if totalVideoLength/10 < toleranceMargin {
 		toleranceMargin = totalVideoLength / 10
@@ -853,7 +850,7 @@ func (s *grpcServer) checkYouTubeVideoContentDuplication(ctx *TransactionWrappin
 	return youTubeVideoEnqueueRequestCreationSucceeded, nil
 }
 
-func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *TransactionWrappingContext, videoID string, length time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
+func (s *grpcServer) checkYouTubeBroadcastContentDuplication(ctx *transaction.WrappingContext, videoID string, length time.Duration) (youTubeVideoEnqueueRequestCreationResult, error) {
 	// check total enqueued length
 	totalLength := length
 	for idx, entry := range s.mediaQueue.Entries() {

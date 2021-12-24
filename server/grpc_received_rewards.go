@@ -7,11 +7,12 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistoryRequest) (*proto.RewardHistoryResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

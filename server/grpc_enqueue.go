@@ -8,6 +8,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
@@ -42,7 +43,7 @@ func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequ
 }
 
 func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.EnqueueMediaRequest, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -132,11 +133,11 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 	for {
 		select {
 		case <-onMediaChanged:
-			break
+			// unblock loop
 		case <-onSkippingAllowedUpdated:
-			break
+			// unblock loop
 		case <-c:
-			break
+			// unblock loop
 		case <-stream.Context().Done():
 			return nil
 		}

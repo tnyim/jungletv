@@ -40,12 +40,17 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 	}
 }
 
+var serverStartedAt = time.Now()
+
 func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
 	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		// exempt admins/moderators from activity challenges
 		return 100 * 24 * time.Hour
 	}
 	if first {
+		if time.Since(serverStartedAt) < 2*time.Minute {
+			return 1*time.Minute + time.Duration(rand.Intn(180))*time.Second
+		}
 		return 10*time.Second + time.Duration(rand.Intn(20))*time.Second
 	}
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second

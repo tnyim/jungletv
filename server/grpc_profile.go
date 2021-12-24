@@ -8,6 +8,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -15,7 +16,7 @@ import (
 )
 
 func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileRequest) (*proto.UserProfileResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -95,7 +96,7 @@ func convertPlayedMedia(orig *types.PlayedMedia) *proto.PlayedMedia {
 var statsDataAvailableSince = time.Date(2021, time.July, 19, 0, 0, 0, 0, time.UTC)
 
 func (s *grpcServer) UserStats(ctxCtx context.Context, r *proto.UserStatsRequest) (*proto.UserStatsResponse, error) {
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -166,7 +167,7 @@ func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetPro
 		return nil, status.Error(codes.InvalidArgument, "biography too long")
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -198,7 +199,7 @@ func (s *grpcServer) SetProfileFeaturedMedia(ctxCtx context.Context, r *proto.Se
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	ctx, err := BeginTransaction(ctxCtx)
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
