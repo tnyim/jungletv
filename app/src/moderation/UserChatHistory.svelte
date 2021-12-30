@@ -5,6 +5,7 @@
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
+import { openUserProfile } from "../profile_utils";
 
     import type { ChatMessage } from "../proto/jungletv_pb";
 
@@ -46,6 +47,16 @@
             Back to moderation dashboard
         </a>
     {/if}
+
+    <p class="mt-6 mb-4">
+        <a
+            href={"#"}
+            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            on:click={() => openUserProfile(address)}
+        >
+            User profile
+        </a>
+    </p>
 
     {#if mode != "sidebar"}
         <h1 class="text-lg mt-6">Chat message history for <span class="font-mono">{address}</span></h1>

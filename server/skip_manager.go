@@ -165,9 +165,17 @@ func (s *SkipManager) retroactivelyUpdateForMedia(ctxCtx context.Context, mediaI
 func (s *SkipManager) computeMediaEndTimer() *time.Timer {
 	currentEntry, isCurrentlyPlaying := s.mediaQueue.CurrentlyPlaying()
 	if !isCurrentlyPlaying {
-		return time.NewTimer(9999 * time.Hour)
+		// return a timer that will never end
+		// the next status change is caused by a new media starting
+		return time.NewTimer(math.MaxInt64)
 	}
-	return time.NewTimer(currentEntry.MediaInfo().Length() - NoSkipPeriodBeforeMediaEnd - currentEntry.PlayedFor())
+	durationUntilNoSkipPeriodBegins := currentEntry.MediaInfo().Length() - NoSkipPeriodBeforeMediaEnd - currentEntry.PlayedFor()
+	if durationUntilNoSkipPeriodBegins < 0 {
+		// return a timer that will never end
+		// the next status change is caused by the media changing
+		return time.NewTimer(math.MaxInt64)
+	}
+	return time.NewTimer(durationUntilNoSkipPeriodBegins)
 }
 
 func (s *SkipManager) checkBalances(ctx context.Context) error {
