@@ -244,9 +244,10 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 	rows := [][]interface{}{}
 	fields := []structDBfield{}
 	tableName := ""
+	_, hasExtra := t[0].(extraDataHandler)
 	for rowIdx, ti := range t {
-		if ev, hasExtra := ti.(extraDataHandler); hasExtra {
-			err = ev.updateExtra(tx, true)
+		if hasExtra {
+			err = ti.(extraDataHandler).updateExtra(tx, true)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -281,7 +282,7 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 			keyFieldNames = append(keyFieldNames, field.column)
 		}
 	}
-	if len(keyFields) > 0 && allowUpdate {
+	if allowUpdate && len(keyFields) > 0 {
 		suffixStr = "ON CONFLICT (" + strings.Join(keyFieldNames, ", ") + ") DO UPDATE SET "
 		updateFields := 0
 		for _, field := range fields {
@@ -311,9 +312,9 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 	}
 
 	// call updateExtra again, this time with preSelf == false
-	for _, ti := range t {
-		if ev, hasExtra := ti.(extraDataHandler); hasExtra {
-			err = ev.updateExtra(tx, false)
+	if hasExtra {
+		for _, ti := range t {
+			err = ti.(extraDataHandler).updateExtra(tx, false)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
