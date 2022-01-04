@@ -462,11 +462,13 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 	}
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
+	router.PathPrefix("/build/swbundle.js").Handler(addServiceWorkerHeaders(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/")))))
 	router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/"))))
 	router.PathPrefix("/favicon.ico").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/favicon.png").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/apple-icon.png").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/banano.json").Handler(http.FileServer(http.Dir("app/public/")))
+	router.PathPrefix("/jungletv.webmanifest").Handler(http.FileServer(http.Dir("app/public/")))
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := webtemplate.ExecuteTemplate(w, "index.template", struct {
@@ -481,4 +483,11 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}))
+}
+
+func addServiceWorkerHeaders(fn http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
+		fn.ServeHTTP(w, r)
+	}
 }

@@ -1,0 +1,23 @@
+{
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+    "name": "JungleTV",
+    "short_name": "JungleTV",
+    "start_url": "/",
+    "id": "/",
+    "scope": "/",
+    "display": "minimal-ui",
+    "background_color": "#111827",
+    "description": "A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!",
+    "icons": [
+        {
+            "src": "favicon.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/brand/mark.svg",
+            "sizes": "500x500",
+            "type": "image/svg+xml"
+        }
+    ]
+}

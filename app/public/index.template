@@ -1,32 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-	<meta charset='utf-8'>
-	<meta name='viewport' content='width=device-width,initial-scale=1'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
 
 	<title>JungleTV</title>
-	<meta name="description" content="A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!">
+	<meta name="description"
+		content="A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!">
 	<meta name="author" content="Segvault">
 
 	<meta property="og:title" content="JungleTV">
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="{{ .FullURL }}">
-	<meta property="og:description" content="A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!">
+	<meta property="og:description"
+		content="A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!">
 	<meta property="og:image" content="/assets/brand/banner.png">
 
 	<meta name="jungletv-version-hash" content="{{ .VersionHash }}">
 
-	<link rel='icon' type='image/png' href='/favicon.png'>
-	<link rel='stylesheet' href='/build/bundle.css?v={{ .VersionHash }}'>
-	<link
-      rel="stylesheet"
-      href="/assets/vendor/@fontawesome/fontawesome-free/css/all.min.css"
-    />
+	<link rel="icon" type="image/png" href="/favicon.png">
+	<link rel="stylesheet" href="/build/bundle.css?v={{ .VersionHash }}">
+	<link rel="stylesheet" href="/assets/vendor/@fontawesome/fontawesome-free/css/all.min.css" />
 
-	<script defer src='/build/bundle.js?v={{ .VersionHash }}'></script>
+	<link rel="manifest" crossorigin="use-credentials" href="jungletv.webmanifest">
+
+	<script defer src="/build/bundle.js?v={{ .VersionHash }}"></script>
 	<script src="https://hcaptcha.com/1/api.js&render=explicit" async defer></script>
 </head>
 
 <body>
 </body>
+
 </html>

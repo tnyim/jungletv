@@ -1,0 +1,8 @@
+{
+  "rootDir": "serviceworker",
+  "include": ["serviceworker/**/*"],
+  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM"],
+  }
+}

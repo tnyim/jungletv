@@ -19,6 +19,7 @@
 	import PlayerContainer from "./PlayerContainer.svelte";
 	import Modal from "svelte-simple-modal";
 	import UserBans from "./moderation/UserBans.svelte";
+	import NoConnection from "./NoConnection.svelte";
 
 	export let url = "";
 
@@ -38,6 +39,10 @@
 	});
 
 	let isAdmin = false;
+	let isOnline = true;
+	function refreshOnLineStatus() {
+		isOnline = !("onLine" in navigator) || navigator.onLine;
+	}
 
 	onMount(async () => {
 		try {
@@ -45,19 +50,23 @@
 			rewardAddress.update((_) => rewardInfo.getRewardsAddress());
 			rewardBalance.update((_) => rewardInfo.getRewardBalance());
 			badRepresentative.update((_) => rewardInfo.getBadRepresentative());
+
+			let response = await apiClient.userPermissionLevel();
+			isAdmin = response.getPermissionLevel() == PermissionLevel.ADMIN;
+			permissionLevel.update((_) => response.getPermissionLevel());
 		} catch (ex) {
 			rewardAddress.update((_) => "");
 			rewardBalance.update((_) => "");
+			permissionLevel.update((_) => PermissionLevel.UNAUTHENTICATED);
 		}
-		let response = await apiClient.userPermissionLevel();
-		isAdmin = response.getPermissionLevel() == PermissionLevel.ADMIN;
-		permissionLevel.update((_) => response.getPermissionLevel());
+		refreshOnLineStatus();
 	});
 
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
 	historyStore.subscribe((v) => {
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
+		refreshOnLineStatus();
 	});
 
 	let mainContentBottomPadding = "";
@@ -84,76 +93,80 @@
 </script>
 
 <Modal setContext={modalSetContext} />
-<Navbar />
-<div
-	class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
+{#if isOnline}
+	<Navbar />
+	<div
+		class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
 	dark:text-gray-300 {mainContentBottomPadding}"
->
-	<PlayerContainer
-		bind:this={playerContainer}
-		bind:mainContentBottomPadding
-		fullSize={isOnHomepage}
-		{fullSizePlayerContainer}
-		{fullSizePlayerContainerWidth}
-		{fullSizePlayerContainerHeight}
-	/>
-	<Router {url}>
-		<Route path="/">
-			<Homepage
-				bind:playerContainer={fullSizePlayerContainer}
-				bind:playerContainerWidth={fullSizePlayerContainerWidth}
-				bind:playerContainerHeight={fullSizePlayerContainerHeight}
-				on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
-				on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
-				on:sidebarOpenStart={playerContainer.onSidebarOpenStart}
-				on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
-			/>
-		</Route>
-		<Route path="/about" component={About} />
-		<Route path="/enqueue" component={Enqueue} />
-		<Route path="/rewards" component={Rewards} />
-		<Route path="/rewards/address" component={SetRewardsAddress} />
-		<Route path="/leaderboards" component={Leaderboards} />
-		<Route path="/guidelines" component={Document} documentID="guidelines" />
-		<Route path="/faq" component={Document} documentID="faq" />
-		<Route path="/documents/:documentID" component={Document} />
-		<Route path="/moderate">
-			{#if isAdmin}
-				<Moderate />
-			{:else}
-				<a href="/admin/signin">Sign in</a>
-			{/if}
-		</Route>
-		<Route path="/moderate/users/:address/chathistory" let:params>
-			{#if isAdmin}
-				<UserChatHistory address={params.address} />
-			{:else}
-				<a href="/admin/signin">Sign in</a>
-			{/if}
-		</Route>
-		<Route path="/moderate/media/disallowed" let:params>
-			{#if isAdmin}
-				<DisallowedMedia />
-			{:else}
-				<a href="/admin/signin">Sign in</a>
-			{/if}
-		</Route>
-		<Route path="/moderate/bans" let:params>
-			{#if isAdmin}
-				<UserBans />
-			{:else}
-				<a href="/admin/signin">Sign in</a>
-			{/if}
-		</Route>
-		<Route path="/moderate/documents/:documentID" let:params>
-			{#if isAdmin}
-				<EditDocument documentID={params.documentID} />
-			{:else}
-				<a href="/admin/signin">Sign in</a>
-			{/if}
-		</Route>
-	</Router>
-</div>
+	>
+		<PlayerContainer
+			bind:this={playerContainer}
+			bind:mainContentBottomPadding
+			fullSize={isOnHomepage}
+			{fullSizePlayerContainer}
+			{fullSizePlayerContainerWidth}
+			{fullSizePlayerContainerHeight}
+		/>
+		<Router {url}>
+			<Route path="/">
+				<Homepage
+					bind:playerContainer={fullSizePlayerContainer}
+					bind:playerContainerWidth={fullSizePlayerContainerWidth}
+					bind:playerContainerHeight={fullSizePlayerContainerHeight}
+					on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
+					on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
+					on:sidebarOpenStart={playerContainer.onSidebarOpenStart}
+					on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
+				/>
+			</Route>
+			<Route path="/about" component={About} />
+			<Route path="/enqueue" component={Enqueue} />
+			<Route path="/rewards" component={Rewards} />
+			<Route path="/rewards/address" component={SetRewardsAddress} />
+			<Route path="/leaderboards" component={Leaderboards} />
+			<Route path="/guidelines" component={Document} documentID="guidelines" />
+			<Route path="/faq" component={Document} documentID="faq" />
+			<Route path="/documents/:documentID" component={Document} />
+			<Route path="/moderate">
+				{#if isAdmin}
+					<Moderate />
+				{:else}
+					<a href="/admin/signin">Sign in</a>
+				{/if}
+			</Route>
+			<Route path="/moderate/users/:address/chathistory" let:params>
+				{#if isAdmin}
+					<UserChatHistory address={params.address} />
+				{:else}
+					<a href="/admin/signin">Sign in</a>
+				{/if}
+			</Route>
+			<Route path="/moderate/media/disallowed" let:params>
+				{#if isAdmin}
+					<DisallowedMedia />
+				{:else}
+					<a href="/admin/signin">Sign in</a>
+				{/if}
+			</Route>
+			<Route path="/moderate/bans" let:params>
+				{#if isAdmin}
+					<UserBans />
+				{:else}
+					<a href="/admin/signin">Sign in</a>
+				{/if}
+			</Route>
+			<Route path="/moderate/documents/:documentID" let:params>
+				{#if isAdmin}
+					<EditDocument documentID={params.documentID} />
+				{:else}
+					<a href="/admin/signin">Sign in</a>
+				{/if}
+			</Route>
+		</Router>
+	</div>
+{:else}
+	<NoConnection on:retry={refreshOnLineStatus} />
+{/if}
 
 <style global lang="postcss">
 	@tailwind base;
@@ -253,7 +266,8 @@
 		#videoRangeSlider .pip > .pipVal {
 			@apply text-gray-500 text-xs;
 		}
-		#videoRangeSlider .pip.first > .pipVal, #videoRangeSlider .pip.last > .pipVal {
+		#videoRangeSlider .pip.first > .pipVal,
+		#videoRangeSlider .pip.last > .pipVal {
 			@apply text-gray-500 text-base;
 		}
 		#videoRangeSlider .pip.selected > .pipVal {
@@ -261,15 +275,15 @@
 		}
 
 		#videoRangeSlider {
-			--range-slider: theme('colors.gray.300');
-			--range-handle: theme('colors.purple.600');
-			--range-range: theme('colors.purple.400');
-			--range-handle-focus: theme('colors.purple.700');
-			--range-float: theme('colors.purple.600');
+			--range-slider: theme("colors.gray.300");
+			--range-handle: theme("colors.purple.600");
+			--range-range: theme("colors.purple.400");
+			--range-handle-focus: theme("colors.purple.700");
+			--range-float: theme("colors.purple.600");
 		}
 
 		.dark #videoRangeSlider {
-			--range-slider: theme('colors.gray.600');
+			--range-slider: theme("colors.gray.600");
 		}
 	}
 </style>
