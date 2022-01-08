@@ -125,7 +125,9 @@ import {
     SetProfileFeaturedMediaRequest,
     SetProfileFeaturedMediaResponse,
     ClearUserProfileResponse,
-    ClearUserProfileRequest
+    ClearUserProfileRequest,
+    PlayedMediaHistoryResponse,
+    PlayedMediaHistoryRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -377,6 +379,13 @@ class APIClient {
     async connections(): Promise<ConnectionsResponse> {
         let request = new ConnectionsRequest();
         return this.unaryRPC<ConnectionsRequest, ConnectionsResponse>(JungleTV.Connections, request);
+    }
+
+    async playedMediaHistory(searchQuery: string, pagParams: PaginationParameters): Promise<PlayedMediaHistoryResponse> {
+        let request = new PlayedMediaHistoryRequest();
+        request.setSearchQuery(searchQuery);
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<PlayedMediaHistoryRequest, PlayedMediaHistoryResponse>(JungleTV.PlayedMediaHistory, request);
     }
 
     async createConnection(service: ConnectionServiceMap[keyof ConnectionServiceMap]): Promise<CreateConnectionResponse> {

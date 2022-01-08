@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileRequest) (*proto.UserProfileResponse, error) {
@@ -56,41 +55,10 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 
 	return &proto.UserProfileResponse{
 		User:                   user,
-		RecentlyPlayedRequests: convertPlayedMedias(recentlyRequestedMedia),
+		RecentlyPlayedRequests: convertPlayedMedias(ctx, s.userSerializer, recentlyRequestedMedia),
 		Biography:              profile.Biography,
 		FeaturedMedia:          featuredMedia,
 	}, nil
-}
-
-func convertPlayedMedias(orig []*types.PlayedMedia) []*proto.PlayedMedia {
-	protoEntries := make([]*proto.PlayedMedia, len(orig))
-	for i, entry := range orig {
-		protoEntries[i] = convertPlayedMedia(entry)
-	}
-	return protoEntries
-}
-
-func convertPlayedMedia(orig *types.PlayedMedia) *proto.PlayedMedia {
-	media := &proto.PlayedMedia{
-		Id:          orig.ID,
-		RequestCost: NewAmountFromDecimal(orig.RequestCost).SerializeForAPI(),
-		StartedAt:   timestamppb.New(orig.StartedAt),
-	}
-
-	if orig.RequestedBy != "" {
-		media.RequestedBy = &orig.RequestedBy
-	}
-	switch orig.MediaType {
-	case types.MediaTypeYouTubeVideo:
-		media.MediaInfo = &proto.PlayedMedia_YoutubeVideoData{
-			YoutubeVideoData: &proto.QueueYouTubeVideoData{
-				Id:    *orig.YouTubeVideoID,
-				Title: *orig.YouTubeVideoTitle,
-			},
-		}
-	}
-
-	return media
 }
 
 var statsDataAvailableSince = time.Date(2021, time.July, 19, 0, 0, 0, 0, time.UTC)

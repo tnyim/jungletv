@@ -73,7 +73,7 @@ func GetDisallowedMediaWithTypeAndFilter(node sqalx.Node, mediaType MediaType, f
 		Where(sq.Or{
 			sq.Eq{"disallowed_media.id": filter},
 			sq.Eq{"disallowed_media.yt_video_id": filter},
-			sq.Like{"UPPER(disallowed_media.yt_video_title)": sq.Expr("UPPER(?)", filter)},
+			sq.Expr("UPPER(disallowed_media.yt_video_title) LIKE UPPER(?)", "%"+filter+"%"),
 		}).
 		OrderBy("disallowed_media.media_type DESC")
 	s = applyPaginationParameters(s, pagParams)

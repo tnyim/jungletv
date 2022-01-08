@@ -10,6 +10,9 @@
   export let no_items_message = "No items";
   export let no_results_message = "No results";
   export let search_query = "";
+  export let show_search_box = false;
+  export let min_search_query_length = 3;
+  export let search_box_placeholder = "Search...";
   export let column_count = 4;
   export let is_card = true;
   export let data_promise_factory: (pagParams: PaginationParameters) => Promise<[any[], number]>;
@@ -17,6 +20,7 @@
   let last_page_items = 0;
   let waiting_for_page = -1;
   let dataPromise = new Promise<[any[], number]>((resolve, reject) => {});
+  let search_box_value = "";
 
   let paginationParams = new PaginationParameters();
 
@@ -77,11 +81,31 @@
   }
 
   $: {
-    search_query = search_query;
     if (cur_page < 0) {
       cur_page = 0;
     }
     changePage(cur_page);
+  }
+
+  $: {
+    search_query = search_query;
+    cur_page = 0;
+    changePage(0);
+  }
+
+  let commitSearchQueryTimeout: number;
+  $: {
+    search_box_value = search_box_value;
+    if (typeof commitSearchQueryTimeout != "undefined") {
+      clearTimeout(commitSearchQueryTimeout);
+    }
+    commitSearchQueryTimeout = setTimeout(() => {
+      if (search_box_value.length >= min_search_query_length) {
+        search_query = search_box_value;
+      } else {
+        search_query = "";
+      }
+    }, 500);
   }
 </script>
 
@@ -90,14 +114,23 @@
 >
   <div class="rounded-t mb-0 px-4 py-3 border-0">
     <div class="flex flex-wrap items-center">
-      <div class="relative w-full sm:px-2 max-w-full flex-grow flex-1">
+      <div class="sm:px-2 flex-grow">
         <h3 class="font-semibold text-lg text-gray-800 dark:text-white">
           {title}
           {#if search_query}
-            (searching for "{search_query}")
+            (results for "{search_query}")
           {/if}
         </h3>
       </div>
+      {#if show_search_box}
+        <div class="w-48 sm:w-72">
+          <input
+            class="w-full bg-transparent text-gray-800 dark:text-white"
+            bind:value={search_box_value}
+            placeholder={search_box_placeholder}
+          />
+        </div>
+      {/if}
     </div>
   </div>
   <div class="block w-full overflow-x-auto">

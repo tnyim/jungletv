@@ -1,0 +1,84 @@
+<script lang="ts">
+    import { DateTime } from "luxon";
+    import { apiClient } from "../api_client";
+    import { openUserProfile } from "../profile_utils";
+    import { PlayedMedia } from "../proto/jungletv_pb";
+    import { formatQueueEntryThumbnailDuration } from "../utils";
+
+    export let media: PlayedMedia;
+
+    function formatDate(date: Date): string {
+        return (
+            '<span class="whitespace-nowrap">' +
+            DateTime.fromJSDate(date)
+                .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+                .toLocal()
+                .toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS)
+                .replace(", ", ',</span><br><span class="whitespace-nowrap font-semibold">') +
+            "</span>"
+        );
+    }
+
+    function openProfile() {
+        openUserProfile(media.getRequestedBy().getAddress());
+    }
+</script>
+
+<tr>
+    <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white text-xs">
+        {@html formatDate(media.getStartedAt().toDate())}
+    </td>
+    <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white text-xs sm:text-sm md:text-base">
+        {#if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.YOUTUBE_VIDEO_DATA}
+            <a
+                href="https://youtube.com/watch?v={media.getYoutubeVideoData().getId()}{media.getOffset().getSeconds() >
+                0
+                    ? '&t=' + media.getOffset().getSeconds()
+                    : ''}"
+                target="_blank"
+                rel="noopener"
+            >
+                {media.getYoutubeVideoData().getTitle()}
+            </a>
+        {/if}
+        {#if media.getEndedAt().toDate().getTime() - media.getStartedAt().toDate().getTime() < media
+                .getLength()
+                .getSeconds() * 1000 - 5000}
+            <span class="text-xs uppercase font-semibold bg-yellow-600 text-white rounded p-0.5">Skipped</span>
+        {/if}
+        {#if media.getUnskippable()}
+            <span class="text-xs uppercase font-semibold bg-purple-600 text-white rounded p-0.5">Unskippable</span>
+        {/if}
+    </td>
+    <td
+        class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white whitespace-nowrap text-xs sm:text-sm"
+    >
+        {#if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.YOUTUBE_VIDEO_DATA}
+            {formatQueueEntryThumbnailDuration(media.getLength(), media.getOffset())}
+        {/if}
+    </td>
+    <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white">
+        {#if media.hasRequestedBy()}
+            <span on:click={openProfile} class="cursor-pointer">
+                <img
+                    src="https://monkey.banano.cc/api/v1/monkey/{media.getRequestedBy().getAddress()}?format=png"
+                    alt="&nbsp;"
+                    title=""
+                    class="inline h-7 -ml-1 -mt-4 -mb-3"
+                />
+                {#if media.getRequestedBy().hasNickname()}
+                    <span class="mr-4 text-sm font-semibold">{media.getRequestedBy().getNickname()}</span>
+                {:else}
+                    <span class="mr-4 text-sm font-mono">{media.getRequestedBy().getAddress().substring(0, 14)}</span>
+                {/if}
+            </span>
+        {:else}
+            <span class="text-xs">JungleTV</span>
+        {/if}
+    </td>
+    <td
+        class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
+    >
+        {apiClient.formatBANPriceFixed(media.getRequestCost())} BAN
+    </td>
+</tr>

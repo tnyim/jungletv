@@ -44,6 +44,7 @@ type JungleTVClient interface {
 	UserStats(ctx context.Context, in *UserStatsRequest, opts ...grpc.CallOption) (*UserStatsResponse, error)
 	SetProfileBiography(ctx context.Context, in *SetProfileBiographyRequest, opts ...grpc.CallOption) (*SetProfileBiographyResponse, error)
 	SetProfileFeaturedMedia(ctx context.Context, in *SetProfileFeaturedMediaRequest, opts ...grpc.CallOption) (*SetProfileFeaturedMediaResponse, error)
+	PlayedMediaHistory(ctx context.Context, in *PlayedMediaHistoryRequest, opts ...grpc.CallOption) (*PlayedMediaHistoryResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -467,6 +468,15 @@ func (c *jungleTVClient) SetProfileFeaturedMedia(ctx context.Context, in *SetPro
 	return out, nil
 }
 
+func (c *jungleTVClient) PlayedMediaHistory(ctx context.Context, in *PlayedMediaHistoryRequest, opts ...grpc.CallOption) (*PlayedMediaHistoryResponse, error) {
+	out := new(PlayedMediaHistoryResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/PlayedMediaHistory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -800,6 +810,7 @@ type JungleTVServer interface {
 	UserStats(context.Context, *UserStatsRequest) (*UserStatsResponse, error)
 	SetProfileBiography(context.Context, *SetProfileBiographyRequest) (*SetProfileBiographyResponse, error)
 	SetProfileFeaturedMedia(context.Context, *SetProfileFeaturedMediaRequest) (*SetProfileFeaturedMediaResponse, error)
+	PlayedMediaHistory(context.Context, *PlayedMediaHistoryRequest) (*PlayedMediaHistoryResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -919,6 +930,9 @@ func (UnimplementedJungleTVServer) SetProfileBiography(context.Context, *SetProf
 }
 func (UnimplementedJungleTVServer) SetProfileFeaturedMedia(context.Context, *SetProfileFeaturedMediaRequest) (*SetProfileFeaturedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetProfileFeaturedMedia not implemented")
+}
+func (UnimplementedJungleTVServer) PlayedMediaHistory(context.Context, *PlayedMediaHistoryRequest) (*PlayedMediaHistoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayedMediaHistory not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1526,6 +1540,24 @@ func _JungleTV_SetProfileFeaturedMedia_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).SetProfileFeaturedMedia(ctx, req.(*SetProfileFeaturedMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_PlayedMediaHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayedMediaHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).PlayedMediaHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/PlayedMediaHistory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).PlayedMediaHistory(ctx, req.(*PlayedMediaHistoryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2178,6 +2210,10 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetProfileFeaturedMedia",
 			Handler:    _JungleTV_SetProfileFeaturedMedia_Handler,
+		},
+		{
+			MethodName: "PlayedMediaHistory",
+			Handler:    _JungleTV_PlayedMediaHistory_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

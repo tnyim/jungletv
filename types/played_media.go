@@ -41,6 +41,33 @@ func getPlayedMediaWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Pl
 	return converted, totalCount, nil
 }
 
+// GetPlayedMedia returns all played media in the database according to the given filters
+func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying bool, startedSince time.Time, filter string, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
+	s := sdb.Select().
+		OrderBy("played_media.started_at DESC")
+	if excludeDisallowed {
+		s = s.LeftJoin(`disallowed_media ON
+				disallowed_media.media_type = played_media.media_type AND
+				COALESCE(disallowed_media.yt_video_id, '') = COALESCE(played_media.yt_video_id, '')`).
+			Where(sq.Eq{"disallowed_media.media_type": nil})
+	}
+	if excludeCurrentlyPlaying {
+		s = s.Where(sq.NotEq{"played_media.ended_at": nil})
+	}
+	if !startedSince.IsZero() {
+		s = s.Where(sq.Gt{"played_media.started_at": startedSince})
+	}
+	if filter != "" {
+		s = s.Where(sq.Or{
+			sq.Eq{"played_media.yt_video_id": filter},
+			sq.Expr("UPPER(played_media.yt_video_title) LIKE UPPER(?)", "%"+filter+"%"),
+		})
+	}
+	s = applyPaginationParameters(s, pagParams)
+	m, c, err := getPlayedMediaWithSelect(node, s)
+	return m, c, stacktrace.Propagate(err, "")
+}
+
 // GetPlayedMediaWithIDs returns the played media with the specified IDs
 func GetPlayedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*PlayedMedia, error) {
 	s := sdb.Select().
@@ -133,7 +160,7 @@ func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDi
 		Where(sq.Eq{"played_media.requested_by": address})
 	if excludeDisallowed {
 		s = s.LeftJoin(`disallowed_media ON
- 				disallowed_media.media_type = played_media.media_type AND
+				disallowed_media.media_type = played_media.media_type AND
 				COALESCE(disallowed_media.yt_video_id, '') = COALESCE(played_media.yt_video_id, '')`).
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}

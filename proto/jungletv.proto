@@ -35,6 +35,7 @@ service JungleTV {
     rpc UserStats (UserStatsRequest) returns (UserStatsResponse) {}
     rpc SetProfileBiography (SetProfileBiographyRequest) returns (SetProfileBiographyResponse) {}
     rpc SetProfileFeaturedMedia (SetProfileFeaturedMediaRequest) returns (SetProfileFeaturedMediaResponse) {}
+    rpc PlayedMediaHistory (PlayedMediaHistoryRequest) returns (PlayedMediaHistoryResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -810,11 +811,16 @@ message UserStatsResponse {
 
 message PlayedMedia {
     string id = 1;
-    optional string requested_by = 2;
+    optional User requested_by = 2;
     string request_cost = 3;
-    google.protobuf.Timestamp started_at = 4;
+    google.protobuf.Timestamp enqueued_at = 4;
+    google.protobuf.Timestamp started_at = 5;
+    optional google.protobuf.Timestamp ended_at = 6;
+    google.protobuf.Duration length = 7;
+    google.protobuf.Duration offset = 8;
+    bool unskippable = 9;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 5;
+        QueueYouTubeVideoData youtube_video_data = 10;
     }
 }
 
@@ -835,3 +841,14 @@ message ClearUserProfileRequest {
 }
 
 message ClearUserProfileResponse {}
+
+message PlayedMediaHistoryRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+message PlayedMediaHistoryResponse {
+    repeated PlayedMedia played_media = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}

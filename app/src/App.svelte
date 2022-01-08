@@ -20,6 +20,7 @@
 	import Modal from "svelte-simple-modal";
 	import UserBans from "./moderation/UserBans.svelte";
 	import NoConnection from "./NoConnection.svelte";
+	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 
 	export let url = "";
 
@@ -127,6 +128,7 @@
 			<Route path="/guidelines" component={Document} documentID="guidelines" />
 			<Route path="/faq" component={Document} documentID="faq" />
 			<Route path="/documents/:documentID" component={Document} />
+			<Route path="/history" component={PlayedMediaHistory} />
 			<Route path="/moderate">
 				{#if isAdmin}
 					<Moderate />

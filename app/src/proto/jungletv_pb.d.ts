@@ -3630,16 +3630,39 @@ export class PlayedMedia extends jspb.Message {
 
   hasRequestedBy(): boolean;
   clearRequestedBy(): void;
-  getRequestedBy(): string;
-  setRequestedBy(value: string): void;
+  getRequestedBy(): User | undefined;
+  setRequestedBy(value?: User): void;
 
   getRequestCost(): string;
   setRequestCost(value: string): void;
+
+  hasEnqueuedAt(): boolean;
+  clearEnqueuedAt(): void;
+  getEnqueuedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setEnqueuedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
   hasStartedAt(): boolean;
   clearStartedAt(): void;
   getStartedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setStartedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasEndedAt(): boolean;
+  clearEndedAt(): void;
+  getEndedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setEndedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasLength(): boolean;
+  clearLength(): void;
+  getLength(): google_protobuf_duration_pb.Duration | undefined;
+  setLength(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasOffset(): boolean;
+  clearOffset(): void;
+  getOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setOffset(value?: google_protobuf_duration_pb.Duration): void;
+
+  getUnskippable(): boolean;
+  setUnskippable(value: boolean): void;
 
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
@@ -3660,15 +3683,20 @@ export class PlayedMedia extends jspb.Message {
 export namespace PlayedMedia {
   export type AsObject = {
     id: string,
-    requestedBy: string,
+    requestedBy?: User.AsObject,
     requestCost: string,
+    enqueuedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    endedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    length?: google_protobuf_duration_pb.Duration.AsObject,
+    offset?: google_protobuf_duration_pb.Duration.AsObject,
+    unskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 5,
+    YOUTUBE_VIDEO_DATA = 10,
   }
 }
 
@@ -3779,6 +3807,62 @@ export class ClearUserProfileResponse extends jspb.Message {
 
 export namespace ClearUserProfileResponse {
   export type AsObject = {
+  }
+}
+
+export class PlayedMediaHistoryRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  getSearchQuery(): string;
+  setSearchQuery(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PlayedMediaHistoryRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: PlayedMediaHistoryRequest): PlayedMediaHistoryRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PlayedMediaHistoryRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PlayedMediaHistoryRequest;
+  static deserializeBinaryFromReader(message: PlayedMediaHistoryRequest, reader: jspb.BinaryReader): PlayedMediaHistoryRequest;
+}
+
+export namespace PlayedMediaHistoryRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+    searchQuery: string,
+  }
+}
+
+export class PlayedMediaHistoryResponse extends jspb.Message {
+  clearPlayedMediaList(): void;
+  getPlayedMediaList(): Array<PlayedMedia>;
+  setPlayedMediaList(value: Array<PlayedMedia>): void;
+  addPlayedMedia(value?: PlayedMedia, index?: number): PlayedMedia;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PlayedMediaHistoryResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: PlayedMediaHistoryResponse): PlayedMediaHistoryResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PlayedMediaHistoryResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PlayedMediaHistoryResponse;
+  static deserializeBinaryFromReader(message: PlayedMediaHistoryResponse, reader: jspb.BinaryReader): PlayedMediaHistoryResponse;
+}
+
+export namespace PlayedMediaHistoryResponse {
+  export type AsObject = {
+    playedMediaList: Array<PlayedMedia.AsObject>,
+    offset: number,
+    total: number,
   }
 }
 

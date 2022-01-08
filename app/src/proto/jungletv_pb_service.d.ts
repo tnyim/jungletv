@@ -247,6 +247,15 @@ type JungleTVSetProfileFeaturedMedia = {
   readonly responseType: typeof jungletv_pb.SetProfileFeaturedMediaResponse;
 };
 
+type JungleTVPlayedMediaHistory = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.PlayedMediaHistoryRequest;
+  readonly responseType: typeof jungletv_pb.PlayedMediaHistoryResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -555,6 +564,7 @@ export class JungleTV {
   static readonly UserStats: JungleTVUserStats;
   static readonly SetProfileBiography: JungleTVSetProfileBiography;
   static readonly SetProfileFeaturedMedia: JungleTVSetProfileFeaturedMedia;
+  static readonly PlayedMediaHistory: JungleTVPlayedMediaHistory;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -814,6 +824,15 @@ export class JungleTVClient {
   setProfileFeaturedMedia(
     requestMessage: jungletv_pb.SetProfileFeaturedMediaRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetProfileFeaturedMediaResponse|null) => void
+  ): UnaryResponse;
+  playedMediaHistory(
+    requestMessage: jungletv_pb.PlayedMediaHistoryRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PlayedMediaHistoryResponse|null) => void
+  ): UnaryResponse;
+  playedMediaHistory(
+    requestMessage: jungletv_pb.PlayedMediaHistoryRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PlayedMediaHistoryResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
