@@ -5,7 +5,7 @@
     "start_url": "/",
     "id": "/",
     "scope": "/",
-    "display": "minimal-ui",
+    "display": "standalone",
     "background_color": "#111827",
     "description": "A video sharing website where you can earn Banano for watching videos. The jukebox, reimagined for the internet video age!",
     "icons": [
