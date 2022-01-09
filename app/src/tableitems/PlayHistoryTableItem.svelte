@@ -28,7 +28,18 @@
     <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white text-xs">
         {@html formatDate(media.getStartedAt().toDate())}
     </td>
-    <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white text-xs sm:text-sm md:text-base">
+    <td class="align-middle text-gray-500 text-xs sm:text-sm md:text-base">
+        {#if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.YOUTUBE_VIDEO_DATA}
+            <i class="fab fa-youtube" />
+            {#if media.getYoutubeVideoData().getLiveBroadcast()}
+                <!-- this isn't used for now since we don't store this information with each played media -->
+                <i class="fas fa-broadcast-tower" title="Live broadcast" />
+            {/if}
+        {/if}
+    </td>
+    <td
+        class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white text-xs sm:text-sm md:text-base"
+    >
         {#if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.YOUTUBE_VIDEO_DATA}
             <a
                 href="https://youtube.com/watch?v={media.getYoutubeVideoData().getId()}{media.getOffset().getSeconds() >
@@ -57,7 +68,9 @@
             {formatQueueEntryThumbnailDuration(media.getLength(), media.getOffset())}
         {/if}
     </td>
-    <td class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white">
+    <td
+        class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
+    >
         {#if media.hasRequestedBy()}
             <span on:click={openProfile} class="cursor-pointer">
                 <img
@@ -69,7 +82,7 @@
                 {#if media.getRequestedBy().hasNickname()}
                     <span class="mr-4 text-sm font-semibold">{media.getRequestedBy().getNickname()}</span>
                 {:else}
-                    <span class="mr-4 text-sm font-mono">{media.getRequestedBy().getAddress().substring(0, 14)}</span>
+                    <span class="mr-4 text-xs font-mono">{media.getRequestedBy().getAddress().substring(0, 14)}</span>
                 {/if}
             </span>
         {:else}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { link, navigate } from "svelte-navigator";
+    import { globalHistory, link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import Toggle from "svelte-toggle";
@@ -8,18 +8,16 @@
 
     const media = watchMedia({
         large: "(min-width: 1024px)",
-        largeEnoughForLeaderboardsButton: "(min-width: 1100px)",
     });
 
     let largeScreen = false;
-    let canShowLeaderboardsButton = false;
     let navbarOpen = false;
+    let moreOpen = false;
     media.subscribe((obj: any) => {
         largeScreen = obj.large;
         if (obj.large) {
             navbarOpen = false;
         }
-        canShowLeaderboardsButton = !obj.large || obj.largeEnoughForLeaderboardsButton;
     });
 
     function setNavbarOpen() {
@@ -33,6 +31,28 @@
     });
 
     let hasAlert = false;
+
+    const historyStore = { subscribe: globalHistory.listen };
+
+    historyStore.subscribe(() => {
+        moreOpen = false;
+        navbarOpen = false;
+    });
+
+    let moreCloseTimeout: number;
+    $: {
+        if (navbarOpen) {
+            moreOpen = false;
+        }
+        if (moreOpen) {
+            if (typeof moreCloseTimeout != "undefined") {
+                clearTimeout(moreCloseTimeout);
+            }
+            moreCloseTimeout = setTimeout(() => {
+                moreOpen = false;
+            }, 20000);
+        }
+    }
 </script>
 
 <nav
@@ -98,7 +118,8 @@
                             />
                             <div class="flex flex-col">
                                 <div>
-                                    Rewarding <span class="font-mono">{rAddress.substr(0, 16)}</span>
+                                    <span class="hidden xl:inline">Rewarding</span>
+                                    <span class="font-mono">{rAddress.substr(0, 16)}</span>
                                 </div>
                                 <div>
                                     Balance:
@@ -128,43 +149,78 @@
                 </li>
             </ul>
             <ul
-                class="grid grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
+                class="grid grid-cols-3 md:grid-cols-12 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
             >
-                <li>
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/about"
-                    >
-                        <i class="fas fa-info" />
-                        <div class="text-xs font-bold uppercase">About</div>
-                    </a>
-                </li>
-
-                <li class="lg:hidden xl:block">
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/faq"
-                    >
-                        <i class="fas fa-question" />
-                        <div class="text-xs font-bold uppercase">FAQ</div>
-                    </a>
-                </li>
-
-                <li class="lg:hidden xl:block">
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/guidelines"
-                    >
-                        <i class="fas fa-scroll" />
-                        <div class="text-xs font-bold uppercase">Rules</div>
-                    </a>
-                </li>
-
-                {#if canShowLeaderboardsButton}
+                {#if moreOpen}
                     <li>
+                        <div
+                            style="margin-right:46px;"
+                            class="cursor-pointer p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            on:click={() => (moreOpen = false)}
+                        >
+                            <i class="fas fa-arrow-left" />
+                            <div class="text-xs font-bold uppercase">Back</div>
+                        </div>
+                    </li>
+                {:else if !navbarOpen}
+                    <li>
+                        <div
+                            class="cursor-pointer p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            on:click={() => (moreOpen = true)}
+                        >
+                            <i class="fas fa-ellipsis-h" />
+                            <div class="text-xs font-bold uppercase">More</div>
+                        </div>
+                    </li>
+                {/if}
+                {#if navbarOpen || moreOpen}
+                    <li class="md:col-span-3">
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/about"
+                        >
+                            <i class="fas fa-info" />
+                            <div class="text-xs font-bold uppercase">About</div>
+                        </a>
+                    </li>
+
+                    <li class="md:col-span-3">
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/faq"
+                        >
+                            <i class="fas fa-question" />
+                            <div class="text-xs font-bold uppercase">FAQ</div>
+                        </a>
+                    </li>
+
+                    <li class="md:col-span-3">
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/guidelines"
+                        >
+                            <i class="fas fa-scroll" />
+                            <div class="text-xs font-bold uppercase">Rules</div>
+                        </a>
+                    </li>
+
+                    <li class="md:col-span-3">
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/history"
+                        >
+                            <i class="fas fa-history" />
+                            <div class="text-xs font-bold uppercase">Play history</div>
+                        </a>
+                    </li>
+                {/if}
+
+                {#if !moreOpen}
+                    <li class="md:col-span-4">
                         <a
                             class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
@@ -174,35 +230,35 @@
                             <div class="text-xs font-bold uppercase">Leaderboards</div>
                         </a>
                     </li>
+
+                    <li class="md:col-span-4">
+                        <a
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href={rAddress !== "" ? "/rewards" : "/rewards/address"}
+                        >
+                            <i class="fas fa-coins" />
+                            <div class="text-xs font-bold uppercase">
+                                {#if rAddress !== ""}
+                                    Rewards
+                                {:else}
+                                    Earn rewards
+                                {/if}
+                            </div>
+                        </a>
+                    </li>
+
+                    <li class="col-span-3 md:col-span-4">
+                        <a
+                            class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            use:link
+                            href="/enqueue"
+                        >
+                            <i class="fas fa-plus" />
+                            <div class="text-xs font-bold uppercase">Enqueue video</div>
+                        </a>
+                    </li>
                 {/if}
-
-                <li class="md:col-span-2">
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href={rAddress !== "" ? "/rewards" : "/rewards/address"}
-                    >
-                        <i class="fas fa-coins" />
-                        <div class="text-xs font-bold uppercase">
-                            {#if rAddress !== ""}
-                                Rewards
-                            {:else}
-                                Earn rewards
-                            {/if}
-                        </div>
-                    </a>
-                </li>
-
-                <li class="md:col-span-2">
-                    <a
-                        class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/enqueue"
-                    >
-                        <i class="fas fa-plus" />
-                        <div class="text-xs font-bold uppercase">Enqueue video</div>
-                    </a>
-                </li>
             </ul>
         </div>
     </div>

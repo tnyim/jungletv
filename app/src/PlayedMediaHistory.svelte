@@ -13,10 +13,10 @@
     }
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
+<div class="m-6 flex-grow container mx-auto max-w-screen-lg sm:p-2">
     <PaginatedTable
         title={"Play history"}
-        column_count={5}
+        column_count={6}
         error_message={"Error loading play history"}
         no_items_message={"No play history"}
         data_promise_factory={getPage}
@@ -31,6 +31,7 @@
         text-xs uppercase whitespace-nowrap text-left"
         >
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Start Time</th>
+            <th></th>
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Title</th>
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Length</th>
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Requested By</th>
