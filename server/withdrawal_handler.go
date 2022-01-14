@@ -36,12 +36,14 @@ type WithdrawalHandler struct {
 func NewWithdrawalHandler(log *log.Logger,
 	statsClient *statsd.Client,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
-	rpcClient *rpc.Client) *WithdrawalHandler {
+	rpcClient *rpc.Client,
+	modLogWebhook api.WebhookClient) *WithdrawalHandler {
 	return &WithdrawalHandler{
 		log:                   log,
 		statsClient:           statsClient,
 		collectorAccountQueue: collectorAccountQueue,
 		rpcClient:             rpcClient,
+		modLogWebhook:         modLogWebhook,
 
 		pendingWithdrawalCreated: event.New(),
 	}
