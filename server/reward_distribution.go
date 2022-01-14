@@ -198,7 +198,7 @@ func getUniquifiedIP(remoteAddress string) string {
 
 func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 	done := make(chan struct{})
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC rpc.Client, RPCWork rpc.Client) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC *rpc.Client, RPCWork *rpc.Client) {
 		defer func() { done <- struct{}{} }()
 		balance, pending, err := collectorAccount.Balance()
 		if err != nil {
@@ -337,7 +337,7 @@ func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string,
 		return
 	}
 
-	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
+	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ *rpc.Client) {
 		blockHash, err := collectorAccount.Send(address, amount.Int)
 		if err != nil {
 			r.log.Printf("Error reimbursing %s with %v: %v", address, amount.Int, err)
@@ -379,7 +379,7 @@ func (r *RewardsHandler) desperatelyTryToFindFundsStuckInPaymentAccounts() error
 			continue
 		}
 		r.log.Printf("Sending all balance in account %s to collector account", account.Address())
-		r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
+		r.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ *rpc.Client) {
 			_, err = account.Send(collectorAccount.Address(), balance)
 		}
 		if err != nil {

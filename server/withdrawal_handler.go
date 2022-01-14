@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"log"
 	"math/big"
 	"time"
 
+	"github.com/DisgoOrg/disgohook/api"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -19,20 +22,26 @@ import (
 // WithdrawalHandler handles withdrawals
 type WithdrawalHandler struct {
 	log                          *log.Logger
+	modLogWebhook                api.WebhookClient
 	statsClient                  *statsd.Client
-	collectorAccountQueue        chan func(*wallet.Account, rpc.Client, rpc.Client)
+	collectorAccountQueue        chan func(*wallet.Account, *rpc.Client, *rpc.Client)
 	completingPendingWithdrawals bool
+	rpcClient                    *rpc.Client
 
 	pendingWithdrawalCreated *event.Event
+
+	highestSeenBlockCount uint64
 }
 
 func NewWithdrawalHandler(log *log.Logger,
 	statsClient *statsd.Client,
-	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client)) *WithdrawalHandler {
+	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
+	rpcClient *rpc.Client) *WithdrawalHandler {
 	return &WithdrawalHandler{
 		log:                   log,
 		statsClient:           statsClient,
 		collectorAccountQueue: collectorAccountQueue,
+		rpcClient:             rpcClient,
 
 		pendingWithdrawalCreated: event.New(),
 	}
@@ -44,6 +53,11 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 	defer pendingWithdrawalCreatedU()
 
 	t := time.NewTicker(5 * time.Minute)
+	defer t.Stop()
+	firstCheckTimer := time.NewTimer(1 * time.Minute)
+	defer firstCheckTimer.Stop()
+	checkTicker := time.NewTicker(1 * time.Hour)
+	defer checkTicker.Stop()
 	for {
 		select {
 		case <-onPendingWithdrawalCreated:
@@ -59,6 +73,23 @@ func (w *WithdrawalHandler) Worker(ctx context.Context) error {
 			err = w.AutoWithdrawBalances(ctx)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
+			}
+		case <-firstCheckTimer.C:
+			err := w.warnAboutInvalidWithdrawals(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		case <-checkTicker.C:
+			err := w.warnAboutInvalidWithdrawals(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+
+			if w.isNodeSynced() {
+				err = w.findAndUndoInvalidWithdrawals(ctx)
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
 			}
 		case <-ctx.Done():
 			return nil
@@ -195,7 +226,7 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 
 	done := make(chan struct{})
 	var blockHash rpc.BlockHash
-	w.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ rpc.Client) {
+	w.collectorAccountQueue <- func(collectorAccount *wallet.Account, _, _ *rpc.Client) {
 		if recvPending {
 			err = collectorAccount.ReceivePendings(dustThreshold)
 			if err != nil {
@@ -223,4 +254,160 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 	}
 
 	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+// findInvalidWithdrawals checks the supposedly complete withdrawals to see if their blocks are still in the ledger
+// (no matter if confirmed or not). If they are not, it adds their hashes to the slice that is returned
+// In (ba)nano v22+ the work watcher has been removed and it's possible that a block submitted with RPC action "publish"
+// actually never confirms on the ledger (this can happen e.g. if the node is having internet connectivity issues)
+func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAge time.Duration, maxAge time.Duration) ([]string, Amount, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, Amount{}, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	result := []string{}
+
+	now := time.Now()
+	checkBefore := now.Add(-minAge)
+	checkAfter := now.Add(-maxAge)
+
+	batchSize := uint64(200)
+	total := decimal.Zero
+	for offset := uint64(0); ; offset += batchSize {
+		withdrawals, _, err := types.GetWithdrawalsCompletedBetween(ctx, checkAfter, checkBefore, &types.PaginationParams{
+			Offset: offset,
+			Limit:  batchSize,
+		})
+		if err != nil {
+			return nil, Amount{}, stacktrace.Propagate(err, "")
+		}
+		if len(withdrawals) == 0 {
+			break
+		}
+
+		blockHashes := []rpc.BlockHash{}
+		for _, withdrawal := range withdrawals {
+			bh, err := hex.DecodeString(withdrawal.TxHash)
+			if err != nil {
+				return nil, Amount{}, stacktrace.Propagate(err, "invalid hex in withdrawal block hash")
+			}
+			blockHashes = append(blockHashes, rpc.BlockHash(bh))
+		}
+
+		blocksInfo, _, err := w.rpcClient.BlocksInfoIncludingNotFound(blockHashes)
+		if err != nil {
+			return nil, Amount{}, stacktrace.Propagate(err, "")
+		}
+
+		for _, withdrawal := range withdrawals {
+			_, ok := blocksInfo[withdrawal.TxHash]
+			if !ok {
+				result = append(result, withdrawal.TxHash)
+				total = total.Add(withdrawal.Amount)
+			}
+		}
+	}
+
+	return result, NewAmountFromDecimal(total), nil
+}
+
+// undoInvalidWithdrawal undoes a withdrawal which was not found on the ledger after a tolerance period
+// It does not confirm that the withdrawal was indeed not found
+func (w *WithdrawalHandler) undoInvalidWithdrawal(ctxCtx context.Context, txHash string) error {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	withdrawal, err := types.GetWithdrawal(ctx, txHash)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = withdrawal.Delete(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	_, err = types.AdjustRewardBalanceOfAddresses(ctx, []string{withdrawal.RewardsAddress}, withdrawal.Amount)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (w *WithdrawalHandler) warnAboutInvalidWithdrawals(ctx context.Context) error {
+	closeToBeingUndone, _, err := w.findInvalidWithdrawals(ctx, 10*time.Second, 48*time.Hour)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	for _, withdrawalThatMightBeUndone := range closeToBeingUndone {
+		w.log.Printf("complete withdrawal %s was not found on the ledger and may be undone soon", withdrawalThatMightBeUndone)
+		if w.modLogWebhook != nil {
+			_, err = w.modLogWebhook.SendContent(
+				fmt.Sprintf("Complete withdrawal `%s` was not found on the ledger and is close to being undone.\n"+
+					"You may use a block explorer to confirm that this block hash was indeed unseen outside of our node",
+					withdrawalThatMightBeUndone))
+			if err != nil {
+				w.log.Println("Failed to send mod log webhook:", err)
+			}
+		}
+	}
+	return nil
+}
+
+// findAndUndoInvalidWithdrawals finds recent withdrawals whose blocks are not on-chain, deletes them from our system
+// and restores their value in the users' balances
+func (w *WithdrawalHandler) findAndUndoInvalidWithdrawals(ctxCtx context.Context) error {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	txToUndo, totalAmount, err := w.findInvalidWithdrawals(ctx, 1*time.Hour, 48*time.Hour)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	if len(txToUndo) == 0 {
+		return nil
+	}
+
+	w.log.Printf("found %d withdrawals whose blocks are not on the ledger, with a total amount of %s. Undoing...", len(txToUndo), totalAmount.String())
+
+	for _, txHash := range txToUndo {
+		err = w.undoInvalidWithdrawal(ctx, txHash)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		w.log.Printf("undid withdrawal %s", txHash)
+		if w.modLogWebhook != nil {
+			_, err = w.modLogWebhook.SendContent(fmt.Sprintf("Undid withdrawal `%s`", txHash))
+			if err != nil {
+				w.log.Println("Failed to send mod log webhook:", err)
+			}
+		}
+	}
+	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (w *WithdrawalHandler) isNodeSynced() bool {
+	cemented, count, _, err := w.rpcClient.BlockCount()
+	if err != nil {
+		return false
+	}
+	if count < w.highestSeenBlockCount {
+		// this means we switched nodes to one where the ledger has fewer registered blocks
+		return false
+	}
+	w.highestSeenBlockCount = count
+	return count-cemented < 10
+	// TODO also look at the result of RPC "action": "telemetry" (not supported by gonano yet)
+	// to compare our block count to the peer's average
 }

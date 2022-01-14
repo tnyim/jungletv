@@ -44,7 +44,7 @@ type grpcServer struct {
 	statsClient                    *statsd.Client
 	wallet                         *wallet.Wallet
 	collectorAccount               *wallet.Account
-	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
+	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
 	skipAccount                    *wallet.Account
 	rainAccount                    *wallet.Account
 	paymentAccountPendingWaitGroup *sync.WaitGroup
@@ -197,7 +197,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		delegatorCountsPerRep:          cache.New(1*time.Hour, 5*time.Minute),
 		addressesWithGoodRepCache:      cache.New(6*time.Hour, 5*time.Minute),
 		mediaQueue:                     mediaQueue,
-		collectorAccountQueue:          make(chan func(*wallet.Account, rpc.Client, rpc.Client), 10000),
+		collectorAccountQueue:          make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
 		autoEnqueueVideoListFile:       options.AutoEnqueueVideoListFile,
 		autoEnqueueVideos:              options.AutoEnqueueVideoListFile != "",
@@ -278,7 +278,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
-	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue)
+	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC)
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.HCaptchaSecret, options.Wallet,
@@ -473,7 +473,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case f := <-s.collectorAccountQueue:
-				f(s.collectorAccount, s.wallet.RPC, s.wallet.RPCWork)
+				f(s.collectorAccount, &s.wallet.RPC, &s.wallet.RPCWork)
 			case <-ctx.Done():
 				s.log.Println("Collector account worker done")
 				return

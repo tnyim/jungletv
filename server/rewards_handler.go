@@ -31,7 +31,7 @@ type RewardsHandler struct {
 	ipReputationChecker            *IPAddressReputationChecker
 	withdrawalHandler              *WithdrawalHandler
 	wallet                         *wallet.Wallet
-	collectorAccountQueue          chan func(*wallet.Account, rpc.Client, rpc.Client)
+	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
 	skipManager                    *SkipManager
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
@@ -161,7 +161,7 @@ func NewRewardsHandler(log *log.Logger,
 	withdrawalHandler *WithdrawalHandler,
 	hCaptchaSecret string,
 	wallet *wallet.Wallet,
-	collectorAccountQueue chan func(*wallet.Account, rpc.Client, rpc.Client),
+	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore ModerationStore,
