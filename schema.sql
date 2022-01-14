@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS "media_queue_event";
+DROP TABLE IF EXISTS "media_queue_event_type";
 DROP TABLE IF EXISTS "user_profile";
 DROP TABLE IF EXISTS "connection";
 DROP TABLE IF EXISTS "connection_service";
@@ -190,4 +192,14 @@ CREATE TABLE IF NOT EXISTS "user_profile" (
     "address" VARCHAR(64) PRIMARY KEY,
     biography TEXT NOT NULL,
     featured_media VARCHAR(36) REFERENCES played_media (id) -- nullable
+);
+
+CREATE TABLE IF NOT EXISTS "media_queue_event_type" (
+    event_type VARCHAR(20) PRIMARY KEY
+);
+INSERT INTO "media_queue_event_type" VALUES ('filled'), ('emptied');
+
+CREATE TABLE IF NOT EXISTS "media_queue_event" (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL PRIMARY KEY,
+    event_type VARCHAR(10) NOT NULL REFERENCES media_queue_event_type (event_type)
 );

@@ -431,6 +431,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 	}
 	defer ctx.Rollback()
 
+	now := time.Now()
 	if prevMedia != nil {
 		medias, err := types.GetPlayedMediaWithIDs(ctx, []string{prevMedia.QueueID()})
 		if err != nil {
@@ -442,7 +443,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 			return stacktrace.NewError("previous media not returned from database")
 		}
 		prevPlayedMedia.EndedAt = sql.NullTime{
-			Time:  time.Now(),
+			Time:  now,
 			Valid: true,
 		}
 		err = prevPlayedMedia.Update(ctx)
@@ -460,7 +461,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 		newPlayedMedia := &types.PlayedMedia{
 			ID:          newMedia.QueueID(),
 			EnqueuedAt:  newMedia.RequestedAt(),
-			StartedAt:   time.Now(),
+			StartedAt:   now,
 			MediaLength: types.Duration(mediaInfo.Length()),
 			MediaOffset: types.Duration(mediaInfo.Offset()),
 			RequestedBy: newMedia.RequestedBy().Address(),
@@ -487,6 +488,40 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 		ctx.DeferToCommit(func() {
 			q.recentEntryCountsCache.Delete(newPlayedMedia.RequestedBy)
 		})
+	}
+
+	mostRecentEvent, err := types.GetMostRecentMediaQueueEventWithType(ctx, types.MediaQueueEmptied, types.MediaQueueFilled)
+	if err != nil {
+		if !errors.Is(err, types.ErrMediaQueueEventNotFound) {
+			return stacktrace.Propagate(err, "")
+		}
+		mostRecentEvent = nil
+	}
+
+	if prevMedia == nil && newMedia != nil &&
+		(mostRecentEvent == nil || mostRecentEvent.EventType != types.MediaQueueFilled) {
+		err = types.InsertMediaQueueEvents(ctx, []*types.MediaQueueEvent{
+			{
+				CreatedAt: now,
+				EventType: types.MediaQueueFilled,
+			},
+		})
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	if prevMedia != nil && newMedia == nil &&
+		(mostRecentEvent == nil || mostRecentEvent.EventType != types.MediaQueueEmptied) {
+		err = types.InsertMediaQueueEvents(ctx, []*types.MediaQueueEvent{
+			{
+				CreatedAt: now,
+				EventType: types.MediaQueueEmptied,
+			},
+		})
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 	}
 
 	return stacktrace.Propagate(ctx.Commit(), "")
