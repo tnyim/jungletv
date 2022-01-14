@@ -82,6 +82,7 @@ func NewModerationStoreDatabase(ctx context.Context) (ModerationStore, error) {
 
 	go func() {
 		t := time.NewTicker(5 * time.Minute)
+		defer t.Stop()
 		for {
 			select {
 			case <-t.C:

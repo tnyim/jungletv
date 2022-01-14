@@ -337,6 +337,7 @@ func (e *EnqueueManager) findUserWhoPaid(account *wallet.Account) (User, error) 
 
 func (e *EnqueueManager) ProcessPaymentsWorker(ctx context.Context, interval time.Duration) error {
 	t := time.NewTicker(interval)
+	defer t.Stop()
 	for {
 		select {
 		case <-t.C:

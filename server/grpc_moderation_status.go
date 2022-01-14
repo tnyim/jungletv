@@ -8,7 +8,8 @@ import (
 )
 
 func (s *grpcServer) MonitorModerationSettings(r *proto.MonitorModerationSettingsRequest, stream proto.JungleTV_MonitorModerationSettingsServer) error {
-	heartbeatC := time.NewTicker(5 * time.Second).C
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
 
 	send := func() error {
 		overview := &proto.ModerationSettingsOverview{
@@ -34,7 +35,7 @@ func (s *grpcServer) MonitorModerationSettings(r *proto.MonitorModerationSetting
 	}
 	for {
 		select {
-		case <-heartbeatC:
+		case <-heartbeat.C:
 			err = send()
 		case <-stream.Context().Done():
 			return nil

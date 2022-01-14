@@ -344,6 +344,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 		r.lastMedia = entries[0]
 	}
 	purgeTicker := time.NewTicker(10 * time.Minute)
+	defer purgeTicker.Stop()
 	for {
 		select {
 		case v := <-onMediaChanged:

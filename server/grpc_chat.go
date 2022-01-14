@@ -31,7 +31,8 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onMessageDeleted, messageDeletedU := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
 	defer messageDeletedU()
 
-	heartbeatC := time.NewTicker(5 * time.Second).C
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
 	var seq uint32
 
 	ctx := stream.Context()
@@ -112,7 +113,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 					},
 				},
 			})
-		case <-heartbeatC:
+		case <-heartbeat.C:
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_Heartbeat{
 					Heartbeat: &proto.ChatHeartbeatEvent{

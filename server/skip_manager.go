@@ -84,7 +84,9 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 	s.UpdateSkipThreshold()
 
 	startupNoSkipTimer := time.NewTimer(30 * time.Second)
+	defer startupNoSkipTimer.Stop()
 	mediaStartTimer := time.NewTimer(time.Duration(math.MaxInt64))
+	defer mediaStartTimer.Stop()
 
 	for {
 		mediaEndTimer := s.computeMediaEndTimer()
@@ -134,6 +136,7 @@ func (s *SkipManager) BalancesWorker(ctx context.Context, interval time.Duration
 	// since this operation takes time, runs on a separate goroutine from the main worker select{}
 	// this should help the onMediaChanged handler run in time
 	t := time.NewTicker(interval)
+	defer t.Stop()
 	for {
 		select {
 		case <-t.C:

@@ -507,6 +507,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		}
 
 		t := time.NewTicker(5 * time.Second)
+		defer t.Stop()
 
 		for {
 			select {
@@ -555,6 +556,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 
 		wait := time.Duration(90+rand.Intn(180)) * time.Second
 		t := time.NewTimer(wait)
+		defer t.Stop()
 		for {
 			select {
 			case v := <-mediaChangedC:

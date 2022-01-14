@@ -54,7 +54,8 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		return stacktrace.Propagate(err, "")
 	}
 
-	heartbeatC := time.NewTicker(5 * time.Second).C
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
 
 	for {
 		var err error
@@ -64,7 +65,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case <-heartbeatC:
+		case <-heartbeat.C:
 			err = stream.Send(&proto.Queue{
 				IsHeartbeat: true,
 			})
