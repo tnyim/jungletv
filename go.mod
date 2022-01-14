@@ -47,4 +47,6 @@ require (
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 
-replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16-0.20211216125318-2b636022076d
+replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16-0.20220114190505-9b95b5e73f89
+
+replace github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177 => github.com/gsgalloway/stacktrace v0.0.0-20200507040314-ca3802f754c7
