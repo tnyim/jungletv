@@ -14,7 +14,7 @@
 </script>
 
 <div class="w-32 flex-shrink-0 thumbnail">
-    <img src={entry.getYoutubeVideoData().getThumbnailUrl()} alt="" />
+    <img src={entry.getYoutubeVideoData().getThumbnailUrl()} alt="" loading="lazy" width="120" height="90" />
     {#if isPlaying}
         <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center pr-2">
             <div style="width: auto;" class="flex flex-row place-content-center">
@@ -80,14 +80,12 @@
         {/if}
         {#if mode == "moderation"}
             | Request cost: {apiClient.formatBANPrice(entry.getRequestCost())} BAN |
-            <span
-                class="text-blue-600 hover:underline cursor-pointer"
-                on:click={() => dispatch("remove", entry)}>Remove</span
+            <span class="text-blue-600 hover:underline cursor-pointer" on:click={() => dispatch("remove", entry)}
+                >Remove</span
             >
             |
-            <span
-                class="text-blue-600 hover:underline cursor-pointer"
-                on:click={() => dispatch("disallow", entry)}>Remove and disallow video</span
+            <span class="text-blue-600 hover:underline cursor-pointer" on:click={() => dispatch("disallow", entry)}
+                >Remove and disallow video</span
             >
         {/if}
     </p>
