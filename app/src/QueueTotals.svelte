@@ -29,11 +29,11 @@
         }
         return duration
             .toFormat(formatString)
-            .replace("0 days, 0 hours and ", "")
-            .replace("0 days, ", "")
-            .replace(/^1 minutes/, "1 minute")
-            .replace(/^1 hours/, "1 hour")
-            .replace(/^1 days/, "1 day");
+            .replace(/^0 days, 0 hours and /, "")
+            .replace(/^0 days, /, "")
+            .replace(/(^|\s)1 minutes/, " 1 minute")
+            .replace(/(^|\s)1 hours/, " 1 hour")
+            .replace(/(^|\s)1 days/, " 1 day").trim();
     }
 
     let playingSinceInterval: number;

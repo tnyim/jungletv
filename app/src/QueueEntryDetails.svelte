@@ -3,7 +3,7 @@
     import QrCode from "svelte-qrcode";
     import { PermissionLevel, QueueEntry, User } from "./proto/jungletv_pb";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
-    import { DateTime, DurationUnit } from "luxon";
+    import { DateTime, Duration, DurationUnit } from "luxon";
     import { slide } from "svelte/transition";
     import { copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
@@ -14,6 +14,7 @@
     export let entry: QueueEntry;
     export let entryIndex: number;
     export let removalOfOwnEntriesAllowed: boolean;
+    export let timeUntilStarting: Duration;
     let requestedBy: User;
 
     $: {
@@ -45,6 +46,36 @@
             numeric: "auto",
         });
         return relativeFormatter.format(Math.trunc(diff.as(unit)), unit as Intl.RelativeTimeFormatUnit);
+    }
+
+    function roundedDurationString(d: Duration): string {
+        if (d.as("days") >= 2) {
+            return d.toFormat("d 'days'");
+        }
+        if (d.as("days") >= 1) {
+            return d.toFormat("d 'day and' h 'hours'").replace("and 0 hours", "").replace("and 1 hours", "and 1 hour");
+        }
+        if (d.as("minutes") >= 110) {
+            return d.toFormat("h 'hours'").replace(/^1 hours/, "1 hour");
+        }
+        return d.toFormat("m 'minutes'").replace(/^1 minutes/, "1 minute");
+    }
+
+    function playEstimateString(): string {
+        let lowerBound = Duration.fromMillis(timeUntilStarting.toMillis() * 0.9);
+        let upperBound = Duration.fromMillis(timeUntilStarting.toMillis() * 1.1);
+        let lowerBoundStr = roundedDurationString(lowerBound);
+        let upperBoundStr = roundedDurationString(upperBound);
+        if (lowerBoundStr == upperBoundStr) {
+            return "about " + lowerBoundStr;
+        }
+        // avoid repeating the units in strings like "between 10 minutes and 15 minutes" -> "between 10 and 15 minutes"
+        let lSplit = lowerBoundStr.split(" ");
+        let uSplit = upperBoundStr.split(" ");
+        if (lSplit.length == 2 && uSplit.length == 2 && lSplit[1].replace(/s$/, "") == uSplit[1].replace(/s$/, "")) {
+            return "between " + lSplit[0] + " and " + upperBoundStr;
+        }
+        return "between " + lowerBoundStr + " and " + upperBoundStr;
     }
 
     function openExplorer() {
@@ -89,6 +120,11 @@
             {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN
         </span>
     </p>
+    {#if timeUntilStarting.as("minutes") > 45}
+        <p class="text-sm">Estimated to play {playEstimateString()} from now.</p>
+    {:else if entryIndex > 0 && timeUntilStarting.as("seconds") > 0}
+        <p class="text-sm">Estimated to play within the next hour.</p>
+    {/if}
     {#if requestedBy !== undefined}
         <p>Added to the queue {formatEnqueuedAt(entry)} by</p>
         <div class="flex flex-row">
@@ -150,7 +186,10 @@
                 </div>
             {/if}
             {#if entryIndex > 0}
-                <div class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'}" on:click={setCursor}>
+                <div
+                    class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'}"
+                    on:click={setCursor}
+                >
                     <i class="fas fa-i-cursor" /> Set cursor
                 </div>
             {/if}

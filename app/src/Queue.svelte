@@ -113,6 +113,27 @@
     permissionLevel.subscribe((level) => {
         isStaff = level == PermissionLevel.ADMIN;
     });
+
+    function sumDurationOfEntriesBeforeIndex(idx: number): Duration {
+        if (queueEntries[idx].getId() == insertCursor) {
+            // this entry is after the insert cursor, therefore there's no point in providing an estimate as it'll
+            // surely be wrong
+            return Duration.fromMillis(-1);
+        }
+        let tl = Duration.fromMillis(0);
+        for (let i = 0; i < idx; i++) {
+            let entry = queueEntries[i];
+            if (insertCursor == entry.getId()) {
+                // this entry is after the insert cursor, therefore there's no point in providing an estimate as it'll
+                // surely be wrong
+                return Duration.fromMillis(-1);
+            }
+            tl = tl.plus(
+                Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
+            );
+        }
+        return tl;
+    }
 </script>
 
 {#if !firstLoaded}
@@ -164,6 +185,7 @@
                     {entry}
                     entryIndex={i}
                     {removalOfOwnEntriesAllowed}
+                    timeUntilStarting={sumDurationOfEntriesBeforeIndex(i)}
                     on:remove={() => removeEntry(entry, false)}
                     on:disallow={() => removeEntry(entry, true)}
                     on:changeNickname={async () => {
