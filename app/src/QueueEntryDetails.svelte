@@ -126,7 +126,7 @@
     <div class="grid grid-cols-6 gap-2 place-items-center">
         {#if isChatModerator}
             <div
-                class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-6'} "
+                class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'} "
                 on:click={() => dispatch("remove")}
             >
                 <i class="fas fa-trash" /> Remove
@@ -148,11 +148,11 @@
                 <div class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
                     <i class="fas fa-search-dollar" /> Explorer
                 </div>
-                {#if entryIndex > 0}
-                    <div class="{commonButtonClasses} col-span-2" on:click={setCursor}>
-                        <i class="fas fa-i-cursor" /> Set cursor
-                    </div>
-                {/if}
+            {/if}
+            {#if entryIndex > 0}
+                <div class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'}" on:click={setCursor}>
+                    <i class="fas fa-i-cursor" /> Set cursor
+                </div>
             {/if}
         {/if}
         {#if requestedBy !== undefined}

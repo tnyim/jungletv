@@ -10,6 +10,7 @@
     import QueueTotals from "./QueueTotals.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { permissionLevel } from "./stores";
+    import Lazy from "svelte-lazy";
 
     export let mode = "sidebar";
 
@@ -68,7 +69,9 @@
             let tv = BigInt(0);
             let participantsSet = new Set();
             if (queueEntries.length > 0 && queueEntries[0].hasOffset()) {
-                currentEntryOffset = Duration.fromMillis(queueEntries[0].getOffset().getSeconds() * 1000 + queueEntries[0].getOffset().getNanos() / 1000000);
+                currentEntryOffset = Duration.fromMillis(
+                    queueEntries[0].getOffset().getSeconds() * 1000 + queueEntries[0].getOffset().getNanos() / 1000000
+                );
             } else {
                 currentEntryOffset = Duration.fromMillis(0);
             }
@@ -141,19 +144,21 @@
                     </div>
                 </div>
             {/if}
-            <div
-                class="px-2 py-1 flex flex-row text-sm
-            bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
-                on:click={() => openOrCollapse(entry)}
-            >
-                <QueueEntryHeader
-                    {entry}
-                    isPlaying={i == 0}
-                    {mode}
-                    on:remove={() => removeEntry(entry, false)}
-                    on:disallow={() => removeEntry(entry, true)}
-                />
-            </div>
+            <Lazy height={98}>
+                <div
+                    class="px-2 py-1 flex flex-row text-sm
+                        bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                    on:click={() => openOrCollapse(entry)}
+                >
+                    <QueueEntryHeader
+                        {entry}
+                        isPlaying={i == 0}
+                        {mode}
+                        on:remove={() => removeEntry(entry, false)}
+                        on:disallow={() => removeEntry(entry, true)}
+                    />
+                </div>
+            </Lazy>
             {#if expandedEntryID == entry.getId()}
                 <QueueEntryDetails
                     {entry}

@@ -39,6 +39,7 @@
     "luxon": "^1.27.0",
     "marked": "^2.0.7",
     "sirv-cli": "^1.0.0",
+    "svelte-lazy": "^1.1.0",
     "svelte-navigator": "^3.1.5",
     "svelte-preprocess": "^4.7.3",
     "svelte-qrcode": "^1.0.0",
