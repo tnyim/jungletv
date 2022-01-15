@@ -14,7 +14,12 @@ export const currentlyWatching = writable(0);
 export const unreadAnnouncement = writable(false);
 export const unreadChatMention = writable(false);
 export const mostRecentAnnouncement = writable((() => parseInt(localStorage.getItem("lastSeenAnnouncement") ?? "-1"))());
-export const sidebarMode = writable("queue");
+export const sidebarMode = writable(((): string => {
+    if (!('sidebarMode' in localStorage)) {
+        return "queue";
+    }
+    return localStorage.sidebarMode;
+})());
 export const permissionLevel = writable(PermissionLevel.UNAUTHENTICATED as valueof<PermissionLevelMap>);
 export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);

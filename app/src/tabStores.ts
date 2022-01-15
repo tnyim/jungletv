@@ -13,6 +13,8 @@ export type SidebarTab = {
     highlighted: boolean;
 };
 
+export const defaultSidebarTabIDs = ["queue", "skipandtip", "chat", "announcements"];
+
 export const sidebarTabs = writable([
     {
         id: "queue",

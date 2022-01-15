@@ -3,6 +3,7 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { fly } from "svelte/transition";
+    import { defaultSidebarTabIDs } from "./tabStores";
     import type { SidebarTab } from "./tabStores";
     import { sidebarTabs } from "./tabStores";
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
@@ -76,6 +77,9 @@
         selectedTabID = mode;
         selectedTab = tabs.find((t) => selectedTabID == t.id);
         flipFlop = !flipFlop;
+        if (defaultSidebarTabIDs.includes(mode)) {
+            localStorage.setItem("sidebarMode", mode);
+        }
     });
 
     let tabBar: HTMLDivElement;
