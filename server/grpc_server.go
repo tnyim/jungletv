@@ -520,9 +520,11 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 						c := makeChallenge()
 						s.captchaChallengesQueue <- c
 						latestGeneratedChallenge = c
-						s.log.Printf("generated cached segcha challenge (%d in cache)", inCache+1)
+						inCache++
+						s.log.Printf("generated cached segcha challenge (%d in cache)", inCache)
 					}()
 				}
+				go s.statsClient.Gauge("segcha_cached", inCache)
 			case <-ctx.Done():
 				s.log.Println("segcha challenge creator worker done")
 				return

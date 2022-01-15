@@ -67,6 +67,8 @@ func (c *IPAddressReputationChecker) EnqueueAddressForChecking(remoteAddress str
 }
 
 func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
+	rateLimitTicker := time.NewTicker(500 * time.Millisecond)
+	defer rateLimitTicker.Stop()
 	for {
 		select {
 		case addressToCheck := <-c.checkQueue:
@@ -79,7 +81,7 @@ func (c *IPAddressReputationChecker) Worker(ctx context.Context) {
 			if addressAlreadyChecked {
 				continue
 			}
-			time.Sleep(1 * time.Second) // rate limit
+			<-rateLimitTicker.C // rate limit
 			url := fmt.Sprintf(c.endpoint, addressToCheck)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {

@@ -396,6 +396,7 @@ func (w *WithdrawalHandler) findAndUndoInvalidWithdrawals(ctxCtx context.Context
 			}
 		}
 	}
+	go w.statsClient.Count("withdrawal_undone", len(txToUndo))
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
