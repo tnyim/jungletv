@@ -666,6 +666,11 @@ export class Queue extends jspb.Message {
   getInsertCursor(): string;
   setInsertCursor(value: string): void;
 
+  hasPlayingSince(): boolean;
+  clearPlayingSince(): void;
+  getPlayingSince(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setPlayingSince(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Queue.AsObject;
   static toObject(includeInstance: boolean, msg: Queue): Queue.AsObject;
@@ -682,6 +687,7 @@ export namespace Queue {
     isHeartbeat: boolean,
     ownEntryRemovalEnabled: boolean,
     insertCursor: string,
+    playingSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 

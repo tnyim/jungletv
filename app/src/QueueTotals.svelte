@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Duration } from "luxon";
+    import { DateTime, Duration } from "luxon";
+    import { onDestroy, onMount } from "svelte";
     import { apiClient } from "./api_client";
     import { playerCurrentTime } from "./stores";
 
@@ -8,6 +9,9 @@
     export let numParticipants = 0;
     export let totalQueueValue = BigInt(0);
     export let currentEntryOffset: Duration;
+    export let playingSince: DateTime;
+
+    let formattedPlayingSince = "";
 
     function updatingQueueDuration(totalLength: Duration, currentTime: number): string {
         let d = totalLength.minus(Duration.fromMillis(currentTime * 1000));
@@ -15,6 +19,47 @@
             d = Duration.fromMillis(0);
         }
         return d.toFormat("d'd 'h'h 'm'm'").replace(/^0d /, "").replace(/^0h /, "");
+    }
+
+    function formatPlayingSince(playingSince: DateTime): string {
+        let duration = playingSince.diffNow().negate();
+        let formatString = "d 'days,' h 'hours and' m 'minutes'";
+        if (duration.as("days") > 1) {
+            formatString = "d 'days and' h 'hours";
+        }
+        return duration
+            .toFormat(formatString)
+            .replace("0 days, 0 hours and ", "")
+            .replace("0 days, ", "")
+            .replace(/^1 minutes/, "1 minute")
+            .replace(/^1 hours/, "1 hour")
+            .replace(/^1 days/, "1 day");
+    }
+
+    let playingSinceInterval: number;
+
+    function updateFormatted() {
+        if (typeof playingSince !== "undefined" && playingSince.diffNow().as("hours") < -4) {
+            formattedPlayingSince = formatPlayingSince(playingSince);
+        } else {
+            formattedPlayingSince = "";
+        }
+    }
+    onMount(() => {
+        playingSinceInterval = setInterval(updateFormatted, 10000);
+    });
+
+    onDestroy(() => {
+        clearInterval(playingSinceInterval);
+    });
+
+    $: {
+        // make it trigger on any change to playingSince
+        if (typeof playingSince !== "undefined") {
+            updateFormatted();
+        } else {
+            formattedPlayingSince = "";
+        }
     }
 </script>
 
@@ -46,3 +91,8 @@
         {numParticipants == 1 ? "requester" : "requesters"}
     </div>
 </div>
+{#if formattedPlayingSince != ""}
+    <div class="w-full px-2 mb-2 text-center text-yellow-600">
+        Playing non-stop for <span class="font-semibold">{formattedPlayingSince}</span>!
+    </div>
+{/if}

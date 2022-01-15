@@ -2,7 +2,7 @@
     import { apiClient } from "./api_client";
     import { onDestroy, onMount } from "svelte";
     import { PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
-    import { Duration } from "luxon";
+    import { DateTime, Duration } from "luxon";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { link } from "svelte-navigator";
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
@@ -16,6 +16,7 @@
     let firstLoaded = false;
     let queueEntries: QueueEntry[] = [];
     let insertCursor: string = "";
+    let playingSince: DateTime;
     let removalOfOwnEntriesAllowed = false;
     let totalQueueLength: Duration = Duration.fromMillis(0);
     let currentEntryOffset: Duration = Duration.fromMillis(0);
@@ -57,6 +58,11 @@
                 insertCursor = queue.getInsertCursor();
             } else {
                 insertCursor = "";
+            }
+            if (queue.hasPlayingSince()) {
+                playingSince = DateTime.fromJSDate(queue.getPlayingSince().toDate());
+            } else {
+                playingSince = undefined;
             }
             let tl = Duration.fromMillis(0);
             let tv = BigInt(0);
@@ -116,6 +122,7 @@
             numParticipants={totalQueueParticipants}
             {totalQueueValue}
             {currentEntryOffset}
+            {playingSince}
         />
         {#each queueEntries as entry, i}
             {#if insertCursor == entry.getId()}

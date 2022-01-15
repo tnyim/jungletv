@@ -7833,7 +7833,8 @@ proto.jungletv.Queue.toObject = function(includeInstance, msg) {
     proto.jungletv.QueueEntry.toObject, includeInstance),
     isHeartbeat: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
     ownEntryRemovalEnabled: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-    insertCursor: jspb.Message.getFieldWithDefault(msg, 4, "")
+    insertCursor: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    playingSince: (f = msg.getPlayingSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -7886,6 +7887,11 @@ proto.jungletv.Queue.deserializeBinaryFromReader = function(msg, reader) {
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setInsertCursor(value);
+      break;
+    case 5:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setPlayingSince(value);
       break;
     default:
       reader.skipField();
@@ -7943,6 +7949,14 @@ proto.jungletv.Queue.serializeBinaryToWriter = function(message, writer) {
     writer.writeString(
       4,
       f
+    );
+  }
+  f = message.getPlayingSince();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
 };
@@ -8055,6 +8069,43 @@ proto.jungletv.Queue.prototype.clearInsertCursor = function() {
  */
 proto.jungletv.Queue.prototype.hasInsertCursor = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional google.protobuf.Timestamp playing_since = 5;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.jungletv.Queue.prototype.getPlayingSince = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 5));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.jungletv.Queue} returns this
+*/
+proto.jungletv.Queue.prototype.setPlayingSince = function(value) {
+  return jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.Queue} returns this
+ */
+proto.jungletv.Queue.prototype.clearPlayingSince = function() {
+  return this.setPlayingSince(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.Queue.prototype.hasPlayingSince = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

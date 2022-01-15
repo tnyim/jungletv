@@ -34,6 +34,7 @@ type MediaQueue struct {
 	removalOfOwnEntriesAllowed      bool
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
+	playingSince                    time.Time
 
 	queueUpdated           *event.Event
 	skippingAllowedUpdated *event.Event
@@ -67,6 +68,11 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 	}
 	if persistenceFile != "" {
 		err := q.restoreQueueFromFile(persistenceFile)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+
+		err = q.restorePlayingSinceFromDatabase(ctx)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -147,6 +153,12 @@ func (q *MediaQueue) LengthUpToCursor() int {
 		l++
 	}
 	return l
+}
+
+func (q *MediaQueue) PlayingSince() time.Time {
+	q.queueMutex.RLock()
+	defer q.queueMutex.RUnlock()
+	return q.playingSince
 }
 
 func (q *MediaQueue) Entries() []MediaQueueEntry {
@@ -303,8 +315,12 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 				if currentQueueEntry.QueueID() == q.insertCursor {
 					q.insertCursor = ""
 				}
+				if q.playingSince.IsZero() {
+					q.playingSince = time.Now()
+				}
 			} else {
 				q.insertCursor = ""
+				q.playingSince = time.Time{}
 			}
 		}()
 
@@ -349,11 +365,15 @@ func (q *MediaQueue) playNext() {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	if len(q.queue) == 0 {
+	length := len(q.queue)
+	if length == 0 {
 		return
 	}
+
 	q.queue = q.queue[1:]
-	go q.statsClient.Gauge("queue_length", len(q.queue))
+	length = length - 1
+
+	go q.statsClient.Gauge("queue_length", length)
 	q.queueUpdated.Notify()
 }
 
@@ -421,6 +441,33 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
+	return nil
+}
+
+func (q *MediaQueue) restorePlayingSinceFromDatabase(ctxCtx context.Context) error {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	mostRecentEvent, err := types.GetMostRecentMediaQueueEventWithType(ctx, types.MediaQueueEmptied, types.MediaQueueFilled)
+	if err != nil {
+		if !errors.Is(err, types.ErrMediaQueueEventNotFound) {
+			return stacktrace.Propagate(err, "")
+		}
+		q.playingSince = time.Time{}
+		return nil
+	}
+
+	if mostRecentEvent.EventType == types.MediaQueueEmptied {
+		q.playingSince = time.Time{}
+	} else {
+		q.playingSince = mostRecentEvent.CreatedAt
+	}
 	return nil
 }
 

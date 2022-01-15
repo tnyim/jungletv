@@ -278,7 +278,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
-	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC)
+	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.HCaptchaSecret, options.Wallet,

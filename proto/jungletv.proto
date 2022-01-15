@@ -204,6 +204,7 @@ message Queue {
     bool is_heartbeat = 2;
     bool own_entry_removal_enabled = 3;
     optional string insert_cursor = 4;
+    optional google.protobuf.Timestamp playing_since = 5;
 }
 
 message QueueYouTubeVideoData {

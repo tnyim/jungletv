@@ -11,6 +11,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.JungleTV_MonitorQueueServer) error {
@@ -41,6 +42,11 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		insertCursor, hasInsertCursor := s.mediaQueue.InsertCursor()
 		if hasInsertCursor {
 			queue.InsertCursor = &insertCursor
+		}
+
+		playingSince := s.mediaQueue.PlayingSince()
+		if !playingSince.IsZero() {
+			queue.PlayingSince = timestamppb.New(playingSince)
 		}
 
 		return stacktrace.Propagate(stream.Send(queue), "")
