@@ -216,7 +216,7 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 			msg := ""
 			switch tx.TransactionType {
 			case types.CrowdfundedTransactionTypeSkip:
-				msg = fmt.Sprintf("_%s just contributed **%s BAN** to skipping the current video!_", name, banStr)
+				msg = fmt.Sprintf("_%s just contributed **%s BAN** towards skipping the current video!_", name, banStr)
 			case types.CrowdfundedTransactionTypeRain:
 				msg = fmt.Sprintf("_%s just increased the rewards for the current video by **%s BAN**!_", name, banStr)
 			}
