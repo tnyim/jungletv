@@ -1,7 +1,7 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { JungleTV } from "./proto/jungletv_pb_service";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
-import { deleteCookie, getCookie } from "./cookie_utils";
+import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import {
     ConsumeMediaRequest,
     EnqueueMediaRequest,
@@ -155,7 +155,7 @@ class APIClient {
         return APIClient.instance;
     }
 
-    private handleVersionHeader(version: string) {
+    private handleVersionHeader(version: string): void {
         if (this.versionHash === undefined) {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {
@@ -172,6 +172,17 @@ class APIClient {
         }
     }
 
+    private processHeaders(headers: grpc.Metadata): void {
+        if (headers.has("X-API-Version")) {
+            this.handleVersionHeader(headers.get("X-API-Version")[0])
+        }
+        if (headers.has("X-Replacement-Authorization-Token") && headers.has("X-Replacement-Authorization-Expiration")) {
+            this.saveAuthToken(
+                headers.get("X-Replacement-Authorization-Token")[0],
+                new Date(headers.get("X-Replacement-Authorization-Expiration")[0]));
+        }
+    }
+
     public setAuthNeededCallback(cb: () => void) {
         this.authNeededCallback = cb;
     }
@@ -182,11 +193,7 @@ class APIClient {
                 request: request,
                 host: this.host,
                 metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
-                onHeaders: (headers: grpc.Metadata): void => {
-                    if (headers.has("X-API-Version")) {
-                        this.handleVersionHeader(headers.get("X-API-Version")[0])
-                    }
-                },
+                onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
                 onMessage: (message: TResponse) => resolve(message),
                 onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
                     if (code == grpc.Code.Unauthenticated) {
@@ -210,11 +217,7 @@ class APIClient {
             request: request,
             host: this.host,
             metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
-            onHeaders: (headers: grpc.Metadata): void => {
-                if (headers.has("X-API-Version")) {
-                    this.handleVersionHeader(headers.get("X-API-Version")[0])
-                }
-            },
+            onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
             onMessage: onMessage,
             onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
                 if (code == grpc.Code.Unauthenticated) {
@@ -238,6 +241,10 @@ class APIClient {
     signOut() {
         deleteCookie("auth-token");
         //this.authNeededCallback();
+    }
+
+    saveAuthToken(token: string, expiry: Date) {
+        setCookie("auth-token", token, expiry, "Strict");
     }
 
     async enqueueYouTubeVideo(id: string, unskippable: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {

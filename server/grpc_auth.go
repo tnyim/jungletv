@@ -39,12 +39,12 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 
 	user := auth.UserClaimsFromContext(ctx)
 	var jwtToken string
-	expiry := time.Now().Add(180 * 24 * time.Hour)
+	var tokenExpiry time.Time
 	if user != nil && UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
 		// keep permissions of authenticated user
-		jwtToken, err = s.jwtManager.Generate(r.RewardsAddress, user.PermLevel, user.Username, expiry)
+		jwtToken, tokenExpiry, err = s.jwtManager.Generate(r.RewardsAddress, user.PermLevel, user.Username)
 	} else {
-		jwtToken, err = s.jwtManager.Generate(r.RewardsAddress, auth.UserPermissionLevel, "", expiry)
+		jwtToken, tokenExpiry, err = s.jwtManager.Generate(r.RewardsAddress, auth.UserPermissionLevel, "")
 	}
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -98,7 +98,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 			Step: &proto.SignInProgress_Response{
 				Response: &proto.SignInResponse{
 					AuthToken:       jwtToken,
-					TokenExpiration: timestamppb.New(expiry),
+					TokenExpiration: timestamppb.New(tokenExpiry),
 				},
 			},
 		})

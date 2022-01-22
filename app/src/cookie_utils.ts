@@ -1,14 +1,14 @@
 /*
  * General utils for managing cookies in Typescript.
  */
-export function setCookie(name: string, val: string, expiry: Date) {
+export function setCookie(name: string, val: string, expiry: Date, sameSite: "Lax" | "Strict" | "None") {
     const value = val;
 
     // Set it expire in 7 days
     //date.setTime(date.getTime() + (7 * 24 * 60 * 60 * 1000));
 
     // Set it
-    document.cookie = name+"="+value+"; expires="+expiry.toUTCString()+"; path=/";
+    document.cookie = name+"="+value+"; expires="+expiry.toUTCString()+"; path=/; SameSite=" + sameSite;
 }
 
 export function getCookie(name: string): string {

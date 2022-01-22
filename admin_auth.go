@@ -7,6 +7,7 @@ import (
 	"github.com/gbl08ma/ssoclient"
 	"github.com/gorilla/sessions"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/server/auth"
 )
 
 var (
@@ -17,8 +18,7 @@ var (
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	expiry := time.Now().Add(180 * 24 * 60 * 60 * time.Second)
-	adminToken, err := jwtManager.GenerateAdminToken("DEBUG_USER", expiry, "")
+	adminToken, expiration, err := jwtManager.Generate("DEBUG_USER", auth.AdminPermissionLevel, "")
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -29,8 +29,8 @@ func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 		Name:    "auth-token",
 		Value:   adminToken,
 		Path:    "/",
-		MaxAge:  int(time.Until(expiry).Seconds()),
-		Expires: expiry,
+		MaxAge:  int(time.Until(expiration).Seconds()),
+		Expires: expiration,
 		Secure:  true,
 	})
 	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)
@@ -53,6 +53,7 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["rid"] = rid
+	session.Options.SameSite = http.SameSiteStrictMode
 	err = session.Save(r, w)
 	if err != nil {
 		authLog.Println("Error saving session:", err)
@@ -108,12 +109,11 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiry := time.Now().Add(7 * 24 * 60 * 60 * time.Second)
-	rewardAddress := ""
+	rewardAddress := "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt"
 	if v, ok := session.Values["rewardAddress"]; ok {
 		rewardAddress = v.(string)
 	}
-	adminToken, err := jwtManager.GenerateAdminToken(login.UserID, expiry, rewardAddress)
+	adminToken, expiration, err := jwtManager.Generate(rewardAddress, auth.AdminPermissionLevel, login.UserID)
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -124,8 +124,8 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		Name:    "auth-token",
 		Value:   adminToken,
 		Path:    "/",
-		MaxAge:  int(time.Until(expiry).Seconds()),
-		Expires: expiry,
+		MaxAge:  int(time.Until(expiration).Seconds()),
+		Expires: expiration,
 		Secure:  true,
 	})
 	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)

@@ -288,7 +288,10 @@ func main() {
 		mainLog.Fatalln("client secret not present in cryptomonKeys keybox")
 	}
 
-	jwtManager = auth.NewJWTManager(jwtKey)
+	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
+		auth.UserPermissionLevel:  180 * 24 * time.Hour,
+		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
+	})
 	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
 
 	options := server.Options{

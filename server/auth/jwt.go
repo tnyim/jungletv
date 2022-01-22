@@ -11,19 +11,21 @@ const CurrentTokenVersion = 2
 
 // JWTManager generates and verifies access tokens
 type JWTManager struct {
-	secretKey []byte
+	secretKey      []byte
+	tokenLifetimes map[PermissionLevel]time.Duration
 }
 
 // NewJWTManager returns a new JWTManager
-func NewJWTManager(secretKey []byte) *JWTManager {
-	return &JWTManager{secretKey}
+func NewJWTManager(secretKey []byte, tokenLifetimes map[PermissionLevel]time.Duration) *JWTManager {
+	return &JWTManager{secretKey, tokenLifetimes}
 }
 
 // Generate generates a JWT for a user
-func (manager *JWTManager) Generate(rewardAddress string, permissionLevel PermissionLevel, username string, tokenExpiration time.Time) (string, error) {
+func (manager *JWTManager) Generate(rewardAddress string, permissionLevel PermissionLevel, username string) (string, time.Time, error) {
+	expiration := time.Now().Add(manager.tokenLifetimes[permissionLevel])
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: tokenExpiration.Unix(),
+			ExpiresAt: expiration.Unix(),
 		},
 		userInfo: userInfo{
 			RewardAddress: rewardAddress,
@@ -35,29 +37,7 @@ func (manager *JWTManager) Generate(rewardAddress string, permissionLevel Permis
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString(manager.secretKey)
-	return signed, stacktrace.Propagate(err, "")
-}
-
-// Generate generates a JWT for an admin
-func (manager *JWTManager) GenerateAdminToken(username string, tokenExpiration time.Time, rewardAddress string) (string, error) {
-	if rewardAddress == "" {
-		rewardAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt"
-	}
-	claims := UserClaims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: tokenExpiration.Unix(),
-		},
-		userInfo: userInfo{
-			RewardAddress: rewardAddress,
-			PermLevel:     AdminPermissionLevel,
-			Username:      username,
-		},
-		ClaimsVersion: CurrentTokenVersion,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString(manager.secretKey)
-	return signed, stacktrace.Propagate(err, "")
+	return signed, expiration, stacktrace.Propagate(err, "")
 }
 
 // Verify verifies a JWT

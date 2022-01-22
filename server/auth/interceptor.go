@@ -6,7 +6,9 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/utils/wrappedstream"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -104,6 +106,13 @@ func (interceptor *Interceptor) authorize(ctx context.Context, method string) (c
 
 		// place claims in context
 		ctx = context.WithValue(ctx, userClaimsContextKey{}, claims)
+
+		if time.Until(time.Unix(claims.ExpiresAt, 0)) < interceptor.jwtManager.tokenLifetimes[claims.PermLevel]/2 {
+			err := interceptor.renewAuthToken(ctx, claims)
+			if err != nil {
+				return ctx, stacktrace.Propagate(err, "")
+			}
+		}
 	}
 
 	minPermissionLevel := interceptor.minPermissionLevelForMethod[method]
@@ -138,6 +147,19 @@ func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata
 		return nil, status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
 	}
 	return claims, nil
+}
+
+func (interceptor *Interceptor) renewAuthToken(ctx context.Context, claims *UserClaims) error {
+	token, expiration, err := interceptor.jwtManager.Generate(claims.RewardAddress, claims.PermLevel, claims.Username)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = grpc.SetHeader(ctx, metadata.New(map[string]string{
+		"X-Replacement-Authorization-Token":      token,
+		"X-Replacement-Authorization-Expiration": expiration.Format("2006-01-02T15:04:05.999Z07:00"),
+	}))
+	return stacktrace.Propagate(err, "")
 }
 
 func (interceptor *Interceptor) getRemoteAddress(ctx context.Context, md metadata.MD) string {

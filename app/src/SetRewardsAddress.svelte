@@ -67,7 +67,7 @@
                 monitorTicketRequest.close();
             }
         } else if (p.hasResponse()) {
-            setCookie("auth-token", p.getResponse().getAuthToken(), p.getResponse().getTokenExpiration().toDate());
+            apiClient.saveAuthToken(p.getResponse().getAuthToken(), p.getResponse().getTokenExpiration().toDate());
             rewardAddress.update((_) => rewardsAddress);
             step = 2;
             if (monitorTicketRequest !== undefined) {

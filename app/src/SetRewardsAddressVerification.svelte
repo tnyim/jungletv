@@ -5,12 +5,9 @@
     import { Moon } from "svelte-loading-spinners";
     import AddressBox from "./AddressBox.svelte";
     import Wizard from "./Wizard.svelte";
-    import { rewardAddress, darkMode } from "./stores";
-    import { setCookie } from "./cookie_utils";
+    import { darkMode } from "./stores";
 
     const dispatch = createEventDispatcher();
-
-    export let rewardsAddress = "";
 
     export let verification: SignInVerification;
 
@@ -27,16 +24,6 @@
         let endTime = DateTime.fromJSDate(verification.getExpiration().toDate());
         ticketTimeRemainingFormatted = endTime.diff(DateTime.now()).toFormat("mm:ss");
         updateTicketTimeRemainingTimeout = setTimeout(updateTicketTimeRemaining, 1000);
-    }
-
-    function handleUpdate(p: SignInProgress) {
-        if (p.hasExpired()) {
-            dispatch("verificationExpired");
-        } else if (p.hasResponse()) {
-            setCookie("auth-token", p.getResponse().getAuthToken(), p.getResponse().getTokenExpiration().toDate());
-            rewardAddress.update((_) => rewardsAddress);
-            dispatch("verificationComplete");
-        }
     }
 
     function cancel() {
