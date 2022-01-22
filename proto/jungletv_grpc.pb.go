@@ -45,6 +45,9 @@ type JungleTVClient interface {
 	SetProfileBiography(ctx context.Context, in *SetProfileBiographyRequest, opts ...grpc.CallOption) (*SetProfileBiographyResponse, error)
 	SetProfileFeaturedMedia(ctx context.Context, in *SetProfileFeaturedMediaRequest, opts ...grpc.CallOption) (*SetProfileFeaturedMediaResponse, error)
 	PlayedMediaHistory(ctx context.Context, in *PlayedMediaHistoryRequest, opts ...grpc.CallOption) (*PlayedMediaHistoryResponse, error)
+	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*BlockUserResponse, error)
+	UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*UnblockUserResponse, error)
+	BlockedUsers(ctx context.Context, in *BlockedUsersRequest, opts ...grpc.CallOption) (*BlockedUsersResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -477,6 +480,33 @@ func (c *jungleTVClient) PlayedMediaHistory(ctx context.Context, in *PlayedMedia
 	return out, nil
 }
 
+func (c *jungleTVClient) BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*BlockUserResponse, error) {
+	out := new(BlockUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/BlockUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*UnblockUserResponse, error) {
+	out := new(UnblockUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UnblockUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) BlockedUsers(ctx context.Context, in *BlockedUsersRequest, opts ...grpc.CallOption) (*BlockedUsersResponse, error) {
+	out := new(BlockedUsersResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/BlockedUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -811,6 +841,9 @@ type JungleTVServer interface {
 	SetProfileBiography(context.Context, *SetProfileBiographyRequest) (*SetProfileBiographyResponse, error)
 	SetProfileFeaturedMedia(context.Context, *SetProfileFeaturedMediaRequest) (*SetProfileFeaturedMediaResponse, error)
 	PlayedMediaHistory(context.Context, *PlayedMediaHistoryRequest) (*PlayedMediaHistoryResponse, error)
+	BlockUser(context.Context, *BlockUserRequest) (*BlockUserResponse, error)
+	UnblockUser(context.Context, *UnblockUserRequest) (*UnblockUserResponse, error)
+	BlockedUsers(context.Context, *BlockedUsersRequest) (*BlockedUsersResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -933,6 +966,15 @@ func (UnimplementedJungleTVServer) SetProfileFeaturedMedia(context.Context, *Set
 }
 func (UnimplementedJungleTVServer) PlayedMediaHistory(context.Context, *PlayedMediaHistoryRequest) (*PlayedMediaHistoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PlayedMediaHistory not implemented")
+}
+func (UnimplementedJungleTVServer) BlockUser(context.Context, *BlockUserRequest) (*BlockUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockUser not implemented")
+}
+func (UnimplementedJungleTVServer) UnblockUser(context.Context, *UnblockUserRequest) (*UnblockUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnblockUser not implemented")
+}
+func (UnimplementedJungleTVServer) BlockedUsers(context.Context, *BlockedUsersRequest) (*BlockedUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockedUsers not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1558,6 +1600,60 @@ func _JungleTV_PlayedMediaHistory_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).PlayedMediaHistory(ctx, req.(*PlayedMediaHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_BlockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).BlockUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/BlockUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).BlockUser(ctx, req.(*BlockUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UnblockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UnblockUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UnblockUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UnblockUser(ctx, req.(*UnblockUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_BlockedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockedUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).BlockedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/BlockedUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).BlockedUsers(ctx, req.(*BlockedUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2214,6 +2310,18 @@ var _JungleTV_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PlayedMediaHistory",
 			Handler:    _JungleTV_PlayedMediaHistory_Handler,
+		},
+		{
+			MethodName: "BlockUser",
+			Handler:    _JungleTV_BlockUser_Handler,
+		},
+		{
+			MethodName: "UnblockUser",
+			Handler:    _JungleTV_UnblockUser_Handler,
+		},
+		{
+			MethodName: "BlockedUsers",
+			Handler:    _JungleTV_BlockedUsers_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

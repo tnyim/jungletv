@@ -36,6 +36,9 @@ service JungleTV {
     rpc SetProfileBiography (SetProfileBiographyRequest) returns (SetProfileBiographyResponse) {}
     rpc SetProfileFeaturedMedia (SetProfileFeaturedMediaRequest) returns (SetProfileFeaturedMediaResponse) {}
     rpc PlayedMediaHistory (PlayedMediaHistoryRequest) returns (PlayedMediaHistoryResponse) {}
+    rpc BlockUser (BlockUserRequest) returns (BlockUserResponse) {}
+    rpc UnblockUser (UnblockUserRequest) returns (UnblockUserResponse) {}
+    rpc BlockedUsers (BlockedUsersRequest) returns (BlockedUsersResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -319,6 +322,8 @@ message ChatUpdate {
         ChatMessageCreatedEvent message_created = 3;
         ChatMessageDeletedEvent message_deleted = 4;
         ChatHeartbeatEvent heartbeat = 5;
+        ChatBlockedUserCreatedEvent blocked_user_created = 6;
+        ChatBlockedUserDeletedEvent blocked_user_deleted = 7;
     }
 }
 
@@ -362,6 +367,14 @@ message ChatMessageDeletedEvent {
 
 message ChatHeartbeatEvent {
     uint32 sequence = 1;
+}
+
+message ChatBlockedUserCreatedEvent {
+    string blocked_user_address = 1;
+}
+
+message ChatBlockedUserDeletedEvent {
+    string blocked_user_address = 1;
 }
 
 message SendChatMessageRequest {
@@ -850,6 +863,38 @@ message PlayedMediaHistoryRequest {
 
 message PlayedMediaHistoryResponse {
     repeated PlayedMedia played_media = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message BlockUserRequest {
+    string address = 1;
+}
+
+message BlockUserResponse {}
+
+message UnblockUserRequest {
+    oneof block_identification {
+        string block_id = 1;
+        string address = 2;
+    }
+}
+
+message UnblockUserResponse {}
+
+message BlockedUsersRequest {
+    PaginationParameters pagination_params = 1;
+}
+
+message BlockedUser {
+    string id = 1;
+    User blocked_user = 2;
+    User blocked_by = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+message BlockedUsersResponse {
+    repeated BlockedUser blocked_users = 1;
     uint64 offset = 2;
     uint64 total = 3;
 }

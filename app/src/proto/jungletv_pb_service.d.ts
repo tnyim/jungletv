@@ -256,6 +256,33 @@ type JungleTVPlayedMediaHistory = {
   readonly responseType: typeof jungletv_pb.PlayedMediaHistoryResponse;
 };
 
+type JungleTVBlockUser = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.BlockUserRequest;
+  readonly responseType: typeof jungletv_pb.BlockUserResponse;
+};
+
+type JungleTVUnblockUser = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UnblockUserRequest;
+  readonly responseType: typeof jungletv_pb.UnblockUserResponse;
+};
+
+type JungleTVBlockedUsers = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.BlockedUsersRequest;
+  readonly responseType: typeof jungletv_pb.BlockedUsersResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -565,6 +592,9 @@ export class JungleTV {
   static readonly SetProfileBiography: JungleTVSetProfileBiography;
   static readonly SetProfileFeaturedMedia: JungleTVSetProfileFeaturedMedia;
   static readonly PlayedMediaHistory: JungleTVPlayedMediaHistory;
+  static readonly BlockUser: JungleTVBlockUser;
+  static readonly UnblockUser: JungleTVUnblockUser;
+  static readonly BlockedUsers: JungleTVBlockedUsers;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -833,6 +863,33 @@ export class JungleTVClient {
   playedMediaHistory(
     requestMessage: jungletv_pb.PlayedMediaHistoryRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.PlayedMediaHistoryResponse|null) => void
+  ): UnaryResponse;
+  blockUser(
+    requestMessage: jungletv_pb.BlockUserRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.BlockUserResponse|null) => void
+  ): UnaryResponse;
+  blockUser(
+    requestMessage: jungletv_pb.BlockUserRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.BlockUserResponse|null) => void
+  ): UnaryResponse;
+  unblockUser(
+    requestMessage: jungletv_pb.UnblockUserRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UnblockUserResponse|null) => void
+  ): UnaryResponse;
+  unblockUser(
+    requestMessage: jungletv_pb.UnblockUserRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UnblockUserResponse|null) => void
+  ): UnaryResponse;
+  blockedUsers(
+    requestMessage: jungletv_pb.BlockedUsersRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.BlockedUsersResponse|null) => void
+  ): UnaryResponse;
+  blockedUsers(
+    requestMessage: jungletv_pb.BlockedUsersRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.BlockedUsersResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

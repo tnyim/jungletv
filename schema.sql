@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "blocked_user";
 DROP TABLE IF EXISTS "media_queue_event";
 DROP TABLE IF EXISTS "media_queue_event_type";
 DROP TABLE IF EXISTS "user_profile";
@@ -203,3 +204,13 @@ CREATE TABLE IF NOT EXISTS "media_queue_event" (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL PRIMARY KEY,
     event_type VARCHAR(10) NOT NULL REFERENCES media_queue_event_type (event_type)
 );
+
+CREATE TABLE IF NOT EXISTS "blocked_user" (
+    id VARCHAR(36) PRIMARY KEY,
+    "address" VARCHAR(64),
+    blocked_by VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    UNIQUE("address", blocked_by)
+);
+
+CREATE INDEX index_blocked_by_on_blocked_user ON blocked_user USING BTREE (blocked_by);

@@ -31,12 +31,36 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onMessageDeleted, messageDeletedU := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
 	defer messageDeletedU()
 
+	ctx := stream.Context()
+	user := auth.UserClaimsFromContext(ctx)
+
+	onUserBlocked, userBlockedU := s.chat.OnUserBlockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
+	defer userBlockedU()
+
+	onUserUnblocked, userUnblockedU := s.chat.OnUserUnblockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
+	defer userUnblockedU()
+
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
 	var seq uint32
 
-	ctx := stream.Context()
-	user := auth.UserClaimsFromContext(ctx)
+	blockedAddresses, err := s.chat.blockedUserStore.LoadUsersBlockedBy(ctx, user)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	for i := range blockedAddresses {
+		err := stream.Send(&proto.ChatUpdate{
+			Event: &proto.ChatUpdate_BlockedUserCreated{
+				BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
+					BlockedUserAddress: blockedAddresses[i],
+				},
+			},
+		})
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to send initial blocked users list")
+		}
+
+	}
 
 	chatEnabled, disabledReason := s.chat.Enabled()
 	if chatEnabled {
@@ -122,6 +146,22 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				},
 			})
 			seq++
+		case v := <-onUserBlocked:
+			err = stream.Send(&proto.ChatUpdate{
+				Event: &proto.ChatUpdate_BlockedUserCreated{
+					BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
+						BlockedUserAddress: v[0].(string),
+					},
+				},
+			})
+		case v := <-onUserUnblocked:
+			err = stream.Send(&proto.ChatUpdate{
+				Event: &proto.ChatUpdate_BlockedUserDeleted{
+					BlockedUserDeleted: &proto.ChatBlockedUserDeletedEvent{
+						BlockedUserAddress: v[0].(string),
+					},
+				},
+			})
 		case <-stream.Context().Done():
 			return nil
 		}

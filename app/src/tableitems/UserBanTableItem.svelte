@@ -2,10 +2,8 @@
     import { DateTime } from "luxon";
     import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
-    import { copyToClipboard } from "../utils";
 
     export let ban: UserBan;
-    export let updateDataCallback: () => void;
 
     function formatDate(date: Date): string {
         return DateTime.fromJSDate(date)

@@ -1109,6 +1109,16 @@ export class ChatUpdate extends jspb.Message {
   getHeartbeat(): ChatHeartbeatEvent | undefined;
   setHeartbeat(value?: ChatHeartbeatEvent): void;
 
+  hasBlockedUserCreated(): boolean;
+  clearBlockedUserCreated(): void;
+  getBlockedUserCreated(): ChatBlockedUserCreatedEvent | undefined;
+  setBlockedUserCreated(value?: ChatBlockedUserCreatedEvent): void;
+
+  hasBlockedUserDeleted(): boolean;
+  clearBlockedUserDeleted(): void;
+  getBlockedUserDeleted(): ChatBlockedUserDeletedEvent | undefined;
+  setBlockedUserDeleted(value?: ChatBlockedUserDeletedEvent): void;
+
   getEventCase(): ChatUpdate.EventCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatUpdate.AsObject;
@@ -1127,6 +1137,8 @@ export namespace ChatUpdate {
     messageCreated?: ChatMessageCreatedEvent.AsObject,
     messageDeleted?: ChatMessageDeletedEvent.AsObject,
     heartbeat?: ChatHeartbeatEvent.AsObject,
+    blockedUserCreated?: ChatBlockedUserCreatedEvent.AsObject,
+    blockedUserDeleted?: ChatBlockedUserDeletedEvent.AsObject,
   }
 
   export enum EventCase {
@@ -1136,6 +1148,8 @@ export namespace ChatUpdate {
     MESSAGE_CREATED = 3,
     MESSAGE_DELETED = 4,
     HEARTBEAT = 5,
+    BLOCKED_USER_CREATED = 6,
+    BLOCKED_USER_DELETED = 7,
   }
 }
 
@@ -1331,6 +1345,46 @@ export class ChatHeartbeatEvent extends jspb.Message {
 export namespace ChatHeartbeatEvent {
   export type AsObject = {
     sequence: number,
+  }
+}
+
+export class ChatBlockedUserCreatedEvent extends jspb.Message {
+  getBlockedUserAddress(): string;
+  setBlockedUserAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatBlockedUserCreatedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatBlockedUserCreatedEvent): ChatBlockedUserCreatedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatBlockedUserCreatedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatBlockedUserCreatedEvent;
+  static deserializeBinaryFromReader(message: ChatBlockedUserCreatedEvent, reader: jspb.BinaryReader): ChatBlockedUserCreatedEvent;
+}
+
+export namespace ChatBlockedUserCreatedEvent {
+  export type AsObject = {
+    blockedUserAddress: string,
+  }
+}
+
+export class ChatBlockedUserDeletedEvent extends jspb.Message {
+  getBlockedUserAddress(): string;
+  setBlockedUserAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatBlockedUserDeletedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatBlockedUserDeletedEvent): ChatBlockedUserDeletedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatBlockedUserDeletedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatBlockedUserDeletedEvent;
+  static deserializeBinaryFromReader(message: ChatBlockedUserDeletedEvent, reader: jspb.BinaryReader): ChatBlockedUserDeletedEvent;
+}
+
+export namespace ChatBlockedUserDeletedEvent {
+  export type AsObject = {
+    blockedUserAddress: string,
   }
 }
 
@@ -3867,6 +3921,183 @@ export class PlayedMediaHistoryResponse extends jspb.Message {
 export namespace PlayedMediaHistoryResponse {
   export type AsObject = {
     playedMediaList: Array<PlayedMedia.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
+export class BlockUserRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BlockUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: BlockUserRequest): BlockUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BlockUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BlockUserRequest;
+  static deserializeBinaryFromReader(message: BlockUserRequest, reader: jspb.BinaryReader): BlockUserRequest;
+}
+
+export namespace BlockUserRequest {
+  export type AsObject = {
+    address: string,
+  }
+}
+
+export class BlockUserResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BlockUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: BlockUserResponse): BlockUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BlockUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BlockUserResponse;
+  static deserializeBinaryFromReader(message: BlockUserResponse, reader: jspb.BinaryReader): BlockUserResponse;
+}
+
+export namespace BlockUserResponse {
+  export type AsObject = {
+  }
+}
+
+export class UnblockUserRequest extends jspb.Message {
+  hasBlockId(): boolean;
+  clearBlockId(): void;
+  getBlockId(): string;
+  setBlockId(value: string): void;
+
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getBlockIdentificationCase(): UnblockUserRequest.BlockIdentificationCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UnblockUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UnblockUserRequest): UnblockUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UnblockUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UnblockUserRequest;
+  static deserializeBinaryFromReader(message: UnblockUserRequest, reader: jspb.BinaryReader): UnblockUserRequest;
+}
+
+export namespace UnblockUserRequest {
+  export type AsObject = {
+    blockId: string,
+    address: string,
+  }
+
+  export enum BlockIdentificationCase {
+    BLOCK_IDENTIFICATION_NOT_SET = 0,
+    BLOCK_ID = 1,
+    ADDRESS = 2,
+  }
+}
+
+export class UnblockUserResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UnblockUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UnblockUserResponse): UnblockUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UnblockUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UnblockUserResponse;
+  static deserializeBinaryFromReader(message: UnblockUserResponse, reader: jspb.BinaryReader): UnblockUserResponse;
+}
+
+export namespace UnblockUserResponse {
+  export type AsObject = {
+  }
+}
+
+export class BlockedUsersRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BlockedUsersRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: BlockedUsersRequest): BlockedUsersRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BlockedUsersRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BlockedUsersRequest;
+  static deserializeBinaryFromReader(message: BlockedUsersRequest, reader: jspb.BinaryReader): BlockedUsersRequest;
+}
+
+export namespace BlockedUsersRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+  }
+}
+
+export class BlockedUser extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  hasBlockedUser(): boolean;
+  clearBlockedUser(): void;
+  getBlockedUser(): User | undefined;
+  setBlockedUser(value?: User): void;
+
+  hasBlockedBy(): boolean;
+  clearBlockedBy(): void;
+  getBlockedBy(): User | undefined;
+  setBlockedBy(value?: User): void;
+
+  hasCreatedAt(): boolean;
+  clearCreatedAt(): void;
+  getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BlockedUser.AsObject;
+  static toObject(includeInstance: boolean, msg: BlockedUser): BlockedUser.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BlockedUser, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BlockedUser;
+  static deserializeBinaryFromReader(message: BlockedUser, reader: jspb.BinaryReader): BlockedUser;
+}
+
+export namespace BlockedUser {
+  export type AsObject = {
+    id: string,
+    blockedUser?: User.AsObject,
+    blockedBy?: User.AsObject,
+    createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class BlockedUsersResponse extends jspb.Message {
+  clearBlockedUsersList(): void;
+  getBlockedUsersList(): Array<BlockedUser>;
+  setBlockedUsersList(value: Array<BlockedUser>): void;
+  addBlockedUsers(value?: BlockedUser, index?: number): BlockedUser;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BlockedUsersResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: BlockedUsersResponse): BlockedUsersResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BlockedUsersResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BlockedUsersResponse;
+  static deserializeBinaryFromReader(message: BlockedUsersResponse, reader: jspb.BinaryReader): BlockedUsersResponse;
+}
+
+export namespace BlockedUsersResponse {
+  export type AsObject = {
+    blockedUsersList: Array<BlockedUser.AsObject>,
     offset: number,
     total: number,
   }

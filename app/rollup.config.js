@@ -46,6 +46,7 @@ export default [
 					API_HOST: production ? "https://jungletv.live" : "use-origin",
 					PRODUCTION_BUILD: production,
 				}),
+				preventAssignment: true,
 			}),
 			replace({
 				// fix rollup insistence on trying to use things meant for node
@@ -54,6 +55,7 @@ export default [
 				process: JSON.stringify({
 					type: "renderer",
 				}),
+				preventAssignment: true,
 				"module.exports = require('./node.js');": "",
 			}),
 			/*replace({
@@ -123,6 +125,7 @@ export default [
 		plugins: [
 			replace({
 				'process.env.NODE_ENV': JSON.stringify('production'),
+				preventAssignment: true,
 			}),
 			typescript({
 				tsconfig: './tsconfig-serviceworker.json',

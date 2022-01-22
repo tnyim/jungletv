@@ -256,8 +256,8 @@
             </tr>
         </svelte:fragment>
 
-        <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
-            <UserBanTableItem ban={item} {updateDataCallback} />
+        <tbody slot="item" let:item class="hover:bg-gray-200 dark:hover:bg-gray-700">
+            <UserBanTableItem ban={item} />
         </tbody>
     </PaginatedTable>
 </div>

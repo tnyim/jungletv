@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/JohannesKaufmann/html-to-markdown/escape"
@@ -32,6 +33,7 @@ type ChatManager struct {
 	slowmodeRateLimiter   limiter.Store
 	nickChangeRateLimiter limiter.Store
 	moderationStore       ModerationStore
+	blockedUserStore      BlockedUserStore
 
 	enabled        bool
 	slowmode       bool
@@ -40,9 +42,15 @@ type ChatManager struct {
 	chatDisabled   *event.Event
 	messageCreated *event.Event
 	messageDeleted *event.Event
+
+	userBlockedByMutex   sync.RWMutex
+	userBlockedBy        map[string]*event.Event
+	userUnblockedByMutex sync.RWMutex
+	userUnblockedBy      map[string]*event.Event
 }
 
-func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore, moderationStore ModerationStore) (*ChatManager, error) {
+func NewChatManager(log *log.Logger, statsClient *statsd.Client,
+	store ChatStore, moderationStore ModerationStore, blockStore BlockedUserStore) (*ChatManager, error) {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
@@ -82,6 +90,10 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client, store ChatStore
 		nickChangeRateLimiter: nickChangeRateLimiter,
 		enabled:               true,
 		moderationStore:       moderationStore,
+		blockedUserStore:      blockStore,
+
+		userBlockedBy:   make(map[string]*event.Event),
+		userUnblockedBy: make(map[string]*event.Event),
 
 		chatEnabled:    event.New(),
 		chatDisabled:   event.New(),
@@ -366,6 +378,109 @@ func (c *ChatManager) DisableChat(reason ChatDisabledReason) {
 
 func (c *ChatManager) SetSlowModeEnabled(enabled bool) {
 	c.slowmode = enabled
+}
+
+func (c *ChatManager) OnUserBlockedBy(user User) *event.Event {
+	if user == nil || user.IsUnknown() {
+		// will never fire, and satisfies the consumer
+		return event.New()
+	}
+
+	c.userBlockedByMutex.Lock()
+	defer c.userBlockedByMutex.Unlock()
+
+	address := user.Address()
+
+	if e, ok := c.userBlockedBy[address]; ok {
+		return e
+	}
+
+	e := event.New()
+	var unsubscribe func()
+	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
+		if subscriberCount == 0 {
+			c.userBlockedByMutex.Lock()
+			defer c.userBlockedByMutex.Unlock()
+			delete(c.userBlockedBy, address)
+			unsubscribe()
+		}
+	})
+	c.userBlockedBy[address] = e
+	return e
+}
+
+func (c *ChatManager) OnUserUnblockedBy(user User) *event.Event {
+	if user == nil || user.IsUnknown() {
+		// will never fire, and satisfies the consumer
+		return event.New()
+	}
+
+	c.userUnblockedByMutex.Lock()
+	defer c.userUnblockedByMutex.Unlock()
+
+	address := user.Address()
+
+	if e, ok := c.userUnblockedBy[address]; ok {
+		return e
+	}
+
+	e := event.New()
+	var unsubscribe func()
+	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
+		if subscriberCount == 0 {
+			c.userUnblockedByMutex.Lock()
+			defer c.userUnblockedByMutex.Unlock()
+			delete(c.userUnblockedBy, address)
+			unsubscribe()
+		}
+	})
+	c.userUnblockedBy[address] = e
+	return e
+}
+
+func (c *ChatManager) BlockUser(ctx context.Context, userToBlock, blockedBy User) error {
+	err := c.blockedUserStore.BlockUser(ctx, userToBlock, blockedBy)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	c.userBlockedByMutex.RLock()
+	defer c.userBlockedByMutex.RUnlock()
+
+	if e, ok := c.userBlockedBy[blockedBy.Address()]; ok {
+		e.Notify(userToBlock.Address())
+	}
+	return nil
+}
+
+func (c *ChatManager) UnblockUser(ctx context.Context, blockID string, blockedBy User) error {
+	unblockedUser, err := c.blockedUserStore.UnblockUser(ctx, blockID, blockedBy)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	c.userUnblockedByMutex.RLock()
+	defer c.userUnblockedByMutex.RUnlock()
+
+	if e, ok := c.userUnblockedBy[blockedBy.Address()]; ok {
+		e.Notify(unblockedUser.Address())
+	}
+	return nil
+}
+
+func (c *ChatManager) UnblockUserByAddress(ctx context.Context, address string, blockedBy User) error {
+	unblockedUser, err := c.blockedUserStore.UnblockUserByAddress(ctx, address, blockedBy)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	c.userUnblockedByMutex.RLock()
+	defer c.userUnblockedByMutex.RUnlock()
+
+	if e, ok := c.userUnblockedBy[blockedBy.Address()]; ok {
+		e.Notify(unblockedUser.Address())
+	}
+	return nil
 }
 
 // ChatMessage represents a single chat message

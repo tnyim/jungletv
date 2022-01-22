@@ -13,6 +13,7 @@ type Event struct {
 	closed                    bool
 	pendingNotification       bool
 	pendingNotificationParams []interface{}
+	onUnsubscribed            *Event
 }
 
 type subscription struct {
@@ -99,8 +100,12 @@ func (e *Event) unsubscribe(ch <-chan []interface{}) {
 	for i := range e.subs {
 		if e.subs[i].ch == ch {
 			close(e.subs[i].ch)
-			e.subs[i] = e.subs[len(e.subs)-1]
-			e.subs = e.subs[:len(e.subs)-1]
+			newLen := len(e.subs) - 1
+			e.subs[i] = e.subs[newLen]
+			e.subs = e.subs[:newLen]
+			if e.onUnsubscribed != nil {
+				e.onUnsubscribed.Notify(newLen)
+			}
 			return
 		}
 	}
@@ -149,6 +154,19 @@ func (e *Event) Close() {
 			close(sub.ch)
 		}
 	}
+}
+
+// Unsubscribed returns an event that is notified with the current subscriber count whenever a subscriber unsubscribes
+// from this event. This allows references to the event to be manually freed in code patterns that require it.
+func (e *Event) Unsubscribed() *Event {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	// onUnsubscribed is lazily initialized to avoid infinite recursion on New()
+	if e.onUnsubscribed == nil {
+		e.onUnsubscribed = New()
+	}
+	return e.onUnsubscribed
 }
 
 func call(fn interface{}, params ...interface{}) error {

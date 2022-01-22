@@ -127,7 +127,12 @@ import {
     ClearUserProfileResponse,
     ClearUserProfileRequest,
     PlayedMediaHistoryResponse,
-    PlayedMediaHistoryRequest
+    PlayedMediaHistoryRequest,
+    BlockUserResponse,
+    BlockUserRequest,
+    UnblockUserRequest,
+    BlockedUsersResponse,
+    BlockedUsersRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -631,6 +636,29 @@ class APIClient {
         request.setAddress(address);
         return this.unaryRPC<ClearUserProfileRequest, ClearUserProfileResponse>(JungleTV.ClearUserProfile, request);
     }
+
+    async blockUser(address: string): Promise<BlockUserResponse> {
+        let request = new BlockUserRequest();
+        request.setAddress(address);
+        return this.unaryRPC<BlockUserRequest, BlockUserResponse>(JungleTV.BlockUser, request);
+    }
+
+    async unblockUser(blockID?: string, address?: string): Promise<BlockUserResponse> {
+        let request = new UnblockUserRequest();
+        if (typeof (blockID) !== "undefined") {
+            request.setBlockId(blockID);
+        } else if (typeof (address) !== "undefined") {
+            request.setAddress(address);
+        }
+        return this.unaryRPC<BlockUserRequest, BlockUserResponse>(JungleTV.UnblockUser, request);
+    }
+
+    async blockedUsers(pagParams: PaginationParameters): Promise<BlockedUsersResponse> {
+        let request = new BlockedUsersRequest();
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<BlockedUsersRequest, BlockedUsersResponse>(JungleTV.BlockedUsers, request);
+    }
+
 
     formatBANPrice(raw: string): string {
         return parseFloat(this.getBananoPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"))) + "";

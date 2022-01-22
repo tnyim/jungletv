@@ -24,6 +24,7 @@ export const permissionLevel = writable(PermissionLevel.UNAUTHENTICATED as value
 export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 })());
+export const blockedUsers = writable(new Set<string>());
 
 type modalInfo = {
     component: any,

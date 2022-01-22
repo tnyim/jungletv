@@ -12,7 +12,7 @@
         UserStatusMap,
     } from "./proto/jungletv_pb";
     import SidebarTabButton from "./SidebarTabButton.svelte";
-    import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
     import UserModerationInfo from "./UserModerationInfo.svelte";
     import UserProfileFeaturedMedia from "./UserProfileFeaturedMedia.svelte";
     import UserProfileInfo from "./UserProfileInfo.svelte";
@@ -108,6 +108,18 @@
         await apiClient.setProfileFeaturedMedia();
         await refreshProfile();
     }
+
+    async function blockUser() {
+        await apiClient.blockUser(userAddress);
+        $blockedUsers = $blockedUsers.add(userAddress);
+    }
+
+    async function unblockUser() {
+        await apiClient.unblockUser(undefined, userAddress);
+        let bu = $blockedUsers;
+        bu.delete(userAddress);
+        $blockedUsers = bu;
+    }
 </script>
 
 <div class="flex flex-col justify-center bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded-t-lg">
@@ -195,6 +207,28 @@
                 <span class="text-sm text-green-500 dark:text-green-300">Tier 3 video requester</span>
             {/if}
         </div>
+        {#if !isSelf && $rewardAddress != ""}
+            {#if $blockedUsers.has(userAddress)}
+                <div class="flex flex-col justify-center">
+                    <button
+                        type="button"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
+                        on:click={unblockUser}
+                    >
+                        Unblock
+                    </button>
+                </div>
+            {:else}
+                <div class="flex flex-col justify-center">
+                    <button
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hover:shadow ease-linear transition-all duration-150"
+                        on:click={blockUser}
+                    >
+                        Block
+                    </button>
+                </div>
+            {/if}
+        {/if}
     </div>
 </div>
 <div class="flex flex-col justify-center bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-b-lg">
