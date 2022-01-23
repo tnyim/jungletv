@@ -49,7 +49,7 @@ func (u *addressOnlyUser) PermissionLevel() auth.PermissionLevel {
 }
 
 func (u *addressOnlyUser) IsUnknown() bool {
-	return u.address == ""
+	return u == nil || u.address == ""
 }
 
 func (u *addressOnlyUser) SetNickname(s *string) {

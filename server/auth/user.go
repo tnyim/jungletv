@@ -52,7 +52,7 @@ func (u *UserClaims) SerializeForAPI() *proto.User {
 }
 
 func (u *UserClaims) IsUnknown() bool {
-	return false
+	return u == nil
 }
 
 func (u *UserClaims) SetNickname(s *string) {
