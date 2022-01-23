@@ -307,6 +307,7 @@ message SubmitActivityChallengeRequest {
     string challenge = 1;
     string captcha_response = 2;
     bool trusted = 3;
+    string client_version = 4;
 }
 
 message SubmitActivityChallengeResponse {}

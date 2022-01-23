@@ -40,6 +40,7 @@ type RewardsHandler struct {
 	moderationStore                ModerationStore
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
+	versionHash                    string
 
 	rewardsDistributed *event.Event
 
@@ -165,7 +166,8 @@ func NewRewardsHandler(log *log.Logger,
 	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore ModerationStore,
-	segchaCheckFn captchaResponseCheckFn) (*RewardsHandler, error) {
+	segchaCheckFn captchaResponseCheckFn,
+	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -189,6 +191,8 @@ func NewRewardsHandler(log *log.Logger,
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
 		spectatorsByRewardAddress:    make(map[string]*spectator),
 		spectatorByActivityChallenge: make(map[string]*spectator),
+
+		versionHash: versionHash,
 	}, nil
 }
 

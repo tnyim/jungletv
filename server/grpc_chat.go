@@ -44,6 +44,9 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	defer heartbeat.Stop()
 	var seq uint32
 
+	unregister := s.statsHandler.RegisterChatSubscriber(user != nil && !user.IsUnknown())
+	defer unregister()
+
 	blockedAddresses, err := s.chat.blockedUserStore.LoadUsersBlockedBy(ctx, user)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

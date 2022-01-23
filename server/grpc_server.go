@@ -126,7 +126,8 @@ type Options struct {
 	CryptomonKeysClientID     string
 	CryptomonKeysClientSecret string
 
-	WebsiteURL string
+	WebsiteURL  string
+	VersionHash string
 }
 
 // NewServer returns a new JungleTVServer
@@ -285,7 +286,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.HCaptchaSecret, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid)
+		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid, options.VersionHash)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}

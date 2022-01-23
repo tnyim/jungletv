@@ -18,6 +18,12 @@ type StatsHandler struct {
 	// spectatorsByRemoteAddress is a set of remote addresses
 	spectatorsByRemoteAddress map[string]int
 	spectatorsMutex           sync.RWMutex
+
+	queueSubs              int
+	authenticatedQueueSubs int
+
+	chatSubs              int
+	authenticatedChatSubs int
 }
 
 // NewStatsHandler creates a new StatsHandler
@@ -58,4 +64,40 @@ func (s *StatsHandler) CurrentlyWatching() int {
 	s.spectatorsMutex.RLock()
 	defer s.spectatorsMutex.RUnlock()
 	return len(s.spectatorsByRemoteAddress)
+}
+
+func (s *StatsHandler) RegisterQueueSubscriber(authenticated bool) func() {
+	s.queueSubs++
+	go s.statsClient.Gauge("subscribers.queue", s.queueSubs)
+	if authenticated {
+		s.authenticatedQueueSubs++
+		go s.statsClient.Gauge("subscribers.queue_authenticated", s.authenticatedQueueSubs)
+	}
+
+	return func() {
+		s.queueSubs--
+		go s.statsClient.Gauge("subscribers.queue", s.queueSubs)
+		if authenticated {
+			s.authenticatedQueueSubs--
+			go s.statsClient.Gauge("subscribers.queue_authenticated", s.authenticatedQueueSubs)
+		}
+	}
+}
+
+func (s *StatsHandler) RegisterChatSubscriber(authenticated bool) func() {
+	s.chatSubs++
+	go s.statsClient.Gauge("subscribers.chat", s.chatSubs)
+	if authenticated {
+		s.authenticatedChatSubs++
+		go s.statsClient.Gauge("subscribers.chat_authenticated", s.authenticatedChatSubs)
+	}
+
+	return func() {
+		s.chatSubs--
+		go s.statsClient.Gauge("subscribers.chat", s.chatSubs)
+		if authenticated {
+			s.authenticatedChatSubs--
+			go s.statsClient.Gauge("subscribers.chat_authenticated", s.authenticatedChatSubs)
+		}
+	}
 }

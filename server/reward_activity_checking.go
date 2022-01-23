@@ -16,7 +16,7 @@ import (
 )
 
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted)
+	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted, r.ClientVersion)
 }
 
 func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
@@ -86,7 +86,7 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool) (err error) {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool, clientVersion string) (err error) {
 	var spectator *spectator
 	var timeUntilChallengeResponse time.Duration
 	var captchaValid bool
@@ -109,7 +109,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	now := time.Now()
 	timeUntilChallengeResponse = now.Sub(spectator.activityChallenge.ChallengedAt)
 
-	newLegitimate := trusted
+	newLegitimate := trusted && clientVersion == r.versionHash
 	var checkFn captchaResponseCheckFn
 	switch spectator.activityChallenge.Type {
 	case "hCaptcha":
@@ -122,7 +122,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		if err != nil {
 			r.log.Println("Error verifying captcha:", err)
 		}
-		newLegitimate = err == nil && captchaValid && trusted
+		newLegitimate = err == nil && captchaValid && trusted && clientVersion == r.versionHash
 		if !captchaValid && err == nil {
 			// if not valid, do everything except mark the spectator as legitimate.
 			// this way, they'll stop receiving rewards until the next challenge

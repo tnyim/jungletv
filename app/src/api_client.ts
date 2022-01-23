@@ -20,7 +20,6 @@ import {
     RewardInfoRequest,
     RewardInfoResponse,
     SignInRequest,
-    SignInResponse,
     SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse,
     ChatUpdate,
@@ -160,8 +159,8 @@ class APIClient {
         return APIClient.instance;
     }
 
-    private handleVersionHeader(version: string): void {
-        if (this.versionHash === undefined) {
+    private getClientVersion(): string {
+        if (typeof(this.versionHash) === 'undefined') {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {
                 if (metas[i].getAttribute("name") === "jungletv-version-hash") {
@@ -170,8 +169,11 @@ class APIClient {
                 }
             }
         }
+        return this.versionHash;
+    }
 
-        if (version != this.versionHash) {
+    private handleVersionHeader(version: string): void {
+        if (version != this.getClientVersion()) {
             console.log("Reloading due to different version hash in API response");
             location.reload();
         }
@@ -317,6 +319,7 @@ class APIClient {
         request.setChallenge(challenge);
         request.setCaptchaResponse(captchaResponse);
         request.setTrusted(trusted);
+        request.setClientVersion(this.getClientVersion());
         return this.unaryRPC<SubmitActivityChallengeRequest, SubmitActivityChallengeResponse>(JungleTV.SubmitActivityChallenge, request);
     }
 

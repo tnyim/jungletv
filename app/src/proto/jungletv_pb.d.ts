@@ -1029,6 +1029,9 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
   getTrusted(): boolean;
   setTrusted(value: boolean): void;
 
+  getClientVersion(): string;
+  setClientVersion(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SubmitActivityChallengeRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SubmitActivityChallengeRequest): SubmitActivityChallengeRequest.AsObject;
@@ -1044,6 +1047,7 @@ export namespace SubmitActivityChallengeRequest {
     challenge: string,
     captchaResponse: string,
     trusted: boolean,
+    clientVersion: string,
   }
 }
 

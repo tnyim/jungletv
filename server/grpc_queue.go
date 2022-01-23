@@ -18,6 +18,9 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	ctx := stream.Context()
 	user := auth.UserClaimsFromContext(ctx)
 
+	unregister := s.statsHandler.RegisterQueueSubscriber(user != nil && !user.IsUnknown())
+	defer unregister()
+
 	send := func() error {
 		tokensExhausted := false
 		if user != nil && !user.IsUnknown() {

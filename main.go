@@ -317,6 +317,7 @@ func main() {
 		CryptomonKeysClientID:     cmClientID,
 		CryptomonKeysClientSecret: cmClientSecret,
 		WebsiteURL:                websiteURL,
+		VersionHash:               versionHash,
 	}
 
 	apiServer, extraHTTProutes, err := server.NewServer(ctx, options)

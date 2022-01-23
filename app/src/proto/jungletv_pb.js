@@ -10618,7 +10618,8 @@ proto.jungletv.SubmitActivityChallengeRequest.toObject = function(includeInstanc
   var f, obj = {
     challenge: jspb.Message.getFieldWithDefault(msg, 1, ""),
     captchaResponse: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    trusted: jspb.Message.getBooleanFieldWithDefault(msg, 3, false)
+    trusted: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    clientVersion: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -10667,6 +10668,10 @@ proto.jungletv.SubmitActivityChallengeRequest.deserializeBinaryFromReader = func
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setTrusted(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientVersion(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -10714,6 +10719,13 @@ proto.jungletv.SubmitActivityChallengeRequest.serializeBinaryToWriter = function
   if (f) {
     writer.writeBool(
       3,
+      f
+    );
+  }
+  f = message.getClientVersion();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -10771,6 +10783,24 @@ proto.jungletv.SubmitActivityChallengeRequest.prototype.getTrusted = function() 
  */
 proto.jungletv.SubmitActivityChallengeRequest.prototype.setTrusted = function(value) {
   return jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional string client_version = 4;
+ * @return {string}
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.getClientVersion = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.SubmitActivityChallengeRequest} returns this
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.setClientVersion = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
