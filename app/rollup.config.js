@@ -38,7 +38,14 @@ export default [
 			sourcemap: true,
 			format: 'iife',
 			name: 'app',
-			file: 'public/build/bundle.js'
+			file: 'public/build/bundle.js',
+		},
+		onwarn: function onwarn(warning, warn) {
+			if (
+				warning.code === 'EVAL' &&
+				warning.id.indexOf('google-protobuf.js') >= 0)
+				return;
+			warn(warning);
 		},
 		plugins: [
 			replace({
