@@ -15,13 +15,54 @@
     let top = 0;
     let container: HTMLElement;
 
+    function checkShadowRootIntegrity(): boolean {
+        "use strict";
+        let order = activityChallenge.getId()[0] < "A";
+        let rootNode = container.getRootNode() as ShadowRoot;
+        if (order) {
+            return (
+                rootNode.mode === "closed" &&
+                typeof Object.getOwnPropertyDescriptor(rootNode, "mode") === "undefined" &&
+                Node.prototype.getRootNode.toString === Function.prototype.toString &&
+                Node.prototype.getRootNode.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                typeof Object.getOwnPropertyDescriptor.prototype === "undefined" &&
+                typeof Node.prototype.getRootNode.prototype === "undefined" &&
+                Object.getOwnPropertyDescriptor.toString === Function.prototype.toString &&
+                Object.getOwnPropertyDescriptor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode")
+                    .get.toString()
+                    .replace(/\s+/g, "")
+                    .indexOf("[nativecode]") >= 0 &&
+                typeof Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode").get == "function" &&
+                function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0
+            );
+        } else {
+            return (
+                Object.getOwnPropertyDescriptor.toString === Function.prototype.toString &&
+                function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0 &&
+                typeof Object.getOwnPropertyDescriptor.prototype === "undefined" &&
+                Node.prototype.getRootNode.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                typeof Node.prototype.getRootNode.prototype === "undefined" &&
+                Object.getOwnPropertyDescriptor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                Node.prototype.getRootNode.toString === Function.prototype.toString &&
+                typeof Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode").get == "function" &&
+                rootNode.mode === "closed" &&
+                typeof Object.getOwnPropertyDescriptor(rootNode, "mode") === "undefined" &&
+                Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode")
+                    .get.toString()
+                    .replace(/\s+/g, "")
+                    .indexOf("[nativecode]") >= 0
+            );
+        }
+    }
+
     async function stillWatching(event: MouseEvent) {
         clicked = true;
         let sig = ((Document.prototype as any).__lookupGetter__("hidden") + "").replace(/\s+/g, "");
         trusted =
             event.isTrusted &&
             !document.hidden &&
-            (container.getRootNode() as ShadowRoot).mode == "closed" &&
+            checkShadowRootIntegrity() &&
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "hCaptcha") {
             executehCaptcha();

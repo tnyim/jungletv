@@ -67,7 +67,7 @@
         ? 'mt-1.5'
         : message.hasReference()
         ? ''
-        : 'mt-0.5'} break-words relative
+        : 'mt-0.5'} break-words relative overflow-auto
     {getBackgroundColorForMessage()}"
     on:pointerleave={(ev) => {
         if (ev.pointerType != "touch") {

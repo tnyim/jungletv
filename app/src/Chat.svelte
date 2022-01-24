@@ -234,7 +234,7 @@
         replyingToMessage = undefined;
     }
     function highlightMessage(message: ChatMessage) {
-        let msgElement = document.getElementById("chat-message-" + message.getId());
+        let msgElement = (chatContainer.getRootNode() as ShadowRoot).getElementById("chat-message-" + message.getId());
         if (msgElement == null) {
             return;
         }

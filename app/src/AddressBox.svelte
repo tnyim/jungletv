@@ -43,10 +43,6 @@
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
     }
-
-    function openBananoVault() {
-        window.open();
-    }
 </script>
 
 <div class="flex justify-center">
