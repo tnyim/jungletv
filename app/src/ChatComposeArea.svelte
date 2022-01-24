@@ -49,6 +49,13 @@
             }
         `;
         emojiPicker.shadowRoot.appendChild(style);
+
+        /*let theHiddenTextareaItUsesForMeasurement = document.querySelectorAll(
+            'body > textarea[tab-index="-1"][aria-hidden="true"]'
+        );
+        if (theHiddenTextareaItUsesForMeasurement.length > 0) {
+            composeTextArea.getRootNode().appendChild(theHiddenTextareaItUsesForMeasurement[0]);
+        }*/
     });
 
     afterUpdate(() => {

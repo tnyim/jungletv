@@ -159,7 +159,7 @@ class APIClient {
         return APIClient.instance;
     }
 
-    private getClientVersion(): string {
+    public getClientVersion(): string {
         if (typeof(this.versionHash) === 'undefined') {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {

@@ -24,20 +24,26 @@
 
 	export let url = "";
 
+	// the purpose of this div is to be our <body> inside the shadow DOM so we can apply the dark mode class
+	let rootInsideShadowRoot: HTMLElement;
+
 	apiClient.setAuthNeededCallback(() => {
 		//navigate("/auth/login");
 	});
 
-	darkMode.subscribe((enabled) => {
-		if (enabled) {
-			document.documentElement.classList.add("dark");
-			document.documentElement.classList.add("bg-gray-900");
-		} else {
-			document.documentElement.classList.remove("dark");
-			document.documentElement.classList.remove("bg-gray-900");
+	$: {
+		if (typeof rootInsideShadowRoot !== "undefined") {
+			let enabled = $darkMode;
+			if (enabled) {
+				rootInsideShadowRoot.classList.add("dark");
+				rootInsideShadowRoot.classList.add("bg-gray-900");
+			} else {
+				rootInsideShadowRoot.classList.remove("dark");
+				rootInsideShadowRoot.classList.remove("bg-gray-900");
+			}
+			localStorage.darkMode = enabled;
 		}
-		localStorage.darkMode = enabled;
-	});
+	}
 
 	let isAdmin = false;
 	let isOnline = true;
@@ -93,82 +99,84 @@
 	});
 </script>
 
-<Modal setContext={modalSetContext} />
-{#if isOnline}
-	<Navbar />
-	<div
-		class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
+<div bind:this={rootInsideShadowRoot}>
+	<Modal setContext={modalSetContext} />
+	{#if isOnline}
+		<Navbar />
+		<div
+			class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
 	dark:text-gray-300 {mainContentBottomPadding}"
-	>
-		<PlayerContainer
-			bind:this={playerContainer}
-			bind:mainContentBottomPadding
-			fullSize={isOnHomepage}
-			{fullSizePlayerContainer}
-			{fullSizePlayerContainerWidth}
-			{fullSizePlayerContainerHeight}
-		/>
-		<Router {url}>
-			<Route path="/">
-				<Homepage
-					bind:playerContainer={fullSizePlayerContainer}
-					bind:playerContainerWidth={fullSizePlayerContainerWidth}
-					bind:playerContainerHeight={fullSizePlayerContainerHeight}
-					on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
-					on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
-					on:sidebarOpenStart={playerContainer.onSidebarOpenStart}
-					on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
-				/>
-			</Route>
-			<Route path="/about" component={About} />
-			<Route path="/enqueue" component={Enqueue} />
-			<Route path="/rewards" component={Rewards} />
-			<Route path="/rewards/address" component={SetRewardsAddress} />
-			<Route path="/leaderboards" component={Leaderboards} />
-			<Route path="/guidelines" component={Document} documentID="guidelines" />
-			<Route path="/faq" component={Document} documentID="faq" />
-			<Route path="/documents/:documentID" component={Document} />
-			<Route path="/history" component={PlayedMediaHistory} />
-			<Route path="/moderate">
-				{#if isAdmin}
-					<Moderate />
-				{:else}
-					<a href="/admin/signin">Sign in</a>
-				{/if}
-			</Route>
-			<Route path="/moderate/users/:address/chathistory" let:params>
-				{#if isAdmin}
-					<UserChatHistory address={params.address} />
-				{:else}
-					<a href="/admin/signin">Sign in</a>
-				{/if}
-			</Route>
-			<Route path="/moderate/media/disallowed" let:params>
-				{#if isAdmin}
-					<DisallowedMedia />
-				{:else}
-					<a href="/admin/signin">Sign in</a>
-				{/if}
-			</Route>
-			<Route path="/moderate/bans" let:params>
-				{#if isAdmin}
-					<UserBans />
-				{:else}
-					<a href="/admin/signin">Sign in</a>
-				{/if}
-			</Route>
-			<Route path="/moderate/documents/:documentID" let:params>
-				{#if isAdmin}
-					<EditDocument documentID={params.documentID} />
-				{:else}
-					<a href="/admin/signin">Sign in</a>
-				{/if}
-			</Route>
-		</Router>
-	</div>
-{:else}
-	<NoConnection on:retry={refreshOnLineStatus} />
-{/if}
+		>
+			<PlayerContainer
+				bind:this={playerContainer}
+				bind:mainContentBottomPadding
+				fullSize={isOnHomepage}
+				{fullSizePlayerContainer}
+				{fullSizePlayerContainerWidth}
+				{fullSizePlayerContainerHeight}
+			/>
+			<Router {url}>
+				<Route path="/">
+					<Homepage
+						bind:playerContainer={fullSizePlayerContainer}
+						bind:playerContainerWidth={fullSizePlayerContainerWidth}
+						bind:playerContainerHeight={fullSizePlayerContainerHeight}
+						on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
+						on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
+						on:sidebarOpenStart={playerContainer.onSidebarOpenStart}
+						on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
+					/>
+				</Route>
+				<Route path="/about" component={About} />
+				<Route path="/enqueue" component={Enqueue} />
+				<Route path="/rewards" component={Rewards} />
+				<Route path="/rewards/address" component={SetRewardsAddress} />
+				<Route path="/leaderboards" component={Leaderboards} />
+				<Route path="/guidelines" component={Document} documentID="guidelines" />
+				<Route path="/faq" component={Document} documentID="faq" />
+				<Route path="/documents/:documentID" component={Document} />
+				<Route path="/history" component={PlayedMediaHistory} />
+				<Route path="/moderate">
+					{#if isAdmin}
+						<Moderate />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/users/:address/chathistory" let:params>
+					{#if isAdmin}
+						<UserChatHistory address={params.address} />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/media/disallowed" let:params>
+					{#if isAdmin}
+						<DisallowedMedia />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/bans" let:params>
+					{#if isAdmin}
+						<UserBans />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/documents/:documentID" let:params>
+					{#if isAdmin}
+						<EditDocument documentID={params.documentID} />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+			</Router>
+		</div>
+	{:else}
+		<NoConnection on:retry={refreshOnLineStatus} />
+	{/if}
+</div>
 
 <style global lang="postcss">
 	@tailwind base;

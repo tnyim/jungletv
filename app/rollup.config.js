@@ -65,6 +65,16 @@ export default [
 				preventAssignment: true,
 				"module.exports = require('./node.js');": "",
 			}),
+			replace({
+				// fix library which appends a hidden textarea to document.body for measurement purposes
+				// this doesn't work right inside the shadow DOM - it needs to attach to our shadow DOM root instead
+				include: "node_modules/svelte-textarea-autoresize/src/AutoresizingTextAreaComponent/**",
+				delimiters: ["", ""],
+				preventAssignment: true,
+				"const height = calculateNodeHeight(": "const height = calculateNodeHeight(node,",
+				"export default function calculateNodeHeight(sizingData, value) {": "export default function calculateNodeHeight(node, sizingData, value) {",
+				"document.body": "node.getRootNode()",
+			}),
 			/*replace({
 				// this might help fix things when proxied by Cloudflare? since they don't recognize grpc-web as being grpc
 				include: "node_modules/@improbable-eng/grpc-web/dist/*.js",

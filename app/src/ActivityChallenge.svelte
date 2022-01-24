@@ -13,6 +13,7 @@
     let clicked = false;
     let trusted = false;
     let top = 0;
+    let container: HTMLElement;
 
     async function stillWatching(event: MouseEvent) {
         clicked = true;
@@ -20,6 +21,7 @@
         trusted =
             event.isTrusted &&
             !document.hidden &&
+            (container.getRootNode() as ShadowRoot).mode == "closed" &&
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "hCaptcha") {
             executehCaptcha();
@@ -115,6 +117,7 @@
     class="absolute left-0 bg-white dark:bg-gray-900 flex flex-col p-2 rounded-r z-50"
     style="top: {top}%"
     transition:fly|local={{ x: -384, duration: 400 }}
+    bind:this={container}
 >
     <div class="flex flex-row space-x-2">
         <div>
