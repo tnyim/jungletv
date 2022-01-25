@@ -62,12 +62,12 @@
         </p>
     {/if}
 {/if}
-<p
+<div
     class="{additionalPadding && !message.hasReference()
         ? 'mt-1.5'
         : message.hasReference()
         ? ''
-        : 'mt-0.5'} break-words relative overflow-hidden
+        : 'mt-0.5'} break-words relative
     {getBackgroundColorForMessage()}"
     on:pointerleave={(ev) => {
         if (ev.pointerType != "touch") {
@@ -80,45 +80,54 @@
         <i class="fas fa-history cursor-pointer ml-1" on:click={() => dispatch("history")} />
         <i class="fas fa-edit cursor-pointer" on:click={() => dispatch("changeNickname")} />
     {/if}
-    <span
-        on:pointerenter={(ev) => {
-            if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
-                dispatch("beginShowDetails", message);
-            } else {
-                dispatch("hideDetails");
-            }
-        }}
-    >
-        <img
-            src="https://monkey.banano.cc/api/v1/monkey/{message.getUserMessage().getAuthor().getAddress()}?format=png"
-            alt="&nbsp;"
-            title="Click to reply"
-            class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-            on:click={() => dispatch("reply")}
-        />
+    <div class="overflow-hidden">
         <span
-            class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
-            title="Click to reply"
-            on:click={() => dispatch("reply")}>{getReadableMessageAuthor(message)}</span
-        >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
-            <i
-                class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
-                title="Chat moderator"
-            />{/if}{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.CURRENT_ENTRY_REQUESTER)}
-            <i
-                class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
-                title="Requester of currently playing video"
+            on:pointerenter={(ev) => {
+                if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
+                    dispatch("beginShowDetails", message);
+                } else {
+                    dispatch("hideDetails");
+                }
+            }}
+        >
+            <img
+                src="https://monkey.banano.cc/api/v1/monkey/{message
+                    .getUserMessage()
+                    .getAuthor()
+                    .getAddress()}?format=png"
+                alt="&nbsp;"
+                title="Click to reply"
+                class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
+                on:click={() => dispatch("reply")}
             />
-        {/if}:
-    </span>
-    {@html marked
-        .parseInline(
-            message.getUserMessage().getContent(),
-            message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
-                ? { tokenizer: undefined }
-                : {}
-        )
-        .replaceAll("<a ", '<a target="_blank" rel="noopener" ')}
+            <span
+                class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
+                title="Click to reply"
+                on:click={() => dispatch("reply")}>{getReadableMessageAuthor(message)}</span
+            >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+                <i
+                    class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
+                    title="Chat moderator"
+                />{/if}{#if message
+                .getUserMessage()
+                .getAuthor()
+                .getRolesList()
+                .includes(UserRole.CURRENT_ENTRY_REQUESTER)}
+                <i
+                    class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
+                    title="Requester of currently playing video"
+                />
+            {/if}:
+        </span>
+        {@html marked
+            .parseInline(
+                message.getUserMessage().getContent(),
+                message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
+                    ? { tokenizer: undefined }
+                    : {}
+            )
+            .replaceAll("<a ", '<a target="_blank" rel="noopener" ')}
+    </div>
     {#if detailsOpenForMsgID == message.getId()}
         <ChatMessageDetails
             allowReplies={$rewardAddress != ""}
@@ -130,4 +139,4 @@
             on:mouseLeft={() => dispatch("hideDetails")}
         />
     {/if}
-</p>
+</div>
