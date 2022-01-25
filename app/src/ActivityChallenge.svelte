@@ -23,10 +23,14 @@
             return (
                 rootNode.mode === "closed" &&
                 typeof Object.getOwnPropertyDescriptor(rootNode, "mode") === "undefined" &&
+                typeof Function.prototype.toString.prototype === "undefined" &&
+                Function.prototype.toString.toString().startsWith("function toString") &&
                 Node.prototype.getRootNode.toString === Function.prototype.toString &&
                 Node.prototype.getRootNode.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
                 typeof Object.getOwnPropertyDescriptor.prototype === "undefined" &&
+                Object.getOwnPropertyDescriptor.toString().startsWith("function getOwnPropertyDescriptor") &&
                 typeof Node.prototype.getRootNode.prototype === "undefined" &&
+                Node.prototype.getRootNode.toString().startsWith("function getRootNode") &&
                 Object.getOwnPropertyDescriptor.toString === Function.prototype.toString &&
                 Object.getOwnPropertyDescriptor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
                 Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode")
@@ -34,19 +38,32 @@
                     .replace(/\s+/g, "")
                     .indexOf("[nativecode]") >= 0 &&
                 typeof Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode").get == "function" &&
-                function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0
+                function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0 &&
+                document.body.attachShadow === Element.prototype.attachShadow &&
+                Element.prototype.attachShadow.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                Element.prototype.attachShadow.toString().startsWith("function attachShadow") &&
+                Element.prototype.attachShadow.toString === Function.prototype.toString &&
+                typeof Element.prototype.attachShadow.prototype === "undefined"
             );
         } else {
             return (
                 Object.getOwnPropertyDescriptor.toString === Function.prototype.toString &&
                 function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0 &&
                 typeof Object.getOwnPropertyDescriptor.prototype === "undefined" &&
+                Node.prototype.getRootNode.toString().startsWith("function getRootNode") &&
+                document.body.attachShadow === Element.prototype.attachShadow &&
                 Node.prototype.getRootNode.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
                 typeof Node.prototype.getRootNode.prototype === "undefined" &&
+                Element.prototype.attachShadow.toString().startsWith("function attachShadow") &&
                 Object.getOwnPropertyDescriptor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
+                typeof Function.prototype.toString.prototype === "undefined" &&
                 Node.prototype.getRootNode.toString === Function.prototype.toString &&
+                Element.prototype.attachShadow.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0 &&
                 typeof Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode").get == "function" &&
+                Function.prototype.toString.toString().startsWith("function toString") &&
                 rootNode.mode === "closed" &&
+                Object.getOwnPropertyDescriptor.toString().startsWith("function getOwnPropertyDescriptor") &&
+                Element.prototype.attachShadow.toString === Function.prototype.toString &&
                 typeof Object.getOwnPropertyDescriptor(rootNode, "mode") === "undefined" &&
                 Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode")
                     .get.toString()
