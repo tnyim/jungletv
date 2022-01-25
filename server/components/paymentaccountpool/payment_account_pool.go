@@ -1,4 +1,4 @@
-package server
+package paymentaccountpool
 
 import (
 	"sync"
@@ -14,7 +14,7 @@ type PaymentAccountPool struct {
 	repAddress        string
 }
 
-func NewPaymentAccountPool(w *wallet.Wallet, repAddress string) *PaymentAccountPool {
+func New(w *wallet.Wallet, repAddress string) *PaymentAccountPool {
 	return &PaymentAccountPool{
 		availableAccounts: make(map[*wallet.Account]struct{}),
 		wallet:            w,

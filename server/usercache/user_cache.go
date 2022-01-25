@@ -1,4 +1,4 @@
-package server
+package usercache
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 
 // UserCache caches public user information
 type UserCache interface {
-	GetOrFetchUser(ctx context.Context, address string) (User, error)
-	CacheUser(ctx context.Context, user User) error
+	GetOrFetchUser(ctx context.Context, address string) (auth.User, error)
+	CacheUser(ctx context.Context, user auth.User) error
 }
 
 // MemoryUserCache is a memory-based nickname cache
@@ -21,15 +21,15 @@ type MemoryUserCache struct {
 	c *cache.Cache
 }
 
-// NewMemoryUserCache returns a new MemoryNicknameCache
-func NewMemoryUserCache() *MemoryUserCache {
+// NewInMemory returns a new MemoryUserCache
+func NewInMemory() *MemoryUserCache {
 	return &MemoryUserCache{
 		c: cache.New(1*time.Hour, 11*time.Minute),
 	}
 }
 
 // GetOrFetchUser loads user info from cache, falling back to the database if necessary
-func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string) (User, error) {
+func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string) (auth.User, error) {
 	i, present := c.c.Get(address)
 	if !present {
 		ctx, err := transaction.Begin(ctxCtx)
@@ -48,17 +48,17 @@ func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string)
 			return nil, nil
 		}
 
-		user := NewAddressOnlyUserWithPermissionLevel(address, auth.PermissionLevel(userRecord.PermissionLevel))
+		user := auth.NewAddressOnlyUserWithPermissionLevel(address, auth.PermissionLevel(userRecord.PermissionLevel))
 		user.SetNickname(userRecord.Nickname)
 
 		c.c.SetDefault(address, user)
 		return user, nil
 	}
-	return i.(User), nil
+	return i.(auth.User), nil
 }
 
 // CacheUser saves user information in cache
-func (c *MemoryUserCache) CacheUser(_ context.Context, user User) error {
+func (c *MemoryUserCache) CacheUser(_ context.Context, user auth.User) error {
 	if user == nil || user.IsUnknown() {
 		return stacktrace.NewError("attempt to cache invalid user")
 	}

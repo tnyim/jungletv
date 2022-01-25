@@ -7,7 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -30,7 +30,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		return stacktrace.Propagate(err, "")
 	}
 
-	user := auth.UserClaimsFromContext(stream.Context())
+	user := authinterceptor.UserClaimsFromContext(stream.Context())
 	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context(), true)
 	v := uint32(counter.CounterValue)
 	initialCp.LatestAnnouncement = &v

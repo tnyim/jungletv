@@ -5,7 +5,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -18,7 +18,7 @@ func (s *grpcServer) WithdrawalHistory(ctxCtx context.Context, r *proto.Withdraw
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := auth.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

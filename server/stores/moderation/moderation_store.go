@@ -1,4 +1,4 @@
-package server
+package moderation
 
 import (
 	"context"
@@ -8,51 +8,53 @@ import (
 
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-// ModerationStore saves and loads moderation decisions
-type ModerationStore interface {
+// Store saves and loads moderation decisions
+type Store interface {
 	LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error)
 	LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error)
 	LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error)
 	LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error)
 	LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error)
-	BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error)
-	RemoveBan(ctx context.Context, banID, reason string, moderator User) error
+	BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator auth.User, moderatorUsername string) (string, error)
+	RemoveBan(ctx context.Context, banID, reason string, moderator auth.User) error
 }
 
-// ModerationStoreNoOp does not actually store any decisions, nobody is banned
-type ModerationStoreNoOp struct{}
+// StoreNoOp does not actually store any decisions, nobody is banned
+type StoreNoOp struct{}
 
-var _ ModerationStore = &ModerationStoreNoOp{}
+var _ Store = &StoreNoOp{}
 
-func (*ModerationStoreNoOp) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
+func (*StoreNoOp) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
 	return false, nil
 }
-func (*ModerationStoreNoOp) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
+func (*StoreNoOp) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
 	return false, nil
 }
-func (*ModerationStoreNoOp) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
+func (*StoreNoOp) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
 	return false, nil
 }
-func (*ModerationStoreNoOp) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
+func (*StoreNoOp) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
 	return false, nil
 }
-func (*ModerationStoreNoOp) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
+func (*StoreNoOp) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
 	return false, nil
 }
 
-func (*ModerationStoreNoOp) BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error) {
+func (*StoreNoOp) BanUser(ctx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator auth.User, moderatorUsername string) (string, error) {
 	return "", nil
 }
-func (*ModerationStoreNoOp) RemoveBan(ctx context.Context, banID, reason string, moderator User) error {
+func (*StoreNoOp) RemoveBan(ctx context.Context, banID, reason string, moderator auth.User) error {
 	return nil
 }
 
-// ModerationStoreDatabase stores moderation decisions in the database
-type ModerationStoreDatabase struct {
+// StoreDatabase stores moderation decisions in the database
+type StoreDatabase struct {
 	l sync.RWMutex
 	// reward address set
 	bannedFromChat map[string]struct{}
@@ -70,8 +72,8 @@ type ModerationStoreDatabase struct {
 	remoteAddressesBannedFromRewards map[string]struct{}
 }
 
-func NewModerationStoreDatabase(ctx context.Context) (ModerationStore, error) {
-	m := &ModerationStoreDatabase{
+func NewStoreDatabase(ctx context.Context) (Store, error) {
+	m := &StoreDatabase{
 		bannedFromChat:                     make(map[string]struct{}),
 		remoteAddressesBannedFromChat:      make(map[string]struct{}),
 		bannedFromEnqueuing:                make(map[string]struct{}),
@@ -97,43 +99,43 @@ func NewModerationStoreDatabase(ctx context.Context) (ModerationStore, error) {
 	return m, stacktrace.Propagate(m.restoreDecisionsFromDatabase(ctx, false), "")
 }
 
-func (m *ModerationStoreDatabase) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
+func (m *StoreDatabase) LoadUserBannedFromChat(ctx context.Context, address, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromChat[address]
-	_, remBan := m.remoteAddressesBannedFromChat[getUniquifiedIP(remoteAddress)]
+	_, remBan := m.remoteAddressesBannedFromChat[utils.GetUniquifiedIP(remoteAddress)]
 	return addrBan || remBan, nil
 }
 
-func (m *ModerationStoreDatabase) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
+func (m *StoreDatabase) LoadRemoteAddressBannedFromVideoEnqueuing(ctx context.Context, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
-	_, remBan := m.remoteAddressesBannedFromEnqueuing[getUniquifiedIP(remoteAddress)]
+	_, remBan := m.remoteAddressesBannedFromEnqueuing[utils.GetUniquifiedIP(remoteAddress)]
 	return remBan, nil
 }
 
-func (m *ModerationStoreDatabase) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
+func (m *StoreDatabase) LoadPaymentAddressBannedFromVideoEnqueuing(ctx context.Context, address string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromEnqueuing[address]
 	return addrBan, nil
 }
 
-func (m *ModerationStoreDatabase) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
+func (m *StoreDatabase) LoadRemoteAddressBannedFromRewards(ctx context.Context, remoteAddress string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
-	_, remBan := m.remoteAddressesBannedFromRewards[getUniquifiedIP(remoteAddress)]
+	_, remBan := m.remoteAddressesBannedFromRewards[utils.GetUniquifiedIP(remoteAddress)]
 	return remBan, nil
 }
 
-func (m *ModerationStoreDatabase) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
+func (m *StoreDatabase) LoadPaymentAddressBannedFromRewards(ctx context.Context, address string) (bool, error) {
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromRewards[address]
 	return addrBan, nil
 }
 
-func (m *ModerationStoreDatabase) BanUser(ctxCtx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator User, moderatorUsername string) (string, error) {
+func (m *StoreDatabase) BanUser(ctxCtx context.Context, fromChat, fromEnqueuing, fromRewards bool, until *time.Time, address, remoteAddress, reason string, moderator auth.User, moderatorUsername string) (string, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")
@@ -147,7 +149,7 @@ func (m *ModerationStoreDatabase) BanUser(ctxCtx context.Context, fromChat, from
 		FromEnqueuing:    fromEnqueuing,
 		FromRewards:      fromRewards,
 		Address:          address,
-		RemoteAddress:    getUniquifiedIP(remoteAddress),
+		RemoteAddress:    utils.GetUniquifiedIP(remoteAddress),
 		Reason:           reason,
 		ModeratorAddress: moderator.Address(),
 		ModeratorName:    moderatorUsername,
@@ -170,7 +172,7 @@ func (m *ModerationStoreDatabase) BanUser(ctxCtx context.Context, fromChat, from
 	return decision.BanID, stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (m *ModerationStoreDatabase) recomputeBanMaps(decisions []*types.BannedUser) {
+func (m *StoreDatabase) recomputeBanMaps(decisions []*types.BannedUser) {
 	m.l.Lock()
 	defer m.l.Unlock()
 
@@ -206,7 +208,7 @@ func (m *ModerationStoreDatabase) recomputeBanMaps(decisions []*types.BannedUser
 	}
 }
 
-func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reason string, moderator User) error {
+func (m *StoreDatabase) RemoveBan(ctxCtx context.Context, banID, reason string, moderator auth.User) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -245,7 +247,7 @@ func (m *ModerationStoreDatabase) RemoveBan(ctxCtx context.Context, banID, reaso
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (m *ModerationStoreDatabase) restoreDecisionsFromDatabase(ctxCtx context.Context, justChanged bool) error {
+func (m *StoreDatabase) restoreDecisionsFromDatabase(ctxCtx context.Context, justChanged bool) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

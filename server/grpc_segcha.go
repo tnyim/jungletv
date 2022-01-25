@@ -9,7 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,10 +20,10 @@ var segchaPremadeQueueSize = 150
 var latestGeneratedChallenge *segcha.Challenge
 
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 
 	s.segchaRateLimiter.Take(ctx, user.Address())
-	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, auth.RemoteAddressFromContext(ctx))
+	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, authinterceptor.RemoteAddressFromContext(ctx))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

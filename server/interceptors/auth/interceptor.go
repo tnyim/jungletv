@@ -6,9 +6,9 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/utils/wrappedstream"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,22 +25,22 @@ type UserAuthorizer interface {
 
 // Interceptor intercepts gRPC requests to ensure user authentication and authorization
 type Interceptor struct {
-	jwtManager                  *JWTManager
-	minPermissionLevelForMethod map[string]PermissionLevel
+	jwtManager                  *auth.JWTManager
+	minPermissionLevelForMethod map[string]auth.PermissionLevel
 	authorizer                  UserAuthorizer
 }
 
-// NewInterceptor returns a new Interceptor
-func NewInterceptor(jwtManager *JWTManager, authorizer UserAuthorizer) *Interceptor {
+// New returns a new Interceptor
+func New(jwtManager *auth.JWTManager, authorizer UserAuthorizer) *Interceptor {
 	return &Interceptor{
 		jwtManager,
-		make(map[string]PermissionLevel),
+		make(map[string]auth.PermissionLevel),
 		authorizer,
 	}
 }
 
 // SetMinimumPermissionLevelForMethod sets the minimum permission level required to use the given method
-func (interceptor *Interceptor) SetMinimumPermissionLevelForMethod(method string, level PermissionLevel) {
+func (interceptor *Interceptor) SetMinimumPermissionLevelForMethod(method string, level auth.PermissionLevel) {
 	interceptor.minPermissionLevelForMethod[method] = level
 }
 
@@ -80,7 +80,7 @@ func (interceptor *Interceptor) Stream() grpc.StreamServerInterceptor {
 
 func (interceptor *Interceptor) authorize(ctx context.Context, method string) (context.Context, error) {
 	authErr := status.Errorf(codes.Unauthenticated, "metadata is not provided")
-	var claims *UserClaims
+	var claims *auth.UserClaims
 	md, ok := metadata.FromIncomingContext(ctx)
 	remoteAddress := ""
 	if ok {
@@ -107,7 +107,7 @@ func (interceptor *Interceptor) authorize(ctx context.Context, method string) (c
 		// place claims in context
 		ctx = context.WithValue(ctx, userClaimsContextKey{}, claims)
 
-		if time.Until(time.Unix(claims.ExpiresAt, 0)) < interceptor.jwtManager.tokenLifetimes[claims.PermLevel]/2 {
+		if interceptor.jwtManager.IsTokenAboutToExpire(claims) {
 			err := interceptor.renewAuthToken(ctx, claims)
 			if err != nil {
 				return ctx, stacktrace.Propagate(err, "")
@@ -116,7 +116,7 @@ func (interceptor *Interceptor) authorize(ctx context.Context, method string) (c
 	}
 
 	minPermissionLevel := interceptor.minPermissionLevelForMethod[method]
-	if PermissionLevelOrder[minPermissionLevel] <= PermissionLevelOrder[UnauthenticatedPermissionLevel] {
+	if auth.PermissionLevelOrder[minPermissionLevel] <= auth.PermissionLevelOrder[auth.UnauthenticatedPermissionLevel] {
 		// maybe authErr != nil, but we don't care because this method doesn't require auth
 		// (we have already placed the claims in the context so the request handler can optionally see
 		// who the user is, even if authentication is not required)
@@ -128,14 +128,14 @@ func (interceptor *Interceptor) authorize(ctx context.Context, method string) (c
 		return ctx, authErr
 	}
 
-	if PermissionLevelOrder[minPermissionLevel] > PermissionLevelOrder[claims.PermLevel] {
+	if auth.PermissionLevelOrder[minPermissionLevel] > auth.PermissionLevelOrder[claims.PermLevel] {
 		return ctx, status.Errorf(codes.PermissionDenied, "no permission to access this RPC")
 	}
 
 	return ctx, nil
 }
 
-func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata.MD) (*UserClaims, error) {
+func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata.MD) (*auth.UserClaims, error) {
 	values := md["authorization"]
 	if len(values) == 0 {
 		return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")
@@ -149,7 +149,7 @@ func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata
 	return claims, nil
 }
 
-func (interceptor *Interceptor) renewAuthToken(ctx context.Context, claims *UserClaims) error {
+func (interceptor *Interceptor) renewAuthToken(ctx context.Context, claims *auth.UserClaims) error {
 	token, expiration, err := interceptor.jwtManager.Generate(claims.RewardAddress, claims.PermLevel, claims.Username)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -170,7 +170,7 @@ func (interceptor *Interceptor) getRemoteAddress(ctx context.Context, md metadat
 		return strings.TrimSpace(strings.Split(value, ",")[0])
 	}
 
-	for _, header := range []string{"x-real-ip", "real-ip", "x-forwarded-for", "x-forwarded", "forwarded-for", "forwarded"} {
+	for _, header := range []string{"cf-connecting-ip", "x-forwarded-for", "x-forwarded", "forwarded-for", "forwarded", "x-real-ip", "real-ip"} {
 		ip = getMetadataIP(header)
 		if ip != "" {
 			break

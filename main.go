@@ -33,6 +33,8 @@ import (
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc"
@@ -292,7 +294,7 @@ func main() {
 		auth.UserPermissionLevel:  180 * 24 * time.Hour,
 		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
 	})
-	authInterceptor := auth.NewInterceptor(jwtManager, &authorizer{})
+	authInterceptor := authinterceptor.New(jwtManager, &authorizer{})
 
 	options := server.Options{
 		DebugBuild:                DEBUG,
@@ -383,9 +385,9 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request), jwtManager *auth.JWTManager, authInterceptor *auth.Interceptor, listenAddr string) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request), jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr string) (*http.Server, error) {
 	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
-	versionInterceptor := server.NewVersionInterceptor(versionHash)
+	versionInterceptor := version.New(versionHash)
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(sqalxInterceptor.Stream(), versionInterceptor.Stream(), authInterceptor.Stream())

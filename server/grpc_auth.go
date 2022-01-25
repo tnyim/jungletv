@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,7 +23,7 @@ type addressVerificationProcess struct {
 
 func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignInServer) error {
 	ctx := stream.Context()
-	remoteAddress := auth.RemoteAddressFromContext(ctx)
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
 	_, _, _, ok, err := s.signInRateLimiter.Take(ctx, remoteAddress)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -37,7 +38,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		return status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}
 
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	var jwtToken string
 	var tokenExpiry time.Time
 	if user != nil && UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
@@ -159,7 +160,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 }
 
 func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	level := proto.PermissionLevel_UNAUTHENTICATED
 	if user != nil {
 		switch user.PermissionLevel() {

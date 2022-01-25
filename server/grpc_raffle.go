@@ -7,7 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -16,7 +16,7 @@ import (
 )
 
 func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingRaffleInfoRequest) (*proto.OngoingRaffleInfoResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 
 	year, week := time.Now().UTC().ISOWeek()
 	raffleID, periodStart, periodEnd, valid := weeklyRaffleParameters(year, week)
@@ -59,7 +59,7 @@ func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingR
 }
 
 func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRaffleWinnerRequest) (*proto.ConfirmRaffleWinnerResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -70,7 +70,7 @@ func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRa
 		return nil, stacktrace.Propagate(err, "failed to confirm raffle winner")
 	}
 
-	s.log.Printf("Winner of raffle %s confirmed by  %s (remote address %s)", r.RaffleId, user.Username, auth.RemoteAddressFromContext(ctx))
+	s.log.Printf("Winner of raffle %s confirmed by  %s (remote address %s)", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -85,7 +85,7 @@ func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRa
 }
 
 func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequest) (*proto.RedrawRaffleResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -96,7 +96,7 @@ func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequ
 		return nil, stacktrace.Propagate(err, "failed to redraw raffle")
 	}
 
-	s.log.Printf("Raffle %s redrawn by %s (remote address %s) with reason \"%s\"", r.RaffleId, user.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Raffle %s redrawn by %s (remote address %s) with reason \"%s\"", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -111,7 +111,7 @@ func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequ
 }
 
 func (s *grpcServer) CompleteRaffle(ctx context.Context, r *proto.CompleteRaffleRequest) (*proto.CompleteRaffleResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -122,7 +122,7 @@ func (s *grpcServer) CompleteRaffle(ctx context.Context, r *proto.CompleteRaffle
 		return nil, stacktrace.Propagate(err, "failed to complete raffle")
 	}
 
-	s.log.Printf("Raffle %s completed by %s (remote address %s) with prize block %s", r.RaffleId, user.Username, auth.RemoteAddressFromContext(ctx), r.PrizeTxHash)
+	s.log.Printf("Raffle %s completed by %s (remote address %s) with prize block %s", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx), r.PrizeTxHash)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(

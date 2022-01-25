@@ -7,6 +7,7 @@ import (
 	"github.com/rickb777/date/period"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -33,8 +34,8 @@ const (
 
 func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingContext, videoID string, startOffset, endOffset *durationpb.Duration, unskippable bool) (EnqueueRequest, youTubeVideoEnqueueRequestCreationResult, error) {
 	isAdmin := false
-	user := auth.UserClaimsFromContext(ctx)
-	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, auth.RemoteAddressFromContext(ctx)); err == nil && banned {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, authinterceptor.RemoteAddressFromContext(ctx)); err == nil && banned {
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
 	if user != nil {
@@ -159,7 +160,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingCont
 		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",
 	}
 
-	userClaims := auth.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims != nil {
 		request.requestedBy = userClaims
 	}

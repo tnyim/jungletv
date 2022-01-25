@@ -7,6 +7,18 @@ import (
 	"github.com/tnyim/jungletv/proto"
 )
 
+// User represents an identity on the service
+type User interface {
+	Address() string
+	Nickname() *string
+	PermissionLevel() PermissionLevel
+	IsUnknown() bool
+	SetNickname(*string)
+}
+
+// APIUserSerializer is a function that is able to return the protobuf representation of a user
+type APIUserSerializer func(ctx context.Context, user User) *proto.User
+
 // UserClaims is the claim type used
 type UserClaims struct {
 	jwt.StandardClaims
@@ -61,34 +73,4 @@ func (u *UserClaims) SetNickname(s *string) {
 	} else {
 		u.TheNickname = *s
 	}
-}
-
-type userClaimsContextKey struct{}
-
-func UserClaimsFromContext(ctx context.Context) *UserClaims {
-	v := ctx.Value(userClaimsContextKey{})
-	if v == nil {
-		return nil
-	}
-	return v.(*UserClaims)
-}
-
-type remoteAddressContextKey struct{}
-
-func RemoteAddressFromContext(ctx context.Context) string {
-	v := ctx.Value(remoteAddressContextKey{})
-	if v == nil {
-		return ""
-	}
-	return v.(string)
-}
-
-type ipCountryRequestKey struct{}
-
-func IPCountryFromContext(ctx context.Context) string {
-	v := ctx.Value(ipCountryRequestKey{})
-	if v == nil {
-		return ""
-	}
-	return v.(string)
 }

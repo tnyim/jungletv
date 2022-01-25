@@ -1,4 +1,4 @@
-package server
+package blockeduser
 
 import (
 	"context"
@@ -6,26 +6,27 @@ import (
 
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-type BlockedUserStore interface {
-	LoadUsersBlockedBy(context.Context, User) ([]string, error)
-	BlockUser(ctx context.Context, userToBlock, blockedBy User) error
-	UnblockUser(ctx context.Context, blockID string, blockedBy User) (User, error)
-	UnblockUserByAddress(ctx context.Context, address string, blockedBy User) (User, error)
+type Store interface {
+	LoadUsersBlockedBy(context.Context, auth.User) ([]string, error)
+	BlockUser(ctx context.Context, userToBlock, blockedBy auth.User) error
+	UnblockUser(ctx context.Context, blockID string, blockedBy auth.User) (auth.User, error)
+	UnblockUserByAddress(ctx context.Context, address string, blockedBy auth.User) (auth.User, error)
 }
 
-// BlockedUserStoreDatabase stores blocked users in the database
-type BlockedUserStoreDatabase struct{}
+// StoreDatabase stores blocked users in the database
+type StoreDatabase struct{}
 
-// NewBlockedUserStoreDatabase initializes and returns a new BlockedUserStoreDatabase
-func NewBlockedUserStoreDatabase() *BlockedUserStoreDatabase {
-	return &BlockedUserStoreDatabase{}
+// NewStoreDatabase initializes and returns a new StoreDatabase
+func NewStoreDatabase() *StoreDatabase {
+	return &StoreDatabase{}
 }
 
-func (s *BlockedUserStoreDatabase) LoadUsersBlockedBy(ctxCtx context.Context, user User) ([]string, error) {
+func (s *StoreDatabase) LoadUsersBlockedBy(ctxCtx context.Context, user auth.User) ([]string, error) {
 	if user == nil || user.IsUnknown() {
 		return []string{}, nil
 	}
@@ -46,7 +47,7 @@ func (s *BlockedUserStoreDatabase) LoadUsersBlockedBy(ctxCtx context.Context, us
 	return blockedAddresses, nil
 }
 
-func (s *BlockedUserStoreDatabase) BlockUser(ctxCtx context.Context, userToBlock, blockedBy User) error {
+func (s *StoreDatabase) BlockUser(ctxCtx context.Context, userToBlock, blockedBy auth.User) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -67,7 +68,7 @@ func (s *BlockedUserStoreDatabase) BlockUser(ctxCtx context.Context, userToBlock
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *BlockedUserStoreDatabase) UnblockUser(ctxCtx context.Context, blockID string, blockedBy User) (User, error) {
+func (s *StoreDatabase) UnblockUser(ctxCtx context.Context, blockID string, blockedBy auth.User) (auth.User, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -91,10 +92,10 @@ func (s *BlockedUserStoreDatabase) UnblockUser(ctxCtx context.Context, blockID s
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	return NewAddressOnlyUser(blockedUser.Address), nil
+	return auth.NewAddressOnlyUser(blockedUser.Address), nil
 }
 
-func (s *BlockedUserStoreDatabase) UnblockUserByAddress(ctxCtx context.Context, address string, blockedBy User) (User, error) {
+func (s *StoreDatabase) UnblockUserByAddress(ctxCtx context.Context, address string, blockedBy auth.User) (auth.User, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -114,5 +115,5 @@ func (s *BlockedUserStoreDatabase) UnblockUserByAddress(ctxCtx context.Context, 
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	return NewAddressOnlyUser(blockedUser.Address), nil
+	return auth.NewAddressOnlyUser(blockedUser.Address), nil
 }

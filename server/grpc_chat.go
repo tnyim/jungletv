@@ -13,6 +13,8 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,7 +34,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	defer messageDeletedU()
 
 	ctx := stream.Context()
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 
 	onUserBlocked, userBlockedU := s.chat.OnUserBlockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
 	defer userBlockedU()
@@ -71,7 +73,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if initialHistorySize > 1000 {
 			initialHistorySize = 1000
 		}
-		var u User = &unknownUser{}
+		var u auth.User = &unknownUser{}
 		if user != nil {
 			u = user
 		}
@@ -122,7 +124,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				},
 			})
 		case v := <-onMessageCreated:
-			msg := v[0].(*ChatMessage)
+			msg := v[0].(*chat.Message)
 			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
 				err = stream.Send(&proto.ChatUpdate{
 					Event: &proto.ChatUpdate_MessageCreated{
@@ -175,7 +177,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 }
 
 func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessageRequest) (*proto.SendChatMessageResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -194,12 +196,12 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		return nil, status.Error(codes.InvalidArgument, "message too long")
 	}
 
-	var messageReference *ChatMessage
+	var messageReference *chat.Message
 	if r.ReplyReferenceId != nil {
 		message, err := s.chat.LoadMessage(ctx, snowflake.ParseInt64(*r.ReplyReferenceId))
 		if err == nil {
 			// use a copy of the referenced message without its reference in order to avoid long chains
-			messageReference = &ChatMessage{
+			messageReference = &chat.Message{
 				ID:        message.ID,
 				CreatedAt: message.CreatedAt,
 				Author:    message.Author,
@@ -236,7 +238,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 var disallowedEmojiRegex = regexp.MustCompile("[🛡️🔰🛡⚔️⚔🗡️🗡🗡️]")
 
 func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNicknameRequest) (*proto.SetChatNicknameResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

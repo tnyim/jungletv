@@ -6,7 +6,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -20,7 +20,7 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 
 	mustInclude := []string{}
 	userAddress := ""

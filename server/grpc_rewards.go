@@ -7,7 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -48,7 +48,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := auth.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -143,7 +143,7 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 	}
 	defer ctx.Rollback()
 
-	userClaims := auth.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -42,8 +42,8 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 	s.spectatorsMutex.Lock()
 	defer s.spectatorsMutex.Unlock()
 
-	remoteAddress := auth.RemoteAddressFromContext(ctx)
-	ipCountry := auth.IPCountryFromContext(ctx)
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
+	ipCountry := authinterceptor.IPCountryFromContext(ctx)
 	if ipCountry == "T1" {
 		return func() {}, nil
 	}

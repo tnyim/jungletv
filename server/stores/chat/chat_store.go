@@ -1,4 +1,4 @@
-package server
+package chat
 
 import (
 	"context"
@@ -10,30 +10,31 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/usercache"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ErrChatMessageNotFound is returned by a ChatStore when LoadMessage or DeleteMessage does not find the given message
 var ErrChatMessageNotFound = errors.New("chat message not found")
 
-// ChatStore can save and load chat messages
-type ChatStore interface {
-	StoreMessage(context.Context, *ChatMessage) (*string, error)
-	DeleteMessage(context.Context, snowflake.ID) (*ChatMessage, error)
-	LoadMessagesSince(context.Context, User, time.Time) ([]*ChatMessage, error)
-	LoadNumLatestMessages(context.Context, User, int) ([]*ChatMessage, error)
-	LoadNumLatestMessagesFromUser(context.Context, User, int) ([]*ChatMessage, error)
-	LoadMessage(context.Context, snowflake.ID) (*ChatMessage, error)
-	SetUserNickname(context.Context, User, *string) error
+// Store can save and load chat messages
+type Store interface {
+	StoreMessage(context.Context, *Message) (*string, error)
+	DeleteMessage(context.Context, snowflake.ID) (*Message, error)
+	LoadMessagesSince(context.Context, auth.User, time.Time) ([]*Message, error)
+	LoadNumLatestMessages(context.Context, auth.User, int) ([]*Message, error)
+	LoadNumLatestMessagesFromUser(context.Context, auth.User, int) ([]*Message, error)
+	LoadMessage(context.Context, snowflake.ID) (*Message, error)
+	SetUserNickname(context.Context, auth.User, *string) error
 }
 
 // ChatStoreDatabase stores messages in the database
 type ChatStoreDatabase struct {
-	nicknameCache UserCache
+	nicknameCache usercache.UserCache
 }
 
-// NewChatStoreDatabase initializes and returns a new ChatStoreDatabase
-func NewChatStoreDatabase(nicknameCache UserCache) *ChatStoreDatabase {
+// NewStoreDatabase initializes and returns a new ChatStoreDatabase
+func NewStoreDatabase(nicknameCache usercache.UserCache) *ChatStoreDatabase {
 	return &ChatStoreDatabase{
 		nicknameCache: nicknameCache,
 	}
@@ -66,7 +67,7 @@ type dbChatMsgWithReference struct {
 	ReferenceNickname     *string       `db:"reference_nickname"`
 }
 
-func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage) (*string, error) {
+func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*string, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -95,7 +96,7 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
-		userToSave := NewAddressOnlyUserWithPermissionLevel(a, m.Author.PermissionLevel())
+		userToSave := auth.NewAddressOnlyUserWithPermissionLevel(a, m.Author.PermissionLevel())
 		userToSave.SetNickname(nickname)
 		err = s.nicknameCache.CacheUser(ctx, userToSave)
 		if err != nil {
@@ -116,7 +117,7 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *ChatMessage)
 	return nickname, stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.ID) (*ChatMessage, error) {
+func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.ID) (*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -141,16 +142,16 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return &ChatMessage{
+	return &Message{
 		ID:           deletedMsg.ID,
 		CreatedAt:    deletedMsg.CreatedAt,
-		Author:       NewAddressOnlyUser(*deletedMsg.Author),
+		Author:       auth.NewAddressOnlyUser(*deletedMsg.Author),
 		Content:      deletedMsg.Content,
 		Shadowbanned: deletedMsg.Shadowbanned,
 	}, stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {
+func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeShadowbanned auth.User, since time.Time) ([]*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -190,7 +191,7 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	chatMessages := make([]*ChatMessage, len(messages))
+	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
 		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
 	}
@@ -198,7 +199,7 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 	return chatMessages, nil
 }
 
-func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includeShadowbanned User, num int) ([]*ChatMessage, error) {
+func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includeShadowbanned auth.User, num int) ([]*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -244,7 +245,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	chatMessages := make([]*ChatMessage, len(messages))
+	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
 		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
 	}
@@ -256,7 +257,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 	return chatMessages, nil
 }
 
-func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context, user User, num int) ([]*ChatMessage, error) {
+func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context, user auth.User, num int) ([]*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -295,7 +296,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	chatMessages := make([]*ChatMessage, len(messages))
+	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
 		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
 	}
@@ -307,7 +308,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 	return chatMessages, nil
 }
 
-func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID) (*ChatMessage, error) {
+func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID) (*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -347,31 +348,31 @@ func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID)
 	return s.dbMsgWithReferenceToChatMessage(message), nil
 }
 
-func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWithReference) *ChatMessage {
-	chatMessage := &ChatMessage{
+func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWithReference) *Message {
+	chatMessage := &Message{
 		ID:        message.ID,
 		CreatedAt: message.CreatedAt,
 		Content:   message.Content,
 	}
 	if message.Author != nil {
-		chatMessage.Author = NewAddressOnlyUserWithPermissionLevel(*message.Author, auth.PermissionLevel(*message.PermissionLevel))
+		chatMessage.Author = auth.NewAddressOnlyUserWithPermissionLevel(*message.Author, auth.PermissionLevel(*message.PermissionLevel))
 		chatMessage.Author.SetNickname(message.Nickname)
 	}
 	if message.ReferenceID != nil {
-		chatMessage.Reference = &ChatMessage{
+		chatMessage.Reference = &Message{
 			ID:        *message.ReferenceID,
 			CreatedAt: *message.ReferenceCreatedAt,
 			Content:   *message.ReferenceContent,
 		}
 		if message.ReferenceAuthor != nil {
-			chatMessage.Reference.Author = NewAddressOnlyUser(*message.ReferenceAuthor)
+			chatMessage.Reference.Author = auth.NewAddressOnlyUser(*message.ReferenceAuthor)
 			chatMessage.Reference.Author.SetNickname(message.ReferenceNickname)
 		}
 	}
 	return chatMessage
 }
 
-func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user User, nickname *string) error {
+func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user auth.User, nickname *string) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

@@ -8,6 +8,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -18,13 +19,13 @@ import (
 type MediaQueueEntry interface {
 	json.Marshaler
 	json.Unmarshaler
-	RequestedBy() User
+	RequestedBy() auth.User
 	RequestCost() Amount
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
-	SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.QueueEntry
-	ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
+	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer) *proto.QueueEntry
+	ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
 	Played() bool
@@ -41,7 +42,7 @@ type MediaInfo interface {
 	ThumbnailURL() string
 	Offset() time.Duration
 	Length() time.Duration
-	ProduceMediaQueueEntry(requestedBy User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry
+	ProduceMediaQueueEntry(requestedBy auth.User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 }
 
@@ -56,7 +57,7 @@ type queueEntryYouTubeVideo struct {
 	unskippable   bool
 	liveBroadcast bool
 
-	requestedBy    User
+	requestedBy    auth.User
 	requestCost    Amount
 	requestedAt    time.Time
 	startedPlaying time.Time
@@ -65,7 +66,7 @@ type queueEntryYouTubeVideo struct {
 	donePlaying    *event.Event
 }
 
-func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry {
+func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry {
 	e.requestedBy = requestedBy
 	e.requestCost = requestCost
 	e.unskippable = unskippable
@@ -102,7 +103,7 @@ func (e *queueEntryYouTubeVideo) MediaInfo() MediaInfo {
 	return e
 }
 
-func (e *queueEntryYouTubeVideo) RequestedBy() User {
+func (e *queueEntryYouTubeVideo) RequestedBy() auth.User {
 	return e.requestedBy
 }
 
@@ -118,7 +119,7 @@ func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.QueueEntry {
+func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer) *proto.QueueEntry {
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
@@ -194,7 +195,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.duration = t.Duration
 	e.offset = t.Offset
 	e.liveBroadcast = t.LiveBroadcast
-	e.requestedBy = NewAddressOnlyUser(t.RequestedBy)
+	e.requestedBy = auth.NewAddressOnlyUser(t.RequestedBy)
 	e.requestCost = Amount{t.RequestCost}
 	e.requestedAt = t.RequestedAt
 	e.unskippable = t.Unskippable
@@ -215,7 +216,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
 		MediaPresent:    true,
 		CurrentPosition: durationpb.New(e.Offset() + e.PlayedFor()),

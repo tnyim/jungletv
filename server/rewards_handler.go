@@ -15,7 +15,11 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/ipreputation"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -28,7 +32,7 @@ type RewardsHandler struct {
 	log                            *log.Logger
 	statsClient                    *statsd.Client
 	mediaQueue                     *MediaQueue
-	ipReputationChecker            *IPAddressReputationChecker
+	ipReputationChecker            *ipreputation.Checker
 	withdrawalHandler              *WithdrawalHandler
 	wallet                         *wallet.Wallet
 	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
@@ -37,7 +41,7 @@ type RewardsHandler struct {
 	lastMedia                      MediaQueueEntry
 	hCaptchaSecret                 string
 	hCaptchaHTTPClient             http.Client
-	moderationStore                ModerationStore
+	moderationStore                moderation.Store
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
 	versionHash                    string
@@ -60,7 +64,7 @@ type Spectator interface {
 	OnActivityChallenge() *event.Event
 	CurrentActivityChallenge() *activityChallenge
 	Legitimate() (bool, time.Time)
-	RemoteAddressCanReceiveRewards(*IPAddressReputationChecker) bool
+	RemoteAddressCanReceiveRewards(*ipreputation.Checker) bool
 	CountOtherConnectedSpectatorsOnSameRemoteAddress(*RewardsHandler) int
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
@@ -72,7 +76,7 @@ type spectator struct {
 	legitimate                 bool
 	legitimacyFailures         int
 	stoppedBeingLegitimate     time.Time
-	user                       User
+	user                       auth.User
 	remoteAddress              string
 	remoteAddresses            map[string]struct{}
 	startedWatching            time.Time
@@ -130,7 +134,7 @@ func (s *spectator) Legitimate() (bool, time.Time) {
 	return s.legitimate, s.stoppedBeingLegitimate
 }
 
-func (s *spectator) RemoteAddressCanReceiveRewards(checker *IPAddressReputationChecker) bool {
+func (s *spectator) RemoteAddressCanReceiveRewards(checker *ipreputation.Checker) bool {
 	return checker.CanReceiveRewards(s.remoteAddress)
 }
 
@@ -158,14 +162,14 @@ func (s *spectator) ConnectionCount() int {
 func NewRewardsHandler(log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *MediaQueue,
-	ipReputationChecker *IPAddressReputationChecker,
+	ipReputationChecker *ipreputation.Checker,
 	withdrawalHandler *WithdrawalHandler,
 	hCaptchaSecret string,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
-	moderationStore ModerationStore,
+	moderationStore moderation.Store,
 	segchaCheckFn captchaResponseCheckFn,
 	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{
@@ -196,8 +200,8 @@ func NewRewardsHandler(log *log.Logger,
 	}, nil
 }
 
-func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spectator, error) {
-	ipCountry := auth.IPCountryFromContext(ctx)
+func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) (Spectator, error) {
+	ipCountry := authinterceptor.IPCountryFromContext(ctx)
 	if ipCountry == "T1" {
 		return &spectator{
 			isDummy:             true,
@@ -209,7 +213,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user User) (Spec
 	}
 
 	now := time.Now()
-	remoteAddress := auth.RemoteAddressFromContext(ctx)
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
 
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
@@ -459,9 +463,9 @@ func (r *RewardsHandler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress s
 	defer r.spectatorsMutex.RUnlock()
 
 	count := 0
-	uniquifiedNeedle := getUniquifiedIP(remoteAddress)
+	uniquifiedNeedle := utils.GetUniquifiedIP(remoteAddress)
 	for k, spectators := range r.spectatorsByRemoteAddress {
-		uniquifiedIP := getUniquifiedIP(k)
+		uniquifiedIP := utils.GetUniquifiedIP(k)
 		if uniquifiedNeedle == uniquifiedIP {
 			for _, spectator := range spectators {
 				if spectator.connectionCount > 0 {

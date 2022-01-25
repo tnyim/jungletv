@@ -10,6 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
@@ -19,7 +20,7 @@ import (
 )
 
 func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsRequest) (*proto.ConnectionsResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -71,11 +72,11 @@ func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsReq
 type oauthStateData struct {
 	Service    types.ConnectionService
 	OnCallback func(context.Context, *oauth2.Token, *types.Connection) error
-	User       User
+	User       auth.User
 }
 
 func (s *grpcServer) CreateConnection(ctxCtx context.Context, r *proto.CreateConnectionRequest) (*proto.CreateConnectionResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -163,7 +164,7 @@ func (s *grpcServer) onCryptomonKeysCallback(ctx context.Context, token *oauth2.
 }
 
 func (s *grpcServer) RemoveConnection(ctxCtx context.Context, r *proto.RemoveConnectionRequest) (*proto.RemoveConnectionResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -251,7 +252,7 @@ func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
 	return entry, stacktrace.Propagate(err, "")
 }
 
-func (q *MediaQueue) RemoveOwnEntry(entryID string, user User) error {
+func (q *MediaQueue) RemoveOwnEntry(entryID string, user auth.User) error {
 	if !q.removalOfOwnEntriesAllowed {
 		return stacktrace.NewError("queue entry removal disallowed")
 	}
@@ -386,7 +387,7 @@ func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
 	return q.queue[0], true
 }
 
-func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
+func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
 	currentEntry, playingSomething := q.CurrentlyPlaying()
 	if !playingSomething {
 		return &proto.MediaConsumptionCheckpoint{}
@@ -576,7 +577,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueue
 
 const recentPlayDuration = 4 * time.Hour
 
-func (q *MediaQueue) incrementRecentlyPlayedFor(requester User, incrementFor time.Duration) {
+func (q *MediaQueue) incrementRecentlyPlayedFor(requester auth.User, incrementFor time.Duration) {
 	if requester == nil || requester.IsUnknown() {
 		return
 	}
@@ -594,7 +595,7 @@ func (q *MediaQueue) incrementRecentlyPlayedFor(requester User, incrementFor tim
 	q.recentEntryCounts[requester.Address()]--
 }
 
-func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, requester User) (int, error) {
+func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, requester auth.User) (int, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, nil
 	}
@@ -616,7 +617,7 @@ func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, req
 	return count, nil
 }
 
-func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Context, requester User) (int, error) {
+func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Context, requester auth.User) (int, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, nil
 	}
@@ -649,7 +650,7 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Cont
 
 // CountEnqueuedOrRecentlyPlayedVideosRequestedBy returns the number of videos which are currently in queue or which have
 // been recently enqueued by the specified user.
-func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.Context, requester User) (int, bool, error) {
+func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.Context, requester auth.User) (int, bool, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, false, nil
 	}

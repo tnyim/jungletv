@@ -25,8 +25,16 @@ import (
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/blockeduser"
+	"github.com/tnyim/jungletv/server/stores/chat"
+	"github.com/tnyim/jungletv/server/stores/moderation"
+	"github.com/tnyim/jungletv/server/usercache"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/simplelogger"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
@@ -51,8 +59,8 @@ type grpcServer struct {
 	signInRateLimiter              limiter.Store
 	ownEntryRemovalRateLimiter     limiter.Store
 	segchaRateLimiter              limiter.Store
-	ipReputationChecker            *IPAddressReputationChecker
-	userSerializer                 APIUserSerializer
+	ipReputationChecker            *ipreputation.Checker
+	userSerializer                 auth.APIUserSerializer
 	websiteURL                     string
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
@@ -82,8 +90,8 @@ type grpcServer struct {
 	withdrawalHandler *WithdrawalHandler
 	statsHandler      *StatsHandler
 	chat              *ChatManager
-	moderationStore   ModerationStore
-	nicknameCache     UserCache
+	moderationStore   moderation.Store
+	nicknameCache     usercache.UserCache
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -103,7 +111,7 @@ type Options struct {
 	RepresentativeAddress string
 
 	JWTManager      *auth.JWTManager
-	AuthInterceptor *auth.Interceptor
+	AuthInterceptor *authinterceptor.Interceptor
 
 	TicketCheckPeriod time.Duration
 	IPCheckEndpoint   string
@@ -185,7 +193,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	modStore, err := NewModerationStoreDatabase(ctx)
+	modStore, err := moderation.NewStoreDatabase(ctx)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -204,10 +212,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		autoEnqueueVideoListFile:       options.AutoEnqueueVideoListFile,
 		autoEnqueueVideos:              options.AutoEnqueueVideoListFile != "",
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
-		ipReputationChecker:            NewIPAddressReputationChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
+		ipReputationChecker:            ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
 		ticketCheckPeriod:              options.TicketCheckPeriod,
 		moderationStore:                modStore,
-		nicknameCache:                  NewMemoryUserCache(),
+		nicknameCache:                  usercache.NewInMemory(),
 		websiteURL:                     options.WebsiteURL,
 
 		oauthStates: cache.New(2*time.Hour, 15*time.Minute),
@@ -223,7 +231,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.userSerializer = s.serializeUserForAPI
 
 	if options.ModLogWebhook != "" {
-		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, newSimpleLogger(s.log, false), options.ModLogWebhook)
+		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, simplelogger.New(s.log, false), options.ModLogWebhook)
 		if err != nil {
 			return nil, nil, stacktrace.Propagate(err, "")
 		}
@@ -291,13 +299,13 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.pricer.rewardsHandler = s.rewardsHandler
 
 	s.enqueueManager, err = NewEnqueueManager(s.log, s.statsClient, s.mediaQueue, s.pricer, options.Wallet,
-		NewPaymentAccountPool(options.Wallet, options.RepresentativeAddress), s.paymentAccountPendingWaitGroup, s.rewardsHandler,
+		paymentaccountpool.New(options.Wallet, options.RepresentativeAddress), s.paymentAccountPendingWaitGroup, s.rewardsHandler,
 		s.collectorAccount.Address(), s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(s.log, s.statsClient, NewChatStoreDatabase(s.nicknameCache), s.moderationStore, NewBlockedUserStoreDatabase())
+	s.chat, err = NewChatManager(s.log, s.statsClient, chat.NewStoreDatabase(s.nicknameCache), s.moderationStore, blockeduser.NewStoreDatabase())
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}

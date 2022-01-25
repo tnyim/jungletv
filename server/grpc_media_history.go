@@ -6,6 +6,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -35,7 +36,7 @@ func (s *grpcServer) PlayedMediaHistory(ctxCtx context.Context, r *proto.PlayedM
 	}, nil
 }
 
-func convertPlayedMedias(ctx context.Context, userSerializer APIUserSerializer, orig []*types.PlayedMedia) []*proto.PlayedMedia {
+func convertPlayedMedias(ctx context.Context, userSerializer auth.APIUserSerializer, orig []*types.PlayedMedia) []*proto.PlayedMedia {
 	protoEntries := make([]*proto.PlayedMedia, len(orig))
 	for i, entry := range orig {
 		protoEntries[i] = convertPlayedMedia(ctx, userSerializer, entry)
@@ -43,7 +44,7 @@ func convertPlayedMedias(ctx context.Context, userSerializer APIUserSerializer, 
 	return protoEntries
 }
 
-func convertPlayedMedia(ctx context.Context, userSerializer APIUserSerializer, orig *types.PlayedMedia) *proto.PlayedMedia {
+func convertPlayedMedia(ctx context.Context, userSerializer auth.APIUserSerializer, orig *types.PlayedMedia) *proto.PlayedMedia {
 	media := &proto.PlayedMedia{
 		Id:          orig.ID,
 		EnqueuedAt:  timestamppb.New(orig.EnqueuedAt),
@@ -58,7 +59,7 @@ func convertPlayedMedia(ctx context.Context, userSerializer APIUserSerializer, o
 		media.EndedAt = timestamppb.New(orig.EndedAt.Time)
 	}
 	if orig.RequestedBy != "" {
-		media.RequestedBy = userSerializer(ctx, NewAddressOnlyUser(orig.RequestedBy))
+		media.RequestedBy = userSerializer(ctx, auth.NewAddressOnlyUser(orig.RequestedBy))
 	}
 	switch orig.MediaType {
 	case types.MediaTypeYouTubeVideo:

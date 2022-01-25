@@ -6,14 +6,16 @@ import (
 	"log"
 	"math/big"
 	"math/rand"
-	"net"
 	"time"
 
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
@@ -112,8 +114,8 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 
 func getEligibleSpectators(ctx context.Context,
 	l *log.Logger,
-	c *IPAddressReputationChecker,
-	moderationStore ModerationStore,
+	c *ipreputation.Checker,
+	moderationStore moderation.Store,
 	spectatorsByRemoteAddress map[string][]*spectator,
 	exceptAddress string,
 	videoPlayedFor time.Duration) map[string]*spectator {
@@ -134,7 +136,7 @@ func getEligibleSpectators(ctx context.Context,
 			l.Println("Skipped rewarding remote address", k, "due to ban")
 			continue
 		}
-		uniquifiedIP := getUniquifiedIP(k)
+		uniquifiedIP := utils.GetUniquifiedIP(k)
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
 
@@ -180,20 +182,6 @@ func getEligibleSpectators(ctx context.Context,
 	}
 	delete(toBeRewarded, exceptAddress)
 	return toBeRewarded
-}
-
-func getUniquifiedIP(remoteAddress string) string {
-	ip := net.ParseIP(remoteAddress)
-	if ip == nil {
-		return remoteAddress
-	}
-	if ip.To4() != nil || len(ip) != net.IPv6len {
-		return remoteAddress
-	}
-	for i := net.IPv6len / 2; i < net.IPv6len; i++ {
-		ip[i] = 0
-	}
-	return ip.String()
 }
 
 func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {

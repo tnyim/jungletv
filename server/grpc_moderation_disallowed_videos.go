@@ -8,7 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -67,7 +67,7 @@ func (s *grpcServer) AddDisallowedVideo(ctxCtx context.Context, r *proto.AddDisa
 	}
 	defer ctx.Rollback()
 
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -102,7 +102,7 @@ func (s *grpcServer) AddDisallowedVideo(ctxCtx context.Context, r *proto.AddDisa
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Video with ID %s disallowed by %s (remote address %s)", r.YtVideoId, moderator.Username, auth.RemoteAddressFromContext(ctx))
+	s.log.Printf("Video with ID %s disallowed by %s (remote address %s)", r.YtVideoId, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -128,7 +128,7 @@ func (s *grpcServer) RemoveDisallowedVideo(ctxCtx context.Context, r *proto.Remo
 	}
 	defer ctx.Rollback()
 
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -153,7 +153,7 @@ func (s *grpcServer) RemoveDisallowedVideo(ctxCtx context.Context, r *proto.Remo
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Video with ID %s reallowed by %s (remote address %s)", *disallowedMedia.YouTubeVideoID, moderator.Username, auth.RemoteAddressFromContext(ctx))
+	s.log.Printf("Video with ID %s reallowed by %s (remote address %s)", *disallowedMedia.YouTubeVideoID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(

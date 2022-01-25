@@ -6,13 +6,13 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
-	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, auth.RemoteAddressFromContext(ctx))
+	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, authinterceptor.RemoteAddressFromContext(ctx))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -46,7 +47,7 @@ func (s *grpcServer) UserBans(ctxCtx context.Context, r *proto.UserBansRequest) 
 	}, nil
 }
 
-func convertUserBans(ctx context.Context, orig []*types.BannedUser, userSerializer APIUserSerializer) []*proto.UserBan {
+func convertUserBans(ctx context.Context, orig []*types.BannedUser, userSerializer auth.APIUserSerializer) []*proto.UserBan {
 	protoEntries := make([]*proto.UserBan, len(orig))
 	for i, entry := range orig {
 		protoEntries[i] = convertUserBan(ctx, entry, userSerializer)
@@ -54,7 +55,7 @@ func convertUserBans(ctx context.Context, orig []*types.BannedUser, userSerializ
 	return protoEntries
 }
 
-func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer APIUserSerializer) *proto.UserBan {
+func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer auth.APIUserSerializer) *proto.UserBan {
 	b := &proto.UserBan{
 		BanId:           orig.BanID,
 		BannedAt:        timestamppb.New(orig.BannedAt),
@@ -64,7 +65,7 @@ func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer 
 		EnqueuingBanned: orig.FromEnqueuing,
 		RewardsBanned:   orig.FromRewards,
 		Reason:          orig.Reason,
-		BannedBy:        userSerializer(ctx, NewAddressOnlyUser(orig.ModeratorAddress)),
+		BannedBy:        userSerializer(ctx, auth.NewAddressOnlyUser(orig.ModeratorAddress)),
 	}
 
 	if orig.BannedUntil.Valid {
@@ -77,7 +78,7 @@ func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer 
 }
 
 func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*proto.BanUserResponse, error) {
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -132,7 +133,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 			if r.Duration != nil {
 				banType = fmt.Sprintf("Temporary ban (%.2f hours)", r.Duration.AsDuration().Hours())
 			}
-			s.log.Printf("%s ID %s added by %s (remote address %s) with reason %s", banType, banID, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
+			s.log.Printf("%s ID %s added by %s (remote address %s) with reason %s", banType, banID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 			_, err = s.modLogWebhook.SendContent(
 				fmt.Sprintf("**Added %s with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
 					strings.ToLower(banType),
@@ -155,7 +156,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 }
 
 func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (*proto.RemoveBanResponse, error) {
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -170,7 +171,7 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, auth.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(

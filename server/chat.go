@@ -17,9 +17,12 @@ import (
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/blockeduser"
+	"github.com/tnyim/jungletv/server/stores/chat"
+	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -27,13 +30,13 @@ import (
 type ChatManager struct {
 	log                   *log.Logger
 	statsClient           *statsd.Client
-	store                 ChatStore
+	store                 chat.Store
 	idNode                *snowflake.Node
 	rateLimiter           limiter.Store
 	slowmodeRateLimiter   limiter.Store
 	nickChangeRateLimiter limiter.Store
-	moderationStore       ModerationStore
-	blockedUserStore      BlockedUserStore
+	moderationStore       moderation.Store
+	blockedUserStore      blockeduser.Store
 
 	enabled        bool
 	slowmode       bool
@@ -50,7 +53,7 @@ type ChatManager struct {
 }
 
 func NewChatManager(log *log.Logger, statsClient *statsd.Client,
-	store ChatStore, moderationStore ModerationStore, blockStore BlockedUserStore) (*ChatManager, error) {
+	store chat.Store, moderationStore moderation.Store, blockStore blockeduser.Store) (*ChatManager, error) {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
@@ -252,12 +255,12 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 
 var newlineReducingRegexp = regexp.MustCompile("\n\n\n+")
 
-func (c *ChatManager) CreateMessage(ctx context.Context, author User, content string, reference *ChatMessage) (*ChatMessage, error) {
+func (c *ChatManager) CreateMessage(ctx context.Context, author auth.User, content string, reference *chat.Message) (*chat.Message, error) {
 	if !c.enabled {
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
 
-	banned, err := c.moderationStore.LoadUserBannedFromChat(ctx, author.Address(), auth.RemoteAddressFromContext(ctx))
+	banned, err := c.moderationStore.LoadUserBannedFromChat(ctx, author.Address(), authinterceptor.RemoteAddressFromContext(ctx))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -280,7 +283,7 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 	// replace groups of more than 2 newlines with 2 newlines
 	content = newlineReducingRegexp.ReplaceAllString(content, "\n\n")
 
-	m := &ChatMessage{
+	m := &chat.Message{
 		ID:           c.idNode.Generate(),
 		CreatedAt:    time.Now(),
 		Author:       author,
@@ -300,8 +303,8 @@ func (c *ChatManager) CreateMessage(ctx context.Context, author User, content st
 	return m, nil
 }
 
-func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (*ChatMessage, error) {
-	m := &ChatMessage{
+func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (*chat.Message, error) {
+	m := &chat.Message{
 		ID:        c.idNode.Generate(),
 		CreatedAt: time.Now(),
 		Content:   content,
@@ -314,7 +317,7 @@ func (c *ChatManager) CreateSystemMessage(ctx context.Context, content string) (
 	return m, nil
 }
 
-func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*ChatMessage, error) {
+func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*chat.Message, error) {
 	message, err := c.store.DeleteMessage(ctx, id)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to delete chat message")
@@ -323,7 +326,7 @@ func (c *ChatManager) DeleteMessage(ctx context.Context, id snowflake.ID) (*Chat
 	return message, nil
 }
 
-func (c *ChatManager) SetNickname(ctxCtx context.Context, user User, nickname *string, bypassRatelimit bool) error {
+func (c *ChatManager) SetNickname(ctxCtx context.Context, user auth.User, nickname *string, bypassRatelimit bool) error {
 	if !bypassRatelimit {
 		_, _, _, ok, err := c.nickChangeRateLimiter.Take(ctxCtx, user.Address())
 		if err != nil {
@@ -337,22 +340,22 @@ func (c *ChatManager) SetNickname(ctxCtx context.Context, user User, nickname *s
 	return stacktrace.Propagate(c.store.SetUserNickname(ctxCtx, user, nickname), "")
 }
 
-func (c *ChatManager) LoadMessagesSince(ctx context.Context, includeShadowbanned User, since time.Time) ([]*ChatMessage, error) {
+func (c *ChatManager) LoadMessagesSince(ctx context.Context, includeShadowbanned auth.User, since time.Time) ([]*chat.Message, error) {
 	messages, err := c.store.LoadMessagesSince(ctx, includeShadowbanned, since)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
-func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, includeShadowbanned User, num int) ([]*ChatMessage, error) {
+func (c *ChatManager) LoadNumLatestMessages(ctx context.Context, includeShadowbanned auth.User, num int) ([]*chat.Message, error) {
 	messages, err := c.store.LoadNumLatestMessages(ctx, includeShadowbanned, num)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
-func (c *ChatManager) LoadNumLatestMessagesFromUser(ctx context.Context, user User, num int) ([]*ChatMessage, error) {
+func (c *ChatManager) LoadNumLatestMessagesFromUser(ctx context.Context, user auth.User, num int) ([]*chat.Message, error) {
 	messages, err := c.store.LoadNumLatestMessages(ctx, user, num)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
 
-func (c *ChatManager) LoadMessage(ctx context.Context, id snowflake.ID) (*ChatMessage, error) {
+func (c *ChatManager) LoadMessage(ctx context.Context, id snowflake.ID) (*chat.Message, error) {
 	messages, err := c.store.LoadMessage(ctx, id)
 	return messages, stacktrace.Propagate(err, "could not load chat messages")
 }
@@ -380,7 +383,7 @@ func (c *ChatManager) SetSlowModeEnabled(enabled bool) {
 	c.slowmode = enabled
 }
 
-func (c *ChatManager) OnUserBlockedBy(user User) *event.Event {
+func (c *ChatManager) OnUserBlockedBy(user auth.User) *event.Event {
 	if user == nil || user.IsUnknown() {
 		// will never fire, and satisfies the consumer
 		return event.New()
@@ -409,7 +412,7 @@ func (c *ChatManager) OnUserBlockedBy(user User) *event.Event {
 	return e
 }
 
-func (c *ChatManager) OnUserUnblockedBy(user User) *event.Event {
+func (c *ChatManager) OnUserUnblockedBy(user auth.User) *event.Event {
 	if user == nil || user.IsUnknown() {
 		// will never fire, and satisfies the consumer
 		return event.New()
@@ -438,7 +441,7 @@ func (c *ChatManager) OnUserUnblockedBy(user User) *event.Event {
 	return e
 }
 
-func (c *ChatManager) BlockUser(ctx context.Context, userToBlock, blockedBy User) error {
+func (c *ChatManager) BlockUser(ctx context.Context, userToBlock, blockedBy auth.User) error {
 	err := c.blockedUserStore.BlockUser(ctx, userToBlock, blockedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -453,7 +456,7 @@ func (c *ChatManager) BlockUser(ctx context.Context, userToBlock, blockedBy User
 	return nil
 }
 
-func (c *ChatManager) UnblockUser(ctx context.Context, blockID string, blockedBy User) error {
+func (c *ChatManager) UnblockUser(ctx context.Context, blockID string, blockedBy auth.User) error {
 	unblockedUser, err := c.blockedUserStore.UnblockUser(ctx, blockID, blockedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -468,7 +471,7 @@ func (c *ChatManager) UnblockUser(ctx context.Context, blockID string, blockedBy
 	return nil
 }
 
-func (c *ChatManager) UnblockUserByAddress(ctx context.Context, address string, blockedBy User) error {
+func (c *ChatManager) UnblockUserByAddress(ctx context.Context, address string, blockedBy auth.User) error {
 	unblockedUser, err := c.blockedUserStore.UnblockUserByAddress(ctx, address, blockedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -481,41 +484,6 @@ func (c *ChatManager) UnblockUserByAddress(ctx context.Context, address string, 
 		e.Notify(unblockedUser.Address())
 	}
 	return nil
-}
-
-// ChatMessage represents a single chat message
-type ChatMessage struct {
-	ID           snowflake.ID
-	CreatedAt    time.Time
-	Author       User
-	Content      string
-	Reference    *ChatMessage // may be nil
-	Shadowbanned bool
-}
-
-func (m *ChatMessage) SerializeForAPI(ctx context.Context, userSerializer APIUserSerializer) *proto.ChatMessage {
-	msg := &proto.ChatMessage{
-		Id:        m.ID.Int64(),
-		CreatedAt: timestamppb.New(m.CreatedAt),
-	}
-	if m.Author != nil {
-		msg.Message = &proto.ChatMessage_UserMessage{
-			UserMessage: &proto.UserChatMessage{
-				Author:  userSerializer(ctx, m.Author),
-				Content: m.Content,
-			},
-		}
-	} else {
-		msg.Message = &proto.ChatMessage_SystemMessage{
-			SystemMessage: &proto.SystemChatMessage{
-				Content: m.Content,
-			},
-		}
-	}
-	if m.Reference != nil {
-		msg.Reference = m.Reference.SerializeForAPI(ctx, userSerializer)
-	}
-	return msg
 }
 
 // ChatDisabledReason specifies the reason why chat is disabled

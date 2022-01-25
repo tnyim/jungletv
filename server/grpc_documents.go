@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -21,7 +22,7 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 
 	documents, err := types.GetDocumentsWithIDs(ctx, []string{r.Id})
 	if err != nil {
@@ -49,7 +50,7 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 	}
 	defer ctx.Rollback()
 
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -74,7 +75,7 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Document with ID %s updated by %s (remote address %s)", r.Id, moderator.Username, auth.RemoteAddressFromContext(ctx))
+	s.log.Printf("Document with ID %s updated by %s (remote address %s)", r.Id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -97,7 +98,7 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 	defer ctx.Rollback()
 
-	moderator := auth.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -123,7 +124,7 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 
 	s.announcementsUpdated.Notify(counter.CounterValue)
 
-	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.Username, auth.RemoteAddressFromContext(ctx))
+	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(

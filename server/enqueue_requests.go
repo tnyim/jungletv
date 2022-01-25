@@ -16,6 +16,9 @@ import (
 	"github.com/patrickmn/go-cache"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
+	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -29,12 +32,12 @@ type EnqueueManager struct {
 	mediaQueue                         *MediaQueue
 	pricer                             *Pricer
 	wallet                             *wallet.Wallet
-	paymentAccountPool                 *PaymentAccountPool
+	paymentAccountPool                 *paymentaccountpool.PaymentAccountPool
 	paymentAccountPendingWaitGroup     *sync.WaitGroup
 	rewardsHandler                     *RewardsHandler
 	collectorAccountAddress            string
 	log                                *log.Logger
-	moderationStore                    ModerationStore
+	moderationStore                    moderation.Store
 	modLogWebhook                      api.WebhookClient
 	newEntriesAlwaysUnskippableForFree bool
 
@@ -45,7 +48,7 @@ type EnqueueManager struct {
 
 // EnqueueRequest is a request to create an EnqueueTicket
 type EnqueueRequest interface {
-	RequestedBy() User
+	RequestedBy() auth.User
 	Unskippable() bool
 	MediaInfo() MediaInfo
 }
@@ -55,7 +58,7 @@ type EnqueueTicket interface {
 	EnqueueRequest
 	ID() string
 	CreatedAt() time.Time
-	RequestedBy() User
+	RequestedBy() auth.User
 	PaymentAccount() *wallet.Account
 	SerializeForAPI() *proto.EnqueueMediaTicket
 	RequestPricing() EnqueuePricing
@@ -72,11 +75,11 @@ func NewEnqueueManager(log *log.Logger,
 	mediaQueue *MediaQueue,
 	pricer *Pricer,
 	wallet *wallet.Wallet,
-	paymentAccountPool *PaymentAccountPool,
+	paymentAccountPool *paymentaccountpool.PaymentAccountPool,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	rewardsHandler *RewardsHandler,
 	collectorAccountAddress string,
-	moderationStore ModerationStore,
+	moderationStore moderation.Store,
 	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
 	return &EnqueueManager{
 		log:                            log,
@@ -316,8 +319,8 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 	return nil
 }
 
-func (e *EnqueueManager) findUserWhoPaid(account *wallet.Account) (User, error) {
-	var user User
+func (e *EnqueueManager) findUserWhoPaid(account *wallet.Account) (auth.User, error) {
+	var user auth.User
 	history, _, err := e.wallet.RPC.AccountHistory(account.Address(), 10, nil)
 	if err != nil {
 		if _, ok := err.(*json.UnmarshalTypeError); ok {
@@ -328,7 +331,7 @@ func (e *EnqueueManager) findUserWhoPaid(account *wallet.Account) (User, error) 
 	}
 	for _, historyEntry := range history {
 		if historyEntry.Type == "receive" {
-			user = NewAddressOnlyUser(historyEntry.Account)
+			user = auth.NewAddressOnlyUser(historyEntry.Account)
 			break
 		}
 	}
@@ -368,7 +371,7 @@ type ticket struct {
 	id             string
 	paid           bool
 	unskippable    bool
-	requestedBy    User
+	requestedBy    auth.User
 	createdAt      time.Time
 	mediaInfo      MediaInfo
 	account        *wallet.Account
@@ -393,7 +396,7 @@ func (t *ticket) CreatedAt() time.Time {
 	return t.createdAt
 }
 
-func (t *ticket) RequestedBy() User {
+func (t *ticket) RequestedBy() auth.User {
 	return t.requestedBy
 }
 

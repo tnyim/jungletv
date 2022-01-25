@@ -12,6 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -42,7 +43,7 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 
 var serverStartedAt = time.Now()
 
-func durationUntilNextActivityChallenge(user User, first bool) time.Duration {
+func durationUntilNextActivityChallenge(user auth.User, first bool) time.Duration {
 	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		// exempt admins/moderators from activity challenges
 		return 100 * 24 * time.Hour
@@ -93,7 +94,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
-	remoteAddress := auth.RemoteAddressFromContext(ctx)
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
 
 	var present bool
 	spectator, present = r.spectatorByActivityChallenge[challenge]

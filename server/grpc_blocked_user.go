@@ -6,6 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -14,7 +15,7 @@ import (
 )
 
 func (s *grpcServer) BlockedUsers(ctxCtx context.Context, r *proto.BlockedUsersRequest) (*proto.BlockedUsersResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -38,7 +39,7 @@ func (s *grpcServer) BlockedUsers(ctxCtx context.Context, r *proto.BlockedUsersR
 	}, nil
 }
 
-func convertBlockedUsers(ctx context.Context, orig []*types.BlockedUser, userSerializer APIUserSerializer) []*proto.BlockedUser {
+func convertBlockedUsers(ctx context.Context, orig []*types.BlockedUser, userSerializer auth.APIUserSerializer) []*proto.BlockedUser {
 	protoEntries := make([]*proto.BlockedUser, len(orig))
 	for i, entry := range orig {
 		protoEntries[i] = convertBlockedUser(ctx, entry, userSerializer)
@@ -46,17 +47,17 @@ func convertBlockedUsers(ctx context.Context, orig []*types.BlockedUser, userSer
 	return protoEntries
 }
 
-func convertBlockedUser(ctx context.Context, orig *types.BlockedUser, userSerializer APIUserSerializer) *proto.BlockedUser {
+func convertBlockedUser(ctx context.Context, orig *types.BlockedUser, userSerializer auth.APIUserSerializer) *proto.BlockedUser {
 	return &proto.BlockedUser{
 		Id:          orig.ID,
-		BlockedUser: userSerializer(ctx, NewAddressOnlyUser(orig.Address)),
-		BlockedBy:   userSerializer(ctx, NewAddressOnlyUser(orig.BlockedBy)),
+		BlockedUser: userSerializer(ctx, auth.NewAddressOnlyUser(orig.Address)),
+		BlockedBy:   userSerializer(ctx, auth.NewAddressOnlyUser(orig.BlockedBy)),
 		CreatedAt:   timestamppb.New(orig.CreatedAt),
 	}
 }
 
 func (s *grpcServer) BlockUser(ctx context.Context, r *proto.BlockUserRequest) (*proto.BlockUserResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -66,7 +67,7 @@ func (s *grpcServer) BlockUser(ctx context.Context, r *proto.BlockUserRequest) (
 		return nil, status.Error(codes.InvalidArgument, "you can't block yourself")
 	}
 
-	err := s.chat.BlockUser(ctx, NewAddressOnlyUser(r.Address), user)
+	err := s.chat.BlockUser(ctx, auth.NewAddressOnlyUser(r.Address), user)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -74,7 +75,7 @@ func (s *grpcServer) BlockUser(ctx context.Context, r *proto.BlockUserRequest) (
 }
 
 func (s *grpcServer) UnblockUser(ctx context.Context, r *proto.UnblockUserRequest) (*proto.UnblockUserResponse, error) {
-	user := auth.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

@@ -20,6 +20,11 @@ func NewJWTManager(secretKey []byte, tokenLifetimes map[PermissionLevel]time.Dur
 	return &JWTManager{secretKey, tokenLifetimes}
 }
 
+// IsTokenAboutToExpire returns whether the given token needs renewing ASAP
+func (manager *JWTManager) IsTokenAboutToExpire(claims *UserClaims) bool {
+	return time.Until(time.Unix(claims.ExpiresAt, 0)) < manager.tokenLifetimes[claims.PermLevel]/2
+}
+
 // Generate generates a JWT for a user
 func (manager *JWTManager) Generate(rewardAddress string, permissionLevel PermissionLevel, username string) (string, time.Time, error) {
 	expiration := time.Now().Add(manager.tokenLifetimes[permissionLevel])

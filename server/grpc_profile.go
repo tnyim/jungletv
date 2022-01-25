@@ -7,6 +7,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -21,7 +22,7 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := s.userSerializer(ctx, NewAddressOnlyUser(r.Address))
+	user := s.userSerializer(ctx, auth.NewAddressOnlyUser(r.Address))
 
 	recentlyRequestedMedia, err := types.LastRequestsOfAddress(ctx, r.Address, 10, true)
 	if err != nil {
@@ -125,7 +126,7 @@ func (s *grpcServer) UserStats(ctxCtx context.Context, r *proto.UserStatsRequest
 }
 
 func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetProfileBiographyRequest) (*proto.SetProfileBiographyResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -161,7 +162,7 @@ func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetPro
 }
 
 func (s *grpcServer) SetProfileFeaturedMedia(ctxCtx context.Context, r *proto.SetProfileFeaturedMediaRequest) (*proto.SetProfileFeaturedMediaResponse, error) {
-	user := auth.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

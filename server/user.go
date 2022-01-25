@@ -5,56 +5,8 @@ import (
 
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 )
-
-// User represents an identity on the service
-type User interface {
-	Address() string
-	Nickname() *string
-	PermissionLevel() auth.PermissionLevel
-	IsUnknown() bool
-	SetNickname(*string)
-}
-
-type addressOnlyUser struct {
-	address         string
-	permissionLevel auth.PermissionLevel
-	nickname        *string
-}
-
-func NewAddressOnlyUser(address string) *addressOnlyUser {
-	return &addressOnlyUser{
-		address:         address,
-		permissionLevel: auth.UnauthenticatedPermissionLevel,
-	}
-}
-
-func NewAddressOnlyUserWithPermissionLevel(address string, permLevel auth.PermissionLevel) *addressOnlyUser {
-	return &addressOnlyUser{
-		address:         address,
-		permissionLevel: permLevel,
-	}
-}
-
-func (u *addressOnlyUser) Address() string {
-	return u.address
-}
-
-func (u *addressOnlyUser) Nickname() *string {
-	return u.nickname
-}
-
-func (u *addressOnlyUser) PermissionLevel() auth.PermissionLevel {
-	return u.permissionLevel
-}
-
-func (u *addressOnlyUser) IsUnknown() bool {
-	return u == nil || u.address == ""
-}
-
-func (u *addressOnlyUser) SetNickname(s *string) {
-	u.nickname = s
-}
 
 type unknownUser struct {
 }
@@ -82,14 +34,11 @@ func (u *unknownUser) IsUnknown() bool {
 func (u *unknownUser) SetNickname(s *string) {
 }
 
-func UserPermissionLevelIsAtLeast(user User, level auth.PermissionLevel) bool {
+func UserPermissionLevelIsAtLeast(user auth.User, level auth.PermissionLevel) bool {
 	return auth.PermissionLevelOrder[user.PermissionLevel()] >= auth.PermissionLevelOrder[level]
 }
 
-// APIUserSerializer is a function that is able to return the protobuf representation of a user
-type APIUserSerializer func(ctx context.Context, user User) *proto.User
-
-func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.User {
+func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *proto.User {
 	userAddress := user.Address()
 	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
 
@@ -115,7 +64,7 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user User) *proto.
 
 	var nickname *string
 	bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, userAddress, "")
-	serializingForUser := auth.UserClaimsFromContext(ctx)
+	serializingForUser := authinterceptor.UserClaimsFromContext(ctx)
 	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.RewardAddress == userAddress)) {
 		nickname = user.Nickname()
 		if nickname == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
