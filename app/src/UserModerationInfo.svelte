@@ -60,11 +60,13 @@
         </p>
         <p>Watching since: {formatTimestamp(spectator.getWatchingSince())}</p>
         <p>Using VPN: {spectator.getRemoteAddressCanReceiveRewards() ? "no" : "yes"}</p>
+        <p>VPN allowed: {spectator.getIpAddressReputationChecksSkipped() ? "yes" : "no"}</p>
         {#if spectator.getLegitimate()}
             <p>Failed captcha: no</p>
         {:else}
             <p>Failed captcha: yes, at {formatTimestamp(spectator.getNotLegitimateSince())}</p>
         {/if}
+        <p>Reduced captcha frequency: {spectator.getHardChallengeFrequencyReduced() ? "yes" : "no"}</p>
         {#if spectator.hasStoppedWatchingAt()}
             <p>Stopped watching at: {formatTimestamp(spectator.getStoppedWatchingAt())}</p>
         {/if}
@@ -74,6 +76,7 @@
                 {formatTimestamp(spectator.getActivityChallenge().getChallengedAt())}
             </p>
         {/if}
+        <p>Client integrity checks skipped: {spectator.getClientIntegrityChecksSkipped() ? "yes" : "no"}</p>
         <p class="mt-6 mb-4">
             <a
                 href={"#"}

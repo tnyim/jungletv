@@ -131,7 +131,13 @@ import {
     BlockUserRequest,
     UnblockUserRequest,
     BlockedUsersResponse,
-    BlockedUsersRequest
+    BlockedUsersRequest,
+    UserVerificationsResponse,
+    UserVerificationsRequest,
+    VerifyUserResponse,
+    VerifyUserRequest,
+    RemoveUserVerificationResponse,
+    RemoveUserVerificationRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -472,6 +478,30 @@ class APIClient {
         request.setBanId(banID);
         request.setReason(reason);
         return this.unaryRPC<RemoveBanRequest, RemoveBanResponse>(JungleTV.RemoveBan, request);
+    }
+
+    async userVerifications(searchQuery: string, pagParams: PaginationParameters): Promise<UserVerificationsResponse> {
+        let request = new UserVerificationsRequest();
+        request.setPaginationParams(pagParams);
+        request.setSearchQuery(searchQuery);
+        return this.unaryRPC<UserVerificationsRequest, UserVerificationsResponse>(JungleTV.UserVerifications, request);
+    }
+
+    async verifyUser(address: string, skipClientIntegrityChecks: boolean, skipIPAddressReputationChecks: boolean, reduceHardChallengeFrequency: boolean, reason: string): Promise<VerifyUserResponse> {
+        let request = new VerifyUserRequest();
+        request.setAddress(address);
+        request.setSkipClientIntegrityChecks(skipClientIntegrityChecks);
+        request.setSkipIpAddressReputationChecks(skipIPAddressReputationChecks);
+        request.setReduceHardChallengeFrequency(reduceHardChallengeFrequency);
+        request.setReason(reason);
+        return this.unaryRPC<VerifyUserRequest, VerifyUserResponse>(JungleTV.VerifyUser, request);
+    }
+
+    async removeUserVerification(verificationID: string, reason: string): Promise<RemoveUserVerificationResponse> {
+        let request = new RemoveUserVerificationRequest();
+        request.setVerificationId(verificationID);
+        request.setReason(reason);
+        return this.unaryRPC<RemoveUserVerificationRequest, RemoveUserVerificationResponse>(JungleTV.RemoveUserVerification, request);
     }
 
     async userChatMessages(address: string, numMessages: number): Promise<UserChatMessagesResponse> {

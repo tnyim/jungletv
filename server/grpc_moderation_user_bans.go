@@ -28,7 +28,7 @@ func (s *grpcServer) UserBans(ctxCtx context.Context, r *proto.UserBansRequest) 
 	var total uint64
 
 	searchQuery := ""
-	if len(r.SearchQuery) > 3 {
+	if len(r.SearchQuery) >= 3 {
 		searchQuery = r.SearchQuery
 	}
 	if r.ActiveOnly {

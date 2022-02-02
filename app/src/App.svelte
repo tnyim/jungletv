@@ -21,6 +21,7 @@
 	import UserBans from "./moderation/UserBans.svelte";
 	import NoConnection from "./NoConnection.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
+import UserVerifications from "./moderation/UserVerifications.svelte";
 
 	export let url = "";
 
@@ -160,6 +161,13 @@
 				<Route path="/moderate/bans" let:params>
 					{#if isAdmin}
 						<UserBans />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/verifiedusers" let:params>
+					{#if isAdmin}
+						<UserVerifications />
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}

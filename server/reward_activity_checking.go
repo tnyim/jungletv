@@ -17,10 +17,13 @@ import (
 )
 
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	return &proto.SubmitActivityChallengeResponse{}, s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted, r.ClientVersion)
+	skippedClientIntegrityChecks, err := s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted, r.ClientVersion)
+	return &proto.SubmitActivityChallengeResponse{
+		SkippedClientIntegrityChecks: skippedClientIntegrityChecks,
+	}, stacktrace.Propagate(err, "")
 }
 
-func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
+func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *RewardsHandler) {
 	// this function runs once per spectator
 	// it keeps running until all connections of the spectator disconnect
 	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)
@@ -34,7 +37,7 @@ func spectatorActivityWatchdog(spectator *spectator, r *RewardsHandler) {
 			// this lets us refresh the activityCheckTimer channel
 			continue
 		case <-spectator.activityCheckTimer.C:
-			r.produceActivityChallenge(spectator)
+			r.produceActivityChallenge(ctx, spectator)
 		case <-disconnected:
 			return
 		}
@@ -57,7 +60,7 @@ func durationUntilNextActivityChallenge(user auth.User, first bool) time.Duratio
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second
 }
 
-func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
+func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator *spectator) {
 	hadChallengeStr := ""
 	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress, hadChallengeStr)
 	r.spectatorsMutex.Lock()
@@ -74,7 +77,15 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 		Type:         "button",
 		Tolerance:    1 * time.Minute,
 	}
-	if time.Since(spectator.lastHardChallengeSolvedAt) > 1*time.Hour {
+	hardChallengeInterval := 1 * time.Hour
+	hasReduced, err := r.moderationStore.LoadPaymentAddressHasReducedHardChallengeFrequency(ctx, spectator.user.Address())
+	if err != nil {
+		r.log.Println(stacktrace.Propagate(err, ""))
+	} else if hasReduced {
+		hardChallengeInterval = 3 * time.Hour
+	}
+
+	if time.Since(spectator.lastHardChallengeSolvedAt) > hardChallengeInterval {
 		spectator.activityChallenge.Type = "segcha"
 		spectator.activityChallenge.Tolerance = 2 * time.Minute
 	}
@@ -87,7 +98,7 @@ func (r *RewardsHandler) produceActivityChallenge(spectator *spectator) {
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool, clientVersion string) (err error) {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
 	var spectator *spectator
 	var timeUntilChallengeResponse time.Duration
 	var captchaValid bool
@@ -100,17 +111,23 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	spectator, present = r.spectatorByActivityChallenge[challenge]
 	if !present {
 		r.log.Println("Unidentified spectator with remote address ", remoteAddress, "submitted a solution to a missing challenge:", challenge)
-		return stacktrace.NewError("invalid challenge")
+		return false, stacktrace.NewError("invalid challenge")
 	}
 	if _, found := spectator.remoteAddresses[remoteAddress]; !found {
 		r.log.Println("Spectator", spectator.user.Address(), remoteAddress, "submitted a challenge solution from a mismatched remote address:", spectator.remoteAddress)
-		return stacktrace.NewError("mismatched remote address")
+		return false, stacktrace.NewError("mismatched remote address")
 	}
 
 	now := time.Now()
 	timeUntilChallengeResponse = now.Sub(spectator.activityChallenge.ChallengedAt)
 
 	newLegitimate := trusted && clientVersion == r.versionHash
+	skipsIntegrityChecks, err := r.moderationStore.LoadPaymentAddressSkipsClientIntegrityChecks(ctx, spectator.user.Address())
+	if err != nil {
+		r.log.Println(stacktrace.Propagate(err, ""))
+	} else if skipsIntegrityChecks {
+		newLegitimate = true
+	}
 	var checkFn captchaResponseCheckFn
 	switch spectator.activityChallenge.Type {
 	case "hCaptcha":
@@ -123,7 +140,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		if err != nil {
 			r.log.Println("Error verifying captcha:", err)
 		}
-		newLegitimate = err == nil && captchaValid && trusted && clientVersion == r.versionHash
+		newLegitimate = newLegitimate && err == nil && captchaValid
 		if !captchaValid && err == nil {
 			// if not valid, do everything except mark the spectator as legitimate.
 			// this way, they'll stop receiving rewards until the next challenge
@@ -157,7 +174,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 
 	delete(r.spectatorByActivityChallenge, challenge)
 
-	return nil
+	return skipsIntegrityChecks, nil
 }
 
 func (r *RewardsHandler) hCaptchaResponseValid(ctx context.Context, hCaptchaResponse string) (bool, error) {

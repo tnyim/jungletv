@@ -404,6 +404,18 @@ func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRe
 	legitimate, notLegitimateSince := spectator.Legitimate()
 	stoppedWatching, stoppedWatchingAt := spectator.StoppedWatching()
 	activityChallenge := spectator.CurrentActivityChallenge()
+	clientIntegrityChecksSkipped, err := s.moderationStore.LoadPaymentAddressSkipsClientIntegrityChecks(ctx, r.RewardsAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	ipRepChecksSkipped, err := s.moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, r.RewardsAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	hardChallengesReduced, err := s.moderationStore.LoadPaymentAddressHasReducedHardChallengeFrequency(ctx, r.RewardsAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 
 	ps := &proto.Spectator{
 		RewardsAddress:                     r.RewardsAddress,
@@ -412,6 +424,9 @@ func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRe
 		WatchingSince:                      timestamppb.New(spectator.WatchingSince()),
 		RemoteAddressCanReceiveRewards:     spectator.RemoteAddressCanReceiveRewards(s.ipReputationChecker),
 		Legitimate:                         legitimate,
+		ClientIntegrityChecksSkipped:       clientIntegrityChecksSkipped,
+		IpAddressReputationChecksSkipped:   ipRepChecksSkipped,
+		HardChallengeFrequencyReduced:      hardChallengesReduced,
 	}
 	if !legitimate {
 		ps.NotLegitimateSince = timestamppb.New(notLegitimateSince)

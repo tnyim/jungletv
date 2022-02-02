@@ -361,6 +361,33 @@ JungleTV.RemoveBan = {
   responseType: jungletv_pb.RemoveBanResponse
 };
 
+JungleTV.UserVerifications = {
+  methodName: "UserVerifications",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.UserVerificationsRequest,
+  responseType: jungletv_pb.UserVerificationsResponse
+};
+
+JungleTV.VerifyUser = {
+  methodName: "VerifyUser",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.VerifyUserRequest,
+  responseType: jungletv_pb.VerifyUserResponse
+};
+
+JungleTV.RemoveUserVerification = {
+  methodName: "RemoveUserVerification",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveUserVerificationRequest,
+  responseType: jungletv_pb.RemoveUserVerificationResponse
+};
+
 JungleTV.UserChatMessages = {
   methodName: "UserChatMessages",
   service: JungleTV,
@@ -1806,6 +1833,99 @@ JungleTVClient.prototype.removeBan = function removeBan(requestMessage, metadata
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.RemoveBan, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.userVerifications = function userVerifications(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.UserVerifications, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.verifyUser = function verifyUser(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.VerifyUser, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeUserVerification = function removeUserVerification(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveUserVerification, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

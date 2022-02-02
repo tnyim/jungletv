@@ -73,6 +73,31 @@
         }
     }
 
+    async function submitChallenge(captchaResponse: string) {
+        try {
+            let result = await apiClient.submitActivityChallenge(activityChallenge.getId(), captchaResponse, trusted);
+            if (!trusted && !result.getSkippedClientIntegrityChecks()) {
+                alert(
+                    "Client integrity checks failed. " +
+                        "Please disable any extensions that may be interfering with the JungleTV page. " +
+                        "You will not receive rewards until this situation is corrected.\n\n" +
+                        "Contact the JungleTV team for more information."
+                );
+            }
+        } catch {
+            if (captchaResponse != "") {
+                alert(
+                    "An error occurred when submitting the captcha solution. The page will now reload so you can retry."
+                );
+            } else {
+                alert(
+                    "An error occurred when submitting the activity challenge. The page will now reload so you can retry."
+                );
+            }
+            location.reload();
+        }
+    }
+
     async function stillWatching(event: MouseEvent) {
         clicked = true;
         let sig = ((Document.prototype as any).__lookupGetter__("hidden") + "").replace(/\s+/g, "");
@@ -86,20 +111,13 @@
         } else if (activityChallenge.getType() == "segcha") {
             await executeSegcha();
         } else {
-            try {
-                await apiClient.submitActivityChallenge(activityChallenge.getId(), "", trusted);
-            } catch {}
+            await submitChallenge("");
             activityChallenge = null;
         }
     }
 
     async function activityCaptchaOnSubmit(token: string) {
-        try {
-            await apiClient.submitActivityChallenge(activityChallenge.getId(), token, trusted);
-        } catch {
-            alert("An error occurred when submitting the captcha solution. The page will now reload so you can retry.");
-            location.reload();
-        }
+        await submitChallenge(token);
         activityChallenge = null;
     }
 

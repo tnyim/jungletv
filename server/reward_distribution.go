@@ -128,14 +128,6 @@ func getEligibleSpectators(ctx context.Context,
 		if len(spectators) == 0 {
 			continue
 		}
-		if canReceive := c.CanReceiveRewards(k); !canReceive {
-			l.Println("Skipped rewarding remote address", k, "due to bad reputation")
-			continue
-		}
-		if banned, err := moderationStore.LoadRemoteAddressBannedFromRewards(ctx, k); err == nil && banned {
-			l.Println("Skipped rewarding remote address", k, "due to ban")
-			continue
-		}
 		uniquifiedIP := utils.GetUniquifiedIP(k)
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
@@ -149,6 +141,13 @@ func getEligibleSpectators(ctx context.Context,
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
 		for j := range spectators {
+			if canReceive := c.CanReceiveRewards(spectators[j].remoteAddress); !canReceive {
+				canUseBadIP, err := moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, spectators[j].remoteAddress)
+				if err == nil && !canUseBadIP {
+					l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
+					continue
+				}
+			}
 			if !spectators[j].stoppedWatching.IsZero() {
 				// spectator not currently watching
 				continue
@@ -170,6 +169,10 @@ func getEligibleSpectators(ctx context.Context,
 			}
 			// do not reward a banned spectator
 			if banned, err := moderationStore.LoadPaymentAddressBannedFromRewards(ctx, spectators[j].user.Address()); err == nil && banned {
+				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
+				continue
+			}
+			if banned, err := moderationStore.LoadRemoteAddressBannedFromRewards(ctx, spectators[j].remoteAddress); err == nil && banned {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
 				continue
 			}

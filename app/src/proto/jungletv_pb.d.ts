@@ -1052,6 +1052,9 @@ export namespace SubmitActivityChallengeRequest {
 }
 
 export class SubmitActivityChallengeResponse extends jspb.Message {
+  getSkippedClientIntegrityChecks(): boolean;
+  setSkippedClientIntegrityChecks(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SubmitActivityChallengeResponse.AsObject;
   static toObject(includeInstance: boolean, msg: SubmitActivityChallengeResponse): SubmitActivityChallengeResponse.AsObject;
@@ -1064,6 +1067,7 @@ export class SubmitActivityChallengeResponse extends jspb.Message {
 
 export namespace SubmitActivityChallengeResponse {
   export type AsObject = {
+    skippedClientIntegrityChecks: boolean,
   }
 }
 
@@ -1749,6 +1753,210 @@ export class UserBansResponse extends jspb.Message {
 export namespace UserBansResponse {
   export type AsObject = {
     userBansList: Array<UserBan.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
+export class VerifyUserRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getSkipClientIntegrityChecks(): boolean;
+  setSkipClientIntegrityChecks(value: boolean): void;
+
+  getSkipIpAddressReputationChecks(): boolean;
+  setSkipIpAddressReputationChecks(value: boolean): void;
+
+  getReduceHardChallengeFrequency(): boolean;
+  setReduceHardChallengeFrequency(value: boolean): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VerifyUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: VerifyUserRequest): VerifyUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VerifyUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VerifyUserRequest;
+  static deserializeBinaryFromReader(message: VerifyUserRequest, reader: jspb.BinaryReader): VerifyUserRequest;
+}
+
+export namespace VerifyUserRequest {
+  export type AsObject = {
+    address: string,
+    skipClientIntegrityChecks: boolean,
+    skipIpAddressReputationChecks: boolean,
+    reduceHardChallengeFrequency: boolean,
+    reason: string,
+  }
+}
+
+export class VerifyUserResponse extends jspb.Message {
+  getVerificationId(): string;
+  setVerificationId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VerifyUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: VerifyUserResponse): VerifyUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VerifyUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VerifyUserResponse;
+  static deserializeBinaryFromReader(message: VerifyUserResponse, reader: jspb.BinaryReader): VerifyUserResponse;
+}
+
+export namespace VerifyUserResponse {
+  export type AsObject = {
+    verificationId: string,
+  }
+}
+
+export class RemoveUserVerificationRequest extends jspb.Message {
+  getVerificationId(): string;
+  setVerificationId(value: string): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveUserVerificationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveUserVerificationRequest): RemoveUserVerificationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveUserVerificationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveUserVerificationRequest;
+  static deserializeBinaryFromReader(message: RemoveUserVerificationRequest, reader: jspb.BinaryReader): RemoveUserVerificationRequest;
+}
+
+export namespace RemoveUserVerificationRequest {
+  export type AsObject = {
+    verificationId: string,
+    reason: string,
+  }
+}
+
+export class RemoveUserVerificationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveUserVerificationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveUserVerificationResponse): RemoveUserVerificationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveUserVerificationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveUserVerificationResponse;
+  static deserializeBinaryFromReader(message: RemoveUserVerificationResponse, reader: jspb.BinaryReader): RemoveUserVerificationResponse;
+}
+
+export namespace RemoveUserVerificationResponse {
+  export type AsObject = {
+  }
+}
+
+export class UserVerification extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  hasCreatedAt(): boolean;
+  clearCreatedAt(): void;
+  getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getSkipClientIntegrityChecks(): boolean;
+  setSkipClientIntegrityChecks(value: boolean): void;
+
+  getSkipIpAddressReputationChecks(): boolean;
+  setSkipIpAddressReputationChecks(value: boolean): void;
+
+  getReduceHardChallengeFrequency(): boolean;
+  setReduceHardChallengeFrequency(value: boolean): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  hasVerifiedBy(): boolean;
+  clearVerifiedBy(): void;
+  getVerifiedBy(): User | undefined;
+  setVerifiedBy(value?: User): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserVerification.AsObject;
+  static toObject(includeInstance: boolean, msg: UserVerification): UserVerification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserVerification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserVerification;
+  static deserializeBinaryFromReader(message: UserVerification, reader: jspb.BinaryReader): UserVerification;
+}
+
+export namespace UserVerification {
+  export type AsObject = {
+    id: string,
+    createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    address: string,
+    skipClientIntegrityChecks: boolean,
+    skipIpAddressReputationChecks: boolean,
+    reduceHardChallengeFrequency: boolean,
+    reason: string,
+    verifiedBy?: User.AsObject,
+  }
+}
+
+export class UserVerificationsRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  getSearchQuery(): string;
+  setSearchQuery(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserVerificationsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UserVerificationsRequest): UserVerificationsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserVerificationsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserVerificationsRequest;
+  static deserializeBinaryFromReader(message: UserVerificationsRequest, reader: jspb.BinaryReader): UserVerificationsRequest;
+}
+
+export namespace UserVerificationsRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+    searchQuery: string,
+  }
+}
+
+export class UserVerificationsResponse extends jspb.Message {
+  clearUserVerificationsList(): void;
+  getUserVerificationsList(): Array<UserVerification>;
+  setUserVerificationsList(value: Array<UserVerification>): void;
+  addUserVerifications(value?: UserVerification, index?: number): UserVerification;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserVerificationsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UserVerificationsResponse): UserVerificationsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserVerificationsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserVerificationsResponse;
+  static deserializeBinaryFromReader(message: UserVerificationsResponse, reader: jspb.BinaryReader): UserVerificationsResponse;
+}
+
+export namespace UserVerificationsResponse {
+  export type AsObject = {
+    userVerificationsList: Array<UserVerification.AsObject>,
     offset: number,
     total: number,
   }
@@ -3050,6 +3258,15 @@ export class Spectator extends jspb.Message {
   getActivityChallenge(): ActivityChallenge | undefined;
   setActivityChallenge(value?: ActivityChallenge): void;
 
+  getClientIntegrityChecksSkipped(): boolean;
+  setClientIntegrityChecksSkipped(value: boolean): void;
+
+  getIpAddressReputationChecksSkipped(): boolean;
+  setIpAddressReputationChecksSkipped(value: boolean): void;
+
+  getHardChallengeFrequencyReduced(): boolean;
+  setHardChallengeFrequencyReduced(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Spectator.AsObject;
   static toObject(includeInstance: boolean, msg: Spectator): Spectator.AsObject;
@@ -3071,6 +3288,9 @@ export namespace Spectator {
     notLegitimateSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     stoppedWatchingAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     activityChallenge?: ActivityChallenge.AsObject,
+    clientIntegrityChecksSkipped: boolean,
+    ipAddressReputationChecksSkipped: boolean,
+    hardChallengeFrequencyReduced: boolean,
   }
 }
 

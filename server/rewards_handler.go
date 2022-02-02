@@ -270,7 +270,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 
 	r.log.Printf("Re%sgistered spectator with reward address %s and remote address %s, %d connections", reconnectingStr, s.user.Address(), s.remoteAddress, s.connectionCount)
 	if s.connectionCount == 1 {
-		go spectatorActivityWatchdog(s, r)
+		go spectatorActivityWatchdog(ctx, s, r)
 	}
 	return s, nil
 }

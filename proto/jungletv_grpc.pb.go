@@ -58,6 +58,9 @@ type JungleTVClient interface {
 	UserBans(ctx context.Context, in *UserBansRequest, opts ...grpc.CallOption) (*UserBansResponse, error)
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
 	RemoveBan(ctx context.Context, in *RemoveBanRequest, opts ...grpc.CallOption) (*RemoveBanResponse, error)
+	UserVerifications(ctx context.Context, in *UserVerificationsRequest, opts ...grpc.CallOption) (*UserVerificationsResponse, error)
+	VerifyUser(ctx context.Context, in *VerifyUserRequest, opts ...grpc.CallOption) (*VerifyUserResponse, error)
+	RemoveUserVerification(ctx context.Context, in *RemoveUserVerificationRequest, opts ...grpc.CallOption) (*RemoveUserVerificationResponse, error)
 	UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error)
 	DisallowedVideos(ctx context.Context, in *DisallowedVideosRequest, opts ...grpc.CallOption) (*DisallowedVideosResponse, error)
 	AddDisallowedVideo(ctx context.Context, in *AddDisallowedVideoRequest, opts ...grpc.CallOption) (*AddDisallowedVideoResponse, error)
@@ -580,6 +583,33 @@ func (c *jungleTVClient) RemoveBan(ctx context.Context, in *RemoveBanRequest, op
 	return out, nil
 }
 
+func (c *jungleTVClient) UserVerifications(ctx context.Context, in *UserVerificationsRequest, opts ...grpc.CallOption) (*UserVerificationsResponse, error) {
+	out := new(UserVerificationsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserVerifications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) VerifyUser(ctx context.Context, in *VerifyUserRequest, opts ...grpc.CallOption) (*VerifyUserResponse, error) {
+	out := new(VerifyUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/VerifyUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RemoveUserVerification(ctx context.Context, in *RemoveUserVerificationRequest, opts ...grpc.CallOption) (*RemoveUserVerificationResponse, error) {
+	out := new(RemoveUserVerificationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveUserVerification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error) {
 	out := new(UserChatMessagesResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UserChatMessages", in, out, opts...)
@@ -854,6 +884,9 @@ type JungleTVServer interface {
 	UserBans(context.Context, *UserBansRequest) (*UserBansResponse, error)
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
 	RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error)
+	UserVerifications(context.Context, *UserVerificationsRequest) (*UserVerificationsResponse, error)
+	VerifyUser(context.Context, *VerifyUserRequest) (*VerifyUserResponse, error)
+	RemoveUserVerification(context.Context, *RemoveUserVerificationRequest) (*RemoveUserVerificationResponse, error)
 	UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error)
 	DisallowedVideos(context.Context, *DisallowedVideosRequest) (*DisallowedVideosResponse, error)
 	AddDisallowedVideo(context.Context, *AddDisallowedVideoRequest) (*AddDisallowedVideoResponse, error)
@@ -1000,6 +1033,15 @@ func (UnimplementedJungleTVServer) BanUser(context.Context, *BanUserRequest) (*B
 }
 func (UnimplementedJungleTVServer) RemoveBan(context.Context, *RemoveBanRequest) (*RemoveBanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveBan not implemented")
+}
+func (UnimplementedJungleTVServer) UserVerifications(context.Context, *UserVerificationsRequest) (*UserVerificationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserVerifications not implemented")
+}
+func (UnimplementedJungleTVServer) VerifyUser(context.Context, *VerifyUserRequest) (*VerifyUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyUser not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveUserVerification(context.Context, *RemoveUserVerificationRequest) (*RemoveUserVerificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveUserVerification not implemented")
 }
 func (UnimplementedJungleTVServer) UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserChatMessages not implemented")
@@ -1803,6 +1845,60 @@ func _JungleTV_RemoveBan_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_UserVerifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserVerificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UserVerifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UserVerifications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UserVerifications(ctx, req.(*UserVerificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_VerifyUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).VerifyUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/VerifyUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).VerifyUser(ctx, req.(*VerifyUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RemoveUserVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveUserVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveUserVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveUserVerification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveUserVerification(ctx, req.(*RemoveUserVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_UserChatMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserChatMessagesRequest)
 	if err := dec(in); err != nil {
@@ -2358,6 +2454,18 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveBan",
 			Handler:    _JungleTV_RemoveBan_Handler,
+		},
+		{
+			MethodName: "UserVerifications",
+			Handler:    _JungleTV_UserVerifications_Handler,
+		},
+		{
+			MethodName: "VerifyUser",
+			Handler:    _JungleTV_VerifyUser_Handler,
+		},
+		{
+			MethodName: "RemoveUserVerification",
+			Handler:    _JungleTV_RemoveUserVerification_Handler,
 		},
 		{
 			MethodName: "UserChatMessages",

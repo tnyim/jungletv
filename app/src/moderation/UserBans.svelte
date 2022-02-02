@@ -205,12 +205,6 @@
     </div>
 
     <div class="mt-10 mb-4 grid grid-rows-1 grid-cols-2 gap-12">
-        <div class="flex flex-col">
-            <input class="dark:text-black" type="text" placeholder="Search bans" bind:value={searchQuery} />
-            {#if searchQuery != "" && searchQuery.length < 4}
-                <p>Enter at least 4 characters</p>
-            {/if}
-        </div>
         <div>
             <input
                 id="showOnlyActive"
@@ -232,7 +226,8 @@
         no_items_message={"No user bans"}
         data_promise_factory={getPage}
         bind:cur_page
-        search_query={searchQuery}
+        bind:search_query={searchQuery}
+        show_search_box={true}
     >
         <svelte:fragment slot="thead">
             <tr

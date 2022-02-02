@@ -49,6 +49,9 @@ service JungleTV {
     rpc UserBans(UserBansRequest) returns (UserBansResponse) {}
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
     rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
+    rpc UserVerifications(UserVerificationsRequest) returns (UserVerificationsResponse) {}
+    rpc VerifyUser(VerifyUserRequest) returns (VerifyUserResponse) {}
+    rpc RemoveUserVerification(RemoveUserVerificationRequest) returns (RemoveUserVerificationResponse) {}
     rpc UserChatMessages(UserChatMessagesRequest) returns (UserChatMessagesResponse) {}
     rpc DisallowedVideos(DisallowedVideosRequest) returns (DisallowedVideosResponse) {}
     rpc AddDisallowedVideo(AddDisallowedVideoRequest) returns (AddDisallowedVideoResponse) {}
@@ -310,7 +313,9 @@ message SubmitActivityChallengeRequest {
     string client_version = 4;
 }
 
-message SubmitActivityChallengeResponse {}
+message SubmitActivityChallengeResponse {
+    bool skipped_client_integrity_checks = 1;
+}
 
 message ConsumeChatRequest {
     uint32 initial_history_size = 1;
@@ -444,6 +449,47 @@ message UserBansRequest {
 
 message UserBansResponse {
     repeated UserBan user_bans = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message VerifyUserRequest {
+    string address = 1;
+    bool skip_client_integrity_checks = 2;
+    bool skip_ip_address_reputation_checks = 3;
+    bool reduce_hard_challenge_frequency = 4;
+    string reason = 5;
+}
+
+message VerifyUserResponse {
+    string verification_id = 1;
+}
+
+message RemoveUserVerificationRequest {
+    string verification_id = 1;
+    string reason = 2;
+}
+
+message RemoveUserVerificationResponse {}
+
+message UserVerification {
+    string id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string address = 3;
+    bool skip_client_integrity_checks = 4;
+    bool skip_ip_address_reputation_checks = 5;
+    bool reduce_hard_challenge_frequency = 6;
+    string reason = 7;
+    User verified_by = 8;
+}
+
+message UserVerificationsRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+message UserVerificationsResponse {
+    repeated UserVerification user_verifications = 1;
     uint64 offset = 2;
     uint64 total = 3;
 }
@@ -706,6 +752,9 @@ message Spectator {
     optional google.protobuf.Timestamp not_legitimate_since = 7;
     optional google.protobuf.Timestamp stopped_watching_at = 8;
     optional ActivityChallenge activity_challenge = 9;
+    bool client_integrity_checks_skipped = 10;
+    bool ip_address_reputation_checks_skipped = 11;
+    bool hard_challenge_frequency_reduced = 12;
 }
 
 message ResetSpectatorStatusRequest {

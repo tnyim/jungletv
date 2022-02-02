@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "verified_user";
 DROP TABLE IF EXISTS "blocked_user";
 DROP TABLE IF EXISTS "media_queue_event";
 DROP TABLE IF EXISTS "media_queue_event_type";
@@ -214,3 +215,15 @@ CREATE TABLE IF NOT EXISTS "blocked_user" (
 );
 
 CREATE INDEX index_blocked_by_on_blocked_user ON blocked_user USING BTREE (blocked_by);
+
+CREATE TABLE IF NOT EXISTS "verified_user" (
+    id VARCHAR(36) PRIMARY KEY,
+    "address" VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    skip_client_integrity_checks BOOLEAN NOT NULL,
+    skip_ip_address_reputation_checks BOOLEAN NOT NULL,
+    reduce_hard_challenge_frequency BOOLEAN NOT NULL,
+    reason TEXT NOT NULL,
+    moderator_address VARCHAR(64) NOT NULL,
+    moderator_name VARCHAR(32) NOT NULL
+)

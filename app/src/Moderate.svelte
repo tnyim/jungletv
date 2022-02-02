@@ -305,9 +305,12 @@
         </p>
     </div>
     <div class="mt-10">
-        <p class="px-2 font-semibold text-lg">User bans</p>
+        <p class="px-2 font-semibold text-lg">User bans and verification</p>
         <p class="px-2 py-2 text-lg">
             <a href="/moderate/bans" use:link>Manage user bans</a>
+        </p>
+        <p class="px-2 py-2 text-lg">
+            <a href="/moderate/verifiedusers" use:link>Manage verified users</a>
         </p>
     </div>
     <div>

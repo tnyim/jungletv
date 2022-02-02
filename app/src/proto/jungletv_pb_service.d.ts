@@ -355,6 +355,33 @@ type JungleTVRemoveBan = {
   readonly responseType: typeof jungletv_pb.RemoveBanResponse;
 };
 
+type JungleTVUserVerifications = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.UserVerificationsRequest;
+  readonly responseType: typeof jungletv_pb.UserVerificationsResponse;
+};
+
+type JungleTVVerifyUser = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.VerifyUserRequest;
+  readonly responseType: typeof jungletv_pb.VerifyUserResponse;
+};
+
+type JungleTVRemoveUserVerification = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RemoveUserVerificationRequest;
+  readonly responseType: typeof jungletv_pb.RemoveUserVerificationResponse;
+};
+
 type JungleTVUserChatMessages = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -603,6 +630,9 @@ export class JungleTV {
   static readonly UserBans: JungleTVUserBans;
   static readonly BanUser: JungleTVBanUser;
   static readonly RemoveBan: JungleTVRemoveBan;
+  static readonly UserVerifications: JungleTVUserVerifications;
+  static readonly VerifyUser: JungleTVVerifyUser;
+  static readonly RemoveUserVerification: JungleTVRemoveUserVerification;
   static readonly UserChatMessages: JungleTVUserChatMessages;
   static readonly DisallowedVideos: JungleTVDisallowedVideos;
   static readonly AddDisallowedVideo: JungleTVAddDisallowedVideo;
@@ -962,6 +992,33 @@ export class JungleTVClient {
   removeBan(
     requestMessage: jungletv_pb.RemoveBanRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveBanResponse|null) => void
+  ): UnaryResponse;
+  userVerifications(
+    requestMessage: jungletv_pb.UserVerificationsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserVerificationsResponse|null) => void
+  ): UnaryResponse;
+  userVerifications(
+    requestMessage: jungletv_pb.UserVerificationsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserVerificationsResponse|null) => void
+  ): UnaryResponse;
+  verifyUser(
+    requestMessage: jungletv_pb.VerifyUserRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.VerifyUserResponse|null) => void
+  ): UnaryResponse;
+  verifyUser(
+    requestMessage: jungletv_pb.VerifyUserRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.VerifyUserResponse|null) => void
+  ): UnaryResponse;
+  removeUserVerification(
+    requestMessage: jungletv_pb.RemoveUserVerificationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveUserVerificationResponse|null) => void
+  ): UnaryResponse;
+  removeUserVerification(
+    requestMessage: jungletv_pb.RemoveUserVerificationRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveUserVerificationResponse|null) => void
   ): UnaryResponse;
   userChatMessages(
     requestMessage: jungletv_pb.UserChatMessagesRequest,
