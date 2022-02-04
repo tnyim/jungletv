@@ -142,7 +142,7 @@ func getEligibleSpectators(ctx context.Context,
 		})
 		for j := range spectators {
 			if canReceive := c.CanReceiveRewards(spectators[j].remoteAddress); !canReceive {
-				canUseBadIP, err := moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, spectators[j].remoteAddress)
+				canUseBadIP, err := moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, spectators[j].user.Address())
 				if err == nil && !canUseBadIP {
 					l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
 					continue
