@@ -14,7 +14,14 @@
 </script>
 
 <div class="w-32 flex-shrink-0 thumbnail">
-    <img src={entry.getYoutubeVideoData().getThumbnailUrl()} alt="" loading="lazy" width="120" height="90" />
+    <img
+        src={entry.getYoutubeVideoData().getThumbnailUrl()}
+        alt=""
+        loading="lazy"
+        width="120"
+        height="90"
+        style="max-width: 120px; max-height: 90px; object-fit: contain"
+    />
     {#if isPlaying}
         <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center pr-2">
             <div style="width: auto;" class="flex flex-row place-content-center">
