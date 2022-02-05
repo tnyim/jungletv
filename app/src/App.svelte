@@ -21,7 +21,7 @@
 	import UserBans from "./moderation/UserBans.svelte";
 	import NoConnection from "./NoConnection.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
-import UserVerifications from "./moderation/UserVerifications.svelte";
+	import UserVerifications from "./moderation/UserVerifications.svelte";
 
 	export let url = "";
 

@@ -17,6 +17,25 @@ const app = new App({
     link.setAttribute("href", "/assets/vendor/@fontawesome/fontawesome-free/css/all.min.css");
     shadowRoot.appendChild(link);
 
+    // we must handle this manually inside the shadow root
+    let bringHashElementIntoView = function () {
+      let hash = window.location.hash;
+      if (hash.startsWith("#") && hash.length > 1 && !hash.endsWith("#")) {
+        let element = shadowRoot.getElementById(hash.substring(1));
+        if (element != null) {
+          element.scrollIntoView();
+          // we do this so that consecutive clicks to the same hash can work
+          // (hashchange doesn't fire otherwise)
+          window.location.hash += "#";
+        }
+      }
+    }
+    window.addEventListener("hashchange", bringHashElementIntoView);
+    window.addEventListener("load", () => {
+      window.location.hash = window.location.hash.replace(/#+$/, "");
+      bringHashElementIntoView();
+    });
+
     return shadowRoot;
   })(),
 });
