@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"net/http"
 	"sync"
 	"time"
 
@@ -39,8 +38,6 @@ type RewardsHandler struct {
 	skipManager                    *SkipManager
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
-	hCaptchaSecret                 string
-	hCaptchaHTTPClient             http.Client
 	moderationStore                moderation.Store
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
@@ -164,7 +161,6 @@ func NewRewardsHandler(log *log.Logger,
 	mediaQueue *MediaQueue,
 	ipReputationChecker *ipreputation.Checker,
 	withdrawalHandler *WithdrawalHandler,
-	hCaptchaSecret string,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
@@ -182,13 +178,9 @@ func NewRewardsHandler(log *log.Logger,
 		collectorAccountQueue:          collectorAccountQueue,
 		skipManager:                    skipManager,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
-		hCaptchaSecret:                 hCaptchaSecret,
-		hCaptchaHTTPClient: http.Client{
-			Timeout: 10 * time.Second,
-		},
-		moderationStore:       moderationStore,
-		eligibleMovingAverage: movingaverage.New(3),
-		segchaCheckFn:         segchaCheckFn,
+		moderationStore:                moderationStore,
+		eligibleMovingAverage:          movingaverage.New(3),
+		segchaCheckFn:                  segchaCheckFn,
 
 		rewardsDistributed: event.New(),
 

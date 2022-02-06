@@ -118,7 +118,6 @@ type Options struct {
 	IPCheckToken      string
 	YoutubeAPIkey     string
 	RaffleSecretKey   string
-	HCaptchaSecret    string
 
 	ModLogWebhook string
 
@@ -294,7 +293,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
 	s.rewardsHandler, err = NewRewardsHandler(
-		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.HCaptchaSecret, options.Wallet,
+		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
 		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid, options.VersionHash)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")

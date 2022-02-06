@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -218,11 +219,6 @@ func main() {
 		mainLog.Fatalln("IP check token not present in keybox")
 	}
 
-	hCaptchaSecret, present := secrets.Get("hCaptchaSecret")
-	if !present {
-		mainLog.Fatalln("hCaptcha secret not present in keybox")
-	}
-
 	modLogWebhook, present := secrets.Get("modLogWebhook")
 	if !present {
 		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
@@ -309,7 +305,6 @@ func main() {
 		IPCheckToken:              ipCheckToken,
 		YoutubeAPIkey:             youtubeAPIkey,
 		RaffleSecretKey:           raffleSecretKey,
-		HCaptchaSecret:            hCaptchaSecret,
 		ModLogWebhook:             modLogWebhook,
 		SegchaClient:              segchaClient,
 		CaptchaImageDB:            imageDB,
@@ -399,6 +394,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]
 	router := mux.NewRouter().StrictSlash(true)
 	configureRouter(router, extraHTTProutes)
 
+	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 	wrappedServer := grpcweb.WrapServer(grpcServer)
 	handler := func(resp http.ResponseWriter, req *http.Request) {
 		/*if req.ProtoMajor != 2 {
@@ -415,6 +411,12 @@ func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]
 			wrappedServer.ServeHTTP(resp, req)
 			return
 		}
+		resp.Header().Set("X-Frame-Options", "deny")
+		resp.Header().Set("X-Content-Type-Options", "nosniff")
+		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com; frame-src https://youtube.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
+		resp.Header().Set("Referrer-Policy", "same-origin")
+		resp.Header().Set("Permissions-Policy", "autoplay=*, fullscreen=*")
+		resp.Header().Set("Strict-Transport-Security", "max-age=31536000")
 		router.ServeHTTP(resp, req)
 	}
 

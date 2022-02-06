@@ -2,10 +2,7 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
 	"math/rand"
-	"net/url"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -98,7 +95,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, hCaptchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
+func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, captchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
 	var spectator *spectator
 	var timeUntilChallengeResponse time.Duration
 	var captchaValid bool
@@ -130,13 +127,11 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	}
 	var checkFn captchaResponseCheckFn
 	switch spectator.activityChallenge.Type {
-	case "hCaptcha":
-		checkFn = r.hCaptchaResponseValid
 	case "segcha":
 		checkFn = r.segchaCheckFn
 	}
 	if checkFn != nil {
-		captchaValid, err = checkFn(ctx, hCaptchaResponse)
+		captchaValid, err = checkFn(ctx, captchaResponse)
 		if err != nil {
 			r.log.Println("Error verifying captcha:", err)
 		}
@@ -175,43 +170,6 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	delete(r.spectatorByActivityChallenge, challenge)
 
 	return skipsIntegrityChecks, nil
-}
-
-func (r *RewardsHandler) hCaptchaResponseValid(ctx context.Context, hCaptchaResponse string) (bool, error) {
-	if hCaptchaResponse == "" {
-		return false, nil
-	}
-
-	resp, err := r.hCaptchaHTTPClient.PostForm("https://hcaptcha.com/siteverify",
-		url.Values{
-			"secret":   {r.hCaptchaSecret},
-			"response": {hCaptchaResponse},
-		},
-	)
-	if err != nil {
-		return false, stacktrace.Propagate(err, "")
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return false, stacktrace.Propagate(err, "")
-	}
-
-	type Response struct {
-		ChallengeTS string   `json:"challenge_ts"`
-		Hostname    string   `json:"hostname"`
-		ErrorCodes  []string `json:"error-codes,omitempty"`
-		Success     bool     `json:"success"`
-		Credit      bool     `json:"credit,omitempty"`
-	}
-	var response Response
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return false, stacktrace.Propagate(err, "")
-	}
-	return response.Success, nil
 }
 
 func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context, address string) {

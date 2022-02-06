@@ -2,14 +2,13 @@
     import { apiClient } from "./api_client";
     import { fly } from "svelte/transition";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
-    import { afterUpdate, onMount } from "svelte";
-    import { darkMode, modal } from "./stores";
+    import { onMount } from "svelte";
+    import { modal } from "./stores";
     import Segcha from "./Segcha.svelte";
 
     export let activityChallenge: ActivityChallenge;
     export let challengesDone: number;
 
-    let captchaWidgetID: string;
     let clicked = false;
     let trusted = false;
     let top = 0;
@@ -106,9 +105,7 @@
             !document.hidden &&
             checkShadowRootIntegrity() &&
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
-        if (activityChallenge.getType() == "hCaptcha") {
-            executehCaptcha();
-        } else if (activityChallenge.getType() == "segcha") {
+        if (activityChallenge.getType() == "segcha") {
             await executeSegcha();
         } else {
             await submitChallenge("");
@@ -121,49 +118,9 @@
         activityChallenge = null;
     }
 
-    async function activityCaptchaOnError(message: string) {
-        console.log("Captcha errored:", message);
-        renderhCaptcha();
-        executehCaptcha();
-    }
-
-    async function activityCaptchaOnClose() {
-        clicked = false;
-    }
-
     onMount(() => {
         top = (0.25 + Math.random() / 2) * 100;
     });
-
-    afterUpdate(() => {
-        if (captchaWidgetID === undefined && activityChallenge !== null && activityChallenge.getType() == "hCaptcha") {
-            renderhCaptcha();
-        }
-    });
-
-    function renderhCaptcha() {
-        try {
-            captchaWidgetID = (window as any).hcaptcha.render("activity-captcha", {
-                callback: activityCaptchaOnSubmit,
-                "error-callback": activityCaptchaOnError,
-                "close-callback": activityCaptchaOnClose,
-                "chalexpired-callback": activityCaptchaOnClose,
-                theme: $darkMode ? "dark" : "light",
-            });
-        } catch {
-            alert("An error occurred when preparing the captcha. The page will now reload so you can retry.");
-            location.reload();
-        }
-    }
-
-    function executehCaptcha() {
-        try {
-            (window as any).hcaptcha.execute(captchaWidgetID);
-        } catch {
-            alert("An error occurred when loading the captcha. The page will now reload.");
-            location.reload();
-        }
-    }
 
     async function executeSegcha() {
         try {
@@ -228,18 +185,4 @@
             {/if}
         </button>
     </div>
-    {#if activityChallenge != null && activityChallenge.getType() == "hCaptcha"}
-        <div class="text-xs text-gray-600 dark:text-gray-400 text-right mt-1">
-            Protected by hCaptcha ●
-            <a target="_blank" rel="noopener" href="https://hcaptcha.com/privacy">Privacy</a>
-            ●
-            <a target="_blank" rel="noopener" href="https://hcaptcha.com/terms">Terms</a>
-        </div>
-        <div
-            id="activity-captcha"
-            class="h-captcha"
-            data-size="invisible"
-            data-sitekey="2b033fe2-e4ae-402d-a6cb-23094e84876d"
-        />
-    {/if}
 </div>
