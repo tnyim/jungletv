@@ -4,6 +4,7 @@
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import PaginatedTable from "./PaginatedTable.svelte";
+    import { openUserProfile } from "./profile_utils";
     import type {
         Connection,
         PaginationParameters,
@@ -115,15 +116,21 @@
         {:then}
             <p class="text-lg font-semibold">Currently rewarding:</p>
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
-            <p class="mt-2 mb-6">
+            <div class="mt-2 mb-6">
                 <a
                     use:link
                     href="/rewards/address"
-                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                    class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
                 >
                     Change address
                 </a>
-            </p>
+                <span
+                    on:click={() => openUserProfile($rewardAddress)}
+                    class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                >
+                    View profile
+                </span>
+            </div>
             {#if pendingWithdrawal}
                 <div class="mt-3">
                     <WarningMessage>
