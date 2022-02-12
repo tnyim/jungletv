@@ -13,6 +13,7 @@
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.3.0",
     "@tsconfig/svelte": "^1.0.0",
+    "@types/codemirror": "^5.60.5",
     "@types/luxon": "^1.26.5",
     "@types/youtube-player": "^5.5.3",
     "autoprefixer": "^10.2.6",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "@improbable-eng/grpc-web": "^0.15.0",
+    "@svelte-parts/editor": "^0.0.20",
     "@types/google-protobuf": "^3.15.2",
     "@types/marked": "^2.0.3",
     "emoji-picker-element": "^1.8.1",
@@ -44,6 +46,7 @@
     "svelte-qrcode": "^1.0.0",
     "svelte-routing": "^1.6.0",
     "svelte-simple-modal": "^1.0.3",
+    "svelte-split-pane": "^0.1.2",
     "svelte-textarea-autoresize": "^1.0.0",
     "svelte-youtube": "^0.0.2",
     "ts-protoc-gen": "^0.15.0",
