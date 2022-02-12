@@ -1,7 +1,7 @@
 <script lang="ts">
     import { useFocus } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import marked from "marked/lib/marked.esm.js";
+    import { marked } from "marked/lib/marked.esm.js";
     import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
 
     export let documentID = "";

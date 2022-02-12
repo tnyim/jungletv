@@ -7,7 +7,7 @@
     import { fade } from "svelte/transition";
     import { blockedUsers, unreadChatMention } from "./stores";
     import { DateTime } from "luxon";
-    import marked from "marked/lib/marked.esm.js";
+    import { marked } from "marked/lib/marked.esm.js";
     import "emoji-picker-element";
 
     import { editNicknameForUser } from "./utils";

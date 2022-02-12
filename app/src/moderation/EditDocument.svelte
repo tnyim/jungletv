@@ -2,7 +2,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { Document } from "../proto/jungletv_pb";
-    import marked from "marked/lib/marked.esm.js";
+    import { marked } from "marked/lib/marked.esm.js";
     import CodeMirror from "@svelte-parts/editor/codemirror";
     import ActualCodeMirror from "codemirror";
     import "codemirror/mode/gfm/gfm";
