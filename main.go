@@ -411,8 +411,10 @@ func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]
 			wrappedServer.ServeHTTP(resp, req)
 			return
 		}
+
 		resp.Header().Set("X-Frame-Options", "deny")
 		resp.Header().Set("X-Content-Type-Options", "nosniff")
+		// remember to edit the CSP in index.template too
 		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com; frame-src https://youtube.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
 		resp.Header().Set("Referrer-Policy", "same-origin")
 		resp.Header().Set("Permissions-Policy", "autoplay=*, fullscreen=*")
