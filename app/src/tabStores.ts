@@ -11,6 +11,7 @@ export type SidebarTab = {
     props: {};
     closeable: boolean;
     highlighted: boolean;
+    canPopout: boolean;
 };
 
 export const defaultSidebarTabIDs = ["queue", "skipandtip", "chat", "announcements"];
@@ -23,6 +24,7 @@ export const sidebarTabs = writable([
         props: { mode: "sidebar" },
         closeable: false,
         highlighted: false,
+        canPopout: true,
     },
     {
         id: "skipandtip",
@@ -31,6 +33,7 @@ export const sidebarTabs = writable([
         props: { mode: "sidebar" },
         closeable: false,
         highlighted: false,
+        canPopout: true,
     },
     {
         id: "chat",
@@ -39,6 +42,7 @@ export const sidebarTabs = writable([
         props: { mode: "sidebar" },
         closeable: false,
         highlighted: false,
+        canPopout: true,
     },
     {
         id: "announcements",
@@ -47,5 +51,6 @@ export const sidebarTabs = writable([
         props: { mode: "sidebar", documentID: "announcements" },
         closeable: false,
         highlighted: false,
+        canPopout: true,
     },
 ] as SidebarTab[]);

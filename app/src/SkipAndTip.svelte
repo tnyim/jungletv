@@ -7,7 +7,7 @@
     import AddressBox from "./AddressBox.svelte";
     import { darkMode } from "./stores";
 
-    export const mode = "sidebar";
+    export let mode = "sidebar";
 
     let skipAndTipStatus: SkipAndTipStatus;
     let monitorSkipAndTipRequest: Request;
@@ -56,7 +56,9 @@
     {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_NO_MEDIA}
         <div class="px-2 py-2">
             Nothing to skip as nothing is playing.<br />
-            <a href="/enqueue" use:link>Get something going</a>!
+            {#if mode !== "popout"}
+                <a href="/enqueue" use:link>Get something going</a>!
+            {/if}
         </div>
     {:else}
         <div class="px-2 py-2">

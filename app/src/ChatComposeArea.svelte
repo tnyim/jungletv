@@ -10,7 +10,7 @@
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
     import { afterUpdate, createEventDispatcher, onMount } from "svelte";
     import { link } from "svelte-navigator";
-    import { insertAtCursor, setNickname } from "./utils";
+    import { insertAtCursor, openPopout, setNickname } from "./utils";
     import { apiClient } from "./api_client";
     import { emojiDatabase } from "./chat_utils";
     import type { ChatMessage } from "./proto/jungletv_pb";
@@ -82,6 +82,9 @@
         composedMessage = "";
         if (msg == "/lightsout") {
             darkMode.update((v) => !v);
+            return;
+        } else if (msg == "/popout") {
+            openPopout("chat");
             return;
         }
         let refMsg = replyingToMessage;

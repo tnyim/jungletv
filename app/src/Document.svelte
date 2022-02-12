@@ -3,10 +3,15 @@
     import { apiClient } from "./api_client";
     import marked from "marked/lib/marked.esm.js";
     import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
-    const registerFocus = useFocus();
 
     export let documentID = "";
     export let mode = "page";
+
+    const registerFocus = function (el: HTMLElement) {
+        if (mode == "page") {
+            useFocus()(el);
+        }
+    };
 
     let documentPromise = apiClient.getDocument(documentID);
 
@@ -22,7 +27,7 @@
     }
 </script>
 
-<div class="flex-grow container mx-auto max-w-screen-md p-2 {mode == 'sidebar' ? 'pt-0' : ''}">
+<div class="flex-grow container mx-auto max-w-screen-md p-2 {mode == 'document' ? '' : 'pt-0'}">
     <span use:registerFocus class="hidden" />
     {#await documentPromise}
         <p>Loading content...</p>

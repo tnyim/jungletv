@@ -192,7 +192,10 @@
             {/if}
         {:else}
             <div class="px-2 py-2">
-                Nothing playing. <a href="/enqueue" use:link>Get something going</a>!
+                Nothing playing.
+                {#if mode !== "popout"}
+                    <a href="/enqueue" use:link>Get something going</a>!
+                {/if}
             </div>
         {/each}
     </div>

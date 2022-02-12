@@ -251,6 +251,7 @@
     }
 
     function openChatHistoryForAuthorOfMessage(message: ChatMessage) {
+        let historyPath = "/moderate/users/" + message.getUserMessage().getAuthor().getAddress() + "/chathistory";
         if (mode == "sidebar") {
             let newTab: SidebarTab = {
                 id: message.getId() + Math.random().toString().substr(2, 8),
@@ -262,10 +263,17 @@
                 },
                 closeable: true,
                 highlighted: false,
+                canPopout: false,
             };
             dispatch("openSidebarTab", newTab);
+        } else if (mode == "popout") {
+            if(window.opener != null) {
+                window.opener.document.location.href = window.origin + historyPath;
+            } else {
+                window.open(window.origin + historyPath);
+            }
         } else {
-            navigate("/moderate/users/" + message.getUserMessage().getAuthor().getAddress() + "/chathistory");
+            navigate(historyPath);
         }
     }
 
@@ -294,9 +302,17 @@
         endPreShowMessageDetails();
         detailsOpenForMsgID = "";
     }
+    let containerClasses = "";
+    $: {
+        if (mode == "sidebar") {
+            containerClasses = "chat-max-height h-full";
+        } else if (mode == "popout") {
+            containerClasses = "max-h-screen";
+        }
+    }
 </script>
 
-<div class="flex flex-col {mode == 'moderation' ? '' : 'chat-max-height h-full'}" on:pointerenter={hideMessageDetails}>
+<div class="flex flex-col {containerClasses}" on:pointerenter={hideMessageDetails}>
     <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
         {#each chatMessages as message, idx (message.getId())}
             <div

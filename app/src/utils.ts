@@ -52,7 +52,7 @@ export const setNickname = async function (nickname: string): Promise<[boolean, 
     }
     try {
         await apiClient.setChatNickname(nickname);
-    } catch(ex) {
+    } catch (ex) {
         if (ex.includes("rate limit reached")) {
             return [false, "You've set your nickname too recently. Please wait before trying again."];
         }
@@ -79,4 +79,9 @@ export const insertAtCursor = function (input: HTMLInputElement | HTMLTextAreaEl
     const end = input.selectionEnd;
     input.value = value.slice(0, start) + textToInsert + value.slice(end);
     input.selectionStart = input.selectionEnd = start + textToInsert.length;
+}
+
+export const openPopout = function (tabID: string) {
+    let w = window.open(window.location.href, "JungleTV-Popout-"+tabID, "popup,width=400,height=600");
+    w.name = "JungleTV-Popout-"+tabID;
 }

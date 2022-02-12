@@ -7,6 +7,7 @@
     import type { SidebarTab } from "./tabStores";
     import { sidebarTabs } from "./tabStores";
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
+import { openPopout } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -142,6 +143,16 @@
         }
     }
 
+    function onTabButtonMouseDown(tabID: string, e: MouseEvent) {
+        if (e.button == 1) {
+            let clickedTab = tabs.find((t) => tabID == t.id);
+            if (typeof clickedTab !== 'undefined' && clickedTab.canPopout) {
+                e.preventDefault();
+                openPopout(tabID);
+            }
+        }
+    }
+
     onDestroy(() => {
         clearScrollInterval();
     });
@@ -167,7 +178,11 @@
             bind:offsetWidth={blW}
         >
             {#each tabs as tab}
-                <SidebarTabButton selected={selectedTabID == tab.id} on:click={() => sidebarMode.update((_) => tab.id)}>
+                <SidebarTabButton
+                    selected={selectedTabID == tab.id}
+                    on:mousedown={(e) => onTabButtonMouseDown(tab.id, e)}
+                    on:click={() => sidebarMode.update((_) => tab.id)}
+                >
                     {#if tab.highlighted}
                         <div class="inline-block">
                             <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />

@@ -22,6 +22,9 @@
 	import NoConnection from "./NoConnection.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
+	import Chat from "./Chat.svelte";
+	import Queue from "./Queue.svelte";
+	import { SidebarTab, sidebarTabs } from "./tabStores";
 
 	export let url = "";
 
@@ -46,6 +49,11 @@
 		}
 	}
 
+	const darkModeBroadcastChannel = new BroadcastChannel("darkMode");
+	darkMode.subscribe((newSetting) => {
+		darkModeBroadcastChannel.postMessage(newSetting);
+	});
+
 	let isAdmin = false;
 	let isOnline = true;
 	function refreshOnLineStatus() {
@@ -68,6 +76,9 @@
 			permissionLevel.update((_) => PermissionLevel.UNAUTHENTICATED);
 		}
 		refreshOnLineStatus();
+		darkModeBroadcastChannel.addEventListener("message", (e) => {
+			$darkMode = e.data;
+		});
 	});
 
 	const historyStore = { subscribe: globalHistory.listen };
@@ -98,11 +109,42 @@
 			modalOpen(p.component, p.props, p.options, p.callbacks);
 		}
 	});
+
+	let popoutTab: SidebarTab;
+	function transformPopoutProps(props: {}): {} {
+		let newProps = Object.assign({}, props);
+		return Object.assign(newProps, { mode: "popout" });
+	}
+
+	$: {
+		if (window.name.startsWith("JungleTV-Popout-")) {
+			let tabID = window.name.substring("JungleTV-Popout-".length);
+			let tab = $sidebarTabs.find((t) => tabID == t.id);
+			if (typeof tab !== "undefined") {
+				popoutTab = tab;
+			} else {
+				popoutTab = undefined;
+			}
+		} else {
+			popoutTab = undefined;
+		}
+	}
+	$: {
+		if (typeof popoutTab !== "undefined") {
+			document.title = popoutTab.tabTitle + " - JungleTV";
+		} else {
+			document.title = "JungleTV";
+		}
+	}
 </script>
 
 <div bind:this={rootInsideShadowRoot}>
 	<Modal setContext={modalSetContext} />
-	{#if isOnline}
+	{#if isOnline && typeof popoutTab !== "undefined"}
+		<div class="min-h-screen bg-gray-100 dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
+			<svelte:component this={popoutTab.component} {...transformPopoutProps(popoutTab.props)} />
+		</div>
+	{:else if isOnline}
 		<Navbar />
 		<div
 			class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
