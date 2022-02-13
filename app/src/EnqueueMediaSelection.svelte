@@ -11,6 +11,7 @@
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
     import VideoRangeFloat from "./VideoRangeFloat.svelte";
+    import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -32,7 +33,7 @@
 
     async function handleEnter(event: KeyboardEvent) {
         if (event.key === "Enter") {
-            await submit();
+            await handleSubmit();
             return false;
         }
         return true;
@@ -120,6 +121,20 @@
                 failureReason = response.getFailure().getFailureReason();
                 break;
         }
+    }
+
+    let submitting = false;
+    async function handleSubmit() {
+        if (submitting) {
+            return;
+        }
+        submitting = true;
+        try {
+            await submit();
+        } catch {
+            failureReason = "An error occurred. If the problem persists, refresh the page and try again";
+        }
+        submitting = false;
     }
 
     function cancel() {
@@ -417,13 +432,23 @@
             Cancel
         </button>
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={submit}
-        >
-            Next
-        </button>
+        {#if submitting}
+            <button
+                disabled
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
+            >
+                <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
+                Loading
+            </button>
+        {:else}
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
+                on:click={handleSubmit}
+            >
+                Next
+            </button>
+        {/if}
     </div>
     <div slot="extra_1">
         <slot name="raffle-info" />
