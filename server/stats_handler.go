@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/patrickmn/go-cache"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -19,23 +20,35 @@ type StatsHandler struct {
 	spectatorsByRemoteAddress map[string]int
 	spectatorsMutex           sync.RWMutex
 
-	queueSubs              int
-	authenticatedQueueSubs int
-
-	chatSubs              int
-	authenticatedChatSubs int
+	streamingSubsCounters *cache.Cache
 }
+
+type StreamStatsType string
+
+const StreamStatsQueue StreamStatsType = "queue"
+const StreamStatsCommunitySkipping StreamStatsType = "community_skipping"
+const StreamStatsChat StreamStatsType = "chat"
 
 // NewStatsHandler creates a new StatsHandler
 func NewStatsHandler(log *log.Logger, mediaQueue *MediaQueue, statsClient *statsd.Client) (*StatsHandler, error) {
 	go statsClient.Gauge("spectators", 0)
-	return &StatsHandler{
+	s := &StatsHandler{
 		log:         log,
 		mediaQueue:  mediaQueue,
 		statsClient: statsClient,
 
 		spectatorsByRemoteAddress: make(map[string]int),
-	}, nil
+		streamingSubsCounters:     cache.New(cache.NoExpiration, -1),
+	}
+
+	s.streamingSubsCounters.SetDefault(string(StreamStatsQueue), int(0))
+	s.streamingSubsCounters.SetDefault(string(StreamStatsQueue)+"_authenticated", int(0))
+	s.streamingSubsCounters.SetDefault(string(StreamStatsCommunitySkipping), int(0))
+	s.streamingSubsCounters.SetDefault(string(StreamStatsCommunitySkipping)+"_authenticated", int(0))
+	s.streamingSubsCounters.SetDefault(string(StreamStatsChat), int(0))
+	s.streamingSubsCounters.SetDefault(string(StreamStatsChat)+"_authenticated", int(0))
+
+	return s, nil
 }
 
 func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
@@ -66,38 +79,28 @@ func (s *StatsHandler) CurrentlyWatching() int {
 	return len(s.spectatorsByRemoteAddress)
 }
 
-func (s *StatsHandler) RegisterQueueSubscriber(authenticated bool) func() {
-	s.queueSubs++
-	go s.statsClient.Gauge("subscribers.queue", s.queueSubs)
+func (s *StatsHandler) RegisterStreamSubscriber(stream StreamStatsType, authenticated bool) func() {
+	s.streamingSubsCounters.IncrementInt(string(stream), 1)
+
+	authenticatedKey := string(stream) + "_authenticated"
 	if authenticated {
-		s.authenticatedQueueSubs++
-		go s.statsClient.Gauge("subscribers.queue_authenticated", s.authenticatedQueueSubs)
+		s.streamingSubsCounters.IncrementInt(authenticatedKey, 1)
 	}
+
+	gauge := func() {
+		v, _ := s.streamingSubsCounters.Get(string(stream))
+		s.statsClient.Gauge("subscribers."+string(stream), v.(int))
+
+		v, _ = s.streamingSubsCounters.Get(authenticatedKey)
+		s.statsClient.Gauge("subscribers."+authenticatedKey, v.(int))
+	}
+	go gauge()
 
 	return func() {
-		s.queueSubs--
-		go s.statsClient.Gauge("subscribers.queue", s.queueSubs)
+		s.streamingSubsCounters.DecrementInt(string(stream), 1)
 		if authenticated {
-			s.authenticatedQueueSubs--
-			go s.statsClient.Gauge("subscribers.queue_authenticated", s.authenticatedQueueSubs)
+			s.streamingSubsCounters.DecrementInt(authenticatedKey, 1)
 		}
-	}
-}
-
-func (s *StatsHandler) RegisterChatSubscriber(authenticated bool) func() {
-	s.chatSubs++
-	go s.statsClient.Gauge("subscribers.chat", s.chatSubs)
-	if authenticated {
-		s.authenticatedChatSubs++
-		go s.statsClient.Gauge("subscribers.chat_authenticated", s.authenticatedChatSubs)
-	}
-
-	return func() {
-		s.chatSubs--
-		go s.statsClient.Gauge("subscribers.chat", s.chatSubs)
-		if authenticated {
-			s.authenticatedChatSubs--
-			go s.statsClient.Gauge("subscribers.chat_authenticated", s.authenticatedChatSubs)
-		}
+		go gauge()
 	}
 }

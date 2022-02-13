@@ -5,12 +5,19 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
 func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream proto.JungleTV_MonitorSkipAndTipServer) error {
+	ctx := stream.Context()
+	user := authinterceptor.UserClaimsFromContext(ctx)
+
 	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer statusUpdatedU()
+
+	unregister := s.statsHandler.RegisterStreamSubscriber(StreamStatsCommunitySkipping, user != nil && !user.IsUnknown())
+	defer unregister()
 
 	latestSkipStatus := s.skipManager.SkipAccountStatus()
 	latestRainStatus := s.skipManager.RainAccountStatus()

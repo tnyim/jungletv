@@ -18,7 +18,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
-	unregister := s.statsHandler.RegisterQueueSubscriber(user != nil && !user.IsUnknown())
+	unregister := s.statsHandler.RegisterStreamSubscriber(StreamStatsQueue, user != nil && !user.IsUnknown())
 	defer unregister()
 
 	send := func() error {
