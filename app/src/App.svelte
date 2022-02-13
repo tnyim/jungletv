@@ -49,11 +49,6 @@
 		}
 	}
 
-	const darkModeBroadcastChannel = new BroadcastChannel("darkMode");
-	darkMode.subscribe((newSetting) => {
-		darkModeBroadcastChannel.postMessage(newSetting);
-	});
-
 	let isAdmin = false;
 	let isOnline = true;
 	function refreshOnLineStatus() {
@@ -76,9 +71,17 @@
 			permissionLevel.update((_) => PermissionLevel.UNAUTHENTICATED);
 		}
 		refreshOnLineStatus();
-		darkModeBroadcastChannel.addEventListener("message", (e) => {
-			$darkMode = e.data;
-		});
+
+		// safari doesn't support BroadcastChannel and a try-catch is an easy way to "solve" the problem
+		try {
+			const darkModeBroadcastChannel = new BroadcastChannel("darkMode");
+			darkMode.subscribe((newSetting) => {
+				darkModeBroadcastChannel.postMessage(newSetting);
+			});
+			darkModeBroadcastChannel.addEventListener("message", (e) => {
+				$darkMode = e.data;
+			});
+		} catch {}
 	});
 
 	const historyStore = { subscribe: globalHistory.listen };
