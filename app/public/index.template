@@ -23,15 +23,29 @@
 		content="default-src https:; script-src 'self' https://youtube.com https://www.youtube.com; frame-src https://youtube.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src https: data:">
 
 	<link rel="icon" type="image/png" href="/favicon.png">
-	<link rel="stylesheet" href="/build/bundle.css?v={{ .VersionHash }}">
-	<link rel="stylesheet" href="/assets/vendor/@fontawesome/fontawesome-free/css/all.min.css" />
 
 	<link rel="manifest" crossorigin="use-credentials" href="jungletv.webmanifest">
-
-	<script defer src="/build/bundle.js?v={{ .VersionHash }}"></script>
 </head>
 
-<body>
+<body style="height: 100vh; margin: 0">
+	<div id="loading-message" style="position: fixed; z-index: 10000; height: 100%; width: 100%; background-color: #ccc;
+		display: flex; justify-content: center; align-items: center; flex-direction: column;
+		font-family: sans-serif">
+		<div style="margin: 16px; text-align: center;">
+			<div>
+				<img src="/assets/brand/logo.svg" alt="JungleTV" style="height: 100px; display: inline" />
+			</div>
+			<div>
+				Please wait while we load an amazonian amount of code and assets...
+			</div>
+			<noscript style="margin-top: 16px; display: block">
+				JungleTV primarily provides a synchronized community video watching experience, which requires real-time
+				communication with our servers and the ability to play YouTube videos.<br>
+				For this reason, <strong>you must enable JavaScript in order to use JungleTV</strong>.
+			</noscript>
+		</div>
+	</div>
+	<script defer type="text/javascript" src="/build/bundle.js?v={{ .VersionHash }}"></script>
 </body>
 
 </html>

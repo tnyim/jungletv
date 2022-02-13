@@ -141,7 +141,7 @@
 <div bind:this={rootInsideShadowRoot}>
 	<Modal setContext={modalSetContext} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
-		<div class="min-h-screen bg-gray-100 dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
+		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
 			<svelte:component this={popoutTab.component} {...transformPopoutProps(popoutTab.props)} />
 		</div>
 	{:else if isOnline}
