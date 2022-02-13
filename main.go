@@ -417,7 +417,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]
 		// remember to edit the CSP in index.template too
 		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com; frame-src https://youtube.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
 		resp.Header().Set("Referrer-Policy", "same-origin")
-		resp.Header().Set("Permissions-Policy", "autoplay=*, fullscreen=*")
+		resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
 		resp.Header().Set("Strict-Transport-Security", "max-age=31536000")
 		router.ServeHTTP(resp, req)
 	}
