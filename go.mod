@@ -40,7 +40,7 @@ require (
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20200326080414-5b7e9ee61906
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
-	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 	golang.org/x/net v0.0.0-20220121210141-e204ce36a2ba // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
@@ -51,6 +51,6 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0
 )
 
-replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16-0.20220114190505-9b95b5e73f89
+replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16-0.20220219121042-f284aae8926a
 
 replace github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177 => github.com/gsgalloway/stacktrace v0.0.0-20200507040314-ca3802f754c7
