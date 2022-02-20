@@ -1,8 +1,13 @@
 <script lang="ts">
-    import type { User } from "../proto/jungletv_pb";
     import { openUserProfile } from "../profile_utils";
 
-    export let user: User;
+    interface UserRepresentation {
+        getAddress(): string;
+        hasNickname(): boolean;
+        getNickname(): string;
+    }
+
+    export let user: UserRepresentation;
 
     function openProfile() {
         openUserProfile(user.getAddress());

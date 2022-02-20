@@ -155,8 +155,8 @@
           </tbody>
         {/each}
       {:then response}
-        {#each response[0] as item}
-          <slot name="item" {item} {updateDataCallback} />
+        {#each response[0] as item, rowIndex}
+          <slot name="item" {item} {rowIndex} {updateDataCallback} />
         {:else}
           <tbody>
             <td

@@ -1,24 +1,9 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { openUserProfile } from "./profile_utils";
-    import type { Leaderboard, LeaderboardRow } from "./proto/jungletv_pb";
+    import PaginatedTable from "./PaginatedTable.svelte";
+    import type { Leaderboard, LeaderboardRow, PaginationParameters } from "./proto/jungletv_pb";
+    import LeaderboardTableItem from "./tableitems/LeaderboardTableItem.svelte";
 
     export let leaderboard: Leaderboard;
-
-    function ordinalSuffix(i) {
-        var j = i % 10,
-            k = i % 100;
-        if (j == 1 && k != 11) {
-            return i + "st";
-        }
-        if (j == 2 && k != 12) {
-            return i + "nd";
-        }
-        if (j == 3 && k != 13) {
-            return i + "rd";
-        }
-        return i + "th";
-    }
 
     function shouldShowSeparator(rows: LeaderboardRow[], curIdx: number): boolean {
         if (curIdx == 0) {
@@ -26,51 +11,40 @@
         }
         return rows[curIdx].getRowNum() > rows[curIdx - 1].getRowNum() + 1;
     }
+
+    async function dataPromiseFactory(pagParams: PaginationParameters): Promise<[LeaderboardRow[], number]> {
+        let r = leaderboard.getRowsList();
+        return [r, r.length];
+    }
 </script>
 
 <div class="mt-2 mb-10">
-    <h2 class="text-xl">{leaderboard.getTitle()}</h2>
-    <table class="w-full border-collapse border-2 border-gray-500 p-2 mt-2">
-        <thead>
-            <tr class="border-b-2 border-gray-500">
-                <th class="font-bold p-2">Place</th>
-                <th class="font-bold p-2">User</th>
-                {#each leaderboard.getValueTitlesList() as title}
-                    <th class="font-bold p-2">{title}</th>
-                {/each}
-            </tr>
-        </thead>
-        <tbody>
-            {#each leaderboard.getRowsList() as row, idx}
-                <tr class={shouldShowSeparator(leaderboard.getRowsList(), idx) ? "border-t-2 border-gray-500" : ""}>
-                    <td class="p-2 text-right">{ordinalSuffix(row.getPosition())}</td>
-                    <td class="p-2 cursor-pointer" on:click={() => openUserProfile(row.getAddress())}>
-                        <img
-                            src="https://monkey.banano.cc/api/v1/monkey/{row.getAddress()}?format=png"
-                            alt="&nbsp;"
-                            title=""
-                            class="inline h-7 -ml-1 -mt-4 -mb-3"
-                        />
-                        {#if row.hasNickname()}
-                            <span class="font-semibold mr-4">{row.getNickname()}</span>
-                        {/if}
-                        <span class="font-mono">{row.getAddress().substr(0, 14)} </span>
-                    </td>
-                    {#each row.getValuesList() as value}
-                        {#if value.hasAmount()}
-                            <td class="p-2 text-right">
-                                {apiClient.formatBANPriceFixed(value.getAmount())} BAN
-                            </td>
-                        {/if}
-                    {/each}
-                </tr>
-            {:else}
-                <tr>
-                    <td colspan={2 + leaderboard.getValueTitlesList().length} class="p-2 text-center">
-                        Nobody participated in this period.
-                    </td>
-                </tr>
+    <PaginatedTable
+        title={leaderboard.getTitle()}
+        column_count={2 + leaderboard.getValueTitlesList().length}
+        error_message={"Error loading leaderboard"}
+        no_items_message={"Nobody participated in this period."}
+        data_promise_factory={dataPromiseFactory}
+        per_page={Number.MAX_VALUE}
+    >
+        <tr
+            slot="thead"
+            class="border border-solid border-l-0 border-r-0
+    bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600
+    text-xs uppercase whitespace-nowrap text-left"
+        >
+            <th class="px-2 sm:px-6 align-middle py-3 font-semibold text-right">Place</th>
+            <th class="px-2 sm:px-6 align-middle py-3 font-semibold">User</th>
+            {#each leaderboard.getValueTitlesList() as title}
+                <th class="px-2 sm:px-6 align-middle py-3 font-semibold">{title}</th>
             {/each}
+        </tr>
+
+        <tbody slot="item" let:item let:rowIndex class="hover:bg-gray-200 dark:hover:bg-gray-700">
+            {#if shouldShowSeparator(leaderboard.getRowsList(), rowIndex)}
+                <tr class="border-t border-gray-200 dark:border-gray-600" />
+            {/if}
+            <LeaderboardTableItem row={item} />
         </tbody>
-    </table>
+    </PaginatedTable>
 </div>

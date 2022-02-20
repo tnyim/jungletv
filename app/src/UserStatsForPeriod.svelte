@@ -14,7 +14,7 @@
     }
 </script>
 
-<p>Total spent: {apiClient.formatBANPrice(stats.getTotalSpent())} BAN</p>
-<p>Total withdrawn: {apiClient.formatBANPrice(stats.getTotalWithdrawn())} BAN</p>
+<p>Total spent: {apiClient.formatBANPriceFixed(stats.getTotalSpent())} BAN</p>
+<p>Total withdrawn: {apiClient.formatBANPriceFixed(stats.getTotalWithdrawn())} BAN</p>
 <p>Entries enqueued: {stats.getRequestedMediaCount()}</p>
 <p>Play time paid for: {totalPlayTime}</p>
