@@ -20,6 +20,7 @@
 	import Modal from "svelte-simple-modal";
 	import UserBans from "./moderation/UserBans.svelte";
 	import NoConnection from "./NoConnection.svelte";
+	import NotFound from "./NotFound.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
 	import Chat from "./Chat.svelte";
@@ -223,6 +224,9 @@
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}
+				</Route>
+				<Route path="*">
+					<NotFound />
 				</Route>
 			</Router>
 		</div>
