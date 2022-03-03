@@ -227,7 +227,7 @@ func processRaffle(ctxCtx context.Context, raffleID string, periodStart, periodE
 	}
 	defer ctx.Rollback()
 
-	drawings, err := types.GetRaffleDrawings(ctx, raffleID)
+	drawings, err := types.GetRaffleDrawingsOfRaffle(ctx, raffleID)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -267,7 +267,7 @@ func processRaffle(ctxCtx context.Context, raffleID string, periodStart, periodE
 	}
 
 	if needsDrawingsUpdate {
-		drawings, err = types.GetRaffleDrawings(ctx, raffleID)
+		drawings, err = types.GetRaffleDrawingsOfRaffle(ctx, raffleID)
 		if err != nil {
 			return nil, nil, stacktrace.Propagate(err, "")
 		}
@@ -315,7 +315,7 @@ func computeRaffleDrawing(ctxCtx context.Context, drawing *types.RaffleDrawing, 
 	}
 	defer ctx.Commit() // read-only tx
 
-	allDrawings, err := types.GetRaffleDrawings(ctx, drawing.RaffleID)
+	allDrawings, err := types.GetRaffleDrawingsOfRaffle(ctx, drawing.RaffleID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -477,7 +477,7 @@ func confirmRaffleWinner(ctxCtx context.Context, raffleID string) error {
 	}
 	defer ctx.Rollback()
 
-	drawings, err := types.GetRaffleDrawings(ctx, raffleID)
+	drawings, err := types.GetRaffleDrawingsOfRaffle(ctx, raffleID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -507,7 +507,7 @@ func completeRaffle(ctxCtx context.Context, raffleID, txHash string) error {
 	}
 	defer ctx.Rollback()
 
-	drawings, err := types.GetRaffleDrawings(ctx, raffleID)
+	drawings, err := types.GetRaffleDrawingsOfRaffle(ctx, raffleID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -538,7 +538,7 @@ func redrawRaffle(ctxCtx context.Context, raffleID, reason string, secretKey *ec
 	}
 	defer ctx.Rollback()
 
-	drawings, err := types.GetRaffleDrawings(ctx, raffleID)
+	drawings, err := types.GetRaffleDrawingsOfRaffle(ctx, raffleID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

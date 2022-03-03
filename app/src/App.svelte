@@ -23,8 +23,6 @@
 	import NotFound from "./NotFound.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
-	import Chat from "./Chat.svelte";
-	import Queue from "./Queue.svelte";
 	import { SidebarTab, sidebarTabs } from "./tabStores";
 
 	export let url = "";

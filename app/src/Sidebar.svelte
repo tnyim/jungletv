@@ -7,7 +7,7 @@
     import type { SidebarTab } from "./tabStores";
     import { sidebarTabs } from "./tabStores";
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
-import { openPopout } from "./utils";
+    import { openPopout } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -146,7 +146,7 @@ import { openPopout } from "./utils";
     function onTabButtonMouseDown(tabID: string, e: MouseEvent) {
         if (e.button == 1) {
             let clickedTab = tabs.find((t) => tabID == t.id);
-            if (typeof clickedTab !== 'undefined' && clickedTab.canPopout) {
+            if (typeof clickedTab !== "undefined" && clickedTab.canPopout) {
                 e.preventDefault();
                 openPopout(tabID);
             }

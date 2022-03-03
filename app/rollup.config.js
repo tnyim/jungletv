@@ -39,7 +39,6 @@ export default [
 		output: {
 			sourcemap: true,
 			format: 'iife',
-			name: 'app',
 			file: 'public/build/bundle.js',
 		},
 		onwarn: function onwarn(warning, warn) {
@@ -47,6 +46,7 @@ export default [
 				warning.code === 'EVAL' &&
 				warning.id.indexOf('google-protobuf.js') >= 0)
 				return;
+			if (warning.code === 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT') return;
 			warn(warning);
 		},
 		plugins: [

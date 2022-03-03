@@ -55,8 +55,17 @@ func getRaffleDrawingWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*
 	return converted, totalCount, nil
 }
 
-// GetRaffleDrawings returns all the drawings for a raffle
-func GetRaffleDrawings(node sqalx.Node, raffleID string) ([]*RaffleDrawing, error) {
+// GetRaffleDrawings returns all the raffle drawings
+func GetRaffleDrawings(node sqalx.Node, pagParams *PaginationParams) ([]*RaffleDrawing, uint64, error) {
+	s := sdb.Select().
+		OrderBy("raffle_drawing.period_start DESC", "raffle_drawing.drawing_number ASC")
+	s = applyPaginationParameters(s, pagParams)
+	items, total, err := getRaffleDrawingWithSelect(node, s)
+	return items, total, stacktrace.Propagate(err, "")
+}
+
+// GetRaffleDrawingsOfRaffle returns all the drawings for a raffle
+func GetRaffleDrawingsOfRaffle(node sqalx.Node, raffleID string) ([]*RaffleDrawing, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"raffle_drawing.raffle_id": raffleID}).
 		OrderBy("raffle_drawing.drawing_number ASC")
