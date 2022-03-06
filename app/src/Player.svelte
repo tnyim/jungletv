@@ -11,6 +11,7 @@
         mostRecentAnnouncement,
         playerConnected,
         playerCurrentTime,
+        playerVolume,
         rewardBalance,
         rewardReceived,
         unreadAnnouncement,
@@ -41,6 +42,7 @@
 
     let consumeMediaRequest: Request;
     let consumeMediaTimeoutHandle: number = null;
+    let updatePlayerVolumeTimeoutHandle: number = null;
     let playerBecameReady = false;
     let firstSeekTo: number;
     let highestSeenLiveStreamCurrentTime: number;
@@ -54,6 +56,8 @@
                 player.seekTo(firstSeekTo, true);
             }
         });
+        updatePlayerVolumeTimeoutHandle = setTimeout(updatePlayerVolume, 10000);
+        document.addEventListener("visibilitychange", updatePlayerVolume);
     });
     function consumeMedia() {
         consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
@@ -75,9 +79,19 @@
         if (consumeMediaTimeoutHandle != null) {
             clearTimeout(consumeMediaTimeoutHandle);
         }
+        if (updatePlayerVolumeTimeoutHandle != null) {
+            clearTimeout(updatePlayerVolumeTimeoutHandle);
+        }
+        document.removeEventListener("visibilitychange", updatePlayerVolume);
         activityChallengeReceived.update((_) => null);
         document.title = "JungleTV";
     });
+
+    let player: YouTubePlayer;
+
+    function updatePlayerVolume() {
+        $playerVolume = player.isMuted() ? 0 : player.getVolume() / 100;
+    }
 
     async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
         if (consumeMediaTimeoutHandle != null) {
@@ -143,8 +157,6 @@
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }
-
-    let player: YouTubePlayer;
 </script>
 
 <YouTube {videoId} id="player" class="h-full w-full" {options} bind:player />

@@ -2,7 +2,7 @@
     import Sidebar from "./Sidebar.svelte";
     import { fly, scale } from "svelte/transition";
     import watchMedia from "svelte-media";
-    import { activityChallengeReceived } from "./stores";
+    import { activityChallengeReceived, playerVolume } from "./stores";
     import { cubicOut } from "svelte/easing";
     import ActivityChallenge from "./ActivityChallenge.svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
@@ -57,12 +57,39 @@
         }
         hasChallenge = true;
         checkShowCaptcha();
+        if (document.hidden) {
+            captchaAudioAlert($playerVolume);
+        }
     });
 
     function checkShowCaptcha() {
         if (!document.hidden && hasChallenge) {
             showCaptcha = true;
         }
+    }
+
+    function captchaAudioAlert(volume: number) {
+        if (volume == 0 || typeof(window.speechSynthesis) === 'undefined') {
+            return;
+        }
+        let speechSynth = window.speechSynthesis;
+        let voices = speechSynth.getVoices();
+        let usableVoice: SpeechSynthesisVoice = null;
+        for (let voice of voices) {
+            if (voice.lang === "en" || voice.lang.startsWith("en-")) {
+                usableVoice = voice;
+                break;
+            }
+        }
+        if (usableVoice == null) {
+            return;
+        }
+
+        let utterance = new SpeechSynthesisUtterance("Hey, are you still listening to Jungle TV?");
+        utterance.voice = usableVoice;
+        utterance.volume = volume;
+        utterance.lang = "en-US";
+        speechSynth.speak(utterance);
     }
 </script>
 
