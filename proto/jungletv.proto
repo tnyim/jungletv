@@ -28,6 +28,7 @@ service JungleTV {
     rpc RewardHistory (RewardHistoryRequest) returns (RewardHistoryResponse) {}
     rpc WithdrawalHistory (WithdrawalHistoryRequest) returns (WithdrawalHistoryResponse) {}
     rpc OngoingRaffleInfo (OngoingRaffleInfoRequest) returns (OngoingRaffleInfoResponse) {}
+    rpc RaffleDrawings (RaffleDrawingsRequest) returns (RaffleDrawingsResponse) {}
     rpc Connections (ConnectionsRequest) returns (ConnectionsResponse) {}
     rpc CreateConnection (CreateConnectionRequest) returns (CreateConnectionResponse) {}
     rpc RemoveConnection (RemoveConnectionRequest) returns (RemoveConnectionResponse) {}
@@ -732,6 +733,39 @@ message OngoingRaffleInfo {
     google.protobuf.Timestamp period_end = 5;
     uint32 total_tickets = 6;
     optional uint32 user_tickets = 7;
+}
+
+enum RaffleDrawingStatus {
+    UNKNOWN_RAFFLE_DRAWING_STATUS = 0;
+    RAFFLE_DRAWING_STATUS_ONGOING = 1;
+    RAFFLE_DRAWING_STATUS_PENDING = 2;
+    RAFFLE_DRAWING_STATUS_CONFIRMED = 3;
+    RAFFLE_DRAWING_STATUS_VOIDED = 4;
+    RAFFLE_DRAWING_STATUS_COMPLETE = 5;
+}
+
+message RaffleDrawing {
+    string raffle_id = 1;
+    uint32 drawing_number = 2;
+    google.protobuf.Timestamp period_start = 3;
+    google.protobuf.Timestamp period_end = 4;
+    RaffleDrawingStatus status = 5;
+    string reason = 6;
+    optional uint32 winning_ticket_number = 7;
+    optional User winner = 8;
+    optional string prize_tx_hash = 9;
+    string entries_url = 10;
+    string info_url = 11;
+}
+
+message RaffleDrawingsRequest {
+    PaginationParameters pagination_params = 1;
+}
+
+message RaffleDrawingsResponse {
+    repeated RaffleDrawing raffle_drawings = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
 }
 
 message TriggerAnnouncementsNotificationRequest {}

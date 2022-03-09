@@ -137,7 +137,9 @@ import {
     VerifyUserResponse,
     VerifyUserRequest,
     RemoveUserVerificationResponse,
-    RemoveUserVerificationRequest
+    RemoveUserVerificationRequest,
+    RaffleDrawingsResponse,
+    RaffleDrawingsRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -395,6 +397,12 @@ class APIClient {
     async ongoingRaffleInfo(): Promise<OngoingRaffleInfoResponse> {
         let request = new OngoingRaffleInfoRequest();
         return this.unaryRPC<OngoingRaffleInfoRequest, OngoingRaffleInfoResponse>(JungleTV.OngoingRaffleInfo, request);
+    }
+
+    async raffleDrawings(pagParams: PaginationParameters): Promise<RaffleDrawingsResponse> {
+        let request = new RaffleDrawingsRequest();
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<RaffleDrawingsRequest, RaffleDrawingsResponse>(JungleTV.RaffleDrawings, request);
     }
 
     async connections(): Promise<ConnectionsResponse> {

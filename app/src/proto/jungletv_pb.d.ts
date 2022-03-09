@@ -3170,6 +3170,128 @@ export namespace OngoingRaffleInfo {
   }
 }
 
+export class RaffleDrawing extends jspb.Message {
+  getRaffleId(): string;
+  setRaffleId(value: string): void;
+
+  getDrawingNumber(): number;
+  setDrawingNumber(value: number): void;
+
+  hasPeriodStart(): boolean;
+  clearPeriodStart(): void;
+  getPeriodStart(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setPeriodStart(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasPeriodEnd(): boolean;
+  clearPeriodEnd(): void;
+  getPeriodEnd(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setPeriodEnd(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getStatus(): RaffleDrawingStatusMap[keyof RaffleDrawingStatusMap];
+  setStatus(value: RaffleDrawingStatusMap[keyof RaffleDrawingStatusMap]): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  hasWinningTicketNumber(): boolean;
+  clearWinningTicketNumber(): void;
+  getWinningTicketNumber(): number;
+  setWinningTicketNumber(value: number): void;
+
+  hasWinner(): boolean;
+  clearWinner(): void;
+  getWinner(): User | undefined;
+  setWinner(value?: User): void;
+
+  hasPrizeTxHash(): boolean;
+  clearPrizeTxHash(): void;
+  getPrizeTxHash(): string;
+  setPrizeTxHash(value: string): void;
+
+  getEntriesUrl(): string;
+  setEntriesUrl(value: string): void;
+
+  getInfoUrl(): string;
+  setInfoUrl(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RaffleDrawing.AsObject;
+  static toObject(includeInstance: boolean, msg: RaffleDrawing): RaffleDrawing.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RaffleDrawing, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RaffleDrawing;
+  static deserializeBinaryFromReader(message: RaffleDrawing, reader: jspb.BinaryReader): RaffleDrawing;
+}
+
+export namespace RaffleDrawing {
+  export type AsObject = {
+    raffleId: string,
+    drawingNumber: number,
+    periodStart?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    periodEnd?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    status: RaffleDrawingStatusMap[keyof RaffleDrawingStatusMap],
+    reason: string,
+    winningTicketNumber: number,
+    winner?: User.AsObject,
+    prizeTxHash: string,
+    entriesUrl: string,
+    infoUrl: string,
+  }
+}
+
+export class RaffleDrawingsRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RaffleDrawingsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RaffleDrawingsRequest): RaffleDrawingsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RaffleDrawingsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RaffleDrawingsRequest;
+  static deserializeBinaryFromReader(message: RaffleDrawingsRequest, reader: jspb.BinaryReader): RaffleDrawingsRequest;
+}
+
+export namespace RaffleDrawingsRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+  }
+}
+
+export class RaffleDrawingsResponse extends jspb.Message {
+  clearRaffleDrawingsList(): void;
+  getRaffleDrawingsList(): Array<RaffleDrawing>;
+  setRaffleDrawingsList(value: Array<RaffleDrawing>): void;
+  addRaffleDrawings(value?: RaffleDrawing, index?: number): RaffleDrawing;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RaffleDrawingsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RaffleDrawingsResponse): RaffleDrawingsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RaffleDrawingsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RaffleDrawingsResponse;
+  static deserializeBinaryFromReader(message: RaffleDrawingsResponse, reader: jspb.BinaryReader): RaffleDrawingsResponse;
+}
+
+export namespace RaffleDrawingsResponse {
+  export type AsObject = {
+    raffleDrawingsList: Array<RaffleDrawing.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
 export class TriggerAnnouncementsNotificationRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TriggerAnnouncementsNotificationRequest.AsObject;
@@ -4404,6 +4526,17 @@ export interface LeaderboardPeriodMap {
 }
 
 export const LeaderboardPeriod: LeaderboardPeriodMap;
+
+export interface RaffleDrawingStatusMap {
+  UNKNOWN_RAFFLE_DRAWING_STATUS: 0;
+  RAFFLE_DRAWING_STATUS_ONGOING: 1;
+  RAFFLE_DRAWING_STATUS_PENDING: 2;
+  RAFFLE_DRAWING_STATUS_CONFIRMED: 3;
+  RAFFLE_DRAWING_STATUS_VOIDED: 4;
+  RAFFLE_DRAWING_STATUS_COMPLETE: 5;
+}
+
+export const RaffleDrawingStatus: RaffleDrawingStatusMap;
 
 export interface ConnectionServiceMap {
   UNKNOWN_CONNECTION_SERVICE: 0;

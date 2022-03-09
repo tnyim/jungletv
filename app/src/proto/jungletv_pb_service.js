@@ -190,6 +190,15 @@ JungleTV.OngoingRaffleInfo = {
   responseType: jungletv_pb.OngoingRaffleInfoResponse
 };
 
+JungleTV.RaffleDrawings = {
+  methodName: "RaffleDrawings",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RaffleDrawingsRequest,
+  responseType: jungletv_pb.RaffleDrawingsResponse
+};
+
 JungleTV.Connections = {
   methodName: "Connections",
   service: JungleTV,
@@ -1244,6 +1253,37 @@ JungleTVClient.prototype.ongoingRaffleInfo = function ongoingRaffleInfo(requestM
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.OngoingRaffleInfo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.raffleDrawings = function raffleDrawings(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RaffleDrawings, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

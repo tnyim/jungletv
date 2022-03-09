@@ -3,10 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -14,6 +16,81 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func (s *grpcServer) RaffleDrawings(ctxCtx context.Context, r *proto.RaffleDrawingsRequest) (*proto.RaffleDrawingsResponse, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	// process the current raffle in order to create a raffle drawing record for the current week, if it doesn't exist yet
+	year, week := time.Now().UTC().ISOWeek()
+	raffleID, periodStart, periodEnd, valid := weeklyRaffleParameters(year, week)
+	if valid {
+		_, _, err := processRaffle(ctx, raffleID, periodStart, periodEnd, s.raffleSecretKey)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+	}
+
+	raffleDrawings, total, err := types.GetRaffleDrawings(ctx, readPaginationParameters(r))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.RaffleDrawingsResponse{
+		RaffleDrawings: s.convertRaffleDrawings(ctx, raffleDrawings, s.userSerializer),
+		Offset:         readOffset(r),
+		Total:          total,
+	}, stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (s *grpcServer) convertRaffleDrawings(ctx context.Context, orig []*types.RaffleDrawing, userSerializer auth.APIUserSerializer) []*proto.RaffleDrawing {
+	protoEntries := make([]*proto.RaffleDrawing, len(orig))
+	for i, entry := range orig {
+		protoEntries[i] = s.convertRaffleDrawing(ctx, entry, userSerializer)
+	}
+	return protoEntries
+}
+
+func (s *grpcServer) convertRaffleDrawing(ctx context.Context, orig *types.RaffleDrawing, userSerializer auth.APIUserSerializer) *proto.RaffleDrawing {
+	drawing := &proto.RaffleDrawing{
+		RaffleId:      orig.RaffleID,
+		DrawingNumber: uint32(orig.DrawingNumber),
+		PeriodStart:   timestamppb.New(orig.PeriodStart),
+		PeriodEnd:     timestamppb.New(orig.PeriodEnd),
+		Reason:        orig.Reason,
+		PrizeTxHash:   orig.PrizeTxHash,
+	}
+
+	switch orig.Status {
+	case types.RaffleDrawingStatusOngoing:
+		drawing.Status = proto.RaffleDrawingStatus_RAFFLE_DRAWING_STATUS_ONGOING
+	case types.RaffleDrawingStatusPending:
+		drawing.Status = proto.RaffleDrawingStatus_RAFFLE_DRAWING_STATUS_PENDING
+	case types.RaffleDrawingStatusConfirmed:
+		drawing.Status = proto.RaffleDrawingStatus_RAFFLE_DRAWING_STATUS_CONFIRMED
+	case types.RaffleDrawingStatusVoided:
+		drawing.Status = proto.RaffleDrawingStatus_RAFFLE_DRAWING_STATUS_VOIDED
+	case types.RaffleDrawingStatusComplete:
+		drawing.Status = proto.RaffleDrawingStatus_RAFFLE_DRAWING_STATUS_COMPLETE
+	}
+
+	if orig.WinningTicketNumber != nil && orig.WinningRewardsAddress != nil {
+		n := uint32(*orig.WinningTicketNumber)
+		drawing.WinningTicketNumber = &n
+		drawing.Winner = userSerializer(ctx, auth.NewAddressOnlyUser(*orig.WinningRewardsAddress))
+	}
+
+	if strings.HasPrefix(orig.RaffleID, "weekly-") {
+		year, week := orig.PeriodStart.UTC().ISOWeek()
+		drawing.EntriesUrl = s.raffleEntriesURL(year, week)
+		drawing.InfoUrl = s.raffleInfoURL(year, week)
+	}
+
+	return drawing
+}
 
 func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingRaffleInfoRequest) (*proto.OngoingRaffleInfoResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctxCtx)

@@ -184,6 +184,15 @@ type JungleTVOngoingRaffleInfo = {
   readonly responseType: typeof jungletv_pb.OngoingRaffleInfoResponse;
 };
 
+type JungleTVRaffleDrawings = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RaffleDrawingsRequest;
+  readonly responseType: typeof jungletv_pb.RaffleDrawingsResponse;
+};
+
 type JungleTVConnections = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -611,6 +620,7 @@ export class JungleTV {
   static readonly RewardHistory: JungleTVRewardHistory;
   static readonly WithdrawalHistory: JungleTVWithdrawalHistory;
   static readonly OngoingRaffleInfo: JungleTVOngoingRaffleInfo;
+  static readonly RaffleDrawings: JungleTVRaffleDrawings;
   static readonly Connections: JungleTVConnections;
   static readonly CreateConnection: JungleTVCreateConnection;
   static readonly RemoveConnection: JungleTVRemoveConnection;
@@ -821,6 +831,15 @@ export class JungleTVClient {
   ongoingRaffleInfo(
     requestMessage: jungletv_pb.OngoingRaffleInfoRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.OngoingRaffleInfoResponse|null) => void
+  ): UnaryResponse;
+  raffleDrawings(
+    requestMessage: jungletv_pb.RaffleDrawingsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RaffleDrawingsResponse|null) => void
+  ): UnaryResponse;
+  raffleDrawings(
+    requestMessage: jungletv_pb.RaffleDrawingsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RaffleDrawingsResponse|null) => void
   ): UnaryResponse;
   connections(
     requestMessage: jungletv_pb.ConnectionsRequest,
