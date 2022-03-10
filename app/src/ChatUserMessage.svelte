@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-
     import { apiClient } from "./api_client";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
 
@@ -8,13 +7,13 @@
 
     import { ChatMessage, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, rewardAddress } from "./stores";
+import { getMarked, getMarkedForUserMessages } from "./utils";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
     export let mode: string;
     export let allowExpensiveCSSAnimations: boolean;
     export let detailsOpenForMsgID: string;
-    export let marked: any;
 
     const dispatch = createEventDispatcher();
 
@@ -33,6 +32,16 @@
     async function removeChatMessage() {
         await apiClient.removeChatMessage(message.getId());
     }
+
+    function renderMessage(): string {
+        let result = "";
+        if(message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)) {
+            result = getMarked().parseInline(message.getUserMessage().getContent())
+        } else {
+            result = getMarkedForUserMessages().parseInline(message.getUserMessage().getContent())
+        }
+        return result.replaceAll("<a ", '<a target="_blank" rel="noopener" ');
+    }
 </script>
 
 {#if message.hasReference()}
@@ -50,15 +59,14 @@
         <p
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden cursor-pointer
-        {getBackgroundColorForMessage()}"
+                : 'mt-1'} h-5 overflow-hidden cursor-pointer {getBackgroundColorForMessage()}"
             on:click={() => dispatch("highlight", message.getReference())}
         >
             <i class="fas fa-reply" />
             <span class={getClassForMessageAuthor(message.getReference(), allowExpensiveCSSAnimations)}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
-            {@html marked.parseInline(message.getReference().getUserMessage().getContent())}
+            {@html getMarkedForUserMessages().parseInline(message.getReference().getUserMessage().getContent())}
         </p>
     {/if}
 {/if}
@@ -119,14 +127,7 @@
                 />
             {/if}:
         </span>
-        {@html marked
-            .parseInline(
-                message.getUserMessage().getContent(),
-                message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
-                    ? { tokenizer: undefined }
-                    : {}
-            )
-            .replaceAll("<a ", '<a target="_blank" rel="noopener" ')}
+        {@html renderMessage()}
     </div>
     {#if detailsOpenForMsgID == message.getId()}
         <ChatMessageDetails

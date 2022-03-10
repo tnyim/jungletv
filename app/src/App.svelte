@@ -24,6 +24,8 @@
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
 	import { SidebarTab, sidebarTabs } from "./tabStores";
+	import { DateTime } from "luxon";
+	import { formatMarkdownTimestamp } from "./utils";
 
 	export let url = "";
 
@@ -81,6 +83,16 @@
 				$darkMode = e.data;
 			});
 		} catch {}
+
+		setInterval(() => {
+			rootInsideShadowRoot.querySelectorAll(".markdown-timestamp.relative").forEach((e) => {
+				if (!(e instanceof HTMLElement)) {
+					return;
+				}
+				let date = DateTime.fromSeconds(parseInt(e.dataset.timestamp));
+				e.innerText = formatMarkdownTimestamp(date, e.dataset.timestampType);
+			});
+		}, 1000);
 	});
 
 	const historyStore = { subscribe: globalHistory.listen };
@@ -280,6 +292,16 @@
 
 		.markdown-document p {
 			@apply mb-4;
+		}
+
+		.markdown-timestamp {
+			background-color: rgba(6, 6, 7, 0.06);
+			padding: 0 2px;
+			border-radius: 3px;
+		}
+
+		.dark .markdown-timestamp {
+			background-color: hsla(0, 0%, 100%, 0.06);
 		}
 
 		.player-minimized {

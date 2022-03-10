@@ -4,6 +4,6 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
   "compilerOptions": {
-    "lib": ["ES2020", "DOM"],
+    "lib": ["ES2021", "DOM"],
   }
 }

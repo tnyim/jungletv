@@ -7,7 +7,6 @@
     import { fade } from "svelte/transition";
     import { blockedUsers, unreadChatMention } from "./stores";
     import { DateTime } from "luxon";
-    import { marked } from "marked/lib/marked.esm.js";
     import "emoji-picker-element";
 
     import { editNicknameForUser } from "./utils";
@@ -19,19 +18,6 @@
     import ChatComposeArea from "./ChatComposeArea.svelte";
 
     const dispatch = createEventDispatcher();
-
-    const tokenizer = {
-        tag: () => {},
-        link: () => {},
-        reflink: () => {},
-        autolink: () => {},
-        url: () => {},
-    };
-    marked.setOptions({
-        gfm: true,
-        breaks: true,
-    });
-    marked.use({ tokenizer });
 
     export let mode = "sidebar";
 
@@ -267,7 +253,7 @@
             };
             dispatch("openSidebarTab", newTab);
         } else if (mode == "popout") {
-            if(window.opener != null) {
+            if (window.opener != null) {
                 window.opener.document.location.href = window.origin + historyPath;
             } else {
                 window.open(window.origin + historyPath);
@@ -331,7 +317,6 @@
                 {/if}
                 {#if message.hasUserMessage() && !$blockedUsers.has(message.getUserMessage().getAuthor().getAddress())}
                     <ChatUserMessage
-                        {marked}
                         {message}
                         additionalPadding={shouldAddAdditionalPadding(idx)}
                         {allowExpensiveCSSAnimations}
@@ -345,7 +330,7 @@
                         on:hideDetails={hideMessageDetails}
                     />
                 {:else if message.hasSystemMessage()}
-                    <ChatSystemMessage {marked} {message} />
+                    <ChatSystemMessage {message} />
                 {/if}
             </div>
         {:else}
@@ -356,7 +341,6 @@
     </div>
     <div class="border-t border-gray-300 shadow-md flex flex-col">
         <ChatComposeArea
-            {marked}
             {chatEnabled}
             {chatDisabledReason}
             {allowExpensiveCSSAnimations}

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { useFocus } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import { marked } from "marked/lib/marked.esm.js";
     import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
+    import { getMarked } from "./utils";
 
     export let documentID = "";
     export let mode = "page";
@@ -34,7 +34,7 @@
     {:then d}
         {#if d.getFormat() == "markdown"}
             <div class="markdown-document {mode == 'sidebar' ? 'sidebar-document' : ''}">
-                {@html marked.parse(d.getContent(), { tokenizer: undefined })}
+                {@html getMarked().parse(d.getContent()) }
             </div>
         {:else if d.getFormat() == "html"}
             {@html d.getContent()}

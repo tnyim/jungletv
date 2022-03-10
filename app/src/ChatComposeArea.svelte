@@ -10,13 +10,12 @@
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
     import { afterUpdate, createEventDispatcher, onMount } from "svelte";
     import { link } from "svelte-navigator";
-    import { insertAtCursor, openPopout, setNickname } from "./utils";
+    import { getMarkedForUserMessages, insertAtCursor, openPopout, setNickname } from "./utils";
     import { apiClient } from "./api_client";
     import { emojiDatabase } from "./chat_utils";
     import type { ChatMessage } from "./proto/jungletv_pb";
     import BlockedUsers from "./BlockedUsers.svelte";
 
-    export let marked: any;
     export let chatEnabled: boolean;
     export let chatDisabledReason: string;
     export let allowExpensiveCSSAnimations: boolean;
@@ -304,7 +303,7 @@
             on:clearReply={() => dispatch("clearReply")}
         >
             <svelte:fragment slot="message-content">
-                {@html marked.parseInline(replyingToMessage.getUserMessage().getContent())}
+                {@html getMarkedForUserMessages().parseInline(replyingToMessage.getUserMessage().getContent())}
             </svelte:fragment>
         </ChatReplyingBanner>
     {/if}

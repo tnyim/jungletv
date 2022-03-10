@@ -2,7 +2,6 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { Document } from "../proto/jungletv_pb";
-    import { marked } from "marked/lib/marked.esm.js";
     import CodeMirror from "@svelte-parts/editor/codemirror";
     import ActualCodeMirror from "codemirror";
     import "codemirror/mode/gfm/gfm";
@@ -12,6 +11,7 @@
     import { HSplitPane } from "svelte-split-pane";
     import { darkMode } from "../stores";
     import watchMedia from "svelte-media";
+    import { getMarked } from "../utils";
 
     export let documentID = "";
     let content = "";
@@ -152,7 +152,7 @@
                     <CodeMirror config={editorConfig} {accessEditor} />
                 </div>
                 <div slot="right" class="h-full max-h-full px-6 pb-6 overflow-auto markdown-document">
-                    {@html marked.parse(content, { tokenizer: undefined })}
+                    {@html getMarked().parse(content)}
                 </div>
             </HSplitPane>
         {/await}

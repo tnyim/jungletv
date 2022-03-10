@@ -1,7 +1,8 @@
 import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
-import { Duration } from "luxon";
+import { DateTime, Duration } from "luxon";
+import { marked, Tokenizer } from "marked";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -100,3 +101,146 @@ export const ordinalSuffix = function ordinalSuffix(i: number) {
     }
     return i + "th";
 }
+
+export const formatMarkdownTimestamp = function (date: DateTime, format: string): string {
+    const n = "numeric", s = "short", l = "long";
+    let short = "";
+    switch (format) {
+        case "d":
+            short = date.toLocaleString({ year: n, month: n, day: n });
+            break;
+        case "f":
+            short = date.toLocaleString({ year: n, month: l, day: n, hour: n, minute: n });
+            break;
+        case "t":
+            short = date.toLocaleString({ hour: n, minute: n });
+            break;
+        case "D":
+            short = date.toLocaleString({ year: n, month: l, day: n });
+            break;
+        case "F":
+            short = date.toLocaleString({ year: n, month: l, day: n, weekday: l, hour: n, minute: n, second: n });
+            break;
+        case "R":
+            short = date.toRelative();
+            break;
+        case "C":
+            let duration = date.diffNow();
+            let negative = false;
+            if (duration.toMillis() < 0) {
+                negative = true;
+                duration = duration.negate();
+            }
+            let formatString = "d 'days,' h 'hours,' m 'minutes and' s 'seconds'";
+            if (duration.as("days") > 1) {
+                formatString = "d 'days and' h 'hours";
+            }
+            short = duration
+                .toFormat(formatString)
+                .replace(/^0 days, 0 hours, 0 minutes and /, "")
+                .replace(/^0 days, 0 hours, /, "")
+                .replace(/^0 days, /, "")
+                .replace(/(^|\s)1 seconds/, " 1 second")
+                .replace(/(^|\s)1 minutes/, " 1 minute")
+                .replace(/(^|\s)1 hours/, " 1 hour")
+                .replace(/(^|\s)1 days/, " 1 day").trim();
+            if (negative) {
+                short += " ago"
+            } else {
+                short = "in " + short;
+            }
+            break;
+        case "T":
+            short = date.toLocaleString({ hour: n, minute: n, second: n });
+            break;
+    }
+    return short;
+}
+
+const timestampTokenizerMarkedExtension = {
+    name: "timestamp",
+    level: "inline",
+    start(src) {
+        return src.match(/<t:/)?.index;
+    },
+    tokenizer(src, tokens) {
+        const rule = /^<t:([0-9]+):([d|f|t|D|F|R|C|T])(?:\/{0,1})>/;
+        const match = rule.exec(src);
+        if (match) {
+            return {
+                type: "timestamp", // Should match "name" above
+                raw: match[0], // Text to consume from the source
+                timestamp: parseInt(match[1].trim()),
+                timestampType: match[2].trim(),
+            };
+        }
+    },
+    renderer(token) {
+        const n = "numeric", s = "short", l = "long";
+        let date = DateTime.fromSeconds(token.timestamp);
+        let long = date.toLocaleString({ year: n, month: l, day: n, hour: n, minute: n, second: n });
+        let short = formatMarkdownTimestamp(date, token.timestampType);
+
+        if (token.timestampType == "R" || token.timestampType == "C") {
+            return `<span
+                title="${long}"
+                class="markdown-timestamp relative"
+                data-timestamp="${token.timestamp}"
+                data-timestamp-type="${token.timestampType}">
+                    ${short}
+                </span>`;
+        } else {
+            return `<span title="${long}" class="markdown-timestamp">${short}</span>`;
+        }
+    },
+    childTokens: ['span']
+}
+
+const spoilerTokenizerMarkedExtension = {
+    name: "spoiler",
+    level: "inline",
+    start(src) {
+        return src.match(/\|\|/)?.index;
+    },
+    tokenizer(src, tokens) {
+        const rule = /^\|\|(.+)\|\|/;
+        const match = rule.exec(src);
+        if (match) {
+            return {
+                type: "spoiler", // Should match "name" above
+                raw: match[0], // Text to consume from the source
+                text: this.lexer.inlineTokens(match[1].trim()),
+            };
+        }
+    },
+    renderer(token) {
+        return `<span class="filter blur-sm hover:blur-none active:blur-none transition-all">${this.parser.parseInline(token.text)}</span>`;
+    },
+    childTokens: ['span']
+}
+
+const disableLinksTokenizer = {
+    tag: (): false => undefined,
+    link: (): false => undefined,
+    reflink: (): false => undefined,
+    autolink: (): false => undefined,
+    url: (): false => undefined,
+}
+
+export const getMarkedForUserMessages = function (): typeof marked {
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+    });
+    marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: disableLinksTokenizer });
+    return marked;
+};
+
+export const getMarked = function (): typeof marked {
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+    });
+    marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: undefined });
+    return marked;
+};
