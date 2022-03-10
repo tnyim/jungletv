@@ -7,7 +7,7 @@
 
     import { ChatMessage, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, rewardAddress } from "./stores";
-import { getMarked, getMarkedForUserMessages } from "./utils";
+import { parseCompleteMarkdown, parseCompleteMarkdownInline, parseUserMessageMarkdown } from "./utils";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
@@ -36,9 +36,9 @@ import { getMarked, getMarkedForUserMessages } from "./utils";
     function renderMessage(): string {
         let result = "";
         if(message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)) {
-            result = getMarked().parseInline(message.getUserMessage().getContent())
+            result = parseCompleteMarkdownInline(message.getUserMessage().getContent());
         } else {
-            result = getMarkedForUserMessages().parseInline(message.getUserMessage().getContent())
+            result = parseUserMessageMarkdown(message.getUserMessage().getContent());
         }
         return result.replaceAll("<a ", '<a target="_blank" rel="noopener" ');
     }
@@ -66,7 +66,7 @@ import { getMarked, getMarkedForUserMessages } from "./utils";
             <span class={getClassForMessageAuthor(message.getReference(), allowExpensiveCSSAnimations)}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
-            {@html getMarkedForUserMessages().parseInline(message.getReference().getUserMessage().getContent())}
+            {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent())}
         </p>
     {/if}
 {/if}

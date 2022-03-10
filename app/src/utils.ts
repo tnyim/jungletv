@@ -2,7 +2,7 @@ import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
-import { marked, Tokenizer } from "marked";
+import { marked } from "marked";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -227,20 +227,30 @@ const disableLinksTokenizer = {
     url: (): false => undefined,
 }
 
-export const getMarkedForUserMessages = function (): typeof marked {
-    marked.setOptions({
-        gfm: true,
-        breaks: true,
-    });
-    marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: disableLinksTokenizer });
-    return marked;
-};
+let configuredMarked: typeof marked = undefined;
 
-export const getMarked = function (): typeof marked {
-    marked.setOptions({
-        gfm: true,
-        breaks: true,
-    });
-    marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: undefined });
-    return marked;
-};
+const configureMarked = function() {
+    if(typeof(configuredMarked) === "undefined") {
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+        });
+        marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: disableLinksTokenizer });
+        configuredMarked = marked;
+    }
+}
+
+export const parseUserMessageMarkdown = function(markdown: string): string {
+    configureMarked();
+    return configuredMarked.parseInline(markdown);
+}
+
+export const parseCompleteMarkdownInline = function(markdown: string): string {
+    configureMarked();
+    return configuredMarked.parseInline(markdown, { tokenizer: undefined });
+}
+
+export const parseCompleteMarkdown = function(markdown: string): string {
+    configureMarked();
+    return configuredMarked.parse(markdown, { tokenizer: undefined });
+}

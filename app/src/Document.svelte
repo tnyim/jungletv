@@ -2,8 +2,7 @@
     import { useFocus } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
-    import { getMarked } from "./utils";
-
+import { parseCompleteMarkdown } from "./utils";
     export let documentID = "";
     export let mode = "page";
 
@@ -34,7 +33,7 @@
     {:then d}
         {#if d.getFormat() == "markdown"}
             <div class="markdown-document {mode == 'sidebar' ? 'sidebar-document' : ''}">
-                {@html getMarked().parse(d.getContent()) }
+                {@html parseCompleteMarkdown(d.getContent()) }
             </div>
         {:else if d.getFormat() == "html"}
             {@html d.getContent()}

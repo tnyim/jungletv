@@ -11,7 +11,7 @@
     import { HSplitPane } from "svelte-split-pane";
     import { darkMode } from "../stores";
     import watchMedia from "svelte-media";
-    import { getMarked } from "../utils";
+    import { parseCompleteMarkdown } from "../utils";
 
     export let documentID = "";
     let content = "";
@@ -152,7 +152,7 @@
                     <CodeMirror config={editorConfig} {accessEditor} />
                 </div>
                 <div slot="right" class="h-full max-h-full px-6 pb-6 overflow-auto markdown-document">
-                    {@html getMarked().parse(content)}
+                    {@html parseCompleteMarkdown(content)}
                 </div>
             </HSplitPane>
         {/await}
