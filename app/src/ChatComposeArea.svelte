@@ -2,6 +2,7 @@
     import {
         acceptCompletion,
         autocompletion,
+        closeCompletion,
         Completion,
         CompletionContext,
         completionKeymap,
@@ -36,6 +37,7 @@
     import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
     import { codeMirrorHighlightStyle, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
+    import { Tooltip, hoverTooltip } from "@codemirror/tooltip";
 
     export let chatEnabled: boolean;
     export let chatDisabledReason: string;
@@ -110,11 +112,11 @@
         });
     }
 
-    async function commandCompletions(context: CompletionContext): Promise<CompletionResult | null> {
+    function commandCompletions(context: CompletionContext): CompletionResult | null {
         if (context.state.doc.lineAt(context.state.selection.main.head).number > 1) {
             return null;
         }
-        let word = context.matchBefore(/\/.*/);
+        let word = context.matchBefore(/^\/.*/);
         if ((word == null || word.from == word.to) && !context.explicit) return null;
         return {
             from: word == null ? 0 : word.from,
@@ -133,6 +135,7 @@
                     apply: "/spoiler ",
                 },
             ],
+            span: /^\/\w*$/,
         };
     }
 
@@ -340,10 +343,6 @@
                     replaceEmojiShortcodes(),
                     highlightCompartment.of(highlightStyle($permissionLevel == PermissionLevel.ADMIN, $darkMode)),
                     keymap.of([
-                        ...closeBracketsKeymap,
-                        ...defaultKeymap,
-                        ...historyKeymap,
-                        ...completionKeymap,
                         {
                             key: "Enter",
                             run: (): boolean => {
@@ -352,6 +351,10 @@
                             },
                             shift: insertNewlineAndIndent,
                         },
+                        ...closeBracketsKeymap,
+                        ...defaultKeymap,
+                        ...historyKeymap,
+                        ...completionKeymap,
                         {
                             key: "Mod-Enter",
                             run: insertNewlineAndIndent,
@@ -472,6 +475,7 @@
             let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
             searchBox.setSelectionRange(0, searchBox.value.length);
             searchBox.focus();
+            closeCompletion(editorView);
         } else {
             emojiPicker.classList.add("hidden");
             editorView.focus();
