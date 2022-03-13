@@ -8,13 +8,20 @@
         CompletionResult,
     } from "@codemirror/autocomplete";
     import { closeBrackets, closeBracketsKeymap } from "@codemirror/closebrackets";
-    import { insertNewlineAndIndent } from "@codemirror/commands";
+    import { defaultKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { HighlightStyle, tags } from "@codemirror/highlight";
     import { history, historyKeymap } from "@codemirror/history";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { bracketMatching } from "@codemirror/matchbrackets";
     import { ChangeSpec, Compartment, EditorState, Extension } from "@codemirror/state";
-    import { EditorView, highlightSpecialChars, keymap, placeholder } from "@codemirror/view";
+    import {
+        drawSelection,
+        dropCursor,
+        EditorView,
+        highlightSpecialChars,
+        keymap,
+        placeholder,
+    } from "@codemirror/view";
     import { Emoji, Strikethrough } from "@lezer/markdown";
     import type { Picker } from "emoji-picker-element";
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
@@ -266,14 +273,23 @@
                     "padding-right": "0.3rem",
                 },
                 ".cm-tooltip-autocomplete ul li[aria-selected]": {
-                    "background-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                    "background-color": darkMode ? "rgb(75,85,99)" : "rgb(156,163,175)",
                     "text-color": darkMode ? "white" : "black",
                 },
                 ".cm-tooltip": {
-                    background: darkMode ? "rgba(31,41,55,1)" : "rgba(229,231,235,1)",
+                    background: darkMode ? "rgb(31,41,55)" : "rgb(229,231,235)",
                     "border-radius": "2px",
                     "border-width": "1px",
-                    "border-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                    "border-color": darkMode ? "rgb(75,85,99)" : "rgb(156,163,175)",
+                },
+                "& .cm-cursor": {
+                    "border-left-color": darkMode ? "#FBBF24" : "#B45309",
+                },
+                "& .cm-selectionBackground": {
+                    "background-color": darkMode ? "#4C1D95" : "#DDD6FE",
+                },
+                "&.cm-focused .cm-selectionBackground": {
+                    "background-color": darkMode ? "#5B21B6" : "#C4B5FD",
                 },
             },
             {
@@ -308,6 +324,8 @@
                     }),
                     highlightSpecialChars(),
                     history(),
+                    drawSelection(),
+                    dropCursor(),
                     bracketMatching(),
                     closeBrackets(),
                     autocompletion({
@@ -323,6 +341,7 @@
                     highlightCompartment.of(highlightStyle($permissionLevel == PermissionLevel.ADMIN, $darkMode)),
                     keymap.of([
                         ...closeBracketsKeymap,
+                        ...defaultKeymap,
                         ...historyKeymap,
                         ...completionKeymap,
                         {
