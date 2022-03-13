@@ -1,8 +1,10 @@
-import { apiClient } from "./api_client";
-import type { User } from "./proto/jungletv_pb";
+import { HighlightStyle, tags } from "@codemirror/highlight";
+import type { Extension } from "@codemirror/state";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
+import { apiClient } from "./api_client";
+import type { User } from "./proto/jungletv_pb";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -229,8 +231,8 @@ const disableLinksTokenizer = {
 
 let configuredMarked: typeof marked = undefined;
 
-const configureMarked = function() {
-    if(typeof(configuredMarked) === "undefined") {
+const configureMarked = function () {
+    if (typeof (configuredMarked) === "undefined") {
         marked.setOptions({
             gfm: true,
             breaks: true,
@@ -240,17 +242,45 @@ const configureMarked = function() {
     }
 }
 
-export const parseUserMessageMarkdown = function(markdown: string): string {
+export const parseUserMessageMarkdown = function (markdown: string): string {
     configureMarked();
     return configuredMarked.parseInline(markdown);
 }
 
-export const parseCompleteMarkdownInline = function(markdown: string): string {
+export const parseCompleteMarkdownInline = function (markdown: string): string {
     configureMarked();
     return configuredMarked.parseInline(markdown, { tokenizer: undefined });
 }
 
-export const parseCompleteMarkdown = function(markdown: string): string {
+export const parseCompleteMarkdown = function (markdown: string): string {
     configureMarked();
     return configuredMarked.parse(markdown, { tokenizer: undefined });
+}
+
+export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension {
+    return HighlightStyle.define([
+        { tag: tags.link, textDecoration: "underline" },
+        { tag: tags.heading, textDecoration: "underline", fontWeight: "bold" },
+        { tag: tags.emphasis, fontStyle: "italic" },
+        { tag: tags.strong, fontWeight: "bold" },
+        { tag: tags.strikethrough, textDecoration: "line-through" },
+        { tag: tags.keyword, color: "#708" },
+        {
+            tag: [tags.atom, tags.bool, tags.url, tags.contentSeparator, tags.labelName],
+            color: darkMode ? "rgba(96, 165, 250, 1)" : "rgba(37, 99, 235, 1)",
+        },
+        { tag: [tags.literal, tags.inserted], color: "#164" },
+        { tag: [tags.string, tags.deleted], color: "#a11" },
+        { tag: [tags.regexp, tags.escape, tags.special(tags.string)], color: "#e40" },
+        { tag: tags.definition(tags.variableName), color: "#00f" },
+        { tag: tags.local(tags.variableName), color: "#30a" },
+        { tag: [tags.typeName, tags.namespace], color: "#085" },
+        { tag: tags.className, color: "#167" },
+        { tag: [tags.special(tags.variableName), tags.macroName], color: "#256" },
+        { tag: tags.definition(tags.propertyName), color: "#00c" },
+        { tag: tags.comment, color: "#940" },
+        { tag: tags.meta, color: "#7a757a" },
+        { tag: tags.invalid, color: "#f00" },
+        { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
+    ]);
 }

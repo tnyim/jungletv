@@ -335,6 +335,10 @@
 			animation-timing-function: ease-in-out;
 		}
 
+		.cm-tooltip {
+			@apply shadow-md;
+		}
+
 		@media (prefers-reduced-motion) {
 			.chat-user-glow {
 				animation-name: none;

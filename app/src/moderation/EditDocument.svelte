@@ -1,17 +1,25 @@
 <script lang="ts">
+    import { acceptCompletion, completionKeymap } from "@codemirror/autocomplete";
+    import { basicSetup } from "@codemirror/basic-setup";
+    import { closeBracketsKeymap } from "@codemirror/closebrackets";
+    import { defaultKeymap, indentWithTab } from "@codemirror/commands";
+    import { commentKeymap } from "@codemirror/comment";
+    import { foldKeymap } from "@codemirror/fold";
+    import { historyKeymap } from "@codemirror/history";
+    import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+    import { lintKeymap } from "@codemirror/lint";
+    import { searchKeymap } from "@codemirror/search";
+    import { Compartment, EditorState, Extension } from "@codemirror/state";
+    import { EditorView, keymap } from "@codemirror/view";
+    import { Emoji, Strikethrough } from "@lezer/markdown";
+    import { onDestroy } from "svelte";
+    import watchMedia from "svelte-media";
     import { link } from "svelte-navigator";
+    import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
     import { Document } from "../proto/jungletv_pb";
-    import CodeMirror from "@svelte-parts/editor/codemirror";
-    import ActualCodeMirror from "codemirror";
-    import "codemirror/mode/gfm/gfm";
-    import "codemirror/lib/codemirror.css";
-    import "codemirror/theme/monokai.css";
-    import "codemirror/theme/base16-light.css";
-    import { HSplitPane } from "svelte-split-pane";
     import { darkMode } from "../stores";
-    import watchMedia from "svelte-media";
-    import { parseCompleteMarkdown } from "../utils";
+    import { codeMirrorHighlightStyle, parseCompleteMarkdown } from "../utils";
 
     export let documentID = "";
     let content = "";
@@ -45,37 +53,153 @@
         alert("Announcements notification triggered");
     }
 
-    const editorConfig = {
-        lineNumbers: true,
-        lineWrapping: true,
-        mode: {
-            name: "gfm",
-            highlightFormatting: true,
-            emoji: false,
-        },
-    };
-    let codeMirrorEditor: any;
-    const accessEditor = (editor) => {
-        editor.setSize("100%", "100%");
-        editor.on("change", (e) => {
-            content = e.getValue();
-        });
-        editor.setValue(content);
-        ActualCodeMirror.commands.save = save;
-        codeMirrorEditor = editor;
-    };
+    let editorContainer: HTMLElement;
+    let editorView: EditorView;
 
-    function refreshEditor() {
-        if (typeof codeMirrorEditor !== "undefined") {
-            codeMirrorEditor.refresh();
+    const themeCompartment = new Compartment();
+    const highlightCompartment = new Compartment();
+
+    darkMode.subscribe((dm) => {
+        if (typeof editorView !== "undefined") {
+            editorView.dispatch({
+                effects: [
+                    themeCompartment.reconfigure(theme(dm)),
+                    highlightCompartment.reconfigure(codeMirrorHighlightStyle(dm)),
+                ],
+            });
         }
+    });
+
+    onDestroy(() => {
+        if (typeof editorView !== "undefined") {
+            editorView.destroy();
+        }
+    });
+
+    function theme(darkMode: boolean): Extension {
+        return EditorView.theme(
+            {
+                "&.cm-editor": {
+                    height: "100%",
+                },
+                ".cm-scroller": {
+                    overflow: "auto",
+                },
+                "&.cm-editor.cm-focused": {
+                    outline: "2px solid transparent",
+                    "outline-offset": "2px",
+                },
+                ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+                    "max-height": "200px",
+                    "font-family": "inherit",
+                    padding: "8px",
+                },
+                ".cm-tooltip.cm-tooltip-autocomplete > ul > li": {
+                    "font-family": "inherit",
+                    "font-size": "1rem",
+                    "line-height": "1.5rem",
+                    padding: "3px 8px 3px 2px",
+                    "text-color": darkMode ? "white" : "black",
+                    "border-radius": "2px",
+                },
+                ".cm-completionIcon": {
+                    "padding-right": "22px",
+                    "font-size": "125%",
+                },
+                ".cm-completionIcon.cm-completionIcon-emoji": {
+                    display: "none",
+                },
+                ".cm-completionEmoji": {
+                    display: "inline-block",
+                    "text-align": "center",
+                    "min-width": "2.1rem",
+                    "padding-right": "0.3rem",
+                },
+                ".cm-tooltip-autocomplete ul li[aria-selected]": {
+                    "background-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                    "text-color": darkMode ? "white" : "black",
+                },
+                ".cm-tooltip": {
+                    background: darkMode ? "rgba(31,41,55,1)" : "rgba(229,231,235,1)",
+                    "border-radius": "2px",
+                    "border-width": "1px",
+                    "border-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                },
+            },
+            {
+                dark: darkMode,
+            }
+        );
+    }
+
+    function setupEditor() {
+        editorView = new EditorView({
+            state: EditorState.create({
+                doc: content,
+                extensions: [
+                    EditorView.updateListener.of((viewUpdate) => {
+                        if (viewUpdate.docChanged) {
+                            content = viewUpdate.state.doc.toString();
+                        }
+                    }),
+                    basicSetup,
+                    highlightCompartment.of(codeMirrorHighlightStyle($darkMode)),
+                    keymap.of([
+                        ...closeBracketsKeymap,
+                        ...defaultKeymap,
+                        ...searchKeymap,
+                        ...historyKeymap,
+                        ...foldKeymap,
+                        ...commentKeymap,
+                        ...completionKeymap,
+                        ...lintKeymap,
+                        {
+                            key: "Tab",
+                            run: acceptCompletion,
+                        },
+                        indentWithTab,
+                        {
+                            key: "Mod-s",
+                            preventDefault: true,
+                            run: (_): boolean => {
+                                save();
+                                return true;
+                            },
+                        },
+                    ]),
+                    markdown({
+                        extensions: [Strikethrough, Emoji],
+                        base: markdownLanguage,
+                    }),
+                    EditorView.lineWrapping,
+                    themeCompartment.of(theme($darkMode)),
+                ],
+            }),
+            parent: editorContainer,
+        });
+        editorView.focus();
     }
 
     $: {
-        if (typeof codeMirrorEditor !== "undefined") {
-            codeMirrorEditor.setOption("theme", $darkMode ? "monokai" : "base16-light");
+        // reactive block to trigger editor initialization once editorContainer is bound
+        if (typeof editorContainer !== "undefined" && typeof editorView === "undefined") {
+            setupEditor();
         }
     }
+
+    function updateEditorContents(newContents: string) {
+        if (typeof editorView !== "undefined") {
+            let curContents = editorView.state.doc.toString();
+            if (newContents != curContents) {
+                editorView.dispatch({
+                    changes: { from: 0, to: curContents.length, insert: newContents },
+                });
+            }
+        }
+    }
+
+    // reactive block to update the editor contents when content is updated
+    $: updateEditorContents(content);
 
     let leftPaneSize = "50%";
     let rightPaneSize = "50%";
@@ -143,14 +267,12 @@
         {/if}
     </div>
 
-    <div class="overflow-hidden">
+    <div class="overflow-hidden h-full">
         {#await fetchDocument()}
             <p>Loading document...</p>
         {:then}
-            <HSplitPane updateCallback={refreshEditor} {leftPaneSize} {rightPaneSize}>
-                <div slot="left" class="h-full max-h-full relative">
-                    <CodeMirror config={editorConfig} {accessEditor} />
-                </div>
+            <HSplitPane {leftPaneSize} {rightPaneSize}>
+                <div slot="left" class="h-full max-h-full relative" bind:this={editorContainer} />
                 <div slot="right" class="h-full max-h-full px-6 pb-6 overflow-auto markdown-document">
                     {@html parseCompleteMarkdown(content)}
                 </div>

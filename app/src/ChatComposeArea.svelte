@@ -1,20 +1,34 @@
 <script lang="ts">
-    import ChatEmojiAutocomplete from "./ChatEmojiAutocomplete.svelte";
-    import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import WarningMessage from "./WarningMessage.svelte";
-    // @ts-ignore no type info available
-    import { autoresize } from "svelte-textarea-autoresize";
-    import { darkMode, modal, rewardAddress } from "./stores";
+    import {
+        acceptCompletion,
+        autocompletion,
+        Completion,
+        CompletionContext,
+        completionKeymap,
+        CompletionResult,
+    } from "@codemirror/autocomplete";
+    import { closeBrackets, closeBracketsKeymap } from "@codemirror/closebrackets";
+    import { insertNewlineAndIndent } from "@codemirror/commands";
+    import { HighlightStyle, tags } from "@codemirror/highlight";
+    import { history, historyKeymap } from "@codemirror/history";
+    import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+    import { bracketMatching } from "@codemirror/matchbrackets";
+    import { ChangeSpec, Compartment, EditorState, Extension } from "@codemirror/state";
+    import { EditorView, highlightSpecialChars, keymap, placeholder } from "@codemirror/view";
+    import { Emoji, Strikethrough } from "@lezer/markdown";
     import type { Picker } from "emoji-picker-element";
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
-    import { afterUpdate, createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { link } from "svelte-navigator";
-    import { insertAtCursor, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
     import { apiClient } from "./api_client";
-    import { emojiDatabase } from "./chat_utils";
-    import type { ChatMessage } from "./proto/jungletv_pb";
     import BlockedUsers from "./BlockedUsers.svelte";
+    import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
+    import { emojiDatabase } from "./chat_utils";
+    import ErrorMessage from "./ErrorMessage.svelte";
+    import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
+    import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
+    import { codeMirrorHighlightStyle, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
+    import WarningMessage from "./WarningMessage.svelte";
 
     export let chatEnabled: boolean;
     export let chatDisabledReason: string;
@@ -24,16 +38,17 @@
 
     let sendError = false;
     let sendErrorMessage = "";
-    let composeTextArea: HTMLTextAreaElement;
+    let editorContainer: HTMLElement;
+    let editorView: EditorView;
     let composedMessage = "";
 
     let emojiPicker: Picker;
-    let emojiAutocompletePrefix = "";
-    let emojiAutocompleteSelection: NativeEmoji = null;
-    let emojiAutocompleteSelectionIndex = -1;
     let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
 
     const dispatch = createEventDispatcher();
+
+    const themeCompartment = new Compartment();
+    const highlightCompartment = new Compartment();
 
     onMount(() => {
         // the i18n property appears to rely on some kind of custom setter
@@ -49,31 +64,325 @@
         `;
         emojiPicker.shadowRoot.appendChild(style);
 
-        /*let theHiddenTextareaItUsesForMeasurement = document.querySelectorAll(
-            'body > textarea[tab-index="-1"][aria-hidden="true"]'
-        );
-        if (theHiddenTextareaItUsesForMeasurement.length > 0) {
-            composeTextArea.getRootNode().appendChild(theHiddenTextareaItUsesForMeasurement[0]);
-        }*/
+        darkMode.subscribe((dm) => {
+            if (typeof editorView !== "undefined") {
+                editorView.dispatch({
+                    effects: [
+                        themeCompartment.reconfigure(theme(dm)),
+                        highlightCompartment.reconfigure(highlightStyle($permissionLevel == PermissionLevel.ADMIN, dm)),
+                    ],
+                });
+            }
+        });
+        permissionLevel.subscribe((permLevel) => {
+            if (typeof editorView !== "undefined") {
+                editorView.dispatch({
+                    effects: highlightCompartment.reconfigure(
+                        highlightStyle(permLevel == PermissionLevel.ADMIN, $darkMode)
+                    ),
+                });
+            }
+        });
     });
 
-    afterUpdate(() => {
-        if (
-            emojiAutocompletePrefix.endsWith(":") &&
-            emojiAutocompleteSelection !== null &&
-            emojiAutocompleteSelection.shortcodes.findIndex((s) => emojiAutocompletePrefix == s + ":") >= 0
-        ) {
-            insertAutocompleteSelectionEmoji();
+    onDestroy(() => {
+        if (typeof editorView !== "undefined") {
+            editorView.destroy();
         }
     });
 
     $: {
-        if (typeof replyingToMessage !== "undefined") {
-            composeTextArea.focus();
+        if (typeof replyingToMessage !== "undefined" && typeof editorView !== "undefined") {
+            editorView.focus();
         }
     }
 
-    async function sendMessage(event: Event) {
+    function limitMaxLength(maxLength: number): Extension {
+        return EditorState.changeFilter.of((tr): boolean | readonly number[] => {
+            return tr.newDoc.length <= maxLength;
+        });
+    }
+
+    async function commandCompletions(context: CompletionContext): Promise<CompletionResult | null> {
+        if (context.state.doc.lineAt(context.state.selection.main.head).number > 1) {
+            return null;
+        }
+        let word = context.matchBefore(/\/.*/);
+        if ((word == null || word.from == word.to) && !context.explicit) return null;
+        return {
+            from: word == null ? 0 : word.from,
+            options: [
+                { label: "/nick", type: "method", detail: "nickname or nothing", info: "Change or clear nickname" },
+                { label: "/lightsout", type: "method", info: "Toggle dark theme" },
+                { label: "/popout", type: "method", info: "Open chat in a separate window" },
+                { label: "/shrug", type: "text", info: "Inserts ¯\\_(ツ)_/¯", apply: "¯\\\\\\_(ツ)\\_/¯" },
+                { label: "/tableflip", type: "text", info: "Inserts (╯°□°）╯︵ ┻━┻", apply: "(╯°□°）╯︵ ┻━┻" },
+                { label: "/unflip", type: "function", info: "Inserts ┬─┬ ノ( ゜-゜ノ)", apply: "┬─┬ ノ( ゜-゜ノ)" },
+                {
+                    label: "/spoiler",
+                    type: "method",
+                    detail: "message",
+                    info: "Marks your message as spoiler",
+                    apply: "/spoiler ",
+                },
+            ],
+        };
+    }
+
+    function replaceEmojiShortcodes(): Extension {
+        return EditorView.updateListener.of(async (viewUpdate) => {
+            if (viewUpdate.docChanged) {
+                let oldContents = viewUpdate.state.doc.toString();
+                let matches = oldContents.matchAll(/(?<!\\):([a-zA-Z0-9_\+\-]+):/gm);
+                let changes: ChangeSpec[] = [];
+                for (let match of matches) {
+                    let result = await emojiDatabase.getEmojiByShortcode(match[1]);
+                    if (result !== null && "unicode" in result) {
+                        changes.push({ from: match.index, to: match.index + match[0].length, insert: result.unicode });
+                    }
+                }
+                if (changes.length > 0) {
+                    viewUpdate.view.dispatch({
+                        changes: changes,
+                    });
+                }
+            }
+        });
+    }
+
+    async function emojiCompletions(context: CompletionContext): Promise<CompletionResult | null> {
+        let word = context.matchBefore(/(?<!\\):([a-zA-Z0-9_\+\-]+)/gm);
+        if (word === null || word.to - word.from < 2 || word.text.length < 1) {
+            return null;
+        }
+        let partialShortcode = word.text.substring(1);
+        let emojiResults = await searchEmoji(partialShortcode, 5);
+        let options: Completion[] = [];
+        for (let result of emojiResults) {
+            options.push({
+                label: ":" + shortcodeMatchingPrefix(result.shortcodes, partialShortcode) + ":",
+                type: "emoji",
+                apply: result.unicode,
+            });
+        }
+        return {
+            from: word.from,
+            options: options,
+            filter: false,
+        };
+    }
+
+    function shortcodeMatchingPrefix(shortcodes: string[], prefix: string): string {
+        for (const shortcode of shortcodes) {
+            if (shortcode.startsWith(prefix)) {
+                return shortcode;
+            }
+        }
+        return shortcodes[0];
+    }
+
+    async function searchEmoji(searchText: string, numResults: number): Promise<NativeEmoji[]> {
+        let emojis = await emojiDatabase.getEmojiBySearchQuery(searchText);
+
+        let shortcode = searchText;
+        if (searchText.endsWith(":")) {
+            // exact shortcode search
+            shortcode = searchText.substring(0, searchText.length - 1).toLowerCase();
+            emojis = emojis.filter((_) => _.shortcodes.includes(shortcode));
+        }
+        if (emojis.findIndex((e) => e.shortcodes.includes(shortcode)) < 0) {
+            // sometimes getEmojiBySearchQuery does not find the exact match for short queries
+            // e.g. :m won't bring up the :m: emoji
+            let exactMatch = await emojiDatabase.getEmojiByShortcode(shortcode);
+            if (exactMatch != null) {
+                emojis.push(exactMatch);
+            }
+        }
+
+        // prefer emojis whose beginning of first shortcode matches exactly the searchText
+        // this improves visual/behavior consistency
+        let numMoved = 0;
+        for (let i = emojis.length - 1; i >= numMoved; i--) {
+            if (emojis[i].shortcodes[0].startsWith(searchText)) {
+                emojis.unshift(emojis[i]);
+                i++;
+                emojis.splice(i, 1);
+                numMoved++;
+            }
+        }
+
+        let result = emojis.filter((e): e is NativeEmoji => {
+            return "unicode" in e;
+        });
+
+        return result.slice(0, numResults);
+    }
+
+    function addEmojiToAutocompleteOptions(completion: Completion, state: EditorState): Node | null {
+        if (completion.type !== "emoji" || typeof completion.apply !== "string") {
+            return null;
+        }
+        let node = document.createElement("div");
+        node.innerText = completion.apply;
+        node.classList.add("cm-completionEmoji");
+        return node;
+    }
+
+    function theme(darkMode: boolean): Extension {
+        return EditorView.theme(
+            {
+                ".cm-scroller": {
+                    "font-family": "inherit",
+                    "line-height": "inherit",
+                },
+                "&.cm-editor.cm-focused": {
+                    outline: "2px solid transparent",
+                    "outline-offset": "2px",
+                },
+                ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+                    "max-height": "200px",
+                    "font-family": "inherit",
+                    padding: "8px",
+                },
+                ".cm-tooltip.cm-tooltip-autocomplete > ul > li": {
+                    "font-family": "inherit",
+                    "font-size": "1rem",
+                    "line-height": "1.5rem",
+                    padding: "3px 8px 3px 2px",
+                    "text-color": darkMode ? "white" : "black",
+                    "border-radius": "2px",
+                },
+                ".cm-completionIcon": {
+                    "padding-right": "22px",
+                    "font-size": "125%",
+                },
+                ".cm-completionIcon.cm-completionIcon-emoji": {
+                    display: "none",
+                },
+                ".cm-completionEmoji": {
+                    display: "inline-block",
+                    "text-align": "center",
+                    "min-width": "2.1rem",
+                    "padding-right": "0.3rem",
+                },
+                ".cm-tooltip-autocomplete ul li[aria-selected]": {
+                    "background-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                    "text-color": darkMode ? "white" : "black",
+                },
+                ".cm-tooltip": {
+                    background: darkMode ? "rgba(31,41,55,1)" : "rgba(229,231,235,1)",
+                    "border-radius": "2px",
+                    "border-width": "1px",
+                    "border-color": darkMode ? "rgba(75,85,99,1)" : "rgba(156,163,175,1)",
+                },
+            },
+            {
+                dark: darkMode,
+            }
+        );
+    }
+
+    function highlightStyle(fullMarkdown: boolean, darkMode: boolean): Extension {
+        if (fullMarkdown) {
+            return codeMirrorHighlightStyle(darkMode);
+        }
+
+        return HighlightStyle.define([
+            { tag: tags.emphasis, fontStyle: "italic" },
+            { tag: tags.strong, fontWeight: "bold" },
+            { tag: tags.strikethrough, textDecoration: "line-through" },
+            { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
+            { tag: tags.character, color: "#a11" }, // Used by emoji shortcodes that aren't matched
+        ]);
+    }
+
+    function setupEditor() {
+        editorView = new EditorView({
+            state: EditorState.create({
+                doc: composedMessage,
+                extensions: [
+                    EditorView.updateListener.of((viewUpdate) => {
+                        if (viewUpdate.docChanged) {
+                            composedMessage = viewUpdate.state.doc.toString();
+                        }
+                    }),
+                    highlightSpecialChars(),
+                    history(),
+                    bracketMatching(),
+                    closeBrackets(),
+                    autocompletion({
+                        override: [commandCompletions, emojiCompletions],
+                        addToOptions: [
+                            {
+                                render: addEmojiToAutocompleteOptions,
+                                position: 21,
+                            },
+                        ],
+                    }),
+                    replaceEmojiShortcodes(),
+                    highlightCompartment.of(highlightStyle($permissionLevel == PermissionLevel.ADMIN, $darkMode)),
+                    keymap.of([
+                        ...closeBracketsKeymap,
+                        ...historyKeymap,
+                        ...completionKeymap,
+                        {
+                            key: "Enter",
+                            run: (): boolean => {
+                                sendMessage(true);
+                                return true;
+                            },
+                            shift: insertNewlineAndIndent,
+                        },
+                        {
+                            key: "Mod-Enter",
+                            run: insertNewlineAndIndent,
+                        },
+                        {
+                            key: "Tab",
+                            run: acceptCompletion,
+                        },
+                    ]),
+                    markdown({
+                        extensions: [Strikethrough, Emoji],
+                        base: markdownLanguage,
+                    }),
+                    EditorView.lineWrapping,
+                    placeholder("Say something..."),
+                    limitMaxLength(512),
+                    themeCompartment.of(theme($darkMode)),
+                ],
+            }),
+            parent: editorContainer,
+        });
+        editorView.focus();
+    }
+
+    $: {
+        // reactive block to trigger editor initialization once editorContainer is bound
+        if (typeof editorContainer !== "undefined" && typeof editorView === "undefined") {
+            setupEditor();
+        }
+    }
+
+    function updateEditorContents(newContents: string) {
+        if (typeof editorView !== "undefined") {
+            let curContents = editorView.state.doc.toString();
+            if (newContents != curContents) {
+                editorView.dispatch({
+                    changes: { from: 0, to: curContents.length, insert: newContents },
+                });
+            }
+        }
+    }
+
+    // reactive block to update the editor contents when composedMessage is updated
+    $: updateEditorContents(composedMessage);
+
+    async function sendMessageFromEvent(event: Event) {
+        await sendMessage(event.isTrusted);
+    }
+
+    async function sendMessage(isTrusted: boolean) {
         let msg = composedMessage.trim();
         if (msg == "") {
             return;
@@ -86,6 +395,10 @@
             openPopout("chat");
             return;
         }
+        if (msg.startsWith("/spoiler ")) {
+            msg = "||" + msg.substring("/spoiler ".length) + "||";
+        }
+
         let refMsg = replyingToMessage;
         dispatch("clearReply");
         if (!emojiPicker.classList.contains("hidden")) {
@@ -107,7 +420,7 @@
                 }
             } else {
                 dispatch("sentMessage");
-                await apiClient.sendChatMessage(msg, event.isTrusted, refMsg);
+                await apiClient.sendChatMessage(msg, isTrusted, refMsg);
             }
         } catch (ex) {
             composedMessage = msg;
@@ -119,78 +432,7 @@
             }
             setTimeout(() => (sendError = false), 5000);
         }
-        composeTextArea.focus();
-    }
-    async function handleKeyboardOnComposeTextarea(event: KeyboardEvent) {
-        let ta = event.target as HTMLTextAreaElement;
-        if (event.key === "Enter" && emojiAutocompleteSelection == null) {
-            if (event.altKey || event.ctrlKey || event.shiftKey) {
-                if (!event.shiftKey) ta.value += "\n";
-                autoresize(ta);
-                return true;
-            }
-            event.preventDefault();
-            await sendMessage(event);
-            autoresize(ta);
-            return false;
-        } else if (event.key === "ArrowUp" && emojiAutocompleteSelection != null) {
-            event.preventDefault();
-            emojiAutocompleteSelectionIndex--;
-            return false;
-        } else if (event.key === "ArrowDown" && emojiAutocompleteSelection != null) {
-            event.preventDefault();
-            emojiAutocompleteSelectionIndex++;
-            return false;
-        } else if ((event.key === "Tab" || event.key === "Enter") && emojiAutocompleteSelection != null) {
-            event.preventDefault();
-            insertAutocompleteSelectionEmoji();
-            return false;
-        }
-        return true;
-    }
-
-    // 1st capture group includes everything that precedes the shortcode
-    // the 2nd capture group includes the beginning of the shortcode
-    // because this regex is reused and designed to always match just once, do not set the 'g' flag
-    const shortcodeRegexp = /^(.*[^\\]){0,1}(:[a-zA-Z0-9_\+\-]+:{0,1})$/s;
-
-    async function handleCursorMoved() {
-        if (composeTextArea.selectionStart != composeTextArea.selectionEnd) {
-            emojiAutocompletePrefix = "";
-            emojiAutocompleteSelection = null;
-            return;
-        }
-        let textUpUntilCursor = composedMessage.substring(0, composeTextArea.selectionStart);
-        let matches = shortcodeRegexp.exec(textUpUntilCursor);
-        if (matches == null || matches.length < 3) {
-            emojiAutocompletePrefix = "";
-            emojiAutocompleteSelection = null;
-            return;
-        }
-        emojiAutocompletePrefix = matches[2].substr(1);
-    }
-    function insertAutocompleteSelectionEmoji() {
-        if (emojiAutocompleteSelection != null) {
-            replaceCurrentPartialEmojiShortcode(emojiAutocompleteSelection.unicode);
-            emojiDatabase.incrementFavoriteEmojiCount(emojiAutocompleteSelection.unicode);
-            emojiAutocompletePrefix = "";
-        }
-    }
-    function replaceCurrentPartialEmojiShortcode(replacement: string) {
-        let textUpUntilCursor = composeTextArea.value.substring(0, composeTextArea.selectionStart);
-        let matches = shortcodeRegexp.exec(textUpUntilCursor);
-        if (matches == null || matches.length < 3) {
-            // preconditions changed...
-            return;
-        }
-        if (matches[1] !== undefined) {
-            composeTextArea.selectionStart = matches[1].length; // place cursor at beginning of shortcode
-        } else {
-            composeTextArea.selectionStart = 0;
-        }
-        composeTextArea.selectionEnd = matches[0].length;
-        insertAtCursor(composeTextArea, replacement);
-        composedMessage = composeTextArea.value;
+        editorView.focus();
     }
 
     function dismissGuidelinesWarning() {
@@ -205,35 +447,22 @@
         } else return [str];
     }
 
-    let emojiPickerShown = false;
     function toggleEmojiPicker() {
         if (emojiPicker.classList.contains("hidden")) {
-            emojiPickerShown = true;
             emojiPicker.classList.remove("hidden");
             let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
-            if (emojiAutocompletePrefix != "") {
-                searchBox.value = emojiAutocompletePrefix;
-            }
             searchBox.setSelectionRange(0, searchBox.value.length);
             searchBox.focus();
         } else {
-            emojiPickerShown = false;
             emojiPicker.classList.add("hidden");
-            composeTextArea.focus();
+            editorView.focus();
         }
     }
 
     function onEmojiPicked(event: EmojiClickEvent) {
-        emojiAutocompletePrefix = "";
         toggleEmojiPicker();
-        replaceCurrentPartialEmojiShortcode("");
-        insertAtCursor(composeTextArea, event.detail.unicode);
-        composedMessage = composeTextArea.value;
-        composeTextArea.focus();
-    }
-
-    function focusOnInit(el: HTMLElement) {
-        el.focus();
+        editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
+        editorView.focus();
     }
 
     function openBlockedUserManagement() {
@@ -308,32 +537,11 @@
         </ChatReplyingBanner>
     {/if}
     <div class="flex flex-row relative">
-        {#if emojiAutocompletePrefix != ""}
-            <ChatEmojiAutocomplete
-                suppressPopup={emojiPickerShown}
-                enableReplyMargin={replyingToMessage !== undefined}
-                prefix={emojiAutocompletePrefix}
-                bind:currentSelection={emojiAutocompleteSelection}
-                bind:currentSelectionIndex={emojiAutocompleteSelectionIndex}
-                on:emojiPicked={insertAutocompleteSelectionEmoji}
-            />
-        {/if}
-        <textarea
-            use:autoresize
-            bind:this={composeTextArea}
-            bind:value={composedMessage}
-            on:keydown={handleKeyboardOnComposeTextarea}
-            on:click={handleCursorMoved}
-            on:keyup={handleCursorMoved}
-            use:focusOnInit
-            class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
-            placeholder="Say something..."
-            maxlength="512"
-        />
+        <div class="flex-grow max-h-32 p-1 focus:outline-none overflow-y-auto" bind:this={editorContainer} />
 
         <button
             title="Insert emoji"
-            class="text-purple-700 dark:text-purple-500 min-h-full w-8 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+            class="text-purple-700 dark:text-purple-500 min-h-full px-2 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
             on:click={toggleEmojiPicker}
         >
             <i class="far fa-smile" />
@@ -343,7 +551,7 @@
             title="Send message"
             class="{composedMessage == '' ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
         min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-            on:click={sendMessage}
+            on:click={sendMessageFromEvent}
         >
             <i class="fas fa-paper-plane" />
         </button>
