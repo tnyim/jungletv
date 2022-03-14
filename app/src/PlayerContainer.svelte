@@ -134,18 +134,18 @@
             {/if}
         {/key}
     {/if}
-    <div
-        class="player-close-button flex-row shadow-md bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+    <button
+        class="player-close-button flex-row shadow-md bg-white dark:bg-gray-800 hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={closePlayer}
     >
         <i class="fas fa-times" />
-    </div>
-    <div
-        class="player-expand-button flex-row shadow-md bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+    </button>
+    <button
+        class="player-expand-button flex-row shadow-md bg-white dark:bg-gray-800 hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={expandPlayer}
     >
         <i class="fas fa-external-link-alt" />
-    </div>
+    </button>
 </div>
 
 <style>
