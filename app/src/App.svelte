@@ -10,7 +10,7 @@
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import UserChatHistory from "./moderation/UserChatHistory.svelte";
-	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance, modal } from "./stores";
+	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance, modal, featureFlags } from "./stores";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import EditDocument from "./moderation/EditDocument.svelte";
 	import Document from "./Document.svelte";
@@ -100,6 +100,10 @@
 	historyStore.subscribe((v) => {
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
 		refreshOnLineStatus();
+	});
+
+	featureFlags.subscribe((v) => {
+		localStorage.featureFlags = JSON.stringify(v);
 	});
 
 	let mainContentBottomPadding = "";

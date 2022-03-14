@@ -5,7 +5,7 @@
     import WarningMessage from "./WarningMessage.svelte";
     // @ts-ignore no type info available
     import { autoresize } from "svelte-textarea-autoresize";
-    import { darkMode, modal, rewardAddress } from "./stores";
+    import { darkMode, featureFlags, modal, rewardAddress } from "./stores";
     import type { Picker } from "emoji-picker-element";
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
     import { afterUpdate, createEventDispatcher, onMount } from "svelte";
@@ -77,6 +77,12 @@
             return;
         } else if (msg == "/popout") {
             openPopout("chat");
+            return;
+        } else if (msg == "/flag:useCM6ChatComposition") {
+            featureFlags.update((curFlags) => {
+                curFlags.useCM6ChatComposition = !curFlags.useCM6ChatComposition;
+                return curFlags;
+            });
             return;
         }
         let refMsg = replyingToMessage;

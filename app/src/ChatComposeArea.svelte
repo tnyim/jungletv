@@ -34,7 +34,7 @@
     import { emojiDatabase } from "./chat_utils";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
-    import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
+    import { darkMode, featureFlags, modal, permissionLevel, rewardAddress } from "./stores";
     import { codeMirrorHighlightStyle, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
     import { Tooltip, hoverTooltip } from "@codemirror/tooltip";
@@ -409,7 +409,14 @@
         if (msg == "") {
             return;
         }
+
         composedMessage = "";
+        let refMsg = replyingToMessage;
+        dispatch("clearReply");
+        if (!emojiPicker.classList.contains("hidden")) {
+            emojiPicker.classList.add("hidden");
+        }
+
         if (msg == "/lightsout") {
             darkMode.update((v) => !v);
             return;
@@ -419,12 +426,12 @@
         }
         if (msg.startsWith("/spoiler ")) {
             msg = "||" + msg.substring("/spoiler ".length) + "||";
-        }
-
-        let refMsg = replyingToMessage;
-        dispatch("clearReply");
-        if (!emojiPicker.classList.contains("hidden")) {
-            emojiPicker.classList.add("hidden");
+        } else if (msg == "/flag:useCM6ChatComposition") {
+            featureFlags.update((curFlags) => {
+                curFlags.useCM6ChatComposition = !curFlags.useCM6ChatComposition;
+                return curFlags;
+            });
+            return;
         }
         try {
             if (msg.startsWith("/nick")) {

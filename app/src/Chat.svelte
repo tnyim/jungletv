@@ -5,7 +5,7 @@
     import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
-    import { blockedUsers, unreadChatMention } from "./stores";
+    import { blockedUsers, featureFlags, unreadChatMention } from "./stores";
     import { DateTime } from "luxon";
     import "emoji-picker-element";
 
@@ -16,6 +16,7 @@
     import ChatUserMessage from "./ChatUserMessage.svelte";
     import ChatSystemMessage from "./ChatSystemMessage.svelte";
     import ChatComposeArea from "./ChatComposeArea.svelte";
+    import ChatComposeAreaOld from "./ChatComposeAreaOld.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -340,15 +341,27 @@
         {/each}
     </div>
     <div class="border-t border-gray-300 shadow-md flex flex-col">
-        <ChatComposeArea
-            {chatEnabled}
-            {chatDisabledReason}
-            {allowExpensiveCSSAnimations}
-            {replyingToMessage}
-            {hasBlockedMessages}
-            on:clearReply={clearReplyToMessage}
-            on:sentMessage={() => (sentMsgFlag = true)}
-        />
+        {#if $featureFlags.useCM6ChatComposition}
+            <ChatComposeArea
+                {chatEnabled}
+                {chatDisabledReason}
+                {allowExpensiveCSSAnimations}
+                {replyingToMessage}
+                {hasBlockedMessages}
+                on:clearReply={clearReplyToMessage}
+                on:sentMessage={() => (sentMsgFlag = true)}
+            />
+        {:else}
+            <ChatComposeAreaOld
+                {chatEnabled}
+                {chatDisabledReason}
+                {allowExpensiveCSSAnimations}
+                {replyingToMessage}
+                {hasBlockedMessages}
+                on:clearReply={clearReplyToMessage}
+                on:sentMessage={() => (sentMsgFlag = true)}
+            />
+        {/if}
     </div>
 </div>
 

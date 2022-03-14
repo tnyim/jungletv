@@ -35,3 +35,24 @@ type modalInfo = {
 };
 
 export const modal = writable(null as modalInfo);
+
+type featureFlags = {
+    version: number,
+    useCM6ChatComposition: boolean,
+};
+
+const defaultFeatureFlags: featureFlags = {
+    version: 1,
+    useCM6ChatComposition: false,
+}
+
+export const featureFlags = writable<featureFlags>(((): featureFlags => {
+    if (!('featureFlags' in localStorage)) {
+        return defaultFeatureFlags;
+    }
+    let curFlags = (JSON.parse(localStorage.featureFlags) as featureFlags);
+    if (curFlags.version != defaultFeatureFlags.version) {
+        return defaultFeatureFlags;
+    }
+    return curFlags;
+})());
