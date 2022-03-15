@@ -10,7 +10,15 @@
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import UserChatHistory from "./moderation/UserChatHistory.svelte";
-	import { badRepresentative, darkMode, permissionLevel, rewardAddress, rewardBalance, modal, featureFlags } from "./stores";
+	import {
+		badRepresentative,
+		darkMode,
+		permissionLevel,
+		rewardAddress,
+		rewardBalance,
+		modal,
+		featureFlags,
+	} from "./stores";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import EditDocument from "./moderation/EditDocument.svelte";
 	import Document from "./Document.svelte";
@@ -156,7 +164,7 @@
 	}
 </script>
 
-<div bind:this={rootInsideShadowRoot}>
+<div bind:this={rootInsideShadowRoot} style="height: 100vh">
 	<Modal setContext={modalSetContext} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
 		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
@@ -166,7 +174,7 @@
 		<Navbar />
 		<div
 			class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
-	dark:text-gray-300 {mainContentBottomPadding}"
+			dark:text-gray-300 {mainContentBottomPadding}"
 		>
 			<PlayerContainer
 				bind:this={playerContainer}

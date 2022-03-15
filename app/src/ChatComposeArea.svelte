@@ -143,10 +143,13 @@
         return EditorView.updateListener.of(async (viewUpdate) => {
             if (viewUpdate.docChanged) {
                 let oldContents = viewUpdate.state.doc.toString();
-                let matches = oldContents.matchAll(/(?<!\\):([a-zA-Z0-9_\+\-]+):/gm);
+                let matches = oldContents.matchAll(/(\\{0,1}):([a-zA-Z0-9_\+\-]+):/gm);
                 let changes: ChangeSpec[] = [];
                 for (let match of matches) {
-                    let result = await emojiDatabase.getEmojiByShortcode(match[1]);
+                    if (match[1] === "\\") {
+                        continue;
+                    }
+                    let result = await emojiDatabase.getEmojiByShortcode(match[2]);
                     if (result !== null && "unicode" in result) {
                         changes.push({ from: match.index, to: match.index + match[0].length, insert: result.unicode });
                     }
@@ -161,8 +164,8 @@
     }
 
     async function emojiCompletions(context: CompletionContext): Promise<CompletionResult | null> {
-        let word = context.matchBefore(/(?<!\\):([a-zA-Z0-9_\+\-]+)/gm);
-        if (word === null || word.to - word.from < 2 || word.text.length < 1) {
+        let word = context.matchBefore(/(\\{0,1}):([a-zA-Z0-9_\+\-]+)/gm);
+        if (word === null || word.to - word.from < 2 || word.text.length < 1 || word.text.startsWith("\\")) {
             return null;
         }
         let partialShortcode = word.text.substring(1);
@@ -241,6 +244,9 @@
     function theme(darkMode: boolean): Extension {
         return EditorView.theme(
             {
+                "&.cm-editor": {
+                    "max-height": "128px",
+                },
                 ".cm-scroller": {
                     "font-family": "inherit",
                     "line-height": "inherit",
@@ -567,7 +573,7 @@
         </ChatReplyingBanner>
     {/if}
     <div class="flex flex-row relative">
-        <div class="flex-grow max-h-32 p-1 focus:outline-none overflow-y-auto" bind:this={editorContainer} />
+        <div class="flex-grow p-1 focus:outline-none" bind:this={editorContainer} />
 
         <button
             title="Insert emoji"
