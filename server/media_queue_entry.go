@@ -31,7 +31,7 @@ type MediaQueueEntry interface {
 	Played() bool
 	Playing() bool
 	PlayedFor() time.Duration
-	DonePlaying() *event.Event
+	DonePlaying() *event.NoArgEvent
 
 	QueueID() string
 }
@@ -63,7 +63,7 @@ type queueEntryYouTubeVideo struct {
 	startedPlaying time.Time
 	stoppedPlaying time.Time
 	played         bool
-	donePlaying    *event.Event
+	donePlaying    *event.NoArgEvent
 }
 
 func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry {
@@ -199,7 +199,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.requestCost = Amount{t.RequestCost}
 	e.requestedAt = t.RequestedAt
 	e.unskippable = t.Unskippable
-	e.donePlaying = event.New()
+	e.donePlaying = event.NewNoArg()
 	return nil
 }
 
@@ -274,6 +274,6 @@ func (e *queueEntryYouTubeVideo) PlayedFor() time.Duration {
 	return time.Since(e.startedPlaying)
 }
 
-func (e *queueEntryYouTubeVideo) DonePlaying() *event.Event {
+func (e *queueEntryYouTubeVideo) DonePlaying() *event.NoArgEvent {
 	return e.donePlaying
 }

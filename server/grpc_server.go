@@ -98,7 +98,7 @@ type grpcServer struct {
 
 	raffleSecretKey *ecdsa.PrivateKey
 
-	announcementsUpdated *event.Event
+	announcementsUpdated *event.Event[int]
 }
 
 // Options contains the required options to start the server
@@ -228,7 +228,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),
 		segchaClient:           options.SegchaClient,
 
-		announcementsUpdated: event.New(),
+		announcementsUpdated: event.New[int](),
 	}
 	s.userSerializer = s.serializeUserForAPI
 
@@ -574,7 +574,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case v := <-mediaChangedC:
-				if v[0] == nil {
+				if v == nil || v == (MediaQueueEntry)(nil) {
 					wait = time.Duration(90+rand.Intn(180)) * time.Second
 					t.Reset(wait)
 				}

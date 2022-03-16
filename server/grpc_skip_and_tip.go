@@ -43,9 +43,9 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 
 	for {
 		select {
-		case v := <-onStatusUpdated:
-			latestSkipStatus = v[0].(*SkipAccountStatus)
-			latestRainStatus = v[1].(*RainAccountStatus)
+		case args := <-onStatusUpdated:
+			latestSkipStatus = args.skipAccountStatus
+			latestRainStatus = args.rainAccountStatus
 			err = stream.Send(buildStatus())
 			if err != nil {
 				return stacktrace.Propagate(err, "")

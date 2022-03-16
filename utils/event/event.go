@@ -1,23 +1,21 @@
 package event
 
 import (
-	"errors"
-	"reflect"
 	"sync"
 )
 
 // Event is an event including dispatching mechanism
-type Event struct {
-	mu                        sync.RWMutex
-	subs                      []subscription
-	closed                    bool
-	pendingNotification       bool
-	pendingNotificationParams []interface{}
-	onUnsubscribed            *Event
+type Event[T any] struct {
+	mu                       sync.RWMutex
+	subs                     []subscription[T]
+	closed                   bool
+	pendingNotification      bool
+	pendingNotificationParam T
+	onUnsubscribed           *Event[int]
 }
 
-type subscription struct {
-	ch       chan []interface{}
+type subscription[T any] struct {
+	ch       chan T
 	blocking bool
 }
 
@@ -31,31 +29,31 @@ const (
 )
 
 // New returns a new Event
-func New() *Event {
-	e := &Event{}
+func New[T any]() *Event[T] {
+	e := &Event[T]{}
 	return e
 }
 
 // Subscribe returns a channel that will receive notification events.
-func (e *Event) Subscribe(guaranteeType GuaranteeType) (<-chan []interface{}, func()) {
+func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	var s subscription
+	var s subscription[T]
 	switch guaranteeType {
 	case AtMostOnceGuarantee:
-		s = subscription{
-			ch:       make(chan []interface{}),
+		s = subscription[T]{
+			ch:       make(chan T),
 			blocking: false,
 		}
 	case AtLeastOnceGuarantee:
-		s = subscription{
-			ch:       make(chan []interface{}, 1),
+		s = subscription[T]{
+			ch:       make(chan T, 1),
 			blocking: false,
 		}
 	case ExactlyOnceGuarantee:
-		s = subscription{
-			ch:       make(chan []interface{}),
+		s = subscription[T]{
+			ch:       make(chan T),
 			blocking: true,
 		}
 	default:
@@ -64,28 +62,25 @@ func (e *Event) Subscribe(guaranteeType GuaranteeType) (<-chan []interface{}, fu
 
 	e.subs = append(e.subs, s)
 	if e.pendingNotification {
-		e.notifyNowWithinMutex(e.pendingNotificationParams...)
+		e.notifyNowWithinMutex(e.pendingNotificationParam)
 		e.pendingNotification = false
-		e.pendingNotificationParams = []interface{}{}
+		var zeroValue T
+		e.pendingNotificationParam = zeroValue
 	}
 	return s.ch, func() { e.unsubscribe(s.ch) }
 }
 
-// SubscribeUsingCallback subscribes to an event by calling the provided function with the arguments passed on Notify
-// The only type checking is performed at runtime when the event is fired, so be careful
+// SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
 // The returned function should be called when one wishes to unsubscribe
-func (e *Event) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction interface{}) func() {
+func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func(arg T)) func() {
 	ch, unsub := e.Subscribe(guaranteeType)
 	go func() {
 		for {
-			params, ok := <-ch
+			param, ok := <-ch
 			if !ok {
 				return
 			}
-			err := call(cbFunction, params...)
-			if err != nil {
-				panic(err)
-			}
+			cbFunction(param)
 		}
 	}()
 	return unsub
@@ -93,7 +88,7 @@ func (e *Event) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction i
 
 // unsubscribe removes the provided channel from the list of subscriptions, i.e. the channel will no longer be notified.
 // It also closes the channel.
-func (e *Event) unsubscribe(ch <-chan []interface{}) {
+func (e *Event[T]) unsubscribe(ch <-chan T) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -112,7 +107,7 @@ func (e *Event) unsubscribe(ch <-chan []interface{}) {
 }
 
 // Notify notifies subscribers that the event has occurred
-func (e *Event) Notify(params ...interface{}) {
+func (e *Event[T]) Notify(param T) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -121,22 +116,22 @@ func (e *Event) Notify(params ...interface{}) {
 	}
 
 	if len(e.subs) > 0 {
-		e.notifyNowWithinMutex(params...)
+		e.notifyNowWithinMutex(param)
 	} else {
 		e.pendingNotification = true
-		e.pendingNotificationParams = params
+		e.pendingNotificationParam = param
 	}
 }
 
-func (e *Event) notifyNowWithinMutex(params ...interface{}) {
+func (e *Event[T]) notifyNowWithinMutex(param T) {
 	for _, sub := range e.subs {
 		if sub.blocking {
-			go func(sch chan []interface{}) {
-				sch <- params
+			go func(sch chan T) {
+				sch <- param
 			}(sub.ch)
 		} else {
 			select {
-			case sub.ch <- params:
+			case sub.ch <- param:
 			default:
 			}
 		}
@@ -144,7 +139,7 @@ func (e *Event) notifyNowWithinMutex(params ...interface{}) {
 }
 
 // Close notifies subscribers that no more events will be sent
-func (e *Event) Close() {
+func (e *Event[T]) Close() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -158,51 +153,13 @@ func (e *Event) Close() {
 
 // Unsubscribed returns an event that is notified with the current subscriber count whenever a subscriber unsubscribes
 // from this event. This allows references to the event to be manually freed in code patterns that require it.
-func (e *Event) Unsubscribed() *Event {
+func (e *Event[T]) Unsubscribed() *Event[int] {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
 	// onUnsubscribed is lazily initialized to avoid infinite recursion on New()
 	if e.onUnsubscribed == nil {
-		e.onUnsubscribed = New()
+		e.onUnsubscribed = New[int]()
 	}
 	return e.onUnsubscribed
-}
-
-func call(fn interface{}, params ...interface{}) error {
-	var (
-		f     = reflect.ValueOf(fn)
-		t     = f.Type()
-		numIn = t.NumIn()
-		in    = make([]reflect.Value, 0, numIn)
-	)
-
-	if t.IsVariadic() {
-		n := numIn - 1
-		if len(params) < n {
-			return errors.New("parameters mismatched")
-		}
-		for _, param := range params[:n] {
-			in = append(in, reflect.ValueOf(param))
-		}
-		s := reflect.MakeSlice(t.In(n), 0, len(params[n:]))
-		for _, param := range params[n:] {
-			s = reflect.Append(s, reflect.ValueOf(param))
-		}
-		in = append(in, s)
-
-		f.CallSlice(in)
-
-		return nil
-	}
-
-	if len(params) != numIn {
-		return errors.New("parameters mismatched")
-	}
-	for _, param := range params {
-		in = append(in, reflect.ValueOf(param))
-	}
-
-	f.Call(in)
-	return nil
 }

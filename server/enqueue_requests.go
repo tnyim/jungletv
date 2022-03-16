@@ -64,7 +64,7 @@ type EnqueueTicket interface {
 	RequestPricing() EnqueuePricing
 	SetPaid() error
 	Status() proto.EnqueueMediaTicketStatus
-	StatusChanged() *event.Event
+	StatusChanged() *event.NoArgEvent
 	ForceEnqueuing(proto.ForcedTicketEnqueueType)
 	EnqueuingForced() (bool, proto.ForcedTicketEnqueueType)
 }
@@ -149,7 +149,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueReq
 		unskippable:   request.Unskippable(),
 		pricing:       e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable()),
 		account:       paymentAccount,
-		statusChanged: event.New(),
+		statusChanged: event.NewNoArg(),
 	}
 	go func() {
 		<-time.NewTimer(TicketExpiration).C
@@ -376,7 +376,7 @@ type ticket struct {
 	mediaInfo      MediaInfo
 	account        *wallet.Account
 	pricing        EnqueuePricing
-	statusChanged  *event.Event
+	statusChanged  *event.NoArgEvent
 	forceEnqueuing *proto.ForcedTicketEnqueueType
 }
 
@@ -443,7 +443,7 @@ func (t *ticket) Status() proto.EnqueueMediaTicketStatus {
 	}
 }
 
-func (t *ticket) StatusChanged() *event.Event {
+func (t *ticket) StatusChanged() *event.NoArgEvent {
 	return t.statusChanged
 }
 

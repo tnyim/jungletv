@@ -109,11 +109,11 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	for {
 		var err error
 		select {
-		case v := <-onChatDisabled:
+		case reason := <-onChatDisabled:
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_Disabled{
 					Disabled: &proto.ChatDisabledEvent{
-						Reason: v[0].(ChatDisabledReason).SerializeForAPI(),
+						Reason: reason.SerializeForAPI(),
 					},
 				},
 			})
@@ -123,8 +123,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 					Enabled: &proto.ChatEnabledEvent{},
 				},
 			})
-		case v := <-onMessageCreated:
-			msg := v[0].(*chat.Message)
+		case msg := <-onMessageCreated:
 			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
 				err = stream.Send(&proto.ChatUpdate{
 					Event: &proto.ChatUpdate_MessageCreated{
@@ -138,7 +137,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageDeleted{
 					MessageDeleted: &proto.ChatMessageDeletedEvent{
-						Id: v[0].(snowflake.ID).Int64(),
+						Id: v.Int64(),
 					},
 				},
 			})
@@ -155,7 +154,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_BlockedUserCreated{
 					BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
-						BlockedUserAddress: v[0].(string),
+						BlockedUserAddress: v,
 					},
 				},
 			})
@@ -163,7 +162,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_BlockedUserDeleted{
 					BlockedUserDeleted: &proto.ChatBlockedUserDeletedEvent{
-						BlockedUserAddress: v[0].(string),
+						BlockedUserAddress: v,
 					},
 				},
 			})

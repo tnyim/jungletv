@@ -108,7 +108,7 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		}
 	}
 
-	r.rewardsDistributed.Notify(rewardBudget, len(eligible), requesterReward, media)
+	r.rewardsDistributed.Notify(rewardsDistributedEventArgs{rewardBudget, len(eligible), requesterReward, media})
 	return nil
 }
 
@@ -267,7 +267,7 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, 
 	for _, spectator := range eligible {
 		rewardBalance, ok := balancesByAddress[spectator.user.Address()]
 		if ok {
-			spectator.onRewarded.Notify(amountForEach, NewAmountFromDecimal(rewardBalance.Balance))
+			spectator.onRewarded.Notify(spectatorRewardedEventArgs{amountForEach, NewAmountFromDecimal(rewardBalance.Balance)})
 		}
 
 		rewards[rewardsIdx] = &types.ReceivedReward{
@@ -305,7 +305,7 @@ func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string,
 		balancesByAddress[balance.RewardsAddress] = balance
 	}
 
-	requester.onRewarded.Notify(reward, NewAmountFromDecimal(newBalances[0].Balance))
+	requester.onRewarded.Notify(spectatorRewardedEventArgs{reward, NewAmountFromDecimal(newBalances[0].Balance)})
 
 	err = types.InsertReceivedRewards(ctx, []*types.ReceivedReward{{
 		ID:             uuid.NewV4().String(),

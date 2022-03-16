@@ -41,9 +41,14 @@ type SkipManager struct {
 	startupNoSkipPeriodOver    bool
 	mediaStartNoSkipPeriodOver bool
 
-	statusUpdated                  *event.Event
-	crowdfundedSkip                *event.Event
-	crowdfundedTransactionReceived *event.Event
+	statusUpdated                  *event.Event[skipStatusUpdatedEventArgs]
+	crowdfundedSkip                *event.Event[Amount]
+	crowdfundedTransactionReceived *event.Event[*types.CrowdfundedTransaction]
+}
+
+type skipStatusUpdatedEventArgs struct {
+	skipAccountStatus *SkipAccountStatus
+	rainAccountStatus *RainAccountStatus
 }
 
 // NewSkipManager returns an initialized skip manager
@@ -63,14 +68,14 @@ func NewSkipManager(log *log.Logger,
 		collectorAccountAddress:        collectorAccountAddress,
 		mediaQueue:                     mediaQueue,
 		pricer:                         pricer,
-		statusUpdated:                  event.New(),
-		crowdfundedSkip:                event.New(),
+		statusUpdated:                  event.New[skipStatusUpdatedEventArgs](),
+		crowdfundedSkip:                event.New[Amount](),
 		cachedSkipBalance:              Amount{big.NewInt(0)},
 		cachedRainBalance:              Amount{big.NewInt(0)},
 		currentSkipThreshold:           Amount{big.NewInt(0)},
 		rainedByRequester:              Amount{big.NewInt(0)},
 		skippingEnabled:                true,
-		crowdfundedTransactionReceived: event.New(),
+		crowdfundedTransactionReceived: event.New[*types.CrowdfundedTransaction](),
 	}
 }
 
@@ -91,15 +96,14 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 	for {
 		mediaEndTimer := s.computeMediaEndTimer()
 		select {
-		case v := <-onMediaChanged:
+		case entry := <-onMediaChanged:
 			s.mediaStartNoSkipPeriodOver = false
-			if v[0] == nil {
+			if entry == nil || entry == (MediaQueueEntry)(nil) {
 				s.currentMediaID = nil
 				s.currentMediaRequester = nil
 				mediaStartTimer.Reset(time.Duration(math.MaxInt64))
 			} else {
 				mediaStartTimer.Reset(10 * time.Second)
-				entry := v[0].(MediaQueueEntry)
 				id := entry.QueueID()
 				s.currentMediaID = &id
 				if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
@@ -222,7 +226,7 @@ func (s *SkipManager) checkBalances(ctx context.Context) error {
 
 	skipStatus := s.SkipAccountStatus()
 	if oldSkipBalance.Cmp(s.cachedSkipBalance.Int) != 0 || oldRainBalance.Cmp(s.cachedRainBalance.Int) != 0 {
-		s.statusUpdated.Notify(skipStatus, s.RainAccountStatus())
+		s.statusUpdated.Notify(skipStatusUpdatedEventArgs{skipStatus, s.RainAccountStatus()})
 	}
 
 	if skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_ALLOWED && skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
@@ -279,7 +283,7 @@ func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia str
 
 	s.cachedSkipBalance = Amount{big.NewInt(0)}
 	s.cachedRainBalance = Amount{big.NewInt(0)}
-	s.statusUpdated.Notify(s.SkipAccountStatus(), s.RainAccountStatus())
+	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()})
 
 	return skipTotal, rainTotal, totalRainedByRequester, nil
 }
@@ -382,7 +386,7 @@ func (s *SkipManager) RainAccountStatus() *RainAccountStatus {
 	}
 }
 
-func (s *SkipManager) StatusUpdated() *event.Event {
+func (s *SkipManager) StatusUpdated() *event.Event[skipStatusUpdatedEventArgs] {
 	return s.statusUpdated
 }
 
@@ -393,7 +397,7 @@ func (s *SkipManager) UpdateSkipThreshold() {
 	} else {
 		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing()
 	}
-	s.statusUpdated.Notify(s.SkipAccountStatus(), s.RainAccountStatus())
+	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()})
 }
 
 func (s *SkipManager) CrowdfundedSkippingEnabled() bool {

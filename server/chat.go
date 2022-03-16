@@ -41,15 +41,15 @@ type ChatManager struct {
 	enabled        bool
 	slowmode       bool
 	disabledReason ChatDisabledReason
-	chatEnabled    *event.Event
-	chatDisabled   *event.Event
-	messageCreated *event.Event
-	messageDeleted *event.Event
+	chatEnabled    *event.NoArgEvent
+	chatDisabled   *event.Event[ChatDisabledReason]
+	messageCreated *event.Event[*chat.Message]
+	messageDeleted *event.Event[snowflake.ID]
 
 	userBlockedByMutex   sync.RWMutex
-	userBlockedBy        map[string]*event.Event
+	userBlockedBy        map[string]*event.Event[string]
 	userUnblockedByMutex sync.RWMutex
-	userUnblockedBy      map[string]*event.Event
+	userUnblockedBy      map[string]*event.Event[string]
 }
 
 func NewChatManager(log *log.Logger, statsClient *statsd.Client,
@@ -95,13 +95,13 @@ func NewChatManager(log *log.Logger, statsClient *statsd.Client,
 		moderationStore:       moderationStore,
 		blockedUserStore:      blockStore,
 
-		userBlockedBy:   make(map[string]*event.Event),
-		userUnblockedBy: make(map[string]*event.Event),
+		userBlockedBy:   make(map[string]*event.Event[string]),
+		userUnblockedBy: make(map[string]*event.Event[string]),
 
-		chatEnabled:    event.New(),
-		chatDisabled:   event.New(),
-		messageCreated: event.New(),
-		messageDeleted: event.New(),
+		chatEnabled:    event.NewNoArg(),
+		chatDisabled:   event.New[ChatDisabledReason](),
+		messageCreated: event.New[*chat.Message](),
+		messageDeleted: event.New[snowflake.ID](),
 	}, nil
 }
 
@@ -131,19 +131,18 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 		select {
 		case v := <-mediaChangedC:
 			var err error
-			if v[0] == nil {
+			if v == nil || v == (MediaQueueEntry)(nil) {
 				_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
 			} else {
-				title := escape.MarkdownCharacters(
-					v[0].(MediaQueueEntry).MediaInfo().Title())
+				title := escape.MarkdownCharacters(v.MediaInfo().Title())
 				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_Now playing:_ %s", title))
 			}
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-entryAddedC:
-			t := v[0].(string)
-			entry := v[1].(MediaQueueEntry)
+		case args := <-entryAddedC:
+			t := args.addType
+			entry := args.entry
 			if !entry.RequestedBy().IsUnknown() {
 				name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
 				if err != nil {
@@ -167,8 +166,7 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 					return stacktrace.Propagate(err, "")
 				}
 			}
-		case v := <-ownEntryRemovedC:
-			entry := v[0].(MediaQueueEntry)
+		case entry := <-ownEntryRemovedC:
 			name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
 			if err != nil {
 				return stacktrace.Propagate(err, "")
@@ -180,11 +178,11 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-rewardsDistributedC:
-			amount := v[0].(Amount)
-			eligibleCount := v[1].(int)
-			enqueuerTip := v[2].(Amount)
-			mediaEntry := v[3].(MediaQueueEntry)
+		case args := <-rewardsDistributedC:
+			amount := args.rewardBudget
+			eligibleCount := args.eligibleSpectators
+			enqueuerTip := args.requesterReward
+			mediaEntry := args.media
 			exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 			banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
@@ -206,8 +204,7 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-crowdfundedSkippedC:
-			amount := v[0].(Amount)
+		case amount := <-crowdfundedSkippedC:
 			exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 			banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
@@ -216,9 +213,7 @@ func (c *ChatManager) Worker(ctx context.Context, s *grpcServer) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-crowdfundedTransactionReceivedC:
-			tx := v[0].(*types.CrowdfundedTransaction)
-
+		case tx := <-crowdfundedTransactionReceivedC:
 			name, err := s.getChatFriendlyUserName(ctx, tx.FromAddress)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
@@ -383,10 +378,10 @@ func (c *ChatManager) SetSlowModeEnabled(enabled bool) {
 	c.slowmode = enabled
 }
 
-func (c *ChatManager) OnUserBlockedBy(user auth.User) *event.Event {
+func (c *ChatManager) OnUserBlockedBy(user auth.User) *event.Event[string] {
 	if user == nil || user.IsUnknown() {
 		// will never fire, and satisfies the consumer
-		return event.New()
+		return event.New[string]()
 	}
 
 	c.userBlockedByMutex.Lock()
@@ -398,7 +393,7 @@ func (c *ChatManager) OnUserBlockedBy(user auth.User) *event.Event {
 		return e
 	}
 
-	e := event.New()
+	e := event.New[string]()
 	var unsubscribe func()
 	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
 		if subscriberCount == 0 {
@@ -412,10 +407,10 @@ func (c *ChatManager) OnUserBlockedBy(user auth.User) *event.Event {
 	return e
 }
 
-func (c *ChatManager) OnUserUnblockedBy(user auth.User) *event.Event {
+func (c *ChatManager) OnUserUnblockedBy(user auth.User) *event.Event[string] {
 	if user == nil || user.IsUnknown() {
 		// will never fire, and satisfies the consumer
-		return event.New()
+		return event.New[string]()
 	}
 
 	c.userUnblockedByMutex.Lock()
@@ -427,7 +422,7 @@ func (c *ChatManager) OnUserUnblockedBy(user auth.User) *event.Event {
 		return e
 	}
 
-	e := event.New()
+	e := event.New[string]()
 	var unsubscribe func()
 	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
 		if subscriberCount == 0 {

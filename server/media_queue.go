@@ -37,15 +37,20 @@ type MediaQueue struct {
 	insertCursor                    string
 	playingSince                    time.Time
 
-	queueUpdated           *event.Event
-	skippingAllowedUpdated *event.Event
-	mediaChanged           *event.Event
-	entryAdded             *event.Event
+	queueUpdated           *event.NoArgEvent
+	skippingAllowedUpdated *event.NoArgEvent
+	mediaChanged           *event.Event[MediaQueueEntry]
+	entryAdded             *event.Event[entryAddedEventArg]
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
-	deepEntryRemoved *event.Event
-	ownEntryRemoved  *event.Event // receives the removed entry as an argument
+	deepEntryRemoved *event.Event[MediaQueueEntry]
+	ownEntryRemoved  *event.Event[MediaQueueEntry] // receives the removed entry as an argument
+}
+
+type entryAddedEventArg struct {
+	addType string
+	entry   MediaQueueEntry
 }
 
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
@@ -57,12 +62,12 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		statsClient:                     statsClient,
 		recentEntryCounts:               make(map[string]int),
 		recentEntryCountsCacheUserMutex: nsync.NewNamedMutex(),
-		queueUpdated:                    event.New(),
-		mediaChanged:                    event.New(),
-		skippingAllowedUpdated:          event.New(),
-		entryAdded:                      event.New(),
-		deepEntryRemoved:                event.New(),
-		ownEntryRemoved:                 event.New(),
+		queueUpdated:                    event.NewNoArg(),
+		mediaChanged:                    event.New[MediaQueueEntry](),
+		skippingAllowedUpdated:          event.NewNoArg(),
+		entryAdded:                      event.New[entryAddedEventArg](),
+		deepEntryRemoved:                event.New[MediaQueueEntry](),
+		ownEntryRemoved:                 event.New[MediaQueueEntry](),
 		recentEntryCountsCache:          cache.New(10*time.Second, 30*time.Second),
 		removalOfOwnEntriesAllowed:      true,
 		skippingEnabled:                 true,
@@ -195,7 +200,7 @@ func (q *MediaQueue) Enqueue(newEntry MediaQueueEntry) {
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
-	q.entryAdded.Notify("enqueue", newEntry)
+	q.entryAdded.Notify(entryAddedEventArg{"enqueue", newEntry})
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry MediaQueueEntry) {
@@ -215,7 +220,7 @@ func (q *MediaQueue) PlayAfterNext(entry MediaQueueEntry) {
 	q.playAfterNextNoMutex(entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
-	q.entryAdded.Notify("play_after_next", entry)
+	q.entryAdded.Notify(entryAddedEventArg{"play_after_next", entry})
 }
 
 func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
@@ -229,7 +234,7 @@ func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
 
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
-	q.entryAdded.Notify("play_now", entry)
+	q.entryAdded.Notify(entryAddedEventArg{"play_now", entry})
 }
 
 func (q *MediaQueue) SkipCurrentEntry() {
@@ -304,7 +309,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 	defer queueUpdatedU()
 	var prevQueueEntry MediaQueueEntry
 	for {
-		onNextMedia := make(<-chan []interface{})
+		onNextMedia := make(<-chan struct{})
 		unsubscribe := func() {}
 		var currentQueueEntry MediaQueueEntry
 		func() {

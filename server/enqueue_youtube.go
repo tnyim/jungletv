@@ -154,7 +154,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingCont
 		thumbnailURL:  videoItem.Snippet.Thumbnails.Default.Url,
 		duration:      playFor,
 		offset:        startOffsetDuration,
-		donePlaying:   event.New(),
+		donePlaying:   event.NewNoArg(),
 		requestedBy:   &unknownUser{},
 		unskippable:   unskippable,
 		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",

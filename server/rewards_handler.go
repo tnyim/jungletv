@@ -43,7 +43,7 @@ type RewardsHandler struct {
 	segchaCheckFn                  captchaResponseCheckFn
 	versionHash                    string
 
-	rewardsDistributed *event.Event
+	rewardsDistributed *event.Event[rewardsDistributedEventArgs]
 
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
@@ -55,10 +55,10 @@ type RewardsHandler struct {
 }
 
 type Spectator interface {
-	OnRewarded() *event.Event
-	OnWithdrew() *event.Event
-	OnChatMentioned() *event.Event
-	OnActivityChallenge() *event.Event
+	OnRewarded() *event.Event[spectatorRewardedEventArgs]
+	OnWithdrew() *event.NoArgEvent
+	OnChatMentioned() *event.NoArgEvent
+	OnActivityChallenge() *event.Event[*activityChallenge]
 	CurrentActivityChallenge() *activityChallenge
 	Legitimate() (bool, time.Time)
 	RemoteAddressCanReceiveRewards(*ipreputation.Checker) bool
@@ -66,6 +66,18 @@ type Spectator interface {
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
 	ConnectionCount() int
+}
+
+type rewardsDistributedEventArgs struct {
+	rewardBudget       Amount
+	eligibleSpectators int
+	requesterReward    Amount
+	media              MediaQueueEntry
+}
+
+type spectatorRewardedEventArgs struct {
+	reward        Amount
+	rewardBalance Amount
 }
 
 type spectator struct {
@@ -80,12 +92,12 @@ type spectator struct {
 	stoppedWatching            time.Time
 	activityCheckTimer         *time.Timer
 	nextActivityCheckTime      time.Time
-	onRewarded                 *event.Event
-	onWithdrew                 *event.Event
-	onDisconnected             *event.Event
-	onReconnected              *event.Event
-	onChatMentioned            *event.Event
-	onActivityChallenge        *event.Event
+	onRewarded                 *event.Event[spectatorRewardedEventArgs]
+	onWithdrew                 *event.NoArgEvent
+	onDisconnected             *event.NoArgEvent
+	onReconnected              *event.NoArgEvent
+	onChatMentioned            *event.NoArgEvent
+	onActivityChallenge        *event.Event[*activityChallenge]
 	activityChallenge          *activityChallenge
 	lastHardChallengeSolvedAt  time.Time
 	connectionCount            int
@@ -107,19 +119,19 @@ func (a *activityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	}
 }
 
-func (s *spectator) OnRewarded() *event.Event {
+func (s *spectator) OnRewarded() *event.Event[spectatorRewardedEventArgs] {
 	return s.onRewarded
 }
 
-func (s *spectator) OnWithdrew() *event.Event {
+func (s *spectator) OnWithdrew() *event.NoArgEvent {
 	return s.onWithdrew
 }
 
-func (s *spectator) OnChatMentioned() *event.Event {
+func (s *spectator) OnChatMentioned() *event.NoArgEvent {
 	return s.onChatMentioned
 }
 
-func (s *spectator) OnActivityChallenge() *event.Event {
+func (s *spectator) OnActivityChallenge() *event.Event[*activityChallenge] {
 	return s.onActivityChallenge
 }
 
@@ -182,7 +194,7 @@ func NewRewardsHandler(log *log.Logger,
 		eligibleMovingAverage:          movingaverage.New(3),
 		segchaCheckFn:                  segchaCheckFn,
 
-		rewardsDistributed: event.New(),
+		rewardsDistributed: event.New[rewardsDistributedEventArgs](),
 
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
 		spectatorsByRewardAddress:    make(map[string]*spectator),
@@ -197,10 +209,10 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 	if ipCountry == "T1" {
 		return &spectator{
 			isDummy:             true,
-			onRewarded:          event.New(),
-			onWithdrew:          event.New(),
-			onChatMentioned:     event.New(),
-			onActivityChallenge: event.New(),
+			onRewarded:          event.New[spectatorRewardedEventArgs](),
+			onWithdrew:          event.NewNoArg(),
+			onChatMentioned:     event.NewNoArg(),
+			onActivityChallenge: event.New[*activityChallenge](),
 		}, nil
 	}
 
@@ -234,12 +246,12 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 			startedWatching:       now,
 			nextActivityCheckTime: now.Add(d),
 			activityCheckTimer:    time.NewTimer(d),
-			onRewarded:            event.New(),
-			onWithdrew:            event.New(),
-			onChatMentioned:       event.New(),
-			onDisconnected:        event.New(),
-			onReconnected:         event.New(),
-			onActivityChallenge:   event.New(),
+			onRewarded:            event.New[spectatorRewardedEventArgs](),
+			onWithdrew:            event.NewNoArg(),
+			onChatMentioned:       event.NewNoArg(),
+			onDisconnected:        event.NewNoArg(),
+			onReconnected:         event.NewNoArg(),
+			onActivityChallenge:   event.New[*activityChallenge](),
 			remoteAddresses: map[string]struct{}{
 				remoteAddress: {},
 			},
@@ -349,21 +361,21 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 		select {
 		case v := <-onMediaChanged:
 			var err error
-			if v[0] == nil {
+			if v == nil || v == (MediaQueueEntry)(nil) {
 				err = r.onMediaChanged(ctx, nil)
 			} else {
-				err = r.onMediaChanged(ctx, v[0].(MediaQueueEntry))
+				err = r.onMediaChanged(ctx, v)
 			}
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
 		case v := <-onEntryRemoved:
-			err := r.onMediaRemoved(ctx, v[0].(MediaQueueEntry))
+			err := r.onMediaRemoved(ctx, v)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-onPendingWithdrawalCreated:
-			r.onPendingWithdrawalCreated(ctx, v[0].([]*types.PendingWithdrawal))
+		case pendingWithdrawals := <-onPendingWithdrawalCreated:
+			r.onPendingWithdrawalCreated(ctx, pendingWithdrawals)
 		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
 		case <-ctx.Done():

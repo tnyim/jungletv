@@ -28,7 +28,7 @@ type WithdrawalHandler struct {
 	completingPendingWithdrawals bool
 	rpcClient                    *rpc.Client
 
-	pendingWithdrawalCreated *event.Event
+	pendingWithdrawalCreated *event.Event[[]*types.PendingWithdrawal]
 
 	highestSeenBlockCount uint64
 }
@@ -45,7 +45,7 @@ func NewWithdrawalHandler(log *log.Logger,
 		rpcClient:             rpcClient,
 		modLogWebhook:         modLogWebhook,
 
-		pendingWithdrawalCreated: event.New(),
+		pendingWithdrawalCreated: event.New[[]*types.PendingWithdrawal](),
 	}
 }
 
