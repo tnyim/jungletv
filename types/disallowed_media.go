@@ -18,34 +18,19 @@ type DisallowedMedia struct {
 	YouTubeVideoTitle *string `dbColumn:"yt_video_title"`
 }
 
-// getDisallowedMediaWithSelect returns a slice with all disallowed media that match the conditions in sbuilder
-func getDisallowedMediaWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*DisallowedMedia, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &DisallowedMedia{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, err
-	}
-
-	converted := make([]*DisallowedMedia, len(values))
-	for i := range values {
-		converted[i] = values[i].(*DisallowedMedia)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetDisallowedMedia returns all disallowed media in the database
 func GetDisallowedMedia(node sqalx.Node, pagParams *PaginationParams) ([]*DisallowedMedia, uint64, error) {
 	s := sdb.Select().
 		OrderBy("disallowed_media.disallowed_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return getDisallowedMediaWithSelect(node, s)
+	return GetWithSelectAndCount[*DisallowedMedia](node, s)
 }
 
 // GetDisallowedMediaWithIDs returns the disallowed media with the specified IDs
 func GetDisallowedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*DisallowedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media.id": ids})
-	items, _, err := getDisallowedMediaWithSelect(node, s)
+	items, err := GetWithSelect[*DisallowedMedia](node, s)
 	if err != nil {
 		return map[string]*DisallowedMedia{}, stacktrace.Propagate(err, "")
 	}
@@ -63,7 +48,7 @@ func GetDisallowedMediaWithType(node sqalx.Node, mediaType MediaType, pagParams 
 		Where(sq.Eq{"disallowed_media.media_type": string(mediaType)}).
 		OrderBy("disallowed_media.media_type DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return getDisallowedMediaWithSelect(node, s)
+	return GetWithSelectAndCount[*DisallowedMedia](node, s)
 }
 
 // GetDisallowedMediaWithTypeAndFilter returns all disallowed media of the given type that matches the specified filter
@@ -77,7 +62,7 @@ func GetDisallowedMediaWithTypeAndFilter(node sqalx.Node, mediaType MediaType, f
 		}).
 		OrderBy("disallowed_media.media_type DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return getDisallowedMediaWithSelect(node, s)
+	return GetWithSelectAndCount[*DisallowedMedia](node, s)
 }
 
 // IsMediaAllowed returns whether the specified media is allowed
@@ -92,7 +77,7 @@ func IsMediaAllowed(node sqalx.Node, mediaType MediaType, ytVideoID string) (boo
 	default:
 		return false, stacktrace.NewError("invalid media type")
 	}
-	m, _, err := getDisallowedMediaWithSelect(node, s)
+	m, err := GetWithSelect[*DisallowedMedia](node, s)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")
 	}

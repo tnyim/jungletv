@@ -61,19 +61,20 @@ type customDBType interface {
 
 func getStructInfo(t interface{}) (fields []structDBfield, tableName string) {
 	rv := reflect.ValueOf(t)
-	if rv.Kind() == reflect.Ptr {
+	rt := reflect.TypeOf(t)
+	if rt.Kind() == reflect.Ptr {
 		rv = rv.Elem()
+		rt = rt.Elem()
 	}
 
 	if s, specifiesTableName := t.(tableNameSpecifier); specifiesTableName {
 		tableName = s.tableName()
 	} else {
-		tableName = strcase.ToSnake(rv.Type().Name())
+		tableName = strcase.ToSnake(rt.Name())
 	}
 
-	for i := 0; i < rv.NumField(); i++ {
-		field := rv.Field(i)
-		fieldType := rv.Type().Field(i)
+	for i := 0; i < rt.NumField(); i++ {
+		fieldType := rt.Field(i)
 
 		columnName, rawColumnName, ignore, key, specialType := parseFieldTag(fieldType.Tag, fieldType.Name)
 		if ignore {
@@ -88,11 +89,14 @@ func getStructInfo(t interface{}) (fields []structDBfield, tableName string) {
 			specialType:   specialType,
 		}
 
-		if !field.CanInterface() {
-			// probably unexported
-			field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
+		if rv.IsValid() {
+			field := rv.Field(i)
+			if !field.CanInterface() {
+				// probably unexported
+				field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
+			}
+			f.value = field.Interface()
 		}
-		f.value = field.Interface()
 
 		fields = append(fields, f)
 	}
@@ -116,15 +120,14 @@ func parseFieldTag(tag reflect.StructTag, fieldName string) (columnName string, 
 	return columnName, isRawColumnName, false, isKey, dbTypes[tag.Get(dbTypeTagName)]
 }
 
-// GetWithSelect returns a slice with all values that match the conditions in sbuilder and that have the same type as t
-// Returns a slice where all elements are of type t (so make sure to pass a pointer type if that's what you want)
-func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, withGlobalCount bool) ([]interface{}, uint64, error) {
+func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobalCount bool) ([]T, uint64, error) {
 	tx, err := node.Beginx()
 	if err != nil {
-		return []interface{}{}, 0, stacktrace.Propagate(err, "")
+		return []T{}, 0, stacktrace.Propagate(err, "")
 	}
 	defer tx.Commit() // read-only tx
 
+	var t T
 	fields, tableName := getStructInfo(t)
 
 	columns := []string{}
@@ -147,14 +150,14 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 
 	rows, err := query.RunWith(tx).Query()
 	if err != nil {
-		return []interface{}{}, 0, stacktrace.Propagate(err, "")
+		return []T{}, 0, stacktrace.Propagate(err, "")
 	}
 
 	rt := reflect.TypeOf(t)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
-	values := []interface{}{}
+	values := []T{}
 	var globalCount uint64
 	for rows.Next() {
 		rv := reflect.New(rt).Elem()
@@ -181,7 +184,7 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 		err = rows.Scan(valueFields...)
 		if err != nil {
 			rows.Close()
-			return []interface{}{}, 0, stacktrace.Propagate(err, "")
+			return []T{}, 0, stacktrace.Propagate(err, "")
 		}
 
 		// convert special types to the type wanted by the struct
@@ -198,7 +201,7 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 			j++
 		}
 
-		values = append(values, rv.Addr().Interface())
+		values = append(values, rv.Addr().Interface().(T))
 	}
 	if !withGlobalCount {
 		globalCount = uint64(len(values))
@@ -206,9 +209,9 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 
 	rows.Close()
 
-	if _, hasExtra := t.(extraDataHandler); hasExtra {
+	if _, hasExtra := (any)(t).(extraDataHandler); hasExtra {
 		for i := range values {
-			v := values[i].(extraDataHandler)
+			v := (any)(values[i]).(extraDataHandler)
 			err = v.queryExtra(tx)
 			if err != nil {
 				return values, globalCount, stacktrace.Propagate(err, "")
@@ -217,6 +220,21 @@ func GetWithSelect(node sqalx.Node, t interface{}, sbuilder sq.SelectBuilder, wi
 	}
 
 	return values, globalCount, nil
+}
+
+// GetWithSelect returns a slice of all values for the generic type that match the conditions in sbuilder
+func GetWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, error) {
+	items, _, err := getWithSelect[T](node, sbuilder, true)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return items, nil
+}
+
+// GetWithSelect returns a slice of all values for the generic type that match the conditions in sbuilder
+// along with a count of all values ignoring LIMIT or OFFSET clauses
+func GetWithSelectAndCount[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, uint64, error) {
+	return getWithSelect[T](node, sbuilder, true)
 }
 
 // Update updates or inserts values t in the database. All t must be of the same type

@@ -21,21 +21,6 @@ type VerifiedUser struct {
 	ModeratorName                 string
 }
 
-// getVerifiedUserWithSelect returns a slice with all blocked users that match the conditions in sbuilder
-func getVerifiedUserWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*VerifiedUser, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &VerifiedUser{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*VerifiedUser, len(values))
-	for i := range values {
-		converted[i] = values[i].(*VerifiedUser)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetVerifiedUsers returns all registered user verifications, starting with the most recent one
 func GetVerifiedUsers(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*VerifiedUser, uint64, error) {
 	s := sdb.Select().
@@ -48,14 +33,14 @@ func GetVerifiedUsers(node sqalx.Node, filter string, pagParams *PaginationParam
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return getVerifiedUserWithSelect(node, s)
+	return GetWithSelectAndCount[*VerifiedUser](node, s)
 }
 
 // GetVerifiedUserWithIDs returns the user verifications with the specified IDs
 func GetVerifiedUserWithIDs(node sqalx.Node, ids []string) (map[string]*VerifiedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"verified_user.id": ids})
-	items, _, err := getVerifiedUserWithSelect(node, s)
+	items, err := GetWithSelect[*VerifiedUser](node, s)
 	if err != nil {
 		return map[string]*VerifiedUser{}, stacktrace.Propagate(err, "")
 	}

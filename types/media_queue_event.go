@@ -24,21 +24,6 @@ const MediaQueueFilled MediaQueueEventType = "filled"
 // MediaQueueEmptied is the media queue event type for when the queue becomes empty
 const MediaQueueEmptied MediaQueueEventType = "emptied"
 
-// getMediaQueueEventWithSelect returns a slice with all media queue events that match the conditions in sbuilder
-func getMediaQueueEventWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*MediaQueueEvent, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &MediaQueueEvent{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*MediaQueueEvent, len(values))
-	for i := range values {
-		converted[i] = values[i].(*MediaQueueEvent)
-	}
-
-	return converted, totalCount, nil
-}
-
 // ErrMediaQueueEventNotFound is returned when we can not find the specified media queue event
 var ErrMediaQueueEventNotFound = errors.New("media queue event not found")
 
@@ -51,7 +36,7 @@ func GetMostRecentMediaQueueEventWithType(node sqalx.Node, eventType ...MediaQue
 				From("media_queue_event e").
 				Where(sq.Eq{"media_queue_event.event_type": eventType}),
 		))
-	events, _, err := getMediaQueueEventWithSelect(node, s)
+	events, err := GetWithSelect[*MediaQueueEvent](node, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

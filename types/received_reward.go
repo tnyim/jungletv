@@ -27,7 +27,7 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 	}
 	defer tx.Commit() // read-only tx
 
-	values, _, err := GetWithSelect(tx, &ReceivedReward{}, sbuilder, false)
+	values, err := GetWithSelect[*ReceivedReward](node, sbuilder)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
@@ -46,12 +46,7 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
-	converted := make([]*ReceivedReward, len(values))
-	for i := range values {
-		converted[i] = values[i].(*ReceivedReward)
-	}
-
-	return converted, totalCount, nil
+	return values, totalCount, nil
 }
 
 // GetReceivedRewardsForAddress returns received rewards for the specified address, starting with the latest

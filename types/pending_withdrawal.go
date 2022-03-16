@@ -18,26 +18,11 @@ type PendingWithdrawal struct {
 	StartedAt      time.Time
 }
 
-// getPendingWithdrawalWithSelect returns a slice with all pending withdrawals that match the conditions in sbuilder
-func getPendingWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*PendingWithdrawal, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &PendingWithdrawal{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, err
-	}
-
-	converted := make([]*PendingWithdrawal, len(values))
-	for i := range values {
-		converted[i] = values[i].(*PendingWithdrawal)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetPendingWithdrawals returns all pending withdrawals
 func GetPendingWithdrawals(node sqalx.Node) ([]*PendingWithdrawal, error) {
 	s := sdb.Select().
 		OrderBy("pending_withdrawal.started_at DESC, pending_withdrawal.rewards_address")
-	p, _, err := getPendingWithdrawalWithSelect(node, s)
+	p, err := GetWithSelect[*PendingWithdrawal](node, s)
 	return p, stacktrace.Propagate(err, "")
 }
 

@@ -25,21 +25,6 @@ type BannedUser struct {
 	ModeratorName    string
 }
 
-// getBannedUserWithSelect returns a slice with all user bans that match the conditions in sbuilder
-func getBannedUserWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*BannedUser, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &BannedUser{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*BannedUser, len(values))
-	for i := range values {
-		converted[i] = values[i].(*BannedUser)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetBannedUsers returns all registered user bans, starting with the most recent one
 func GetBannedUsers(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
 	s := sdb.Select().
@@ -54,14 +39,14 @@ func GetBannedUsers(node sqalx.Node, filter string, pagParams *PaginationParams)
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return getBannedUserWithSelect(node, s)
+	return GetWithSelectAndCount[*BannedUser](node, s)
 }
 
 // GetBannedUserWithIDs returns the user bans with the specified IDs
 func GetBannedUserWithIDs(node sqalx.Node, ids []string) (map[string]*BannedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"banned_user.ban_id": ids})
-	items, _, err := getBannedUserWithSelect(node, s)
+	items, err := GetWithSelect[*BannedUser](node, s)
 	if err != nil {
 		return map[string]*BannedUser{}, stacktrace.Propagate(err, "")
 	}
@@ -93,7 +78,7 @@ func GetBannedUsersAtInstant(node sqalx.Node, instant time.Time, filter string, 
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return getBannedUserWithSelect(node, s)
+	return GetWithSelectAndCount[*BannedUser](node, s)
 }
 
 // Update updates or inserts the BannedUser

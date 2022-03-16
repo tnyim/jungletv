@@ -24,21 +24,6 @@ type CrowdfundedTransaction struct {
 	ForMedia        *string
 }
 
-// getCrowdfundedTransactionWithSelect returns a slice with all crowdfunded transactions that match the conditions in sbuilder
-func getCrowdfundedTransactionWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*CrowdfundedTransaction, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &CrowdfundedTransaction{}, sbuilder, false)
-	if err != nil {
-		return nil, 0, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*CrowdfundedTransaction, len(values))
-	for i := range values {
-		converted[i] = values[i].(*CrowdfundedTransaction)
-	}
-
-	return converted, totalCount, nil
-}
-
 // SumCrowdfundedTransactionsFromAddressSince returns the sum of all crowdfunded transactions from an address since the specified time
 func SumCrowdfundedTransactionsFromAddressSince(node sqalx.Node, address string, since time.Time) (decimal.Decimal, error) {
 	tx, err := node.Beginx()

@@ -19,26 +19,11 @@ type Connection struct {
 	OAuthRefreshToken *string `dbColumn:"oauth_refresh_token"`
 }
 
-// getConnectionWithSelect returns a slice with all connections that match the conditions in sbuilder
-func getConnectionWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Connection, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &Connection{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*Connection, len(values))
-	for i := range values {
-		converted[i] = values[i].(*Connection)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetConnectionWithIDs returns the connections with the specified IDs
 func GetConnectionWithIDs(node sqalx.Node, ids []string) (map[string]*Connection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"connection.id": ids})
-	items, _, err := getConnectionWithSelect(node, s)
+	items, err := GetWithSelect[*Connection](node, s)
 	if err != nil {
 		return map[string]*Connection{}, stacktrace.Propagate(err, "")
 	}
@@ -54,7 +39,7 @@ func GetConnectionWithIDs(node sqalx.Node, ids []string) (map[string]*Connection
 func GetConnectionsForRewardsAddress(node sqalx.Node, address string) ([]*Connection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"connection.rewards_address": address})
-	items, _, err := getConnectionWithSelect(node, s)
+	items, err := GetWithSelect[*Connection](node, s)
 	if err != nil {
 		return []*Connection{}, stacktrace.Propagate(err, "")
 	}
@@ -66,7 +51,7 @@ func GetConnectionsForServiceAndRewardsAddress(node sqalx.Node, service Connecti
 	s := sdb.Select().
 		Where(sq.Eq{"connection.rewards_address": address}).
 		Where(sq.Eq{"connection.service": service})
-	items, _, err := getConnectionWithSelect(node, s)
+	items, err := GetWithSelect[*Connection](node, s)
 	if err != nil {
 		return []*Connection{}, stacktrace.Propagate(err, "")
 	}

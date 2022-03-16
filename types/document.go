@@ -18,21 +18,6 @@ type Document struct {
 	Content   string
 }
 
-// getDocumentWithSelect returns a slice with all documents that match the conditions in sbuilder
-func getDocumentWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Document, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &Document{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*Document, len(values))
-	for i := range values {
-		converted[i] = values[i].(*Document)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetDocumentsWithIDs returns the latest version of the documents with the specified IDs
 func GetDocumentsWithIDs(node sqalx.Node, ids []string) (map[string]*Document, error) {
 	s := sdb.Select().
@@ -41,7 +26,7 @@ func GetDocumentsWithIDs(node sqalx.Node, ids []string) (map[string]*Document, e
 			sq.Select("MAX(d.updated_at)").From("document d").Where("d.id = document.id"),
 		)).
 		Where(sq.Eq{"document.id": ids})
-	items, _, err := getDocumentWithSelect(node, s)
+	items, err := GetWithSelect[*Document](node, s)
 	if err != nil {
 		return map[string]*Document{}, stacktrace.Propagate(err, "")
 	}

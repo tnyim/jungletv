@@ -40,27 +40,12 @@ type RaffleDrawing struct {
 	PrizeTxHash           *string
 }
 
-// getRaffleDrawingWithSelect returns a slice with all raffle drawings that match the conditions in sbuilder
-func getRaffleDrawingWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*RaffleDrawing, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &RaffleDrawing{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, err
-	}
-
-	converted := make([]*RaffleDrawing, len(values))
-	for i := range values {
-		converted[i] = values[i].(*RaffleDrawing)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetRaffleDrawings returns all the raffle drawings
 func GetRaffleDrawings(node sqalx.Node, pagParams *PaginationParams) ([]*RaffleDrawing, uint64, error) {
 	s := sdb.Select().
 		OrderBy("raffle_drawing.period_start DESC", "raffle_drawing.drawing_number ASC")
 	s = applyPaginationParameters(s, pagParams)
-	items, total, err := getRaffleDrawingWithSelect(node, s)
+	items, total, err := GetWithSelectAndCount[*RaffleDrawing](node, s)
 	return items, total, stacktrace.Propagate(err, "")
 }
 
@@ -69,7 +54,7 @@ func GetRaffleDrawingsOfRaffle(node sqalx.Node, raffleID string) ([]*RaffleDrawi
 	s := sdb.Select().
 		Where(sq.Eq{"raffle_drawing.raffle_id": raffleID}).
 		OrderBy("raffle_drawing.drawing_number ASC")
-	drawings, _, err := getRaffleDrawingWithSelect(node, s)
+	drawings, err := GetWithSelect[*RaffleDrawing](node, s)
 	return drawings, stacktrace.Propagate(err, "")
 }
 

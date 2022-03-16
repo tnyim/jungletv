@@ -13,27 +13,12 @@ type UserProfile struct {
 	FeaturedMedia *string
 }
 
-// getUserProfileWithSelect returns a slice with all user profiles that match the conditions in sbuilder
-func getUserProfileWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*UserProfile, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &UserProfile{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*UserProfile, len(values))
-	for i := range values {
-		converted[i] = values[i].(*UserProfile)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetUserProfileForAddress returns the user profile for the specified address.
 // If a profile does not exist, an empty one is returned
 func GetUserProfileForAddress(node sqalx.Node, address string) (*UserProfile, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"user_profile.address": address})
-	items, _, err := getUserProfileWithSelect(node, s)
+	items, err := GetWithSelect[*UserProfile](node, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

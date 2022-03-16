@@ -16,26 +16,11 @@ type RewardBalance struct {
 	UpdatedAt      time.Time       `db:"updated_at"`
 }
 
-// getRewardBalanceWithSelect returns a slice with all reward balances that match the conditions in sbuilder
-func getRewardBalanceWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*RewardBalance, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &RewardBalance{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*RewardBalance, len(values))
-	for i := range values {
-		converted[i] = values[i].(*RewardBalance)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetRewardBalanceOfAddress returns the reward balance for the specified address, if one exists
 func GetRewardBalanceOfAddress(node sqalx.Node, address string) (*RewardBalance, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"reward_balance.rewards_address": address})
-	items, _, err := getRewardBalanceWithSelect(node, s)
+	items, err := GetWithSelect[*RewardBalance](node, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -58,7 +43,7 @@ func GetRewardBalancesReadyForAutoWithdrawal(node sqalx.Node, minBalance decimal
 			sq.Lt{"reward_balance.updated_at": unchangedSince},
 		}).
 		Where(sq.Expr("reward_balance.rewards_address NOT IN (SELECT rewards_address FROM pending_withdrawal)"))
-	items, _, err := getRewardBalanceWithSelect(node, s)
+	items, err := GetWithSelect[*RewardBalance](node, s)
 	return items, stacktrace.Propagate(err, "")
 }
 

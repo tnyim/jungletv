@@ -26,21 +26,6 @@ type PlayedMedia struct {
 	YouTubeVideoTitle *string `dbColumn:"yt_video_title"`
 }
 
-// getPlayedMediaWithSelect returns a slice with all disallowed media that match the conditions in sbuilder
-func getPlayedMediaWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*PlayedMedia, uint64, error) {
-	values, totalCount, err := GetWithSelect(node, &PlayedMedia{}, sbuilder, true)
-	if err != nil {
-		return nil, totalCount, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*PlayedMedia, len(values))
-	for i := range values {
-		converted[i] = values[i].(*PlayedMedia)
-	}
-
-	return converted, totalCount, nil
-}
-
 // GetPlayedMedia returns all played media in the database according to the given filters
 func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying bool, startedSince time.Time, filter string, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
 	s := sdb.Select().
@@ -64,7 +49,7 @@ func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying 
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	m, c, err := getPlayedMediaWithSelect(node, s)
+	m, c, err := GetWithSelectAndCount[*PlayedMedia](node, s)
 	return m, c, stacktrace.Propagate(err, "")
 }
 
@@ -72,7 +57,7 @@ func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying 
 func GetPlayedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*PlayedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"played_media.id": ids})
-	items, _, err := getPlayedMediaWithSelect(node, s)
+	items, err := GetWithSelect[*PlayedMedia](node, s)
 	if err != nil {
 		return map[string]*PlayedMedia{}, stacktrace.Propagate(err, "")
 	}
@@ -91,7 +76,7 @@ func GetPlayedMediaRequestedBySince(node sqalx.Node, requestedBy string, since t
 		From("played_media").
 		Where(sq.Eq{"played_media.requested_by": requestedBy}).
 		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since})
-	m, _, err := getPlayedMediaWithSelect(node, s)
+	m, err := GetWithSelect[*PlayedMedia](node, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
@@ -109,7 +94,7 @@ func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, ytV
 		return []*PlayedMedia{}, stacktrace.NewError("invalid media type")
 	}
 	s = s.OrderBy("started_at DESC").Limit(1)
-	m, _, err := getPlayedMediaWithSelect(node, s)
+	m, err := GetWithSelect[*PlayedMedia](node, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
@@ -165,7 +150,7 @@ func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDi
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}
 	s = s.OrderBy("started_at DESC").Limit(uint64(count))
-	m, _, err := getPlayedMediaWithSelect(node, s)
+	m, err := GetWithSelect[*PlayedMedia](node, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
@@ -199,16 +184,8 @@ func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, be
 		Where(sq.NotEq{"requested_by": ""}).
 		OrderBy("played_media.started_at")
 
-	values, _, err := GetWithSelect(node, &PlayedMediaRaffleEntry{}, s, false)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	converted := make([]*PlayedMediaRaffleEntry, len(values))
-	for i := range values {
-		converted[i] = values[i].(*PlayedMediaRaffleEntry)
-	}
-	return converted, nil
+	values, err := GetWithSelect[*PlayedMediaRaffleEntry](node, s)
+	return values, stacktrace.Propagate(err, "")
 }
 
 // CountMediaRaffleEntriesBetween counts the played media raffle entries in the specified time period

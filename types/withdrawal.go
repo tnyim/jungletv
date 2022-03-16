@@ -28,7 +28,7 @@ func getWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Wit
 	}
 	defer tx.Commit() // read-only tx
 
-	values, _, err := GetWithSelect(tx, &Withdrawal{}, sbuilder, false)
+	values, err := GetWithSelect[*Withdrawal](node, sbuilder)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
@@ -47,12 +47,7 @@ func getWithdrawalWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*Wit
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
-	converted := make([]*Withdrawal, len(values))
-	for i := range values {
-		converted[i] = values[i].(*Withdrawal)
-	}
-
-	return converted, totalCount, nil
+	return values, totalCount, nil
 }
 
 // GetWithdrawals returns all completed withdrawals in the database
