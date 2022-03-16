@@ -224,7 +224,7 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 
 // GetWithSelect returns a slice of all values for the generic type that match the conditions in sbuilder
 func GetWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, error) {
-	items, _, err := getWithSelect[T](node, sbuilder, true)
+	items, _, err := getWithSelect[T](node, sbuilder, false)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
