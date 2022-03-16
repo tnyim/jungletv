@@ -8,7 +8,6 @@
         completionKeymap,
         CompletionResult,
     } from "@codemirror/autocomplete";
-    import { closeBrackets, closeBracketsKeymap } from "@codemirror/closebrackets";
     import { defaultKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { HighlightStyle, tags } from "@codemirror/highlight";
     import { history, historyKeymap } from "@codemirror/history";
@@ -32,12 +31,12 @@
     import BlockedUsers from "./BlockedUsers.svelte";
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
     import { emojiDatabase } from "./chat_utils";
+    import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import { darkMode, featureFlags, modal, permissionLevel, rewardAddress } from "./stores";
     import { codeMirrorHighlightStyle, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
-    import { Tooltip, hoverTooltip } from "@codemirror/tooltip";
 
     export let chatEnabled: boolean;
     export let chatDisabledReason: string;
@@ -373,6 +372,14 @@
                     markdown({
                         extensions: [Strikethrough, Emoji],
                         base: markdownLanguage,
+                    }),
+                    markdownLanguage.data.of({
+                        closeBrackets: {
+                            // note: we're using our own version of the closeBrackets extension
+                            brackets: ["(", "[", "{", '"', "_", "*", "`"],
+                            before: ")]}'\";>",
+                            notAfter: ":", // prevents :( becoming :()
+                        },
                     }),
                     EditorView.lineWrapping,
                     placeholder("Say something..."),
