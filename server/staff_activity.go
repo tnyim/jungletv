@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/tnyim/jungletv/server/auth"
+	"gopkg.in/alexcesaro/statsd.v2"
 )
 
 // StaffActivityManager keeps track of what staff members are presently active in order to inform the rest of the staff
@@ -15,18 +17,40 @@ type StaffActivityManager struct {
 	mutex              sync.RWMutex
 
 	rewardsHandler *RewardsHandler
+	statsClient    *statsd.Client
 }
 
 // NewStaffActivityManager returns a new StaffActivityManager
-func NewStaffActivityManager() *StaffActivityManager {
-	return &StaffActivityManager{
+func NewStaffActivityManager(statsClient *statsd.Client) *StaffActivityManager {
+	manager := &StaffActivityManager{
 		activelyModerating: make(map[string]struct{}),
 		challenged:         make(map[string]struct{}),
+		statsClient:        statsClient,
 	}
+
+	return manager
 }
 
 func (s *StaffActivityManager) SetRewardsHandler(r *RewardsHandler) {
 	s.rewardsHandler = r
+}
+
+func (s *StaffActivityManager) StatsWorker(ctx context.Context) {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			func() {
+				s.mutex.RLock()
+				defer s.mutex.RUnlock()
+				count := len(s.activelyModerating)
+				go s.statsClient.Gauge("staff_actively_moderating", count)
+			}()
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 // IsActivelyModerating returns whether the specified staff member is currently active

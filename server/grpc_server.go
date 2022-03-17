@@ -218,7 +218,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
 		ticketCheckPeriod:              options.TicketCheckPeriod,
-		staffActivityManager:           NewStaffActivityManager(),
+		staffActivityManager:           NewStaffActivityManager(options.StatsClient),
 		moderationStore:                modStore,
 		nicknameCache:                  usercache.NewInMemory(),
 		websiteURL:                     options.WebsiteURL,
@@ -284,7 +284,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.statsHandler, err = NewStatsHandler(s.log, s.mediaQueue, s.statsClient)
+	s.statsHandler, err = NewStatsHandler(s.log, s.statsClient)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -550,6 +550,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}(ctx)
 
 	go s.mediaQueue.ProcessQueueWorker(ctx)
+	go s.staffActivityManager.StatsWorker(ctx)
 	go s.ipReputationChecker.Worker(ctx)
 
 	go func() {

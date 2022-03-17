@@ -13,7 +13,6 @@ import (
 // StatsHandler handles statistics
 type StatsHandler struct {
 	log         *log.Logger
-	mediaQueue  *MediaQueue
 	statsClient *statsd.Client
 
 	// spectatorsByRemoteAddress is a set of remote addresses
@@ -30,11 +29,10 @@ const StreamStatsCommunitySkipping StreamStatsType = "community_skipping"
 const StreamStatsChat StreamStatsType = "chat"
 
 // NewStatsHandler creates a new StatsHandler
-func NewStatsHandler(log *log.Logger, mediaQueue *MediaQueue, statsClient *statsd.Client) (*StatsHandler, error) {
+func NewStatsHandler(log *log.Logger, statsClient *statsd.Client) (*StatsHandler, error) {
 	go statsClient.Gauge("spectators", 0)
 	s := &StatsHandler{
 		log:         log,
-		mediaQueue:  mediaQueue,
 		statsClient: statsClient,
 
 		spectatorsByRemoteAddress: make(map[string]int),
