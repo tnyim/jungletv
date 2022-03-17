@@ -78,13 +78,14 @@ type JungleTVClient interface {
 	TriggerAnnouncementsNotification(ctx context.Context, in *TriggerAnnouncementsNotificationRequest, opts ...grpc.CallOption) (*TriggerAnnouncementsNotificationResponse, error)
 	SpectatorInfo(ctx context.Context, in *SpectatorInfoRequest, opts ...grpc.CallOption) (*Spectator, error)
 	ResetSpectatorStatus(ctx context.Context, in *ResetSpectatorStatusRequest, opts ...grpc.CallOption) (*ResetSpectatorStatusResponse, error)
-	MonitorModerationSettings(ctx context.Context, in *MonitorModerationSettingsRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationSettingsClient, error)
+	MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error)
 	SetOwnQueueEntryRemovalAllowed(ctx context.Context, in *SetOwnQueueEntryRemovalAllowedRequest, opts ...grpc.CallOption) (*SetOwnQueueEntryRemovalAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(ctx context.Context, in *SetQueueInsertCursorRequest, opts ...grpc.CallOption) (*SetQueueInsertCursorResponse, error)
 	ClearQueueInsertCursor(ctx context.Context, in *ClearQueueInsertCursorRequest, opts ...grpc.CallOption) (*ClearQueueInsertCursorResponse, error)
 	ClearUserProfile(ctx context.Context, in *ClearUserProfileRequest, opts ...grpc.CallOption) (*ClearUserProfileResponse, error)
+	MarkAsActivelyModerating(ctx context.Context, in *MarkAsActivelyModeratingRequest, opts ...grpc.CallOption) (*MarkAsActivelyModeratingResponse, error)
 }
 
 type jungleTVClient struct {
@@ -764,12 +765,12 @@ func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpec
 	return out, nil
 }
 
-func (c *jungleTVClient) MonitorModerationSettings(ctx context.Context, in *MonitorModerationSettingsRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationSettingsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[6], "/jungletv.JungleTV/MonitorModerationSettings", opts...)
+func (c *jungleTVClient) MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[6], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &jungleTVMonitorModerationSettingsClient{stream}
+	x := &jungleTVMonitorModerationStatusClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -779,17 +780,17 @@ func (c *jungleTVClient) MonitorModerationSettings(ctx context.Context, in *Moni
 	return x, nil
 }
 
-type JungleTV_MonitorModerationSettingsClient interface {
-	Recv() (*ModerationSettingsOverview, error)
+type JungleTV_MonitorModerationStatusClient interface {
+	Recv() (*ModerationStatusOverview, error)
 	grpc.ClientStream
 }
 
-type jungleTVMonitorModerationSettingsClient struct {
+type jungleTVMonitorModerationStatusClient struct {
 	grpc.ClientStream
 }
 
-func (x *jungleTVMonitorModerationSettingsClient) Recv() (*ModerationSettingsOverview, error) {
-	m := new(ModerationSettingsOverview)
+func (x *jungleTVMonitorModerationStatusClient) Recv() (*ModerationStatusOverview, error) {
+	m := new(ModerationStatusOverview)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -844,6 +845,15 @@ func (c *jungleTVClient) ClearQueueInsertCursor(ctx context.Context, in *ClearQu
 func (c *jungleTVClient) ClearUserProfile(ctx context.Context, in *ClearUserProfileRequest, opts ...grpc.CallOption) (*ClearUserProfileResponse, error) {
 	out := new(ClearUserProfileResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ClearUserProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) MarkAsActivelyModerating(ctx context.Context, in *MarkAsActivelyModeratingRequest, opts ...grpc.CallOption) (*MarkAsActivelyModeratingResponse, error) {
+	out := new(MarkAsActivelyModeratingResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/MarkAsActivelyModerating", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -914,13 +924,14 @@ type JungleTVServer interface {
 	TriggerAnnouncementsNotification(context.Context, *TriggerAnnouncementsNotificationRequest) (*TriggerAnnouncementsNotificationResponse, error)
 	SpectatorInfo(context.Context, *SpectatorInfoRequest) (*Spectator, error)
 	ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error)
-	MonitorModerationSettings(*MonitorModerationSettingsRequest, JungleTV_MonitorModerationSettingsServer) error
+	MonitorModerationStatus(*MonitorModerationStatusRequest, JungleTV_MonitorModerationStatusServer) error
 	SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(context.Context, *SetQueueInsertCursorRequest) (*SetQueueInsertCursorResponse, error)
 	ClearQueueInsertCursor(context.Context, *ClearQueueInsertCursorRequest) (*ClearQueueInsertCursorResponse, error)
 	ClearUserProfile(context.Context, *ClearUserProfileRequest) (*ClearUserProfileResponse, error)
+	MarkAsActivelyModerating(context.Context, *MarkAsActivelyModeratingRequest) (*MarkAsActivelyModeratingResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1105,8 +1116,8 @@ func (UnimplementedJungleTVServer) SpectatorInfo(context.Context, *SpectatorInfo
 func (UnimplementedJungleTVServer) ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetSpectatorStatus not implemented")
 }
-func (UnimplementedJungleTVServer) MonitorModerationSettings(*MonitorModerationSettingsRequest, JungleTV_MonitorModerationSettingsServer) error {
-	return status.Errorf(codes.Unimplemented, "method MonitorModerationSettings not implemented")
+func (UnimplementedJungleTVServer) MonitorModerationStatus(*MonitorModerationStatusRequest, JungleTV_MonitorModerationStatusServer) error {
+	return status.Errorf(codes.Unimplemented, "method MonitorModerationStatus not implemented")
 }
 func (UnimplementedJungleTVServer) SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOwnQueueEntryRemovalAllowed not implemented")
@@ -1125,6 +1136,9 @@ func (UnimplementedJungleTVServer) ClearQueueInsertCursor(context.Context, *Clea
 }
 func (UnimplementedJungleTVServer) ClearUserProfile(context.Context, *ClearUserProfileRequest) (*ClearUserProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearUserProfile not implemented")
+}
+func (UnimplementedJungleTVServer) MarkAsActivelyModerating(context.Context, *MarkAsActivelyModeratingRequest) (*MarkAsActivelyModeratingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkAsActivelyModerating not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -2219,24 +2233,24 @@ func _JungleTV_ResetSpectatorStatus_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JungleTV_MonitorModerationSettings_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(MonitorModerationSettingsRequest)
+func _JungleTV_MonitorModerationStatus_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MonitorModerationStatusRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(JungleTVServer).MonitorModerationSettings(m, &jungleTVMonitorModerationSettingsServer{stream})
+	return srv.(JungleTVServer).MonitorModerationStatus(m, &jungleTVMonitorModerationStatusServer{stream})
 }
 
-type JungleTV_MonitorModerationSettingsServer interface {
-	Send(*ModerationSettingsOverview) error
+type JungleTV_MonitorModerationStatusServer interface {
+	Send(*ModerationStatusOverview) error
 	grpc.ServerStream
 }
 
-type jungleTVMonitorModerationSettingsServer struct {
+type jungleTVMonitorModerationStatusServer struct {
 	grpc.ServerStream
 }
 
-func (x *jungleTVMonitorModerationSettingsServer) Send(m *ModerationSettingsOverview) error {
+func (x *jungleTVMonitorModerationStatusServer) Send(m *ModerationStatusOverview) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -2344,6 +2358,24 @@ func _JungleTV_ClearUserProfile_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).ClearUserProfile(ctx, req.(*ClearUserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_MarkAsActivelyModerating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkAsActivelyModeratingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).MarkAsActivelyModerating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/MarkAsActivelyModerating",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).MarkAsActivelyModerating(ctx, req.(*MarkAsActivelyModeratingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2591,6 +2623,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ClearUserProfile",
 			Handler:    _JungleTV_ClearUserProfile_Handler,
 		},
+		{
+			MethodName: "MarkAsActivelyModerating",
+			Handler:    _JungleTV_MarkAsActivelyModerating_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -2624,8 +2660,8 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "MonitorModerationSettings",
-			Handler:       _JungleTV_MonitorModerationSettings_Handler,
+			StreamName:    "MonitorModerationStatus",
+			Handler:       _JungleTV_MonitorModerationStatus_Handler,
 			ServerStreams: true,
 		},
 	},

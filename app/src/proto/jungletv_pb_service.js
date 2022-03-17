@@ -541,13 +541,13 @@ JungleTV.ResetSpectatorStatus = {
   responseType: jungletv_pb.ResetSpectatorStatusResponse
 };
 
-JungleTV.MonitorModerationSettings = {
-  methodName: "MonitorModerationSettings",
+JungleTV.MonitorModerationStatus = {
+  methodName: "MonitorModerationStatus",
   service: JungleTV,
   requestStream: false,
   responseStream: true,
-  requestType: jungletv_pb.MonitorModerationSettingsRequest,
-  responseType: jungletv_pb.ModerationSettingsOverview
+  requestType: jungletv_pb.MonitorModerationStatusRequest,
+  responseType: jungletv_pb.ModerationStatusOverview
 };
 
 JungleTV.SetOwnQueueEntryRemovalAllowed = {
@@ -602,6 +602,15 @@ JungleTV.ClearUserProfile = {
   responseStream: false,
   requestType: jungletv_pb.ClearUserProfileRequest,
   responseType: jungletv_pb.ClearUserProfileResponse
+};
+
+JungleTV.MarkAsActivelyModerating = {
+  methodName: "MarkAsActivelyModerating",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.MarkAsActivelyModeratingRequest,
+  responseType: jungletv_pb.MarkAsActivelyModeratingResponse
 };
 
 exports.JungleTV = JungleTV;
@@ -2488,13 +2497,13 @@ JungleTVClient.prototype.resetSpectatorStatus = function resetSpectatorStatus(re
   };
 };
 
-JungleTVClient.prototype.monitorModerationSettings = function monitorModerationSettings(requestMessage, metadata) {
+JungleTVClient.prototype.monitorModerationStatus = function monitorModerationStatus(requestMessage, metadata) {
   var listeners = {
     data: [],
     end: [],
     status: []
   };
-  var client = grpc.invoke(JungleTV.MonitorModerationSettings, {
+  var client = grpc.invoke(JungleTV.MonitorModerationStatus, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -2687,6 +2696,37 @@ JungleTVClient.prototype.clearUserProfile = function clearUserProfile(requestMes
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.ClearUserProfile, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.markAsActivelyModerating = function markAsActivelyModerating(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.MarkAsActivelyModerating, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

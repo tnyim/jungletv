@@ -57,7 +57,7 @@
         }
         hasChallenge = true;
         checkShowCaptcha();
-        if (document.hidden) {
+        if (document.hidden && c.getType() != "moderating") {
             captchaAudioAlert($playerVolume);
         }
     });

@@ -3452,23 +3452,23 @@ export namespace ResetSpectatorStatusResponse {
   }
 }
 
-export class MonitorModerationSettingsRequest extends jspb.Message {
+export class MonitorModerationStatusRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): MonitorModerationSettingsRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: MonitorModerationSettingsRequest): MonitorModerationSettingsRequest.AsObject;
+  toObject(includeInstance?: boolean): MonitorModerationStatusRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorModerationStatusRequest): MonitorModerationStatusRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: MonitorModerationSettingsRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): MonitorModerationSettingsRequest;
-  static deserializeBinaryFromReader(message: MonitorModerationSettingsRequest, reader: jspb.BinaryReader): MonitorModerationSettingsRequest;
+  static serializeBinaryToWriter(message: MonitorModerationStatusRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorModerationStatusRequest;
+  static deserializeBinaryFromReader(message: MonitorModerationStatusRequest, reader: jspb.BinaryReader): MonitorModerationStatusRequest;
 }
 
-export namespace MonitorModerationSettingsRequest {
+export namespace MonitorModerationStatusRequest {
   export type AsObject = {
   }
 }
 
-export class ModerationSettingsOverview extends jspb.Message {
+export class ModerationStatusOverview extends jspb.Message {
   getAllowedVideoEnqueuing(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
   setAllowedVideoEnqueuing(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;
 
@@ -3498,17 +3498,22 @@ export class ModerationSettingsOverview extends jspb.Message {
   getMinimumPricesMultiplier(): number;
   setMinimumPricesMultiplier(value: number): void;
 
+  clearActivelyModeratingList(): void;
+  getActivelyModeratingList(): Array<User>;
+  setActivelyModeratingList(value: Array<User>): void;
+  addActivelyModerating(value?: User, index?: number): User;
+
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ModerationSettingsOverview.AsObject;
-  static toObject(includeInstance: boolean, msg: ModerationSettingsOverview): ModerationSettingsOverview.AsObject;
+  toObject(includeInstance?: boolean): ModerationStatusOverview.AsObject;
+  static toObject(includeInstance: boolean, msg: ModerationStatusOverview): ModerationStatusOverview.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ModerationSettingsOverview, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ModerationSettingsOverview;
-  static deserializeBinaryFromReader(message: ModerationSettingsOverview, reader: jspb.BinaryReader): ModerationSettingsOverview;
+  static serializeBinaryToWriter(message: ModerationStatusOverview, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ModerationStatusOverview;
+  static deserializeBinaryFromReader(message: ModerationStatusOverview, reader: jspb.BinaryReader): ModerationStatusOverview;
 }
 
-export namespace ModerationSettingsOverview {
+export namespace ModerationStatusOverview {
   export type AsObject = {
     allowedVideoEnqueuing: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap],
     enqueuingPricesMultiplier: number,
@@ -3519,6 +3524,7 @@ export namespace ModerationSettingsOverview {
     allSkippingEnabled: boolean,
     queueInsertCursor: string,
     minimumPricesMultiplier: number,
+    activelyModeratingList: Array<User.AsObject>,
   }
 }
 
@@ -4446,6 +4452,54 @@ export namespace BlockedUsersResponse {
     blockedUsersList: Array<BlockedUser.AsObject>,
     offset: number,
     total: number,
+  }
+}
+
+export class MarkAsActivelyModeratingRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MarkAsActivelyModeratingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MarkAsActivelyModeratingRequest): MarkAsActivelyModeratingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MarkAsActivelyModeratingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MarkAsActivelyModeratingRequest;
+  static deserializeBinaryFromReader(message: MarkAsActivelyModeratingRequest, reader: jspb.BinaryReader): MarkAsActivelyModeratingRequest;
+}
+
+export namespace MarkAsActivelyModeratingRequest {
+  export type AsObject = {
+  }
+}
+
+export class MarkAsActivelyModeratingResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MarkAsActivelyModeratingResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: MarkAsActivelyModeratingResponse): MarkAsActivelyModeratingResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MarkAsActivelyModeratingResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MarkAsActivelyModeratingResponse;
+  static deserializeBinaryFromReader(message: MarkAsActivelyModeratingResponse, reader: jspb.BinaryReader): MarkAsActivelyModeratingResponse;
+}
+
+export namespace MarkAsActivelyModeratingResponse {
+  export type AsObject = {
+  }
+}
+
+export class MonitorActivelyModeratingRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MonitorActivelyModeratingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorActivelyModeratingRequest): MonitorActivelyModeratingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MonitorActivelyModeratingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorActivelyModeratingRequest;
+  static deserializeBinaryFromReader(message: MonitorActivelyModeratingRequest, reader: jspb.BinaryReader): MonitorActivelyModeratingRequest;
+}
+
+export namespace MonitorActivelyModeratingRequest {
+  export type AsObject = {
   }
 }
 

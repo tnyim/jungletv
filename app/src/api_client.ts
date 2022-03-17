@@ -93,8 +93,8 @@ import {
     SpectatorInfoRequest,
     ResetSpectatorStatusResponse,
     ResetSpectatorStatusRequest,
-    ModerationSettingsOverview,
-    MonitorModerationSettingsRequest,
+    ModerationStatusOverview,
+    MonitorModerationStatusRequest,
     SetOwnQueueEntryRemovalAllowedResponse,
     SetOwnQueueEntryRemovalAllowedRequest,
     SetNewQueueEntriesAlwaysUnskippableResponse,
@@ -139,7 +139,9 @@ import {
     RemoveUserVerificationResponse,
     RemoveUserVerificationRequest,
     RaffleDrawingsResponse,
-    RaffleDrawingsRequest
+    RaffleDrawingsRequest,
+    MarkAsActivelyModeratingRequest,
+    MarkAsActivelyModeratingResponse
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -606,11 +608,11 @@ class APIClient {
         return this.unaryRPC<ResetSpectatorStatusRequest, ResetSpectatorStatusResponse>(JungleTV.ResetSpectatorStatus, request);
     }
 
-    monitorModerationSettings(onModerationSettings: (settings: ModerationSettingsOverview) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC<MonitorModerationSettingsRequest, ModerationSettingsOverview>(
-            JungleTV.MonitorModerationSettings,
-            new MonitorModerationSettingsRequest(),
-            onModerationSettings,
+    monitorModerationStatus(onModerationStatus: (status: ModerationStatusOverview) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        return this.serverStreamingRPC<MonitorModerationStatusRequest, ModerationStatusOverview>(
+            JungleTV.MonitorModerationStatus,
+            new MonitorModerationStatusRequest(),
+            onModerationStatus,
             onEnd);
     }
 
@@ -700,6 +702,10 @@ class APIClient {
         return this.unaryRPC<BlockedUsersRequest, BlockedUsersResponse>(JungleTV.BlockedUsers, request);
     }
 
+    async markAsActivelyModerating(): Promise<MarkAsActivelyModeratingRequest> {
+        let request = new MarkAsActivelyModeratingRequest();
+        return this.unaryRPC<MarkAsActivelyModeratingRequest, MarkAsActivelyModeratingResponse>(JungleTV.MarkAsActivelyModerating, request);
+    }
 
     formatBANPrice(raw: string): string {
         return parseFloat(this.getBananoPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"))) + "";

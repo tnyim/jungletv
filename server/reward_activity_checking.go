@@ -43,8 +43,8 @@ func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Rew
 
 var serverStartedAt = time.Now()
 
-func durationUntilNextActivityChallenge(user auth.User, first bool) time.Duration {
-	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
+func (r *RewardsHandler) durationUntilNextActivityChallenge(user auth.User, first bool) time.Duration {
+	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) && !r.staffActivityManager.IsActivelyModerating(user) {
 		// exempt admins/moderators from activity challenges
 		return 100 * 24 * time.Hour
 	}
@@ -68,23 +68,33 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 		// avoid keeping around old challenges for the same spectator
 		delete(r.spectatorByActivityChallenge, spectator.activityChallenge.ID)
 	}
-	spectator.activityChallenge = &activityChallenge{
-		ID:           uuid.NewV4().String(),
-		ChallengedAt: time.Now(),
-		Type:         "button",
-		Tolerance:    1 * time.Minute,
-	}
-	hardChallengeInterval := 1 * time.Hour
-	hasReduced, err := r.moderationStore.LoadPaymentAddressHasReducedHardChallengeFrequency(ctx, spectator.user.Address())
-	if err != nil {
-		r.log.Println(stacktrace.Propagate(err, ""))
-	} else if hasReduced {
-		hardChallengeInterval = 3 * time.Hour
-	}
+	if r.staffActivityManager.IsActivelyModerating(spectator.user) {
+		spectator.activityChallenge = &activityChallenge{
+			ID:           uuid.NewV4().String(),
+			ChallengedAt: time.Now(),
+			Type:         "moderating",
+			Tolerance:    2 * time.Minute,
+		}
+		r.staffActivityManager.MarkAsActivityChallenged(spectator.user, spectator.activityChallenge.Tolerance)
+	} else {
+		spectator.activityChallenge = &activityChallenge{
+			ID:           uuid.NewV4().String(),
+			ChallengedAt: time.Now(),
+			Type:         "button",
+			Tolerance:    1 * time.Minute,
+		}
+		hardChallengeInterval := 1 * time.Hour
+		hasReduced, err := r.moderationStore.LoadPaymentAddressHasReducedHardChallengeFrequency(ctx, spectator.user.Address())
+		if err != nil {
+			r.log.Println(stacktrace.Propagate(err, ""))
+		} else if hasReduced {
+			hardChallengeInterval = 3 * time.Hour
+		}
 
-	if time.Since(spectator.lastHardChallengeSolvedAt) > hardChallengeInterval {
-		spectator.activityChallenge.Type = "segcha"
-		spectator.activityChallenge.Tolerance = 2 * time.Minute
+		if time.Since(spectator.lastHardChallengeSolvedAt) > hardChallengeInterval {
+			spectator.activityChallenge.Type = "segcha"
+			spectator.activityChallenge.Tolerance = 2 * time.Minute
+		}
 	}
 	if hadChallenge || spectator.noToleranceOnNextChallenge {
 		spectator.activityChallenge.Tolerance = 0
@@ -162,12 +172,13 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "considered not legitimate")
 	}
 
-	d := durationUntilNextActivityChallenge(spectator.user, false)
+	d := r.durationUntilNextActivityChallenge(spectator.user, false)
 	spectator.nextActivityCheckTime = now.Add(d)
 	spectator.activityCheckTimer.Reset(d)
 	spectator.activityChallenge = nil
 
 	delete(r.spectatorByActivityChallenge, challenge)
+	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
 	return skipsIntegrityChecks, nil
 }
@@ -178,10 +189,26 @@ func (r *RewardsHandler) MarkAddressAsActiveIfNotChallenged(ctx context.Context,
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	if ok && spectator.activityChallenge == nil {
-		spectator.activityCheckTimer.Stop()
-		d := durationUntilNextActivityChallenge(spectator.user, false)
+		d := r.durationUntilNextActivityChallenge(spectator.user, false)
 		spectator.nextActivityCheckTime = time.Now().Add(d)
 		spectator.activityCheckTimer.Reset(d)
+	}
+}
+
+func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(address string) {
+	r.spectatorsMutex.Lock()
+	defer r.spectatorsMutex.Unlock()
+
+	spectator, ok := r.spectatorsByRewardAddress[address]
+	if ok {
+		d := r.durationUntilNextActivityChallenge(spectator.user, false)
+		spectator.nextActivityCheckTime = time.Now().Add(d)
+		spectator.activityCheckTimer.Reset(d)
+
+		if spectator.activityChallenge != nil {
+			delete(r.spectatorByActivityChallenge, spectator.activityChallenge.ID)
+		}
+		spectator.activityChallenge = nil
 	}
 }
 

@@ -39,6 +39,7 @@ type RewardsHandler struct {
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
 	moderationStore                moderation.Store
+	staffActivityManager           *StaffActivityManager
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
 	versionHash                    string
@@ -178,6 +179,7 @@ func NewRewardsHandler(log *log.Logger,
 	skipManager *SkipManager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore moderation.Store,
+	staffActivityManager *StaffActivityManager,
 	segchaCheckFn captchaResponseCheckFn,
 	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{
@@ -190,6 +192,7 @@ func NewRewardsHandler(log *log.Logger,
 		collectorAccountQueue:          collectorAccountQueue,
 		skipManager:                    skipManager,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
+		staffActivityManager:           staffActivityManager,
 		moderationStore:                moderationStore,
 		eligibleMovingAverage:          movingaverage.New(3),
 		segchaCheckFn:                  segchaCheckFn,
@@ -229,7 +232,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 		s.stoppedWatching = time.Time{}
 		if s.remoteAddress != remoteAddress {
 			// changing IPs makes one lose human verification status
-			d := durationUntilNextActivityChallenge(user, true)
+			d := r.durationUntilNextActivityChallenge(user, true)
 			s.nextActivityCheckTime = now.Add(d)
 			s.activityCheckTimer = time.NewTimer(d)
 			s.lastHardChallengeSolvedAt = time.Time{}
@@ -238,7 +241,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 		}
 		s.onReconnected.Notify()
 	} else {
-		d := durationUntilNextActivityChallenge(user, true)
+		d := r.durationUntilNextActivityChallenge(user, true)
 		s = &spectator{
 			legitimate:            true, // everyone starts in good standings
 			user:                  user,

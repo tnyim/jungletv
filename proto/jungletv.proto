@@ -69,13 +69,14 @@ service JungleTV {
     rpc TriggerAnnouncementsNotification(TriggerAnnouncementsNotificationRequest) returns (TriggerAnnouncementsNotificationResponse) {}
     rpc SpectatorInfo(SpectatorInfoRequest) returns (Spectator) {}
     rpc ResetSpectatorStatus(ResetSpectatorStatusRequest) returns (ResetSpectatorStatusResponse) {}
-    rpc MonitorModerationSettings (MonitorModerationSettingsRequest) returns (stream ModerationSettingsOverview) {}
+    rpc MonitorModerationStatus (MonitorModerationStatusRequest) returns (stream ModerationStatusOverview) {}
     rpc SetOwnQueueEntryRemovalAllowed(SetOwnQueueEntryRemovalAllowedRequest) returns (SetOwnQueueEntryRemovalAllowedResponse) {}
     rpc SetNewQueueEntriesAlwaysUnskippable(SetNewQueueEntriesAlwaysUnskippableRequest) returns (SetNewQueueEntriesAlwaysUnskippableResponse) {}
     rpc SetSkippingEnabled(SetSkippingEnabledRequest) returns (SetSkippingEnabledResponse) {}
     rpc SetQueueInsertCursor(SetQueueInsertCursorRequest) returns (SetQueueInsertCursorResponse) {}
     rpc ClearQueueInsertCursor(ClearQueueInsertCursorRequest) returns (ClearQueueInsertCursorResponse) {}
     rpc ClearUserProfile(ClearUserProfileRequest) returns (ClearUserProfileResponse) {}
+    rpc MarkAsActivelyModerating(MarkAsActivelyModeratingRequest) returns (MarkAsActivelyModeratingResponse) {}
 }
 
 message PaginationParameters {
@@ -797,9 +798,9 @@ message ResetSpectatorStatusRequest {
 
 message ResetSpectatorStatusResponse {}
 
-message MonitorModerationSettingsRequest {}
+message MonitorModerationStatusRequest {}
 
-message ModerationSettingsOverview {
+message ModerationStatusOverview {
     AllowedVideoEnqueuingType allowed_video_enqueuing = 1;
     int32 enqueuing_prices_multiplier = 2;
     bool crowdfunded_skipping_enabled = 3;
@@ -809,6 +810,7 @@ message ModerationSettingsOverview {
     bool all_skipping_enabled = 7;
     optional string queue_insert_cursor = 8;
     int32 minimum_prices_multiplier = 9;
+    repeated User actively_moderating = 10;
 }
 
 message SetOwnQueueEntryRemovalAllowedRequest {
@@ -982,3 +984,9 @@ message BlockedUsersResponse {
     uint64 offset = 2;
     uint64 total = 3;
 }
+
+message MarkAsActivelyModeratingRequest {}
+
+message MarkAsActivelyModeratingResponse {}
+
+message MonitorActivelyModeratingRequest {}

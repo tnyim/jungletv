@@ -82,16 +82,17 @@ type grpcServer struct {
 	delegatorCountsPerRep     *cache.Cache
 	addressesWithGoodRepCache *cache.Cache
 
-	mediaQueue        *MediaQueue
-	pricer            *Pricer
-	enqueueManager    *EnqueueManager
-	skipManager       *SkipManager
-	rewardsHandler    *RewardsHandler
-	withdrawalHandler *WithdrawalHandler
-	statsHandler      *StatsHandler
-	chat              *ChatManager
-	moderationStore   moderation.Store
-	nicknameCache     usercache.UserCache
+	mediaQueue           *MediaQueue
+	pricer               *Pricer
+	enqueueManager       *EnqueueManager
+	skipManager          *SkipManager
+	rewardsHandler       *RewardsHandler
+	withdrawalHandler    *WithdrawalHandler
+	statsHandler         *StatsHandler
+	chat                 *ChatManager
+	staffActivityManager *StaffActivityManager
+	moderationStore      moderation.Store
+	nicknameCache        usercache.UserCache
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -182,13 +183,14 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/TriggerAnnouncementsNotification", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SpectatorInfo", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ResetSpectatorStatus", auth.AdminPermissionLevel)
-	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/MonitorModerationSettings", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/MonitorModerationStatus", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetOwnQueueEntryRemovalAllowed", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetNewQueueEntriesAlwaysUnskippable", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetSkippingEnabled", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetQueueInsertCursor", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ClearQueueInsertCursor", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ClearUserProfile", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/MarkAsActivelyModerating", auth.AdminPermissionLevel)
 
 	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile)
 	if err != nil {
@@ -216,6 +218,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
 		ipReputationChecker:            ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
 		ticketCheckPeriod:              options.TicketCheckPeriod,
+		staffActivityManager:           NewStaffActivityManager(),
 		moderationStore:                modStore,
 		nicknameCache:                  usercache.NewInMemory(),
 		websiteURL:                     options.WebsiteURL,
@@ -294,10 +297,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.segchaResponseValid, options.VersionHash)
+		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.staffActivityManager,
+		s.segchaResponseValid, options.VersionHash)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
+	s.staffActivityManager.SetRewardsHandler(s.rewardsHandler)
 	s.pricer.rewardsHandler = s.rewardsHandler
 
 	s.enqueueManager, err = NewEnqueueManager(s.log, s.statsClient, s.mediaQueue, s.pricer, options.Wallet,

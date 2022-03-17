@@ -535,13 +535,13 @@ type JungleTVResetSpectatorStatus = {
   readonly responseType: typeof jungletv_pb.ResetSpectatorStatusResponse;
 };
 
-type JungleTVMonitorModerationSettings = {
+type JungleTVMonitorModerationStatus = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: true;
-  readonly requestType: typeof jungletv_pb.MonitorModerationSettingsRequest;
-  readonly responseType: typeof jungletv_pb.ModerationSettingsOverview;
+  readonly requestType: typeof jungletv_pb.MonitorModerationStatusRequest;
+  readonly responseType: typeof jungletv_pb.ModerationStatusOverview;
 };
 
 type JungleTVSetOwnQueueEntryRemovalAllowed = {
@@ -596,6 +596,15 @@ type JungleTVClearUserProfile = {
   readonly responseStream: false;
   readonly requestType: typeof jungletv_pb.ClearUserProfileRequest;
   readonly responseType: typeof jungletv_pb.ClearUserProfileResponse;
+};
+
+type JungleTVMarkAsActivelyModerating = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.MarkAsActivelyModeratingRequest;
+  readonly responseType: typeof jungletv_pb.MarkAsActivelyModeratingResponse;
 };
 
 export class JungleTV {
@@ -659,13 +668,14 @@ export class JungleTV {
   static readonly TriggerAnnouncementsNotification: JungleTVTriggerAnnouncementsNotification;
   static readonly SpectatorInfo: JungleTVSpectatorInfo;
   static readonly ResetSpectatorStatus: JungleTVResetSpectatorStatus;
-  static readonly MonitorModerationSettings: JungleTVMonitorModerationSettings;
+  static readonly MonitorModerationStatus: JungleTVMonitorModerationStatus;
   static readonly SetOwnQueueEntryRemovalAllowed: JungleTVSetOwnQueueEntryRemovalAllowed;
   static readonly SetNewQueueEntriesAlwaysUnskippable: JungleTVSetNewQueueEntriesAlwaysUnskippable;
   static readonly SetSkippingEnabled: JungleTVSetSkippingEnabled;
   static readonly SetQueueInsertCursor: JungleTVSetQueueInsertCursor;
   static readonly ClearQueueInsertCursor: JungleTVClearQueueInsertCursor;
   static readonly ClearUserProfile: JungleTVClearUserProfile;
+  static readonly MarkAsActivelyModerating: JungleTVMarkAsActivelyModerating;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1183,7 +1193,7 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.ResetSpectatorStatusRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ResetSpectatorStatusResponse|null) => void
   ): UnaryResponse;
-  monitorModerationSettings(requestMessage: jungletv_pb.MonitorModerationSettingsRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ModerationSettingsOverview>;
+  monitorModerationStatus(requestMessage: jungletv_pb.MonitorModerationStatusRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ModerationStatusOverview>;
   setOwnQueueEntryRemovalAllowed(
     requestMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedRequest,
     metadata: grpc.Metadata,
@@ -1237,6 +1247,15 @@ export class JungleTVClient {
   clearUserProfile(
     requestMessage: jungletv_pb.ClearUserProfileRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ClearUserProfileResponse|null) => void
+  ): UnaryResponse;
+  markAsActivelyModerating(
+    requestMessage: jungletv_pb.MarkAsActivelyModeratingRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.MarkAsActivelyModeratingResponse|null) => void
+  ): UnaryResponse;
+  markAsActivelyModerating(
+    requestMessage: jungletv_pb.MarkAsActivelyModeratingRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.MarkAsActivelyModeratingResponse|null) => void
   ): UnaryResponse;
 }
 

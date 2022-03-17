@@ -3,11 +3,8 @@
     import { navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
-    import SettingsOverview from "./moderation/SettingsOverview.svelte";
-    import {
-        AllowedVideoEnqueuingType,
-        ForcedTicketEnqueueType,
-    } from "./proto/jungletv_pb";
+    import StatusOverview from "./moderation/StatusOverview.svelte";
+    import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
 
     let ticketID = "";
@@ -178,10 +175,7 @@
         <Queue mode="moderation" />
     </details>
     <div class="mt-10">
-        <p class="px-2 font-semibold text-lg">Moderation settings overview</p>
-        <div class="px-2">
-            <SettingsOverview />
-        </div>
+        <StatusOverview />
     </div>
     <div class="mt-10">
         <p class="px-2 font-semibold text-lg">Queue flow control</p>

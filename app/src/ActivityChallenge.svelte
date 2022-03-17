@@ -128,6 +128,12 @@
                 );
             }
         } catch {
+            if (activityChallenge?.getType() == "moderating") {
+                // the challenge had already expired and the user marked as not moderating
+                await apiClient.markAsActivelyModerating();
+                activityChallenge = null;
+                return;
+            }
             if (captchaResponse != "") {
                 alert(
                     "An error occurred when submitting the captcha solution. The page will now reload so you can retry."
@@ -139,6 +145,7 @@
             }
             location.reload();
         }
+        activityChallenge = null;
     }
 
     async function stillWatching(event: MouseEvent) {
@@ -153,13 +160,11 @@
             await executeSegcha();
         } else {
             await submitChallenge("");
-            activityChallenge = null;
         }
     }
 
     async function activityCaptchaOnSubmit(token: string) {
         await submitChallenge(token);
-        activityChallenge = null;
     }
 
     onMount(() => {
@@ -188,6 +193,10 @@
         modal.set(null);
         activityCaptchaOnSubmit(answer);
     }
+
+    function dismissChallengeWithoutSubmitting() {
+        activityChallenge = null;
+    }
 </script>
 
 <div
@@ -198,7 +207,15 @@
 >
     <div class="flex flex-row space-x-2">
         <div>
-            {#if challengesDone > 1}
+            {#if activityChallenge?.getType() == "moderating"}
+                <h3>Are you still moderating?</h3>
+                <button
+                    class="text-xs text-blue-600 dark:text-blue-400 w-40"
+                    on:click={dismissChallengeWithoutSubmitting}
+                >
+                    No, dismiss this message.
+                </button>
+            {:else if challengesDone > 1}
                 <h3>Are you still watching?</h3>
                 <p class="text-xs text-gray-600 dark:text-gray-400 w-40">
                     To receive rewards, confirm you're still watching.
@@ -222,6 +239,8 @@
         >
             {#if clicked}
                 Awaiting captcha...
+            {:else if activityChallenge?.getType() == "moderating"}
+                Still moderating
             {:else if challengesDone > 1}
                 Still watching
             {:else}
