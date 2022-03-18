@@ -4487,18 +4487,34 @@ export namespace MarkAsActivelyModeratingResponse {
   }
 }
 
-export class MonitorActivelyModeratingRequest extends jspb.Message {
+export class StopActivelyModeratingRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): MonitorActivelyModeratingRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: MonitorActivelyModeratingRequest): MonitorActivelyModeratingRequest.AsObject;
+  toObject(includeInstance?: boolean): StopActivelyModeratingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: StopActivelyModeratingRequest): StopActivelyModeratingRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: MonitorActivelyModeratingRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): MonitorActivelyModeratingRequest;
-  static deserializeBinaryFromReader(message: MonitorActivelyModeratingRequest, reader: jspb.BinaryReader): MonitorActivelyModeratingRequest;
+  static serializeBinaryToWriter(message: StopActivelyModeratingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StopActivelyModeratingRequest;
+  static deserializeBinaryFromReader(message: StopActivelyModeratingRequest, reader: jspb.BinaryReader): StopActivelyModeratingRequest;
 }
 
-export namespace MonitorActivelyModeratingRequest {
+export namespace StopActivelyModeratingRequest {
+  export type AsObject = {
+  }
+}
+
+export class StopActivelyModeratingResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StopActivelyModeratingResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: StopActivelyModeratingResponse): StopActivelyModeratingResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StopActivelyModeratingResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StopActivelyModeratingResponse;
+  static deserializeBinaryFromReader(message: StopActivelyModeratingResponse, reader: jspb.BinaryReader): StopActivelyModeratingResponse;
+}
+
+export namespace StopActivelyModeratingResponse {
   export type AsObject = {
   }
 }

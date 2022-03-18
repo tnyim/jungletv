@@ -607,6 +607,15 @@ type JungleTVMarkAsActivelyModerating = {
   readonly responseType: typeof jungletv_pb.MarkAsActivelyModeratingResponse;
 };
 
+type JungleTVStopActivelyModerating = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.StopActivelyModeratingRequest;
+  readonly responseType: typeof jungletv_pb.StopActivelyModeratingResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -676,6 +685,7 @@ export class JungleTV {
   static readonly ClearQueueInsertCursor: JungleTVClearQueueInsertCursor;
   static readonly ClearUserProfile: JungleTVClearUserProfile;
   static readonly MarkAsActivelyModerating: JungleTVMarkAsActivelyModerating;
+  static readonly StopActivelyModerating: JungleTVStopActivelyModerating;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1256,6 +1266,15 @@ export class JungleTVClient {
   markAsActivelyModerating(
     requestMessage: jungletv_pb.MarkAsActivelyModeratingRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.MarkAsActivelyModeratingResponse|null) => void
+  ): UnaryResponse;
+  stopActivelyModerating(
+    requestMessage: jungletv_pb.StopActivelyModeratingRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.StopActivelyModeratingResponse|null) => void
+  ): UnaryResponse;
+  stopActivelyModerating(
+    requestMessage: jungletv_pb.StopActivelyModeratingRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.StopActivelyModeratingResponse|null) => void
   ): UnaryResponse;
 }
 

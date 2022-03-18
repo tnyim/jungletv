@@ -3,6 +3,7 @@
     import { apiClient } from "../api_client";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { AllowedVideoEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
+    import { rewardAddress } from "../stores";
 
     let statusOverview: ModerationStatusOverview;
     let monitorSettingsRequest: Request;
@@ -40,6 +41,11 @@
     async function markAsActivelyModerating() {
         await apiClient.markAsActivelyModerating();
         alert("You are now marked as actively moderating.");
+    }
+
+    async function stopActivelyModerating() {
+        await apiClient.stopActivelyModerating();
+        alert("You are no longer marked as actively moderating.");
     }
 </script>
 
@@ -110,16 +116,32 @@
 </div>
 <p class="mt-10 px-2 font-semibold text-lg">Staff members actively moderating</p>
 <div class="px-2">
-    <button
-        type="submit"
-        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        on:click={markAsActivelyModerating}
-    >
-        Mark yourself as actively moderating
-    </button>
     {#if statusOverview === undefined}
         Loading...
     {:else}
+        {#if typeof statusOverview
+            .getActivelyModeratingList()
+            .find((e) => e.getAddress() == $rewardAddress) === "undefined"}
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium
+                    rounded-md text-white bg-blue-600 hover:bg-blue-700
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                on:click={markAsActivelyModerating}
+            >
+                Mark yourself as actively moderating
+            </button>
+        {:else}
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium
+                    rounded-md text-white bg-red-600 hover:bg-red-700
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={stopActivelyModerating}
+            >
+                Mark yourself as no longer moderating
+            </button>
+        {/if}
         <ul class="{statusOverview.getActivelyModeratingList().length > 0 ? 'list-disc list-inside' : ''} pt-2">
             {#each statusOverview.getActivelyModeratingList() as staffMember}
                 <li>{staffMember.getNickname()} (<code>{staffMember.getAddress()}</code>)</li>

@@ -67,6 +67,14 @@ func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
 		return
 	}
 
+	defer func() {
+		// this triggers a recalculation of the time until the next activity challenge
+		// it must happen outside of the mutex-protected region to avoid a deadlock
+		if s.rewardsHandler != nil {
+			s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(staffMember.Address())
+		}
+	}()
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.activelyModerating[staffMember.Address()] = struct{}{}
@@ -75,6 +83,13 @@ func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
 
 // MarkAsActive marks the specified staff member as inactive
 func (s *StaffActivityManager) MarkAsInactive(staffMember auth.User) {
+	defer func() {
+		// restore usual staff member activity challenge behavior
+		if s.rewardsHandler != nil {
+			s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(staffMember.Address())
+		}
+	}()
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	delete(s.activelyModerating, staffMember.Address())

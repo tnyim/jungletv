@@ -141,7 +141,9 @@ import {
     RaffleDrawingsResponse,
     RaffleDrawingsRequest,
     MarkAsActivelyModeratingRequest,
-    MarkAsActivelyModeratingResponse
+    MarkAsActivelyModeratingResponse,
+    StopActivelyModeratingRequest,
+    StopActivelyModeratingResponse
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -702,9 +704,14 @@ class APIClient {
         return this.unaryRPC<BlockedUsersRequest, BlockedUsersResponse>(JungleTV.BlockedUsers, request);
     }
 
-    async markAsActivelyModerating(): Promise<MarkAsActivelyModeratingRequest> {
+    async markAsActivelyModerating(): Promise<MarkAsActivelyModeratingResponse> {
         let request = new MarkAsActivelyModeratingRequest();
         return this.unaryRPC<MarkAsActivelyModeratingRequest, MarkAsActivelyModeratingResponse>(JungleTV.MarkAsActivelyModerating, request);
+    }
+
+    async stopActivelyModerating(): Promise<StopActivelyModeratingResponse> {
+        let request = new StopActivelyModeratingRequest();
+        return this.unaryRPC<StopActivelyModeratingRequest, StopActivelyModeratingResponse>(JungleTV.StopActivelyModerating, request);
     }
 
     formatBANPrice(raw: string): string {

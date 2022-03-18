@@ -194,8 +194,9 @@
         activityCaptchaOnSubmit(answer);
     }
 
-    function dismissChallengeWithoutSubmitting() {
+    async function dismissStillModeratingChallenge() {
         activityChallenge = null;
+        await apiClient.stopActivelyModerating();
     }
 </script>
 
@@ -211,7 +212,7 @@
                 <h3>Are you still moderating?</h3>
                 <button
                     class="text-xs text-blue-600 dark:text-blue-400 w-40"
-                    on:click={dismissChallengeWithoutSubmitting}
+                    on:click={dismissStillModeratingChallenge}
                 >
                     No, dismiss this message.
                 </button>
