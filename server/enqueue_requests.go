@@ -43,7 +43,7 @@ type EnqueueManager struct {
 
 	requests                map[string]EnqueueTicket
 	requestsLock            sync.RWMutex
-	recentlyEvictedRequests *cache.Cache
+	recentlyEvictedRequests *cache.Cache[string, EnqueueTicket]
 }
 
 // EnqueueRequest is a request to create an EnqueueTicket
@@ -94,7 +94,7 @@ func NewEnqueueManager(log *log.Logger,
 		requests:                       make(map[string]EnqueueTicket),
 		moderationStore:                moderationStore,
 		modLogWebhook:                  modLogWebhook,
-		recentlyEvictedRequests:        cache.New(10*time.Minute, 1*time.Minute),
+		recentlyEvictedRequests:        cache.New[string, EnqueueTicket](10*time.Minute, 1*time.Minute),
 	}, nil
 }
 
@@ -360,9 +360,9 @@ func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 	if r, ok := e.requests[id]; ok {
 		return r
 	}
-	evIface, ok := e.recentlyEvictedRequests.Get(id)
+	ev, ok := e.recentlyEvictedRequests.Get(id)
 	if ok {
-		return evIface.(EnqueueTicket)
+		return *ev
 	}
 	return nil
 }

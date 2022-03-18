@@ -64,11 +64,11 @@ type grpcServer struct {
 	websiteURL                     string
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
-	oauthStates  *cache.Cache
+	oauthStates  *cache.Cache[string, oauthStateData]
 
 	captchaImageDB         *segcha.ImageDatabase
 	captchaFontPath        string
-	captchaAnswers         *cache.Cache
+	captchaAnswers         *cache.Cache[string, []int]
 	captchaChallengesQueue chan *segcha.Challenge
 	captchaGenerationMutex sync.Mutex
 	segchaClient           segchaproto.SegchaClient
@@ -78,9 +78,9 @@ type grpcServer struct {
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
 
-	verificationProcesses     *cache.Cache
-	delegatorCountsPerRep     *cache.Cache
-	addressesWithGoodRepCache *cache.Cache
+	verificationProcesses     *cache.Cache[string, *addressVerificationProcess]
+	delegatorCountsPerRep     *cache.Cache[string, uint64]
+	addressesWithGoodRepCache *cache.Cache[string, struct{}]
 
 	mediaQueue           *MediaQueue
 	pricer               *Pricer
@@ -208,9 +208,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		wallet:                         options.Wallet,
 		statsClient:                    options.StatsClient,
 		jwtManager:                     options.JWTManager,
-		verificationProcesses:          cache.New(5*time.Minute, 1*time.Minute),
-		delegatorCountsPerRep:          cache.New(1*time.Hour, 5*time.Minute),
-		addressesWithGoodRepCache:      cache.New(6*time.Hour, 5*time.Minute),
+		verificationProcesses:          cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
+		delegatorCountsPerRep:          cache.New[string, uint64](1*time.Hour, 5*time.Minute),
+		addressesWithGoodRepCache:      cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
 		mediaQueue:                     mediaQueue,
 		collectorAccountQueue:          make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
 		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
@@ -224,9 +224,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		nicknameCache:                  usercache.NewInMemory(),
 		websiteURL:                     options.WebsiteURL,
 
-		oauthStates: cache.New(2*time.Hour, 15*time.Minute),
+		oauthStates: cache.New[string, oauthStateData](2*time.Hour, 15*time.Minute),
 
-		captchaAnswers:         cache.New(1*time.Hour, 5*time.Minute),
+		captchaAnswers:         cache.New[string, []int](1*time.Hour, 5*time.Minute),
 		captchaImageDB:         options.CaptchaImageDB,
 		captchaFontPath:        options.CaptchaFontPath,
 		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),

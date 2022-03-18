@@ -21,14 +21,12 @@ func (s *grpcServer) OAuthCallback(w http.ResponseWriter, r *http.Request) error
 	state := r.FormValue("state")
 	code := r.FormValue("code")
 
-	stateDataIface, ok := s.oauthStates.Get(state)
+	// recover user and service
+	stateData, ok := s.oauthStates.Get(state)
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return nil
 	}
-
-	// recover user and service
-	stateData := stateDataIface.(oauthStateData)
 
 	oauthConfig, ok := s.oauthConfigs[stateData.Service]
 	if !ok {

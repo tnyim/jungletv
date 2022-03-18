@@ -79,7 +79,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 
 			cachedCount, ok := s.delegatorCountsPerRep.Get(representative)
 			if ok {
-				delegatorsCountChan <- cachedCount.(uint64)
+				delegatorsCountChan <- *cachedCount
 				return
 			}
 			c, err := s.wallet.RPC.DelegatorsCount(representative)
@@ -114,7 +114,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		case c := <-delegatorsCountChan:
 			badRepresentative = c < 2
 			if !badRepresentative {
-				s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, true)
+				s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, struct{}{})
 			}
 		case <-time.After(5 * time.Second):
 			break

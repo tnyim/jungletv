@@ -19,7 +19,7 @@ type StatsHandler struct {
 	spectatorsByRemoteAddress map[string]int
 	spectatorsMutex           sync.RWMutex
 
-	streamingSubsCounters *cache.Cache
+	streamingSubsCounters *cache.OrderedCache[StreamStatsType, int]
 }
 
 type StreamStatsType string
@@ -36,15 +36,15 @@ func NewStatsHandler(log *log.Logger, statsClient *statsd.Client) (*StatsHandler
 		statsClient: statsClient,
 
 		spectatorsByRemoteAddress: make(map[string]int),
-		streamingSubsCounters:     cache.New(cache.NoExpiration, -1),
+		streamingSubsCounters:     cache.NewOrderedCache[StreamStatsType, int](cache.NoExpiration, -1),
 	}
 
-	s.streamingSubsCounters.SetDefault(string(StreamStatsQueue), int(0))
-	s.streamingSubsCounters.SetDefault(string(StreamStatsQueue)+"_authenticated", int(0))
-	s.streamingSubsCounters.SetDefault(string(StreamStatsCommunitySkipping), int(0))
-	s.streamingSubsCounters.SetDefault(string(StreamStatsCommunitySkipping)+"_authenticated", int(0))
-	s.streamingSubsCounters.SetDefault(string(StreamStatsChat), int(0))
-	s.streamingSubsCounters.SetDefault(string(StreamStatsChat)+"_authenticated", int(0))
+	s.streamingSubsCounters.SetDefault(StreamStatsQueue, 0)
+	s.streamingSubsCounters.SetDefault(StreamStatsQueue+"_authenticated", 0)
+	s.streamingSubsCounters.SetDefault(StreamStatsCommunitySkipping, 0)
+	s.streamingSubsCounters.SetDefault(StreamStatsCommunitySkipping+"_authenticated", 0)
+	s.streamingSubsCounters.SetDefault(StreamStatsChat, 0)
+	s.streamingSubsCounters.SetDefault(StreamStatsChat+"_authenticated", 0)
 
 	return s, nil
 }
@@ -78,26 +78,26 @@ func (s *StatsHandler) CurrentlyWatching() int {
 }
 
 func (s *StatsHandler) RegisterStreamSubscriber(stream StreamStatsType, authenticated bool) func() {
-	s.streamingSubsCounters.IncrementInt(string(stream), 1)
+	s.streamingSubsCounters.Increment(stream, 1)
 
-	authenticatedKey := string(stream) + "_authenticated"
+	authenticatedKey := stream + "_authenticated"
 	if authenticated {
-		s.streamingSubsCounters.IncrementInt(authenticatedKey, 1)
+		s.streamingSubsCounters.Increment(authenticatedKey, 1)
 	}
 
 	gauge := func() {
-		v, _ := s.streamingSubsCounters.Get(string(stream))
-		s.statsClient.Gauge("subscribers."+string(stream), v.(int))
+		v, _ := s.streamingSubsCounters.Get(stream)
+		s.statsClient.Gauge("subscribers."+string(stream), *v)
 
 		v, _ = s.streamingSubsCounters.Get(authenticatedKey)
-		s.statsClient.Gauge("subscribers."+authenticatedKey, v.(int))
+		s.statsClient.Gauge(string("subscribers."+authenticatedKey), *v)
 	}
 	go gauge()
 
 	return func() {
-		s.streamingSubsCounters.DecrementInt(string(stream), 1)
+		s.streamingSubsCounters.Increment(stream, -1)
 		if authenticated {
-			s.streamingSubsCounters.DecrementInt(authenticatedKey, 1)
+			s.streamingSubsCounters.Increment(authenticatedKey, -1)
 		}
 		go gauge()
 	}

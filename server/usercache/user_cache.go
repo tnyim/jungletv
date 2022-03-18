@@ -18,43 +18,44 @@ type UserCache interface {
 
 // MemoryUserCache is a memory-based nickname cache
 type MemoryUserCache struct {
-	c *cache.Cache
+	c *cache.Cache[string, auth.User]
 }
 
 // NewInMemory returns a new MemoryUserCache
 func NewInMemory() *MemoryUserCache {
 	return &MemoryUserCache{
-		c: cache.New(1*time.Hour, 11*time.Minute),
+		c: cache.New[string, auth.User](1*time.Hour, 11*time.Minute),
 	}
 }
 
 // GetOrFetchUser loads user info from cache, falling back to the database if necessary
 func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string) (auth.User, error) {
 	i, present := c.c.Get(address)
-	if !present {
-		ctx, err := transaction.Begin(ctxCtx)
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "")
-		}
-		defer ctx.Commit() // read-only tx
-
-		var userRecord struct {
-			Nickname        *string
-			PermissionLevel string `db:"permission_level"`
-		}
-		err = ctx.Tx().GetContext(ctx, &userRecord, `SELECT nickname, permission_level FROM chat_user WHERE address = $1`, address)
-		if err != nil {
-			// no nickname for this user
-			return nil, nil
-		}
-
-		user := auth.NewAddressOnlyUserWithPermissionLevel(address, auth.PermissionLevel(userRecord.PermissionLevel))
-		user.SetNickname(userRecord.Nickname)
-
-		c.c.SetDefault(address, user)
-		return user, nil
+	if present {
+		return *i, nil
 	}
-	return i.(auth.User), nil
+
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	var userRecord struct {
+		Nickname        *string
+		PermissionLevel string `db:"permission_level"`
+	}
+	err = ctx.Tx().GetContext(ctx, &userRecord, `SELECT nickname, permission_level FROM chat_user WHERE address = $1`, address)
+	if err != nil {
+		// no nickname for this user
+		return nil, nil
+	}
+
+	user := auth.NewAddressOnlyUserWithPermissionLevel(address, auth.PermissionLevel(userRecord.PermissionLevel))
+	user.SetNickname(userRecord.Nickname)
+
+	c.c.SetDefault(address, user)
+	return user, nil
 }
 
 // CacheUser saves user information in cache

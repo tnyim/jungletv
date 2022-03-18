@@ -30,7 +30,7 @@ type MediaQueue struct {
 	queueMutex                      sync.RWMutex
 	recentEntryCounts               map[string]int
 	recentEntryCountsMutex          sync.RWMutex
-	recentEntryCountsCache          *cache.Cache
+	recentEntryCountsCache          *cache.Cache[string, recentEntryCountsValue]
 	recentEntryCountsCacheUserMutex *nsync.NamedMutex
 	removalOfOwnEntriesAllowed      bool
 	skippingEnabled                 bool // all entries will behave as unskippable when false
@@ -68,7 +68,7 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		entryAdded:                      event.New[entryAddedEventArg](),
 		deepEntryRemoved:                event.New[MediaQueueEntry](),
 		ownEntryRemoved:                 event.New[MediaQueueEntry](),
-		recentEntryCountsCache:          cache.New(10*time.Second, 30*time.Second),
+		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
 		removalOfOwnEntriesAllowed:      true,
 		skippingEnabled:                 true,
 	}
@@ -653,6 +653,11 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Cont
 	return count, nil
 }
 
+type recentEntryCountsValue struct {
+	count            int
+	requestedCurrent bool
+}
+
 // CountEnqueuedOrRecentlyPlayedVideosRequestedBy returns the number of videos which are currently in queue or which have
 // been recently enqueued by the specified user.
 func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.Context, requester auth.User) (int, bool, error) {
@@ -662,19 +667,13 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.
 
 	reqAddress := requester.Address()
 
-	type cacheType struct {
-		count            int
-		requestedCurrent bool
-	}
-
 	// this is to ensure that we don't spawn concurrent cache filling processes for this user, even if this function is
 	// concurrently called with the same user as argument
 	q.recentEntryCountsCacheUserMutex.Lock(reqAddress)
 	defer q.recentEntryCountsCacheUserMutex.Unlock(reqAddress)
 
-	cachedIface, present := q.recentEntryCountsCache.Get(reqAddress)
+	c, present := q.recentEntryCountsCache.Get(reqAddress)
 	if present {
-		c := cachedIface.(cacheType)
 		return c.count, c.requestedCurrent, nil
 	}
 
@@ -697,7 +696,7 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.
 	if err != nil {
 		return 0, false, stacktrace.Propagate(err, "")
 	}
-	q.recentEntryCountsCache.SetDefault(reqAddress, cacheType{
+	q.recentEntryCountsCache.SetDefault(reqAddress, recentEntryCountsValue{
 		count:            count + recentCount,
 		requestedCurrent: requestedCurrent,
 	})

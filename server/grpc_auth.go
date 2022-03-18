@@ -55,9 +55,9 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		accountIndex:  uint32(rand.Int31()),
 		remoteAddress: remoteAddress,
 	}
-	procIface, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardsAddress)
+	processPtr, expiration, hadExistingProcess := s.verificationProcesses.GetWithExpiration(r.RewardsAddress)
 	if hadExistingProcess {
-		p := procIface.(*addressVerificationProcess)
+		p := *processPtr
 		if p.remoteAddress == remoteAddress {
 			process = p
 		} else {
