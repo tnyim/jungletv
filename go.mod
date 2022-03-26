@@ -76,4 +76,4 @@ replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16
 
 replace github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177 => github.com/gsgalloway/stacktrace v0.0.0-20200507040314-ca3802f754c7
 
-replace github.com/patrickmn/go-cache v2.1.0+incompatible => github.com/sschiz/go-cache v0.0.0-20220318191919-0d5b08999a1c
+replace github.com/patrickmn/go-cache v2.1.0+incompatible => github.com/sschiz/go-cache v0.0.0-20220324204139-133b774867fa

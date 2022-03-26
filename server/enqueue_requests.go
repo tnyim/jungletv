@@ -362,7 +362,7 @@ func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 	}
 	ev, ok := e.recentlyEvictedRequests.Get(id)
 	if ok {
-		return *ev
+		return ev
 	}
 	return nil
 }

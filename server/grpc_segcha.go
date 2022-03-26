@@ -79,11 +79,10 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 func (s *grpcServer) segchaResponseValid(ctx context.Context, segchaResponse string) (bool, error) {
 	parts := strings.Split(segchaResponse, ",")
 
-	correctAnswersPtr, present := s.captchaAnswers.Get(parts[0])
+	correctAnswers, present := s.captchaAnswers.Get(parts[0])
 	if !present {
 		return false, nil
 	}
-	correctAnswers := *correctAnswersPtr
 	s.captchaAnswers.Delete(parts[0])
 
 	if len(parts)-1 != len(correctAnswers) {

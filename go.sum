@@ -576,8 +576,8 @@ github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnIn
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
 github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
-github.com/sschiz/go-cache v0.0.0-20220318191919-0d5b08999a1c h1:+iNbTSMaYANc9CR9nk14rDxcgG5ksdDyxAjXSI1NgNo=
-github.com/sschiz/go-cache v0.0.0-20220318191919-0d5b08999a1c/go.mod h1:NiQwycQkY7eFSyoC5knAR3ibRQB4Xn9NHDjRFBN8CuQ=
+github.com/sschiz/go-cache v0.0.0-20220324204139-133b774867fa h1:qeTTXw0I+ixqDr84eOUxABcX2t57e7o+9hCMvlKqGXg=
+github.com/sschiz/go-cache v0.0.0-20220324204139-133b774867fa/go.mod h1:NiQwycQkY7eFSyoC5knAR3ibRQB4Xn9NHDjRFBN8CuQ=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5JnDBl6z3cMAg/SywNDC5ABu5ApDIw6lUbRmI=

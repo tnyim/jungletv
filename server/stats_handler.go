@@ -87,10 +87,10 @@ func (s *StatsHandler) RegisterStreamSubscriber(stream StreamStatsType, authenti
 
 	gauge := func() {
 		v, _ := s.streamingSubsCounters.Get(stream)
-		s.statsClient.Gauge("subscribers."+string(stream), *v)
+		s.statsClient.Gauge("subscribers."+string(stream), v)
 
 		v, _ = s.streamingSubsCounters.Get(authenticatedKey)
-		s.statsClient.Gauge(string("subscribers."+authenticatedKey), *v)
+		s.statsClient.Gauge(string("subscribers."+authenticatedKey), v)
 	}
 	go gauge()
 

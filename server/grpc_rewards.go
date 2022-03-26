@@ -79,7 +79,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 
 			cachedCount, ok := s.delegatorCountsPerRep.Get(representative)
 			if ok {
-				delegatorsCountChan <- *cachedCount
+				delegatorsCountChan <- cachedCount
 				return
 			}
 			c, err := s.wallet.RPC.DelegatorsCount(representative)

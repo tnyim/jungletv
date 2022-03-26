@@ -32,7 +32,7 @@ func NewInMemory() *MemoryUserCache {
 func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string) (auth.User, error) {
 	i, present := c.c.Get(address)
 	if present {
-		return *i, nil
+		return i, nil
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
