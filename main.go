@@ -472,6 +472,7 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 	}
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
+	router.PathPrefix("/emotes").Handler(http.StripPrefix("/emotes", http.FileServer(http.Dir("app/public/emotes/"))))
 	router.PathPrefix("/build/swbundle.js").Handler(addServiceWorkerHeaders(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/")))))
 	router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/"))))
 	router.PathPrefix("/favicon.ico").Handler(http.FileServer(http.Dir("app/public/")))

@@ -1127,6 +1127,11 @@ export class ChatUpdate extends jspb.Message {
   getBlockedUserDeleted(): ChatBlockedUserDeletedEvent | undefined;
   setBlockedUserDeleted(value?: ChatBlockedUserDeletedEvent): void;
 
+  hasEmoteCreated(): boolean;
+  clearEmoteCreated(): void;
+  getEmoteCreated(): ChatEmoteCreatedEvent | undefined;
+  setEmoteCreated(value?: ChatEmoteCreatedEvent): void;
+
   getEventCase(): ChatUpdate.EventCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatUpdate.AsObject;
@@ -1147,6 +1152,7 @@ export namespace ChatUpdate {
     heartbeat?: ChatHeartbeatEvent.AsObject,
     blockedUserCreated?: ChatBlockedUserCreatedEvent.AsObject,
     blockedUserDeleted?: ChatBlockedUserDeletedEvent.AsObject,
+    emoteCreated?: ChatEmoteCreatedEvent.AsObject,
   }
 
   export enum EventCase {
@@ -1158,6 +1164,7 @@ export namespace ChatUpdate {
     HEARTBEAT = 5,
     BLOCKED_USER_CREATED = 6,
     BLOCKED_USER_DELETED = 7,
+    EMOTE_CREATED = 8,
   }
 }
 
@@ -1393,6 +1400,34 @@ export class ChatBlockedUserDeletedEvent extends jspb.Message {
 export namespace ChatBlockedUserDeletedEvent {
   export type AsObject = {
     blockedUserAddress: string,
+  }
+}
+
+export class ChatEmoteCreatedEvent extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getShortcode(): string;
+  setShortcode(value: string): void;
+
+  getAnimated(): boolean;
+  setAnimated(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatEmoteCreatedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatEmoteCreatedEvent): ChatEmoteCreatedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatEmoteCreatedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatEmoteCreatedEvent;
+  static deserializeBinaryFromReader(message: ChatEmoteCreatedEvent, reader: jspb.BinaryReader): ChatEmoteCreatedEvent;
+}
+
+export namespace ChatEmoteCreatedEvent {
+  export type AsObject = {
+    id: string,
+    shortcode: string,
+    animated: boolean,
   }
 }
 

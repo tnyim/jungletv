@@ -166,14 +166,14 @@ const timestampTokenizerMarkedExtension = {
         return src.match(/<t:/)?.index;
     },
     tokenizer(src, tokens) {
-        const rule = /^<t:([0-9]+):([d|f|t|D|F|R|C|T])(?:\/{0,1})>/;
+        const rule = /^(\\{0,1})<t:([0-9]+):([d|f|t|D|F|R|C|T])(\/{0,1})>/;
         const match = rule.exec(src);
-        if (match) {
+        if (match && match[1] != "\\") {
             return {
                 type: "timestamp", // Should match "name" above
                 raw: match[0], // Text to consume from the source
-                timestamp: parseInt(match[1].trim()),
-                timestampType: match[2].trim(),
+                timestamp: parseInt(match[2].trim()),
+                timestampType: match[3].trim(),
             };
         }
     },
@@ -205,13 +205,13 @@ const spoilerTokenizerMarkedExtension = {
         return src.match(/\|\|/)?.index;
     },
     tokenizer(src, tokens) {
-        const rule = /^\|\|(.+)\|\|/;
+        const rule = /^(\\{0,1})\|\|(.+)\|\|/;
         const match = rule.exec(src);
-        if (match) {
+        if (match && match[1] != "\\") {
             return {
                 type: "spoiler", // Should match "name" above
                 raw: match[0], // Text to consume from the source
-                text: this.lexer.inlineTokens(match[1].trim()),
+                text: this.lexer.inlineTokens(match[2].trim()),
             };
         }
     },
@@ -219,6 +219,40 @@ const spoilerTokenizerMarkedExtension = {
         return `<span class="filter blur-sm hover:blur-none active:blur-none transition-all">${this.parser.parseInline(token.text)}</span>`;
     },
     childTokens: ['span']
+}
+
+const emoteTokenizerMarkedExtension = {
+    name: "emote",
+    level: "inline",
+    start(src) {
+        return src.match(/<[ae]:/)?.index;
+    },
+    tokenizer(src, tokens) {
+        const rule = /^<([ae])(:[a-zA-Z0-9_]+){0,1}:([0-9]{1,20})(\/{0,1})>/;
+        const match = rule.exec(src);
+        if (match) {
+            return {
+                type: "emote", // Should match "name" above
+                raw: match[0], // Text to consume from the source
+                animated: match[1].trim() == "a",
+                shortcode: match[2]?.trim().substring(1),
+                id: match[3].trim(),
+            };
+        }
+    },
+    renderer(token) {
+        let alt = token.shortcode ? ":" + token.shortcode + ":" : "";
+        return `<img
+            class="inline align-middle -mt-1 markdown-emote"
+            alt="${alt}"
+            title="${alt}"
+            src="${emoteURLFromID(token.id, token.animated)}" />`;
+    },
+    childTokens: ['img']
+}
+
+export const emoteURLFromID = function(id: string, animated: boolean): string {
+    return `/emotes/${id}.${animated ? "gif" : "webp"}`;
 }
 
 const disableLinksTokenizer = {
@@ -237,7 +271,14 @@ const configureMarked = function () {
             gfm: true,
             breaks: true,
         });
-        marked.use({ extensions: [timestampTokenizerMarkedExtension, spoilerTokenizerMarkedExtension], tokenizer: disableLinksTokenizer });
+        marked.use({
+            extensions: [
+                timestampTokenizerMarkedExtension,
+                spoilerTokenizerMarkedExtension,
+                emoteTokenizerMarkedExtension
+            ],
+            tokenizer: disableLinksTokenizer
+        });
         configuredMarked = marked;
     }
 }

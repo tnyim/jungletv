@@ -12,19 +12,26 @@
     import { HighlightStyle, tags } from "@codemirror/highlight";
     import { history, historyKeymap } from "@codemirror/history";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+    import { syntaxTree } from "@codemirror/language";
     import { bracketMatching } from "@codemirror/matchbrackets";
     import { ChangeSpec, Compartment, EditorState, Extension } from "@codemirror/state";
     import {
+        Decoration,
+        DecorationSet,
         drawSelection,
         dropCursor,
         EditorView,
         highlightSpecialChars,
         keymap,
         placeholder,
+        PluginField,
+        ViewPlugin,
+        ViewUpdate,
+        WidgetType,
     } from "@codemirror/view";
-    import { Emoji, Strikethrough } from "@lezer/markdown";
-    import type { Picker } from "emoji-picker-element";
-    import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
+    import { Emoji as MarkdownEmoji, MarkdownConfig, Strikethrough } from "@lezer/markdown";
+    import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
+    import type { Picker } from "emoji-picker-element/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
@@ -34,8 +41,14 @@
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
-    import { darkMode, featureFlags, modal, permissionLevel, rewardAddress } from "./stores";
-    import { codeMirrorHighlightStyle, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
+    import { chatEmotes, darkMode, featureFlags, modal, permissionLevel, rewardAddress } from "./stores";
+    import {
+        codeMirrorHighlightStyle,
+        emoteURLFromID,
+        openPopout,
+        parseUserMessageMarkdown,
+        setNickname,
+    } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
 
     export let chatEnabled: boolean;
@@ -71,6 +84,18 @@
             }
         `;
         emojiPicker.shadowRoot.appendChild(style);
+
+        chatEmotes.subscribe((emotes) => {
+            let customEmoji: CustomEmoji[] = emotes.map((emote): CustomEmoji => {
+                return {
+                    name: emote.shortcode,
+                    shortcodes: [emote.shortcode],
+                    url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
+                };
+            });
+            emojiPicker.customEmoji = customEmoji;
+            emojiDatabase.customEmoji = customEmoji;
+        });
 
         darkMode.subscribe((dm) => {
             if (typeof editorView !== "undefined") {
@@ -142,15 +167,24 @@
         return EditorView.updateListener.of(async (viewUpdate) => {
             if (viewUpdate.docChanged) {
                 let oldContents = viewUpdate.state.doc.toString();
-                let matches = oldContents.matchAll(/(\\{0,1}):([a-zA-Z0-9_\+\-]+):/gm);
+                let matches = oldContents.matchAll(/([\\|<a|<e]{0,1}):([a-zA-Z0-9_\+\-]+):/gm);
                 let changes: ChangeSpec[] = [];
                 for (let match of matches) {
-                    if (match[1] === "\\") {
+                    if (match[1]) {
                         continue;
                     }
                     let result = await emojiDatabase.getEmojiByShortcode(match[2]);
-                    if (result !== null && "unicode" in result) {
+                    if (result == null) {
+                        continue;
+                    }
+                    if ("unicode" in result) {
                         changes.push({ from: match.index, to: match.index + match[0].length, insert: result.unicode });
+                    } else if ("url" in result) {
+                        changes.push({
+                            from: match.index,
+                            to: match.index + match[0].length,
+                            insert: emoteStringFromCustomEmoji(result),
+                        });
                     }
                 }
                 if (changes.length > 0) {
@@ -171,11 +205,19 @@
         let emojiResults = await searchEmoji(partialShortcode, 5);
         let options: Completion[] = [];
         for (let result of emojiResults) {
-            options.push({
-                label: ":" + shortcodeMatchingPrefix(result.shortcodes, partialShortcode) + ":",
-                type: "emoji",
-                apply: result.unicode,
-            });
+            if ("unicode" in result) {
+                options.push({
+                    label: ":" + shortcodeMatchingPrefix(result.shortcodes, partialShortcode) + ":",
+                    type: "emoji",
+                    apply: result.unicode + " ",
+                });
+            } else if ("url" in result) {
+                options.push({
+                    label: ":" + shortcodeMatchingPrefix(result.shortcodes, partialShortcode) + ":",
+                    type: "emote",
+                    apply: emoteStringFromCustomEmoji(result as CustomEmoji) + " ",
+                });
+            }
         }
         return {
             from: word.from,
@@ -193,7 +235,7 @@
         return shortcodes[0];
     }
 
-    async function searchEmoji(searchText: string, numResults: number): Promise<NativeEmoji[]> {
+    async function searchEmoji(searchText: string, numResults: number): Promise<Emoji[]> {
         let emojis = await emojiDatabase.getEmojiBySearchQuery(searchText);
 
         let shortcode = searchText;
@@ -222,12 +264,7 @@
                 numMoved++;
             }
         }
-
-        let result = emojis.filter((e): e is NativeEmoji => {
-            return "unicode" in e;
-        });
-
-        return result.slice(0, numResults);
+        return emojis.slice(0, numResults);
     }
 
     function addEmojiToAutocompleteOptions(completion: Completion, state: EditorState): Node | null {
@@ -239,6 +276,102 @@
         node.classList.add("cm-completionEmoji");
         return node;
     }
+
+    const emoteRegExp = /^<([ae])(:[a-zA-Z0-9_]+){0,1}:([0-9]{1,20})(\/{0,1})>/;
+
+    function addEmoteToAutocompleteOptions(completion: Completion, state: EditorState): Node | null {
+        if (completion.type !== "emote" || typeof completion.apply !== "string") {
+            return null;
+        }
+        let node = document.createElement("div");
+        let img = document.createElement("img");
+
+        let match = completion.apply.match(emoteRegExp);
+        img.src = emoteURLFromID(match[3].trim(), match[1].trim() == "a");
+        node.appendChild(img);
+        node.classList.add("cm-completionEmoji");
+        return node;
+    }
+
+    const Emote: MarkdownConfig = {
+        defineNodes: ["Emote"],
+        parseInline: [
+            {
+                name: "Emote",
+                parse(cx, next, pos) {
+                    let match: RegExpMatchArray | null;
+                    if (next != 60 /* '<' */ || !(match = emoteRegExp.exec(cx.slice(pos, cx.end)))) return -1;
+                    return cx.addElement(cx.elt("Emote", pos, pos + match[0].length));
+                },
+            },
+        ],
+    };
+
+    class EmoteWidget extends WidgetType {
+        constructor(readonly id: string, readonly shortcode: string, readonly animated: boolean) {
+            super();
+        }
+
+        eq(other: EmoteWidget) {
+            return other.id == this.id;
+        }
+
+        toDOM() {
+            let wrap = document.createElement("span");
+            wrap.setAttribute("aria-hidden", "true");
+            let box = wrap.appendChild(document.createElement("img"));
+            box.src = emoteURLFromID(this.id, this.animated);
+            box.alt = this.shortcode ? ":" + this.shortcode + ":" : "";
+            box.title = this.shortcode ? ":" + this.shortcode + ":" : "";
+            box.style.height = "1.3em";
+            box.style.display = "inline";
+            box.style.marginTop = "-0.25rem";
+            return wrap;
+        }
+
+        ignoreEvent() {
+            return false;
+        }
+    }
+
+    const emotePlugin = ViewPlugin.fromClass(
+        class {
+            decorations: DecorationSet;
+
+            constructor(view: EditorView) {
+                this.decorations = this.createEmoteReplacementWidgets(view);
+            }
+
+            createEmoteReplacementWidgets(view: EditorView) {
+                let widgets = [];
+                for (let { from, to } of view.visibleRanges) {
+                    syntaxTree(view.state).iterate({
+                        from,
+                        to,
+                        enter: (type, from, to) => {
+                            if (type.name == "Emote") {
+                                let match = view.state.doc.sliceString(from, to).match(emoteRegExp);
+                                let deco = Decoration.replace({
+                                    widget: new EmoteWidget(match[3], match[2]?.substring(1), match[1] == "a"),
+                                });
+                                widgets.push(deco.range(from, to));
+                            }
+                        },
+                    });
+                }
+                return Decoration.set(widgets);
+            }
+
+            update(update: ViewUpdate) {
+                if (update.docChanged || update.viewportChanged)
+                    this.decorations = this.createEmoteReplacementWidgets(update.view);
+            }
+        },
+        {
+            decorations: (v) => v.decorations,
+            provide: PluginField.atomicRanges.from((val) => val.decorations),
+        }
+    );
 
     function theme(darkMode: boolean): Extension {
         return EditorView.theme(
@@ -274,11 +407,20 @@
                 ".cm-completionIcon.cm-completionIcon-emoji": {
                     display: "none",
                 },
+                ".cm-completionIcon.cm-completionIcon-emote": {
+                    display: "none",
+                },
                 ".cm-completionEmoji": {
                     display: "inline-block",
                     "text-align": "center",
                     "min-width": "2.1rem",
                     "padding-right": "0.3rem",
+                    "vertical-align": "middle",
+                },
+                ".cm-completionEmoji > img": {
+                    display: "inline",
+                    height: "1.3em",
+                    "margin-top": "-0.25rem",
                 },
                 ".cm-tooltip-autocomplete ul li[aria-selected]": {
                     "background-color": darkMode ? "rgb(75,85,99)" : "rgb(156,163,175)",
@@ -343,6 +485,10 @@
                                 render: addEmojiToAutocompleteOptions,
                                 position: 21,
                             },
+                            {
+                                render: addEmoteToAutocompleteOptions,
+                                position: 21,
+                            },
                         ],
                     }),
                     replaceEmojiShortcodes(),
@@ -370,7 +516,7 @@
                         },
                     ]),
                     markdown({
-                        extensions: [Strikethrough, Emoji],
+                        extensions: [Strikethrough, MarkdownEmoji, Emote],
                         base: markdownLanguage,
                     }),
                     markdownLanguage.data.of({
@@ -382,6 +528,7 @@
                         },
                     }),
                     EditorView.lineWrapping,
+                    emotePlugin,
                     placeholder("Say something..."),
                     limitMaxLength(512),
                     themeCompartment.of(theme($darkMode)),
@@ -502,9 +649,30 @@
         }
     }
 
+    function emoteStringFromCustomEmoji(emoji: CustomEmoji): string {
+        let matches = emoji.url.match(/\/emotes\/([0-9]{1,20})\.(webp|gif)/);
+        let emojiID = matches[1];
+        let type = "";
+        switch (matches[2]) {
+            case "webp":
+                type = "e";
+                break;
+            case "gif":
+                type = "a";
+                break;
+        }
+        return "<" + type + ":" + emoji.shortcodes[0] + ":" + emojiID + ">";
+    }
+
     function onEmojiPicked(event: EmojiClickEvent) {
         toggleEmojiPicker();
-        editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
+        if (event.detail.unicode) {
+            editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
+        } else {
+            editorView.dispatch(
+                editorView.state.replaceSelection(emoteStringFromCustomEmoji(event.detail.emoji as CustomEmoji))
+            );
+        }
         editorView.focus();
     }
 

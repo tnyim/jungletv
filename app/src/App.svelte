@@ -316,6 +316,14 @@
 			background-color: hsla(0, 0%, 100%, 0.06);
 		}
 
+		.markdown-emote {
+			height: 1.3em;
+		}
+
+		em .markdown-emote {
+			transform: skewX(-12deg);
+		}
+
 		.player-minimized {
 			@apply fixed;
 			--tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);

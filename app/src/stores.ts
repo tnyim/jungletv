@@ -27,6 +27,13 @@ export const darkMode = writable((() => {
 })());
 export const blockedUsers = writable(new Set<string>());
 
+export type chatEmote = {
+    id: string,
+    shortcode: string,
+    animated: boolean,
+};
+export const chatEmotes = writable([] as chatEmote[]);
+
 type modalInfo = {
     component: any,
     props?: any,

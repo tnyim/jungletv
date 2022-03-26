@@ -1,20 +1,20 @@
 <script lang="ts">
-    import ChatEmojiAutocomplete from "./ChatEmojiAutocomplete.svelte";
-    import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import WarningMessage from "./WarningMessage.svelte";
-    // @ts-ignore no type info available
-    import { autoresize } from "svelte-textarea-autoresize";
-    import { darkMode, featureFlags, modal, rewardAddress } from "./stores";
-    import type { Picker } from "emoji-picker-element";
     import type { EmojiClickEvent, NativeEmoji } from "emoji-picker-element/shared";
+    import type { Picker } from "emoji-picker-element/svelte";
     import { afterUpdate, createEventDispatcher, onMount } from "svelte";
     import { link } from "svelte-navigator";
-    import { insertAtCursor, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
+    // @ts-ignore no type info available
+    import { autoresize } from "svelte-textarea-autoresize";
     import { apiClient } from "./api_client";
-    import { emojiDatabase } from "./chat_utils";
-    import type { ChatMessage } from "./proto/jungletv_pb";
     import BlockedUsers from "./BlockedUsers.svelte";
+    import ChatEmojiAutocomplete from "./ChatEmojiAutocomplete.svelte";
+    import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
+    import { emojiDatabase } from "./chat_utils";
+    import ErrorMessage from "./ErrorMessage.svelte";
+    import type { ChatMessage } from "./proto/jungletv_pb";
+    import { darkMode, featureFlags, modal, rewardAddress } from "./stores";
+    import { insertAtCursor, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
+    import WarningMessage from "./WarningMessage.svelte";
 
     export let chatEnabled: boolean;
     export let chatDisabledReason: string;

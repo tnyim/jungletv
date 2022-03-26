@@ -333,6 +333,7 @@ message ChatUpdate {
         ChatHeartbeatEvent heartbeat = 5;
         ChatBlockedUserCreatedEvent blocked_user_created = 6;
         ChatBlockedUserDeletedEvent blocked_user_deleted = 7;
+        ChatEmoteCreatedEvent emote_created = 8;
     }
 }
 
@@ -384,6 +385,12 @@ message ChatBlockedUserCreatedEvent {
 
 message ChatBlockedUserDeletedEvent {
     string blocked_user_address = 1;
+}
+
+message ChatEmoteCreatedEvent {
+    int64 id = 1 [jstype = JS_STRING];
+    string shortcode = 2;
+    bool animated = 3;
 }
 
 message SendChatMessageRequest {

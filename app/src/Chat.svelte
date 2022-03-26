@@ -5,7 +5,7 @@
     import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { fade } from "svelte/transition";
-    import { blockedUsers, featureFlags, unreadChatMention } from "./stores";
+    import { blockedUsers, chatEmote, chatEmotes, featureFlags, unreadChatMention } from "./stores";
     import { DateTime } from "luxon";
     import "emoji-picker-element";
 
@@ -173,6 +173,25 @@
             let bu = $blockedUsers;
             bu.delete(update.getBlockedUserDeleted().getBlockedUserAddress());
             $blockedUsers = bu;
+        } else if (update.hasEmoteCreated()) {
+            let newEmote = {
+                id: update.getEmoteCreated().getId(),
+                shortcode: update.getEmoteCreated().getShortcode(),
+                animated: update.getEmoteCreated().getAnimated(),
+            };
+            chatEmotes.update((oldValue): chatEmote[] => {
+                for (let emoteIdx = 0; emoteIdx < oldValue.length; emoteIdx++) {
+                    let emote = oldValue[emoteIdx];
+                    if (emote.id == newEmote.id) {
+                        // update data of emote
+                        oldValue[emoteIdx] = newEmote;
+                        return oldValue;
+                    }
+                }
+                // emote with this ID not present, add it
+                oldValue.push(newEmote);
+                return oldValue;
+            });
         }
     }
 
