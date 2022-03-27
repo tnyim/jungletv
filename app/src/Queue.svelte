@@ -109,9 +109,7 @@
     }
 
     let isStaff = false;
-    permissionLevel.subscribe((level) => {
-        isStaff = level == PermissionLevel.ADMIN;
-    });
+    $: isStaff = ($permissionLevel == PermissionLevel.ADMIN);
 
     function sumDurationOfEntriesBeforeIndex(idx: number): Duration {
         if (queueEntries[idx].getId() == insertCursor) {

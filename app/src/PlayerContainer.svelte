@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { beforeUpdate } from "svelte";
+    import { beforeUpdate, onDestroy } from "svelte";
     import watchMedia from "svelte-media";
     import { navigate } from "svelte-navigator";
     import Player from "./Player.svelte";
@@ -22,10 +22,11 @@
         bigMinimizedPlayer: "(min-width: 1024px) and (min-height: 800px)",
         largeEnoughToNotCollide: "(min-width: 1820px)",
     });
-    media.subscribe((obj: any) => {
+    const mediaUnsubscribe = media.subscribe((obj: any) => {
         bigMinimizedPlayer = obj.bigMinimizedPlayer;
         largeEnoughToNotCollide = obj.largeEnoughToNotCollide;
     });
+    onDestroy(mediaUnsubscribe);
 
     export let mainContentBottomPadding = "";
 
@@ -118,7 +119,8 @@
     }
 
     let rAddress = null;
-    rewardAddress.subscribe((a) => (rAddress = a));
+    const rewardAddressUnsubscribe = rewardAddress.subscribe((a) => (rAddress = a));
+    onDestroy(rewardAddressUnsubscribe);
 </script>
 
 <div

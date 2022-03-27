@@ -33,6 +33,8 @@ export type chatEmote = {
     animated: boolean,
 };
 export const chatEmotes = writable([] as chatEmote[]);
+export const chatMessageDraft = writable("");
+export const chatMessageDraftSelectionJSON = writable("");
 
 type modalInfo = {
     component: any,

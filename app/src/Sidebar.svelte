@@ -14,21 +14,18 @@
     let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
     let selectedTab: SidebarTab;
 
-    let currentlyWatchingCount = 0;
-    let playerIsConnected = false;
-    currentlyWatching.subscribe((count) => {
-        currentlyWatchingCount = count;
-    });
-    playerConnected.subscribe((connected) => {
-        playerIsConnected = connected;
-    });
-    unreadAnnouncement.subscribe((hasUnread) => {
+    let currentlyWatchingCount = 0
+    $: currentlyWatchingCount = $currentlyWatching;
+
+    const unreadAnnouncementUnsubscribe = unreadAnnouncement.subscribe((hasUnread) => {
         sidebarTabs.update((currentTabs) => {
             currentTabs.find((t) => "announcements" == t.id).highlighted = hasUnread;
             return currentTabs;
         });
     });
-    unreadChatMention.subscribe((hasUnread) => {
+    onDestroy(unreadAnnouncementUnsubscribe);
+
+    const unreadChatMentionUnsubscribe = unreadChatMention.subscribe((hasUnread) => {
         if (selectedTabID != "chat" || !hasUnread) {
             sidebarTabs.update((currentTabs) => {
                 currentTabs.find((t) => "chat" == t.id).highlighted = hasUnread;
@@ -38,12 +35,10 @@
             unreadChatMention.set(false);
         }
     });
+    onDestroy(unreadChatMentionUnsubscribe);
 
-    let tabs: SidebarTab[] = [];
-
-    sidebarTabs.subscribe((t) => {
-        tabs = t;
-    });
+    let tabs = $sidebarTabs;
+    $: tabs = $sidebarTabs;
 
     function openSidebarTab(event: CustomEvent<SidebarTab>) {
         let newTab = event.detail;
@@ -198,7 +193,7 @@
                 </SidebarTabButton>
             {/each}
         </div>
-        {#if playerIsConnected}
+        {#if $playerConnected}
             <div
                 class="text-gray-500 pt-1 pl-2"
                 title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"

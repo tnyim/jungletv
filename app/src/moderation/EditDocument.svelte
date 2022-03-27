@@ -59,7 +59,7 @@
     const themeCompartment = new Compartment();
     const highlightCompartment = new Compartment();
 
-    darkMode.subscribe((dm) => {
+    const darkModeUnsubscribe = darkMode.subscribe((dm) => {
         if (typeof editorView !== "undefined") {
             editorView.dispatch({
                 effects: [
@@ -69,12 +69,7 @@
             });
         }
     });
-
-    onDestroy(() => {
-        if (typeof editorView !== "undefined") {
-            editorView.destroy();
-        }
-    });
+    onDestroy(darkModeUnsubscribe);
 
     function theme(darkMode: boolean): Extension {
         return EditorView.theme(
@@ -178,6 +173,7 @@
             parent: editorContainer,
         });
         editorView.focus();
+        onDestroy(() => { editorView.destroy() });
     }
 
     $: {
@@ -216,7 +212,7 @@
     const media = watchMedia({ large: "(min-width: 640px)" });
     let firstMedia = true;
     // make sure we don't attempt to even split the screen on narrow screens
-    media.subscribe((obj) => {
+    const mediaUnsubscribe = media.subscribe((obj) => {
         if (firstMedia) {
             firstMedia = false;
             if (!obj.large) {
@@ -225,6 +221,7 @@
             }
         }
     });
+    onDestroy(mediaUnsubscribe);
 </script>
 
 <div class="flex-grow mx-auto editor-container flex flex-col">

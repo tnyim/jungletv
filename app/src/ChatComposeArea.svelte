@@ -14,7 +14,7 @@
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { syntaxTree } from "@codemirror/language";
     import { bracketMatching } from "@codemirror/matchbrackets";
-    import { ChangeSpec, Compartment, EditorState, Extension } from "@codemirror/state";
+    import { ChangeSpec, Compartment, EditorSelection, EditorState, Extension } from "@codemirror/state";
     import {
         Decoration,
         DecorationSet,
@@ -41,7 +41,16 @@
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
     import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
-    import { chatEmotes, darkMode, featureFlags, modal, permissionLevel, rewardAddress } from "./stores";
+    import {
+        chatEmotes,
+        chatMessageDraft,
+        chatMessageDraftSelectionJSON,
+        darkMode,
+        featureFlags,
+        modal,
+        permissionLevel,
+        rewardAddress,
+    } from "./stores";
     import {
         codeMirrorHighlightStyle,
         emoteURLFromID,
@@ -61,7 +70,6 @@
     let sendErrorMessage = "";
     let editorContainer: HTMLElement;
     let editorView: EditorView;
-    let composedMessage = "";
 
     let emojiPicker: Picker;
     let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
@@ -84,45 +92,47 @@
             }
         `;
         emojiPicker.shadowRoot.appendChild(style);
-
-        chatEmotes.subscribe((emotes) => {
-            let customEmoji: CustomEmoji[] = emotes.map((emote): CustomEmoji => {
-                return {
-                    name: emote.shortcode,
-                    shortcodes: [emote.shortcode],
-                    url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
-                };
-            });
-            emojiPicker.customEmoji = customEmoji;
-            emojiDatabase.customEmoji = customEmoji;
-        });
-
-        darkMode.subscribe((dm) => {
-            if (typeof editorView !== "undefined") {
-                editorView.dispatch({
-                    effects: [
-                        themeCompartment.reconfigure(theme(dm)),
-                        highlightCompartment.reconfigure(highlightStyle($permissionLevel == PermissionLevel.ADMIN, dm)),
-                    ],
-                });
-            }
-        });
-        permissionLevel.subscribe((permLevel) => {
-            if (typeof editorView !== "undefined") {
-                editorView.dispatch({
-                    effects: highlightCompartment.reconfigure(
-                        highlightStyle(permLevel == PermissionLevel.ADMIN, $darkMode)
-                    ),
-                });
-            }
-        });
+        emojiPicker.customEmoji = emojiDatabase.customEmoji;
     });
 
-    onDestroy(() => {
+    const chatEmotesUnsubscribe = chatEmotes.subscribe((emotes) => {
+        let customEmoji: CustomEmoji[] = emotes.map((emote): CustomEmoji => {
+            return {
+                name: emote.shortcode,
+                shortcodes: [emote.shortcode],
+                url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
+            };
+        });
+
+        if (typeof emojiPicker !== "undefined") {
+            emojiPicker.customEmoji = customEmoji;
+        }
+        emojiDatabase.customEmoji = customEmoji;
+    });
+    onDestroy(chatEmotesUnsubscribe);
+
+    const darkModeUnsubscribe = darkMode.subscribe((dm) => {
         if (typeof editorView !== "undefined") {
-            editorView.destroy();
+            editorView.dispatch({
+                effects: [
+                    themeCompartment.reconfigure(theme(dm)),
+                    highlightCompartment.reconfigure(highlightStyle($permissionLevel == PermissionLevel.ADMIN, dm)),
+                ],
+            });
         }
     });
+    onDestroy(darkModeUnsubscribe);
+
+    const permissionLevelUnsubscribe = permissionLevel.subscribe((permLevel) => {
+        if (typeof editorView !== "undefined") {
+            editorView.dispatch({
+                effects: highlightCompartment.reconfigure(
+                    highlightStyle(permLevel == PermissionLevel.ADMIN, $darkMode)
+                ),
+            });
+        }
+    });
+    onDestroy(permissionLevelUnsubscribe);
 
     $: {
         if (typeof replyingToMessage !== "undefined" && typeof editorView !== "undefined") {
@@ -308,7 +318,12 @@
     };
 
     class EmoteWidget extends WidgetType {
-        constructor(readonly id: string, readonly shortcode: string, readonly animated: boolean) {
+        constructor(
+            readonly originalText: string,
+            readonly id: string,
+            readonly shortcode: string,
+            readonly animated: boolean
+        ) {
             super();
         }
 
@@ -319,18 +334,23 @@
         toDOM() {
             let wrap = document.createElement("span");
             wrap.setAttribute("aria-hidden", "true");
-            let box = wrap.appendChild(document.createElement("img"));
-            box.src = emoteURLFromID(this.id, this.animated);
-            box.alt = this.shortcode ? ":" + this.shortcode + ":" : "";
-            box.title = this.shortcode ? ":" + this.shortcode + ":" : "";
-            box.style.height = "1.3em";
-            box.style.display = "inline";
-            box.style.marginTop = "-0.25rem";
+            let img = wrap.appendChild(document.createElement("img"));
+            img.addEventListener("error", () => {
+                wrap.removeChild(img);
+                wrap.style.display = "inline-block";
+                wrap.style.fontSize = "65%";
+                wrap.style.color = "red";
+                wrap.style.lineHeight = "90%";
+                wrap.style.marginTop = "-0.25rem";
+                wrap.innerHTML="invalid<br>emote";
+            });
+            img.src = emoteURLFromID(this.id, this.animated);
+            img.alt = this.shortcode ? ":" + this.shortcode + ":" : "";
+            img.title = this.shortcode ? ":" + this.shortcode + ":" : "";
+            img.style.height = "1.3em";
+            img.style.display = "inline";
+            img.style.marginTop = "-0.25rem";
             return wrap;
-        }
-
-        ignoreEvent() {
-            return false;
         }
     }
 
@@ -352,7 +372,12 @@
                             if (type.name == "Emote") {
                                 let match = view.state.doc.sliceString(from, to).match(emoteRegExp);
                                 let deco = Decoration.replace({
-                                    widget: new EmoteWidget(match[3], match[2]?.substring(1), match[1] == "a"),
+                                    widget: new EmoteWidget(
+                                        match[0],
+                                        match[3],
+                                        match[2]?.substring(1),
+                                        match[1] == "a"
+                                    ),
                                 });
                                 widgets.push(deco.range(from, to));
                             }
@@ -463,14 +488,21 @@
     }
 
     function setupEditor() {
+        let initialSelection: EditorSelection;
+        const selectionJSON = $chatMessageDraftSelectionJSON;
+        if (selectionJSON != "") {
+            initialSelection = EditorSelection.fromJSON(JSON.parse(selectionJSON));
+        }
         editorView = new EditorView({
             state: EditorState.create({
-                doc: composedMessage,
+                doc: $chatMessageDraft,
+                selection: initialSelection,
                 extensions: [
                     EditorView.updateListener.of((viewUpdate) => {
                         if (viewUpdate.docChanged) {
-                            composedMessage = viewUpdate.state.doc.toString();
+                            $chatMessageDraft = viewUpdate.state.doc.toString();
                         }
+                        $chatMessageDraftSelectionJSON = JSON.stringify(viewUpdate.state.selection.toJSON());
                     }),
                     highlightSpecialChars(),
                     history(),
@@ -537,6 +569,9 @@
             parent: editorContainer,
         });
         editorView.focus();
+        onDestroy(() => {
+            editorView.destroy();
+        });
     }
 
     $: {
@@ -558,19 +593,19 @@
     }
 
     // reactive block to update the editor contents when composedMessage is updated
-    $: updateEditorContents(composedMessage);
+    $: updateEditorContents($chatMessageDraft);
 
     async function sendMessageFromEvent(event: Event) {
         await sendMessage(event.isTrusted);
     }
 
     async function sendMessage(isTrusted: boolean) {
-        let msg = composedMessage.trim();
+        let msg = $chatMessageDraft.trim();
         if (msg == "") {
             return;
         }
 
-        composedMessage = "";
+        $chatMessageDraft = "";
         let refMsg = replyingToMessage;
         dispatch("clearReply");
         if (!emojiPicker.classList.contains("hidden")) {
@@ -612,7 +647,7 @@
                 await apiClient.sendChatMessage(msg, isTrusted, refMsg);
             }
         } catch (ex) {
-            composedMessage = msg;
+            $chatMessageDraft = msg;
             sendError = true;
             if (ex.includes("rate limit reached")) {
                 sendErrorMessage = "You're going too fast. Slow down.";
@@ -760,7 +795,9 @@
 
         <button
             title="Send message"
-            class="{composedMessage == '' ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
+            class="{$chatMessageDraft == ''
+                ? 'text-gray-400 dark:text-gray-600'
+                : 'text-purple-700 dark:text-purple-500'}
         min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
             on:click={sendMessageFromEvent}
         >

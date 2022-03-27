@@ -5,6 +5,7 @@
     import Toggle from "svelte-toggle";
     import watchMedia from "svelte-media";
     import NavbarAlert from "./NavbarAlert.svelte";
+import { onDestroy } from "svelte";
 
     const media = watchMedia({
         large: "(min-width: 1024px)",
@@ -13,12 +14,13 @@
     let largeScreen = false;
     let navbarOpen = false;
     let moreOpen = false;
-    media.subscribe((obj: any) => {
+    const mediaUnsubscribe = media.subscribe((obj: any) => {
         largeScreen = obj.large;
         if (obj.large) {
             navbarOpen = false;
         }
     });
+    onDestroy(mediaUnsubscribe);
 
     function setNavbarOpen() {
         navbarOpen = !navbarOpen;
@@ -26,18 +28,19 @@
 
     let rAddress = "";
 
-    rewardAddress.subscribe(async (address) => {
+    const rewardAddressUnsubscribe = rewardAddress.subscribe(async (address) => {
         rAddress = address;
     });
+    onDestroy(rewardAddressUnsubscribe);
 
     let hasAlert = false;
 
     const historyStore = { subscribe: globalHistory.listen };
-
-    historyStore.subscribe(() => {
+    const historyStoreUnsubscribe = historyStore.subscribe(() => {
         moreOpen = false;
         navbarOpen = false;
     });
+    onDestroy(historyStoreUnsubscribe);
 
     let moreCloseTimeout: number;
     $: {

@@ -4,7 +4,7 @@
     import { darkMode, permissionLevel } from "./stores";
     import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
     import { copyToClipboard } from "./utils";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onDestroy } from "svelte";
     import { openUserProfile } from "./profile_utils";
 
     export let msg: ChatMessage;
@@ -14,11 +14,10 @@
     const dispatch = createEventDispatcher();
 
     let isChatModerator = false;
+    $: isChatModerator = $permissionLevel == PermissionLevel.ADMIN;
+
     let topOffset = isChatModerator ? -208 : -168;
     $: topOffset = isChatModerator ? -208 : -168;
-    permissionLevel.subscribe((level) => {
-        isChatModerator = level == PermissionLevel.ADMIN;
-    });
 
     function openProfile() {
         openUserProfile(msg.getUserMessage().getAuthor().getAddress());

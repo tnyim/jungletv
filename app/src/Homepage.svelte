@@ -9,7 +9,8 @@
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
-    media.subscribe((obj: any) => (largeScreen = obj.large));
+    const mediaUnsubscribe = media.subscribe((obj: any) => (largeScreen = obj.large));
+    onDestroy(mediaUnsubscribe);
 
     const sidebarOpenCloseAnimDuration = 400;
 
@@ -44,11 +45,7 @@
         document.addEventListener("visibilitychange", checkShowCaptcha);
     });
 
-    onDestroy(() => {
-        document.removeEventListener("visibilitychange", checkShowCaptcha);
-    });
-
-    activityChallengeReceived.subscribe((c) => {
+    const activityChallengeReceivedUnsubscribe = activityChallengeReceived.subscribe((c) => {
         if (c == null) {
             hasChallenge = false;
             showCaptcha = false;
@@ -60,6 +57,11 @@
         if (document.hidden && c.getType() != "moderating") {
             captchaAudioAlert($playerVolume);
         }
+    });
+    onDestroy(activityChallengeReceivedUnsubscribe);
+
+    onDestroy(() => {
+        document.removeEventListener("visibilitychange", checkShowCaptcha);
     });
 
     function checkShowCaptcha() {

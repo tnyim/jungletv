@@ -101,8 +101,7 @@
     }
 
     let hasBlockedMessages = false;
-    function refreshHasBlockedMessages() {
-        let bu = $blockedUsers;
+    function refreshHasBlockedMessages(bu: Set<string>) {
         for (let msg of chatMessages) {
             if (!msg.hasUserMessage()) {
                 continue;
@@ -114,10 +113,7 @@
         }
         hasBlockedMessages = false;
     }
-
-    blockedUsers.subscribe((_) => {
-        refreshHasBlockedMessages();
-    });
+    $: refreshHasBlockedMessages($blockedUsers);
 
     function handleChatUpdated(update: ChatUpdate): void {
         if (consumeChatTimeoutHandle != null) {
@@ -154,7 +150,7 @@
                 }
             }
             chatMessages = chatMessages; // this triggers Svelte's reactivity
-            refreshHasBlockedMessages();
+            refreshHasBlockedMessages($blockedUsers);
         } else if (update.hasDisabled()) {
             chatEnabled = false;
             switch (update.getDisabled().getReason()) {

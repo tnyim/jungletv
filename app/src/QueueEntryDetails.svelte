@@ -26,15 +26,7 @@
     }
 
     let isChatModerator = false;
-    permissionLevel.subscribe((level) => {
-        isChatModerator = level == PermissionLevel.ADMIN;
-    });
-
-    let rAddress = "";
-
-    rewardAddress.subscribe((address) => {
-        rAddress = address;
-    });
+    $: isChatModerator = $permissionLevel == PermissionLevel.ADMIN;
 
     const units: DurationUnit[] = ["year", "month", "week", "day", "hour", "minute", "second"];
 
@@ -202,7 +194,7 @@
             <div class="{commonButtonClasses} col-span-3" on:click={() => openUserProfile(requestedBy.getAddress())}>
                 <i class="fas fa-id-card" /> Profile
             </div>
-            {#if requestedBy.getAddress() === rAddress && !isChatModerator && removalOfOwnEntriesAllowed}
+            {#if requestedBy.getAddress() === $rewardAddress && !isChatModerator && removalOfOwnEntriesAllowed}
                 <div class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
                     <i class="fas fa-trash" /> Remove
                 </div>

@@ -11,19 +11,18 @@
     });
 
     let largeScreen = false;
-    media.subscribe((obj: any) => {
+    const mediaUnsubscribe = media.subscribe((obj: any) => {
         largeScreen = obj.large;
     });
 
     let hideRewardTimeout: number;
 
     export let hasAlert = false;
-    $: hasAlert = badRep || lastReward != "";
+    $: hasAlert = $badRepresentative || lastReward != "";
 
     let lastReward = "";
-    let badRep = false;
 
-    rewardReceived.subscribe((reward) => {
+    const rewardReceivedUnsubscribe = rewardReceived.subscribe((reward) => {
         clearTimeout(hideRewardTimeout);
         if (reward != "") {
             lastReward = reward;
@@ -34,13 +33,13 @@
         }, 7000);
     });
 
-    badRepresentative.subscribe((b) => (badRep = b));
-
     onDestroy(() => {
         if (hideRewardTimeout !== undefined) {
             clearTimeout(hideRewardTimeout);
             hideRewardTimeout = undefined;
         }
+        mediaUnsubscribe();
+        rewardReceivedUnsubscribe();
     });
 </script>
 
@@ -52,7 +51,7 @@
     >
         Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
     </span>
-{:else if badRep}
+{:else if $badRepresentative}
     <span
         class="text-sm text-gray-700 bg-gray-200 ml-5 p-1 rounded self-center"
         in:fly={{ x: 200, duration: 1000 }}

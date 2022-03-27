@@ -1,8 +1,11 @@
 <script lang="ts">
+    import { onDestroy } from "svelte";
+
     import { useFocus } from "svelte-navigator";
+    import type { Unsubscriber } from "svelte/store";
     import { apiClient } from "./api_client";
     import { mostRecentAnnouncement, unreadAnnouncement } from "./stores";
-import { parseCompleteMarkdown } from "./utils";
+    import { parseCompleteMarkdown } from "./utils";
     export let documentID = "";
     export let mode = "page";
 
@@ -19,11 +22,22 @@ import { parseCompleteMarkdown } from "./utils";
         localStorage.setItem("lastSeenAnnouncement", $mostRecentAnnouncement.toString());
     }
 
+    let mostRecentAnnouncementUnsubscribe: Unsubscriber;
+
     if (documentID == "announcements") {
-        mostRecentAnnouncement.subscribe((_) => {
+        mostRecentAnnouncementUnsubscribe = mostRecentAnnouncement.subscribe((_) => {
             documentPromise = apiClient.getDocument(documentID);
         });
+    } else if (typeof mostRecentAnnouncementUnsubscribe !== "undefined") {
+        mostRecentAnnouncementUnsubscribe();
+        mostRecentAnnouncementUnsubscribe = undefined;
     }
+
+    onDestroy(() => {
+        if (typeof mostRecentAnnouncementUnsubscribe !== "undefined") {
+            mostRecentAnnouncementUnsubscribe();
+        }
+    });
 </script>
 
 <div class="flex-grow container mx-auto max-w-screen-md p-2 {mode == 'document' ? '' : 'pt-0'}">
@@ -33,7 +47,7 @@ import { parseCompleteMarkdown } from "./utils";
     {:then d}
         {#if d.getFormat() == "markdown"}
             <div class="markdown-document {mode == 'sidebar' ? 'sidebar-document' : ''}">
-                {@html parseCompleteMarkdown(d.getContent()) }
+                {@html parseCompleteMarkdown(d.getContent())}
             </div>
         {:else if d.getFormat() == "html"}
             {@html d.getContent()}
