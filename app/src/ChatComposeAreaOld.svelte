@@ -12,12 +12,10 @@
     import { emojiDatabase } from "./chat_utils";
     import ErrorMessage from "./ErrorMessage.svelte";
     import type { ChatMessage } from "./proto/jungletv_pb";
-    import { darkMode, featureFlags, modal, rewardAddress } from "./stores";
+    import { darkMode, featureFlags, modal } from "./stores";
     import { insertAtCursor, openPopout, parseUserMessageMarkdown, setNickname } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
 
-    export let chatEnabled: boolean;
-    export let chatDisabledReason: string;
     export let allowExpensiveCSSAnimations: boolean;
     export let replyingToMessage: ChatMessage;
     export let hasBlockedMessages: boolean;
@@ -255,99 +253,85 @@
     bind:this={emojiPicker}
     on:emoji-click={onEmojiPicked}
 />
-{#if $rewardAddress == ""}
-    <div class="p-2 text-gray-600 dark:text-gray-400">
-        <a href="/rewards/address" use:link>Set a reward address</a> to chat.
-    </div>
-{:else if !chatEnabled}
-    <div class="p-2 text-gray-600 dark:text-gray-400">
-        Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
-    </div>
-{:else}
-    {#if sendError}
-        <div class="px-2 pb-2 text-xs mt-2">
-            <ErrorMessage>
-                {sendErrorMessage}
-            </ErrorMessage>
-        </div>
-    {/if}
-    {#if !showedGuidelinesChatWarning}
-        <div class="px-2 pb-2 text-xs mt-2">
-            <WarningMessage>
-                Before participating in chat, make sure to read the
-                <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.
-                <br />
-                <a class="font-semibold float-right dark:text-blue-600" href={"#"} on:click={dismissGuidelinesWarning}
-                    >I read the guidelines and will respect them</a
-                >
-            </WarningMessage>
-        </div>
-    {/if}
-    {#if hasBlockedMessages}
-        <div class="px-2 py-1 text-xs">
-            Some messages were hidden.
-            <span
-                class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
-                tabindex="0"
-                on:click={openBlockedUserManagement}
-            >
-                Manage blocked users
-            </span>
-        </div>
-    {/if}
-    {#if replyingToMessage !== undefined}
-        <ChatReplyingBanner
-            {replyingToMessage}
-            {allowExpensiveCSSAnimations}
-            on:clearReply={() => dispatch("clearReply")}
-        >
-            <svelte:fragment slot="message-content">
-                {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent())}
-            </svelte:fragment>
-        </ChatReplyingBanner>
-    {/if}
-    <div class="flex flex-row relative">
-        {#if emojiAutocompletePrefix != ""}
-            <ChatEmojiAutocomplete
-                suppressPopup={emojiPickerShown}
-                enableReplyMargin={replyingToMessage !== undefined}
-                prefix={emojiAutocompletePrefix}
-                bind:currentSelection={emojiAutocompleteSelection}
-                bind:currentSelectionIndex={emojiAutocompleteSelectionIndex}
-                on:emojiPicked={insertAutocompleteSelectionEmoji}
-            />
-        {/if}
-        <textarea
-            use:autoresize
-            bind:this={composeTextArea}
-            bind:value={composedMessage}
-            on:keydown={handleKeyboardOnComposeTextarea}
-            on:click={handleCursorMoved}
-            on:keyup={handleCursorMoved}
-            use:focusOnInit
-            class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
-            placeholder="Say something..."
-            maxlength="512"
-        />
-
-        <button
-            title="Insert emoji"
-            class="text-purple-700 dark:text-purple-500 min-h-full w-8 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-            on:click={toggleEmojiPicker}
-        >
-            <i class="far fa-smile" />
-        </button>
-
-        <button
-            title="Send message"
-            class="{composedMessage == '' ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
-        min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-            on:click={sendMessage}
-        >
-            <i class="fas fa-paper-plane" />
-        </button>
+{#if sendError}
+    <div class="px-2 pb-2 text-xs mt-2">
+        <ErrorMessage>
+            {sendErrorMessage}
+        </ErrorMessage>
     </div>
 {/if}
+{#if !showedGuidelinesChatWarning}
+    <div class="px-2 pb-2 text-xs mt-2">
+        <WarningMessage>
+            Before participating in chat, make sure to read the
+            <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.
+            <br />
+            <a class="font-semibold float-right dark:text-blue-600" href={"#"} on:click={dismissGuidelinesWarning}
+                >I read the guidelines and will respect them</a
+            >
+        </WarningMessage>
+    </div>
+{/if}
+{#if hasBlockedMessages}
+    <div class="px-2 py-1 text-xs">
+        Some messages were hidden.
+        <span
+            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+            tabindex="0"
+            on:click={openBlockedUserManagement}
+        >
+            Manage blocked users
+        </span>
+    </div>
+{/if}
+{#if replyingToMessage !== undefined}
+    <ChatReplyingBanner {replyingToMessage} {allowExpensiveCSSAnimations} on:clearReply={() => dispatch("clearReply")}>
+        <svelte:fragment slot="message-content">
+            {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent())}
+        </svelte:fragment>
+    </ChatReplyingBanner>
+{/if}
+<div class="flex flex-row relative">
+    {#if emojiAutocompletePrefix != ""}
+        <ChatEmojiAutocomplete
+            suppressPopup={emojiPickerShown}
+            enableReplyMargin={replyingToMessage !== undefined}
+            prefix={emojiAutocompletePrefix}
+            bind:currentSelection={emojiAutocompleteSelection}
+            bind:currentSelectionIndex={emojiAutocompleteSelectionIndex}
+            on:emojiPicked={insertAutocompleteSelectionEmoji}
+        />
+    {/if}
+    <textarea
+        use:autoresize
+        bind:this={composeTextArea}
+        bind:value={composedMessage}
+        on:keydown={handleKeyboardOnComposeTextarea}
+        on:click={handleCursorMoved}
+        on:keyup={handleCursorMoved}
+        use:focusOnInit
+        class="flex-grow p-2 resize-none max-h-32 focus:outline-none dark:bg-gray-900"
+        placeholder="Say something..."
+        maxlength="512"
+    />
+
+    <button
+        title="Insert emoji"
+        class="text-purple-700 dark:text-purple-500 min-h-full w-8 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+        on:click={toggleEmojiPicker}
+    >
+        <i class="far fa-smile" />
+    </button>
+
+    <button
+        title="Send message"
+        class="{composedMessage == '' ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
+        min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+        on:click={sendMessage}
+    >
+        <i class="fas fa-paper-plane" />
+    </button>
+</div>
 
 <style lang="postcss">
     emoji-picker {

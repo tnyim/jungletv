@@ -1,22 +1,21 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { onDestroy, onMount, beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
-    import { navigate } from "svelte-navigator";
-    import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { fade } from "svelte/transition";
-    import { blockedUsers, chatEmote, chatEmotes, featureFlags, unreadChatMention } from "./stores";
-    import { DateTime } from "luxon";
     import "emoji-picker-element";
-
-    import { editNicknameForUser } from "./utils";
-    import type { SidebarTab } from "./tabStores";
-    import UserChatHistory from "./moderation/UserChatHistory.svelte";
-    import { getReadableMessageAuthor } from "./chat_utils";
-    import ChatUserMessage from "./ChatUserMessage.svelte";
-    import ChatSystemMessage from "./ChatSystemMessage.svelte";
+    import { DateTime } from "luxon";
+    import { afterUpdate, beforeUpdate, createEventDispatcher, onDestroy, onMount } from "svelte";
+    import { link, navigate } from "svelte-navigator";
+    import { fade } from "svelte/transition";
+    import { apiClient } from "./api_client";
     import ChatComposeArea from "./ChatComposeArea.svelte";
     import ChatComposeAreaOld from "./ChatComposeAreaOld.svelte";
+    import ChatSystemMessage from "./ChatSystemMessage.svelte";
+    import ChatUserMessage from "./ChatUserMessage.svelte";
+    import { getReadableMessageAuthor } from "./chat_utils";
+    import UserChatHistory from "./moderation/UserChatHistory.svelte";
+    import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
+    import { blockedUsers, chatEmote, chatEmotes, featureFlags, rewardAddress, unreadChatMention } from "./stores";
+    import type { SidebarTab } from "./tabStores";
+    import { editNicknameForUser } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -356,10 +355,16 @@
         {/each}
     </div>
     <div class="border-t border-gray-300 shadow-md flex flex-col">
-        {#if $featureFlags.useCM6ChatComposition}
+        {#if $rewardAddress == ""}
+            <div class="p-2 text-gray-600 dark:text-gray-400">
+                <a href="/rewards/address" use:link>Set a reward address</a> to chat.
+            </div>
+        {:else if !chatEnabled}
+            <div class="p-2 text-gray-600 dark:text-gray-400">
+                Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
+            </div>
+        {:else if $featureFlags.useCM6ChatComposition}
             <ChatComposeArea
-                {chatEnabled}
-                {chatDisabledReason}
                 {allowExpensiveCSSAnimations}
                 {replyingToMessage}
                 {hasBlockedMessages}
@@ -368,8 +373,6 @@
             />
         {:else}
             <ChatComposeAreaOld
-                {chatEnabled}
-                {chatDisabledReason}
                 {allowExpensiveCSSAnimations}
                 {replyingToMessage}
                 {hasBlockedMessages}
