@@ -81,6 +81,7 @@
         // if we set searchLabel directly, it won't work
         let i18n = emojiPicker.i18n;
         i18n.searchLabel = "Search emoji";
+        i18n.categories.custom = "Emotes";
         emojiPicker.i18n = i18n;
         const style = document.createElement("style");
         style.textContent = `

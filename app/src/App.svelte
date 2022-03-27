@@ -1,38 +1,39 @@
 <script lang="ts">
+	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
+	import { DateTime } from "luxon";
 	import { onMount } from "svelte";
-	import { Router, Route, globalHistory } from "svelte-navigator";
+	import { globalHistory, Route, Router } from "svelte-navigator";
+	import Modal from "svelte-simple-modal";
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
+	import Document from "./Document.svelte";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
+	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
-	import Navbar from "./Navbar.svelte";
-	import { PermissionLevel } from "./proto/jungletv_pb";
-	import SetRewardsAddress from "./SetRewardsAddress.svelte";
-	import UserChatHistory from "./moderation/UserChatHistory.svelte";
-	import {
-		badRepresentative,
-		darkMode,
-		permissionLevel,
-		rewardAddress,
-		rewardBalance,
-		modal,
-		featureFlags,
-	} from "./stores";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import EditDocument from "./moderation/EditDocument.svelte";
-	import Document from "./Document.svelte";
-	import Rewards from "./Rewards.svelte";
-	import Leaderboards from "./Leaderboards.svelte";
-	import PlayerContainer from "./PlayerContainer.svelte";
-	import Modal from "svelte-simple-modal";
 	import UserBans from "./moderation/UserBans.svelte";
+	import UserChatHistory from "./moderation/UserChatHistory.svelte";
+	import UserVerifications from "./moderation/UserVerifications.svelte";
+	import Navbar from "./Navbar.svelte";
 	import NoConnection from "./NoConnection.svelte";
 	import NotFound from "./NotFound.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
-	import UserVerifications from "./moderation/UserVerifications.svelte";
+	import PlayerContainer from "./PlayerContainer.svelte";
+	import { PermissionLevel } from "./proto/jungletv_pb";
+	import Rewards from "./Rewards.svelte";
+	import SetRewardsAddress from "./SetRewardsAddress.svelte";
+	import {
+		badRepresentative,
+		darkMode,
+		featureFlags,
+		modal,
+		permissionLevel,
+		rewardAddress,
+		rewardBalance,
+	} from "./stores";
 	import { SidebarTab, sidebarTabs } from "./tabStores";
-	import { DateTime } from "luxon";
 	import { formatMarkdownTimestamp } from "./utils";
 
 	export let url = "";
@@ -65,6 +66,8 @@
 	}
 
 	onMount(async () => {
+		// Use "Twemoji Mozilla" font-family name because emoji-picker-element places that first in the font-family list
+		polyfillCountryFlagEmojis("Twemoji Mozilla");
 		try {
 			let rewardInfo = await apiClient.rewardInfo();
 			rewardAddress.update((_) => rewardInfo.getRewardsAddress());

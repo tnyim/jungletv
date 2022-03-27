@@ -39,6 +39,7 @@
     "@improbable-eng/grpc-web": "^0.15.0",
     "@types/google-protobuf": "^3.15.2",
     "@types/marked": "^4.0.2",
+    "country-flag-emoji-polyfill": "^0.1.1",
     "emoji-picker-element": "^1.8.1",
     "google-protobuf": "^3.17.0",
     "luxon": "^1.27.0",

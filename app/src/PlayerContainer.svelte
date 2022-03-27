@@ -10,6 +10,8 @@
     export let fullSizePlayerContainerWidth: number = 0;
     export let fullSizePlayerContainerHeight: number = 0;
 
+    let windowInnerHeight = 0;
+
     let playerOpen = true;
     let wasFullSize = false;
     beforeUpdate(() => {
@@ -76,7 +78,7 @@
                 playerContainer.style.height = fullSizePlayerContainerHeight + "px";
                 playerContainer.style.width = fullSizePlayerContainerWidth + "px";
                 let rect = fullSizePlayerContainer.getBoundingClientRect();
-                playerContainer.style.bottom = window.innerHeight - rect.bottom + "px";
+                playerContainer.style.bottom = window.innerHeight - rect.bottom - window.scrollY + "px";
                 playerContainer.style.left = rect.left + "px";
                 playerContainer.style.transitionProperty = "width, height, bottom, left";
             }
@@ -97,6 +99,7 @@
     $: {
         fullSizePlayerContainerHeight;
         fullSizePlayerContainerWidth;
+        windowInnerHeight;
         matchPlayerRectToFakeContainer(true);
     }
     $: {
@@ -122,7 +125,7 @@
     const rewardAddressUnsubscribe = rewardAddress.subscribe((a) => (rAddress = a));
     onDestroy(rewardAddressUnsubscribe);
 </script>
-
+<svelte:window bind:innerHeight={windowInnerHeight} />
 <div
     class="{playerOpen ? '' : 'hidden'} player-minimized bg-black z-30 player-container"
     style="transition-duration: {sidebarOpenCloseAnimDuration}ms"
