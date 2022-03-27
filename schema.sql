@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "chat_emote";
 DROP TABLE IF EXISTS "verified_user";
 DROP TABLE IF EXISTS "blocked_user";
 DROP TABLE IF EXISTS "media_queue_event";
@@ -226,4 +227,12 @@ CREATE TABLE IF NOT EXISTS "verified_user" (
     reason TEXT NOT NULL,
     moderator_address VARCHAR(64) NOT NULL,
     moderator_name VARCHAR(32) NOT NULL
-)
+);
+
+CREATE TABLE IF NOT EXISTS "chat_emote" (
+    id BIGINT PRIMARY KEY,
+    shortcode TEXT NOT NULL,
+    animated BOOLEAN NOT NULL,
+    available_for_new_messages BOOLEAN NOT NULL,
+    requires_subscription BOOLEAN NOT NULL
+);

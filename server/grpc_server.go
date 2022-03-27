@@ -25,6 +25,7 @@ import (
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -89,7 +90,7 @@ type grpcServer struct {
 	rewardsHandler       *RewardsHandler
 	withdrawalHandler    *WithdrawalHandler
 	statsHandler         *StatsHandler
-	chat                 *ChatManager
+	chat                 *chatmanager.Manager
 	staffActivityManager *StaffActivityManager
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
@@ -313,7 +314,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat, err = NewChatManager(s.log, s.statsClient, chat.NewStoreDatabase(s.nicknameCache), s.moderationStore, blockeduser.NewStoreDatabase())
+	s.chat, err = chatmanager.New(s.log, s.statsClient, chat.NewStoreDatabase(s.nicknameCache), s.moderationStore,
+		blockeduser.NewStoreDatabase(), s.userSerializer)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -556,8 +558,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 
 	go func() {
 		for {
-			s.log.Println("Chat system message worker starting/restarting")
-			err := s.chat.Worker(ctx, s)
+			s.log.Println("Chat system messages worker starting/restarting")
+			err := s.ChatSystemMessagesWorker(ctx)
 			if err == nil {
 				return
 			}

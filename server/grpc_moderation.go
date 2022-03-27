@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/chatmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -103,7 +104,7 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 		s.chat.EnableChat()
 	} else {
 		enabledString = "disabled"
-		s.chat.DisableChat(ChatDisabledReasonUnspecified)
+		s.chat.DisableChat(chatmanager.DisabledReasonUnspecified)
 	}
 
 	s.chat.SetSlowModeEnabled(r.Slowmode)
@@ -154,13 +155,9 @@ func (s *grpcServer) UserChatMessages(ctx context.Context, r *proto.UserChatMess
 	}
 
 	user := auth.NewAddressOnlyUser(r.Address)
-	messages, err := s.chat.store.LoadNumLatestMessagesFromUser(ctx, user, int(r.NumMessages))
+	_, protoMsgs, err := s.chat.LoadNumLatestMessagesFromUser(ctx, user, int(r.NumMessages))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to load chat messages")
-	}
-	protoMsgs := make([]*proto.ChatMessage, len(messages))
-	for i := range messages {
-		protoMsgs[i] = messages[i].SerializeForAPI(ctx, s.userSerializer)
 	}
 	return &proto.UserChatMessagesResponse{
 		Messages: protoMsgs,

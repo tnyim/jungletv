@@ -7,6 +7,10 @@ import (
 	"github.com/tnyim/jungletv/proto"
 )
 
+func UserPermissionLevelIsAtLeast(user User, level PermissionLevel) bool {
+	return PermissionLevelOrder[user.PermissionLevel()] >= PermissionLevelOrder[level]
+}
+
 // User represents an identity on the service
 type User interface {
 	Address() string

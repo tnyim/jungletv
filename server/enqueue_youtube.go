@@ -39,7 +39,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingCont
 		return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 	}
 	if user != nil {
-		isAdmin = UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
+		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
 			return nil, youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly, nil
 		}

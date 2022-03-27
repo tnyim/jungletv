@@ -63,7 +63,7 @@ func (s *StaffActivityManager) IsActivelyModerating(staffMember auth.User) bool 
 
 // MarkAsActive marks the specified staff member as active
 func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
-	if !UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
+	if !auth.UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
 		return
 	}
 
@@ -122,7 +122,7 @@ func (s *StaffActivityManager) MarkAsActivityChallenged(staffMember auth.User, t
 
 // MarkAsStillActive clears the activity challenged status of the specified staff member, if they are actively moderating
 func (s *StaffActivityManager) MarkAsStillActive(staffMember auth.User) {
-	if !UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
+	if !auth.UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
 		return
 	}
 

@@ -34,17 +34,13 @@ func (u *unknownUser) IsUnknown() bool {
 func (u *unknownUser) SetNickname(s *string) {
 }
 
-func UserPermissionLevelIsAtLeast(user auth.User, level auth.PermissionLevel) bool {
-	return auth.PermissionLevelOrder[user.PermissionLevel()] >= auth.PermissionLevelOrder[level]
-}
-
 func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *proto.User {
 	userAddress := user.Address()
 	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
 
 	roles := []proto.UserRole{}
-	if UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
-		(fetchedUser != nil && UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
+	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
+		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
 	videoCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx, user)

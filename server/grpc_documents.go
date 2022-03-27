@@ -32,7 +32,7 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 	if !ok {
 		return nil, status.Error(codes.NotFound, "document not found")
 	}
-	if !document.Public && (user == nil || !UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)) {
+	if !document.Public && (user == nil || !auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)) {
 		return nil, status.Error(codes.NotFound, "document not found")
 	}
 

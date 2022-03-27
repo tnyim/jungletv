@@ -21,16 +21,16 @@ import (
 )
 
 func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.JungleTV_ConsumeChatServer) error {
-	onChatDisabled, chatDisabledU := s.chat.chatDisabled.Subscribe(event.AtLeastOnceGuarantee)
+	onChatDisabled, chatDisabledU := s.chat.OnChatDisabled().Subscribe(event.AtLeastOnceGuarantee)
 	defer chatDisabledU()
 
-	onChatEnabled, chatEnabledU := s.chat.chatEnabled.Subscribe(event.AtLeastOnceGuarantee)
+	onChatEnabled, chatEnabledU := s.chat.OnChatEnabled().Subscribe(event.AtLeastOnceGuarantee)
 	defer chatEnabledU()
 
-	onMessageCreated, messageCreatedU := s.chat.messageCreated.Subscribe(event.AtLeastOnceGuarantee)
+	onMessageCreated, messageCreatedU := s.chat.OnMessageCreated().Subscribe(event.AtLeastOnceGuarantee)
 	defer messageCreatedU()
 
-	onMessageDeleted, messageDeletedU := s.chat.messageDeleted.Subscribe(event.AtLeastOnceGuarantee)
+	onMessageDeleted, messageDeletedU := s.chat.OnMessageDeleted().Subscribe(event.AtLeastOnceGuarantee)
 	defer messageDeletedU()
 
 	ctx := stream.Context()
@@ -49,7 +49,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	unregister := s.statsHandler.RegisterStreamSubscriber(StreamStatsChat, user != nil && !user.IsUnknown())
 	defer unregister()
 
-	blockedAddresses, err := s.chat.blockedUserStore.LoadUsersBlockedBy(ctx, user)
+	blockedAddresses, err := s.chat.LoadUsersBlockedBy(ctx, user)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -64,7 +64,25 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to send initial blocked users list")
 		}
+	}
 
+	chatEmotes, err := s.chat.ChatEmotes(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to list chat emotes")
+	}
+	for _, emote := range chatEmotes {
+		err = stream.Send(&proto.ChatUpdate{
+			Event: &proto.ChatUpdate_EmoteCreated{
+				EmoteCreated: &proto.ChatEmoteCreatedEvent{
+					Id:        emote.ID,
+					Shortcode: emote.Shortcode,
+					Animated:  emote.Animated,
+				},
+			},
+		})
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to send chat emote")
+		}
 	}
 
 	chatEnabled, disabledReason := s.chat.Enabled()
@@ -77,15 +95,15 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if user != nil {
 			u = user
 		}
-		messages, err := s.chat.store.LoadNumLatestMessages(ctx, u, int(initialHistorySize))
+		_, protoMessages, err := s.chat.LoadNumLatestMessages(ctx, u, int(initialHistorySize))
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}
-		for i := range messages {
+		for i := range protoMessages {
 			err = stream.Send(&proto.ChatUpdate{
 				Event: &proto.ChatUpdate_MessageCreated{
 					MessageCreated: &proto.ChatMessageCreatedEvent{
-						Message: messages[i].SerializeForAPI(ctx, s.userSerializer),
+						Message: protoMessages[i],
 					},
 				},
 			})
@@ -123,12 +141,13 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 					Enabled: &proto.ChatEnabledEvent{},
 				},
 			})
-		case msg := <-onMessageCreated:
+		case args := <-onMessageCreated:
+			msg := args.Message
 			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
 				err = stream.Send(&proto.ChatUpdate{
 					Event: &proto.ChatUpdate_MessageCreated{
 						MessageCreated: &proto.ChatMessageCreatedEvent{
-							Message: msg.SerializeForAPI(ctx, s.userSerializer),
+							Message: args.ProtobufRepresentation,
 						},
 					},
 				})
