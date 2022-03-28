@@ -237,18 +237,18 @@ func GetWithSelectAndCount[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([
 	return getWithSelect[T](node, sbuilder, true)
 }
 
-// Update updates or inserts values t in the database. All t must be of the same type
-func Update(node sqalx.Node, t ...interface{}) error {
+// Update updates or inserts values t in the database
+func Update[T any](node sqalx.Node, t ...T) error {
 	return stacktrace.Propagate(updateOrInsert(node, true, t), "")
 }
 
-// Insert inserts values t in the database. All t must be of the same type
-func Insert(node sqalx.Node, t ...interface{}) error {
+// Insert inserts values t in the database
+func Insert[T any](node sqalx.Node, t ...T) error {
 	return stacktrace.Propagate(updateOrInsert(node, false, t), "")
 }
 
-// updateOrInsert updates or inserts values t in the database. All t must be of the same type
-func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
+// updateOrInsert updates or inserts values t in the database
+func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	if len(t) == 0 {
 		return nil
 	}
@@ -262,10 +262,10 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 	rows := [][]interface{}{}
 	fields := []structDBfield{}
 	tableName := ""
-	_, hasExtra := t[0].(extraDataHandler)
+	_, hasExtra := (any)(t[0]).(extraDataHandler)
 	for rowIdx, ti := range t {
 		if hasExtra {
-			err = ti.(extraDataHandler).updateExtra(tx, true)
+			err = (any)(ti).(extraDataHandler).updateExtra(tx, true)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -332,7 +332,7 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 	// call updateExtra again, this time with preSelf == false
 	if hasExtra {
 		for _, ti := range t {
-			err = ti.(extraDataHandler).updateExtra(tx, false)
+			err = (any)(ti).(extraDataHandler).updateExtra(tx, false)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -342,14 +342,15 @@ func updateOrInsert(node sqalx.Node, allowUpdate bool, t []interface{}) error {
 	return stacktrace.Propagate(tx.Commit(), "")
 }
 
-// DeleteCustom deletes the values with the same type as t which match the conditions in dbuilder
-func DeleteCustom(node sqalx.Node, t interface{}, dbuilder sq.DeleteBuilder) error {
+// DeleteCustom deletes the values which match the conditions in dbuilder
+func DeleteCustom[T any](node sqalx.Node, dbuilder sq.DeleteBuilder) error {
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	defer tx.Rollback()
 
+	var t T
 	_, tableName := getStructInfo(t)
 
 	builder := dbuilder.From(tableName)
@@ -361,19 +362,19 @@ func DeleteCustom(node sqalx.Node, t interface{}, dbuilder sq.DeleteBuilder) err
 	return stacktrace.Propagate(tx.Commit(), "")
 }
 
-// Delete deletes values t from the database.  All t must be of the same type
-func Delete(node sqalx.Node, t ...interface{}) error {
+// Delete deletes values t from the database.
+func Delete[T any](node sqalx.Node, t ...T) error {
 	return stacktrace.Propagate(deleteValues(node, false, t), "")
 }
 
-// MustDelete deletes values t from the database.  All t must be of the same type
+// MustDelete deletes values t from the database.
 // MustDelete is like Delete but returns an error when no rows were deleted
-func MustDelete(node sqalx.Node, t ...interface{}) error {
+func MustDelete[T any](node sqalx.Node, t ...T) error {
 	return stacktrace.Propagate(deleteValues(node, true, t), "")
 }
 
-// delete deletes values t from the database.  All t must be of the same type
-func deleteValues(node sqalx.Node, errorOnNothingDeleted bool, t []interface{}) error {
+// delete deletes values t from the database
+func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) error {
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
