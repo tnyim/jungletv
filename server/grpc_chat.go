@@ -232,22 +232,9 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	if !m.Shadowbanned {
-		go func() {
-			if r.Trusted {
-				if len(m.Content) >= 10 || m.Reference != nil {
-					s.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, user.Address())
-				}
-			} else {
-				s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
-			}
-		}()
-
-		if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() {
-			s.rewardsHandler.MarkAddressAsMentionedInChat(ctx, m.Reference.Author.Address())
-		}
+	if !r.Trusted {
+		s.rewardsHandler.MarkAddressAsNotLegitimate(ctx, user.Address())
 	}
-
 	return &proto.SendChatMessageResponse{
 		Id: m.ID.Int64(),
 	}, nil

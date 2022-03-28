@@ -15,6 +15,7 @@ import (
 	"github.com/DisgoOrg/disgohook"
 	"github.com/DisgoOrg/disgohook/api"
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/bwmarrin/snowflake"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -63,6 +64,7 @@ type grpcServer struct {
 	ipReputationChecker            *ipreputation.Checker
 	userSerializer                 auth.APIUserSerializer
 	websiteURL                     string
+	snowflakeNode                  *snowflake.Node
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
 	oauthStates  *cache.Cache[string, oauthStateData]
@@ -237,6 +239,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	}
 	s.userSerializer = s.serializeUserForAPI
 
+	s.snowflakeNode, err = snowflake.NewNode(1)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "failed to create snowflake node")
+	}
+
 	if options.ModLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, simplelogger.New(s.log, false), options.ModLogWebhook)
 		if err != nil {
@@ -295,12 +302,18 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
+	s.chat, err = chatmanager.New(s.log, s.statsClient, chat.NewStoreDatabase(s.nicknameCache), s.moderationStore,
+		blockeduser.NewStoreDatabase(), s.userSerializer, s.snowflakeNode)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+
 	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.paymentAccountPendingWaitGroup, s.moderationStore, s.staffActivityManager,
-		s.segchaResponseValid, options.VersionHash)
+		s.collectorAccountQueue, s.skipManager, s.chat, s.paymentAccountPendingWaitGroup, s.moderationStore, s.staffActivityManager,
+		s.segchaResponseValid, options.VersionHash, s.snowflakeNode)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -310,12 +323,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.enqueueManager, err = NewEnqueueManager(s.log, s.statsClient, s.mediaQueue, s.pricer, options.Wallet,
 		paymentaccountpool.New(options.Wallet, options.RepresentativeAddress), s.paymentAccountPendingWaitGroup, s.rewardsHandler,
 		s.collectorAccount.Address(), s.moderationStore, s.modLogWebhook)
-	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
-	}
-
-	s.chat, err = chatmanager.New(s.log, s.statsClient, chat.NewStoreDatabase(s.nicknameCache), s.moderationStore,
-		blockeduser.NewStoreDatabase(), s.userSerializer)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}

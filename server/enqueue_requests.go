@@ -252,6 +252,18 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 	}
 
 	// user can still be nil here, in case we couldn't find it in the last 10 account blocks
+
+	requestedByStr := "unknown"
+	if requestedBy != nil && requestedBy != (auth.User)(nil) {
+		requestedByStr = requestedBy.Address()
+
+		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
+			e.log.Printf("Ticket %s (p.a. %d) not being enqueued due to banned requester", reqID, request.PaymentAccount().Index())
+			// TODO auto-revert all transactions that came from the banned address
+			return nil
+		}
+	}
+
 	mi := request.MediaInfo()
 	e.paymentAccountPendingWaitGroup.Add(1)
 	playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable() || e.newEntriesAlwaysUnskippableForFree, request.ID()))
@@ -259,17 +271,6 @@ func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID stri
 	err = request.SetPaid()
 	if err != nil {
 		return stacktrace.Propagate(err, "failed to set ticket %v as paid", request.ID())
-	}
-
-	requestedByStr := "unknown"
-	if requestedBy != nil {
-		requestedByStr = requestedBy.Address()
-
-		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
-			return nil
-		}
-
-		e.rewardsHandler.MarkAddressAsActiveIfNotChallenged(ctx, requestedByStr)
 	}
 
 	_, mediaID := mi.MediaID()

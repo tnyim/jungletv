@@ -9,13 +9,18 @@ import (
 	"time"
 
 	movingaverage "github.com/RobinUS2/golang-moving-average"
+	"github.com/bwmarrin/snowflake"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
@@ -36,6 +41,7 @@ type RewardsHandler struct {
 	wallet                         *wallet.Wallet
 	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
 	skipManager                    *SkipManager
+	chatManager                    *chatmanager.Manager
 	paymentAccountPendingWaitGroup *sync.WaitGroup
 	lastMedia                      MediaQueueEntry
 	moderationStore                moderation.Store
@@ -43,6 +49,7 @@ type RewardsHandler struct {
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
 	versionHash                    string
+	snowflakeNode                  *snowflake.Node
 
 	rewardsDistributed *event.Event[rewardsDistributedEventArgs]
 
@@ -53,6 +60,8 @@ type RewardsHandler struct {
 	// spectatorByActivityChallenge maps an activity challenge to a spectator
 	spectatorByActivityChallenge map[string]*spectator
 	spectatorsMutex              sync.RWMutex
+
+	chatParticipation *cache.Cache[string, struct{}]
 }
 
 type Spectator interface {
@@ -177,11 +186,13 @@ func NewRewardsHandler(log *log.Logger,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
+	chatManager *chatmanager.Manager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore moderation.Store,
 	staffActivityManager *StaffActivityManager,
 	segchaCheckFn captchaResponseCheckFn,
-	versionHash string) (*RewardsHandler, error) {
+	versionHash string,
+	snowflakeNode *snowflake.Node) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -191,11 +202,13 @@ func NewRewardsHandler(log *log.Logger,
 		wallet:                         wallet,
 		collectorAccountQueue:          collectorAccountQueue,
 		skipManager:                    skipManager,
+		chatManager:                    chatManager,
 		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
 		staffActivityManager:           staffActivityManager,
 		moderationStore:                moderationStore,
 		eligibleMovingAverage:          movingaverage.New(3),
 		segchaCheckFn:                  segchaCheckFn,
+		snowflakeNode:                  snowflakeNode,
 
 		rewardsDistributed: event.New[rewardsDistributedEventArgs](),
 
@@ -204,6 +217,8 @@ func NewRewardsHandler(log *log.Logger,
 		spectatorByActivityChallenge: make(map[string]*spectator),
 
 		versionHash: versionHash,
+
+		chatParticipation: cache.New[string, struct{}](3*time.Minute, 10*time.Minute),
 	}, nil
 }
 
@@ -343,6 +358,9 @@ func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
 }
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
+	onEntryAdded, entryAddedU := r.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
+	defer entryAddedU()
+
 	onMediaChanged, mediaChangedU := r.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
 	defer mediaChangedU()
 
@@ -351,6 +369,9 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 
 	onPendingWithdrawalCreated, pendingWithdrawalCreatedU := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
 	defer pendingWithdrawalCreatedU()
+
+	onChatMessageCreated, onChatMessageCreatedU := r.chatManager.OnMessageCreated().Subscribe(event.AtLeastOnceGuarantee)
+	defer onChatMessageCreatedU()
 
 	// the rewards handler might be starting at a time when there are things already playing,
 	// in that case we need to update lastMedia
@@ -381,6 +402,16 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 			r.onPendingWithdrawalCreated(ctx, pendingWithdrawals)
 		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
+		case entryAddedArgs := <-onEntryAdded:
+			err := r.handleQueueEntryAdded(ctx, entryAddedArgs.entry)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		case msgCreatedArgs := <-onChatMessageCreated:
+			err := r.handleNewChatMessage(ctx, msgCreatedArgs.Message)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
 		case <-ctx.Done():
 			return nil
 		}
@@ -447,14 +478,52 @@ func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, re
 	return []string{}
 }
 
-func (r *RewardsHandler) MarkAddressAsMentionedInChat(ctx context.Context, address string) {
-	r.spectatorsMutex.Lock()
-	defer r.spectatorsMutex.Unlock()
+func (r *RewardsHandler) markAddressAsMentionedInChat(ctx context.Context, address string) {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	if ok {
 		spectator.onChatMentioned.Notify()
 	}
+}
+
+func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueueEntry) error {
+	requestedBy := m.RequestedBy()
+	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() {
+		return nil
+	}
+	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
+	err := pointsmanager.CreateTransaction(ctx, r.snowflakeNode, requestedBy, types.PointsTxTypeMediaEnqueuedReward, int(m.MediaInfo().Length().Minutes())+1)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	return nil
+}
+
+func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Message) error {
+	if m.Author == nil || m.Author == (auth.User)(nil) || m.Author.IsUnknown() || m.Shadowbanned {
+		return nil
+	}
+
+	if len(m.Content) >= 10 || m.Reference != nil {
+		r.markAddressAsActiveIfNotChallenged(ctx, m.Author.Address())
+
+		_, present := r.chatParticipation.Get(m.Author.Address())
+		if !present {
+			r.chatParticipation.SetDefault(m.Author.Address(), struct{}{})
+
+			err := pointsmanager.CreateTransaction(ctx, r.snowflakeNode, m.Author, types.PointsTxTypeChatActivityReward, 1)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
+	}
+
+	if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() {
+		r.markAddressAsMentionedInChat(ctx, m.Reference.Author.Address())
+	}
+	return nil
 }
 
 func (r *RewardsHandler) GetSpectator(address string) (Spectator, bool) {

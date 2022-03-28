@@ -49,11 +49,7 @@ type Manager struct {
 // New returns an initialized chat Manager
 func New(log *log.Logger, statsClient *statsd.Client,
 	store chat.Store, moderationStore moderation.Store, blockStore blockeduser.Store,
-	userSerializer auth.APIUserSerializer) (*Manager, error) {
-	node, err := snowflake.NewNode(1)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
-	}
+	userSerializer auth.APIUserSerializer, snowflakeNode *snowflake.Node) (*Manager, error) {
 
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   15,
@@ -83,7 +79,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		log:                   log,
 		statsClient:           statsClient,
 		store:                 store,
-		idNode:                node,
+		idNode:                snowflakeNode,
 		rateLimiter:           rateLimiter,
 		slowmodeRateLimiter:   slowmodeRateLimiter,
 		nickChangeRateLimiter: nickChangeRateLimiter,
