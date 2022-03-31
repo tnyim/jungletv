@@ -40,6 +40,8 @@ service JungleTV {
     rpc BlockUser (BlockUserRequest) returns (BlockUserResponse) {}
     rpc UnblockUser (UnblockUserRequest) returns (UnblockUserResponse) {}
     rpc BlockedUsers (BlockedUsersRequest) returns (BlockedUsersResponse) {}
+    rpc PointsInfo (PointsInfoRequest) returns (PointsInfoResponse) {}
+    rpc PointsTransactions (PointsTransactionsRequest) returns (PointsTransactionsResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -1000,3 +1002,35 @@ message MarkAsActivelyModeratingResponse {}
 message StopActivelyModeratingRequest {}
 
 message StopActivelyModeratingResponse {}
+
+message PointsInfoRequest {}
+
+message PointsInfoResponse {
+    int32 balance = 1;
+}
+
+message PointsTransactionsRequest {
+    PaginationParameters pagination_params = 1;
+}
+
+message PointsTransactionsResponse {
+    repeated PointsTransaction transactions = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message PointsTransaction {
+    int64 id = 1 [jstype = JS_STRING];
+    string rewards_address = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp updated_at = 4;
+    int32 value = 5;
+    PointsTransactionType type = 6;
+}
+
+enum PointsTransactionType {
+    UNKNOWN_POINTS_TRANSACTION_TYPE = 0;
+    POINTS_TRANSACTION_TYPE_ACTIVITY_CHALLENGE_REWARD = 1;
+    POINTS_TRANSACTION_TYPE_CHAT_ACTIVITY_REWARD = 2;
+    POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD = 3;
+}

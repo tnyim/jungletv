@@ -4554,6 +4554,138 @@ export namespace StopActivelyModeratingResponse {
   }
 }
 
+export class PointsInfoRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PointsInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: PointsInfoRequest): PointsInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PointsInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PointsInfoRequest;
+  static deserializeBinaryFromReader(message: PointsInfoRequest, reader: jspb.BinaryReader): PointsInfoRequest;
+}
+
+export namespace PointsInfoRequest {
+  export type AsObject = {
+  }
+}
+
+export class PointsInfoResponse extends jspb.Message {
+  getBalance(): number;
+  setBalance(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PointsInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: PointsInfoResponse): PointsInfoResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PointsInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PointsInfoResponse;
+  static deserializeBinaryFromReader(message: PointsInfoResponse, reader: jspb.BinaryReader): PointsInfoResponse;
+}
+
+export namespace PointsInfoResponse {
+  export type AsObject = {
+    balance: number,
+  }
+}
+
+export class PointsTransactionsRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PointsTransactionsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: PointsTransactionsRequest): PointsTransactionsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PointsTransactionsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PointsTransactionsRequest;
+  static deserializeBinaryFromReader(message: PointsTransactionsRequest, reader: jspb.BinaryReader): PointsTransactionsRequest;
+}
+
+export namespace PointsTransactionsRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+  }
+}
+
+export class PointsTransactionsResponse extends jspb.Message {
+  clearTransactionsList(): void;
+  getTransactionsList(): Array<PointsTransaction>;
+  setTransactionsList(value: Array<PointsTransaction>): void;
+  addTransactions(value?: PointsTransaction, index?: number): PointsTransaction;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PointsTransactionsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: PointsTransactionsResponse): PointsTransactionsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PointsTransactionsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PointsTransactionsResponse;
+  static deserializeBinaryFromReader(message: PointsTransactionsResponse, reader: jspb.BinaryReader): PointsTransactionsResponse;
+}
+
+export namespace PointsTransactionsResponse {
+  export type AsObject = {
+    transactionsList: Array<PointsTransaction.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
+export class PointsTransaction extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  hasCreatedAt(): boolean;
+  clearCreatedAt(): void;
+  getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasUpdatedAt(): boolean;
+  clearUpdatedAt(): void;
+  getUpdatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setUpdatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getValue(): number;
+  setValue(value: number): void;
+
+  getType(): PointsTransactionTypeMap[keyof PointsTransactionTypeMap];
+  setType(value: PointsTransactionTypeMap[keyof PointsTransactionTypeMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PointsTransaction.AsObject;
+  static toObject(includeInstance: boolean, msg: PointsTransaction): PointsTransaction.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PointsTransaction, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PointsTransaction;
+  static deserializeBinaryFromReader(message: PointsTransaction, reader: jspb.BinaryReader): PointsTransaction;
+}
+
+export namespace PointsTransaction {
+  export type AsObject = {
+    id: string,
+    rewardsAddress: string,
+    createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    value: number,
+    type: PointsTransactionTypeMap[keyof PointsTransactionTypeMap],
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -4649,4 +4781,13 @@ export interface ConnectionServiceMap {
 }
 
 export const ConnectionService: ConnectionServiceMap;
+
+export interface PointsTransactionTypeMap {
+  UNKNOWN_POINTS_TRANSACTION_TYPE: 0;
+  POINTS_TRANSACTION_TYPE_ACTIVITY_CHALLENGE_REWARD: 1;
+  POINTS_TRANSACTION_TYPE_CHAT_ACTIVITY_REWARD: 2;
+  POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD: 3;
+}
+
+export const PointsTransactionType: PointsTransactionTypeMap;
 

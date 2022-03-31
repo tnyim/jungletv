@@ -2,6 +2,7 @@ package pointsmanager
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -11,8 +12,20 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
+// Manager manages user points
+type Manager struct {
+	snowflakeNode *snowflake.Node
+}
+
+// New returns a new initialized Manager
+func New(snowflakeNode *snowflake.Node) *Manager {
+	return &Manager{
+		snowflakeNode: snowflakeNode,
+	}
+}
+
 // CreateTransaction creates a points transaction
-func CreateTransaction(ctxCtx context.Context, snowflakeNode *snowflake.Node, forUser auth.User, txType types.PointsTxType, value int) error {
+func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int) error {
 	err := validateBalanceMovement(txType, value)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -24,29 +37,46 @@ func CreateTransaction(ctxCtx context.Context, snowflakeNode *snowflake.Node, fo
 	}
 	defer ctx.Rollback()
 
-	// the following query is atomic
-	// doing it like this ensures that the curBalance+value < 0 check is made relative to the right PreviousTxID
-	// the DB schema constraints and triggers will ensure that we don't insert a PointsTx with the wrong PreviousTxID
-	latestID, curBalance, err := types.GetLatestPointsTxIDAndBalanceForAddress(ctx, forUser.Address())
+	// a CHECK (balance >= 0) exists in the table to prevent overdraw, even in concurrent transactions
+	err = types.AdjustPointsBalanceOfAddress(ctx, forUser.Address(), value)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	if curBalance+value < 0 {
-		return stacktrace.NewError("this transaction would cause a negative balance")
+	var lastTransaction *types.PointsTx
+	if pointsTxTypeCanCollapse[txType] {
+		// instead of creating a new transaction log entry, amend the last log entry if the transaction is of the same type
+		lastTransaction, err = types.GetLatestPointsTxForAddress(ctx, forUser.Address())
+		if err != nil {
+			if !errors.Is(err, types.ErrPointsTxNotFound) {
+				return stacktrace.Propagate(err, "")
+			}
+			lastTransaction = nil
+		} else if lastTransaction.Type != txType {
+			// disallow amending if the latest transaction is not of the same type
+			lastTransaction = nil
+		}
 	}
 
-	tx := &types.PointsTx{
-		ID:           snowflakeNode.Generate().Int64(),
-		PreviousTxID: latestID,
-		Address:      forUser.Address(),
-		CreatedAt:    time.Now(),
-		Value:        value,
-		Type:         txType,
-	}
-	err = tx.Insert(ctx)
-	if err != nil {
-		return stacktrace.Propagate(err, "")
+	if lastTransaction != nil {
+		err = lastTransaction.IncreaseValue(ctx, value)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	} else {
+		now := time.Now()
+		tx := &types.PointsTx{
+			ID:             m.snowflakeNode.Generate().Int64(),
+			RewardsAddress: forUser.Address(),
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			Value:          value,
+			Type:           txType,
+		}
+		err = tx.Insert(ctx)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 	}
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
@@ -77,4 +107,11 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeActivityChallengeReward: pointsTxDirectionIncrease,
 	types.PointsTxTypeChatActivityReward:      pointsTxDirectionIncrease,
 	types.PointsTxTypeMediaEnqueuedReward:     pointsTxDirectionIncrease,
+}
+
+// to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
+// into a single one, the value of which we amend as transactions occur, instead of creating new records
+var pointsTxTypeCanCollapse = map[types.PointsTxType]bool{
+	types.PointsTxTypeActivityChallengeReward: true,
+	types.PointsTxTypeChatActivityReward:      true,
 }

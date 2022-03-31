@@ -298,6 +298,24 @@ JungleTV.BlockedUsers = {
   responseType: jungletv_pb.BlockedUsersResponse
 };
 
+JungleTV.PointsInfo = {
+  methodName: "PointsInfo",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.PointsInfoRequest,
+  responseType: jungletv_pb.PointsInfoResponse
+};
+
+JungleTV.PointsTransactions = {
+  methodName: "PointsTransactions",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.PointsTransactionsRequest,
+  responseType: jungletv_pb.PointsTransactionsResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -1643,6 +1661,68 @@ JungleTVClient.prototype.blockedUsers = function blockedUsers(requestMessage, me
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.BlockedUsers, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.pointsInfo = function pointsInfo(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.PointsInfo, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.pointsTransactions = function pointsTransactions(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.PointsTransactions, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

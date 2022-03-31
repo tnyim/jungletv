@@ -1,5 +1,4 @@
-DROP TRIGGER IF EXISTS "points_tx_previous_tx_id_same_address" ON "points_tx";
-DROP FUNCTION IF EXISTS "points_tx_previous_tx_id_same_address";
+DROP TABLE IF EXISTS "points_balance";
 DROP TABLE IF EXISTS "points_tx";
 DROP TABLE IF EXISTS "points_tx_type";
 DROP TABLE IF EXISTS "chat_emote";
@@ -242,36 +241,27 @@ CREATE TABLE IF NOT EXISTS "chat_emote" (
 );
 
 CREATE TABLE IF NOT EXISTS "points_tx_type" (
-    points_tx_type VARCHAR(36) PRIMARY KEY
+    points_tx_type INTEGER PRIMARY KEY,
+    points_tx_type_name VARCHAR(36) NOT NULL UNIQUE
 );
-INSERT INTO "points_tx_type" VALUES ('activity_challenge_reward'), ('chat_activity_reward'), ('media_enqueued_reward');
+INSERT INTO "points_tx_type" VALUES
+    (1, 'activity_challenge_reward'),
+    (2, 'chat_activity_reward'),
+    (3, 'media_enqueued_reward');
 
 CREATE TABLE IF NOT EXISTS "points_tx" (
     id BIGINT PRIMARY KEY,
-    -- references previous tx for the same address, or NULL if first tx for an address. Exists to prevent TOCTOU problems where e.g. the existing balance is subtracted twice on concurrent transactions
-    previous_tx_id BIGINT UNIQUE REFERENCES points_tx (id), -- nullable
-    "address" VARCHAR(64) NOT NULL,
+    rewards_address VARCHAR(64) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     value INTEGER NOT NULL,
-    type VARCHAR(36) NOT NULL REFERENCES points_tx_type (points_tx_type),
-    extra TEXT NOT NULL,
-    CHECK (id <> previous_tx_id)
+    type INTEGER NOT NULL REFERENCES points_tx_type (points_tx_type),
+    extra TEXT NOT NULL
 );
--- the following index enforces that we can only have one null previous_tx_id per address
-CREATE UNIQUE INDEX previous_tx_id_nulltest ON points_tx ("address", (previous_tx_id IS NULL)) WHERE previous_tx_id IS NULL;
--- the following indexes are just to speed certain queries up
 CREATE INDEX ON points_tx (created_at);
-CREATE INDEX ON points_tx ("address");
+CREATE INDEX ON points_tx (rewards_address);
 
--- add a trigger to ensure that the previous_tx_id references a tx for the same address
-CREATE FUNCTION points_tx_previous_tx_id_same_address() RETURNS trigger AS $points_tx_previous_tx_id_same_address$
-    BEGIN
-        IF NEW.previous_tx_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM points_tx p WHERE p.id = NEW.previous_tx_id AND p.address = NEW.address) THEN
-            RAISE EXCEPTION 'referenced previous transaction must be for the same address';
-        END IF;
-        RETURN NEW;
-    END;
-$points_tx_previous_tx_id_same_address$ LANGUAGE plpgsql;
-
-CREATE TRIGGER "points_tx_previous_tx_id_same_address" BEFORE INSERT OR UPDATE ON points_tx
-    FOR EACH ROW EXECUTE FUNCTION points_tx_previous_tx_id_same_address();
+CREATE TABLE IF NOT EXISTS "points_balance" (
+    rewards_address VARCHAR(64) PRIMARY KEY,
+    balance INTEGER NOT NULL CHECK (balance >= 0)
+);

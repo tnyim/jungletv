@@ -292,6 +292,24 @@ type JungleTVBlockedUsers = {
   readonly responseType: typeof jungletv_pb.BlockedUsersResponse;
 };
 
+type JungleTVPointsInfo = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.PointsInfoRequest;
+  readonly responseType: typeof jungletv_pb.PointsInfoResponse;
+};
+
+type JungleTVPointsTransactions = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.PointsTransactionsRequest;
+  readonly responseType: typeof jungletv_pb.PointsTransactionsResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -650,6 +668,8 @@ export class JungleTV {
   static readonly BlockUser: JungleTVBlockUser;
   static readonly UnblockUser: JungleTVUnblockUser;
   static readonly BlockedUsers: JungleTVBlockedUsers;
+  static readonly PointsInfo: JungleTVPointsInfo;
+  static readonly PointsTransactions: JungleTVPointsTransactions;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -959,6 +979,24 @@ export class JungleTVClient {
   blockedUsers(
     requestMessage: jungletv_pb.BlockedUsersRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.BlockedUsersResponse|null) => void
+  ): UnaryResponse;
+  pointsInfo(
+    requestMessage: jungletv_pb.PointsInfoRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PointsInfoResponse|null) => void
+  ): UnaryResponse;
+  pointsInfo(
+    requestMessage: jungletv_pb.PointsInfoRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PointsInfoResponse|null) => void
+  ): UnaryResponse;
+  pointsTransactions(
+    requestMessage: jungletv_pb.PointsTransactionsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PointsTransactionsResponse|null) => void
+  ): UnaryResponse;
+  pointsTransactions(
+    requestMessage: jungletv_pb.PointsTransactionsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.PointsTransactionsResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

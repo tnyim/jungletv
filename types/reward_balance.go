@@ -83,6 +83,9 @@ func AdjustRewardBalanceOfAddresses(node sqalx.Node, addresses []string, amount 
 		RETURNING rewards_address, balance, updated_at`).
 		ToSql()
 	logger.Println(query, args, err)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 
 	balances := []*RewardBalance{}
 	err = tx.Tx().Select(&balances, query, args...)

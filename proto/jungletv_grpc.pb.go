@@ -50,6 +50,8 @@ type JungleTVClient interface {
 	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*BlockUserResponse, error)
 	UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*UnblockUserResponse, error)
 	BlockedUsers(ctx context.Context, in *BlockedUsersRequest, opts ...grpc.CallOption) (*BlockedUsersResponse, error)
+	PointsInfo(ctx context.Context, in *PointsInfoRequest, opts ...grpc.CallOption) (*PointsInfoResponse, error)
+	PointsTransactions(ctx context.Context, in *PointsTransactionsRequest, opts ...grpc.CallOption) (*PointsTransactionsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -523,6 +525,24 @@ func (c *jungleTVClient) BlockedUsers(ctx context.Context, in *BlockedUsersReque
 	return out, nil
 }
 
+func (c *jungleTVClient) PointsInfo(ctx context.Context, in *PointsInfoRequest, opts ...grpc.CallOption) (*PointsInfoResponse, error) {
+	out := new(PointsInfoResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/PointsInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) PointsTransactions(ctx context.Context, in *PointsTransactionsRequest, opts ...grpc.CallOption) (*PointsTransactionsResponse, error) {
+	out := new(PointsTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/PointsTransactions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -906,6 +926,8 @@ type JungleTVServer interface {
 	BlockUser(context.Context, *BlockUserRequest) (*BlockUserResponse, error)
 	UnblockUser(context.Context, *UnblockUserRequest) (*UnblockUserResponse, error)
 	BlockedUsers(context.Context, *BlockedUsersRequest) (*BlockedUsersResponse, error)
+	PointsInfo(context.Context, *PointsInfoRequest) (*PointsInfoResponse, error)
+	PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1045,6 +1067,12 @@ func (UnimplementedJungleTVServer) UnblockUser(context.Context, *UnblockUserRequ
 }
 func (UnimplementedJungleTVServer) BlockedUsers(context.Context, *BlockedUsersRequest) (*BlockedUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BlockedUsers not implemented")
+}
+func (UnimplementedJungleTVServer) PointsInfo(context.Context, *PointsInfoRequest) (*PointsInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PointsInfo not implemented")
+}
+func (UnimplementedJungleTVServer) PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PointsTransactions not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1757,6 +1785,42 @@ func _JungleTV_BlockedUsers_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).BlockedUsers(ctx, req.(*BlockedUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_PointsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PointsInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).PointsInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/PointsInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).PointsInfo(ctx, req.(*PointsInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_PointsTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PointsTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).PointsTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/PointsTransactions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).PointsTransactions(ctx, req.(*PointsTransactionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2522,6 +2586,14 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BlockedUsers",
 			Handler:    _JungleTV_BlockedUsers_Handler,
+		},
+		{
+			MethodName: "PointsInfo",
+			Handler:    _JungleTV_PointsInfo_Handler,
+		},
+		{
+			MethodName: "PointsTransactions",
+			Handler:    _JungleTV_PointsTransactions_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

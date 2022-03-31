@@ -9,7 +9,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
-	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -184,7 +183,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	delete(r.spectatorByActivityChallenge, challenge)
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
-	err = pointsmanager.CreateTransaction(ctx, r.snowflakeNode, spectator.user, types.PointsTxTypeActivityChallengeReward, points)
+	err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, points)
 	if err != nil {
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
 	}

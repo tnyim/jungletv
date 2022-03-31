@@ -29,6 +29,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -93,6 +94,7 @@ type grpcServer struct {
 	withdrawalHandler    *WithdrawalHandler
 	statsHandler         *StatsHandler
 	chat                 *chatmanager.Manager
+	pointsManager        *pointsmanager.Manager
 	staffActivityManager *StaffActivityManager
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
@@ -158,6 +160,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/BlockUser", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UnblockUser", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/BlockedUsers", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/PointsInfo", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/PointsTransactions", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
@@ -244,6 +248,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "failed to create snowflake node")
 	}
 
+	s.pointsManager = pointsmanager.New(s.snowflakeNode)
+
 	if options.ModLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, simplelogger.New(s.log, false), options.ModLogWebhook)
 		if err != nil {
@@ -312,8 +318,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.chat, s.paymentAccountPendingWaitGroup, s.moderationStore, s.staffActivityManager,
-		s.segchaResponseValid, options.VersionHash, s.snowflakeNode)
+		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPendingWaitGroup, s.moderationStore,
+		s.staffActivityManager, s.segchaResponseValid, options.VersionHash)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}

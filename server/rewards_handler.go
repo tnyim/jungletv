@@ -9,7 +9,6 @@ import (
 	"time"
 
 	movingaverage "github.com/RobinUS2/golang-moving-average"
-	"github.com/bwmarrin/snowflake"
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
@@ -49,7 +48,7 @@ type RewardsHandler struct {
 	eligibleMovingAverage          *movingaverage.MovingAverage
 	segchaCheckFn                  captchaResponseCheckFn
 	versionHash                    string
-	snowflakeNode                  *snowflake.Node
+	pointsManager                  *pointsmanager.Manager
 
 	rewardsDistributed *event.Event[rewardsDistributedEventArgs]
 
@@ -187,12 +186,12 @@ func NewRewardsHandler(log *log.Logger,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
 	chatManager *chatmanager.Manager,
+	pointsManager *pointsmanager.Manager,
 	paymentAccountPendingWaitGroup *sync.WaitGroup,
 	moderationStore moderation.Store,
 	staffActivityManager *StaffActivityManager,
 	segchaCheckFn captchaResponseCheckFn,
-	versionHash string,
-	snowflakeNode *snowflake.Node) (*RewardsHandler, error) {
+	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{
 		log:                            log,
 		statsClient:                    statsClient,
@@ -208,7 +207,7 @@ func NewRewardsHandler(log *log.Logger,
 		moderationStore:                moderationStore,
 		eligibleMovingAverage:          movingaverage.New(3),
 		segchaCheckFn:                  segchaCheckFn,
-		snowflakeNode:                  snowflakeNode,
+		pointsManager:                  pointsManager,
 
 		rewardsDistributed: event.New[rewardsDistributedEventArgs](),
 
@@ -494,7 +493,7 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
-	err := pointsmanager.CreateTransaction(ctx, r.snowflakeNode, requestedBy, types.PointsTxTypeMediaEnqueuedReward, int(m.MediaInfo().Length().Minutes())+1)
+	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward, int(m.MediaInfo().Length().Minutes())+1)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -513,7 +512,7 @@ func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Messa
 		if !present {
 			r.chatParticipation.SetDefault(m.Author.Address(), struct{}{})
 
-			err := pointsmanager.CreateTransaction(ctx, r.snowflakeNode, m.Author, types.PointsTxTypeChatActivityReward, 1)
+			err := r.pointsManager.CreateTransaction(ctx, m.Author, types.PointsTxTypeChatActivityReward, 1)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
