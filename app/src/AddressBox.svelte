@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { onDestroy } from "svelte";
+
     import QrCode from "svelte-qrcode";
     import { apiClient } from "./api_client";
 
@@ -13,6 +15,8 @@
 
     let uri = "";
     let bananoVaultURI = "";
+    let copySuccess = false;
+    let copySuccessTimeout: number;
 
     $: {
         if (isRepresentativeChange) {
@@ -32,10 +36,23 @@
     async function copyAddress() {
         try {
             await navigator.clipboard.writeText(address);
+            copySuccess = true;
+            if (typeof copySuccessTimeout !== "undefined") {
+                clearTimeout(copySuccessTimeout);
+            }
+            copySuccessTimeout = setTimeout(() => {
+                copySuccess = false;
+                copySuccessTimeout = undefined;
+            }, 5000);
         } catch (err) {
             console.error("Failed to copy!", err);
         }
     }
+    onDestroy(() => {
+        if (typeof copySuccessTimeout !== "undefined") {
+            clearTimeout(copySuccessTimeout);
+        }
+    });
 
     function selectAddress(event) {
         var range = document.createRange();
@@ -54,7 +71,7 @@
     </div>
     {#if allowQR}
         <button
-            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
+            class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
             on:click={() => {
                 showQR = !showQR;
             }}
@@ -63,17 +80,19 @@
         </button>
     {/if}
     <a
-        class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
+        class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
         href={uri}
     >
         <i class="fas fa-external-link-square-alt" />
     </a>
     <button
-        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 bg-gray-50 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
+        class="inline-flex items-center px-3 shadow-sm rounded-r-md border border-l-0 border-gray-300 {copySuccess
+            ? 'bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800'
+            : 'bg-gray-50 hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-950'} text-gray-500 text-sm"
         on:click={copyAddress}
         disabled={!navigator.clipboard}
     >
-        <i class="fas fa-copy" />
+        <i class="fas {copySuccess ? 'fa-check' : 'fa-copy'}" />
     </button>
 </div>
 {#if showQR}
