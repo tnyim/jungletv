@@ -41,7 +41,7 @@ func (c *Manager) LoadNumLatestMessages(ctx context.Context, includeShadowbanned
 }
 
 func (c *Manager) LoadNumLatestMessagesFromUser(ctx context.Context, user auth.User, num int) ([]*chat.Message, []*proto.ChatMessage, error) {
-	messages, err := c.store.LoadNumLatestMessages(ctx, user, num)
+	messages, err := c.store.LoadNumLatestMessagesFromUser(ctx, user, num)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "could not load chat messages")
 	}
