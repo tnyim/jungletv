@@ -11,6 +11,8 @@ module.exports = {
   variants: {
     extend: {
       blur: ['hover', 'active'],
+      ringWidth: ['focus-visible'],
+      ringColor: ['focus-visible'],
     },
   },
   plugins: [],

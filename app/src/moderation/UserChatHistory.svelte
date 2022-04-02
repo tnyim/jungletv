@@ -5,7 +5,7 @@
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
-import { openUserProfile } from "../profile_utils";
+    import { openUserProfile } from "../profile_utils";
 
     import type { ChatMessage } from "../proto/jungletv_pb";
 

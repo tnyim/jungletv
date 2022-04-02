@@ -4,7 +4,7 @@
     import { darkMode, permissionLevel } from "./stores";
     import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
     import { copyToClipboard } from "./utils";
-    import { createEventDispatcher, onDestroy } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import { openUserProfile } from "./profile_utils";
 
     export let msg: ChatMessage;
@@ -24,12 +24,22 @@
     }
 
     function openExplorer() {
-        window.open("https://www.yellowspyglass.com/account/" + msg.getUserMessage().getAuthor().getAddress());
+        window.open(
+            "https://www.yellowspyglass.com/account/" + msg.getUserMessage().getAuthor().getAddress(),
+            "",
+            "noopener"
+        );
     }
 
     async function copyAddress() {
         await copyToClipboard(msg.getUserMessage().getAuthor().getAddress());
         copied = true;
+    }
+
+    function keyDown(ev: KeyboardEvent) {
+        if (ev.key == "Escape") {
+            dispatch("mouseLeft");
+        }
     }
 
     // this is a workaround
@@ -38,10 +48,16 @@
     const commonButtonClasses =
         "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
         "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150 cursor-pointer";
+        "ease-linear transition-all duration-150 cursor-pointer" +
+        "focus:bg-gray-100 dark:focus:bg-gray-800";
 </script>
 
-<div class="absolute w-full max-w-md left-0" style="top: {topOffset}px" transition:fade|local={{ duration: 200 }}>
+<div
+    class="absolute w-full max-w-md left-0"
+    style="top: {topOffset}px"
+    transition:fade|local={{ duration: 200 }}
+    on:keydown={keyDown}
+>
     <div class="bg-gray-200 dark:bg-black rounded flex flex-col shadow-md">
         <div class="flex flex-row px-2 pt-2 overflow-x-hidden max-w-full" on:mouseenter={() => dispatch("mouseLeft")}>
             <img
@@ -93,36 +109,36 @@
         </div>
         <div class="grid grid-cols-6 gap-2 place-items-center px-2 pb-2">
             {#if isChatModerator}
-                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("delete")}>
+                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("delete")}>
                     <i class="fas fa-trash" /> Delete
-                </div>
-                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("history")}>
+                </button>
+                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("history")}>
                     <i class="fas fa-history" /> History
-                </div>
-                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("changeNickname")}>
+                </button>
+                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("changeNickname")}>
                     <i class="fas fa-edit" /> Nickname
-                </div>
+                </button>
             {/if}
-            <div
+            <button
                 class="{commonButtonClasses} {isChatModerator ? 'col-span-3' : 'col-span-6'}"
                 on:click={openProfile}
             >
                 <i class="fas fa-id-card" /> Profile
-            </div>
+            </button>
             {#if isChatModerator}
-                <div class="{commonButtonClasses} col-span-3" on:click={() => openExplorer()}>
+                <button class="{commonButtonClasses} col-span-3" on:click={() => openExplorer()}>
                     <i class="fas fa-search-dollar" /> Explorer
-                </div>
+                </button>
             {/if}
             {#if allowReplies}
-                <div class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
+                <button class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
                     <i class="fas fa-reply" /> Reply
-                </div>
+                </button>
             {/if}
-            <div class="{commonButtonClasses} {allowReplies ? 'col-span-3' : 'col-span-6'}" on:click={copyAddress}>
+            <button class="{commonButtonClasses} {allowReplies ? 'col-span-3' : 'col-span-6'}" on:click={copyAddress}>
                 <i class="fas fa-copy" />
                 {copied ? "Copied!" : "Copy address"}
-            </div>
+            </button>
         </div>
     </div>
 </div>

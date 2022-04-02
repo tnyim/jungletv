@@ -3,18 +3,22 @@ package chatmanager
 import (
 	"context"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/chatmanager/tenorclient"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/utils/event"
+	"golang.org/x/sync/singleflight"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -27,10 +31,16 @@ type Manager struct {
 	rateLimiter           limiter.Store
 	slowmodeRateLimiter   limiter.Store
 	nickChangeRateLimiter limiter.Store
+	gifSearchRateLimiter  limiter.Store
 	moderationStore       moderation.Store
 	blockedUserStore      blockeduser.Store
 	emoteCache            *chat.EmoteCache
 	userSerializer        auth.APIUserSerializer
+
+	tenorClient                      tenorclient.ClientWithResponsesInterface
+	tenorAPIkey                      string
+	tenorGifCache                    *cache.Cache[string, *chat.MessageAttachmentTenorGifView]
+	getTenorGifInfoSingleflightGroup singleflight.Group
 
 	enabled        bool
 	slowmode       bool
@@ -49,8 +59,7 @@ type Manager struct {
 // New returns an initialized chat Manager
 func New(log *log.Logger, statsClient *statsd.Client,
 	store chat.Store, moderationStore moderation.Store, blockStore blockeduser.Store,
-	userSerializer auth.APIUserSerializer, snowflakeNode *snowflake.Node) (*Manager, error) {
-
+	userSerializer auth.APIUserSerializer, snowflakeNode *snowflake.Node, tenorAPIkey string) (*Manager, error) {
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   15,
 		Interval: 30 * time.Second,
@@ -75,6 +84,25 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
 	}
 
+	gifSearchRateLimiter, err := memorystore.New(&memorystore.Config{
+		Tokens:   1,
+		Interval: 490 * time.Millisecond,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to create GIF search rate limiter")
+	}
+
+	tenorClient, err := tenorclient.NewClientWithResponses("https://g.tenor.com/", tenorclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+		query := req.URL.Query()
+		query.Del("key")
+		query.Add("key", tenorAPIkey)
+		req.URL.RawQuery = query.Encode()
+		return nil
+	}))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to create Tenor client")
+	}
+
 	return &Manager{
 		log:                   log,
 		statsClient:           statsClient,
@@ -83,11 +111,16 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		rateLimiter:           rateLimiter,
 		slowmodeRateLimiter:   slowmodeRateLimiter,
 		nickChangeRateLimiter: nickChangeRateLimiter,
+		gifSearchRateLimiter:  gifSearchRateLimiter,
 		enabled:               true,
 		moderationStore:       moderationStore,
 		blockedUserStore:      blockStore,
 		emoteCache:            &chat.EmoteCache{},
 		userSerializer:        userSerializer,
+
+		tenorClient:   tenorClient,
+		tenorAPIkey:   tenorAPIkey,
+		tenorGifCache: cache.New[string, *chat.MessageAttachmentTenorGifView](5*time.Minute, 1*time.Minute),
 
 		userBlockedBy:   make(map[string]*event.Event[string]),
 		userUnblockedBy: make(map[string]*event.Event[string]),

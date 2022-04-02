@@ -42,6 +42,7 @@ service JungleTV {
     rpc BlockedUsers (BlockedUsersRequest) returns (BlockedUsersResponse) {}
     rpc PointsInfo (PointsInfoRequest) returns (PointsInfoResponse) {}
     rpc PointsTransactions (PointsTransactionsRequest) returns (PointsTransactionsResponse) {}
+    rpc ChatGifSearch (ChatGifSearchRequest) returns (ChatGifSearchResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -347,6 +348,21 @@ message ChatMessage {
         SystemChatMessage system_message = 4;
     }
     optional ChatMessage reference = 5;
+    repeated ChatMessageAttachment attachments = 6;
+}
+
+message ChatMessageAttachment {
+    oneof attachment {
+        ChatMessageTenorGifAttachment tenor_gif = 1;
+    }
+}
+
+message ChatMessageTenorGifAttachment {
+    string id = 1;
+    string video_url = 2;
+    string title = 3;
+    int32 width = 4;
+    int32 height = 5;
 }
 
 message UserChatMessage {
@@ -399,6 +415,7 @@ message SendChatMessageRequest {
     string content = 1;
     bool trusted = 2;
     optional int64 reply_reference_id = 3 [jstype = JS_STRING];
+    optional string tenor_gif_attachment = 4;
 }
 
 message SendChatMessageResponse {
@@ -1033,4 +1050,22 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_ACTIVITY_CHALLENGE_REWARD = 1;
     POINTS_TRANSACTION_TYPE_CHAT_ACTIVITY_REWARD = 2;
     POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD = 3;
+}
+
+message ChatGifSearchRequest {
+    string query = 1;
+    string cursor = 2;
+}
+
+message ChatGifSearchResponse {
+    repeated ChatGifSearchResult results = 1;
+    string next_cursor = 2;
+}
+
+message ChatGifSearchResult {
+    string id = 1;
+    string title = 2;
+    string preview_url = 3;
+    int32 width = 4;
+    int32 height = 5;
 }

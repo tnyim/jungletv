@@ -52,6 +52,7 @@ type JungleTVClient interface {
 	BlockedUsers(ctx context.Context, in *BlockedUsersRequest, opts ...grpc.CallOption) (*BlockedUsersResponse, error)
 	PointsInfo(ctx context.Context, in *PointsInfoRequest, opts ...grpc.CallOption) (*PointsInfoResponse, error)
 	PointsTransactions(ctx context.Context, in *PointsTransactionsRequest, opts ...grpc.CallOption) (*PointsTransactionsResponse, error)
+	ChatGifSearch(ctx context.Context, in *ChatGifSearchRequest, opts ...grpc.CallOption) (*ChatGifSearchResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -543,6 +544,15 @@ func (c *jungleTVClient) PointsTransactions(ctx context.Context, in *PointsTrans
 	return out, nil
 }
 
+func (c *jungleTVClient) ChatGifSearch(ctx context.Context, in *ChatGifSearchRequest, opts ...grpc.CallOption) (*ChatGifSearchResponse, error) {
+	out := new(ChatGifSearchResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ChatGifSearch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -928,6 +938,7 @@ type JungleTVServer interface {
 	BlockedUsers(context.Context, *BlockedUsersRequest) (*BlockedUsersResponse, error)
 	PointsInfo(context.Context, *PointsInfoRequest) (*PointsInfoResponse, error)
 	PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error)
+	ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1073,6 +1084,9 @@ func (UnimplementedJungleTVServer) PointsInfo(context.Context, *PointsInfoReques
 }
 func (UnimplementedJungleTVServer) PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PointsTransactions not implemented")
+}
+func (UnimplementedJungleTVServer) ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChatGifSearch not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1821,6 +1835,24 @@ func _JungleTV_PointsTransactions_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).PointsTransactions(ctx, req.(*PointsTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ChatGifSearch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChatGifSearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ChatGifSearch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ChatGifSearch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ChatGifSearch(ctx, req.(*ChatGifSearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2594,6 +2626,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PointsTransactions",
 			Handler:    _JungleTV_PointsTransactions_Handler,
+		},
+		{
+			MethodName: "ChatGifSearch",
+			Handler:    _JungleTV_ChatGifSearch_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

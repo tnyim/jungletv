@@ -14,7 +14,7 @@ import (
 
 var newlineReducingRegexp = regexp.MustCompile("\n\n\n+")
 
-func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content string, reference *chat.Message) (*chat.Message, error) {
+func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content string, reference *chat.Message, attachments []chat.MessageAttachmentStorage) (*chat.Message, error) {
 	if !c.enabled {
 		return nil, stacktrace.NewError("chat currently disabled")
 	}
@@ -47,6 +47,11 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	attachments, err = c.processAttachments(ctx, author, attachments)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	m := &chat.Message{
 		ID:           c.idNode.Generate(),
 		CreatedAt:    time.Now(),
@@ -54,6 +59,7 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 		Content:      content,
 		Reference:    reference,
 		Shadowbanned: banned,
+		Attachments:  attachments,
 	}
 	nickname, err := c.store.StoreMessage(ctx, m)
 	if err != nil {
@@ -67,6 +73,16 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+
+	for _, a := range m.Attachments {
+		loaded, err := c.AttachmentLoader(ctx, a.SerializeForDatabase(ctx))
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		} else if loaded != nil && loaded != (chat.MessageAttachmentView)(nil) {
+			m.AttachmentsView = append(m.AttachmentsView, loaded)
+		}
+	}
+
 	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)})
 	go c.statsClient.Count("chat_message_created", 1)
 	return m, nil
@@ -95,4 +111,9 @@ func (c *Manager) CreateSystemMessage(ctx context.Context, content string) (*cha
 	}
 	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)})
 	return m, nil
+}
+
+func (c *Manager) processAttachments(ctx context.Context, author auth.User, attachments []chat.MessageAttachmentStorage) ([]chat.MessageAttachmentStorage, error) {
+	// TODO
+	return attachments, nil
 }

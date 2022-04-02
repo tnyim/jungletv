@@ -9,6 +9,7 @@ require (
 	github.com/RobinUS2/golang-moving-average v1.0.0
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/deepmap/oapi-codegen v1.9.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/fogleman/gg v1.3.0
@@ -37,6 +38,7 @@ require (
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/api v0.65.0
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1

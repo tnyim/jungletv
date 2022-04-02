@@ -45,19 +45,7 @@
 		//navigate("/auth/login");
 	});
 
-	$: {
-		if (typeof rootInsideShadowRoot !== "undefined") {
-			let enabled = $darkMode;
-			if (enabled) {
-				rootInsideShadowRoot.classList.add("dark");
-				rootInsideShadowRoot.classList.add("bg-gray-900");
-			} else {
-				rootInsideShadowRoot.classList.remove("dark");
-				rootInsideShadowRoot.classList.remove("bg-gray-900");
-			}
-			localStorage.darkMode = enabled;
-		}
-	}
+	$: localStorage.darkMode = $darkMode;
 
 	let isAdmin = false;
 	let isOnline = true;
@@ -167,7 +155,7 @@
 	}
 </script>
 
-<div bind:this={rootInsideShadowRoot} style="height: 100vh">
+<div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
 	<Modal setContext={modalSetContext} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
 		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
@@ -266,6 +254,10 @@
 	@tailwind utilities;
 
 	@layer base {
+		/* prefer Twemoji on Firefox - makes the rest of the page consistent with the emoji picker */
+		html {
+    		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Twemoji Mozilla", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+		}
 		a {
 			@apply text-blue-600 dark:text-blue-400 hover:underline cursor-pointer;
 		}

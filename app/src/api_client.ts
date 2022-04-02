@@ -143,7 +143,13 @@ import {
     MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse,
     StopActivelyModeratingRequest,
-    StopActivelyModeratingResponse
+    StopActivelyModeratingResponse,
+    PointsInfoResponse,
+    PointsInfoRequest,
+    PointsTransactionsResponse,
+    PointsTransactionsRequest,
+    ChatGifSearchRequest,
+    ChatGifSearchResponse
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -176,7 +182,7 @@ class APIClient {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {
                 if (metas[i].getAttribute("name") === "jungletv-version-hash") {
-                    this.versionHash = metas[i].getAttribute("content");
+                    this.versionHash = metas[i].getAttribute("content").split("###")[0];
                     break;
                 }
             }
@@ -350,12 +356,15 @@ class APIClient {
             onEnd);
     }
 
-    async sendChatMessage(message: string, trusted: boolean, reference?: ChatMessage): Promise<SendChatMessageResponse> {
+    async sendChatMessage(message: string, trusted: boolean, reference?: ChatMessage, tenorGifAttachment?: string): Promise<SendChatMessageResponse> {
         let request = new SendChatMessageRequest();
         request.setContent(message);
         request.setTrusted(trusted);
         if (typeof reference !== 'undefined') {
             request.setReplyReferenceId(reference.getId());
+        }
+        if (typeof tenorGifAttachment !== 'undefined') {
+            request.setTenorGifAttachment(tenorGifAttachment);
         }
         return this.unaryRPC<SendChatMessageRequest, SendChatMessageResponse>(JungleTV.SendChatMessage, request);
     }
@@ -712,6 +721,23 @@ class APIClient {
     async stopActivelyModerating(): Promise<StopActivelyModeratingResponse> {
         let request = new StopActivelyModeratingRequest();
         return this.unaryRPC<StopActivelyModeratingRequest, StopActivelyModeratingResponse>(JungleTV.StopActivelyModerating, request);
+    }
+
+    async pointsInfo(): Promise<PointsInfoResponse> {
+        return this.unaryRPC<PointsInfoRequest, PointsInfoResponse>(JungleTV.PointsInfo, new PointsInfoRequest());
+    }
+
+    async pointsTransactions(pagParams: PaginationParameters): Promise<PointsTransactionsResponse> {
+        let request = new PointsTransactionsRequest();
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<PointsTransactionsRequest, PointsTransactionsResponse>(JungleTV.PointsTransactions, request);
+    }
+
+    async chatGifSearch(query: string, cursor: string): Promise<ChatGifSearchResponse> {
+        let request = new ChatGifSearchRequest();
+        request.setQuery(query);
+        request.setCursor(cursor);
+        return this.unaryRPC<ChatGifSearchRequest, ChatGifSearchResponse>(JungleTV.ChatGifSearch, request);
     }
 
     formatBANPrice(raw: string): string {

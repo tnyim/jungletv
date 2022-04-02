@@ -29,6 +29,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
@@ -286,6 +287,11 @@ func main() {
 		mainLog.Fatalln("client secret not present in cryptomonKeys keybox")
 	}
 
+	tenorAPIKey, present := secrets.Get("tenorAPIkey")
+	if !present {
+		mainLog.Fatalln("Tenor API key not present in keybox")
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
 		auth.UserPermissionLevel:  180 * 24 * time.Hour,
 		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
@@ -313,6 +319,7 @@ func main() {
 		QueueFile:                 queueFile,
 		CryptomonKeysClientID:     cmClientID,
 		CryptomonKeysClientSecret: cmClientSecret,
+		TenorAPIKey:               tenorAPIKey,
 		WebsiteURL:                websiteURL,
 		VersionHash:               versionHash,
 	}
@@ -489,6 +496,9 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 			FullURL:     websiteURL + r.URL.Path,
 			VersionHash: versionHash,
 		})
+		if DEBUG {
+			versionHash += "###" + uuid.NewV4().String()
+		}
 		if err != nil {
 			webLog.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)

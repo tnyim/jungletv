@@ -1192,6 +1192,11 @@ export class ChatMessage extends jspb.Message {
   getReference(): ChatMessage | undefined;
   setReference(value?: ChatMessage): void;
 
+  clearAttachmentsList(): void;
+  getAttachmentsList(): Array<ChatMessageAttachment>;
+  setAttachmentsList(value: Array<ChatMessageAttachment>): void;
+  addAttachments(value?: ChatMessageAttachment, index?: number): ChatMessageAttachment;
+
   getMessageCase(): ChatMessage.MessageCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatMessage.AsObject;
@@ -1210,12 +1215,77 @@ export namespace ChatMessage {
     userMessage?: UserChatMessage.AsObject,
     systemMessage?: SystemChatMessage.AsObject,
     reference?: ChatMessage.AsObject,
+    attachmentsList: Array<ChatMessageAttachment.AsObject>,
   }
 
   export enum MessageCase {
     MESSAGE_NOT_SET = 0,
     USER_MESSAGE = 3,
     SYSTEM_MESSAGE = 4,
+  }
+}
+
+export class ChatMessageAttachment extends jspb.Message {
+  hasTenorGif(): boolean;
+  clearTenorGif(): void;
+  getTenorGif(): ChatMessageTenorGifAttachment | undefined;
+  setTenorGif(value?: ChatMessageTenorGifAttachment): void;
+
+  getAttachmentCase(): ChatMessageAttachment.AttachmentCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessageAttachment.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessageAttachment): ChatMessageAttachment.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessageAttachment, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessageAttachment;
+  static deserializeBinaryFromReader(message: ChatMessageAttachment, reader: jspb.BinaryReader): ChatMessageAttachment;
+}
+
+export namespace ChatMessageAttachment {
+  export type AsObject = {
+    tenorGif?: ChatMessageTenorGifAttachment.AsObject,
+  }
+
+  export enum AttachmentCase {
+    ATTACHMENT_NOT_SET = 0,
+    TENOR_GIF = 1,
+  }
+}
+
+export class ChatMessageTenorGifAttachment extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getVideoUrl(): string;
+  setVideoUrl(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getWidth(): number;
+  setWidth(value: number): void;
+
+  getHeight(): number;
+  setHeight(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessageTenorGifAttachment.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessageTenorGifAttachment): ChatMessageTenorGifAttachment.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessageTenorGifAttachment, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessageTenorGifAttachment;
+  static deserializeBinaryFromReader(message: ChatMessageTenorGifAttachment, reader: jspb.BinaryReader): ChatMessageTenorGifAttachment;
+}
+
+export namespace ChatMessageTenorGifAttachment {
+  export type AsObject = {
+    id: string,
+    videoUrl: string,
+    title: string,
+    width: number,
+    height: number,
   }
 }
 
@@ -1443,6 +1513,11 @@ export class SendChatMessageRequest extends jspb.Message {
   getReplyReferenceId(): string;
   setReplyReferenceId(value: string): void;
 
+  hasTenorGifAttachment(): boolean;
+  clearTenorGifAttachment(): void;
+  getTenorGifAttachment(): string;
+  setTenorGifAttachment(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SendChatMessageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SendChatMessageRequest): SendChatMessageRequest.AsObject;
@@ -1458,6 +1533,7 @@ export namespace SendChatMessageRequest {
     content: string,
     trusted: boolean,
     replyReferenceId: string,
+    tenorGifAttachment: string,
   }
 }
 
@@ -4683,6 +4759,92 @@ export namespace PointsTransaction {
     updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     value: number,
     type: PointsTransactionTypeMap[keyof PointsTransactionTypeMap],
+  }
+}
+
+export class ChatGifSearchRequest extends jspb.Message {
+  getQuery(): string;
+  setQuery(value: string): void;
+
+  getCursor(): string;
+  setCursor(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatGifSearchRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatGifSearchRequest): ChatGifSearchRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatGifSearchRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatGifSearchRequest;
+  static deserializeBinaryFromReader(message: ChatGifSearchRequest, reader: jspb.BinaryReader): ChatGifSearchRequest;
+}
+
+export namespace ChatGifSearchRequest {
+  export type AsObject = {
+    query: string,
+    cursor: string,
+  }
+}
+
+export class ChatGifSearchResponse extends jspb.Message {
+  clearResultsList(): void;
+  getResultsList(): Array<ChatGifSearchResult>;
+  setResultsList(value: Array<ChatGifSearchResult>): void;
+  addResults(value?: ChatGifSearchResult, index?: number): ChatGifSearchResult;
+
+  getNextCursor(): string;
+  setNextCursor(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatGifSearchResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatGifSearchResponse): ChatGifSearchResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatGifSearchResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatGifSearchResponse;
+  static deserializeBinaryFromReader(message: ChatGifSearchResponse, reader: jspb.BinaryReader): ChatGifSearchResponse;
+}
+
+export namespace ChatGifSearchResponse {
+  export type AsObject = {
+    resultsList: Array<ChatGifSearchResult.AsObject>,
+    nextCursor: string,
+  }
+}
+
+export class ChatGifSearchResult extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getPreviewUrl(): string;
+  setPreviewUrl(value: string): void;
+
+  getWidth(): number;
+  setWidth(value: number): void;
+
+  getHeight(): number;
+  setHeight(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatGifSearchResult.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatGifSearchResult): ChatGifSearchResult.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatGifSearchResult, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatGifSearchResult;
+  static deserializeBinaryFromReader(message: ChatGifSearchResult, reader: jspb.BinaryReader): ChatGifSearchResult;
+}
+
+export namespace ChatGifSearchResult {
+  export type AsObject = {
+    id: string,
+    title: string,
+    previewUrl: string,
+    width: number,
+    height: number,
   }
 }
 

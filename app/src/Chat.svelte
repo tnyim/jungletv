@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import "emoji-picker-element";
+    import type { CustomEmoji } from "emoji-picker-element/shared";
     import { DateTime } from "luxon";
     import { afterUpdate, beforeUpdate, createEventDispatcher, onDestroy, onMount } from "svelte";
     import { link, navigate } from "svelte-navigator";
@@ -13,7 +14,15 @@
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
     import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
-    import { blockedUsers, chatEmote, chatEmotes, featureFlags, rewardAddress, unreadChatMention } from "./stores";
+    import {
+        blockedUsers,
+        chatEmote,
+        chatEmotes,
+        chatEmotesAsCustomEmoji,
+        featureFlags,
+        rewardAddress,
+        unreadChatMention,
+    } from "./stores";
     import type { SidebarTab } from "./tabStores";
     import { editNicknameForUser } from "./utils";
 
@@ -187,6 +196,14 @@
                 oldValue.push(newEmote);
                 return oldValue;
             });
+            let customEmoji: CustomEmoji[] = $chatEmotes.map((emote): CustomEmoji => {
+                return {
+                    name: emote.shortcode,
+                    shortcodes: [emote.shortcode],
+                    url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
+                };
+            });
+            $chatEmotesAsCustomEmoji = customEmoji;
         }
     }
 
@@ -342,6 +359,7 @@
                         on:history={() => openChatHistoryForAuthorOfMessage(message)}
                         on:changeNickname={() => editNicknameForAuthorOfMessage(message)}
                         on:beginShowDetails={(e) => beginShowMessageDetails(e.detail)}
+                        on:showDetails={(e) => showMessageDetails(e.detail)}
                         on:hideDetails={hideMessageDetails}
                     />
                 {:else if message.hasSystemMessage()}

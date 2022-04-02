@@ -77,6 +77,15 @@ export default [
 				"export default function calculateNodeHeight(sizingData, value) {": "export default function calculateNodeHeight(node, sizingData, value) {",
 				"document.body": "node.getRootNode()",
 			}),
+			replace({
+				// fix codemirror not dealing well with closed shadow root in iOS Safari
+				// (bug where cursor would constantly snap to unwanted places)
+				include: "node_modules/@codemirror/view/dist/**",
+				delimiters: ["", ""],
+				preventAssignment: true,
+				"function deepActiveElement() {" : "function deepActiveElement(node) { return node.getRootNode().activeElement;",
+				"deepActiveElement() ==": "deepActiveElement(root) ==",
+			}),
 			/*replace({
 				// this might help fix things when proxied by Cloudflare? since they don't recognize grpc-web as being grpc
 				include: "node_modules/@improbable-eng/grpc-web/dist/*.js",

@@ -1,5 +1,6 @@
+import type { CustomEmoji } from 'emoji-picker-element/shared';
 import { writable } from 'svelte/store';
-import { ActivityChallenge, PermissionLevel, PermissionLevelMap } from './proto/jungletv_pb';
+import { ActivityChallenge, ChatGifSearchResult, PermissionLevel, PermissionLevelMap } from './proto/jungletv_pb';
 
 type valueof<T> = T[keyof T];
 
@@ -21,6 +22,12 @@ export const sidebarMode = writable(((): string => {
     }
     return localStorage.sidebarMode;
 })());
+export const chatMediaPickerMode = writable(((): "emoji" | "gifs" => {
+    if (!('chatMediaPickerMode' in localStorage)) {
+        return "emoji";
+    }
+    return localStorage.chatMediaPickerMode;
+})());
 export const permissionLevel = writable(PermissionLevel.UNAUTHENTICATED as valueof<PermissionLevelMap>);
 export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -33,7 +40,9 @@ export type chatEmote = {
     animated: boolean,
 };
 export const chatEmotes = writable([] as chatEmote[]);
+export const chatEmotesAsCustomEmoji = writable([] as CustomEmoji[]);
 export const chatMessageDraft = writable("");
+export const chatMessageDraftTenorGif = writable<ChatGifSearchResult>();
 export const chatMessageDraftSelectionJSON = writable("");
 
 type modalInfo = {

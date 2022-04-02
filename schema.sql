@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS "chat_message" (
     author VARCHAR(64) REFERENCES chat_user ("address"),
     content TEXT NOT NULL,
     reference BIGINT REFERENCES chat_message (id),
-    shadowbanned BOOLEAN NOT NULL
+    shadowbanned BOOLEAN NOT NULL,
+    attachments TEXT[] NOT NULL
 );
 CREATE INDEX index_created_at_on_chat_message ON chat_message USING BTREE (created_at);
 

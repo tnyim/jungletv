@@ -1,13 +1,14 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { apiClient } from "./api_client";
+    import ChatGifAttachment from "./ChatGifAttachment.svelte";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
 
     import { getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
 
-    import { ChatMessage, UserRole } from "./proto/jungletv_pb";
+    import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, rewardAddress } from "./stores";
-import { parseCompleteMarkdown, parseCompleteMarkdownInline, parseUserMessageMarkdown } from "./utils";
+    import { parseCompleteMarkdownInline, parseUserMessageMarkdown } from "./utils";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
@@ -35,7 +36,7 @@ import { parseCompleteMarkdown, parseCompleteMarkdownInline, parseUserMessageMar
 
     function renderMessage(): string {
         let result = "";
-        if(message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)) {
+        if (message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)) {
             result = parseCompleteMarkdownInline(message.getUserMessage().getContent());
         } else {
             result = parseUserMessageMarkdown(message.getUserMessage().getContent());
@@ -90,6 +91,12 @@ import { parseCompleteMarkdown, parseCompleteMarkdownInline, parseUserMessageMar
     {/if}
     <div class="overflow-hidden">
         <span
+            tabindex="0"
+            on:keydown={(ev) => {
+                if (ev.key == "Enter") {
+                    dispatch("showDetails", message);
+                }
+            }}
             on:pointerenter={(ev) => {
                 if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
                     dispatch("beginShowDetails", message);
@@ -128,6 +135,13 @@ import { parseCompleteMarkdown, parseCompleteMarkdownInline, parseUserMessageMar
             {/if}:
         </span>
         {@html renderMessage()}
+        {#each message.getAttachmentsList() as attachment}
+            {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
+                <div class="p-1">
+                    <ChatGifAttachment attachment={attachment.getTenorGif()} />
+                </div>
+            {/if}
+        {/each}
     </div>
     {#if detailsOpenForMsgID == message.getId()}
         <ChatMessageDetails

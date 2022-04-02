@@ -71,7 +71,7 @@
     }
 
     function openExplorer() {
-        window.open("https://www.yellowspyglass.com/account/" + requestedBy.getAddress());
+        window.open("https://www.yellowspyglass.com/account/" + requestedBy.getAddress(), "", "noopener");
     }
 
     async function setCursor() {
@@ -169,7 +169,7 @@
                 <div
                     class="{commonButtonClasses} col-span-2"
                     on:click={() =>
-                        window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId())}
+                        window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId(), "", "noopener")}
                 >
                     <i class="fab fa-youtube" /> YouTube
                 </div>

@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/usercache"
@@ -28,43 +30,54 @@ type Store interface {
 	SetUserNickname(context.Context, auth.User, *string) error
 }
 
+type AttachmentLoader func(context.Context, string) (MessageAttachmentView, error)
+
 // ChatStoreDatabase stores messages in the database
 type ChatStoreDatabase struct {
-	nicknameCache usercache.UserCache
+	log              *log.Logger
+	nicknameCache    usercache.UserCache
+	attachmentLoader AttachmentLoader
 }
 
 // NewStoreDatabase initializes and returns a new ChatStoreDatabase
-func NewStoreDatabase(nicknameCache usercache.UserCache) *ChatStoreDatabase {
+func NewStoreDatabase(log *log.Logger, nicknameCache usercache.UserCache) *ChatStoreDatabase {
 	return &ChatStoreDatabase{
+		log:           log,
 		nicknameCache: nicknameCache,
 	}
 }
 
+func (s *ChatStoreDatabase) SetAttachmentLoader(attachmentLoader AttachmentLoader) {
+	s.attachmentLoader = attachmentLoader
+}
+
 type dbChatMsg struct {
-	ID           snowflake.ID  `db:"id"`
-	CreatedAt    time.Time     `db:"created_at"`
-	Author       *string       `db:"author"`
-	Content      string        `db:"content"`
-	Reference    *snowflake.ID `db:"reference"`
-	Shadowbanned bool          `db:"shadowbanned"`
+	ID           snowflake.ID   `db:"id"`
+	CreatedAt    time.Time      `db:"created_at"`
+	Author       *string        `db:"author"`
+	Content      string         `db:"content"`
+	Reference    *snowflake.ID  `db:"reference"`
+	Shadowbanned bool           `db:"shadowbanned"`
+	Attachments  pq.StringArray `db:"attachments"`
 }
 
 type dbChatMsgWithReference struct {
-	ID                    snowflake.ID  `db:"id"`
-	CreatedAt             time.Time     `db:"created_at"`
-	Author                *string       `db:"author"`
-	AuthorPermissionLevel *string       `db:"author_permission_level"`
-	Content               string        `db:"content"`
-	Reference             *snowflake.ID `db:"reference"`
-	Shadowbanned          bool          `db:"shadowbanned"`
-	ReferenceID           *snowflake.ID `db:"reference_id"`
-	ReferenceCreatedAt    *time.Time    `db:"reference_created_at"`
-	ReferenceAuthor       *string       `db:"reference_author"`
-	ReferenceContent      *string       `db:"reference_content"`
-	Address               *string       `db:"address"`
-	PermissionLevel       *string       `db:"permission_level"`
-	Nickname              *string       `db:"nickname"`
-	ReferenceNickname     *string       `db:"reference_nickname"`
+	ID                    snowflake.ID   `db:"id"`
+	CreatedAt             time.Time      `db:"created_at"`
+	Author                *string        `db:"author"`
+	AuthorPermissionLevel *string        `db:"author_permission_level"`
+	Content               string         `db:"content"`
+	Reference             *snowflake.ID  `db:"reference"`
+	Shadowbanned          bool           `db:"shadowbanned"`
+	Attachments           pq.StringArray `db:"attachments"`
+	ReferenceID           *snowflake.ID  `db:"reference_id"`
+	ReferenceCreatedAt    *time.Time     `db:"reference_created_at"`
+	ReferenceAuthor       *string        `db:"reference_author"`
+	ReferenceContent      *string        `db:"reference_content"`
+	Address               *string        `db:"address"`
+	PermissionLevel       *string        `db:"permission_level"`
+	Nickname              *string        `db:"nickname"`
+	ReferenceNickname     *string        `db:"reference_nickname"`
 }
 
 func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*string, error) {
@@ -79,6 +92,11 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*s
 		CreatedAt:    m.CreatedAt,
 		Content:      m.Content,
 		Shadowbanned: m.Shadowbanned,
+		Attachments:  pq.StringArray{},
+	}
+
+	for _, attachment := range m.Attachments {
+		message.Attachments = append(message.Attachments, attachment.SerializeForDatabase(ctx))
 	}
 
 	var nickname *string
@@ -107,8 +125,8 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*s
 		message.Reference = &m.Reference.ID
 	}
 	_, err = ctx.Tx().NamedExecContext(ctx, `
-		INSERT INTO chat_message (id, created_at, author, content, reference, shadowbanned)
-		VALUES (:id, :created_at, :author, :content, :reference, :shadowbanned)`,
+		INSERT INTO chat_message (id, created_at, author, content, reference, shadowbanned, attachments)
+		VALUES (:id, :created_at, :author, :content, :reference, :shadowbanned, :attachments)`,
 		message,
 	)
 	if err != nil {
@@ -173,6 +191,7 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 			a.content AS content,
 			a.reference AS reference,
 			a.shadowbanned AS shadowbanned,
+			a.attachments AS attachments,
 			b.id AS reference_id,
 			b.created_at AS reference_created_at,
 			b.author AS reference_author,
@@ -193,7 +212,7 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 
 	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
-		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
+		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(ctx, message)
 	}
 
 	return chatMessages, nil
@@ -221,6 +240,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 			a.content AS content,
 			a.reference AS reference,
 			a.shadowbanned AS shadowbanned,
+			a.attachments AS attachments,
 			b.id AS reference_id,
 			b.created_at AS reference_created_at,
 			b.author AS reference_author,
@@ -247,7 +267,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 
 	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
-		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
+		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(ctx, message)
 	}
 
 	for i, j := 0, len(chatMessages)-1; i < j; i, j = i+1, j-1 {
@@ -274,6 +294,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 			a.content AS content,
 			a.reference AS reference,
 			a.shadowbanned AS shadowbanned,
+			a.attachments AS attachments,
 			b.id AS reference_id,
 			b.created_at AS reference_created_at,
 			b.author AS reference_author,
@@ -298,7 +319,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 
 	chatMessages := make([]*Message, len(messages))
 	for i, message := range messages {
-		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(message)
+		chatMessages[i] = s.dbMsgWithReferenceToChatMessage(ctx, message)
 	}
 
 	for i, j := 0, len(chatMessages)-1; i < j; i, j = i+1, j-1 {
@@ -325,6 +346,7 @@ func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID)
 			a.content AS content,
 			a.reference AS reference,
 			a.shadowbanned AS shadowbanned,
+			a.attachments AS attachments,
 			b.id AS reference_id,
 			b.created_at AS reference_created_at,
 			b.author AS reference_author,
@@ -345,10 +367,10 @@ func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID)
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return s.dbMsgWithReferenceToChatMessage(message), nil
+	return s.dbMsgWithReferenceToChatMessage(ctx, message), nil
 }
 
-func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWithReference) *Message {
+func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(ctx context.Context, message dbChatMsgWithReference) *Message {
 	chatMessage := &Message{
 		ID:        message.ID,
 		CreatedAt: message.CreatedAt,
@@ -367,6 +389,14 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(message dbChatMsgWit
 		if message.ReferenceAuthor != nil {
 			chatMessage.Reference.Author = auth.NewAddressOnlyUser(*message.ReferenceAuthor)
 			chatMessage.Reference.Author.SetNickname(message.ReferenceNickname)
+		}
+	}
+	for _, a := range message.Attachments {
+		loaded, err := s.attachmentLoader(ctx, a)
+		if err != nil {
+			log.Println(stacktrace.Propagate(err, ""))
+		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
+			chatMessage.AttachmentsView = append(chatMessage.AttachmentsView, loaded)
 		}
 	}
 	return chatMessage

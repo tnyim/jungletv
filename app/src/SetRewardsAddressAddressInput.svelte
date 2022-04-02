@@ -84,7 +84,7 @@
                     type="text"
                     name="rewards_address"
                     id="rewards_address"
-                    class="dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border {failureReason !==
+                    class="dark:bg-gray-950 focus:ring-yellow-500 focus:outline-none focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
                     ''
                         ? 'border-red-600'
                         : 'border-gray-300'} p-2"

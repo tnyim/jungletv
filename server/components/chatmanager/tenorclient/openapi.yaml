@@ -1,0 +1,412 @@
+openapi: "3.0.1"
+info:
+  description: API client for https://tenor.com/gifapi/
+  version: "0.2"
+  title: Tenor GifAPI Client
+
+servers:
+- url: https://g.tenor.com
+  description: g.tenor.com
+
+paths:
+  /v1/search:
+    get:
+      operationId: search
+      description: >
+        Get a json object containing a list of the most relevant GIFs for a given search term(s), category(ies),
+        emoji(s), or any combination thereof.
+      parameters:
+      - $ref: '#/components/parameters/q'
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/locale'
+      - $ref: '#/components/parameters/contentfilter'
+      - $ref: '#/components/parameters/media_filter'
+      - $ref: '#/components/parameters/ar_range'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/pos'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+
+  /v1/random:
+    get:
+      operationId: random
+      description: >
+        Get a randomized list of GIFs for a given search term. This differs from the search endpoint which returns
+        a rank ordered list of GIFs for a given search term.
+      parameters:
+      - $ref: '#/components/parameters/q'
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/locale'
+      - $ref: '#/components/parameters/contentfilter'
+      - $ref: '#/components/parameters/media_filter'
+      - $ref: '#/components/parameters/ar_range'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/pos'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+
+  /v1/autocomplete:
+    get:
+      operationId: autocomplete
+      description: >
+        Get a json object containing a list of completed search terms given a partial search term. The list is sorted by
+        Tenor's AI and the number of results will decrease as Tenor's AI becomes more certain.
+      parameters:
+      - $ref: '#/components/parameters/q'
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/locale'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: autocomplete results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutocompleteResult'
+
+  /v1/categories:
+    get:
+      operationId: categories
+      description: >
+        Get a json object containing a list of GIF categories associated with the provided type. Each category will
+        include a corresponding search URL to be used if the user clicks on the category. The search URL will include
+        the apikey, anonymous id, and locale that were used on the original call to the categories endpoint.
+      parameters:
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/locale'
+      - $ref: '#/components/parameters/type'
+      - $ref: '#/components/parameters/contentfilter'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: categories results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResult'
+
+  /v1/register:
+    get:
+      operationId: register
+      description: Register a user's sharing of a GIF.
+      parameters:
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/locale'
+      - $ref: '#/components/parameters/q'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: registration result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResult'
+
+  /v1/gifs:
+    get:
+      operationId: gifs
+      description: Get the GIF(s) for the corresponding id(s)
+      parameters:
+      - $ref: '#/components/parameters/ids'
+      - $ref: '#/components/parameters/key'
+      - $ref: '#/components/parameters/media_filter'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/pos'
+      - $ref: '#/components/parameters/anon_id'
+      responses:
+        200:
+          description: search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+
+components:
+  parameters:
+    key:
+      name: key
+      required: true
+      description: client key for privileged API access
+      in: query
+      schema:
+        type: string
+    q:
+      name: q
+      required: true
+      description: a search string
+      in: query
+      schema:
+        type: string
+    locale:
+      name: locale
+      description: >
+        specify default language to interpret search string; xx is ISO 639-1 language code, _YY (optional) is
+        2-letter ISO 3166-1 country code
+      in: query
+      schema:
+        type: string
+    type:
+      name: type
+      description: |
+        (values: featured | emoji | trending ) determines the type of categories returned
+      in: query
+      schema:
+        type: string
+        enum:
+        - featured
+        - emoji
+        - trending
+    contentfilter:
+      name: contentfilter
+      description: |
+        (values: off | low | medium | high) specify the content safety filter level
+      in: query
+      schema:
+        type: string
+        enum:
+        - off
+        - low
+        - medium
+        - high
+    media_filter:
+      name: media_filter
+      description: |
+        (values: basic | minimal) Reduce the Number of GIF formats returned in the GIF_OBJECT list.
+
+        minimal - tinygif, gif, and mp4.
+
+        basic - nanomp4, tinygif, tinymp4, gif, mp4, and nanogif
+      in: query
+      schema:
+        type: string
+        enum:
+        - basic
+        - minimal
+    ar_range:
+      name: ar_range
+      description: |
+        (values: all | wide | standard ) Filter the response GIF_OBJECT list to only include GIFs with aspect ratios that fit with in the selected range.
+
+        all - no constraints
+
+        wide - 0.42 <= aspect ratio <= 2.36
+
+        standard - .56 <= aspect ratio <= 1.78
+      in: query
+      schema:
+        type: string
+        enum:
+        - all
+        - wide
+        - standard
+    limit:
+      name: limit
+      description: >
+        fetch up to a specified number of results (max: 50).
+      in: query
+      schema:
+        type: integer
+    pos:
+      name: pos
+      description: >
+        get results starting at position "value". Use a non-zero "next" value returned by API results to get the next
+        set of results. pos is not an index and may be an integer, float, or string
+      in: query
+      schema:
+        type: string
+    anon_id:
+      name: anon_id
+      description: specify the anonymous_id tied to the given user
+      in: query
+      schema:
+        type: string
+    id:
+      name: id
+      description: the id of a GifObject
+      in: query
+      schema:
+        type: string
+    ids:
+      name: ids
+      description: >
+        a comma separated list of GIF IDs (max: 50)
+      in: query
+      schema:
+        type: string
+
+  schemas:
+    Next:
+      type: string
+      description: >
+        a position identifier to use with the next API query to retrieve the next set of results, or null if there are
+        no further results.
+    GifObject:
+      type: object
+      required:
+      - created
+      - hasaudio
+      - id
+      - media
+      - tags
+      - title
+      - content_description
+      properties:
+        created:
+          type: number
+          description: a unix timestamp representing when this post was created.
+        hasaudio:
+          type: boolean
+          description: >
+            true if this post contains audio (only video formats support audio, the gif image file format can not
+            contain audio information).
+        id:
+          type: string
+          description: Tenor result identifier
+        media:
+          type: array
+          description: An array of dictionaries with GIF_FORMAT as the key and MEDIA_OBJECT as the value
+          items:
+            $ref: '#/components/schemas/Media'
+        tags:
+          type: array
+          description: an array of tags for the post
+          items:
+            type: string
+        title:
+          type: string
+        content_description:
+          type: string
+
+    Media:
+      type: object
+      properties:
+        gif:
+          $ref: '#/components/schemas/MediaObject'
+        mediumgif:
+          $ref: '#/components/schemas/MediaObject'
+        tinygif:
+          $ref: '#/components/schemas/MediaObject'
+        nanogif:
+          $ref: '#/components/schemas/MediaObject'
+        mp4:
+          $ref: '#/components/schemas/MediaObject'
+        loopedmp4:
+          $ref: '#/components/schemas/MediaObject'
+        tinymp4:
+          $ref: '#/components/schemas/MediaObject'
+        nanomp4:
+          $ref: '#/components/schemas/MediaObject'
+        webm:
+          $ref: '#/components/schemas/MediaObject'
+        tinywebm:
+          $ref: '#/components/schemas/MediaObject'
+        nanowebm:
+          $ref: '#/components/schemas/MediaObject'
+
+    MediaObject:
+      type: object
+      required:
+      - preview
+      - url
+      - dims
+      - size
+      properties:
+        preview:
+          type: string
+          description: a url to a preview image of the media source
+        url:
+          type: string
+          description: a url to the media source
+        dims:
+          type: array
+          description: width and height in pixels
+          items:
+            type: integer
+        size:
+          type: integer
+          description: size of file in bytes
+
+    CategoryObject:
+      type: object
+      required:
+      - searchterm
+      - path
+      - image
+      - name
+      properties:
+        searchterm:
+          type: string
+          description: the English search term that corresponds to the category
+        path:
+          type: string
+          description: the search url to request if the user selects the category
+        image:
+          type: string
+          description: a url to the media source for the category's example GIF
+        name:
+          type: string
+          description: >
+            Category name to overlay over the image. The name will be translated to match the locale of the
+            corresponding request
+
+    SearchResult:
+      type: object
+      required:
+      - next
+      - results
+      properties:
+        next:
+          $ref: '#/components/schemas/Next'
+        results:
+          description: >
+            an array of GifObjects containing the most relevant GIFs for the requested search term -
+            Sorted by relevancy Rank
+          type: array
+          items:
+            $ref: '#/components/schemas/GifObject'
+
+    AutocompleteResult:
+      type: object
+      required:
+      - results
+      properties:
+        results:
+          description: An array of suggested search terms.
+          type: array
+          items:
+            type: string
+
+    CategoriesResult:
+      type: object
+      required:
+      - tags
+      properties:
+        tags:
+          description: >
+            an array of CategoryObjects where the “name” field has been translated to the passed in locale language.
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryObject'
+
+    RegisterResult:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          description: set to "ok" if share registration was successful
+          type: string

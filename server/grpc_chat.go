@@ -207,11 +207,18 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		}
 		return -1
 	}, r.Content)
-	if len(strings.TrimSpace(r.Content)) == 0 {
+	if len(strings.TrimSpace(r.Content)) == 0 && r.TenorGifAttachment == nil {
 		return nil, status.Error(codes.InvalidArgument, "message empty")
 	}
 	if len(r.Content) > 512 {
 		return nil, status.Error(codes.InvalidArgument, "message too long")
+	}
+
+	attachments := []chat.MessageAttachmentStorage{}
+	if r.TenorGifAttachment != nil {
+		attachments = append(attachments, &chat.MessageAttachmentTenorGifStorage{
+			ID: *r.TenorGifAttachment,
+		})
 	}
 
 	var messageReference *chat.Message
@@ -228,7 +235,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		}
 	}
 
-	m, err := s.chat.CreateMessage(ctx, user, r.Content, messageReference)
+	m, err := s.chat.CreateMessage(ctx, user, r.Content, messageReference, attachments)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -279,4 +286,32 @@ func validateNicknameReturningGRPCError(nickname string) (string, error) {
 		}
 	}
 	return nickname, nil
+}
+
+func (s *grpcServer) ChatGifSearch(ctx context.Context, r *proto.ChatGifSearchRequest) (*proto.ChatGifSearchResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		return nil, stacktrace.NewError("user claims unexpectedly missing")
+	}
+
+	results, next, err := s.chat.GifSearch(ctx, user, r.Query, r.Cursor)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	protoResults := make([]*proto.ChatGifSearchResult, len(results))
+	for i, result := range results {
+		protoResults[i] = &proto.ChatGifSearchResult{
+			Id:         result.ID,
+			Title:      result.Title,
+			PreviewUrl: result.PreviewURL,
+			Width:      int32(result.Width),
+			Height:     int32(result.Height),
+		}
+	}
+
+	return &proto.ChatGifSearchResponse{
+		Results:    protoResults,
+		NextCursor: next,
+	}, nil
 }

@@ -64,7 +64,7 @@
 
 <div class="flex justify-center">
     <div
-        class="bg-white dark:bg-gray-950 focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none sm:text-sm border border-gray-300 p-2 overflow-auto hide-scrollbar"
+        class="bg-white dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none text-sm border border-gray-300 p-2 overflow-auto hide-scrollbar"
         on:click={selectAddress}
     >
         {address}

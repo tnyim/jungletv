@@ -31,20 +31,23 @@
     } from "@codemirror/view";
     import { Emoji as MarkdownEmoji, MarkdownConfig, Strikethrough } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
-    import type { Picker } from "emoji-picker-element/svelte";
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import BlockedUsers from "./BlockedUsers.svelte";
+    import ChatMediaPicker from "./ChatMediaPicker.svelte";
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
     import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
+    import Gif from "./gifpicker/Gif.svelte";
+    import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
+    import { ChatGifSearchResult, ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import {
-        chatEmotes,
+        chatEmotesAsCustomEmoji,
         chatMessageDraft,
         chatMessageDraftSelectionJSON,
+        chatMessageDraftTenorGif,
         darkMode,
         featureFlags,
         modal,
@@ -68,46 +71,17 @@
     let editorContainer: HTMLElement;
     let editorView: EditorView;
 
-    let emojiPicker: Picker;
+    let canSend = false;
+    let showMediaPicker = false;
+
+    $: canSend = $chatMessageDraft !== "" || typeof $chatMessageDraftTenorGif !== "undefined";
+
     let showedGuidelinesChatWarning = localStorage.getItem("showedGuidelinesChatWarning") == "true";
 
     const dispatch = createEventDispatcher();
 
     const themeCompartment = new Compartment();
     const highlightCompartment = new Compartment();
-
-    onMount(() => {
-        // the i18n property appears to rely on some kind of custom setter
-        // if we set searchLabel directly, it won't work
-        let i18n = emojiPicker.i18n;
-        i18n.searchLabel = "Search emoji";
-        i18n.categories.custom = "Emotes";
-        emojiPicker.i18n = i18n;
-        const style = document.createElement("style");
-        style.textContent = `
-            .emoji, button.emoji {
-                border-radius: 0.175em;
-            }
-        `;
-        emojiPicker.shadowRoot.appendChild(style);
-        emojiPicker.customEmoji = emojiDatabase.customEmoji;
-    });
-
-    const chatEmotesUnsubscribe = chatEmotes.subscribe((emotes) => {
-        let customEmoji: CustomEmoji[] = emotes.map((emote): CustomEmoji => {
-            return {
-                name: emote.shortcode,
-                shortcodes: [emote.shortcode],
-                url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
-            };
-        });
-
-        if (typeof emojiPicker !== "undefined") {
-            emojiPicker.customEmoji = customEmoji;
-        }
-        emojiDatabase.customEmoji = customEmoji;
-    });
-    onDestroy(chatEmotesUnsubscribe);
 
     const darkModeUnsubscribe = darkMode.subscribe((dm) => {
         if (typeof editorView !== "undefined") {
@@ -137,6 +111,8 @@
             editorView.focus();
         }
     }
+
+    $: emojiDatabase.customEmoji = $chatEmotesAsCustomEmoji;
 
     function limitMaxLength(maxLength: number): Extension {
         return EditorState.changeFilter.of((tr): boolean | readonly number[] => {
@@ -599,16 +575,16 @@
 
     async function sendMessage(isTrusted: boolean) {
         let msg = $chatMessageDraft.trim();
-        if (msg == "") {
+        let tenorGif = $chatMessageDraftTenorGif;
+        if (msg == "" && typeof tenorGif === "undefined") {
             return;
         }
 
         $chatMessageDraft = "";
+        $chatMessageDraftTenorGif = undefined;
         let refMsg = replyingToMessage;
         dispatch("clearReply");
-        if (!emojiPicker.classList.contains("hidden")) {
-            emojiPicker.classList.add("hidden");
-        }
+        showMediaPicker = false;
 
         if (msg == "/lightsout") {
             darkMode.update((v) => !v);
@@ -642,10 +618,11 @@
                 }
             } else {
                 dispatch("sentMessage");
-                await apiClient.sendChatMessage(msg, isTrusted, refMsg);
+                await apiClient.sendChatMessage(msg, isTrusted, refMsg, tenorGif?.getId());
             }
         } catch (ex) {
             $chatMessageDraft = msg;
+            $chatMessageDraftTenorGif = tenorGif;
             sendError = true;
             if (ex.includes("rate limit reached")) {
                 sendErrorMessage = "You're going too fast. Slow down.";
@@ -669,16 +646,13 @@
         } else return [str];
     }
 
-    function toggleEmojiPicker() {
-        if (emojiPicker.classList.contains("hidden")) {
-            emojiPicker.classList.remove("hidden");
-            let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
-            searchBox.setSelectionRange(0, searchBox.value.length);
-            searchBox.focus();
-            closeCompletion(editorView);
-        } else {
-            emojiPicker.classList.add("hidden");
+    function toggleMediaPicker() {
+        if (showMediaPicker) {
+            showMediaPicker = false;
             editorView.focus();
+        } else {
+            showMediaPicker = true;
+            closeCompletion(editorView);
         }
     }
 
@@ -698,7 +672,7 @@
     }
 
     function onEmojiPicked(event: EmojiClickEvent) {
-        toggleEmojiPicker();
+        toggleMediaPicker();
         if (event.detail.unicode) {
             editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
         } else {
@@ -707,6 +681,12 @@
             );
         }
         editorView.focus();
+    }
+
+    function onGifPicked(event: CustomEvent<ChatGifSearchResult>) {
+        toggleMediaPicker();
+        editorView.focus();
+        $chatMessageDraftTenorGif = event.detail;
     }
 
     function openBlockedUserManagement() {
@@ -722,13 +702,16 @@
             },
         });
     }
+
+    function removeTenorGifAttachment() {
+        $chatMessageDraftTenorGif = undefined;
+        editorView.focus();
+    }
 </script>
 
-<emoji-picker
-    class="hidden w-full h-72 {$darkMode ? 'dark' : ''}"
-    bind:this={emojiPicker}
-    on:emoji-click={onEmojiPicked}
-/>
+{#if showMediaPicker}
+    <ChatMediaPicker on:emoji-click={onEmojiPicked} on:gifSelected={onGifPicked} on:closePicker={toggleMediaPicker} />
+{/if}
 {#if sendError}
     <div class="px-2 pb-2 text-xs mt-2">
         <ErrorMessage>
@@ -768,57 +751,40 @@
     </ChatReplyingBanner>
 {/if}
 <div class="flex flex-row relative">
-    <div class="flex-grow p-1 focus:outline-none" bind:this={editorContainer} />
-
+    <div class="flex-grow">
+        <div class="p-1 focus:outline-none" bind:this={editorContainer} />
+        {#if typeof $chatMessageDraftTenorGif !== "undefined"}
+            <div class="flex flex-row items-center space-x-2 px-2">
+                <GifMessagePreview gif={$chatMessageDraftTenorGif} />
+                <div class="text-gray-600 dark:text-gray-400 text-base">
+                    <div>
+                        <span
+                            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+                            tabindex="0"
+                            on:click={removeTenorGifAttachment}
+                            on:keydown={(ev) => ev.key == "Enter" && removeTenorGifAttachment()}
+                        >
+                            Remove
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    </div>
     <button
-        title="Insert emoji"
+        title="Insert emoji and GIFs"
         class="text-purple-700 dark:text-purple-500 min-h-full px-2 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-        on:click={toggleEmojiPicker}
+        on:click={toggleMediaPicker}
     >
         <i class="far fa-smile" />
     </button>
 
     <button
         title="Send message"
-        class="{$chatMessageDraft == '' ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
+        class="{!canSend ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
         min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
         on:click={sendMessageFromEvent}
     >
         <i class="fas fa-paper-plane" />
     </button>
 </div>
-
-<style lang="postcss">
-    emoji-picker {
-        --num-columns: 8;
-        --input-border-radius: 0.375rem;
-        --outline-size: 1px;
-        --outline-color: rgb(245, 158, 11);
-        --skintone-border-radius: 0.375rem;
-        --indicator-color: rgb(109, 40, 217);
-        --background: rgb(249, 250, 251);
-        --button-hover-background: rgb(229, 231, 235);
-        --button-active-background: rgb(156, 163, 175);
-        --input-font-color: rgb(0, 0, 0);
-        --input-placeholder-color: rgb(156, 163, 175);
-        --border-color: rgb(209, 213, 219);
-    }
-    emoji-picker.dark {
-        --background: rgb(17, 24, 39);
-        --button-hover-background: rgb(31, 41, 55);
-        --button-active-background: rgb(107, 114, 128);
-        --input-font-color: rgb(255, 255, 255);
-        --input-placeholder-color: rgb(107, 114, 128);
-        --border-color: rgb(55, 65, 81);
-    }
-    @media (min-width: 640px) {
-        emoji-picker {
-            --num-columns: 12;
-        }
-    }
-    @media (min-width: 1024px) {
-        emoji-picker {
-            --num-columns: 8;
-        }
-    }
-</style>
