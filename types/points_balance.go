@@ -44,17 +44,21 @@ func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) e
 	defer tx.Rollback()
 
 	// a CHECK (balance >= 0) exists in the table to prevent overdraw, even in concurrent transactions
-	builder := sdb.Insert("points_balance").Columns("rewards_address", "balance").Values(address, amount)
-	query, args, err := builder.Suffix(`
-		ON CONFLICT (rewards_address)
-		DO UPDATE SET balance = points_balance.balance + EXCLUDED.balance`).
-		ToSql()
-	logger.Println(query, args, err)
+	// the CHECK runs on the INSERT even if there is a conflict and fails the whole statement,
+	// hence we first do an insert with zero if the balance row doesn't exist yet,
+	// then we do an update to adjust the balance
+	_, err = sdb.Insert("points_balance").
+		Columns("rewards_address", "balance").
+		Values(address, 0).
+		Suffix("ON CONFLICT DO NOTHING").RunWith(tx).Exec()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	_, err = tx.Tx().Exec(query, args...)
+	_, err = sdb.Update("points_balance").
+		Where(sq.Eq{"points_balance.rewards_address": address}).
+		Set("balance", sq.Expr("balance + ?", amount)).
+		RunWith(tx).Exec()
 	if err != nil {
 		if strings.Contains(err.Error(), "points_balance_balance_check") {
 			return stacktrace.Propagate(ErrInsufficientPointsBalance, "")
