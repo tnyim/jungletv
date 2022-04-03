@@ -17,6 +17,7 @@
     export let detailsOpenForMsgID: string;
 
     let gifExpanded = false;
+    let gifExplicitlyCollapsed = false;
 
     const dispatch = createEventDispatcher();
 
@@ -140,8 +141,13 @@
         {#each message.getAttachmentsList() as attachment}
             {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
                 <div class="p-1 text-sm text-gray-600 dark:text-gray-400">
-                    {#if !$collapseGifs || gifExpanded}
-                        <ChatGifAttachment attachment={attachment.getTenorGif()} />
+                    {#if (!$collapseGifs || gifExpanded) && !gifExplicitlyCollapsed}
+                        <ChatGifAttachment
+                            attachment={attachment.getTenorGif()}
+                            on:collapse={() => {
+                                gifExplicitlyCollapsed = true;
+                            }}
+                        />
                     {:else}
                         <i class="fas fa-photo-video" />
                         {attachment.getTenorGif().getTitle()} -
@@ -149,6 +155,7 @@
                             class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
                             tabindex="0"
                             on:click={() => {
+                                gifExplicitlyCollapsed = false;
                                 gifExpanded = true;
                             }}
                             on:keydown={(ev) => ev.key == "Enter" && (gifExpanded = true)}

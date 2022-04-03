@@ -28,7 +28,7 @@
     </div>
     <button
         title="Stop replying"
-        class="text-purple-700 dark:text-purple-500 min-h-full w-10 p-2 shadow-md
+        class="text-purple-700 dark:text-purple-500 min-h-full w-8 p-2 shadow-md
             bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
             cursor-pointer ease-linear transition-all duration-150"
         on:click={() => dispatch("clearReply")}
