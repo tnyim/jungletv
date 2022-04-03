@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { apiClient } from "./api_client";
     import Grid from "./gifpicker/Grid.svelte";
@@ -14,8 +14,6 @@
     let nextCursor = "";
     let gifResults: ChatGifSearchResult[] = [];
     let loading = true;
-
-    const dispatch = createEventDispatcher();
 
     onMount(() => {
         searchInput.focus();
@@ -74,12 +72,6 @@
         cursor = nextCursor;
         await doSearch(searchQuery);
     }
-
-    function onKeyDown(ev: KeyboardEvent) {
-        if(ev.key == "Escape") {
-            dispatch("closePicker");
-        }
-    }
 </script>
 
 <div
@@ -89,7 +81,6 @@
         <input
             bind:this={searchInput}
             bind:value={searchInputValue}
-            on:keydown={onKeyDown}
             type="text"
             placeholder="Search Tenor"
             class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 block w-full rounded-md border border-gray-300 p-1"

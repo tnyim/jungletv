@@ -32,15 +32,16 @@
     import { Emoji as MarkdownEmoji, MarkdownConfig, Strikethrough } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
     import { createEventDispatcher, onDestroy } from "svelte";
+    import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import BlockedUsers from "./BlockedUsers.svelte";
+    import ChatComposeAreaAttachmentButton from "./ChatComposeAreaAttachmentButton.svelte";
     import ChatMediaPicker from "./ChatMediaPicker.svelte";
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
     import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import Gif from "./gifpicker/Gif.svelte";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import {
@@ -758,6 +759,23 @@
                 <GifMessagePreview gif={$chatMessageDraftTenorGif} />
                 <div class="text-gray-600 dark:text-gray-400 text-base">
                     <div>
+                        {#await apiClient.pointsInfo()}
+                            <i class="fas fa-burn" /> <span class="font-semibold">-100</span>
+                            <span class="text-xs inline-flex">
+                                <span class="mr-1">/</span>
+                                <Moon size="15" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
+                            </span>
+                        {:then response}
+                            <i class="fas fa-burn" /> <span class="font-semibold">-100</span>
+                            <span class="text-xs">
+                                /
+                                <span class={response.getBalance() < 100 ? "text-red-700" : ""}>
+                                    {response.getBalance()}
+                                </span>
+                            </span>
+                        {/await}
+                    </div>
+                    <div>
                         <span
                             class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
                             tabindex="0"
@@ -771,18 +789,12 @@
             </div>
         {/if}
     </div>
-    <button
-        title="Insert emoji and GIFs"
-        class="text-purple-700 dark:text-purple-500 min-h-full px-2 py-2 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-        on:click={toggleMediaPicker}
-    >
-        <i class="far fa-smile" />
-    </button>
+    <ChatComposeAreaAttachmentButton on:click={toggleMediaPicker} />
 
     <button
         title="Send message"
         class="{!canSend ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
-        min-h-full w-10 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+        min-h-full w-8 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
         on:click={sendMessageFromEvent}
     >
         <i class="fas fa-paper-plane" />

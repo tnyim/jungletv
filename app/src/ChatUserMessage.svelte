@@ -7,7 +7,7 @@
     import { getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
 
     import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
-    import { blockedUsers, rewardAddress } from "./stores";
+    import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
     import { parseCompleteMarkdownInline, parseUserMessageMarkdown } from "./utils";
 
     export let message: ChatMessage;
@@ -15,6 +15,8 @@
     export let mode: string;
     export let allowExpensiveCSSAnimations: boolean;
     export let detailsOpenForMsgID: string;
+
+    let gifExpanded = false;
 
     const dispatch = createEventDispatcher();
 
@@ -137,8 +139,23 @@
         {@html renderMessage()}
         {#each message.getAttachmentsList() as attachment}
             {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
-                <div class="p-1">
-                    <ChatGifAttachment attachment={attachment.getTenorGif()} />
+                <div class="p-1 text-sm text-gray-600 dark:text-gray-400">
+                    {#if !$collapseGifs || gifExpanded}
+                        <ChatGifAttachment attachment={attachment.getTenorGif()} />
+                    {:else}
+                        <i class="fas fa-photo-video" />
+                        {attachment.getTenorGif().getTitle()} -
+                        <span
+                            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+                            tabindex="0"
+                            on:click={() => {
+                                gifExpanded = true;
+                            }}
+                            on:keydown={(ev) => ev.key == "Enter" && (gifExpanded = true)}
+                        >
+                            Show
+                        </span>
+                    {/if}
                 </div>
             {/if}
         {/each}

@@ -1,11 +1,10 @@
 <script lang="ts">
     import type { Picker } from "emoji-picker-element/svelte";
-    import { createEventDispatcher, onMount } from "svelte";
+    import { onMount } from "svelte";
     import { emojiDatabase } from "./chat_utils";
     import { chatEmotesAsCustomEmoji, darkMode } from "./stores";
 
     let emojiPicker: Picker;
-    const dispatch = createEventDispatcher();
 
     onMount(() => {
         // the i18n property appears to rely on some kind of custom setter
@@ -34,11 +33,6 @@
 
         let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
         searchBox.setSelectionRange(0, searchBox.value.length);
-        searchBox.addEventListener("keydown", (ev) => {
-            if (ev.key == "Escape") {
-                dispatch("closePicker");
-            }
-        });
         searchBox.focus();
     });
 

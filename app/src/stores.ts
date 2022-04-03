@@ -22,7 +22,7 @@ export const sidebarMode = writable(((): string => {
     }
     return localStorage.sidebarMode;
 })());
-export const chatMediaPickerMode = writable(((): "emoji" | "gifs" => {
+export const chatMediaPickerMode = writable(((): "emoji" | "gifs" | "settings" => {
     if (!('chatMediaPickerMode' in localStorage)) {
         return "emoji";
     }
@@ -32,6 +32,7 @@ export const permissionLevel = writable(PermissionLevel.UNAUTHENTICATED as value
 export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 })());
+export const collapseGifs = writable((() => localStorage.collapseGifs == 'true')());
 export const blockedUsers = writable(new Set<string>());
 
 export type chatEmote = {

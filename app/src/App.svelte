@@ -26,6 +26,7 @@
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import {
 		badRepresentative,
+		collapseGifs,
 		darkMode,
 		featureFlags,
 		modal,
@@ -46,6 +47,7 @@
 	});
 
 	$: localStorage.darkMode = $darkMode;
+	$: localStorage.collapseGifs = $collapseGifs;
 
 	let isAdmin = false;
 	let isOnline = true;
