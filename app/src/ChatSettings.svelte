@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { collapseGifs } from "./stores";
+    import { collapseGifs, convertEmoticons } from "./stores";
 
     let showGIFs = !$collapseGifs;
     $: $collapseGifs = !showGIFs;
@@ -22,6 +22,23 @@
             <label for="showGIFs" class="font-medium text-gray-700 dark:text-gray-300">Automatically show GIFs</label>
             <p class="text-gray-500">
                 With this setting disabled, GIFs in chat messages will not be automatically downloaded or displayed.
+            </p>
+        </div>
+    </div>
+    <div class="flex items-start">
+        <div class="flex items-center h-5">
+            <input
+                id="convertEmoticons"
+                name="convertEmoticons"
+                type="checkbox"
+                bind:checked={$convertEmoticons}
+                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+            />
+        </div>
+        <div class="ml-3 text-sm">
+            <label for="convertEmoticons" class="font-medium text-gray-700 dark:text-gray-300">Automatically convert emoticons to emojis</label>
+            <p class="text-gray-500">
+                For example, when you type :-) JungleTV will convert it to 🙂
             </p>
         </div>
     </div>

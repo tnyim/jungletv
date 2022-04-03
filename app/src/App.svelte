@@ -27,6 +27,7 @@
 	import {
 		badRepresentative,
 		collapseGifs,
+		convertEmoticons,
 		darkMode,
 		featureFlags,
 		modal,
@@ -48,6 +49,7 @@
 
 	$: localStorage.darkMode = $darkMode;
 	$: localStorage.collapseGifs = $collapseGifs;
+	$: localStorage.convertEmoticons = $convertEmoticons;
 
 	let isAdmin = false;
 	let isOnline = true;

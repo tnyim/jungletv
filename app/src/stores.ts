@@ -33,6 +33,7 @@ export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 })());
 export const collapseGifs = writable((() => localStorage.collapseGifs == 'true')());
+export const convertEmoticons = writable((() => !('convertEmoticons' in localStorage) || localStorage.convertEmoticons == 'true')());
 export const blockedUsers = writable(new Set<string>());
 
 export type chatEmote = {

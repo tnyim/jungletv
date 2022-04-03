@@ -49,6 +49,7 @@
         chatMessageDraft,
         chatMessageDraftSelectionJSON,
         chatMessageDraftTenorGif,
+        convertEmoticons,
         darkMode,
         featureFlags,
         modal,
@@ -148,6 +149,60 @@
         };
     }
 
+    const createRegExp = (str, opts) => new RegExp(str.raw[0].replace(/\s/gm, ""), opts || "");
+
+    //        brow eyes  nose   mouth
+    const emoticonRegExp = createRegExp`
+        (\s|\\|^)
+        (?:
+            (      [=:]  -{0,1} \)    )|
+            (      [=:]  -{0,1} \(    )|
+            (      [=:]  -{0,1} D     )|
+            (      [=:]  -{0,1} [oO]  )|
+            (      [=:]  -{0,1} \|    )|
+            (      ;     -{0,1} \(    )|
+            (      ;     -{0,1} \)    )|
+            (      [=:], -{0,1} \(    )|
+            (    > [=:]  -{0,1} \(    )|
+            (      [=:]  -{0,1} P     )|
+            (    , [=:]  -{0,1} \)    )|
+            (      [=:]  -{0,1} [$sz] )|
+            (      [=:]  -{0,1} @     )|
+            (      [=:], -{0,1} [)D]  )|
+            (    , [=:]  -{0,1} \(    )|
+            (      [=:]  -{0,1} \*    )|
+            ([oO0] [=:]  -{0,1} \)    )|
+            (   \] [=:]  -{0,1} \)    )|
+            (   \] [=:]  -{0,1} \(    )|
+            (   <3       )|
+            (   <[\\/]3  )
+        )
+        (\s|$)
+        ${"gm"}`;
+    const emoticonsPerMatchGroup = [
+        "🙂",
+        "😦",
+        "😄",
+        "😮",
+        "😐",
+        "😭",
+        "😉",
+        "😢",
+        "😠",
+        "😛",
+        "😅",
+        "😒",
+        "😡",
+        "😂",
+        "😓",
+        "😗",
+        "😇",
+        "😈",
+        "👿",
+        "❤️",
+        "💔",
+    ];
+
     function replaceEmojiShortcodes(): Extension {
         return EditorView.updateListener.of(async (viewUpdate) => {
             if (viewUpdate.docChanged) {
@@ -170,6 +225,38 @@
                             to: match.index + match[0].length,
                             insert: emoteStringFromCustomEmoji(result),
                         });
+                    }
+                }
+                if ($convertEmoticons) {
+                    let emoticonMatches = oldContents.matchAll(emoticonRegExp);
+                    for (let match of emoticonMatches) {
+                        if (match[1] == "\\") {
+                            continue;
+                        }
+                        let lastGroup = match[2 + emoticonsPerMatchGroup.length];
+                        let emoji = "";
+                        for (let i = 2; i < 2 + emoticonsPerMatchGroup.length; i++) {
+                            if (!match[i]) {
+                                continue;
+                            }
+                            if (
+                                (i == 5 || i == 13) &&
+                                !lastGroup &&
+                                (match[i].indexOf("s") >= 0 || match[i].indexOf("o") >= 0)
+                            ) {
+                                // instant replacement of :s, :z and :o make it hard to type emoji shortcodes
+                                continue;
+                            }
+                            emoji = emoticonsPerMatchGroup[i - 2];
+                        }
+
+                        if (emoji != "") {
+                            changes.push({
+                                from: match.index,
+                                to: match.index + match[0].length,
+                                insert: (match[1] ? match[1] : "") + emoji + (lastGroup ? lastGroup : ""),
+                            });
+                        }
                     }
                 }
                 if (changes.length > 0) {
@@ -531,7 +618,7 @@
                             // note: we're using our own version of the closeBrackets extension
                             brackets: ["(", "[", "{", '"', "_", "*", "`"],
                             before: ")]}'\";>",
-                            notAfter: ":", // prevents :( becoming :()
+                            notAfter: ":-=", // prevents :( becoming :()
                         },
                     }),
                     EditorView.lineWrapping,
