@@ -14,6 +14,7 @@ import (
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager/tenorclient"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
@@ -36,6 +37,7 @@ type Manager struct {
 	blockedUserStore      blockeduser.Store
 	emoteCache            *chat.EmoteCache
 	userSerializer        auth.APIUserSerializer
+	pointsManager         *pointsmanager.Manager
 
 	tenorClient                      tenorclient.ClientWithResponsesInterface
 	tenorAPIkey                      string
@@ -59,7 +61,8 @@ type Manager struct {
 // New returns an initialized chat Manager
 func New(log *log.Logger, statsClient *statsd.Client,
 	store chat.Store, moderationStore moderation.Store, blockStore blockeduser.Store,
-	userSerializer auth.APIUserSerializer, snowflakeNode *snowflake.Node, tenorAPIkey string) (*Manager, error) {
+	userSerializer auth.APIUserSerializer, pointsManager *pointsmanager.Manager, snowflakeNode *snowflake.Node,
+	tenorAPIkey string) (*Manager, error) {
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   15,
 		Interval: 30 * time.Second,
@@ -117,6 +120,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		blockedUserStore:      blockStore,
 		emoteCache:            &chat.EmoteCache{},
 		userSerializer:        userSerializer,
+		pointsManager:         pointsManager,
 
 		tenorClient:   tenorClient,
 		tenorAPIkey:   tenorAPIkey,

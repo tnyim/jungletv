@@ -712,7 +712,9 @@
             $chatMessageDraft = msg;
             $chatMessageDraftTenorGif = tenorGif;
             sendError = true;
-            if (ex.includes("rate limit reached")) {
+            if (ex.includes("insufficient points balance")) {
+                sendErrorMessage = "You don't have sufficient points to send this message.";
+            } else if (ex.includes("rate limit reached")) {
                 sendErrorMessage = "You're going too fast. Slow down.";
             } else {
                 sendErrorMessage = "Failed to send your message. Please try again.";

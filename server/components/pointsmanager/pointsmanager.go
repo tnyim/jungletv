@@ -107,6 +107,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeActivityChallengeReward: pointsTxDirectionIncrease,
 	types.PointsTxTypeChatActivityReward:      pointsTxDirectionIncrease,
 	types.PointsTxTypeMediaEnqueuedReward:     pointsTxDirectionIncrease,
+	types.PointsTxTypeChatGifAttachment:       pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type

@@ -49,7 +49,7 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 
 	attachments, err = c.processAttachments(ctx, author, attachments)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "failed to process attachments")
 	}
 
 	m := &chat.Message{
@@ -114,6 +114,15 @@ func (c *Manager) CreateSystemMessage(ctx context.Context, content string) (*cha
 }
 
 func (c *Manager) processAttachments(ctx context.Context, author auth.User, attachments []chat.MessageAttachmentStorage) ([]chat.MessageAttachmentStorage, error) {
-	// TODO
+	for _, attachment := range attachments {
+		aCost, ok := attachment.(chat.MessageAttachmentStorageWithCost)
+		if !ok {
+			continue
+		}
+		err := c.pointsManager.CreateTransaction(ctx, author, aCost.PointsTxType(), -aCost.PointsCost())
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+	}
 	return attachments, nil
 }

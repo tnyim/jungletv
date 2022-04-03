@@ -4,12 +4,19 @@ import (
 	"context"
 
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/types"
 )
 
 // MessageAttachmentStorage represents the submission and storage model for an attachment
 type MessageAttachmentStorage interface {
 	SerializeForDatabase(ctx context.Context) string
+}
+
+// MessageAttachmentStorage represents the submission and storage model for an attachment that has a points cost
+type MessageAttachmentStorageWithCost interface {
+	MessageAttachmentStorage
 	PointsCost() int
+	PointsTxType() types.PointsTxType
 }
 
 // MessageAttachmentView represents the view model for an attachment
@@ -30,6 +37,10 @@ func (a *MessageAttachmentTenorGifStorage) SerializeForDatabase(context.Context)
 
 func (a *MessageAttachmentTenorGifStorage) PointsCost() int {
 	return 100
+}
+
+func (a *MessageAttachmentTenorGifStorage) PointsTxType() types.PointsTxType {
+	return types.PointsTxTypeChatGifAttachment
 }
 
 // MessageAttachmentTenorGifView is the view model for a Tenor GIF attachment. Implements MessageAttachmentView

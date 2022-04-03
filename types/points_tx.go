@@ -90,4 +90,5 @@ const (
 	PointsTxTypeActivityChallengeReward PointsTxType = 1
 	PointsTxTypeChatActivityReward      PointsTxType = 2
 	PointsTxTypeMediaEnqueuedReward     PointsTxType = 3
+	PointsTxTypeChatGifAttachment       PointsTxType = 4
 )

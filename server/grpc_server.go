@@ -313,7 +313,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
 	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
-		blockeduser.NewStoreDatabase(), s.userSerializer, s.snowflakeNode, options.TenorAPIKey)
+		blockeduser.NewStoreDatabase(), s.userSerializer, s.pointsManager, s.snowflakeNode, options.TenorAPIKey)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}

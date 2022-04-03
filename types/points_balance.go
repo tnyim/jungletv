@@ -1,6 +1,9 @@
 package types
 
 import (
+	"errors"
+	"strings"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
@@ -29,6 +32,9 @@ func GetPointsBalanceForAddress(node sqalx.Node, address string) (*PointsBalance
 	return items[0], nil
 }
 
+// ErrInsufficientPointsBalance is returned when there is an insufficient points balance for the requested operation
+var ErrInsufficientPointsBalance = errors.New("insufficient points balance")
+
 // AdjustPointsBalanceOfAddress adjusts the points balance of the specified address by the specified amount
 func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) error {
 	tx, err := node.Beginx()
@@ -48,9 +54,11 @@ func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) e
 		return stacktrace.Propagate(err, "")
 	}
 
-	balances := []*RewardBalance{}
-	err = tx.Tx().Select(&balances, query, args...)
+	_, err = tx.Tx().Exec(query, args...)
 	if err != nil {
+		if strings.Contains(err.Error(), "points_balance_balance_check") {
+			return stacktrace.Propagate(ErrInsufficientPointsBalance, "")
+		}
 		return stacktrace.Propagate(err, "")
 	}
 
