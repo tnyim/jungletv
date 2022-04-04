@@ -73,6 +73,7 @@
         }
     });
 
+    let lastScrollToBottomCall = new Date();
     let shouldAutoScroll = false;
     let mustAutoScroll = false;
     let sentMsgFlag = false;
@@ -80,8 +81,11 @@
         if (!document.hidden) {
             // when the document is hidden, shouldAutoScroll can be incorrectly set to false
             // because browsers stop doing visibility calculations when the page is in the background
+            let now = new Date();
             shouldAutoScroll =
-                chatContainer && chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40;
+                (chatContainer &&
+                    chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40) ||
+                now.getTime() - lastScrollToBottomCall.getTime() < 500;
         } else {
             // we were in the background and beforeUpdate is triggered, so a new message came in
             // therefore, we should autoscroll
@@ -106,6 +110,7 @@
             top: chatContainer.scrollHeight,
             behavior: "smooth",
         });
+        lastScrollToBottomCall = new Date();
     }
 
     let hasBlockedMessages = false;

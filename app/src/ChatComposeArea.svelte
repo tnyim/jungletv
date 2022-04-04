@@ -622,6 +622,7 @@
                         },
                     }),
                     EditorView.lineWrapping,
+                    EditorView.contentAttributes.of({enterKeyHint: "send"}),
                     emotePlugin,
                     placeholder("Say something..."),
                     limitMaxLength(512),
