@@ -5,12 +5,14 @@
     export let attachment: ChatMessageTenorGifAttachment;
 
     const dispatch = createEventDispatcher();
+
+    let errored = false;
 </script>
 
 <!-- svelte-ignore a11y-media-has-caption -->
 <div class="w-auto relative">
     <video
-        src={attachment.getVideoUrl()}
+        src={errored ? attachment.getVideoFallbackUrl() : attachment.getVideoUrl()}
         alt={attachment.getTitle()}
         title={attachment.getTitle()}
         width={attachment.getWidth()}
@@ -19,9 +21,10 @@
         muted={true}
         controls={false}
         loop={true}
+        playsinline={true}
         class="gif"
         on:load
-        on:error
+        on:error={() => errored = true}
         on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
     />
     <button

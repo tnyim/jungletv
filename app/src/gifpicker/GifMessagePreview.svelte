@@ -1,11 +1,13 @@
 <script lang="ts">
     import type { ChatGifSearchResult } from "../proto/jungletv_pb";
     export let gif: ChatGifSearchResult;
+
+    let errored = false;
 </script>
 
 <!-- svelte-ignore a11y-media-has-caption -->
 <video
-    src={gif.getPreviewUrl()}
+    src={errored ? gif.getPreviewFallbackUrl() : gif.getPreviewUrl()}
     alt={gif.getTitle()}
     title={gif.getTitle()}
     width={gif.getWidth()}
@@ -14,9 +16,10 @@
     muted={true}
     controls={false}
     loop={true}
+    playsinline={true}
     class="gif"
     on:load
-    on:error
+    on:error={() => (errored = true)}
     on:click={() => window.open("https://tenor.com/view/" + gif.getId(), "", "noopener")}
 />
 

@@ -11,11 +11,12 @@ import (
 )
 
 type GifSearchResult struct {
-	ID         string
-	Title      string
-	PreviewURL string
-	Width      int
-	Height     int
+	ID                 string
+	Title              string
+	PreviewURL         string
+	PreviewFallbackURL string
+	Width              int
+	Height             int
 }
 
 func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, pos string) ([]*GifSearchResult, string, error) {
@@ -51,13 +52,20 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 		}
 
 		previewURL := ""
+		fallbackURL := ""
 		var width, height int
 		if gifObject.Media[0].Nanowebm != nil {
 			previewURL = gifObject.Media[0].Nanowebm.Url
+			if gifObject.Media[0].Nanomp4 != nil {
+				fallbackURL = gifObject.Media[0].Nanomp4.Url
+			}
 			width = gifObject.Media[0].Nanowebm.Dims[0]
 			height = gifObject.Media[0].Nanowebm.Dims[1]
 		} else if gifObject.Media[0].Tinywebm != nil {
 			previewURL = gifObject.Media[0].Tinywebm.Url
+			if gifObject.Media[0].Tinymp4 != nil {
+				fallbackURL = gifObject.Media[0].Tinymp4.Url
+			}
 			width = gifObject.Media[0].Tinywebm.Dims[0]
 			height = gifObject.Media[0].Tinywebm.Dims[1]
 		} else {
@@ -72,11 +80,12 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 		c.tenorGifCache.SetDefault(gifObject.Id, cacheEntry)
 
 		results = append(results, &GifSearchResult{
-			ID:         gifObject.Id,
-			Title:      gifObject.ContentDescription,
-			PreviewURL: previewURL,
-			Width:      width,
-			Height:     height,
+			ID:                 gifObject.Id,
+			Title:              gifObject.ContentDescription,
+			PreviewURL:         previewURL,
+			PreviewFallbackURL: fallbackURL,
+			Width:              width,
+			Height:             height,
 		})
 	}
 	next := string(response.JSON200.Next)
@@ -88,9 +97,13 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 
 func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *chat.MessageAttachmentTenorGifView {
 	url := ""
+	fallbackURL := ""
 	var width, height int
 	if gifObject.Media[0].Webm != nil {
 		url = gifObject.Media[0].Webm.Url
+		if gifObject.Media[0].Mp4 != nil {
+			fallbackURL = gifObject.Media[0].Mp4.Url
+		}
 		width = gifObject.Media[0].Webm.Dims[0]
 		height = gifObject.Media[0].Webm.Dims[1]
 	} else if gifObject.Media[0].Mp4 != nil {
@@ -102,11 +115,12 @@ func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *chat.MessageAtt
 	}
 
 	return &chat.MessageAttachmentTenorGifView{
-		ID:       gifObject.Id,
-		VideoURL: url,
-		Title:    gifObject.ContentDescription,
-		Width:    width,
-		Height:   height,
+		ID:               gifObject.Id,
+		VideoURL:         url,
+		VideoFallbackURL: fallbackURL,
+		Title:            gifObject.ContentDescription,
+		Width:            width,
+		Height:           height,
 	}
 }
 

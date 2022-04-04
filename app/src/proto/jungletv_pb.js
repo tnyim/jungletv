@@ -12787,9 +12787,10 @@ proto.jungletv.ChatMessageTenorGifAttachment.toObject = function(includeInstance
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
     videoUrl: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    title: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    width: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    height: jspb.Message.getFieldWithDefault(msg, 5, 0)
+    videoFallbackUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    title: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    width: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    height: jspb.Message.getFieldWithDefault(msg, 6, 0)
   };
 
   if (includeInstance) {
@@ -12836,13 +12837,17 @@ proto.jungletv.ChatMessageTenorGifAttachment.deserializeBinaryFromReader = funct
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setTitle(value);
+      msg.setVideoFallbackUrl(value);
       break;
     case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTitle(value);
+      break;
+    case 5:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWidth(value);
       break;
-    case 5:
+    case 6:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setHeight(value);
       break;
@@ -12889,24 +12894,31 @@ proto.jungletv.ChatMessageTenorGifAttachment.serializeBinaryToWriter = function(
       f
     );
   }
-  f = message.getTitle();
+  f = message.getVideoFallbackUrl();
   if (f.length > 0) {
     writer.writeString(
       3,
       f
     );
   }
+  f = message.getTitle();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
   f = message.getWidth();
   if (f !== 0) {
     writer.writeInt32(
-      4,
+      5,
       f
     );
   }
   f = message.getHeight();
   if (f !== 0) {
     writer.writeInt32(
-      5,
+      6,
       f
     );
   }
@@ -12950,10 +12962,10 @@ proto.jungletv.ChatMessageTenorGifAttachment.prototype.setVideoUrl = function(va
 
 
 /**
- * optional string title = 3;
+ * optional string video_fallback_url = 3;
  * @return {string}
  */
-proto.jungletv.ChatMessageTenorGifAttachment.prototype.getTitle = function() {
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.getVideoFallbackUrl = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
@@ -12962,34 +12974,34 @@ proto.jungletv.ChatMessageTenorGifAttachment.prototype.getTitle = function() {
  * @param {string} value
  * @return {!proto.jungletv.ChatMessageTenorGifAttachment} returns this
  */
-proto.jungletv.ChatMessageTenorGifAttachment.prototype.setTitle = function(value) {
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.setVideoFallbackUrl = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
 /**
- * optional int32 width = 4;
+ * optional string title = 4;
+ * @return {string}
+ */
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.getTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.ChatMessageTenorGifAttachment} returns this
+ */
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.setTitle = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional int32 width = 5;
  * @return {number}
  */
 proto.jungletv.ChatMessageTenorGifAttachment.prototype.getWidth = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/**
- * @param {number} value
- * @return {!proto.jungletv.ChatMessageTenorGifAttachment} returns this
- */
-proto.jungletv.ChatMessageTenorGifAttachment.prototype.setWidth = function(value) {
-  return jspb.Message.setProto3IntField(this, 4, value);
-};
-
-
-/**
- * optional int32 height = 5;
- * @return {number}
- */
-proto.jungletv.ChatMessageTenorGifAttachment.prototype.getHeight = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
 };
 
@@ -12998,8 +13010,26 @@ proto.jungletv.ChatMessageTenorGifAttachment.prototype.getHeight = function() {
  * @param {number} value
  * @return {!proto.jungletv.ChatMessageTenorGifAttachment} returns this
  */
-proto.jungletv.ChatMessageTenorGifAttachment.prototype.setHeight = function(value) {
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.setWidth = function(value) {
   return jspb.Message.setProto3IntField(this, 5, value);
+};
+
+
+/**
+ * optional int32 height = 6;
+ * @return {number}
+ */
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.getHeight = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.ChatMessageTenorGifAttachment} returns this
+ */
+proto.jungletv.ChatMessageTenorGifAttachment.prototype.setHeight = function(value) {
+  return jspb.Message.setProto3IntField(this, 6, value);
 };
 
 
@@ -37165,8 +37195,9 @@ proto.jungletv.ChatGifSearchResult.toObject = function(includeInstance, msg) {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
     title: jspb.Message.getFieldWithDefault(msg, 2, ""),
     previewUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    width: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    height: jspb.Message.getFieldWithDefault(msg, 5, 0)
+    previewFallbackUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    width: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    height: jspb.Message.getFieldWithDefault(msg, 6, 0)
   };
 
   if (includeInstance) {
@@ -37216,10 +37247,14 @@ proto.jungletv.ChatGifSearchResult.deserializeBinaryFromReader = function(msg, r
       msg.setPreviewUrl(value);
       break;
     case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPreviewFallbackUrl(value);
+      break;
+    case 5:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWidth(value);
       break;
-    case 5:
+    case 6:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setHeight(value);
       break;
@@ -37273,17 +37308,24 @@ proto.jungletv.ChatGifSearchResult.serializeBinaryToWriter = function(message, w
       f
     );
   }
+  f = message.getPreviewFallbackUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
   f = message.getWidth();
   if (f !== 0) {
     writer.writeInt32(
-      4,
+      5,
       f
     );
   }
   f = message.getHeight();
   if (f !== 0) {
     writer.writeInt32(
-      5,
+      6,
       f
     );
   }
@@ -37345,28 +37387,28 @@ proto.jungletv.ChatGifSearchResult.prototype.setPreviewUrl = function(value) {
 
 
 /**
- * optional int32 width = 4;
+ * optional string preview_fallback_url = 4;
+ * @return {string}
+ */
+proto.jungletv.ChatGifSearchResult.prototype.getPreviewFallbackUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.ChatGifSearchResult} returns this
+ */
+proto.jungletv.ChatGifSearchResult.prototype.setPreviewFallbackUrl = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional int32 width = 5;
  * @return {number}
  */
 proto.jungletv.ChatGifSearchResult.prototype.getWidth = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/**
- * @param {number} value
- * @return {!proto.jungletv.ChatGifSearchResult} returns this
- */
-proto.jungletv.ChatGifSearchResult.prototype.setWidth = function(value) {
-  return jspb.Message.setProto3IntField(this, 4, value);
-};
-
-
-/**
- * optional int32 height = 5;
- * @return {number}
- */
-proto.jungletv.ChatGifSearchResult.prototype.getHeight = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
 };
 
@@ -37375,8 +37417,26 @@ proto.jungletv.ChatGifSearchResult.prototype.getHeight = function() {
  * @param {number} value
  * @return {!proto.jungletv.ChatGifSearchResult} returns this
  */
-proto.jungletv.ChatGifSearchResult.prototype.setHeight = function(value) {
+proto.jungletv.ChatGifSearchResult.prototype.setWidth = function(value) {
   return jspb.Message.setProto3IntField(this, 5, value);
+};
+
+
+/**
+ * optional int32 height = 6;
+ * @return {number}
+ */
+proto.jungletv.ChatGifSearchResult.prototype.getHeight = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.ChatGifSearchResult} returns this
+ */
+proto.jungletv.ChatGifSearchResult.prototype.setHeight = function(value) {
+  return jspb.Message.setProto3IntField(this, 6, value);
 };
 
 

@@ -45,11 +45,12 @@ func (a *MessageAttachmentTenorGifStorage) PointsTxType() types.PointsTxType {
 
 // MessageAttachmentTenorGifView is the view model for a Tenor GIF attachment. Implements MessageAttachmentView
 type MessageAttachmentTenorGifView struct {
-	ID       string
-	VideoURL string
-	Title    string
-	Width    int
-	Height   int
+	ID               string
+	VideoURL         string
+	VideoFallbackURL string
+	Title            string
+	Width            int
+	Height           int
 }
 
 var _ MessageAttachmentView = &MessageAttachmentTenorGifView{}
@@ -58,11 +59,12 @@ func (a *MessageAttachmentTenorGifView) SerializeForAPI(context.Context) *proto.
 	return &proto.ChatMessageAttachment{
 		Attachment: &proto.ChatMessageAttachment_TenorGif{
 			TenorGif: &proto.ChatMessageTenorGifAttachment{
-				Id:       a.ID,
-				VideoUrl: a.VideoURL,
-				Title:    a.Title,
-				Width:    int32(a.Width),
-				Height:   int32(a.Height),
+				Id:               a.ID,
+				VideoUrl:         a.VideoURL,
+				VideoFallbackUrl: a.VideoFallbackURL,
+				Title:            a.Title,
+				Width:            int32(a.Width),
+				Height:           int32(a.Height),
 			},
 		},
 	}

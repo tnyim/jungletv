@@ -302,11 +302,12 @@ func (s *grpcServer) ChatGifSearch(ctx context.Context, r *proto.ChatGifSearchRe
 	protoResults := make([]*proto.ChatGifSearchResult, len(results))
 	for i, result := range results {
 		protoResults[i] = &proto.ChatGifSearchResult{
-			Id:         result.ID,
-			Title:      result.Title,
-			PreviewUrl: result.PreviewURL,
-			Width:      int32(result.Width),
-			Height:     int32(result.Height),
+			Id:                 result.ID,
+			Title:              result.Title,
+			PreviewUrl:         result.PreviewURL,
+			PreviewFallbackUrl: result.PreviewFallbackURL,
+			Width:              int32(result.Width),
+			Height:             int32(result.Height),
 		}
 	}
 

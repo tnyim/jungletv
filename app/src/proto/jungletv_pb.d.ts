@@ -1260,6 +1260,9 @@ export class ChatMessageTenorGifAttachment extends jspb.Message {
   getVideoUrl(): string;
   setVideoUrl(value: string): void;
 
+  getVideoFallbackUrl(): string;
+  setVideoFallbackUrl(value: string): void;
+
   getTitle(): string;
   setTitle(value: string): void;
 
@@ -1283,6 +1286,7 @@ export namespace ChatMessageTenorGifAttachment {
   export type AsObject = {
     id: string,
     videoUrl: string,
+    videoFallbackUrl: string,
     title: string,
     width: number,
     height: number,
@@ -4822,6 +4826,9 @@ export class ChatGifSearchResult extends jspb.Message {
   getPreviewUrl(): string;
   setPreviewUrl(value: string): void;
 
+  getPreviewFallbackUrl(): string;
+  setPreviewFallbackUrl(value: string): void;
+
   getWidth(): number;
   setWidth(value: number): void;
 
@@ -4843,6 +4850,7 @@ export namespace ChatGifSearchResult {
     id: string,
     title: string,
     previewUrl: string,
+    previewFallbackUrl: string,
     width: number,
     height: number,
   }
