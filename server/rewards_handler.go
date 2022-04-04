@@ -493,7 +493,12 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
-	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward, int(m.MediaInfo().Length().Minutes())+1)
+	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
+		int(m.MediaInfo().Length().Minutes())+1,
+		pointsmanager.TxExtraField{
+			Key:   "media",
+			Value: m.QueueID(),
+		})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

@@ -2,6 +2,7 @@ package pointsmanager
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -25,7 +26,7 @@ func New(snowflakeNode *snowflake.Node) *Manager {
 }
 
 // CreateTransaction creates a points transaction
-func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int) error {
+func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int, extraFields ...TxExtraField) error {
 	err := validateBalanceMovement(txType, value)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -63,20 +64,41 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
-	} else {
-		now := time.Now()
-		tx := &types.PointsTx{
-			ID:             m.snowflakeNode.Generate().Int64(),
-			RewardsAddress: forUser.Address(),
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			Value:          value,
-			Type:           txType,
+		return stacktrace.Propagate(ctx.Commit(), "")
+	}
+
+	extra := ""
+	extraFieldsMap := make(map[string]any)
+	for _, field := range extraFields {
+		extraFieldsMap[field.Key] = field.Value
+	}
+
+	for _, mandatoryFieldKey := range pointsTxTypeMandatoryExtraFields[txType] {
+		if _, present := extraFieldsMap[mandatoryFieldKey]; !present {
+			return stacktrace.NewError("mandatory extra field %s not provided", mandatoryFieldKey)
 		}
-		err = tx.Insert(ctx)
+	}
+
+	if len(extraFields) > 0 {
+		jsonBytes, err := json.Marshal(extraFieldsMap)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
+		extra = string(jsonBytes)
+	}
+	now := time.Now()
+	tx := &types.PointsTx{
+		ID:             m.snowflakeNode.Generate().Int64(),
+		RewardsAddress: forUser.Address(),
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		Value:          value,
+		Type:           txType,
+		Extra:          extra,
+	}
+	err = tx.Insert(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
 	}
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
@@ -108,6 +130,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeChatActivityReward:      pointsTxDirectionIncrease,
 	types.PointsTxTypeMediaEnqueuedReward:     pointsTxDirectionIncrease,
 	types.PointsTxTypeChatGifAttachment:       pointsTxDirectionDecrease,
+	types.PointsTxTypeManualAdjustment:        pointsTxDirectionIncreaseOrDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -115,4 +138,9 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 var pointsTxTypeCanCollapse = map[types.PointsTxType]bool{
 	types.PointsTxTypeActivityChallengeReward: true,
 	types.PointsTxTypeChatActivityReward:      true,
+}
+
+var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
+	types.PointsTxTypeMediaEnqueuedReward: {"media"},
+	types.PointsTxTypeManualAdjustment:    {"adjusted_by", "reason"},
 }

@@ -643,6 +643,15 @@ type JungleTVStopActivelyModerating = {
   readonly responseType: typeof jungletv_pb.StopActivelyModeratingResponse;
 };
 
+type JungleTVAdjustPointsBalance = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.AdjustPointsBalanceRequest;
+  readonly responseType: typeof jungletv_pb.AdjustPointsBalanceResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -716,6 +725,7 @@ export class JungleTV {
   static readonly ClearUserProfile: JungleTVClearUserProfile;
   static readonly MarkAsActivelyModerating: JungleTVMarkAsActivelyModerating;
   static readonly StopActivelyModerating: JungleTVStopActivelyModerating;
+  static readonly AdjustPointsBalance: JungleTVAdjustPointsBalance;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1332,6 +1342,15 @@ export class JungleTVClient {
   stopActivelyModerating(
     requestMessage: jungletv_pb.StopActivelyModeratingRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.StopActivelyModeratingResponse|null) => void
+  ): UnaryResponse;
+  adjustPointsBalance(
+    requestMessage: jungletv_pb.AdjustPointsBalanceRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AdjustPointsBalanceResponse|null) => void
+  ): UnaryResponse;
+  adjustPointsBalance(
+    requestMessage: jungletv_pb.AdjustPointsBalanceRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AdjustPointsBalanceResponse|null) => void
   ): UnaryResponse;
 }
 

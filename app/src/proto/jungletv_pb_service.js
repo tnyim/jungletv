@@ -649,6 +649,15 @@ JungleTV.StopActivelyModerating = {
   responseType: jungletv_pb.StopActivelyModeratingResponse
 };
 
+JungleTV.AdjustPointsBalance = {
+  methodName: "AdjustPointsBalance",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.AdjustPointsBalanceRequest,
+  responseType: jungletv_pb.AdjustPointsBalanceResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -2887,6 +2896,37 @@ JungleTVClient.prototype.stopActivelyModerating = function stopActivelyModeratin
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.StopActivelyModerating, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.adjustPointsBalance = function adjustPointsBalance(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.AdjustPointsBalance, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

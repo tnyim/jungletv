@@ -9,6 +9,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -558,4 +559,57 @@ func (s *grpcServer) ClearUserProfile(ctxCtx context.Context, r *proto.ClearUser
 	}
 
 	return &proto.ClearUserProfileResponse{}, nil
+}
+
+func (s *grpcServer) AdjustPointsBalance(ctxCtx context.Context, r *proto.AdjustPointsBalanceRequest) (*proto.AdjustPointsBalanceResponse, error) {
+	moderator := authinterceptor.UserClaimsFromContext(ctxCtx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	err = s.pointsManager.CreateTransaction(ctx,
+		auth.NewAddressOnlyUser(r.RewardsAddress),
+		types.PointsTxTypeManualAdjustment,
+		int(r.Value),
+		pointsmanager.TxExtraField{
+			Key:   "adjusted_by",
+			Value: moderator.Address(),
+		},
+		pointsmanager.TxExtraField{
+			Key:   "reason",
+			Value: r.Reason,
+		})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Points balance of user %s adjusted by %d by %s (remote address %s) with reason: %s",
+		r.RewardsAddress, r.Value, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) adjusted points balance of user %s by %d with reason: %s",
+				moderator.Address()[:14],
+				moderator.Username,
+				r.RewardsAddress,
+				r.Value,
+				r.Reason))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.AdjustPointsBalanceResponse{}, nil
 }

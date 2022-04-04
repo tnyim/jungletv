@@ -90,6 +90,7 @@ type JungleTVClient interface {
 	ClearUserProfile(ctx context.Context, in *ClearUserProfileRequest, opts ...grpc.CallOption) (*ClearUserProfileResponse, error)
 	MarkAsActivelyModerating(ctx context.Context, in *MarkAsActivelyModeratingRequest, opts ...grpc.CallOption) (*MarkAsActivelyModeratingResponse, error)
 	StopActivelyModerating(ctx context.Context, in *StopActivelyModeratingRequest, opts ...grpc.CallOption) (*StopActivelyModeratingResponse, error)
+	AdjustPointsBalance(ctx context.Context, in *AdjustPointsBalanceRequest, opts ...grpc.CallOption) (*AdjustPointsBalanceResponse, error)
 }
 
 type jungleTVClient struct {
@@ -900,6 +901,15 @@ func (c *jungleTVClient) StopActivelyModerating(ctx context.Context, in *StopAct
 	return out, nil
 }
 
+func (c *jungleTVClient) AdjustPointsBalance(ctx context.Context, in *AdjustPointsBalanceRequest, opts ...grpc.CallOption) (*AdjustPointsBalanceResponse, error) {
+	out := new(AdjustPointsBalanceResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/AdjustPointsBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -976,6 +986,7 @@ type JungleTVServer interface {
 	ClearUserProfile(context.Context, *ClearUserProfileRequest) (*ClearUserProfileResponse, error)
 	MarkAsActivelyModerating(context.Context, *MarkAsActivelyModeratingRequest) (*MarkAsActivelyModeratingResponse, error)
 	StopActivelyModerating(context.Context, *StopActivelyModeratingRequest) (*StopActivelyModeratingResponse, error)
+	AdjustPointsBalance(context.Context, *AdjustPointsBalanceRequest) (*AdjustPointsBalanceResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1195,6 +1206,9 @@ func (UnimplementedJungleTVServer) MarkAsActivelyModerating(context.Context, *Ma
 }
 func (UnimplementedJungleTVServer) StopActivelyModerating(context.Context, *StopActivelyModeratingRequest) (*StopActivelyModeratingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopActivelyModerating not implemented")
+}
+func (UnimplementedJungleTVServer) AdjustPointsBalance(context.Context, *AdjustPointsBalanceRequest) (*AdjustPointsBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdjustPointsBalance not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -2508,6 +2522,24 @@ func _JungleTV_StopActivelyModerating_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_AdjustPointsBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdjustPointsBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).AdjustPointsBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/AdjustPointsBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).AdjustPointsBalance(ctx, req.(*AdjustPointsBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2770,6 +2802,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopActivelyModerating",
 			Handler:    _JungleTV_StopActivelyModerating_Handler,
+		},
+		{
+			MethodName: "AdjustPointsBalance",
+			Handler:    _JungleTV_AdjustPointsBalance_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

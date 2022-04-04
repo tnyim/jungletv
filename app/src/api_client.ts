@@ -149,7 +149,9 @@ import {
     PointsTransactionsResponse,
     PointsTransactionsRequest,
     ChatGifSearchRequest,
-    ChatGifSearchResponse
+    ChatGifSearchResponse,
+    AdjustPointsBalanceResponse,
+    AdjustPointsBalanceRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -721,6 +723,14 @@ class APIClient {
     async stopActivelyModerating(): Promise<StopActivelyModeratingResponse> {
         let request = new StopActivelyModeratingRequest();
         return this.unaryRPC<StopActivelyModeratingRequest, StopActivelyModeratingResponse>(JungleTV.StopActivelyModerating, request);
+    }
+
+    async adjustPointsBalance(rewardsAddress: string, value: number, reason: string): Promise<AdjustPointsBalanceResponse> {
+        let request = new AdjustPointsBalanceRequest();
+        request.setRewardsAddress(rewardsAddress);
+        request.setValue(value);
+        request.setReason(reason);
+        return this.unaryRPC<AdjustPointsBalanceRequest, AdjustPointsBalanceResponse>(JungleTV.AdjustPointsBalance, request);
     }
 
     async pointsInfo(): Promise<PointsInfoResponse> {

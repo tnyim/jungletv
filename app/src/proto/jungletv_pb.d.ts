@@ -4856,6 +4856,50 @@ export namespace ChatGifSearchResult {
   }
 }
 
+export class AdjustPointsBalanceRequest extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  getValue(): number;
+  setValue(value: number): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AdjustPointsBalanceRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AdjustPointsBalanceRequest): AdjustPointsBalanceRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AdjustPointsBalanceRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AdjustPointsBalanceRequest;
+  static deserializeBinaryFromReader(message: AdjustPointsBalanceRequest, reader: jspb.BinaryReader): AdjustPointsBalanceRequest;
+}
+
+export namespace AdjustPointsBalanceRequest {
+  export type AsObject = {
+    rewardsAddress: string,
+    value: number,
+    reason: string,
+  }
+}
+
+export class AdjustPointsBalanceResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AdjustPointsBalanceResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AdjustPointsBalanceResponse): AdjustPointsBalanceResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AdjustPointsBalanceResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AdjustPointsBalanceResponse;
+  static deserializeBinaryFromReader(message: AdjustPointsBalanceResponse, reader: jspb.BinaryReader): AdjustPointsBalanceResponse;
+}
+
+export namespace AdjustPointsBalanceResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

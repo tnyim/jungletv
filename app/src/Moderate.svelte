@@ -138,6 +138,36 @@
             alert("An error occurred when completing the raffle: " + e);
         }
     }
+
+    async function adjustPointsBalance() {
+        let rewardsAddress = prompt(
+            "Enter the rewards address for which to adjust the points balance, or press cancel:"
+        );
+        if (rewardsAddress === null) {
+            return;
+        }
+        let valueStr = prompt("Enter the integer value (positive or negative) for the adjustment, or press cancel:");
+        if (valueStr === null) {
+            return;
+        }
+        let value = parseInt(valueStr);
+        if (value == NaN) {
+            alert("Invalid value");
+            return;
+        }
+        let reason = prompt(
+            `Adjusting points balance of ${rewardsAddress} by ${value} points.` + "\n\nEnter a reason, or press cancel:"
+        );
+        if (reason === null) {
+            return;
+        }
+        try {
+            await apiClient.adjustPointsBalance(rewardsAddress, value, reason);
+            alert("Balance adjustment successful");
+        } catch (e) {
+            alert("An error occurred when adjusting the points balance: " + e);
+        }
+    }
 </script>
 
 <div class="flex-grow min-h-full overflow-x-hidden">
@@ -339,6 +369,20 @@
             >
                 Complete raffle
             </button>
+        </div>
+    </div>
+    <div class="mt-10">
+        <p class="px-2 font-semibold text-lg">Points</p>
+        <div class="px-2 grid grid-cols-3 gap-6">
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => adjustPointsBalance()}
+            >
+                Adjust balance
+            </button>
+            <div />
+            <div />
         </div>
     </div>
     <div class="mt-10">
