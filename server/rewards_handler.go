@@ -60,7 +60,8 @@ type RewardsHandler struct {
 	spectatorByActivityChallenge map[string]*spectator
 	spectatorsMutex              sync.RWMutex
 
-	chatParticipation *cache.Cache[string, struct{}]
+	chatParticipation             *cache.Cache[string, struct{}]
+	chatLessFrequentParticipation *cache.Cache[string, struct{}]
 }
 
 type Spectator interface {
@@ -217,7 +218,8 @@ func NewRewardsHandler(log *log.Logger,
 
 		versionHash: versionHash,
 
-		chatParticipation: cache.New[string, struct{}](3*time.Minute, 10*time.Minute),
+		chatParticipation:             cache.New[string, struct{}](2*time.Minute+45*time.Second, 10*time.Minute),
+		chatLessFrequentParticipation: cache.New[string, struct{}](15*time.Minute, 10*time.Minute),
 	}, nil
 }
 
@@ -494,7 +496,7 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
 	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
-		int(m.MediaInfo().Length().Minutes())+1,
+		int(m.MediaInfo().Length().Seconds())/10+1,
 		pointsmanager.TxExtraField{
 			Key:   "media",
 			Value: m.QueueID(),
@@ -510,14 +512,21 @@ func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Messa
 		return nil
 	}
 
-	if len(m.Content) >= 10 || m.Reference != nil {
+	if len(m.Content) >= 10 || m.Reference != nil || len(m.AttachmentsView) > 0 {
 		r.markAddressAsActiveIfNotChallenged(ctx, m.Author.Address())
 
 		_, present := r.chatParticipation.Get(m.Author.Address())
+		_, presentInLessFrequent := r.chatLessFrequentParticipation.Get(m.Author.Address())
 		if !present {
 			r.chatParticipation.SetDefault(m.Author.Address(), struct{}{})
+			r.chatLessFrequentParticipation.SetDefault(m.Author.Address(), struct{}{})
 
-			err := r.pointsManager.CreateTransaction(ctx, m.Author, types.PointsTxTypeChatActivityReward, 1)
+			points := 3
+			if !presentInLessFrequent {
+				points = 6
+			}
+
+			err := r.pointsManager.CreateTransaction(ctx, m.Author, types.PointsTxTypeChatActivityReward, points)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

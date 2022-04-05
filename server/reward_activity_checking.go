@@ -137,11 +137,9 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		newLegitimate = true
 	}
 	var checkFn captchaResponseCheckFn
-	points := 1
 	switch spectator.activityChallenge.Type {
 	case "segcha":
 		checkFn = r.segchaCheckFn
-		points = 2
 	}
 	if checkFn != nil {
 		captchaValid, err = checkFn(ctx, captchaResponse)
@@ -183,7 +181,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	delete(r.spectatorByActivityChallenge, challenge)
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
-	err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, points)
+	err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, 10)
 	if err != nil {
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
 	}

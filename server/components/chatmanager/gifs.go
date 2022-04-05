@@ -168,5 +168,5 @@ func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (*chat.Message
 }
 
 func (c *Manager) TenorGifAttachmentCostForUser(ctx context.Context, user auth.User) (int, error) {
-	return 100, nil
+	return 42, nil
 }
