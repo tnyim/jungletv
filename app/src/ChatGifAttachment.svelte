@@ -6,11 +6,19 @@
 
     const dispatch = createEventDispatcher();
 
+    let titleMinusGIF = "";
+    $: {
+        titleMinusGIF = attachment.getTitle();
+        if (titleMinusGIF.endsWith(" GIF")) {
+            titleMinusGIF = titleMinusGIF.substring(0, titleMinusGIF.length - 4);
+        }
+    }
+
     let errored = false;
 </script>
 
-<!-- svelte-ignore a11y-media-has-caption -->
-<div class="w-auto relative">
+<div class="relative" style="width: fit-content">
+    <!-- svelte-ignore a11y-media-has-caption -->
     <video
         src={errored ? attachment.getVideoFallbackUrl() : attachment.getVideoUrl()}
         alt={attachment.getTitle()}
@@ -24,16 +32,25 @@
         playsinline={true}
         class="gif"
         on:load
-        on:error={() => errored = true}
+        on:error={() => (errored = true)}
         on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
     />
-    <button
-        class="absolute flex flex-row right-0 top-0 w-8 h-8 bg-gray-500 text-white opacity-0 hover:opacity-100 focus:opacity-100 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
-        title="Collapse GIF"
-        on:click={() => dispatch("collapse")}
+    <div
+        class="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 focus:opacity-100 ease-linear transition-all duration-150"
+        on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
     >
-        <i class="fas fa-times" />
-    </button>
+        <div class="p-1 mr-8 text-xs text-gray-100" style="text-shadow: 0px 0px 2.2px black">
+            <span class="font-bold">{titleMinusGIF}</span>
+            <br />Click to view on Tenor
+        </div>
+        <button
+            class="absolute flex flex-row right-0 top-0 w-8 h-8 bg-gray-500 opacity-70 hover:opacity-100 text-white text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+            title="Collapse GIF"
+            on:click={() => dispatch("collapse")}
+        >
+            <i class="fas fa-times" />
+        </button>
+    </div>
 </div>
 
 <style lang="css">
