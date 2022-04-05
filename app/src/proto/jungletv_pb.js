@@ -37241,7 +37241,8 @@ proto.jungletv.ChatGifSearchResult.toObject = function(includeInstance, msg) {
     previewUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     previewFallbackUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
     width: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    height: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    height: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    pointsCost: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -37301,6 +37302,10 @@ proto.jungletv.ChatGifSearchResult.deserializeBinaryFromReader = function(msg, r
     case 6:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setHeight(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPointsCost(value);
       break;
     default:
       reader.skipField();
@@ -37370,6 +37375,13 @@ proto.jungletv.ChatGifSearchResult.serializeBinaryToWriter = function(message, w
   if (f !== 0) {
     writer.writeInt32(
       6,
+      f
+    );
+  }
+  f = message.getPointsCost();
+  if (f !== 0) {
+    writer.writeInt32(
+      7,
       f
     );
   }
@@ -37481,6 +37493,24 @@ proto.jungletv.ChatGifSearchResult.prototype.getHeight = function() {
  */
 proto.jungletv.ChatGifSearchResult.prototype.setHeight = function(value) {
   return jspb.Message.setProto3IntField(this, 6, value);
+};
+
+
+/**
+ * optional int32 points_cost = 7;
+ * @return {number}
+ */
+proto.jungletv.ChatGifSearchResult.prototype.getPointsCost = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.ChatGifSearchResult} returns this
+ */
+proto.jungletv.ChatGifSearchResult.prototype.setPointsCost = function(value) {
+  return jspb.Message.setProto3IntField(this, 7, value);
 };
 
 

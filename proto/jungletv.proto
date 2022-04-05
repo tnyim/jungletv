@@ -1071,6 +1071,7 @@ message ChatGifSearchResult {
     string preview_fallback_url = 4;
     int32 width = 5;
     int32 height = 6;
+    int32 points_cost = 7;
 }
 
 message AdjustPointsBalanceRequest {

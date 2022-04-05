@@ -23,7 +23,7 @@
     }
 </script>
 
-<div on:keydown={onKeyDown} transition:slide={{ duration: 200 }}>
+<div on:keydown={onKeyDown} transition:slide|local={{ duration: 200 }}>
     <div class="flex flex-row flex-wrap px-1 border-l border-r border-gray-300 dark:border-gray-700">
         <SidebarTabButton selected={selectedTab == "emoji"} on:click={() => (selectedTab = "emoji")}>
             Emoji

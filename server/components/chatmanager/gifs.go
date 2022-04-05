@@ -17,6 +17,7 @@ type GifSearchResult struct {
 	PreviewFallbackURL string
 	Width              int
 	Height             int
+	PointsCost         int
 }
 
 func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, pos string) ([]*GifSearchResult, string, error) {
@@ -43,6 +44,11 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 	}
 	if response.StatusCode() != http.StatusOK {
 		return nil, "", stacktrace.NewError("non-200 response from Tenor API")
+	}
+
+	cost, err := c.TenorGifAttachmentCostForUser(ctx, user)
+	if err != nil {
+		return nil, "", stacktrace.Propagate(err, "")
 	}
 
 	results := []*GifSearchResult{}
@@ -86,6 +92,7 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 			PreviewFallbackURL: fallbackURL,
 			Width:              width,
 			Height:             height,
+			PointsCost:         cost,
 		})
 	}
 	next := string(response.JSON200.Next)
@@ -158,4 +165,8 @@ func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (*chat.Message
 		return nil, stacktrace.Propagate(err, "")
 	}
 	return v.(*chat.MessageAttachmentTenorGifView), stacktrace.Propagate(err, "")
+}
+
+func (c *Manager) TenorGifAttachmentCostForUser(ctx context.Context, user auth.User) (int, error) {
+	return 100, nil
 }

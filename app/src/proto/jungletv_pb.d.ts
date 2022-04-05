@@ -4835,6 +4835,9 @@ export class ChatGifSearchResult extends jspb.Message {
   getHeight(): number;
   setHeight(value: number): void;
 
+  getPointsCost(): number;
+  setPointsCost(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatGifSearchResult.AsObject;
   static toObject(includeInstance: boolean, msg: ChatGifSearchResult): ChatGifSearchResult.AsObject;
@@ -4853,6 +4856,7 @@ export namespace ChatGifSearchResult {
     previewFallbackUrl: string,
     width: number,
     height: number,
+    pointsCost: number,
   }
 }
 

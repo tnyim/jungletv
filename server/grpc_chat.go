@@ -216,8 +216,13 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 
 	attachments := []chat.MessageAttachmentStorage{}
 	if r.TenorGifAttachment != nil {
+		pointsCost, err := s.chat.TenorGifAttachmentCostForUser(ctx, user)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 		attachments = append(attachments, &chat.MessageAttachmentTenorGifStorage{
-			ID: *r.TenorGifAttachment,
+			ID:   *r.TenorGifAttachment,
+			Cost: pointsCost,
 		})
 	}
 
@@ -308,6 +313,7 @@ func (s *grpcServer) ChatGifSearch(ctx context.Context, r *proto.ChatGifSearchRe
 			PreviewFallbackUrl: result.PreviewFallbackURL,
 			Width:              int32(result.Width),
 			Height:             int32(result.Height),
+			PointsCost:         int32(result.PointsCost),
 		}
 	}
 

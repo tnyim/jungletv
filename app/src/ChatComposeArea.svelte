@@ -859,13 +859,13 @@
                 <div class="text-gray-600 dark:text-gray-400 text-base">
                     <div>
                         {#await apiClient.pointsInfo()}
-                            <i class="fas fa-burn" /> <span class="font-semibold">-100</span>
+                            <i class="fas fa-burn" /> <span class="font-semibold">{-$chatMessageDraftTenorGif.getPointsCost()}</span>
                             <span class="text-xs inline-flex">
                                 <span class="mr-1">/</span>
                                 <Moon size="15" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
                             </span>
                         {:then response}
-                            <i class="fas fa-burn" /> <span class="font-semibold">-100</span>
+                            <i class="fas fa-burn" /> <span class="font-semibold">{-$chatMessageDraftTenorGif.getPointsCost()}</span>
                             <span class="text-xs">
                                 /
                                 <span class={response.getBalance() < 100 ? "text-red-700" : ""}>

@@ -26,7 +26,8 @@ type MessageAttachmentView interface {
 
 // MessageAttachmentTenorGifStorage is the storage model for a Tenor GIF attachment. Implements MessageAttachmentStorage
 type MessageAttachmentTenorGifStorage struct {
-	ID string
+	ID   string
+	Cost int
 }
 
 var _ MessageAttachmentStorage = &MessageAttachmentTenorGifStorage{}
@@ -36,7 +37,7 @@ func (a *MessageAttachmentTenorGifStorage) SerializeForDatabase(context.Context)
 }
 
 func (a *MessageAttachmentTenorGifStorage) PointsCost() int {
-	return 100
+	return a.Cost
 }
 
 func (a *MessageAttachmentTenorGifStorage) PointsTxType() types.PointsTxType {
