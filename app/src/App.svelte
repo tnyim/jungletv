@@ -25,6 +25,8 @@
 	import Rewards from "./Rewards.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import {
+		autoCloseMediaPickerOnInsert,
+		autoCloseMediaPickerOnSend,
 		badRepresentative,
 		collapseGifs,
 		convertEmoticons,
@@ -50,6 +52,8 @@
 	$: localStorage.darkMode = $darkMode;
 	$: localStorage.collapseGifs = $collapseGifs;
 	$: localStorage.convertEmoticons = $convertEmoticons;
+	$: localStorage.autoCloseMediaPickerOnInsert = $autoCloseMediaPickerOnInsert;
+	$: localStorage.autoCloseMediaPickerOnSend = $autoCloseMediaPickerOnSend;
 
 	let isAdmin = false;
 	let isOnline = true;
@@ -260,7 +264,9 @@
 	@layer base {
 		/* prefer Twemoji on Firefox - makes the rest of the page consistent with the emoji picker */
 		html {
-    		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Twemoji Mozilla", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+			font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+				"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Twemoji Mozilla", "Apple Color Emoji",
+				"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 		}
 		a {
 			@apply text-blue-600 dark:text-blue-400 hover:underline cursor-pointer;

@@ -45,6 +45,8 @@
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import {
+        autoCloseMediaPickerOnInsert,
+        autoCloseMediaPickerOnSend,
         chatEmotesAsCustomEmoji,
         chatMessageDraft,
         chatMessageDraftSelectionJSON,
@@ -622,7 +624,7 @@
                         },
                     }),
                     EditorView.lineWrapping,
-                    EditorView.contentAttributes.of({enterKeyHint: "send"}),
+                    EditorView.contentAttributes.of({ enterKeyHint: "send" }),
                     emotePlugin,
                     placeholder("Say something..."),
                     limitMaxLength(512),
@@ -673,7 +675,9 @@
         $chatMessageDraftTenorGif = undefined;
         let refMsg = replyingToMessage;
         dispatch("clearReply");
-        showMediaPicker = false;
+        if ($autoCloseMediaPickerOnSend) {
+            showMediaPicker = false;
+        }
 
         if (msg == "/lightsout") {
             darkMode.update((v) => !v);
@@ -713,7 +717,7 @@
             $chatMessageDraft = msg;
             $chatMessageDraftTenorGif = tenorGif;
             sendError = true;
-            console.log(ex)
+            console.log(ex);
             if (ex.includes("insufficient points balance")) {
                 sendErrorMessage = "You don't have sufficient points to send this message.";
             } else if (ex.includes("rate limit reached")) {
@@ -764,7 +768,9 @@
     }
 
     function onEmojiPicked(event: EmojiClickEvent) {
-        toggleMediaPicker();
+        if ($autoCloseMediaPickerOnInsert) {
+            toggleMediaPicker();
+        }
         if (event.detail.unicode) {
             editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
         } else {
@@ -776,7 +782,9 @@
     }
 
     function onGifPicked(event: CustomEvent<ChatGifSearchResult>) {
-        toggleMediaPicker();
+        if ($autoCloseMediaPickerOnInsert) {
+            toggleMediaPicker();
+        }
         editorView.focus();
         $chatMessageDraftTenorGif = event.detail;
     }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { collapseGifs, convertEmoticons } from "./stores";
+    import { autoCloseMediaPickerOnInsert, autoCloseMediaPickerOnSend, collapseGifs, convertEmoticons } from "./stores";
 
     let showGIFs = !$collapseGifs;
     $: $collapseGifs = !showGIFs;
@@ -36,10 +36,42 @@
             />
         </div>
         <div class="ml-3 text-sm">
-            <label for="convertEmoticons" class="font-medium text-gray-700 dark:text-gray-300">Automatically convert emoticons to emojis</label>
-            <p class="text-gray-500">
-                For example, when you type :-) JungleTV will convert it to 🙂
-            </p>
+            <label for="convertEmoticons" class="font-medium text-gray-700 dark:text-gray-300">
+                Automatically convert emoticons to emojis
+            </label>
+            <p class="text-gray-500">For example, when you type :-) JungleTV will convert it to 🙂</p>
+        </div>
+    </div>
+    <div class="flex items-start">
+        <div class="flex items-center h-5">
+            <input
+                id="autoCloseMediaPickerOnInsert"
+                name="autoCloseMediaPickerOnInsert"
+                type="checkbox"
+                bind:checked={$autoCloseMediaPickerOnInsert}
+                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+            />
+        </div>
+        <div class="ml-3 text-sm">
+            <label for="autoCloseMediaPickerOnInsert" class="font-medium text-gray-700 dark:text-gray-300">
+                Close this pane when a selection is made
+            </label>
+        </div>
+    </div>
+    <div class="flex items-start">
+        <div class="flex items-center h-5">
+            <input
+                id="autoCloseMediaPickerOnSend"
+                name="autoCloseMediaPickerOnSend"
+                type="checkbox"
+                bind:checked={$autoCloseMediaPickerOnSend}
+                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+            />
+        </div>
+        <div class="ml-3 text-sm">
+            <label for="autoCloseMediaPickerOnSend" class="font-medium text-gray-700 dark:text-gray-300">
+                Close this pane when your message is sent
+            </label>
         </div>
     </div>
 </div>
