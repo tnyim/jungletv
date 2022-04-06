@@ -624,7 +624,7 @@
                         },
                     }),
                     EditorView.lineWrapping,
-                    EditorView.contentAttributes.of({ enterKeyHint: "send" }),
+                    EditorView.contentAttributes.of({ enterKeyHint: "send", spellcheck: "true" }),
                     emotePlugin,
                     placeholder("Say something..."),
                     limitMaxLength(512),
@@ -835,7 +835,7 @@
     <div class="px-2 py-1 text-xs">
         Some messages were hidden.
         <span
-            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
             tabindex="0"
             on:click={openBlockedUserManagement}
         >
@@ -878,10 +878,11 @@
                                 </span>
                             </span>
                         {/await}
+                        | <a use:link href="/points" class="text-sm">More information</a>
                     </div>
                     <div>
                         <span
-                            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+                            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                             tabindex="0"
                             on:click={removeTenorGifAttachment}
                             on:keydown={(ev) => ev.key == "Enter" && removeTenorGifAttachment()}

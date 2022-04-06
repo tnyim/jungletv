@@ -23,7 +23,7 @@ type PointsTx struct {
 // GetPointsTxForAddress returns all the points transactions for the given address
 func GetPointsTxForAddress(node sqalx.Node, address string, pagParams *PaginationParams) ([]*PointsTx, uint64, error) {
 	s := sdb.Select().
-		Where(sq.Eq{"points_tx.address": address}).
+		Where(sq.Eq{"points_tx.rewards_address": address}).
 		OrderBy("points_tx.created_at DESC")
 	s = applyPaginationParameters(s, pagParams)
 	return GetWithSelectAndCount[*PointsTx](node, s)

@@ -42,7 +42,7 @@ import { createEventDispatcher } from "svelte";
         "ease-linear transition-all duration-150 cursor-pointer";
 </script>
 
-<p class="text-lg font-semibold">Account connections</p>
+<p class="text-lg font-semibold text-gray-800 dark:text-white">Account connections</p>
 {#if servicesWhichCanBeConnected.length > 0}
     <div class="rounded-lg bg-gray-100 dark:bg-gray-900 p-3 pt-2">
         <p>Connect your accounts</p>

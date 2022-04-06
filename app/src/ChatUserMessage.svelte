@@ -152,7 +152,7 @@
                         <i class="fas fa-photo-video" />
                         {attachment.getTenorGif().getTitle()} -
                         <span
-                            class="text-blue-500 dark:text-blue-600 cursor-pointer hover:underline"
+                            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                             tabindex="0"
                             on:click={() => {
                                 gifExplicitlyCollapsed = false;

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { navigate, link } from "svelte-navigator";
+    import { Moon } from "svelte-loading-spinners";
     import AccountConnections from "./AccountConnections.svelte";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
@@ -13,7 +14,7 @@
         Withdrawal,
     } from "./proto/jungletv_pb";
 
-    import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
+    import { badRepresentative, darkMode, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
@@ -112,7 +113,7 @@
     </div>
     <div slot="main-content">
         {#await rewardInfoPromise}
-            <p>Loading...</p>
+            <p><Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" /></p>
         {:then}
             <p class="text-lg font-semibold">Currently rewarding:</p>
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
@@ -145,8 +146,8 @@
             {:else}
                 <p class="text-lg font-semibold">Available to withdraw:</p>
             {/if}
-            <p class="text-xl font-bold">
-                {apiClient.formatBANPrice($rewardBalance)} BAN
+            <p class="text-2xl sm:text-3xl">
+                {apiClient.formatBANPrice($rewardBalance)} <span class="text-xl">BAN</span>
             </p>
             {#if !pendingWithdrawal}
                 <p class="mt-2 mb-6">
@@ -182,10 +183,45 @@
     <div slot="extra_1">
         <div class="shadow sm:rounded-md sm:overflow-hidden">
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
+                <div class="flex flex-row gap-4 sm:gap-6 items-center">
+                    <img src="/assets/brand/points.svg" alt="JungleTV Points" title="JungleTV Points" class="h-16" />
+                    <div class="flex-grow">
+                        <p class="text-lg font-semibold text-gray-800 dark:text-white">JungleTV Points</p>
+                        <p class="text-sm">Participate in the community and earn points to spend in JungleTV.</p>
+                        <p class="text-sm">
+                            Upgrade to <span class="font-semibold">Nice</span> to get perks and stand out among other users!
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-row gap-4 sm:gap-6">
+                    <div class="flex-grow">
+                        You have
+                        {#await apiClient.pointsInfo()}
+                            <span class="inline-block">
+                                <Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
+                            </span>
+                        {:then response}
+                            <span class="text-2xl sm:text-3xl">{response.getBalance()}</span>
+                        {/await}
+                        points.
+                    </div>
+                    <span
+                        on:click={() => navigate("/points")}
+                        class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
+                    >
+                        Learn more
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div slot="extra_2">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+            <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
                 <div class="grid grid-cols-3 gap-6">
                     <div class="col-span-3">
                         {#await connectionsPromise}
-                            <p>Loading...</p>
+                            <p><Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" /></p>
                         {:then}
                             <AccountConnections {connections} {services} on:needsUpdate={loadConnections} />
                         {/await}
@@ -194,7 +230,7 @@
             </div>
         </div>
     </div>
-    <div slot="extra_2">
+    <div slot="extra_3">
         <PaginatedTable
             title={"Received rewards"}
             column_count={3}
@@ -232,7 +268,7 @@
             </tbody>
         </PaginatedTable>
     </div>
-    <div slot="extra_3">
+    <div slot="extra_4">
         <PaginatedTable
             title={"Completed withdrawals"}
             column_count={4}
