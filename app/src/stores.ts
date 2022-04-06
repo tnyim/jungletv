@@ -60,14 +60,10 @@ export const modal = writable(null as modalInfo);
 
 type featureFlags = {
     version: number,
-    useCM6ChatComposition: boolean,
 };
 
 const defaultFeatureFlags: featureFlags = {
-    version: 2,
-    // make CM6 chat composition the default everywhere except on Firefox for Android due to contenteditable bug in shadow DOM
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1496769
-    useCM6ChatComposition: !(navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && navigator.platform.toLowerCase().indexOf("android") > -1),
+    version: 3,
 }
 
 export const featureFlags = writable<featureFlags>(((): featureFlags => {

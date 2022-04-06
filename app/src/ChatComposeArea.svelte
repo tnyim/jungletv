@@ -411,7 +411,7 @@
             img.src = emoteURLFromID(this.id, this.animated);
             img.alt = this.shortcode ? ":" + this.shortcode + ":" : "";
             img.title = this.shortcode ? ":" + this.shortcode + ":" : "";
-            img.style.height = "1.3em";
+            img.classList.add("markdown-emote");
             img.style.display = "inline";
             img.style.marginTop = "-0.25rem";
             return wrap;
@@ -688,12 +688,6 @@
         }
         if (msg.startsWith("/spoiler ")) {
             msg = "||" + msg.substring("/spoiler ".length) + "||";
-        } else if (msg == "/flag:useCM6ChatComposition") {
-            featureFlags.update((curFlags) => {
-                curFlags.useCM6ChatComposition = !curFlags.useCM6ChatComposition;
-                return curFlags;
-            });
-            return;
         }
         try {
             if (msg.startsWith("/nick")) {
@@ -878,8 +872,8 @@
                                 </span>
                             </span>
                         {/await}
-                        | <a use:link href="/points" class="text-sm">More information</a>
                     </div>
+                    <div><a use:link href="/points" class="text-sm">More information</a></div>
                     <div>
                         <span
                             class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"

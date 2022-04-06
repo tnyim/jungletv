@@ -8,7 +8,6 @@
     import { fade } from "svelte/transition";
     import { apiClient } from "./api_client";
     import ChatComposeArea from "./ChatComposeArea.svelte";
-    import ChatComposeAreaOld from "./ChatComposeAreaOld.svelte";
     import ChatSystemMessage from "./ChatSystemMessage.svelte";
     import ChatUserMessage from "./ChatUserMessage.svelte";
     import { getReadableMessageAuthor } from "./chat_utils";
@@ -19,7 +18,6 @@
         chatEmote,
         chatEmotes,
         chatEmotesAsCustomEmoji,
-        featureFlags,
         rewardAddress,
         unreadChatMention,
     } from "./stores";
@@ -386,16 +384,8 @@
             <div class="p-2 text-gray-600 dark:text-gray-400">
                 Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
             </div>
-        {:else if $featureFlags.useCM6ChatComposition}
-            <ChatComposeArea
-                {allowExpensiveCSSAnimations}
-                {replyingToMessage}
-                {hasBlockedMessages}
-                on:clearReply={clearReplyToMessage}
-                on:sentMessage={() => (sentMsgFlag = true)}
-            />
         {:else}
-            <ChatComposeAreaOld
+            <ChatComposeArea
                 {allowExpensiveCSSAnimations}
                 {replyingToMessage}
                 {hasBlockedMessages}

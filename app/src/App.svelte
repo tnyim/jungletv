@@ -21,7 +21,7 @@
 	import NotFound from "./NotFound.svelte";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
-import Points from "./Points.svelte";
+	import Points from "./Points.svelte";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import Rewards from "./Rewards.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
@@ -325,6 +325,8 @@ import Points from "./Points.svelte";
 
 		.markdown-emote {
 			height: 1.3em;
+			width: 1.3em;
+			object-fit: contain;
 		}
 
 		em .markdown-emote {
