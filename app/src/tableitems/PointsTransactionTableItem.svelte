@@ -23,6 +23,8 @@
                 return "GIF attachment in chat";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_MANUAL_ADJUSTMENT:
                 return "Balance adjustment by the JungleTV team";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL:
+                return "Reversal of reward for media enqueuing";
             default:
                 return "Unknown";
         }

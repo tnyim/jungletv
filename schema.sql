@@ -250,7 +250,8 @@ INSERT INTO "points_tx_type" VALUES
     (2, 'chat_activity_reward'),
     (3, 'media_enqueued_reward'),
     (4, 'chat_gif_attachment'),
-    (5, 'manual_adjustment');
+    (5, 'manual_adjustment'),
+    (6, 'media_enqueued_reward_reversal');
 
 CREATE TABLE IF NOT EXISTS "points_tx" (
     id BIGINT PRIMARY KEY,

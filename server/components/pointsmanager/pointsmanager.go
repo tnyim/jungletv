@@ -126,11 +126,12 @@ const (
 )
 
 var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
-	types.PointsTxTypeActivityChallengeReward: pointsTxDirectionIncrease,
-	types.PointsTxTypeChatActivityReward:      pointsTxDirectionIncrease,
-	types.PointsTxTypeMediaEnqueuedReward:     pointsTxDirectionIncrease,
-	types.PointsTxTypeChatGifAttachment:       pointsTxDirectionDecrease,
-	types.PointsTxTypeManualAdjustment:        pointsTxDirectionIncreaseOrDecrease,
+	types.PointsTxTypeActivityChallengeReward:     pointsTxDirectionIncrease,
+	types.PointsTxTypeChatActivityReward:          pointsTxDirectionIncrease,
+	types.PointsTxTypeMediaEnqueuedReward:         pointsTxDirectionIncrease,
+	types.PointsTxTypeChatGifAttachment:           pointsTxDirectionDecrease,
+	types.PointsTxTypeManualAdjustment:            pointsTxDirectionIncreaseOrDecrease,
+	types.PointsTxTypeMediaEnqueuedRewardReversal: pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -141,6 +142,7 @@ var pointsTxTypeCanCollapse = map[types.PointsTxType]bool{
 }
 
 var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
-	types.PointsTxTypeMediaEnqueuedReward: {"media"},
-	types.PointsTxTypeManualAdjustment:    {"adjusted_by", "reason"},
+	types.PointsTxTypeMediaEnqueuedReward:         {"media"},
+	types.PointsTxTypeManualAdjustment:            {"adjusted_by", "reason"},
+	types.PointsTxTypeMediaEnqueuedRewardReversal: {"media"},
 }

@@ -87,9 +87,10 @@ func (obj *PointsTx) IncreaseValue(node sqalx.Node, value int) error {
 type PointsTxType int
 
 const (
-	PointsTxTypeActivityChallengeReward PointsTxType = 1
-	PointsTxTypeChatActivityReward      PointsTxType = 2
-	PointsTxTypeMediaEnqueuedReward     PointsTxType = 3
-	PointsTxTypeChatGifAttachment       PointsTxType = 4
-	PointsTxTypeManualAdjustment        PointsTxType = 5
+	PointsTxTypeActivityChallengeReward     PointsTxType = 1
+	PointsTxTypeChatActivityReward          PointsTxType = 2
+	PointsTxTypeMediaEnqueuedReward         PointsTxType = 3
+	PointsTxTypeChatGifAttachment           PointsTxType = 4
+	PointsTxTypeManualAdjustment            PointsTxType = 5
+	PointsTxTypeMediaEnqueuedRewardReversal PointsTxType = 6
 )

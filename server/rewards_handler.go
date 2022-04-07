@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -452,7 +453,8 @@ func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia MediaQueue
 
 func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueEntry) error {
 	r.log.Printf("Media with ID %s removed from queue", removed.QueueID())
-	if removed.RequestCost().Cmp(big.NewInt(0)) == 0 {
+	amountToReimburse := removed.RequestCost()
+	if amountToReimburse.Cmp(big.NewInt(0)) == 0 {
 		r.log.Println("Request cost was 0, nothing to reimburse")
 		return nil
 	}
@@ -460,7 +462,27 @@ func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueE
 		return nil
 	}
 	// reimburse who added to queue
-	go r.reimburseRequester(ctx, removed.RequestedBy().Address(), removed.RequestCost())
+
+	pointsReward := r.getPointsRewardForMedia(removed)
+
+	err := r.pointsManager.CreateTransaction(ctx, removed.RequestedBy(), types.PointsTxTypeMediaEnqueuedRewardReversal,
+		-pointsReward, pointsmanager.TxExtraField{
+			Key:   "media",
+			Value: removed.QueueID()})
+	if err != nil {
+		if errors.Is(err, types.ErrInsufficientPointsBalance) {
+			// user already spent the reward, let's deduct it from the refunded amount as if this was a points purchase
+			banoshi := new(big.Int).Div(BananoUnit, big.NewInt(100))
+			amountToKeep := new(big.Int).Mul(banoshi, big.NewInt(int64(pointsReward)))
+			amountToReimburse.Sub(amountToReimburse.Int, amountToKeep)
+		} else {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	if amountToReimburse.Cmp(big.NewInt(0)) > 0 {
+		go r.reimburseRequester(ctx, removed.RequestedBy().Address(), amountToReimburse)
+	}
 	return nil
 }
 
@@ -496,7 +518,7 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
 	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
-		int(m.MediaInfo().Length().Seconds())/10+1,
+		r.getPointsRewardForMedia(m),
 		pointsmanager.TxExtraField{
 			Key:   "media",
 			Value: m.QueueID(),
@@ -505,6 +527,10 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 		return stacktrace.Propagate(err, "")
 	}
 	return nil
+}
+
+func (r *RewardsHandler) getPointsRewardForMedia(m MediaQueueEntry) int {
+	return int(m.MediaInfo().Length().Seconds())/10 + 1
 }
 
 func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Message) error {
