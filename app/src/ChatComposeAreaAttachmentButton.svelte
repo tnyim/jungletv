@@ -23,6 +23,7 @@
 <button
     title="Insert emoji and GIFs"
     class="relative text-purple-700 dark:text-purple-500 min-h-full w-8 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+    style="min-width: 2rem"
     on:click
 >
     {#if curIcon == 0}
