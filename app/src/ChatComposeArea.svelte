@@ -867,7 +867,7 @@
                         {:then response}
                             <span class="text-xs">
                                 /
-                                <span class={response.getBalance() < 100 ? "text-red-700" : ""}>
+                                <span class={response.getBalance() < $chatMessageDraftTenorGif.getPointsCost() ? "text-red-700" : ""}>
                                     {response.getBalance()}
                                 </span>
                             </span>
