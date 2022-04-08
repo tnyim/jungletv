@@ -1,5 +1,13 @@
 <script lang="ts">
-    import { autoCloseMediaPickerOnInsert, autoCloseMediaPickerOnSend, collapseGifs, convertEmoticons } from "./stores";
+    import { openUserProfile } from "./profile_utils";
+
+    import {
+        autoCloseMediaPickerOnInsert,
+        autoCloseMediaPickerOnSend,
+        collapseGifs,
+        convertEmoticons,
+        rewardAddress,
+    } from "./stores";
 
     let showGIFs = !$collapseGifs;
     $: $collapseGifs = !showGIFs;
@@ -73,5 +81,15 @@
                 Close this pane when your message is sent
             </label>
         </div>
+    </div>
+    <div class="flex-grow" />
+    <div class="text-sm">
+        You can change your nickname on
+        <span
+            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+            tabindex="0"
+            on:click={() => openUserProfile($rewardAddress)}
+            on:keydown={(ev) => ev.key == "Enter" && openUserProfile($rewardAddress)}>your profile</span
+        >.
     </div>
 </div>

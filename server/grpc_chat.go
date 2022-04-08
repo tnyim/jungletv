@@ -289,6 +289,9 @@ func validateNicknameReturningGRPCError(nickname string) (string, error) {
 		if utf8.RuneCountInString(nickname) > 16 {
 			return "", status.Error(codes.InvalidArgument, "nickname must be at most 16 characters long")
 		}
+		if strings.HasPrefix(nickname, "ban_1") || strings.HasPrefix(nickname, "ban_3") {
+			return "", status.Error(codes.InvalidArgument, "nickname must not look like a Banano address")
+		}
 	}
 	return nickname, nil
 }
