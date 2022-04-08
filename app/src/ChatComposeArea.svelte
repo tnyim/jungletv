@@ -138,7 +138,7 @@
                 { label: "/popout", type: "method", info: "Open chat in a separate window" },
                 { label: "/shrug", type: "text", info: "Inserts ¯\\_(ツ)_/¯", apply: "¯\\\\\\_(ツ)\\_/¯" },
                 { label: "/tableflip", type: "text", info: "Inserts (╯°□°）╯︵ ┻━┻", apply: "(╯°□°）╯︵ ┻━┻" },
-                { label: "/unflip", type: "function", info: "Inserts ┬─┬ ノ( ゜-゜ノ)", apply: "┬─┬ ノ( ゜-゜ノ)" },
+                { label: "/unflip", type: "text", info: "Inserts ┬─┬ ノ( ゜-゜ノ)", apply: "┬─┬ ノ( ゜-゜ノ)" },
                 {
                     label: "/spoiler",
                     type: "method",
@@ -244,7 +244,7 @@
                             if (
                                 (i == 5 || i == 13) &&
                                 !lastGroup &&
-                                (match[i].indexOf("s") >= 0 || match[i].indexOf("o") >= 0)
+                                (match[i].indexOf("s") >= 0 || match[i].indexOf("o") >= 0 || match[i].indexOf("z") >= 0)
                             ) {
                                 // instant replacement of :s, :z and :o make it hard to type emoji shortcodes
                                 continue;
@@ -624,7 +624,7 @@
                         },
                     }),
                     EditorView.lineWrapping,
-                    EditorView.contentAttributes.of({ enterKeyHint: "send", spellcheck: "true" }),
+                    EditorView.contentAttributes.of({ enterKeyHint: "send", spellcheck: "true", autocorrect: "on" }),
                     emotePlugin,
                     placeholder("Say something..."),
                     limitMaxLength(512),
@@ -867,7 +867,11 @@
                         {:then response}
                             <span class="text-xs">
                                 /
-                                <span class={response.getBalance() < $chatMessageDraftTenorGif.getPointsCost() ? "text-red-700" : ""}>
+                                <span
+                                    class={response.getBalance() < $chatMessageDraftTenorGif.getPointsCost()
+                                        ? "text-red-700"
+                                        : ""}
+                                >
                                     {response.getBalance()}
                                 </span>
                             </span>
