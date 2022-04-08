@@ -1,13 +1,10 @@
 <script lang="ts">
     import type { ChatGifSearchResult } from "../proto/jungletv_pb";
     export let gif: ChatGifSearchResult;
-
-    let errored = false;
 </script>
 
 <!-- svelte-ignore a11y-media-has-caption -->
 <video
-    src={errored ? gif.getPreviewFallbackUrl() : gif.getPreviewUrl()}
     alt={gif.getTitle()}
     title={gif.getTitle()}
     width={gif.getWidth()}
@@ -19,8 +16,10 @@
     playsinline={true}
     class="gif"
     on:load
-    on:error={() => (errored = true)}
-/>
+>
+    <source src={gif.getPreviewUrl()} type="video/webm" />
+    <source src={gif.getPreviewFallbackUrl()} type="video/mp4" />
+</video>
 
 <style lang="css">
     video {

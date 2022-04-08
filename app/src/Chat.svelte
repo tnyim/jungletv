@@ -71,7 +71,6 @@
         }
     });
 
-    let lastScrollToBottomCall = new Date();
     let shouldAutoScroll = false;
     let mustAutoScroll = false;
     let sentMsgFlag = false;
@@ -80,10 +79,10 @@
             // when the document is hidden, shouldAutoScroll can be incorrectly set to false
             // because browsers stop doing visibility calculations when the page is in the background
             let now = new Date();
+            let tolerance = chatContainer && chatContainer.lastElementChild ? chatContainer.lastElementChild.clientHeight : 40;
             shouldAutoScroll =
                 (chatContainer &&
-                    chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - 40) ||
-                now.getTime() - lastScrollToBottomCall.getTime() < 500;
+                    chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - tolerance);
         } else {
             // we were in the background and beforeUpdate is triggered, so a new message came in
             // therefore, we should autoscroll
@@ -108,8 +107,27 @@
             top: chatContainer.scrollHeight,
             behavior: "smooth",
         });
-        lastScrollToBottomCall = new Date();
+        ensureScrollToBottom();
     }
+    onMount(() => onScrollCheckTimeout = setTimeout(scrollToBottom, 1000))
+
+    let lastSeenScrollTop: number;
+    let onScrollCheckTimeout: number;
+    function ensureScrollToBottom() {
+        let curTop = chatContainer.scrollTop;
+        if(lastSeenScrollTop != curTop) {
+            // still has not stopped scrolling
+            lastSeenScrollTop = curTop;
+            onScrollCheckTimeout = setTimeout(ensureScrollToBottom, 100);
+        } else {
+            clearTimeout(onScrollCheckTimeout);
+            lastSeenScrollTop = undefined;
+            if(chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight) {
+                scrollToBottom();
+            }
+        }
+    }
+    onDestroy(() => clearTimeout(onScrollCheckTimeout))
 
     let hasBlockedMessages = false;
     function refreshHasBlockedMessages(bu: Set<string>) {

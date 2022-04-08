@@ -14,13 +14,16 @@
         }
     }
 
-    let errored = false;
+    /*
+    srcWidth ---- renderWidth
+    srcHeight -- renderHeight?
+
+    */
 </script>
 
 <div class="relative" style="width: fit-content">
     <!-- svelte-ignore a11y-media-has-caption -->
     <video
-        src={errored ? attachment.getVideoFallbackUrl() : attachment.getVideoUrl()}
         alt={attachment.getTitle()}
         title={attachment.getTitle()}
         width={attachment.getWidth()}
@@ -32,9 +35,11 @@
         playsinline={true}
         class="gif"
         on:load
-        on:error={() => (errored = true)}
         on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
-    />
+    >
+        <source src={attachment.getVideoUrl()} type="video/webm" />
+        <source src={attachment.getVideoFallbackUrl()} type="video/mp4" />
+    </video>
     <div
         class="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 focus:opacity-100 ease-linear transition-all duration-150"
         on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
