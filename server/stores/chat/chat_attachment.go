@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
@@ -22,6 +23,7 @@ type MessageAttachmentStorageWithCost interface {
 // MessageAttachmentView represents the view model for an attachment
 type MessageAttachmentView interface {
 	SerializeForAPI(ctx context.Context) *proto.ChatMessageAttachment
+	SerializeForModLog(ctx context.Context) string
 }
 
 // MessageAttachmentTenorGifStorage is the storage model for a Tenor GIF attachment. Implements MessageAttachmentStorage
@@ -69,4 +71,8 @@ func (a *MessageAttachmentTenorGifView) SerializeForAPI(context.Context) *proto.
 			},
 		},
 	}
+}
+
+func (a *MessageAttachmentTenorGifView) SerializeForModLog(context.Context) string {
+	return fmt.Sprintf("https://tenor.com/view/%s", a.ID)
 }

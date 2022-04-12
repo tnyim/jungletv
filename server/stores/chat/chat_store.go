@@ -151,7 +151,7 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 
 	err = ctx.Tx().GetContext(ctx, &deletedMsg, `
 		DELETE FROM chat_message WHERE id = $1
-			RETURNING id, created_at, author, content, reference, shadowbanned
+			RETURNING id, created_at, author, content, reference, shadowbanned, attachments
 	`, id.Int64())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -160,12 +160,23 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	attachments := []MessageAttachmentView{}
+	for _, a := range deletedMsg.Attachments {
+		loaded, err := s.attachmentLoader(ctx, a)
+		if err != nil {
+			log.Println(stacktrace.Propagate(err, ""))
+		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
+			attachments = append(attachments, loaded)
+		}
+	}
+
 	return &Message{
-		ID:           deletedMsg.ID,
-		CreatedAt:    deletedMsg.CreatedAt,
-		Author:       auth.NewAddressOnlyUser(*deletedMsg.Author),
-		Content:      deletedMsg.Content,
-		Shadowbanned: deletedMsg.Shadowbanned,
+		ID:              deletedMsg.ID,
+		CreatedAt:       deletedMsg.CreatedAt,
+		Author:          auth.NewAddressOnlyUser(*deletedMsg.Author),
+		Content:         deletedMsg.Content,
+		Shadowbanned:    deletedMsg.Shadowbanned,
+		AttachmentsView: attachments,
 	}, stacktrace.Propagate(ctx.Commit(), "")
 }
 

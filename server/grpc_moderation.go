@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
@@ -81,10 +82,20 @@ func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatM
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	attachments := ""
+	if len(deletedMsg.AttachmentsView) > 0 {
+		attachments = "\n\nAttachments:\n"
+		for _, a := range deletedMsg.AttachmentsView {
+			attachments += "- " + a.SerializeForModLog(ctx) + "\n"
+		}
+	}
+
+	content := "> " + strings.Join(strings.Split(deletedMsg.Content, "\n"), "\n> ")
+
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
-			fmt.Sprintf("Moderator %s (%s) deleted chat message from %s:\n\n>>> %s",
-				user.Address()[:14], user.Username, deletedMsg.Author.Address()[:14], deletedMsg.Content))
+			fmt.Sprintf("Moderator %s (%s) deleted chat message from %s:\n\n%s%s",
+				user.Address()[:14], user.Username, deletedMsg.Author.Address()[:14], content, attachments))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
