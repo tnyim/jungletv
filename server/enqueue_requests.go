@@ -2,22 +2,17 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
-	"math/big"
 	"sync"
 	"time"
 
 	"github.com/DisgoOrg/disgohook/api"
-	"github.com/hectorchu/gonano/rpc"
-	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
-	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -28,14 +23,12 @@ const TicketExpiration = 10 * time.Minute
 
 // EnqueueManager manages requests for enqueuing that are pending payment
 type EnqueueManager struct {
+	workerContext                      context.Context
 	statsClient                        *statsd.Client
 	mediaQueue                         *MediaQueue
 	pricer                             *Pricer
-	wallet                             *wallet.Wallet
-	paymentAccountPool                 *paymentaccountpool.PaymentAccountPool
-	paymentAccountPendingWaitGroup     *sync.WaitGroup
+	paymentAccountPool                 *payment.PaymentAccountPool
 	rewardsHandler                     *RewardsHandler
-	collectorAccountAddress            string
 	log                                *log.Logger
 	moderationStore                    moderation.Store
 	modLogWebhook                      api.WebhookClient
@@ -59,7 +52,7 @@ type EnqueueTicket interface {
 	ID() string
 	CreatedAt() time.Time
 	RequestedBy() auth.User
-	PaymentAccount() *wallet.Account
+	PaymentAddress() string
 	SerializeForAPI() *proto.EnqueueMediaTicket
 	RequestPricing() EnqueuePricing
 	SetPaid() error
@@ -70,31 +63,28 @@ type EnqueueTicket interface {
 }
 
 // NewEnqueueManager returns a new EnqueueManager
-func NewEnqueueManager(log *log.Logger,
+func NewEnqueueManager(
+	workerContext context.Context,
+	log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *MediaQueue,
 	pricer *Pricer,
-	wallet *wallet.Wallet,
-	paymentAccountPool *paymentaccountpool.PaymentAccountPool,
-	paymentAccountPendingWaitGroup *sync.WaitGroup,
+	paymentAccountPool *payment.PaymentAccountPool,
 	rewardsHandler *RewardsHandler,
-	collectorAccountAddress string,
 	moderationStore moderation.Store,
 	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
 	return &EnqueueManager{
-		log:                            log,
-		statsClient:                    statsClient,
-		mediaQueue:                     mediaQueue,
-		pricer:                         pricer,
-		wallet:                         wallet,
-		paymentAccountPool:             paymentAccountPool,
-		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
-		rewardsHandler:                 rewardsHandler,
-		collectorAccountAddress:        collectorAccountAddress,
-		requests:                       make(map[string]EnqueueTicket),
-		moderationStore:                moderationStore,
-		modLogWebhook:                  modLogWebhook,
-		recentlyEvictedRequests:        cache.New[string, EnqueueTicket](10*time.Minute, 1*time.Minute),
+		workerContext:           workerContext,
+		log:                     log,
+		statsClient:             statsClient,
+		mediaQueue:              mediaQueue,
+		pricer:                  pricer,
+		paymentAccountPool:      paymentAccountPool,
+		rewardsHandler:          rewardsHandler,
+		requests:                make(map[string]EnqueueTicket),
+		moderationStore:         moderationStore,
+		modLogWebhook:           modLogWebhook,
+		recentlyEvictedRequests: cache.New[string, EnqueueTicket](10*time.Minute, 1*time.Minute),
 	}, nil
 }
 
@@ -107,252 +97,30 @@ func (e *EnqueueManager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool
 }
 
 func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
-	var err error
-	var paymentAccount *wallet.Account
-	for {
-		paymentAccount, err = e.paymentAccountPool.RequestAccount()
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "")
-		}
-
-		// avoid using an address which still has leftover balance
-		// (e.g. because someone sent banano too late and their ticket had already expired)
-		// also has the benefit of checking the liveliness of the RPC server before letting people proceed to payment
-		balance, pending, err := paymentAccount.Balance()
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "failed to check balance for account %v", paymentAccount.Address())
-		}
-		balance.Add(balance, pending)
-
-		// obtain the unconfirmed balance so this failsafe works properly when the network is super slow at confirming blocks
-		accountInfo, err := e.wallet.RPC.AccountInfo(paymentAccount.Address())
-		if err != nil {
-			// an error most likely means unopened account, just continue
-			accountInfo.Balance = &rpc.RawAmount{Int: *big.NewInt(0)}
-		}
-
-		if balance.Cmp(big.NewInt(0)) == 0 && accountInfo.Balance.Cmp(big.NewInt(0)) == 0 {
-			break
-		}
-		e.modLogWebhook.SendContent(fmt.Sprintf(
-			"Address %v (%d) has unhandled balance! (gbl08ma will issue a refund)\n"+
-				"Most likely, someone sent money to this address after their payment ticket had already expired.\n"+
-				"This address has been removed from the payment account pool for the time being.",
-			paymentAccount.Address(), paymentAccount.Index()))
+	paymentAddress, paymentReceivedEvent, err := e.paymentAccountPool.ReceivePayment()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	t := &ticket{
-		id:            uuid.NewV4().String(),
-		createdAt:     time.Now(),
-		requestedBy:   request.RequestedBy(),
-		mediaInfo:     request.MediaInfo(),
-		unskippable:   request.Unskippable(),
-		pricing:       e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable()),
-		account:       paymentAccount,
-		statusChanged: event.NewNoArg(),
+		id:             uuid.NewV4().String(),
+		createdAt:      time.Now(),
+		requestedBy:    request.RequestedBy(),
+		mediaInfo:      request.MediaInfo(),
+		unskippable:    request.Unskippable(),
+		pricing:        e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable()),
+		paymentAddress: paymentAddress,
+		statusChanged:  event.NewNoArg(),
 	}
-	go func() {
-		<-time.NewTimer(TicketExpiration).C
-		t.statusChanged.Notify()
-	}()
-
-	e.log.Printf("Registered ticket %s with payment account %s (%d)", t.id, t.account.Address(), t.account.Index())
+	go t.worker(e.workerContext, e, paymentReceivedEvent)
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
 	e.requests[t.ID()] = t
+	numActive := len(e.requests)
+	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.paymentAddress)
+	go e.statsClient.Gauge("active_enqueue_tickets", numActive)
 	return t, nil
-}
-
-func (e *EnqueueManager) ProcessPayments(ctx context.Context) error {
-	// create a copy of the map so we don't hold the lock for so long
-	requestCopy := make(map[string]EnqueueTicket)
-	func() {
-		e.requestsLock.RLock()
-		defer e.requestsLock.RUnlock()
-		for k, v := range e.requests {
-			requestCopy[k] = v
-		}
-	}()
-
-	go e.statsClient.Gauge("active_enqueue_tickets", len(requestCopy))
-
-	if len(requestCopy) == 0 {
-		return nil
-	}
-
-	for reqID, request := range requestCopy {
-		err := e.processPaymentForTicket(ctx, reqID, request)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-	}
-
-	return nil
-}
-
-func (e *EnqueueManager) processPaymentForTicket(ctx context.Context, reqID string, request EnqueueTicket) error {
-	if request.Status() == proto.EnqueueMediaTicketStatus_PAID {
-		return nil
-	}
-	if time.Now().After(request.CreatedAt().Add(TicketExpiration).Add(1 * time.Minute)) {
-		func() {
-			e.requestsLock.Lock()
-			defer e.requestsLock.Unlock()
-			e.recentlyEvictedRequests.SetDefault(reqID, request)
-			delete(e.requests, reqID)
-		}()
-		e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-		e.log.Printf("Purged ticket %s with payment address %s (%d)", reqID, request.PaymentAccount().Address(), request.PaymentAccount().Index())
-		return nil
-	}
-	t := e.statsClient.NewTiming()
-	defer t.Send("check_enqueue_ticket")
-
-	balance, pending, err := request.PaymentAccount().Balance()
-	if err != nil {
-		return stacktrace.Propagate(err, "failed to check balance for account %v", request.PaymentAccount().Address())
-	}
-	balance.Add(balance, pending)
-
-	pricing := request.RequestPricing()
-	forceEnqueuing, forcedEnqueuingType := request.EnqueuingForced()
-
-	var playFn func(MediaQueueEntry)
-	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
-		playFn = e.mediaQueue.PlayNow
-	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
-		playFn = e.mediaQueue.PlayAfterNext
-	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
-		playFn = e.mediaQueue.Enqueue
-	} else {
-		// yet to receive enough money
-		return nil
-	}
-	e.log.Printf("Ticket %s (p.a. %d) meets requirements for enqueuing", reqID, request.PaymentAccount().Index())
-
-	t2 := e.statsClient.NewTiming()
-	defer t2.Send("enqueue_ticket")
-
-	requestedBy := request.RequestedBy()
-	if requestedBy.IsUnknown() && balance.Cmp(big.NewInt(0)) > 0 {
-		// requested by unauthenticated user, set the user to be who paid
-
-		// we must receive pendings otherwise the history might not contain the latest tx
-		err := request.PaymentAccount().ReceivePendings(dustThreshold)
-		if err != nil {
-			e.log.Printf("failed to receive pendings in account %v (%d): %v", request.PaymentAccount().Address(), request.PaymentAccount().Index(), err)
-			return nil
-		}
-
-		requestedBy, err = e.findUserWhoPaid(request.PaymentAccount())
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-	}
-
-	// user can still be nil here, in case we couldn't find it in the last 10 account blocks
-
-	requestedByStr := "unknown"
-	if requestedBy != nil && requestedBy != (auth.User)(nil) {
-		requestedByStr = requestedBy.Address()
-
-		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
-			e.log.Printf("Ticket %s (p.a. %d) not being enqueued due to banned requester", reqID, request.PaymentAccount().Index())
-			// TODO auto-revert all transactions that came from the banned address
-			return nil
-		}
-	}
-
-	mi := request.MediaInfo()
-	e.paymentAccountPendingWaitGroup.Add(1)
-	playFn(mi.ProduceMediaQueueEntry(requestedBy, Amount{balance}, request.Unskippable() || e.newEntriesAlwaysUnskippableForFree, request.ID()))
-
-	err = request.SetPaid()
-	if err != nil {
-		return stacktrace.Propagate(err, "failed to set ticket %v as paid", request.ID())
-	}
-
-	_, mediaID := mi.MediaID()
-	e.log.Printf("Enqueued ticket %s (p.a. %d) - video \"%s\" (%s) with length %s - requested by %s with cost %s",
-		reqID,
-		request.PaymentAccount().Index(),
-		mi.Title(),
-		mediaID,
-		mi.Length().String(),
-		requestedByStr,
-		balance.String())
-
-	e.requestsLock.Lock()
-	defer e.requestsLock.Unlock()
-	e.recentlyEvictedRequests.SetDefault(reqID, request)
-	delete(e.requests, reqID)
-
-	go func(reqID string, request EnqueueTicket) {
-		t := e.statsClient.NewTiming()
-		defer t.Send("enqueue_ticket_final_operations")
-
-		retry := 0
-		for ; retry < 5; retry++ {
-			err := request.PaymentAccount().ReceivePendings(dustThreshold)
-			if err != nil {
-				e.log.Printf("failed to receive pendings in account %v: %v", request.PaymentAccount().Address(), err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-			if balance.Cmp(big.NewInt(0)) > 0 {
-				_, err = request.PaymentAccount().Send(e.collectorAccountAddress, balance)
-				if err != nil {
-					e.log.Printf("failed to send balance in account %v to the collector account: %v", request.PaymentAccount().Address(), err)
-					time.Sleep(5 * time.Second)
-					continue
-				}
-			}
-			break
-		}
-		e.paymentAccountPendingWaitGroup.Done()
-
-		if retry < 5 {
-			// only reuse the account if no funds got stuck there
-			e.paymentAccountPool.ReturnAccount(request.PaymentAccount())
-		}
-	}(reqID, request)
-	return nil
-}
-
-func (e *EnqueueManager) findUserWhoPaid(account *wallet.Account) (auth.User, error) {
-	var user auth.User
-	history, _, err := e.wallet.RPC.AccountHistory(account.Address(), 10, nil)
-	if err != nil {
-		if _, ok := err.(*json.UnmarshalTypeError); ok {
-			// account has no history. When this happens the node returns history: "" (which is not an empty array) which causes this error
-			return nil, nil
-		}
-		return nil, stacktrace.Propagate(err, "failed to retrieve history for account %v", account.Address())
-	}
-	for _, historyEntry := range history {
-		if historyEntry.Type == "receive" {
-			user = auth.NewAddressOnlyUser(historyEntry.Account)
-			break
-		}
-	}
-	return user, nil
-}
-
-func (e *EnqueueManager) ProcessPaymentsWorker(ctx context.Context, interval time.Duration) error {
-	t := time.NewTicker(interval)
-	defer t.Stop()
-	for {
-		select {
-		case <-t.C:
-			err := e.ProcessPayments(ctx)
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-		case <-ctx.Done():
-			return nil
-		}
-	}
 }
 
 func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
@@ -368,6 +136,72 @@ func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 	return nil
 }
 
+func (e *EnqueueManager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket EnqueueTicket) error {
+	if ticket.Status() == proto.EnqueueMediaTicketStatus_PAID {
+		return nil
+	}
+	pricing := ticket.RequestPricing()
+	forceEnqueuing, forcedEnqueuingType := ticket.EnqueuingForced()
+
+	var playFn func(MediaQueueEntry)
+	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
+		playFn = e.mediaQueue.PlayNow
+	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
+		playFn = e.mediaQueue.PlayAfterNext
+	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
+		playFn = e.mediaQueue.Enqueue
+	} else {
+		// yet to receive enough money
+		return nil
+	}
+	e.log.Printf("Ticket %s (p.a. %s) meets requirements for enqueuing", ticket.ID(), ticket.PaymentAddress())
+
+	t2 := e.statsClient.NewTiming()
+	defer t2.Send("enqueue_ticket")
+
+	requestedBy := ticket.RequestedBy()
+	requestedByStr := "unknown"
+	if requestedBy != nil && requestedBy != (auth.User)(nil) {
+		requestedByStr = requestedBy.Address()
+
+		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
+			e.log.Printf("Ticket %s not being enqueued due to banned requester", ticket.ID())
+			// TODO auto-revert all transactions that came from the banned address
+			return nil
+		}
+	}
+
+	mi := ticket.MediaInfo()
+	playFn(mi.ProduceMediaQueueEntry(requestedBy, balance, ticket.Unskippable() || e.newEntriesAlwaysUnskippableForFree, ticket.ID()))
+
+	err := ticket.SetPaid()
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to set ticket %v as paid", ticket.ID())
+	}
+
+	_, mediaID := mi.MediaID()
+	e.log.Printf("Enqueued ticket %s (p.a. %s) - video \"%s\" (%s) with length %s - requested by %s with cost %s",
+		ticket.ID(),
+		ticket.PaymentAddress(),
+		mi.Title(),
+		mediaID,
+		mi.Length().String(),
+		requestedByStr,
+		balance.String())
+
+	return nil
+}
+
+func (e *EnqueueManager) cleanupTicket(ticket EnqueueTicket) {
+	e.requestsLock.Lock()
+	defer e.requestsLock.Unlock()
+	e.recentlyEvictedRequests.SetDefault(ticket.ID(), ticket)
+	delete(e.requests, ticket.ID())
+
+	numActive := len(e.requests)
+	go e.statsClient.Gauge("active_enqueue_tickets", numActive)
+}
+
 type ticket struct {
 	id             string
 	paid           bool
@@ -375,7 +209,7 @@ type ticket struct {
 	requestedBy    auth.User
 	createdAt      time.Time
 	mediaInfo      MediaInfo
-	account        *wallet.Account
+	paymentAddress string
 	pricing        EnqueuePricing
 	statusChanged  *event.NoArgEvent
 	forceEnqueuing *proto.ForcedTicketEnqueueType
@@ -401,15 +235,15 @@ func (t *ticket) RequestedBy() auth.User {
 	return t.requestedBy
 }
 
-func (t *ticket) PaymentAccount() *wallet.Account {
-	return t.account
+func (t *ticket) PaymentAddress() string {
+	return t.paymentAddress
 }
 
 func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 	serialized := &proto.EnqueueMediaTicket{
 		Id:             t.id,
 		Status:         t.Status(),
-		PaymentAddress: t.account.Address(),
+		PaymentAddress: t.paymentAddress,
 		EnqueuePrice:   t.pricing.EnqueuePrice.SerializeForAPI(),
 		PlayNextPrice:  t.pricing.PlayNextPrice.SerializeForAPI(),
 		PlayNowPrice:   t.pricing.PlayNowPrice.SerializeForAPI(),
@@ -457,4 +291,53 @@ func (t *ticket) EnqueuingForced() (bool, proto.ForcedTicketEnqueueType) {
 		return true, *t.forceEnqueuing
 	}
 	return false, 0
+}
+
+func (t *ticket) worker(ctx context.Context, e *EnqueueManager, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs]) {
+	defer e.cleanupTicket(t)
+
+	expirationTimer := time.NewTimer(TicketExpiration)
+	defer expirationTimer.Stop()
+
+	actualExpirationTimer := time.NewTimer(TicketExpiration + 1*time.Minute)
+	defer actualExpirationTimer.Stop()
+
+	checkForcedEnqueuingTicker := time.NewTicker(5 * time.Second)
+	defer checkForcedEnqueuingTicker.Stop()
+
+	onPaymentReceived, onPaymentReceivedUnsub := paymentReceivedEvent.Subscribe(event.ExactlyOnceGuarantee)
+	defer onPaymentReceivedUnsub()
+
+	onStatusChanged, onStatusChangedUnsub := t.statusChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer onStatusChangedUnsub()
+
+	lastSeenBalance := payment.NewAmount()
+	for {
+		var err error
+		select {
+		case <-expirationTimer.C:
+			t.statusChanged.Notify()
+		case <-actualExpirationTimer.C:
+			return
+		case <-onStatusChanged:
+			if t.paid {
+				return
+			}
+		case <-ctx.Done():
+			return
+		case paymentArgs := <-onPaymentReceived:
+			if t.requestedBy == nil || t.requestedBy.IsUnknown() {
+				t.requestedBy = auth.NewAddressOnlyUser(paymentArgs.From)
+			}
+			lastSeenBalance = paymentArgs.Balance
+			err = e.tryEnqueuingTicket(ctx, paymentArgs.Balance, t)
+		case <-checkForcedEnqueuingTicker.C:
+			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, t)
+		}
+		if err != nil {
+			e.log.Println(stacktrace.Propagate(err, "failed to enqueue ticket"))
+			e.log.Printf("terminating worker for ticket %s due to error", t.id)
+			return
+		}
+	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -48,7 +49,7 @@ func convertPlayedMedia(ctx context.Context, userSerializer auth.APIUserSerializ
 	media := &proto.PlayedMedia{
 		Id:          orig.ID,
 		EnqueuedAt:  timestamppb.New(orig.EnqueuedAt),
-		RequestCost: NewAmountFromDecimal(orig.RequestCost).SerializeForAPI(),
+		RequestCost: payment.NewAmountFromDecimal(orig.RequestCost).SerializeForAPI(),
 		StartedAt:   timestamppb.New(orig.StartedAt),
 		Length:      durationpb.New(time.Duration(orig.MediaLength)),
 		Offset:      durationpb.New(time.Duration(orig.MediaOffset)),

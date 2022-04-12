@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/hectorchu/gonano/rpc"
@@ -13,6 +14,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
@@ -40,14 +42,14 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		return stacktrace.Propagate(err, "")
 	}
 
-	rewardBudget := Amount{big.NewInt(0).Add(mediaCostBudget.Int, skipBudget.Int)}
+	rewardBudget := payment.NewAmount(mediaCostBudget.Int, skipBudget.Int)
 
-	r.receiveCollectorPending(Amount{big.NewInt(0).Add(rewardBudget.Int, rainBudget.Int)})
+	r.receiveCollectorPending(payment.NewAmount(rewardBudget.Int, rainBudget.Int))
 
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
-	requesterReward := Amount{big.NewInt(0)}
+	requesterReward := payment.NewAmount()
 	requesterSpectator, requesterIsSpectator := r.spectatorsByRewardAddress[media.RequestedBy().Address()]
 	if !media.RequestedBy().IsUnknown() && requesterIsSpectator && rainBudget.Cmp(big.NewInt(0)) > 0 {
 		banned, err := r.moderationStore.LoadPaymentAddressBannedFromRewards(ctx, requesterSpectator.user.Address())
@@ -57,10 +59,10 @@ func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry)
 		if !banned {
 			// requester is eligible for receiving part of the rained amount that was not added by themselves
 			// the crowd receives 80% of the rained amount, and the requester receives 20% (since they wouldn't receive anything otherwise)
-			totalRainMinusRequester := Amount{big.NewInt(0).Sub(rainBudget.Int, rainedByRequester.Int)}
+			totalRainMinusRequester := payment.NewAmount(big.NewInt(0).Sub(rainBudget.Int, rainedByRequester.Int))
 			// the requester receives 20% of the amount that wasn't rained by them
-			requesterReward = Amount{big.NewInt(0).Mul(totalRainMinusRequester.Int, big.NewInt(2000))}
-			requesterReward = Amount{big.NewInt(0).Div(requesterReward.Int, big.NewInt(10000))}
+			requesterReward = payment.NewAmount(big.NewInt(0).Mul(totalRainMinusRequester.Int, big.NewInt(2000)))
+			requesterReward = payment.NewAmount(big.NewInt(0).Div(requesterReward.Int, big.NewInt(10000)))
 			requesterReward.Div(requesterReward.Int, RewardRoundingFactor)
 			requesterReward.Mul(requesterReward.Int, RewardRoundingFactor)
 
@@ -187,10 +189,11 @@ func getEligibleSpectators(ctx context.Context,
 	return toBeRewarded
 }
 
-func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
-	done := make(chan struct{})
+func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance payment.Amount) {
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
 	r.collectorAccountQueue <- func(collectorAccount *wallet.Account, RPC *rpc.Client, RPCWork *rpc.Client) {
-		defer func() { done <- struct{}{} }()
+		defer wg.Done()
 		balance, pending, err := collectorAccount.Balance()
 		if err != nil {
 			r.log.Printf("Error checking balance of collector account: %v", err)
@@ -203,7 +206,7 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 			// we are probably yet to send money from the payment accounts to the collector account
 			// wait for those goroutines to finish
 			r.log.Println("Waiting for payment accounts to send their balance to the collector account")
-			r.paymentAccountPendingWaitGroup.Wait()
+			r.paymentAccountPool.AwaitConclusionOfInFlightPayments()
 			r.log.Println("Payment accounts done sending their balance to the collector account")
 
 			for attempt := 0; attempt < 10 && balance.Cmp(minExpectedBalance.Int) < 0; attempt++ {
@@ -234,10 +237,10 @@ func (r *RewardsHandler) receiveCollectorPending(minExpectedBalance Amount) {
 			r.log.Printf("Error receiving pendings on collector account: %v", err)
 		}
 	}
-	<-done
+	wg.Wait()
 }
 
-func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, requestCost Amount, amountForEach Amount) error {
+func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, requestCost payment.Amount, amountForEach payment.Amount) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -267,7 +270,7 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, 
 	for _, spectator := range eligible {
 		rewardBalance, ok := balancesByAddress[spectator.user.Address()]
 		if ok {
-			spectator.onRewarded.Notify(spectatorRewardedEventArgs{amountForEach, NewAmountFromDecimal(rewardBalance.Balance)})
+			spectator.onRewarded.Notify(spectatorRewardedEventArgs{amountForEach, payment.NewAmountFromDecimal(rewardBalance.Balance)})
 		}
 
 		rewards[rewardsIdx] = &types.ReceivedReward{
@@ -288,7 +291,7 @@ func (r *RewardsHandler) rewardEligible(ctxCtx context.Context, mediaID string, 
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string, requester *spectator, reward Amount) error {
+func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string, requester *spectator, reward payment.Amount) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -305,7 +308,7 @@ func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string,
 		balancesByAddress[balance.RewardsAddress] = balance
 	}
 
-	requester.onRewarded.Notify(spectatorRewardedEventArgs{reward, NewAmountFromDecimal(newBalances[0].Balance)})
+	requester.onRewarded.Notify(spectatorRewardedEventArgs{reward, payment.NewAmountFromDecimal(newBalances[0].Balance)})
 
 	err = types.InsertReceivedRewards(ctx, []*types.ReceivedReward{{
 		ID:             uuid.NewV4().String(),
@@ -321,7 +324,7 @@ func (r *RewardsHandler) rewardRequester(ctxCtx context.Context, mediaID string,
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string, amount Amount) {
+func (r *RewardsHandler) reimburseRequester(ctx context.Context, address string, amount payment.Amount) {
 	r.receiveCollectorPending(amount)
 
 	if ctx.Err() != nil {
@@ -380,8 +383,8 @@ func (r *RewardsHandler) desperatelyTryToFindFundsStuckInPaymentAccounts() error
 }
 
 // ComputeReward calculates how much each user should receive
-func ComputeReward(totalAmount Amount, numUsers int) Amount {
-	amountForEach := Amount{new(big.Int)}
+func ComputeReward(totalAmount payment.Amount, numUsers int) payment.Amount {
+	amountForEach := payment.NewAmount()
 	amountForEach.Div(totalAmount.Int, big.NewInt(int64(numUsers)))
 	// "floor" (round down) reward to prevent dust amounts
 	amountForEach.Div(amountForEach.Int, RewardRoundingFactor)

@@ -1,4 +1,4 @@
-package server
+package payment
 
 import (
 	"math/big"
@@ -10,8 +10,12 @@ type Amount struct {
 	*big.Int
 }
 
-func NewAmount() Amount {
-	return Amount{big.NewInt(0)}
+func NewAmount(numbersToAdd ...*big.Int) Amount {
+	n := big.NewInt(0)
+	for _, toAdd := range numbersToAdd {
+		n.Add(n, toAdd)
+	}
+	return Amount{n}
 }
 
 func NewAmountFromDecimal(d decimal.Decimal) Amount {

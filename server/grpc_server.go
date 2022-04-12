@@ -28,7 +28,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
-	"github.com/tnyim/jungletv/server/components/paymentaccountpool"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
@@ -49,23 +49,22 @@ type grpcServer struct {
 	//proto.UnimplementedJungleTVServer
 	proto.UnsafeJungleTVServer // disabling forward compatibility is exactly what we want in order to get compilation errors when we forget to implement a server method
 
-	log                            *log.Logger
-	statsClient                    *statsd.Client
-	wallet                         *wallet.Wallet
-	collectorAccount               *wallet.Account
-	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
-	skipAccount                    *wallet.Account
-	rainAccount                    *wallet.Account
-	paymentAccountPendingWaitGroup *sync.WaitGroup
-	jwtManager                     *auth.JWTManager
-	enqueueRequestRateLimiter      limiter.Store
-	signInRateLimiter              limiter.Store
-	ownEntryRemovalRateLimiter     limiter.Store
-	segchaRateLimiter              limiter.Store
-	ipReputationChecker            *ipreputation.Checker
-	userSerializer                 auth.APIUserSerializer
-	websiteURL                     string
-	snowflakeNode                  *snowflake.Node
+	log                        *log.Logger
+	statsClient                *statsd.Client
+	wallet                     *wallet.Wallet
+	collectorAccount           *wallet.Account
+	collectorAccountQueue      chan func(*wallet.Account, *rpc.Client, *rpc.Client)
+	skipAccount                *wallet.Account
+	rainAccount                *wallet.Account
+	jwtManager                 *auth.JWTManager
+	enqueueRequestRateLimiter  limiter.Store
+	signInRateLimiter          limiter.Store
+	ownEntryRemovalRateLimiter limiter.Store
+	segchaRateLimiter          limiter.Store
+	ipReputationChecker        *ipreputation.Checker
+	userSerializer             auth.APIUserSerializer
+	websiteURL                 string
+	snowflakeNode              *snowflake.Node
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
 	oauthStates  *cache.Cache[string, oauthStateData]
@@ -98,6 +97,7 @@ type grpcServer struct {
 	staffActivityManager *StaffActivityManager
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
+	paymentAccountPool   *payment.PaymentAccountPool
 
 	youtube       *youtube.Service
 	modLogWebhook api.WebhookClient
@@ -215,25 +215,24 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	}
 
 	s := &grpcServer{
-		log:                            options.Log,
-		wallet:                         options.Wallet,
-		statsClient:                    options.StatsClient,
-		jwtManager:                     options.JWTManager,
-		verificationProcesses:          cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
-		delegatorCountsPerRep:          cache.New[string, uint64](1*time.Hour, 5*time.Minute),
-		addressesWithGoodRepCache:      cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
-		mediaQueue:                     mediaQueue,
-		collectorAccountQueue:          make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
-		paymentAccountPendingWaitGroup: new(sync.WaitGroup),
-		autoEnqueueVideoListFile:       options.AutoEnqueueVideoListFile,
-		autoEnqueueVideos:              options.AutoEnqueueVideoListFile != "",
-		allowVideoEnqueuing:            proto.AllowedVideoEnqueuingType_ENABLED,
-		ipReputationChecker:            ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
-		ticketCheckPeriod:              options.TicketCheckPeriod,
-		staffActivityManager:           NewStaffActivityManager(options.StatsClient),
-		moderationStore:                modStore,
-		nicknameCache:                  usercache.NewInMemory(),
-		websiteURL:                     options.WebsiteURL,
+		log:                       options.Log,
+		wallet:                    options.Wallet,
+		statsClient:               options.StatsClient,
+		jwtManager:                options.JWTManager,
+		verificationProcesses:     cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
+		delegatorCountsPerRep:     cache.New[string, uint64](1*time.Hour, 5*time.Minute),
+		addressesWithGoodRepCache: cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
+		mediaQueue:                mediaQueue,
+		collectorAccountQueue:     make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
+		autoEnqueueVideoListFile:  options.AutoEnqueueVideoListFile,
+		autoEnqueueVideos:         options.AutoEnqueueVideoListFile != "",
+		allowVideoEnqueuing:       proto.AllowedVideoEnqueuingType_ENABLED,
+		ipReputationChecker:       ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.IPCheckToken),
+		ticketCheckPeriod:         options.TicketCheckPeriod,
+		staffActivityManager:      NewStaffActivityManager(options.StatsClient),
+		moderationStore:           modStore,
+		nicknameCache:             usercache.NewInMemory(),
+		websiteURL:                options.WebsiteURL,
 
 		oauthStates: cache.New[string, oauthStateData](2*time.Hour, 15*time.Minute),
 
@@ -322,9 +321,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
+	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
+		payment.NewAmount(dustThreshold), s.collectorAccount.Address())
+
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPendingWaitGroup, s.moderationStore,
+		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
 		s.staffActivityManager, s.segchaResponseValid, options.VersionHash)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
@@ -332,9 +334,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.staffActivityManager.SetRewardsHandler(s.rewardsHandler)
 	s.pricer.rewardsHandler = s.rewardsHandler
 
-	s.enqueueManager, err = NewEnqueueManager(s.log, s.statsClient, s.mediaQueue, s.pricer, options.Wallet,
-		paymentaccountpool.New(options.Wallet, options.RepresentativeAddress), s.paymentAccountPendingWaitGroup, s.rewardsHandler,
-		s.collectorAccount.Address(), s.moderationStore, s.modLogWebhook)
+	s.enqueueManager, err = NewEnqueueManager(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
+		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -423,10 +424,11 @@ func (s *grpcServer) setupOAuthConfigs(options Options) error {
 
 func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	errChan := make(chan error)
+
 	go func(ctx context.Context) {
 		for {
 			s.log.Println("Payments processor starting/restarting")
-			err := s.enqueueManager.ProcessPaymentsWorker(ctx, s.ticketCheckPeriod)
+			err := s.paymentAccountPool.Worker(ctx, s.ticketCheckPeriod)
 			if err == nil {
 				return
 			}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -50,7 +51,7 @@ func convertWithdrawal(orig *types.Withdrawal) *proto.Withdrawal {
 	return &proto.Withdrawal{
 		TxHash:         orig.TxHash,
 		RewardsAddress: orig.RewardsAddress,
-		Amount:         NewAmountFromDecimal(orig.Amount).SerializeForAPI(),
+		Amount:         payment.NewAmountFromDecimal(orig.Amount).SerializeForAPI(),
 		StartedAt:      timestamppb.New(orig.StartedAt),
 		CompletedAt:    timestamppb.New(orig.CompletedAt),
 	}

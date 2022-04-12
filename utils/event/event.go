@@ -78,6 +78,7 @@ func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunctio
 		for {
 			param, ok := <-ch
 			if !ok {
+				unsub()
 				return
 			}
 			cbFunction(param)

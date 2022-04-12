@@ -7,6 +7,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -94,8 +95,8 @@ func (s *grpcServer) UserStats(ctxCtx context.Context, r *proto.UserStatsRequest
 		}
 
 		return &proto.UserStatsForPeriod{
-			TotalSpent:             NewAmountFromDecimal(totalSpent).SerializeForAPI(),
-			TotalWithdrawn:         NewAmountFromDecimal(totalWithdrawn).SerializeForAPI(),
+			TotalSpent:             payment.NewAmountFromDecimal(totalSpent).SerializeForAPI(),
+			TotalWithdrawn:         payment.NewAmountFromDecimal(totalWithdrawn).SerializeForAPI(),
 			RequestedMediaCount:    int32(mediaCount),
 			RequestedMediaPlayTime: durationpb.New(time.Duration(playTime)),
 		}, nil

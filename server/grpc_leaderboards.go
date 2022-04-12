@@ -6,6 +6,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -72,7 +73,7 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 				Values: []*proto.LeaderboardValue{
 					{
 						Value: &proto.LeaderboardValue_Amount{
-							Amount: NewAmountFromDecimal(row.TotalSpent).SerializeForAPI(),
+							Amount: payment.NewAmountFromDecimal(row.TotalSpent).SerializeForAPI(),
 						},
 					},
 				},

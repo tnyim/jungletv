@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/big"
 	"time"
+
+	"github.com/tnyim/jungletv/server/components/payment"
 )
 
 // BananoUnit is 1 BAN
@@ -71,9 +73,9 @@ func (p *Pricer) SetMinimumPricesMultiplier(m int) {
 
 // EnqueuePricing contains the price for different enqueuing modes
 type EnqueuePricing struct {
-	EnqueuePrice  Amount
-	PlayNextPrice Amount
-	PlayNowPrice  Amount
+	EnqueuePrice  payment.Amount
+	PlayNextPrice payment.Amount
+	PlayNowPrice  payment.Amount
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
@@ -104,8 +106,7 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 
 	pricing := EnqueuePricing{}
 
-	pricing.EnqueuePrice = Amount{new(big.Int)}
-	pricing.EnqueuePrice.Set(BaseEnqueuePrice)
+	pricing.EnqueuePrice = payment.NewAmount(BaseEnqueuePrice)
 	m := big.NewInt(1000).Add(big.NewInt(1000), big.NewInt(queueLengthFactor))
 	m = m.Add(m, big.NewInt(int64(currentlyWatching*350)))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, m)
@@ -131,18 +132,16 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 
-	pricing.PlayNextPrice = Amount{new(big.Int)}
-	pricing.PlayNextPrice.Set(pricing.EnqueuePrice.Int)
+	pricing.PlayNextPrice = payment.NewAmount(pricing.EnqueuePrice.Int)
 	pricing.PlayNextPrice.Mul(pricing.PlayNextPrice.Int, big.NewInt(3))
 
-	pricing.PlayNowPrice = Amount{new(big.Int)}
-	pricing.PlayNowPrice.Set(pricing.EnqueuePrice.Int)
+	pricing.PlayNowPrice = payment.NewAmount(pricing.EnqueuePrice.Int)
 	pricing.PlayNowPrice.Mul(pricing.PlayNowPrice.Int, big.NewInt(8+int64(queueLength/8)))
 
 	return pricing
 }
 
-func (p *Pricer) ComputeCrowdfundedSkipPricing() Amount {
+func (p *Pricer) ComputeCrowdfundedSkipPricing() payment.Amount {
 	pricing := p.ComputeEnqueuePricing(5*time.Minute, false)
 	v := big.NewInt(0).Div(
 		big.NewInt(0).Mul(
@@ -153,7 +152,7 @@ func (p *Pricer) ComputeCrowdfundedSkipPricing() Amount {
 	)
 	v.Div(v, PriceRoundingFactor)
 	v.Mul(v, PriceRoundingFactor)
-	return Amount{v}
+	return payment.NewAmount(v)
 }
 
 func (p *Pricer) currentlyWatchingEligible() int {

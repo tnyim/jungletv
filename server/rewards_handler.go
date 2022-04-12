@@ -18,6 +18,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -33,23 +34,23 @@ type captchaResponseCheckFn func(context.Context, string) (bool, error)
 
 // RewardsHandler handles reward distribution among spectators
 type RewardsHandler struct {
-	log                            *log.Logger
-	statsClient                    *statsd.Client
-	mediaQueue                     *MediaQueue
-	ipReputationChecker            *ipreputation.Checker
-	withdrawalHandler              *WithdrawalHandler
-	wallet                         *wallet.Wallet
-	collectorAccountQueue          chan func(*wallet.Account, *rpc.Client, *rpc.Client)
-	skipManager                    *SkipManager
-	chatManager                    *chatmanager.Manager
-	paymentAccountPendingWaitGroup *sync.WaitGroup
-	lastMedia                      MediaQueueEntry
-	moderationStore                moderation.Store
-	staffActivityManager           *StaffActivityManager
-	eligibleMovingAverage          *movingaverage.MovingAverage
-	segchaCheckFn                  captchaResponseCheckFn
-	versionHash                    string
-	pointsManager                  *pointsmanager.Manager
+	log                   *log.Logger
+	statsClient           *statsd.Client
+	mediaQueue            *MediaQueue
+	ipReputationChecker   *ipreputation.Checker
+	withdrawalHandler     *WithdrawalHandler
+	wallet                *wallet.Wallet
+	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client)
+	skipManager           *SkipManager
+	chatManager           *chatmanager.Manager
+	paymentAccountPool    *payment.PaymentAccountPool
+	lastMedia             MediaQueueEntry
+	moderationStore       moderation.Store
+	staffActivityManager  *StaffActivityManager
+	eligibleMovingAverage *movingaverage.MovingAverage
+	segchaCheckFn         captchaResponseCheckFn
+	versionHash           string
+	pointsManager         *pointsmanager.Manager
 
 	rewardsDistributed *event.Event[rewardsDistributedEventArgs]
 
@@ -80,15 +81,15 @@ type Spectator interface {
 }
 
 type rewardsDistributedEventArgs struct {
-	rewardBudget       Amount
+	rewardBudget       payment.Amount
 	eligibleSpectators int
-	requesterReward    Amount
+	requesterReward    payment.Amount
 	media              MediaQueueEntry
 }
 
 type spectatorRewardedEventArgs struct {
-	reward        Amount
-	rewardBalance Amount
+	reward        payment.Amount
+	rewardBalance payment.Amount
 }
 
 type spectator struct {
@@ -189,27 +190,27 @@ func NewRewardsHandler(log *log.Logger,
 	skipManager *SkipManager,
 	chatManager *chatmanager.Manager,
 	pointsManager *pointsmanager.Manager,
-	paymentAccountPendingWaitGroup *sync.WaitGroup,
+	paymentAccountPool *payment.PaymentAccountPool,
 	moderationStore moderation.Store,
 	staffActivityManager *StaffActivityManager,
 	segchaCheckFn captchaResponseCheckFn,
 	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{
-		log:                            log,
-		statsClient:                    statsClient,
-		mediaQueue:                     mediaQueue,
-		ipReputationChecker:            ipReputationChecker,
-		withdrawalHandler:              withdrawalHandler,
-		wallet:                         wallet,
-		collectorAccountQueue:          collectorAccountQueue,
-		skipManager:                    skipManager,
-		chatManager:                    chatManager,
-		paymentAccountPendingWaitGroup: paymentAccountPendingWaitGroup,
-		staffActivityManager:           staffActivityManager,
-		moderationStore:                moderationStore,
-		eligibleMovingAverage:          movingaverage.New(3),
-		segchaCheckFn:                  segchaCheckFn,
-		pointsManager:                  pointsManager,
+		log:                   log,
+		statsClient:           statsClient,
+		mediaQueue:            mediaQueue,
+		ipReputationChecker:   ipReputationChecker,
+		withdrawalHandler:     withdrawalHandler,
+		wallet:                wallet,
+		collectorAccountQueue: collectorAccountQueue,
+		skipManager:           skipManager,
+		chatManager:           chatManager,
+		paymentAccountPool:    paymentAccountPool,
+		staffActivityManager:  staffActivityManager,
+		moderationStore:       moderationStore,
+		eligibleMovingAverage: movingaverage.New(3),
+		segchaCheckFn:         segchaCheckFn,
+		pointsManager:         pointsManager,
 
 		rewardsDistributed: event.New[rewardsDistributedEventArgs](),
 

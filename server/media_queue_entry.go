@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -20,7 +21,7 @@ type MediaQueueEntry interface {
 	json.Marshaler
 	json.Unmarshaler
 	RequestedBy() auth.User
-	RequestCost() Amount
+	RequestCost() payment.Amount
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
@@ -42,7 +43,7 @@ type MediaInfo interface {
 	ThumbnailURL() string
 	Offset() time.Duration
 	Length() time.Duration
-	ProduceMediaQueueEntry(requestedBy auth.User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry
+	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) MediaQueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 }
 
@@ -58,7 +59,7 @@ type queueEntryYouTubeVideo struct {
 	liveBroadcast bool
 
 	requestedBy    auth.User
-	requestCost    Amount
+	requestCost    payment.Amount
 	requestedAt    time.Time
 	startedPlaying time.Time
 	stoppedPlaying time.Time
@@ -66,7 +67,7 @@ type queueEntryYouTubeVideo struct {
 	donePlaying    *event.NoArgEvent
 }
 
-func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost Amount, unskippable bool, queueID string) MediaQueueEntry {
+func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) MediaQueueEntry {
 	e.requestedBy = requestedBy
 	e.requestCost = requestCost
 	e.unskippable = unskippable
@@ -107,7 +108,7 @@ func (e *queueEntryYouTubeVideo) RequestedBy() auth.User {
 	return e.requestedBy
 }
 
-func (e *queueEntryYouTubeVideo) RequestCost() Amount {
+func (e *queueEntryYouTubeVideo) RequestCost() payment.Amount {
 	return e.requestCost
 }
 
@@ -196,7 +197,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.offset = t.Offset
 	e.liveBroadcast = t.LiveBroadcast
 	e.requestedBy = auth.NewAddressOnlyUser(t.RequestedBy)
-	e.requestCost = Amount{t.RequestCost}
+	e.requestCost = payment.NewAmount(t.RequestCost)
 	e.requestedAt = t.RequestedAt
 	e.unskippable = t.Unskippable
 	e.donePlaying = event.NewNoArg()

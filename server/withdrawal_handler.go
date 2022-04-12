@@ -13,6 +13,7 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -262,10 +263,10 @@ func (w *WithdrawalHandler) CompleteWithdrawal(ctxCtx context.Context, pending *
 // (no matter if confirmed or not). If they are not, it adds their hashes to the slice that is returned
 // In (ba)nano v22+ the work watcher has been removed and it's possible that a block submitted with RPC action "publish"
 // actually never confirms on the ledger (this can happen e.g. if the node is having internet connectivity issues)
-func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAge time.Duration, maxAge time.Duration) ([]string, Amount, error) {
+func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAge time.Duration, maxAge time.Duration) ([]string, payment.Amount, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return nil, Amount{}, stacktrace.Propagate(err, "")
+		return nil, payment.Amount{}, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
@@ -283,7 +284,7 @@ func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAg
 			Limit:  batchSize,
 		})
 		if err != nil {
-			return nil, Amount{}, stacktrace.Propagate(err, "")
+			return nil, payment.Amount{}, stacktrace.Propagate(err, "")
 		}
 		if len(withdrawals) == 0 {
 			break
@@ -293,14 +294,14 @@ func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAg
 		for _, withdrawal := range withdrawals {
 			bh, err := hex.DecodeString(withdrawal.TxHash)
 			if err != nil {
-				return nil, Amount{}, stacktrace.Propagate(err, "invalid hex in withdrawal block hash")
+				return nil, payment.Amount{}, stacktrace.Propagate(err, "invalid hex in withdrawal block hash")
 			}
 			blockHashes = append(blockHashes, rpc.BlockHash(bh))
 		}
 
 		blocksInfo, _, err := w.rpcClient.BlocksInfoIncludingNotFound(blockHashes)
 		if err != nil {
-			return nil, Amount{}, stacktrace.Propagate(err, "")
+			return nil, payment.Amount{}, stacktrace.Propagate(err, "")
 		}
 
 		for _, withdrawal := range withdrawals {
@@ -312,7 +313,7 @@ func (w *WithdrawalHandler) findInvalidWithdrawals(ctxCtx context.Context, minAg
 		}
 	}
 
-	return result, NewAmountFromDecimal(total), nil
+	return result, payment.NewAmountFromDecimal(total), nil
 }
 
 // undoInvalidWithdrawal undoes a withdrawal which was not found on the ledger after a tolerance period

@@ -62,6 +62,15 @@
 		isOnline = !("onLine" in navigator) || navigator.onLine;
 	}
 
+	function selfXSSWarning() {
+		console.log(
+			"%cSTOP\n%cThis is a feature intended for developers. If you were told to paste something here, " +
+				"do not do it - they are trying to get access to your JungleTV account.",
+			"font-size: 100px; color: white; font-family: sans-serif; background: red",
+			"font-size: 20px; color: red; font-family: sans-serif"
+		);
+	}
+
 	onMount(async () => {
 		// Use "Twemoji Mozilla" font-family name because emoji-picker-element places that first in the font-family list
 		polyfillCountryFlagEmojis("Twemoji Mozilla");
@@ -101,6 +110,9 @@
 				e.innerText = formatMarkdownTimestamp(date, e.dataset.timestampType);
 			});
 		}, 1000);
+
+		selfXSSWarning();
+		setInterval(selfXSSWarning, 20000);
 	});
 
 	const historyStore = { subscribe: globalHistory.listen };

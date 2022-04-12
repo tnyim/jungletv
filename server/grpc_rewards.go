@@ -7,6 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -123,7 +124,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 
 	response := &proto.RewardInfoResponse{
 		RewardsAddress:    userClaims.RewardAddress,
-		RewardBalance:     NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
+		RewardBalance:     payment.NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
 		WithdrawalPending: pendingWithdrawal,
 		BadRepresentative: badRepresentative,
 	}
