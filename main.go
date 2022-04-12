@@ -374,6 +374,8 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create wallet")
 	}
+	wallet.WorkDifficulty = "fffffe0000000000"
+	wallet.ReceiveWorkDifficulty = "fffffe0000000000"
 
 	walletRPCAddress, present := secrets.Get("walletRPCAddress")
 	if present {

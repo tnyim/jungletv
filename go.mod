@@ -19,7 +19,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/hectorchu/gonano v0.1.15
+	github.com/hectorchu/gonano v0.1.17
 	github.com/iancoleman/strcase v0.2.0
 	github.com/icza/gox v0.0.0-20210726201659-cd40a3f8d324
 	github.com/improbable-eng/grpc-web v0.15.1-0.20220120022325-080bc5c98763
@@ -78,7 +78,7 @@ require (
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 
-replace github.com/hectorchu/gonano v0.1.15 => github.com/gbl08ma/gonano v0.1.16-0.20220219121042-f284aae8926a
+replace github.com/hectorchu/gonano v0.1.17 => github.com/gbl08ma/gonano v0.1.16-0.20220412210215-42f9df6ebebe
 
 replace github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177 => github.com/gsgalloway/stacktrace v0.0.0-20200507040314-ca3802f754c7
 
