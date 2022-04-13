@@ -1,13 +1,12 @@
 <script lang="ts">
     import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-
     import { DateTime } from "luxon";
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
+    import ChatGifAttachment from "../ChatGifAttachment.svelte";
     import { openUserProfile } from "../profile_utils";
-
-    import type { ChatMessage } from "../proto/jungletv_pb";
+    import { ChatMessage, ChatMessageAttachment } from "../proto/jungletv_pb";
 
     const dispatch = createEventDispatcher();
 
@@ -85,6 +84,13 @@
                 {/if}
                 <span class="font-mono text-xs">{formatMessageTime(message)}:</span>
                 {message.getUserMessage().getContent()}
+                {#each message.getAttachmentsList() as attachment}
+                    {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
+                        <div class="p-1 text-sm text-gray-600 dark:text-gray-400">
+                            <ChatGifAttachment attachment={attachment.getTenorGif()} />
+                        </div>
+                    {/if}
+                {/each}
             </p>
         {:else}
             <p class="text-gray-600 dark:text-gray-400">No chat messages found for this user.</p>
