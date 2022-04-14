@@ -43,6 +43,7 @@
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import ErrorMessage from "./ErrorMessage.svelte";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
+    import PointsIcon from "./PointsIcon.svelte";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import {
         autoCloseMediaPickerOnInsert,
@@ -53,7 +54,6 @@
         chatMessageDraftTenorGif,
         convertEmoticons,
         darkMode,
-        featureFlags,
         modal,
         permissionLevel,
     } from "./stores";
@@ -852,12 +852,7 @@
                 <GifMessagePreview gif={$chatMessageDraftTenorGif} />
                 <div class="text-gray-600 dark:text-gray-400 text-base">
                     <div>
-                        <img
-                            src="/assets/brand/points.svg"
-                            alt="JungleTV Points"
-                            title="JungleTV Points"
-                            class="h-4 inline align-baseline -mb-0.5"
-                        />
+                        <PointsIcon />
                         <span class="font-semibold">{-$chatMessageDraftTenorGif.getPointsCost()}</span>
                         {#await apiClient.pointsInfo()}
                             <span class="text-xs inline-flex">

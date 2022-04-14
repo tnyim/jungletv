@@ -119,9 +119,10 @@ type monitoredAccount struct {
 
 // PaymentReceivedEventArgs contains the data associated with the event that is fired when a payment is received
 type PaymentReceivedEventArgs struct {
-	Amount  Amount
-	From    string
-	Balance Amount
+	Amount    Amount
+	From      string
+	Balance   Amount
+	BlockHash string
 }
 
 func (p *PaymentAccountPool) ReceivePayment() (string, *event.Event[PaymentReceivedEventArgs], error) {
@@ -246,9 +247,10 @@ func (p *PaymentAccountPool) processPaymentForMonitoredAccount(ctx context.Conte
 			m.incrementedWaitingGroup = true
 		}
 		m.onPaymentReceived.Notify(PaymentReceivedEventArgs{
-			Amount:  Amount{&pending.Amount.Int},
-			From:    pending.Source,
-			Balance: m.receivableBalance,
+			Amount:    Amount{&pending.Amount.Int},
+			From:      pending.Source,
+			Balance:   m.receivableBalance,
+			BlockHash: hash,
 		})
 	}
 

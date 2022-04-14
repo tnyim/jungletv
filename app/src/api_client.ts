@@ -151,7 +151,9 @@ import {
     ChatGifSearchRequest,
     ChatGifSearchResponse,
     AdjustPointsBalanceResponse,
-    AdjustPointsBalanceRequest
+    AdjustPointsBalanceRequest,
+    ConvertBananoToPointsStatus,
+    ConvertBananoToPointsRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -748,6 +750,14 @@ class APIClient {
         request.setQuery(query);
         request.setCursor(cursor);
         return this.unaryRPC<ChatGifSearchRequest, ChatGifSearchResponse>(JungleTV.ChatGifSearch, request);
+    }
+
+    convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        return this.serverStreamingRPC<ConvertBananoToPointsRequest, ConvertBananoToPointsStatus>(
+            JungleTV.ConvertBananoToPoints,
+            new ConvertBananoToPointsRequest(),
+            onStatusUpdated,
+            onEnd);
     }
 
     formatBANPrice(raw: string): string {

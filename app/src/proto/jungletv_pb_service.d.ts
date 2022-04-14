@@ -319,6 +319,15 @@ type JungleTVChatGifSearch = {
   readonly responseType: typeof jungletv_pb.ChatGifSearchResponse;
 };
 
+type JungleTVConvertBananoToPoints = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.ConvertBananoToPointsRequest;
+  readonly responseType: typeof jungletv_pb.ConvertBananoToPointsStatus;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -689,6 +698,7 @@ export class JungleTV {
   static readonly PointsInfo: JungleTVPointsInfo;
   static readonly PointsTransactions: JungleTVPointsTransactions;
   static readonly ChatGifSearch: JungleTVChatGifSearch;
+  static readonly ConvertBananoToPoints: JungleTVConvertBananoToPoints;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1027,6 +1037,7 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.ChatGifSearchRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ChatGifSearchResponse|null) => void
   ): UnaryResponse;
+  convertBananoToPoints(requestMessage: jungletv_pb.ConvertBananoToPointsRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ConvertBananoToPointsStatus>;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,

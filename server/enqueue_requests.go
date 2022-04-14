@@ -335,8 +335,7 @@ func (t *ticket) worker(ctx context.Context, e *EnqueueManager, paymentReceivedE
 			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, t)
 		}
 		if err != nil {
-			e.log.Println(stacktrace.Propagate(err, "failed to enqueue ticket"))
-			e.log.Printf("terminating worker for ticket %s due to error", t.id)
+			e.log.Println(stacktrace.Propagate(err, "failed to enqueue ticket %s, now terminating ticket worker", t.id))
 			return
 		}
 	}

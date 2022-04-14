@@ -1,8 +1,9 @@
 <script lang="ts">
     import { Moon } from "svelte-loading-spinners";
-    import { navigate } from "svelte-navigator";
+    import { navigate, link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import PaginatedTable from "./PaginatedTable.svelte";
+    import PointsIcon from "./PointsIcon.svelte";
     import type { PaginationParameters, PointsInfoResponse, PointsTransaction } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
     import PointsTransactionTableItem from "./tableitems/PointsTransactionTableItem.svelte";
@@ -39,7 +40,7 @@
             JungleTV Points are entirely separate from your BAN rewards balance.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            At this moment, points are not purchasable or transferable between users.
+            At this moment, points are not transferable between users.
         </p>
     </div>
     <div slot="main-content">
@@ -49,12 +50,7 @@
         {:then}
             <p class="text-2xl sm:text-3xl">
                 {pointsInfo.getBalance()}
-                <img
-                    src="/assets/brand/points.svg"
-                    alt="JungleTV Points"
-                    title="JungleTV Points"
-                    class="h-6 inline align-baseline -mb-0.5"
-                />
+                <PointsIcon />
             </p>
         {/await}
         <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -84,6 +80,26 @@
     <div slot="extra_1">
         <div class="shadow sm:rounded-md sm:overflow-hidden">
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-4 sm:p-6">
+                <div class="flex flex-row gap-4 sm:gap-6">
+                    <div class="text-lg font-semibold flex-grow">
+                        Insufficient <PointsIcon />? Here's a shortcut.
+                    </div>
+                    <div>
+                        <a
+                            use:link
+                            href="/points/frombanano"
+                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150 whitespace-nowrap"
+                        >
+                            Get points with Banano
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div slot="extra_2">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+            <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-4 sm:p-6">
                 <p class="text-lg font-semibold text-green-600 dark:text-green-400">JungleTV Nice</p>
                 <p>
                     <span class="font-semibold">Nice</span> is an upcoming monthly subscription for JungleTV.
@@ -96,18 +112,12 @@
                 </p>
                 <p>
                     <span class="font-semibold">Nice</span> membership will be exclusively obtainable in exchange for
-                    JungleTV Points, with a projected cost of 6900
-                    <img
-                        src="/assets/brand/points.svg"
-                        alt="JungleTV Points"
-                        title="JungleTV Points"
-                        class="h-4 inline align-baseline -mb-0.5"
-                    /> per month.
+                    JungleTV Points, with a projected cost of 6900 <PointsIcon /> per month.
                 </p>
             </div>
         </div>
     </div>
-    <div slot="extra_2">
+    <div slot="extra_3">
         <PaginatedTable
             title={"Points transaction history"}
             column_count={3}

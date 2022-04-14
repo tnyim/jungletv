@@ -4,24 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Manager manages user points
 type Manager struct {
-	snowflakeNode *snowflake.Node
+	workerContext      context.Context
+	snowflakeNode      *snowflake.Node
+	paymentAccountPool *payment.PaymentAccountPool
+
+	bananoConversionFlows     map[string]*BananoConversionFlow
+	bananoConversionFlowsLock sync.RWMutex
 }
 
 // New returns a new initialized Manager
-func New(snowflakeNode *snowflake.Node) *Manager {
+func New(workerContext context.Context, snowflakeNode *snowflake.Node, paymentAccountPool *payment.PaymentAccountPool) *Manager {
 	return &Manager{
-		snowflakeNode: snowflakeNode,
+		workerContext:         workerContext,
+		snowflakeNode:         snowflakeNode,
+		paymentAccountPool:    paymentAccountPool,
+		bananoConversionFlows: make(map[string]*BananoConversionFlow),
 	}
 }
 
@@ -132,6 +142,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeChatGifAttachment:           pointsTxDirectionDecrease,
 	types.PointsTxTypeManualAdjustment:            pointsTxDirectionIncreaseOrDecrease,
 	types.PointsTxTypeMediaEnqueuedRewardReversal: pointsTxDirectionDecrease,
+	types.PointsTxTypeConversionFromBanano:        pointsTxDirectionIncrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -145,4 +156,5 @@ var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
 	types.PointsTxTypeMediaEnqueuedReward:         {"media"},
 	types.PointsTxTypeManualAdjustment:            {"adjusted_by", "reason"},
 	types.PointsTxTypeMediaEnqueuedRewardReversal: {"media"},
+	types.PointsTxTypeConversionFromBanano:        {"tx_hash"},
 }

@@ -93,4 +93,5 @@ const (
 	PointsTxTypeChatGifAttachment           PointsTxType = 4
 	PointsTxTypeManualAdjustment            PointsTxType = 5
 	PointsTxTypeMediaEnqueuedRewardReversal PointsTxType = 6
+	PointsTxTypeConversionFromBanano        PointsTxType = 7
 )

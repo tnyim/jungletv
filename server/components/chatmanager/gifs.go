@@ -29,10 +29,10 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 		return nil, "", stacktrace.NewError("rate limit reached")
 	}
 
-	low := tenorclient.Low
+	medium := tenorclient.Medium
 	params := &tenorclient.SearchParams{
 		Q:             tenorclient.Q(query),
-		Contentfilter: (*tenorclient.SearchParamsContentfilter)(&low),
+		Contentfilter: (*tenorclient.SearchParamsContentfilter)(&medium),
 	}
 
 	if pos != "" {

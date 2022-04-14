@@ -53,6 +53,7 @@ type JungleTVClient interface {
 	PointsInfo(ctx context.Context, in *PointsInfoRequest, opts ...grpc.CallOption) (*PointsInfoResponse, error)
 	PointsTransactions(ctx context.Context, in *PointsTransactionsRequest, opts ...grpc.CallOption) (*PointsTransactionsResponse, error)
 	ChatGifSearch(ctx context.Context, in *ChatGifSearchRequest, opts ...grpc.CallOption) (*ChatGifSearchResponse, error)
+	ConvertBananoToPoints(ctx context.Context, in *ConvertBananoToPointsRequest, opts ...grpc.CallOption) (JungleTV_ConvertBananoToPointsClient, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -554,6 +555,38 @@ func (c *jungleTVClient) ChatGifSearch(ctx context.Context, in *ChatGifSearchReq
 	return out, nil
 }
 
+func (c *jungleTVClient) ConvertBananoToPoints(ctx context.Context, in *ConvertBananoToPointsRequest, opts ...grpc.CallOption) (JungleTV_ConvertBananoToPointsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[6], "/jungletv.JungleTV/ConvertBananoToPoints", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVConvertBananoToPointsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_ConvertBananoToPointsClient interface {
+	Recv() (*ConvertBananoToPointsStatus, error)
+	grpc.ClientStream
+}
+
+type jungleTVConvertBananoToPointsClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVConvertBananoToPointsClient) Recv() (*ConvertBananoToPointsStatus, error) {
+	m := new(ConvertBananoToPointsStatus)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -798,7 +831,7 @@ func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpec
 }
 
 func (c *jungleTVClient) MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[6], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[7], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -949,6 +982,7 @@ type JungleTVServer interface {
 	PointsInfo(context.Context, *PointsInfoRequest) (*PointsInfoResponse, error)
 	PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error)
 	ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error)
+	ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1098,6 +1132,9 @@ func (UnimplementedJungleTVServer) PointsTransactions(context.Context, *PointsTr
 }
 func (UnimplementedJungleTVServer) ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChatGifSearch not implemented")
+}
+func (UnimplementedJungleTVServer) ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ConvertBananoToPoints not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1869,6 +1906,27 @@ func _JungleTV_ChatGifSearch_Handler(srv interface{}, ctx context.Context, dec f
 		return srv.(JungleTVServer).ChatGifSearch(ctx, req.(*ChatGifSearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ConvertBananoToPoints_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConvertBananoToPointsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).ConvertBananoToPoints(m, &jungleTVConvertBananoToPointsServer{stream})
+}
+
+type JungleTV_ConvertBananoToPointsServer interface {
+	Send(*ConvertBananoToPointsStatus) error
+	grpc.ServerStream
+}
+
+type jungleTVConvertBananoToPointsServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVConvertBananoToPointsServer) Send(m *ConvertBananoToPointsStatus) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -2837,6 +2895,11 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ConsumeChat",
 			Handler:       _JungleTV_ConsumeChat_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ConvertBananoToPoints",
+			Handler:       _JungleTV_ConvertBananoToPoints_Handler,
 			ServerStreams: true,
 		},
 		{

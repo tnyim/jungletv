@@ -193,7 +193,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex flex-row gap-4 sm:gap-6">
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <div class="flex-grow">
                         You have
                         {#await apiClient.pointsInfo()}
@@ -205,12 +205,21 @@
                         {/await}
                         points.
                     </div>
+                    <div class="flex flex-row gap-4 sm:gap-6">
+                    <a
+                        use:link
+                        href="/points/frombanano"
+                        class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                    >
+                        Get points with Banano
+                    </a>
                     <span
                         on:click={() => navigate("/points")}
                         class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
                     >
                         Learn more
                     </span>
+                </div>
                 </div>
             </div>
         </div>

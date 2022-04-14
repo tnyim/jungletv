@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -73,5 +75,63 @@ func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
 		UpdatedAt:      timestamppb.New(tx.UpdatedAt),
 		Value:          int32(tx.Value),
 		Type:           proto.PointsTransactionType(tx.Type),
+	}
+}
+
+func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest, stream proto.JungleTV_ConvertBananoToPointsServer) error {
+	ctx := stream.Context()
+	user := authinterceptor.UserClaimsFromContext(ctx)
+
+	flow, err := s.pointsManager.CreateOrRecoverBananoConversionFlow(user)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	expired := time.Now().After(flow.Expiration())
+	send := func() error {
+		return stacktrace.Propagate(stream.Send(&proto.ConvertBananoToPointsStatus{
+			PaymentAddress:  flow.PaymentAddress(),
+			BananoConverted: flow.SessionBananoTotal().SerializeForAPI(),
+			PointsConverted: int32(flow.SessionPointsTotal()),
+			Expiration:      timestamppb.New(flow.Expiration()),
+			Expired:         expired,
+		}), "")
+	}
+
+	onConverted, onConvertedU := flow.Converted().Subscribe(event.AtLeastOnceGuarantee)
+	defer onConvertedU()
+
+	onExpired, onExpiredU := flow.Expired().Subscribe(event.AtLeastOnceGuarantee)
+	defer onExpiredU()
+
+	onDestroyed, onDestroyedU := flow.Destroyed().Subscribe(event.AtLeastOnceGuarantee)
+	defer onDestroyedU()
+
+	err = send()
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
+
+	for {
+		var err error
+		select {
+		case <-onExpired:
+			expired = true
+			err = send()
+		case <-onConverted:
+			err = send()
+		case <-heartbeat.C:
+			err = send()
+		case <-onDestroyed:
+			return nil
+		case <-ctx.Done():
+			return nil
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 	}
 }

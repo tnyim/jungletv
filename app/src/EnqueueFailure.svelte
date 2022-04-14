@@ -4,7 +4,7 @@
     import { navigate } from "svelte-navigator";
     import ErrorMessage from "./ErrorMessage.svelte";
     import Wizard from "./Wizard.svelte";
-import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -38,7 +38,9 @@ import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
                         on:click={closeEnqueue}>Cancel</strong
                     > and check the queue to see if your video was enqueued.
                 {:else}
-                    Payment not received in time. If you did not make a payment yet, please try again.
+                    Payment not received in time. If you did not make a payment yet, please try again.<br />
+                    If you made a payment but it has not been taken into account, you will receive a refund once the JungleTV
+                    team reviews your process. No action is needed on your part.
                 {/if}
             </ErrorMessage>
         </div>

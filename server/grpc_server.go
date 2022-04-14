@@ -165,6 +165,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/PointsInfo", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/PointsTransactions", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ChatGifSearch", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ConvertBananoToPoints", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
@@ -251,8 +252,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "failed to create snowflake node")
 	}
 
-	s.pointsManager = pointsmanager.New(s.snowflakeNode)
-
 	if options.ModLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, simplelogger.New(s.log, false), options.ModLogWebhook)
 		if err != nil {
@@ -311,6 +310,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
+	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
+		payment.NewAmount(dustThreshold), s.collectorAccount.Address())
+
+	s.pointsManager = pointsmanager.New(ctx, s.snowflakeNode, s.paymentAccountPool)
+
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
 	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
 		blockeduser.NewStoreDatabase(), s.userSerializer, s.pointsManager, s.snowflakeNode, options.TenorAPIKey)
@@ -320,9 +324,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	chatStore.SetAttachmentLoader(s.chat.AttachmentLoader)
 
 	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
-
-	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
-		payment.NewAmount(dustThreshold), s.collectorAccount.Address())
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,

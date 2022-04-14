@@ -4904,6 +4904,60 @@ export namespace AdjustPointsBalanceResponse {
   }
 }
 
+export class ConvertBananoToPointsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConvertBananoToPointsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConvertBananoToPointsRequest): ConvertBananoToPointsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConvertBananoToPointsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConvertBananoToPointsRequest;
+  static deserializeBinaryFromReader(message: ConvertBananoToPointsRequest, reader: jspb.BinaryReader): ConvertBananoToPointsRequest;
+}
+
+export namespace ConvertBananoToPointsRequest {
+  export type AsObject = {
+  }
+}
+
+export class ConvertBananoToPointsStatus extends jspb.Message {
+  getPaymentAddress(): string;
+  setPaymentAddress(value: string): void;
+
+  getBananoConverted(): string;
+  setBananoConverted(value: string): void;
+
+  getPointsConverted(): number;
+  setPointsConverted(value: number): void;
+
+  hasExpiration(): boolean;
+  clearExpiration(): void;
+  getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getExpired(): boolean;
+  setExpired(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConvertBananoToPointsStatus.AsObject;
+  static toObject(includeInstance: boolean, msg: ConvertBananoToPointsStatus): ConvertBananoToPointsStatus.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConvertBananoToPointsStatus, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConvertBananoToPointsStatus;
+  static deserializeBinaryFromReader(message: ConvertBananoToPointsStatus, reader: jspb.BinaryReader): ConvertBananoToPointsStatus;
+}
+
+export namespace ConvertBananoToPointsStatus {
+  export type AsObject = {
+    paymentAddress: string,
+    bananoConverted: string,
+    pointsConverted: number,
+    expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    expired: boolean,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -5008,6 +5062,7 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_CHAT_GIF_ATTACHMENT: 4;
   POINTS_TRANSACTION_TYPE_MANUAL_ADJUSTMENT: 5;
   POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL: 6;
+  POINTS_TRANSACTION_TYPE_MEDIA_CONVERSION_FROM_BANANO: 7;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;

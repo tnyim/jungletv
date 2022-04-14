@@ -43,6 +43,7 @@ service JungleTV {
     rpc PointsInfo (PointsInfoRequest) returns (PointsInfoResponse) {}
     rpc PointsTransactions (PointsTransactionsRequest) returns (PointsTransactionsResponse) {}
     rpc ChatGifSearch (ChatGifSearchRequest) returns (ChatGifSearchResponse) {}
+    rpc ConvertBananoToPoints (ConvertBananoToPointsRequest) returns (stream ConvertBananoToPointsStatus) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -1055,6 +1056,7 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_CHAT_GIF_ATTACHMENT = 4;
     POINTS_TRANSACTION_TYPE_MANUAL_ADJUSTMENT = 5;
     POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL = 6;
+    POINTS_TRANSACTION_TYPE_MEDIA_CONVERSION_FROM_BANANO = 7;
 }
 
 message ChatGifSearchRequest {
@@ -1084,3 +1086,13 @@ message AdjustPointsBalanceRequest {
 }
 
 message AdjustPointsBalanceResponse {}
+
+message ConvertBananoToPointsRequest {}
+
+message ConvertBananoToPointsStatus {
+    string payment_address = 1;
+    string banano_converted = 2;
+    int32 points_converted = 3;
+    google.protobuf.Timestamp expiration = 4;
+    bool expired = 5;
+}

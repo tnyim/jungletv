@@ -22,6 +22,7 @@
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
 	import Points from "./Points.svelte";
+	import PointsFromBanano from "./PointsFromBanano.svelte";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import Rewards from "./Rewards.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
@@ -213,6 +214,7 @@
 				<Route path="/rewards" component={Rewards} />
 				<Route path="/rewards/address" component={SetRewardsAddress} />
 				<Route path="/points" component={Points} />
+				<Route path="/points/frombanano" component={PointsFromBanano} />
 				<Route path="/leaderboards" component={Leaderboards} />
 				<Route path="/guidelines" component={Document} documentID="guidelines" />
 				<Route path="/faq" component={Document} documentID="faq" />
