@@ -35,7 +35,6 @@
     }
 
     function chatHistory() {
-        modal.set(null);
         navigate("/moderate/users/" + userAddress + "/chathistory");
     }
 </script>

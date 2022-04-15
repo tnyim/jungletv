@@ -711,7 +711,6 @@
             $chatMessageDraft = msg;
             $chatMessageDraftTenorGif = tenorGif;
             sendError = true;
-            console.log(ex);
             if (ex.includes("insufficient points balance")) {
                 sendErrorMessage = "You don't have sufficient points to send this message.";
             } else if (ex.includes("rate limit reached")) {

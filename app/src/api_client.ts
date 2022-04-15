@@ -153,7 +153,12 @@ import {
     AdjustPointsBalanceResponse,
     AdjustPointsBalanceRequest,
     ConvertBananoToPointsStatus,
-    ConvertBananoToPointsRequest
+    ConvertBananoToPointsRequest,
+    MoveQueueEntryRequest,
+    QueueEntryMovementDirectionMap,
+    MoveQueueEntryResponse,
+    SetQueueEntryReorderingAllowedResponse,
+    SetQueueEntryReorderingAllowedRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -182,7 +187,7 @@ class APIClient {
     }
 
     public getClientVersion(): string {
-        if (typeof(this.versionHash) === 'undefined') {
+        if (typeof (this.versionHash) === 'undefined') {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {
                 if (metas[i].getAttribute("name") === "jungletv-version-hash") {
@@ -330,6 +335,13 @@ class APIClient {
         let request = new RemoveOwnQueueEntryRequest();
         request.setId(id);
         return this.unaryRPC<RemoveOwnQueueEntryRequest, RemoveOwnQueueEntryResponse>(JungleTV.RemoveOwnQueueEntry, request);
+    }
+
+    async moveQueueEntry(id: string, direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]): Promise<MoveQueueEntryResponse> {
+        let request = new MoveQueueEntryRequest();
+        request.setId(id);
+        request.setDirection(direction);
+        return this.unaryRPC<MoveQueueEntryRequest, MoveQueueEntryResponse>(JungleTV.MoveQueueEntry, request);
     }
 
     async rewardInfo(): Promise<RewardInfoResponse> {
@@ -635,6 +647,12 @@ class APIClient {
         let request = new SetOwnQueueEntryRemovalAllowedRequest();
         request.setAllowed(allowed);
         return this.unaryRPC<SetOwnQueueEntryRemovalAllowedRequest, SetOwnQueueEntryRemovalAllowedResponse>(JungleTV.SetOwnQueueEntryRemovalAllowed, request);
+    }
+
+    async setQueueEntryReorderingAllowed(allowed: boolean): Promise<SetQueueEntryReorderingAllowedResponse> {
+        let request = new SetQueueEntryReorderingAllowedRequest();
+        request.setAllowed(allowed);
+        return this.unaryRPC<SetQueueEntryReorderingAllowedRequest, SetQueueEntryReorderingAllowedResponse>(JungleTV.SetQueueEntryReorderingAllowed, request);
     }
 
     async setNewQueueEntriesAlwaysUnskippable(enabled: boolean): Promise<SetNewQueueEntriesAlwaysUnskippableResponse> {

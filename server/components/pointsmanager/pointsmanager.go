@@ -143,6 +143,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeManualAdjustment:            pointsTxDirectionIncreaseOrDecrease,
 	types.PointsTxTypeMediaEnqueuedRewardReversal: pointsTxDirectionDecrease,
 	types.PointsTxTypeConversionFromBanano:        pointsTxDirectionIncrease,
+	types.PointsTxTypeQueueEntryReordering:        pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -157,4 +158,5 @@ var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
 	types.PointsTxTypeManualAdjustment:            {"adjusted_by", "reason"},
 	types.PointsTxTypeMediaEnqueuedRewardReversal: {"media"},
 	types.PointsTxTypeConversionFromBanano:        {"tx_hash"},
+	types.PointsTxTypeQueueEntryReordering:        {"media", "direction"},
 }

@@ -94,4 +94,5 @@ const (
 	PointsTxTypeManualAdjustment            PointsTxType = 5
 	PointsTxTypeMediaEnqueuedRewardReversal PointsTxType = 6
 	PointsTxTypeConversionFromBanano        PointsTxType = 7
+	PointsTxTypeQueueEntryReordering        PointsTxType = 8
 )

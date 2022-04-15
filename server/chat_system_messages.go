@@ -21,6 +21,9 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
 	defer ownEntryRemovedU()
 
+	entryMovedC, entryMovedU := s.mediaQueue.entryMoved.Subscribe(event.AtLeastOnceGuarantee)
+	defer entryMovedU()
+
 	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
 	defer rewardsDistributedU()
 
@@ -81,6 +84,22 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			title := escape.MarkdownCharacters(entry.MediaInfo().Title())
 			_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 				"_%s just removed their own queue entry_ %s", name, title))
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		case args := <-entryMovedC:
+			name, err := s.getChatFriendlyUserName(ctx, args.user.Address())
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			name = escape.MarkdownCharacters(name)
+			title := escape.MarkdownCharacters(args.entry.MediaInfo().Title())
+			direction := "down"
+			if args.up {
+				direction = "up"
+			}
+			_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+				"_%s just moved_ %s _%s in the queue_", name, title, direction))
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

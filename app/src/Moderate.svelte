@@ -297,6 +297,21 @@
             >
                 Allow removal of own queue entries
             </button>
+            <div><!-- spacer --></div>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={() => apiClient.setQueueEntryReorderingAllowed(false)}
+            >
+                Disallow reordering of queue entries
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={() => apiClient.setQueueEntryReorderingAllowed(true)}
+            >
+                Allow reordering of queue entries
+            </button>
         </div>
         <div>
             <p class="px-2 font-semibold text-md mt-4">Crowdfunded skipping</p>

@@ -404,6 +404,31 @@ func (s *grpcServer) SetOwnQueueEntryRemovalAllowed(ctx context.Context, r *prot
 	return &proto.SetOwnQueueEntryRemovalAllowedResponse{}, nil
 }
 
+func (s *grpcServer) SetQueueEntryReorderingAllowed(ctx context.Context, r *proto.SetQueueEntryReorderingAllowedRequest) (*proto.SetQueueEntryReorderingAllowedResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.mediaQueue.SetEntryReorderingAllowed(r.Allowed)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Allowed {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s reordering of queue entries",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetQueueEntryReorderingAllowedResponse{}, nil
+}
+
 func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRequest) (*proto.Spectator, error) {
 	spectator, ok := s.rewardsHandler.GetSpectator(r.RewardsAddress)
 	if !ok {

@@ -12,6 +12,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"golang.org/x/exp/maps"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -25,7 +26,7 @@ type MediaQueueEntry interface {
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() MediaInfo
-	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer) *proto.QueueEntry
+	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry
 	ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
 	Play()
 	Stop()
@@ -33,6 +34,10 @@ type MediaQueueEntry interface {
 	Playing() bool
 	PlayedFor() time.Duration
 	DonePlaying() *event.NoArgEvent
+
+	WasMovedBy(user auth.User) bool
+	SetAsMovedBy(user auth.User)
+	MovedBy() []string
 
 	QueueID() string
 }
@@ -65,6 +70,8 @@ type queueEntryYouTubeVideo struct {
 	stoppedPlaying time.Time
 	played         bool
 	donePlaying    *event.NoArgEvent
+
+	movedBy map[string]struct{}
 }
 
 func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) MediaQueueEntry {
@@ -120,7 +127,7 @@ func (e *queueEntryYouTubeVideo) Unskippable() bool {
 	return e.unskippable
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer) *proto.QueueEntry {
+func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry {
 	entry := &proto.QueueEntry{
 		Id:          e.queueID,
 		Length:      durationpb.New(e.duration),
@@ -128,6 +135,8 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerial
 		Unskippable: e.unskippable,
 		RequestCost: e.requestCost.SerializeForAPI(),
 		RequestedAt: timestamppb.New(e.requestedAt),
+		CanMoveUp:   canMoveUp,
+		CanMoveDown: canMoveDown,
 		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
 				Id:            e.id,
@@ -158,6 +167,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	RequestCost   *big.Int
 	RequestedAt   time.Time
 	Unskippable   bool
+	MovedBy       []string
 }
 
 func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
@@ -175,6 +185,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		RequestCost:   e.requestCost.Int,
 		RequestedAt:   e.requestedAt,
 		Unskippable:   e.unskippable,
+		MovedBy:       e.MovedBy(),
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.id)
@@ -201,6 +212,10 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.requestedAt = t.RequestedAt
 	e.unskippable = t.Unskippable
 	e.donePlaying = event.NewNoArg()
+	e.movedBy = make(map[string]struct{})
+	for _, m := range t.MovedBy {
+		e.movedBy[m] = struct{}{}
+	}
 	return nil
 }
 
@@ -277,4 +292,20 @@ func (e *queueEntryYouTubeVideo) PlayedFor() time.Duration {
 
 func (e *queueEntryYouTubeVideo) DonePlaying() *event.NoArgEvent {
 	return e.donePlaying
+}
+
+func (e *queueEntryYouTubeVideo) WasMovedBy(user auth.User) bool {
+	if user.IsUnknown() {
+		return false
+	}
+	_, present := e.movedBy[user.Address()]
+	return present
+}
+func (e *queueEntryYouTubeVideo) SetAsMovedBy(user auth.User) {
+	if !user.IsUnknown() {
+		e.movedBy[user.Address()] = struct{}{}
+	}
+}
+func (e *queueEntryYouTubeVideo) MovedBy() []string {
+	return maps.Keys(e.movedBy)
 }

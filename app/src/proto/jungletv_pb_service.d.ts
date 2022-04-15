@@ -31,6 +31,15 @@ type JungleTVRemoveOwnQueueEntry = {
   readonly responseType: typeof jungletv_pb.RemoveOwnQueueEntryResponse;
 };
 
+type JungleTVMoveQueueEntry = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.MoveQueueEntryRequest;
+  readonly responseType: typeof jungletv_pb.MoveQueueEntryResponse;
+};
+
 type JungleTVMonitorTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -589,6 +598,15 @@ type JungleTVSetOwnQueueEntryRemovalAllowed = {
   readonly responseType: typeof jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse;
 };
 
+type JungleTVSetQueueEntryReorderingAllowed = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetQueueEntryReorderingAllowedRequest;
+  readonly responseType: typeof jungletv_pb.SetQueueEntryReorderingAllowedResponse;
+};
+
 type JungleTVSetNewQueueEntriesAlwaysUnskippable = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -666,6 +684,7 @@ export class JungleTV {
   static readonly SignIn: JungleTVSignIn;
   static readonly EnqueueMedia: JungleTVEnqueueMedia;
   static readonly RemoveOwnQueueEntry: JungleTVRemoveOwnQueueEntry;
+  static readonly MoveQueueEntry: JungleTVMoveQueueEntry;
   static readonly MonitorTicket: JungleTVMonitorTicket;
   static readonly ConsumeMedia: JungleTVConsumeMedia;
   static readonly MonitorQueue: JungleTVMonitorQueue;
@@ -728,6 +747,7 @@ export class JungleTV {
   static readonly ResetSpectatorStatus: JungleTVResetSpectatorStatus;
   static readonly MonitorModerationStatus: JungleTVMonitorModerationStatus;
   static readonly SetOwnQueueEntryRemovalAllowed: JungleTVSetOwnQueueEntryRemovalAllowed;
+  static readonly SetQueueEntryReorderingAllowed: JungleTVSetQueueEntryReorderingAllowed;
   static readonly SetNewQueueEntriesAlwaysUnskippable: JungleTVSetNewQueueEntriesAlwaysUnskippable;
   static readonly SetSkippingEnabled: JungleTVSetSkippingEnabled;
   static readonly SetQueueInsertCursor: JungleTVSetQueueInsertCursor;
@@ -788,6 +808,15 @@ export class JungleTVClient {
   removeOwnQueueEntry(
     requestMessage: jungletv_pb.RemoveOwnQueueEntryRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveOwnQueueEntryResponse|null) => void
+  ): UnaryResponse;
+  moveQueueEntry(
+    requestMessage: jungletv_pb.MoveQueueEntryRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.MoveQueueEntryResponse|null) => void
+  ): UnaryResponse;
+  moveQueueEntry(
+    requestMessage: jungletv_pb.MoveQueueEntryRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.MoveQueueEntryResponse|null) => void
   ): UnaryResponse;
   monitorTicket(requestMessage: jungletv_pb.MonitorTicketRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.EnqueueMediaTicket>;
   consumeMedia(requestMessage: jungletv_pb.ConsumeMediaRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaConsumptionCheckpoint>;
@@ -1290,6 +1319,15 @@ export class JungleTVClient {
   setOwnQueueEntryRemovalAllowed(
     requestMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse|null) => void
+  ): UnaryResponse;
+  setQueueEntryReorderingAllowed(
+    requestMessage: jungletv_pb.SetQueueEntryReorderingAllowedRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetQueueEntryReorderingAllowedResponse|null) => void
+  ): UnaryResponse;
+  setQueueEntryReorderingAllowed(
+    requestMessage: jungletv_pb.SetQueueEntryReorderingAllowedRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetQueueEntryReorderingAllowedResponse|null) => void
   ): UnaryResponse;
   setNewQueueEntriesAlwaysUnskippable(
     requestMessage: jungletv_pb.SetNewQueueEntriesAlwaysUnskippableRequest,

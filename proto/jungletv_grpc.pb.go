@@ -21,6 +21,7 @@ type JungleTVClient interface {
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error)
 	EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error)
 	RemoveOwnQueueEntry(ctx context.Context, in *RemoveOwnQueueEntryRequest, opts ...grpc.CallOption) (*RemoveOwnQueueEntryResponse, error)
+	MoveQueueEntry(ctx context.Context, in *MoveQueueEntryRequest, opts ...grpc.CallOption) (*MoveQueueEntryResponse, error)
 	MonitorTicket(ctx context.Context, in *MonitorTicketRequest, opts ...grpc.CallOption) (JungleTV_MonitorTicketClient, error)
 	ConsumeMedia(ctx context.Context, in *ConsumeMediaRequest, opts ...grpc.CallOption) (JungleTV_ConsumeMediaClient, error)
 	MonitorQueue(ctx context.Context, in *MonitorQueueRequest, opts ...grpc.CallOption) (JungleTV_MonitorQueueClient, error)
@@ -84,6 +85,7 @@ type JungleTVClient interface {
 	ResetSpectatorStatus(ctx context.Context, in *ResetSpectatorStatusRequest, opts ...grpc.CallOption) (*ResetSpectatorStatusResponse, error)
 	MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error)
 	SetOwnQueueEntryRemovalAllowed(ctx context.Context, in *SetOwnQueueEntryRemovalAllowedRequest, opts ...grpc.CallOption) (*SetOwnQueueEntryRemovalAllowedResponse, error)
+	SetQueueEntryReorderingAllowed(ctx context.Context, in *SetQueueEntryReorderingAllowedRequest, opts ...grpc.CallOption) (*SetQueueEntryReorderingAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(ctx context.Context, in *SetSkippingEnabledRequest, opts ...grpc.CallOption) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(ctx context.Context, in *SetQueueInsertCursorRequest, opts ...grpc.CallOption) (*SetQueueInsertCursorResponse, error)
@@ -146,6 +148,15 @@ func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaReque
 func (c *jungleTVClient) RemoveOwnQueueEntry(ctx context.Context, in *RemoveOwnQueueEntryRequest, opts ...grpc.CallOption) (*RemoveOwnQueueEntryResponse, error) {
 	out := new(RemoveOwnQueueEntryResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveOwnQueueEntry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) MoveQueueEntry(ctx context.Context, in *MoveQueueEntryRequest, opts ...grpc.CallOption) (*MoveQueueEntryResponse, error) {
+	out := new(MoveQueueEntryResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/MoveQueueEntry", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -871,6 +882,15 @@ func (c *jungleTVClient) SetOwnQueueEntryRemovalAllowed(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *jungleTVClient) SetQueueEntryReorderingAllowed(ctx context.Context, in *SetQueueEntryReorderingAllowedRequest, opts ...grpc.CallOption) (*SetQueueEntryReorderingAllowedResponse, error) {
+	out := new(SetQueueEntryReorderingAllowedResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetQueueEntryReorderingAllowed", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, in *SetNewQueueEntriesAlwaysUnskippableRequest, opts ...grpc.CallOption) (*SetNewQueueEntriesAlwaysUnskippableResponse, error) {
 	out := new(SetNewQueueEntriesAlwaysUnskippableResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetNewQueueEntriesAlwaysUnskippable", in, out, opts...)
@@ -950,6 +970,7 @@ type JungleTVServer interface {
 	SignIn(*SignInRequest, JungleTV_SignInServer) error
 	EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error)
 	RemoveOwnQueueEntry(context.Context, *RemoveOwnQueueEntryRequest) (*RemoveOwnQueueEntryResponse, error)
+	MoveQueueEntry(context.Context, *MoveQueueEntryRequest) (*MoveQueueEntryResponse, error)
 	MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error
 	ConsumeMedia(*ConsumeMediaRequest, JungleTV_ConsumeMediaServer) error
 	MonitorQueue(*MonitorQueueRequest, JungleTV_MonitorQueueServer) error
@@ -1013,6 +1034,7 @@ type JungleTVServer interface {
 	ResetSpectatorStatus(context.Context, *ResetSpectatorStatusRequest) (*ResetSpectatorStatusResponse, error)
 	MonitorModerationStatus(*MonitorModerationStatusRequest, JungleTV_MonitorModerationStatusServer) error
 	SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error)
+	SetQueueEntryReorderingAllowed(context.Context, *SetQueueEntryReorderingAllowedRequest) (*SetQueueEntryReorderingAllowedResponse, error)
 	SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error)
 	SetSkippingEnabled(context.Context, *SetSkippingEnabledRequest) (*SetSkippingEnabledResponse, error)
 	SetQueueInsertCursor(context.Context, *SetQueueInsertCursorRequest) (*SetQueueInsertCursorResponse, error)
@@ -1036,6 +1058,9 @@ func (UnimplementedJungleTVServer) EnqueueMedia(context.Context, *EnqueueMediaRe
 }
 func (UnimplementedJungleTVServer) RemoveOwnQueueEntry(context.Context, *RemoveOwnQueueEntryRequest) (*RemoveOwnQueueEntryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOwnQueueEntry not implemented")
+}
+func (UnimplementedJungleTVServer) MoveQueueEntry(context.Context, *MoveQueueEntryRequest) (*MoveQueueEntryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MoveQueueEntry not implemented")
 }
 func (UnimplementedJungleTVServer) MonitorTicket(*MonitorTicketRequest, JungleTV_MonitorTicketServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorTicket not implemented")
@@ -1223,6 +1248,9 @@ func (UnimplementedJungleTVServer) MonitorModerationStatus(*MonitorModerationSta
 func (UnimplementedJungleTVServer) SetOwnQueueEntryRemovalAllowed(context.Context, *SetOwnQueueEntryRemovalAllowedRequest) (*SetOwnQueueEntryRemovalAllowedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOwnQueueEntryRemovalAllowed not implemented")
 }
+func (UnimplementedJungleTVServer) SetQueueEntryReorderingAllowed(context.Context, *SetQueueEntryReorderingAllowedRequest) (*SetQueueEntryReorderingAllowedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetQueueEntryReorderingAllowed not implemented")
+}
 func (UnimplementedJungleTVServer) SetNewQueueEntriesAlwaysUnskippable(context.Context, *SetNewQueueEntriesAlwaysUnskippableRequest) (*SetNewQueueEntriesAlwaysUnskippableResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetNewQueueEntriesAlwaysUnskippable not implemented")
 }
@@ -1313,6 +1341,24 @@ func _JungleTV_RemoveOwnQueueEntry_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).RemoveOwnQueueEntry(ctx, req.(*RemoveOwnQueueEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_MoveQueueEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MoveQueueEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).MoveQueueEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/MoveQueueEntry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).MoveQueueEntry(ctx, req.(*MoveQueueEntryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2454,6 +2500,24 @@ func _JungleTV_SetOwnQueueEntryRemovalAllowed_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetQueueEntryReorderingAllowed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetQueueEntryReorderingAllowedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetQueueEntryReorderingAllowed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetQueueEntryReorderingAllowed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetQueueEntryReorderingAllowed(ctx, req.(*SetQueueEntryReorderingAllowedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_SetNewQueueEntriesAlwaysUnskippable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetNewQueueEntriesAlwaysUnskippableRequest)
 	if err := dec(in); err != nil {
@@ -2612,6 +2676,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveOwnQueueEntry",
 			Handler:    _JungleTV_RemoveOwnQueueEntry_Handler,
+		},
+		{
+			MethodName: "MoveQueueEntry",
+			Handler:    _JungleTV_MoveQueueEntry_Handler,
 		},
 		{
 			MethodName: "RewardInfo",
@@ -2832,6 +2900,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetOwnQueueEntryRemovalAllowed",
 			Handler:    _JungleTV_SetOwnQueueEntryRemovalAllowed_Handler,
+		},
+		{
+			MethodName: "SetQueueEntryReorderingAllowed",
+			Handler:    _JungleTV_SetQueueEntryReorderingAllowed_Handler,
 		},
 		{
 			MethodName: "SetNewQueueEntriesAlwaysUnskippable",

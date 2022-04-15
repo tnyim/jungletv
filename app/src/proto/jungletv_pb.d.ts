@@ -452,6 +452,46 @@ export namespace RemoveOwnQueueEntryResponse {
   }
 }
 
+export class MoveQueueEntryRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getDirection(): QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap];
+  setDirection(value: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MoveQueueEntryRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MoveQueueEntryRequest): MoveQueueEntryRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MoveQueueEntryRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MoveQueueEntryRequest;
+  static deserializeBinaryFromReader(message: MoveQueueEntryRequest, reader: jspb.BinaryReader): MoveQueueEntryRequest;
+}
+
+export namespace MoveQueueEntryRequest {
+  export type AsObject = {
+    id: string,
+    direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap],
+  }
+}
+
+export class MoveQueueEntryResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MoveQueueEntryResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: MoveQueueEntryResponse): MoveQueueEntryResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MoveQueueEntryResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MoveQueueEntryResponse;
+  static deserializeBinaryFromReader(message: MoveQueueEntryResponse, reader: jspb.BinaryReader): MoveQueueEntryResponse;
+}
+
+export namespace MoveQueueEntryResponse {
+  export type AsObject = {
+  }
+}
+
 export class ConsumeMediaRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConsumeMediaRequest.AsObject;
@@ -757,6 +797,12 @@ export class QueueEntry extends jspb.Message {
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
 
+  getCanMoveUp(): boolean;
+  setCanMoveUp(value: boolean): void;
+
+  getCanMoveDown(): boolean;
+  setCanMoveDown(value: boolean): void;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -782,12 +828,14 @@ export namespace QueueEntry {
     length?: google_protobuf_duration_pb.Duration.AsObject,
     offset?: google_protobuf_duration_pb.Duration.AsObject,
     unskippable: boolean,
+    canMoveUp: boolean,
+    canMoveDown: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 8,
+    YOUTUBE_VIDEO_DATA = 10,
   }
 }
 
@@ -3618,6 +3666,9 @@ export class ModerationStatusOverview extends jspb.Message {
   setActivelyModeratingList(value: Array<User>): void;
   addActivelyModerating(value?: User, index?: number): User;
 
+  getAllowEntryReordering(): boolean;
+  setAllowEntryReordering(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModerationStatusOverview.AsObject;
   static toObject(includeInstance: boolean, msg: ModerationStatusOverview): ModerationStatusOverview.AsObject;
@@ -3640,6 +3691,43 @@ export namespace ModerationStatusOverview {
     queueInsertCursor: string,
     minimumPricesMultiplier: number,
     activelyModeratingList: Array<User.AsObject>,
+    allowEntryReordering: boolean,
+  }
+}
+
+export class SetQueueEntryReorderingAllowedRequest extends jspb.Message {
+  getAllowed(): boolean;
+  setAllowed(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetQueueEntryReorderingAllowedRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetQueueEntryReorderingAllowedRequest): SetQueueEntryReorderingAllowedRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetQueueEntryReorderingAllowedRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetQueueEntryReorderingAllowedRequest;
+  static deserializeBinaryFromReader(message: SetQueueEntryReorderingAllowedRequest, reader: jspb.BinaryReader): SetQueueEntryReorderingAllowedRequest;
+}
+
+export namespace SetQueueEntryReorderingAllowedRequest {
+  export type AsObject = {
+    allowed: boolean,
+  }
+}
+
+export class SetQueueEntryReorderingAllowedResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetQueueEntryReorderingAllowedResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetQueueEntryReorderingAllowedResponse): SetQueueEntryReorderingAllowedResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetQueueEntryReorderingAllowedResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetQueueEntryReorderingAllowedResponse;
+  static deserializeBinaryFromReader(message: SetQueueEntryReorderingAllowedResponse, reader: jspb.BinaryReader): SetQueueEntryReorderingAllowedResponse;
+}
+
+export namespace SetQueueEntryReorderingAllowedResponse {
+  export type AsObject = {
   }
 }
 
@@ -4966,6 +5054,14 @@ export interface EnqueueMediaTicketStatusMap {
 
 export const EnqueueMediaTicketStatus: EnqueueMediaTicketStatusMap;
 
+export interface QueueEntryMovementDirectionMap {
+  QUEUE_ENTRY_MOVEMENT_DIRECTION_UNKNOWN: 0;
+  QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN: 1;
+  QUEUE_ENTRY_MOVEMENT_DIRECTION_UP: 2;
+}
+
+export const QueueEntryMovementDirection: QueueEntryMovementDirectionMap;
+
 export interface SkipStatusMap {
   SKIP_STATUS_ALLOWED: 0;
   SKIP_STATUS_UNSKIPPABLE: 1;
@@ -5062,7 +5158,8 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_CHAT_GIF_ATTACHMENT: 4;
   POINTS_TRANSACTION_TYPE_MANUAL_ADJUSTMENT: 5;
   POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL: 6;
-  POINTS_TRANSACTION_TYPE_MEDIA_CONVERSION_FROM_BANANO: 7;
+  POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO: 7;
+  POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING: 8;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;

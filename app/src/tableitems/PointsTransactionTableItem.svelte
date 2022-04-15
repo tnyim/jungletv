@@ -25,8 +25,10 @@
                 return "Balance adjustment by the JungleTV team";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL:
                 return "Reversal of reward for media enqueuing";
-            case PointsTransactionType.POINTS_TRANSACTION_TYPE_MEDIA_CONVERSION_FROM_BANANO:
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO:
                 return "Acquisition with Banano";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING:
+                return "Queue entry reordering";
             default:
                 return "Unknown";
         }

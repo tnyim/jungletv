@@ -32,6 +32,7 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			AllSkippingEnabled:                  s.mediaQueue.SkippingEnabled(),
 			MinimumPricesMultiplier:             int32(s.pricer.minimumPricesMultiplier),
 			ActivelyModerating:                  protoUsers,
+			AllowEntryReordering:                s.mediaQueue.EntryReorderingAllowed(),
 		}
 		queueInsertCursor, hasQueueInsertCursor := s.mediaQueue.InsertCursor()
 		if hasQueueInsertCursor {

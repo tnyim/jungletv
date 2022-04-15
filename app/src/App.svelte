@@ -116,10 +116,15 @@
 		setInterval(selfXSSWarning, 20000);
 	});
 
+	let modalOpen: any;
+	let modalClose: any;
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
 	historyStore.subscribe((v) => {
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
+		if (modalClose !== undefined) {
+			modalClose();
+		}
 		refreshOnLineStatus();
 	});
 
@@ -133,8 +138,6 @@
 	let fullSizePlayerContainerWidth: number = 0;
 	let fullSizePlayerContainerHeight: number = 0;
 
-	let modalOpen: any;
-	let modalClose: any;
 	function modalSetContext(key: string, props: any) {
 		modalOpen = props.open;
 		modalClose = props.close;
@@ -178,7 +181,7 @@
 </script>
 
 <div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
-	<Modal setContext={modalSetContext} />
+	<Modal setContext={modalSetContext} styleWindowWrap={{ margin: "1rem" }} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
 		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
 			<svelte:component this={popoutTab.component} {...transformPopoutProps(popoutTab.props)} />

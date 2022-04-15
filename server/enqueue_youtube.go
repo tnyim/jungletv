@@ -158,6 +158,7 @@ func (s *grpcServer) NewYouTubeVideoEnqueueRequest(ctx *transaction.WrappingCont
 		requestedBy:   &unknownUser{},
 		unskippable:   unskippable,
 		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",
+		movedBy:       make(map[string]struct{}),
 	}
 
 	userClaims := authinterceptor.UserClaimsFromContext(ctx)

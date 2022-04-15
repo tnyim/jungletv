@@ -37,6 +37,15 @@ JungleTV.RemoveOwnQueueEntry = {
   responseType: jungletv_pb.RemoveOwnQueueEntryResponse
 };
 
+JungleTV.MoveQueueEntry = {
+  methodName: "MoveQueueEntry",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.MoveQueueEntryRequest,
+  responseType: jungletv_pb.MoveQueueEntryResponse
+};
+
 JungleTV.MonitorTicket = {
   methodName: "MonitorTicket",
   service: JungleTV,
@@ -595,6 +604,15 @@ JungleTV.SetOwnQueueEntryRemovalAllowed = {
   responseType: jungletv_pb.SetOwnQueueEntryRemovalAllowedResponse
 };
 
+JungleTV.SetQueueEntryReorderingAllowed = {
+  methodName: "SetQueueEntryReorderingAllowed",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetQueueEntryReorderingAllowedRequest,
+  responseType: jungletv_pb.SetQueueEntryReorderingAllowedResponse
+};
+
 JungleTV.SetNewQueueEntriesAlwaysUnskippable = {
   methodName: "SetNewQueueEntriesAlwaysUnskippable",
   service: JungleTV,
@@ -749,6 +767,37 @@ JungleTVClient.prototype.removeOwnQueueEntry = function removeOwnQueueEntry(requ
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.RemoveOwnQueueEntry, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.moveQueueEntry = function moveQueueEntry(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.MoveQueueEntry, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -2727,6 +2776,37 @@ JungleTVClient.prototype.setOwnQueueEntryRemovalAllowed = function setOwnQueueEn
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetOwnQueueEntryRemovalAllowed, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setQueueEntryReorderingAllowed = function setQueueEntryReorderingAllowed(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetQueueEntryReorderingAllowed, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

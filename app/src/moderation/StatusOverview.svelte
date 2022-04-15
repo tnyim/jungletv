@@ -95,6 +95,9 @@
                 Removal of own queue entries {statusOverview.getOwnEntryRemovalEnabled() ? "allowed" : "disallowed"}
             </div>
             <div>
+                Reordering of queue entries {statusOverview.getAllowEntryReordering() ? "allowed" : "disallowed"}
+            </div>
+            <div>
                 {#if statusOverview.getAllSkippingEnabled()}
                     Entry skipping, in general, is allowed
                     {#if !statusOverview.getCrowdfundedSkippingEnabled()}

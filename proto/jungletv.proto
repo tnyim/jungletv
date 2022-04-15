@@ -11,6 +11,7 @@ service JungleTV {
     rpc SignIn (SignInRequest) returns (stream SignInProgress) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
     rpc RemoveOwnQueueEntry (RemoveOwnQueueEntryRequest) returns (RemoveOwnQueueEntryResponse) {}
+    rpc MoveQueueEntry (MoveQueueEntryRequest) returns (MoveQueueEntryResponse) {}
     rpc MonitorTicket (MonitorTicketRequest) returns (stream EnqueueMediaTicket) {}
     rpc ConsumeMedia (ConsumeMediaRequest) returns (stream MediaConsumptionCheckpoint) {}
     rpc MonitorQueue (MonitorQueueRequest) returns (stream Queue) {}
@@ -75,6 +76,7 @@ service JungleTV {
     rpc ResetSpectatorStatus(ResetSpectatorStatusRequest) returns (ResetSpectatorStatusResponse) {}
     rpc MonitorModerationStatus (MonitorModerationStatusRequest) returns (stream ModerationStatusOverview) {}
     rpc SetOwnQueueEntryRemovalAllowed(SetOwnQueueEntryRemovalAllowedRequest) returns (SetOwnQueueEntryRemovalAllowedResponse) {}
+    rpc SetQueueEntryReorderingAllowed(SetQueueEntryReorderingAllowedRequest) returns (SetQueueEntryReorderingAllowedResponse) {}
     rpc SetNewQueueEntriesAlwaysUnskippable(SetNewQueueEntriesAlwaysUnskippableRequest) returns (SetNewQueueEntriesAlwaysUnskippableResponse) {}
     rpc SetSkippingEnabled(SetSkippingEnabledRequest) returns (SetSkippingEnabledResponse) {}
     rpc SetQueueInsertCursor(SetQueueInsertCursorRequest) returns (SetQueueInsertCursorResponse) {}
@@ -177,6 +179,19 @@ message RemoveOwnQueueEntryRequest {
 
 message RemoveOwnQueueEntryResponse {}
 
+enum QueueEntryMovementDirection {
+    QUEUE_ENTRY_MOVEMENT_DIRECTION_UNKNOWN = 0;
+    QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN = 1;
+    QUEUE_ENTRY_MOVEMENT_DIRECTION_UP = 2;
+}
+
+message MoveQueueEntryRequest {
+    string id = 1;
+    QueueEntryMovementDirection direction = 2;
+}
+
+message MoveQueueEntryResponse {}
+
 message ConsumeMediaRequest {}
 
 // NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
@@ -237,8 +252,10 @@ message QueueEntry {
     google.protobuf.Duration length = 5;
     google.protobuf.Duration offset = 6;
     bool unskippable = 7;
+    bool can_move_up = 8;
+    bool can_move_down = 9;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 8;
+        QueueYouTubeVideoData youtube_video_data = 10;
     }
 }
 
@@ -841,7 +858,14 @@ message ModerationStatusOverview {
     optional string queue_insert_cursor = 8;
     int32 minimum_prices_multiplier = 9;
     repeated User actively_moderating = 10;
+    bool allow_entry_reordering = 11;
 }
+
+message SetQueueEntryReorderingAllowedRequest {
+    bool allowed = 1;
+}
+
+message SetQueueEntryReorderingAllowedResponse {}
 
 message SetOwnQueueEntryRemovalAllowedRequest {
     bool allowed = 1;
@@ -1056,7 +1080,8 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_CHAT_GIF_ATTACHMENT = 4;
     POINTS_TRANSACTION_TYPE_MANUAL_ADJUSTMENT = 5;
     POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL = 6;
-    POINTS_TRANSACTION_TYPE_MEDIA_CONVERSION_FROM_BANANO = 7;
+    POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO = 7;
+    POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING = 8;
 }
 
 message ChatGifSearchRequest {

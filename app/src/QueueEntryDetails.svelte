@@ -1,13 +1,20 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import QrCode from "svelte-qrcode";
-    import { PermissionLevel, QueueEntry, User } from "./proto/jungletv_pb";
-    import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import {
+        PermissionLevel,
+        QueueEntry,
+        QueueEntryMovementDirection,
+        QueueEntryMovementDirectionMap,
+        User,
+    } from "./proto/jungletv_pb";
+    import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
     import { DateTime, Duration, DurationUnit } from "luxon";
     import { slide } from "svelte/transition";
     import { copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
     import { openUserProfile } from "./profile_utils";
+    import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -103,6 +110,21 @@
         "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
         "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
         "ease-linear transition-all duration-150 cursor-pointer";
+
+    function moveQueueEntry(direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]) {
+        modal.set({
+            component: MoveQueueEntryPrompt,
+            props: { direction: direction, entry: entry },
+            options: {
+                closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+                styleContent: {
+                    padding: "0",
+                },
+            },
+        });
+    }
 </script>
 
 <div class="flex flex-col px-2 py-1 shadow-inner bg-gray-200 dark:bg-black cursor-default" transition:slide|local>
@@ -169,7 +191,11 @@
                 <div
                     class="{commonButtonClasses} col-span-2"
                     on:click={() =>
-                        window.open("https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId(), "", "noopener")}
+                        window.open(
+                            "https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId(),
+                            "",
+                            "noopener"
+                        )}
                 >
                     <i class="fab fa-youtube" /> YouTube
                 </div>
@@ -199,6 +225,22 @@
                     <i class="fas fa-trash" /> Remove
                 </div>
             {/if}
+        {/if}
+        {#if entry.getCanMoveUp()}
+            <div
+                class="{commonButtonClasses} col-span-3"
+                on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_UP)}
+            >
+                <i class="fas fa-arrow-circle-up" /> Move up
+            </div>
+        {/if}
+        {#if entry.getCanMoveDown()}
+            <div
+                class="{commonButtonClasses} col-span-3"
+                on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN)}
+            >
+                <i class="fas fa-arrow-circle-down" /> Move down
+            </div>
         {/if}
     </div>
 </div>

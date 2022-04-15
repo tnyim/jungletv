@@ -7,8 +7,11 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -39,7 +42,9 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		entries := s.mediaQueue.Entries()
 		queue.Entries = make([]*proto.QueueEntry, len(entries))
 		for i, entry := range entries {
-			queue.Entries[i] = entry.SerializeForAPI(ctx, s.userSerializer)
+			canMoveUp := s.mediaQueue.CanMoveEntryByIndex(i, user, true)
+			canMoveDown := s.mediaQueue.CanMoveEntryByIndex(i, user, false)
+			queue.Entries[i] = entry.SerializeForAPI(ctx, s.userSerializer, canMoveUp, canMoveDown)
 		}
 
 		insertCursor, hasInsertCursor := s.mediaQueue.InsertCursor()
@@ -113,4 +118,48 @@ func (s *grpcServer) RemoveOwnQueueEntry(ctx context.Context, r *proto.RemoveOwn
 	s.log.Printf("Queue entry with ID %s removed by its requester", r.Id)
 
 	return &proto.RemoveOwnQueueEntryResponse{}, nil
+}
+
+func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEntryRequest) (*proto.MoveQueueEntryResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	direction := ""
+	if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN {
+		direction = "down"
+	} else if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_UP {
+		direction = "up"
+	} else {
+		return nil, stacktrace.NewError("unknown direction")
+	}
+
+	// begin by deducting the points as this is what we can rollback if the queue movement fails, unlike the queue changes
+	err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -119, pointsmanager.TxExtraField{
+		Key:   "media",
+		Value: r.Id,
+	}, pointsmanager.TxExtraField{
+		Key:   "direction",
+		Value: direction,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	// now attempt the queue movement
+	err = s.mediaQueue.MoveEntry(r.Id, user, r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_UP)
+	if err != nil {
+		// this rolls back the points deduction
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.MoveQueueEntryResponse{}, stacktrace.Propagate(ctx.Commit(), "")
 }

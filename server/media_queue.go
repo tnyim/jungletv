@@ -33,6 +33,7 @@ type MediaQueue struct {
 	recentEntryCountsCache          *cache.Cache[string, recentEntryCountsValue]
 	recentEntryCountsCacheUserMutex *nsync.NamedMutex
 	removalOfOwnEntriesAllowed      bool
+	entryReorderingAllowed          bool
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
 	playingSince                    time.Time
@@ -46,11 +47,18 @@ type MediaQueue struct {
 	// receives the removed entry as an argument
 	deepEntryRemoved *event.Event[MediaQueueEntry]
 	ownEntryRemoved  *event.Event[MediaQueueEntry] // receives the removed entry as an argument
+	entryMoved       *event.Event[entryMovedEventArg]
 }
 
 type entryAddedEventArg struct {
 	addType string
 	entry   MediaQueueEntry
+}
+
+type entryMovedEventArg struct {
+	user  auth.User
+	entry MediaQueueEntry
+	up    bool
 }
 
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
@@ -68,8 +76,10 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		entryAdded:                      event.New[entryAddedEventArg](),
 		deepEntryRemoved:                event.New[MediaQueueEntry](),
 		ownEntryRemoved:                 event.New[MediaQueueEntry](),
+		entryMoved:                      event.New[entryMovedEventArg](),
 		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
 		removalOfOwnEntriesAllowed:      true,
+		entryReorderingAllowed:          true,
 		skippingEnabled:                 true,
 	}
 	if persistenceFile != "" {
@@ -85,6 +95,15 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		go q.persistenceWorker(ctx, persistenceFile)
 	}
 	return q, nil
+}
+
+func (q *MediaQueue) EntryReorderingAllowed() bool {
+	return q.entryReorderingAllowed
+}
+
+func (q *MediaQueue) SetEntryReorderingAllowed(allowed bool) {
+	q.entryReorderingAllowed = allowed
+	q.queueUpdated.Notify()
 }
 
 func (q *MediaQueue) RemovalOfOwnEntriesAllowed() bool {
@@ -302,6 +321,77 @@ func (q *MediaQueue) removeEntryInMutex(entryID string) (MediaQueueEntry, error)
 		}
 	}
 	return nil, stacktrace.NewError("entry not found in the queue")
+}
+
+func (q *MediaQueue) MoveEntry(entryID string, user auth.User, up bool) error {
+	if !q.entryReorderingAllowed {
+		return stacktrace.NewError("queue entry reordering disallowed")
+	}
+	q.queueMutex.Lock()
+	defer q.queueMutex.Unlock()
+
+	for i, entry := range q.queue {
+		if entryID != entry.QueueID() {
+			continue
+		}
+
+		err := q.canMoveEntryInMutex(i, user, up)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		entry.SetAsMovedBy(user)
+
+		if up {
+			q.queue[i-1], q.queue[i] = q.queue[i], q.queue[i-1]
+		} else {
+			q.queue[i+1], q.queue[i] = q.queue[i], q.queue[i+1]
+		}
+		q.queueUpdated.Notify()
+		q.entryMoved.Notify(entryMovedEventArg{
+			user:  user,
+			entry: entry,
+			up:    up,
+		})
+
+		return nil
+	}
+	return stacktrace.NewError("queue entry not found")
+}
+
+func (q *MediaQueue) CanMoveEntryByIndex(index int, user auth.User, up bool) bool {
+	if !q.entryReorderingAllowed || user == nil || user.IsUnknown() {
+		return false
+	}
+	q.queueMutex.RLock()
+	defer q.queueMutex.RUnlock()
+
+	if index <= 0 || index >= len(q.queue) {
+		return false
+	}
+
+	err := q.canMoveEntryInMutex(index, user, up)
+	return err == nil
+}
+
+func (q *MediaQueue) canMoveEntryInMutex(i int, user auth.User, up bool) error {
+	if i == 0 ||
+		(i <= 1 && up) ||
+		(i >= len(q.queue)-1 && !up) {
+		return stacktrace.NewError("this entry is not in a position where it can be moved")
+	}
+
+	if q.insertCursor != "" &&
+		(q.insertCursor == q.queue[i].QueueID() ||
+			(up && q.insertCursor == q.queue[i-1].QueueID()) ||
+			(!up && q.insertCursor == q.queue[i+1].QueueID())) {
+		return stacktrace.NewError("this entry is not in a position where it can be moved")
+	}
+
+	if q.queue[i].WasMovedBy(user) {
+		return stacktrace.NewError("this user has already moved this entry")
+	}
+	return nil
 }
 
 func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
