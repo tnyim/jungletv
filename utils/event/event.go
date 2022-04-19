@@ -61,7 +61,7 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	}
 
 	e.subs = append(e.subs, s)
-	if e.pendingNotification {
+	if e.pendingNotification && !e.closed {
 		e.notifyNowWithinMutex(e.pendingNotificationParam)
 		e.pendingNotification = false
 		var zeroValue T
@@ -128,6 +128,10 @@ func (e *Event[T]) notifyNowWithinMutex(param T) {
 	for _, sub := range e.subs {
 		if sub.blocking {
 			go func(sch chan T) {
+				defer func() {
+					recover() // we don't care if we panic on sending to closed channels
+					// (the point of us closing these channels is so goroutines like this one don't live forever)
+				}()
 				sch <- param
 			}(sub.ch)
 		} else {
