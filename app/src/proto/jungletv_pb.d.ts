@@ -1535,6 +1535,9 @@ export class ChatEmoteCreatedEvent extends jspb.Message {
   getAnimated(): boolean;
   setAnimated(value: boolean): void;
 
+  getRequiresSubscription(): boolean;
+  setRequiresSubscription(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatEmoteCreatedEvent.AsObject;
   static toObject(includeInstance: boolean, msg: ChatEmoteCreatedEvent): ChatEmoteCreatedEvent.AsObject;
@@ -1550,6 +1553,7 @@ export namespace ChatEmoteCreatedEvent {
     id: string,
     shortcode: string,
     animated: boolean,
+    requiresSubscription: boolean,
   }
 }
 
@@ -4742,6 +4746,11 @@ export class PointsInfoResponse extends jspb.Message {
   getBalance(): number;
   setBalance(value: number): void;
 
+  hasCurrentSubscription(): boolean;
+  clearCurrentSubscription(): void;
+  getCurrentSubscription(): SubscriptionDetails | undefined;
+  setCurrentSubscription(value?: SubscriptionDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PointsInfoResponse.AsObject;
   static toObject(includeInstance: boolean, msg: PointsInfoResponse): PointsInfoResponse.AsObject;
@@ -4755,6 +4764,35 @@ export class PointsInfoResponse extends jspb.Message {
 export namespace PointsInfoResponse {
   export type AsObject = {
     balance: number,
+    currentSubscription?: SubscriptionDetails.AsObject,
+  }
+}
+
+export class SubscriptionDetails extends jspb.Message {
+  hasSubscribedAt(): boolean;
+  clearSubscribedAt(): void;
+  getSubscribedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setSubscribedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasSubscribedUntil(): boolean;
+  clearSubscribedUntil(): void;
+  getSubscribedUntil(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setSubscribedUntil(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubscriptionDetails.AsObject;
+  static toObject(includeInstance: boolean, msg: SubscriptionDetails): SubscriptionDetails.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubscriptionDetails, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubscriptionDetails;
+  static deserializeBinaryFromReader(message: SubscriptionDetails, reader: jspb.BinaryReader): SubscriptionDetails;
+}
+
+export namespace SubscriptionDetails {
+  export type AsObject = {
+    subscribedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    subscribedUntil?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 
@@ -5046,6 +5084,44 @@ export namespace ConvertBananoToPointsStatus {
   }
 }
 
+export class StartOrExtendSubscriptionRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StartOrExtendSubscriptionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: StartOrExtendSubscriptionRequest): StartOrExtendSubscriptionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StartOrExtendSubscriptionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StartOrExtendSubscriptionRequest;
+  static deserializeBinaryFromReader(message: StartOrExtendSubscriptionRequest, reader: jspb.BinaryReader): StartOrExtendSubscriptionRequest;
+}
+
+export namespace StartOrExtendSubscriptionRequest {
+  export type AsObject = {
+  }
+}
+
+export class StartOrExtendSubscriptionResponse extends jspb.Message {
+  hasSubscription(): boolean;
+  clearSubscription(): void;
+  getSubscription(): SubscriptionDetails | undefined;
+  setSubscription(value?: SubscriptionDetails): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StartOrExtendSubscriptionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: StartOrExtendSubscriptionResponse): StartOrExtendSubscriptionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StartOrExtendSubscriptionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StartOrExtendSubscriptionResponse;
+  static deserializeBinaryFromReader(message: StartOrExtendSubscriptionResponse, reader: jspb.BinaryReader): StartOrExtendSubscriptionResponse;
+}
+
+export namespace StartOrExtendSubscriptionResponse {
+  export type AsObject = {
+    subscription?: SubscriptionDetails.AsObject,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -5160,6 +5236,7 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL: 6;
   POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO: 7;
   POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING: 8;
+  POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION: 9;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;

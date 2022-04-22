@@ -122,7 +122,7 @@
         } else {
             clearTimeout(onScrollCheckTimeout);
             lastSeenScrollTop = undefined;
-            if(chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight) {
+            if(chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight - 2) {
                 scrollToBottom();
             }
         }
@@ -203,6 +203,7 @@
                 id: update.getEmoteCreated().getId(),
                 shortcode: update.getEmoteCreated().getShortcode(),
                 animated: update.getEmoteCreated().getAnimated(),
+                requiresSubscription: update.getEmoteCreated().getRequiresSubscription(),
             };
             chatEmotes.update((oldValue): chatEmote[] => {
                 for (let emoteIdx = 0; emoteIdx < oldValue.length; emoteIdx++) {
@@ -222,6 +223,7 @@
                     name: emote.shortcode,
                     shortcodes: [emote.shortcode],
                     url: "/emotes/" + emote.id + (emote.animated ? ".gif" : ".webp"),
+                    category: emote.requiresSubscription ? "Nice emotes" : "Emotes",
                 };
             });
             $chatEmotesAsCustomEmoji = customEmoji;

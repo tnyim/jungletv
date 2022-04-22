@@ -158,7 +158,9 @@ import {
     QueueEntryMovementDirectionMap,
     MoveQueueEntryResponse,
     SetQueueEntryReorderingAllowedResponse,
-    SetQueueEntryReorderingAllowedRequest
+    SetQueueEntryReorderingAllowedRequest,
+    StartOrExtendSubscriptionResponse,
+    StartOrExtendSubscriptionRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -776,6 +778,10 @@ class APIClient {
             new ConvertBananoToPointsRequest(),
             onStatusUpdated,
             onEnd);
+    }
+
+    async startOrExtendSubscription(): Promise<StartOrExtendSubscriptionResponse> {
+        return this.unaryRPC<StartOrExtendSubscriptionRequest, StartOrExtendSubscriptionResponse>(JungleTV.StartOrExtendSubscription, new StartOrExtendSubscriptionRequest());
     }
 
     formatBANPrice(raw: string): string {

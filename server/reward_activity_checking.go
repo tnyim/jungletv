@@ -181,7 +181,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	delete(r.spectatorByActivityChallenge, challenge)
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
-	err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, 10)
+	_, err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, 10)
 	if err != nil {
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
 	}

@@ -45,6 +45,7 @@ service JungleTV {
     rpc PointsTransactions (PointsTransactionsRequest) returns (PointsTransactionsResponse) {}
     rpc ChatGifSearch (ChatGifSearchRequest) returns (ChatGifSearchResponse) {}
     rpc ConvertBananoToPoints (ConvertBananoToPointsRequest) returns (stream ConvertBananoToPointsStatus) {}
+    rpc StartOrExtendSubscription (StartOrExtendSubscriptionRequest) returns (StartOrExtendSubscriptionResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -429,6 +430,7 @@ message ChatEmoteCreatedEvent {
     int64 id = 1 [jstype = JS_STRING];
     string shortcode = 2;
     bool animated = 3;
+    bool requires_subscription = 4;
 }
 
 message SendChatMessageRequest {
@@ -1051,6 +1053,12 @@ message PointsInfoRequest {}
 
 message PointsInfoResponse {
     int32 balance = 1;
+    optional SubscriptionDetails current_subscription = 2;
+}
+
+message SubscriptionDetails {
+    google.protobuf.Timestamp subscribed_at = 1;
+    google.protobuf.Timestamp subscribed_until = 2;
 }
 
 message PointsTransactionsRequest {
@@ -1082,6 +1090,7 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_MEDIA_ENQUEUED_REWARD_REVERSAL = 6;
     POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO = 7;
     POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING = 8;
+    POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION = 9;
 }
 
 message ChatGifSearchRequest {
@@ -1120,4 +1129,10 @@ message ConvertBananoToPointsStatus {
     int32 points_converted = 3;
     google.protobuf.Timestamp expiration = 4;
     bool expired = 5;
+}
+
+message StartOrExtendSubscriptionRequest {}
+
+message StartOrExtendSubscriptionResponse {
+    SubscriptionDetails subscription = 1;
 }

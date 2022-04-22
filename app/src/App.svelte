@@ -32,6 +32,7 @@
 		badRepresentative,
 		collapseGifs,
 		convertEmoticons,
+		currentSubscription,
 		darkMode,
 		featureFlags,
 		modal,
@@ -81,12 +82,16 @@
 			rewardBalance.update((_) => rewardInfo.getRewardBalance());
 			badRepresentative.update((_) => rewardInfo.getBadRepresentative());
 
+			let pointsInfo = await apiClient.pointsInfo();
+			$currentSubscription = pointsInfo.getCurrentSubscription();
+
 			let response = await apiClient.userPermissionLevel();
 			isAdmin = response.getPermissionLevel() == PermissionLevel.ADMIN;
 			permissionLevel.update((_) => response.getPermissionLevel());
 		} catch (ex) {
 			rewardAddress.update((_) => "");
 			rewardBalance.update((_) => "");
+			$currentSubscription = null;
 			permissionLevel.update((_) => PermissionLevel.UNAUTHENTICATED);
 		}
 		refreshOnLineStatus();

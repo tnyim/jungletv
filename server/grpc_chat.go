@@ -74,9 +74,10 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		err = stream.Send(&proto.ChatUpdate{
 			Event: &proto.ChatUpdate_EmoteCreated{
 				EmoteCreated: &proto.ChatEmoteCreatedEvent{
-					Id:        emote.ID,
-					Shortcode: emote.Shortcode,
-					Animated:  emote.Animated,
+					Id:                   emote.ID,
+					Shortcode:            emote.Shortcode,
+					Animated:             emote.Animated,
+					RequiresSubscription: emote.RequiresSubscription,
 				},
 			},
 		})

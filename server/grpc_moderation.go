@@ -610,7 +610,7 @@ func (s *grpcServer) AdjustPointsBalance(ctxCtx context.Context, r *proto.Adjust
 	}
 	defer ctx.Rollback()
 
-	err = s.pointsManager.CreateTransaction(ctx,
+	_, err = s.pointsManager.CreateTransaction(ctx,
 		auth.NewAddressOnlyUser(r.RewardsAddress),
 		types.PointsTxTypeManualAdjustment,
 		int(r.Value),

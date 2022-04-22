@@ -9,6 +9,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
@@ -23,6 +24,8 @@ type Manager struct {
 
 	bananoConversionFlows     map[string]*BananoConversionFlow
 	bananoConversionFlowsLock sync.RWMutex
+
+	subscriptionCache *cache.Cache[string, *types.Subscription]
 }
 
 // New returns a new initialized Manager
@@ -32,26 +35,27 @@ func New(workerContext context.Context, snowflakeNode *snowflake.Node, paymentAc
 		snowflakeNode:         snowflakeNode,
 		paymentAccountPool:    paymentAccountPool,
 		bananoConversionFlows: make(map[string]*BananoConversionFlow),
+		subscriptionCache:     cache.New[string, *types.Subscription](30*time.Minute, 10*time.Minute),
 	}
 }
 
 // CreateTransaction creates a points transaction
-func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int, extraFields ...TxExtraField) error {
+func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int, extraFields ...TxExtraField) (int64, error) {
 	err := validateBalanceMovement(txType, value)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return 0, stacktrace.Propagate(err, "")
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return 0, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
 	// a CHECK (balance >= 0) exists in the table to prevent overdraw, even in concurrent transactions
 	err = types.AdjustPointsBalanceOfAddress(ctx, forUser.Address(), value)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return 0, stacktrace.Propagate(err, "")
 	}
 
 	var lastTransaction *types.PointsTx
@@ -60,7 +64,7 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 		lastTransaction, err = types.GetLatestPointsTxForAddress(ctx, forUser.Address())
 		if err != nil {
 			if !errors.Is(err, types.ErrPointsTxNotFound) {
-				return stacktrace.Propagate(err, "")
+				return 0, stacktrace.Propagate(err, "")
 			}
 			lastTransaction = nil
 		} else if lastTransaction.Type != txType {
@@ -72,9 +76,9 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	if lastTransaction != nil {
 		err = lastTransaction.IncreaseValue(ctx, value)
 		if err != nil {
-			return stacktrace.Propagate(err, "")
+			return 0, stacktrace.Propagate(err, "")
 		}
-		return stacktrace.Propagate(ctx.Commit(), "")
+		return 0, stacktrace.Propagate(ctx.Commit(), "")
 	}
 
 	extra := ""
@@ -85,14 +89,14 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 
 	for _, mandatoryFieldKey := range pointsTxTypeMandatoryExtraFields[txType] {
 		if _, present := extraFieldsMap[mandatoryFieldKey]; !present {
-			return stacktrace.NewError("mandatory extra field %s not provided", mandatoryFieldKey)
+			return 0, stacktrace.NewError("mandatory extra field %s not provided", mandatoryFieldKey)
 		}
 	}
 
 	if len(extraFields) > 0 {
 		jsonBytes, err := json.Marshal(extraFieldsMap)
 		if err != nil {
-			return stacktrace.Propagate(err, "")
+			return 0, stacktrace.Propagate(err, "")
 		}
 		extra = string(jsonBytes)
 	}
@@ -108,9 +112,9 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	}
 	err = tx.Insert(ctx)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return 0, stacktrace.Propagate(err, "")
 	}
-	return stacktrace.Propagate(ctx.Commit(), "")
+	return tx.ID, stacktrace.Propagate(ctx.Commit(), "")
 }
 
 func validateBalanceMovement(txType types.PointsTxType, value int) error {
@@ -144,6 +148,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeMediaEnqueuedRewardReversal: pointsTxDirectionDecrease,
 	types.PointsTxTypeConversionFromBanano:        pointsTxDirectionIncrease,
 	types.PointsTxTypeQueueEntryReordering:        pointsTxDirectionDecrease,
+	types.PointsTxTypeMonthlySubscription:         pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type

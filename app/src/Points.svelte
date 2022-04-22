@@ -1,29 +1,73 @@
 <script lang="ts">
+    import { DateTime } from "luxon";
     import { Moon } from "svelte-loading-spinners";
     import { navigate, link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import PaginatedTable from "./PaginatedTable.svelte";
     import PointsIcon from "./PointsIcon.svelte";
-    import type { PaginationParameters, PointsInfoResponse, PointsTransaction } from "./proto/jungletv_pb";
-    import { darkMode } from "./stores";
+    import type {
+        PaginationParameters,
+        PointsInfoResponse,
+        PointsTransaction,
+        SubscriptionDetails,
+    } from "./proto/jungletv_pb";
+    import { currentSubscription, darkMode } from "./stores";
     import PointsTransactionTableItem from "./tableitems/PointsTransactionTableItem.svelte";
     import Wizard from "./Wizard.svelte";
 
     let pointsInfo: PointsInfoResponse;
+    let currentlySubscribed = false;
+    let canRenewSubscription = false;
+    let hasEnoughPointsToSubscribe = false;
+    const subscriptionCost = 6900;
+
+    $: currentlySubscribed = typeof $currentSubscription !== "undefined" && $currentSubscription != null;
+    function canRenew(sub: SubscriptionDetails): boolean {
+        if (!currentlySubscribed || sub == null) {
+            return false;
+        }
+        let oneMonthFromNow = DateTime.now().plus({ months: 1 });
+        let subUntil = DateTime.fromJSDate(sub.getSubscribedUntil().toDate());
+        let subEndsAfterOneMonthFromNow = subUntil.diff(oneMonthFromNow).toMillis() > 0;
+        return !subEndsAfterOneMonthFromNow;
+    }
+    $: canRenewSubscription = canRenew($currentSubscription);
+    function checkCanSubscribe(i: PointsInfoResponse): boolean {
+        return i.getBalance() >= subscriptionCost;
+    }
+    $: hasEnoughPointsToSubscribe = typeof pointsInfo !== "undefined" && checkCanSubscribe(pointsInfo);
 
     let pointsInfoPromise = (async function () {
         try {
             pointsInfo = await apiClient.pointsInfo();
+            $currentSubscription = pointsInfo.getCurrentSubscription();
         } catch (ex) {
             console.log(ex);
             navigate("/rewards/address");
         }
-    })();
+    });
 
     let cur_points_txs_page = 0;
     async function getPointsTransactionsPage(pagParams: PaginationParameters): Promise<[PointsTransaction[], number]> {
         let resp = await apiClient.pointsTransactions(pagParams);
         return [resp.getTransactionsList(), resp.getTotal()];
+    }
+
+    function formatSubscriptionDate(date: Date): string {
+        return DateTime.fromJSDate(date)
+            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+            .toLocal()
+            .toLocaleString(DateTime.DATE_MED);
+    }
+
+    async function subscribeOrExtendSubscription() {
+        try {
+            await apiClient.startOrExtendSubscription();
+            await pointsInfoPromise();
+            cur_points_txs_page = -1;
+        } catch (ex) {
+            console.log(ex);
+        }
     }
 </script>
 
@@ -45,7 +89,7 @@
     </div>
     <div slot="main-content">
         <p class="text-lg font-semibold">Current points balance:</p>
-        {#await pointsInfoPromise}
+        {#await pointsInfoPromise()}
             <Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
         {:then}
             <p class="text-2xl sm:text-3xl">
@@ -68,10 +112,10 @@
                 <p>You can spend points by:</p>
                 <ul class="list-disc list-outside" style="padding: 0 0 0 20px;">
                     <li>Sending GIFs in chat</li>
+                    <li>Reordering queue entries</li>
                     <li>
                         Subscribing to
-                        <span class="font-semibold text-green-600 dark:text-green-400">JungleTV Nice</span>, an upcoming
-                        monthly subscription.
+                        <span class="font-semibold text-green-600 dark:text-green-400">JungleTV Nice</span>
                     </li>
                 </ul>
             </div>
@@ -101,18 +145,56 @@
         <div class="shadow sm:rounded-md sm:overflow-hidden">
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-4 sm:p-6">
                 <p class="text-lg font-semibold text-green-600 dark:text-green-400">JungleTV Nice</p>
+                <div class="flex flex-row gap-4 sm:gap-6 mb-4 align-center">
+                    {#if currentlySubscribed}
+                        <div class="font-semibold flex-grow self-center">
+                            Subscribed to JungleTV Nice until
+                            {formatSubscriptionDate($currentSubscription.getSubscribedUntil().toDate())}.
+                            {#if canRenewSubscription && !hasEnoughPointsToSubscribe}
+                                You do not have sufficient <PointsIcon /> to renew your subscription.
+                            {/if}
+                        </div>
+                    {:else}
+                        <div class="font-semibold flex-grow self-center">
+                            Currently, you are not a JungleTV Nice member.
+                            {#if !hasEnoughPointsToSubscribe}
+                                You do not have sufficient <PointsIcon /> to become one.
+                            {/if}
+                        </div>
+                    {/if}
+                    <div>
+                        {#if !currentlySubscribed && hasEnoughPointsToSubscribe}
+                            <div
+                                on:click={() => subscribeOrExtendSubscription()}
+                                class="cursor-pointer justify-center text-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                            >
+                                <div>Become a <span class="font-semibold">Nice</span> member</div>
+                                <div class="text-xs font-semibold">-{subscriptionCost} <PointsIcon /></div>
+                            </div>
+                        {:else if canRenewSubscription && hasEnoughPointsToSubscribe}
+                            <div
+                                on:click={() => subscribeOrExtendSubscription()}
+                                class="cursor-pointer justify-center text-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                            >
+                                <div>Extend membership by one month</div>
+                                <div class="text-xs font-semibold">-{subscriptionCost} <PointsIcon /></div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
                 <p>
-                    <span class="font-semibold">Nice</span> is an upcoming monthly subscription for JungleTV.
-                    <span class="font-semibold">Nice</span> members will get exclusive perks that will let them stand out
-                    in the community and make the JungleTV experience more amenable.
+                    <span class="font-semibold">Nice</span> is a monthly subscription for JungleTV.
+                    <span class="font-semibold">Nice</span> members get exclusive perks that let them stand out in the community
+                    and make the JungleTV experience more amenable.
                 </p>
                 <p>
-                    Becoming a member will not affect the Banano rewards received by watching JungleTV and participating
+                    Becoming a member does not affect the Banano rewards received by watching JungleTV and participating
                     in events.
                 </p>
                 <p>
-                    <span class="font-semibold">Nice</span> membership will be exclusively obtainable in exchange for
-                    JungleTV Points, with a projected cost of 6900 <PointsIcon /> per month.
+                    <span class="font-semibold">Nice</span> membership is exclusively obtainable in exchange for
+                    JungleTV Points, with a cost of {subscriptionCost}
+                    <PointsIcon /> per month.
                 </p>
             </div>
         </div>

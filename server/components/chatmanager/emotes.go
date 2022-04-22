@@ -41,7 +41,11 @@ func (c *Manager) processEmotesForStorage(ctx context.Context, author auth.User,
 	// - if an emote tag is present but does not correspond to a valid emote, it is escaped
 	//   so that a broken image is not rendered on the client, instead it will appear exactly as
 	//   the messagecreator sent it
+	var outerError error
 	return utils.ReplaceAllStringSubmatchFuncExcludingInside(emoteRegexp, codeTagRegexp, content, func(s []string) string {
+		if outerError != nil {
+			return ""
+		}
 		if s[1] == `\` {
 			// escaped emote, do not do anything, return the original as-is
 			return s[0]
@@ -58,9 +62,20 @@ func (c *Manager) processEmotesForStorage(ctx context.Context, author auth.User,
 			// escape it
 			return `\` + s[0]
 		}
+		if emote.RequiresSubscription && !author.IsUnknown() {
+			currentlySubscribed, err := c.pointsManager.IsUserCurrentlySubscribed(ctx, author)
+			if err != nil {
+				outerError = stacktrace.Propagate(err, "")
+				return `\` + s[0]
+			}
+			if !currentlySubscribed {
+				outerError = stacktrace.NewError("user is not allowed to use this emote")
+				return `\` + s[0]
+			}
+		}
 		return fmt.Sprintf("<%s:%d>", s[2], emote.ID)
 
-	}), nil
+	}), stacktrace.Propagate(outerError, "")
 }
 
 func (c *Manager) processEmotesForLoadingMessages(ctx context.Context, messages []*chat.Message) error {

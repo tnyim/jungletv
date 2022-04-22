@@ -55,6 +55,7 @@ type JungleTVClient interface {
 	PointsTransactions(ctx context.Context, in *PointsTransactionsRequest, opts ...grpc.CallOption) (*PointsTransactionsResponse, error)
 	ChatGifSearch(ctx context.Context, in *ChatGifSearchRequest, opts ...grpc.CallOption) (*ChatGifSearchResponse, error)
 	ConvertBananoToPoints(ctx context.Context, in *ConvertBananoToPointsRequest, opts ...grpc.CallOption) (JungleTV_ConvertBananoToPointsClient, error)
+	StartOrExtendSubscription(ctx context.Context, in *StartOrExtendSubscriptionRequest, opts ...grpc.CallOption) (*StartOrExtendSubscriptionResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -598,6 +599,15 @@ func (x *jungleTVConvertBananoToPointsClient) Recv() (*ConvertBananoToPointsStat
 	return m, nil
 }
 
+func (c *jungleTVClient) StartOrExtendSubscription(ctx context.Context, in *StartOrExtendSubscriptionRequest, opts ...grpc.CallOption) (*StartOrExtendSubscriptionResponse, error) {
+	out := new(StartOrExtendSubscriptionResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/StartOrExtendSubscription", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -1004,6 +1014,7 @@ type JungleTVServer interface {
 	PointsTransactions(context.Context, *PointsTransactionsRequest) (*PointsTransactionsResponse, error)
 	ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error)
 	ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error
+	StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1160,6 +1171,9 @@ func (UnimplementedJungleTVServer) ChatGifSearch(context.Context, *ChatGifSearch
 }
 func (UnimplementedJungleTVServer) ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ConvertBananoToPoints not implemented")
+}
+func (UnimplementedJungleTVServer) StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartOrExtendSubscription not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -1975,6 +1989,24 @@ func (x *jungleTVConvertBananoToPointsServer) Send(m *ConvertBananoToPointsStatu
 	return x.ServerStream.SendMsg(m)
 }
 
+func _JungleTV_StartOrExtendSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartOrExtendSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).StartOrExtendSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/StartOrExtendSubscription",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).StartOrExtendSubscription(ctx, req.(*StartOrExtendSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -2788,6 +2820,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChatGifSearch",
 			Handler:    _JungleTV_ChatGifSearch_Handler,
+		},
+		{
+			MethodName: "StartOrExtendSubscription",
+			Handler:    _JungleTV_StartOrExtendSubscription_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

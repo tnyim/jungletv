@@ -30,8 +30,21 @@ func (s *grpcServer) PointsInfo(ctxCtx context.Context, r *proto.PointsInfoReque
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	var protoSub *proto.SubscriptionDetails
+	subscription, err := s.pointsManager.GetCurrentUserSubscription(ctx, userClaims)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if subscription != nil {
+		protoSub = &proto.SubscriptionDetails{
+			SubscribedAt:    timestamppb.New(subscription.StartsAt),
+			SubscribedUntil: timestamppb.New(subscription.EndsAt),
+		}
+	}
+
 	return &proto.PointsInfoResponse{
-		Balance: int32(balance.Balance),
+		Balance:             int32(balance.Balance),
+		CurrentSubscription: protoSub,
 	}, nil
 }
 
@@ -81,6 +94,9 @@ func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
 func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest, stream proto.JungleTV_ConvertBananoToPointsServer) error {
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		return stacktrace.NewError("user claims unexpectedly missing")
+	}
 
 	flow, err := s.pointsManager.CreateOrRecoverBananoConversionFlow(user)
 	if err != nil {
@@ -134,4 +150,23 @@ func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest
 			return stacktrace.Propagate(err, "")
 		}
 	}
+}
+
+func (s *grpcServer) StartOrExtendSubscription(ctx context.Context, r *proto.StartOrExtendSubscriptionRequest) (*proto.StartOrExtendSubscriptionResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		return nil, stacktrace.NewError("user claims unexpectedly missing")
+	}
+
+	subscription, err := s.pointsManager.SubscribeOrExtendSubscription(ctx, user)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.StartOrExtendSubscriptionResponse{
+		Subscription: &proto.SubscriptionDetails{
+			SubscribedAt:    timestamppb.New(subscription.StartsAt),
+			SubscribedUntil: timestamppb.New(subscription.EndsAt),
+		},
+	}, nil
 }

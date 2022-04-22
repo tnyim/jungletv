@@ -119,7 +119,7 @@ func (c *Manager) processAttachments(ctx context.Context, author auth.User, atta
 		if !ok {
 			continue
 		}
-		err := c.pointsManager.CreateTransaction(ctx, author, aCost.PointsTxType(), -aCost.PointsCost())
+		_, err := c.pointsManager.CreateTransaction(ctx, author, aCost.PointsTxType(), -aCost.PointsCost())
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

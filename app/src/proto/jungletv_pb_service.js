@@ -343,6 +343,15 @@ JungleTV.ConvertBananoToPoints = {
   responseType: jungletv_pb.ConvertBananoToPointsStatus
 };
 
+JungleTV.StartOrExtendSubscription = {
+  methodName: "StartOrExtendSubscription",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.StartOrExtendSubscriptionRequest,
+  responseType: jungletv_pb.StartOrExtendSubscriptionResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -1890,6 +1899,37 @@ JungleTVClient.prototype.convertBananoToPoints = function convertBananoToPoints(
     },
     cancel: function () {
       listeners = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.startOrExtendSubscription = function startOrExtendSubscription(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.StartOrExtendSubscription, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
       client.close();
     }
   };

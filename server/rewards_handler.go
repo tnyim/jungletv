@@ -466,7 +466,7 @@ func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueE
 
 	pointsReward := r.getPointsRewardForMedia(removed)
 
-	err := r.pointsManager.CreateTransaction(ctx, removed.RequestedBy(), types.PointsTxTypeMediaEnqueuedRewardReversal,
+	_, err := r.pointsManager.CreateTransaction(ctx, removed.RequestedBy(), types.PointsTxTypeMediaEnqueuedRewardReversal,
 		-pointsReward, pointsmanager.TxExtraField{
 			Key:   "media",
 			Value: removed.QueueID()})
@@ -518,7 +518,7 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
-	err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
+	_, err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
 		r.getPointsRewardForMedia(m),
 		pointsmanager.TxExtraField{
 			Key:   "media",
@@ -553,7 +553,7 @@ func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Messa
 				points = 6
 			}
 
-			err := r.pointsManager.CreateTransaction(ctx, m.Author, types.PointsTxTypeChatActivityReward, points)
+			_, err := r.pointsManager.CreateTransaction(ctx, m.Author, types.PointsTxTypeChatActivityReward, points)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

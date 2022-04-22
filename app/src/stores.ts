@@ -1,6 +1,6 @@
 import type { CustomEmoji } from 'emoji-picker-element/shared';
 import { writable } from 'svelte/store';
-import { ActivityChallenge, ChatGifSearchResult, PermissionLevel, PermissionLevelMap } from './proto/jungletv_pb';
+import { ActivityChallenge, ChatGifSearchResult, PermissionLevel, PermissionLevelMap, SubscriptionDetails } from './proto/jungletv_pb';
 
 type valueof<T> = T[keyof T];
 
@@ -37,11 +37,13 @@ export const convertEmoticons = writable((() => !('convertEmoticons' in localSto
 export const autoCloseMediaPickerOnInsert = writable((() => !('autoCloseMediaPickerOnInsert' in localStorage) || localStorage.autoCloseMediaPickerOnInsert == 'true')());
 export const autoCloseMediaPickerOnSend = writable((() => !('autoCloseMediaPickerOnSend' in localStorage) || localStorage.autoCloseMediaPickerOnSend == 'true')());
 export const blockedUsers = writable(new Set<string>());
+export const currentSubscription = writable<SubscriptionDetails>(null);
 
 export type chatEmote = {
     id: string,
     shortcode: string,
     animated: boolean,
+    requiresSubscription: boolean,
 };
 export const chatEmotes = writable([] as chatEmote[]);
 export const chatEmotesAsCustomEmoji = writable([] as CustomEmoji[]);

@@ -337,6 +337,15 @@ type JungleTVConvertBananoToPoints = {
   readonly responseType: typeof jungletv_pb.ConvertBananoToPointsStatus;
 };
 
+type JungleTVStartOrExtendSubscription = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.StartOrExtendSubscriptionRequest;
+  readonly responseType: typeof jungletv_pb.StartOrExtendSubscriptionResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -718,6 +727,7 @@ export class JungleTV {
   static readonly PointsTransactions: JungleTVPointsTransactions;
   static readonly ChatGifSearch: JungleTVChatGifSearch;
   static readonly ConvertBananoToPoints: JungleTVConvertBananoToPoints;
+  static readonly StartOrExtendSubscription: JungleTVStartOrExtendSubscription;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1067,6 +1077,15 @@ export class JungleTVClient {
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.ChatGifSearchResponse|null) => void
   ): UnaryResponse;
   convertBananoToPoints(requestMessage: jungletv_pb.ConvertBananoToPointsRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.ConvertBananoToPointsStatus>;
+  startOrExtendSubscription(
+    requestMessage: jungletv_pb.StartOrExtendSubscriptionRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.StartOrExtendSubscriptionResponse|null) => void
+  ): UnaryResponse;
+  startOrExtendSubscription(
+    requestMessage: jungletv_pb.StartOrExtendSubscriptionRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.StartOrExtendSubscriptionResponse|null) => void
+  ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,

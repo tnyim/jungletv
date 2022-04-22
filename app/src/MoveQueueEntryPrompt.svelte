@@ -4,9 +4,9 @@
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import PointsIcon from "./PointsIcon.svelte";
-    import { QueueEntry, QueueEntryMovementDirection, QueueEntryMovementDirectionMap } from "./proto/jungletv_pb";
+    import { PointsInfoResponse, QueueEntry, QueueEntryMovementDirection, QueueEntryMovementDirectionMap } from "./proto/jungletv_pb";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
-    import { darkMode, modal } from "./stores";
+    import { currentSubscription, darkMode, modal } from "./stores";
 
     export let direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap];
     export let entry: QueueEntry;
@@ -36,6 +36,12 @@
             }
         }
     }
+
+    async function pointsPromise(): Promise<PointsInfoResponse> {
+        let response = await apiClient.pointsInfo();
+        $currentSubscription = response.getCurrentSubscription();
+        return response;
+    }
 </script>
 
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
@@ -49,7 +55,7 @@
     </p>
     <p>
         You currently have
-        {#await apiClient.pointsInfo()}
+        {#await pointsPromise()}
             <span class="inline-block">
                 <Moon size="15" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
             </span>

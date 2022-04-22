@@ -29,6 +29,8 @@
                 return "Acquisition with Banano";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING:
                 return "Queue entry reordering";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION:
+                return "Subscription to JungleTV Nice";
             default:
                 return "Unknown";
         }

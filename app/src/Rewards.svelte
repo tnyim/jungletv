@@ -9,12 +9,13 @@
     import type {
         Connection,
         PaginationParameters,
+        PointsInfoResponse,
         ReceivedReward,
         ServiceInfo,
         Withdrawal,
     } from "./proto/jungletv_pb";
 
-    import { badRepresentative, darkMode, rewardAddress, rewardBalance } from "./stores";
+    import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
@@ -91,6 +92,12 @@
     async function getWithdrawalsPage(pagParams: PaginationParameters): Promise<[Withdrawal[], number]> {
         let resp = await apiClient.withdrawalHistory(pagParams);
         return [resp.getWithdrawalsList(), resp.getTotal()];
+    }
+
+    async function pointsPromise(): Promise<PointsInfoResponse> {
+        let response = await apiClient.pointsInfo();
+        $currentSubscription = response.getCurrentSubscription();
+        return response;
     }
 </script>
 
@@ -196,7 +203,7 @@
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <div class="flex-grow">
                         You have
-                        {#await apiClient.pointsInfo()}
+                        {#await pointsPromise()}
                             <span class="inline-block">
                                 <Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
                             </span>

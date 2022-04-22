@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "subscription";
 DROP TABLE IF EXISTS "points_balance";
 DROP TABLE IF EXISTS "points_tx";
 DROP TABLE IF EXISTS "points_tx_type";
@@ -253,7 +254,8 @@ INSERT INTO "points_tx_type" VALUES
     (5, 'manual_adjustment'),
     (6, 'media_enqueued_reward_reversal'),
     (7, 'conversion_from_banano'),
-    (8, 'queue_entry_reordering');
+    (8, 'queue_entry_reordering'),
+    (9, 'monthly_subscription');
 
 CREATE TABLE IF NOT EXISTS "points_tx" (
     id BIGINT PRIMARY KEY,
@@ -270,4 +272,12 @@ CREATE INDEX ON points_tx (rewards_address);
 CREATE TABLE IF NOT EXISTS "points_balance" (
     rewards_address VARCHAR(64) PRIMARY KEY,
     balance INTEGER NOT NULL CHECK (balance >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS "subscription" (
+    rewards_address VARCHAR(64) NOT NULL,
+    starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    payment_txs BIGINT[] NOT NULL,
+    PRIMARY KEY (rewards_address, starts_at)
 );

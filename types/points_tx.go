@@ -95,4 +95,5 @@ const (
 	PointsTxTypeMediaEnqueuedRewardReversal PointsTxType = 6
 	PointsTxTypeConversionFromBanano        PointsTxType = 7
 	PointsTxTypeQueueEntryReordering        PointsTxType = 8
+	PointsTxTypeMonthlySubscription         PointsTxType = 9
 )

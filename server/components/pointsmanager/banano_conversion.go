@@ -80,7 +80,7 @@ func (m *Manager) convertBanano(ctx context.Context, user auth.User, pointsTotal
 		return 0, nil
 	}
 
-	err := m.CreateTransaction(ctx, user, types.PointsTxTypeConversionFromBanano,
+	_, err := m.CreateTransaction(ctx, user, types.PointsTxTypeConversionFromBanano,
 		pointsAmount, TxExtraField{Key: "tx_hash", Value: paymentArgs.BlockHash})
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")

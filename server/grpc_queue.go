@@ -143,7 +143,7 @@ func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEn
 	}
 
 	// begin by deducting the points as this is what we can rollback if the queue movement fails, unlike the queue changes
-	err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -119, pointsmanager.TxExtraField{
+	_, err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -119, pointsmanager.TxExtraField{
 		Key:   "media",
 		Value: r.Id,
 	}, pointsmanager.TxExtraField{

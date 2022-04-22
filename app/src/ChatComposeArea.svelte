@@ -44,7 +44,7 @@
     import ErrorMessage from "./ErrorMessage.svelte";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
     import PointsIcon from "./PointsIcon.svelte";
-    import { ChatGifSearchResult, ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
+    import { ChatGifSearchResult, ChatMessage, PermissionLevel, PointsInfoResponse } from "./proto/jungletv_pb";
     import {
         autoCloseMediaPickerOnInsert,
         autoCloseMediaPickerOnSend,
@@ -53,6 +53,7 @@
         chatMessageDraftSelectionJSON,
         chatMessageDraftTenorGif,
         convertEmoticons,
+        currentSubscription,
         darkMode,
         modal,
         permissionLevel,
@@ -71,7 +72,8 @@
     export let hasBlockedMessages: boolean;
 
     let sendError = false;
-    let sendErrorMessage = "";
+    let sendErrorMessage: "" | "insufficient-points" | "emotes-need-subscription" | "rate-limited" | "generic";
+    let customSendErrorMessage = "";
     let editorContainer: HTMLElement;
     let editorView: EditorView;
 
@@ -699,7 +701,7 @@
                 let [valid, errMsg] = await setNickname(nickname);
                 if (!valid) {
                     sendError = true;
-                    sendErrorMessage = errMsg;
+                    customSendErrorMessage = errMsg;
                     setTimeout(() => (sendError = false), 5000);
                     return;
                 }
@@ -712,11 +714,13 @@
             $chatMessageDraftTenorGif = tenorGif;
             sendError = true;
             if (ex.includes("insufficient points balance")) {
-                sendErrorMessage = "You don't have sufficient points to send this message.";
+                sendErrorMessage = "insufficient-points";
+            } else if (ex.includes("user is not allowed to use this emote")) {
+                sendErrorMessage = "emotes-need-subscription";
             } else if (ex.includes("rate limit reached")) {
-                sendErrorMessage = "You're going too fast. Slow down.";
+                sendErrorMessage = "rate-limited";
             } else {
-                sendErrorMessage = "Failed to send your message. Please try again.";
+                sendErrorMessage = "generic";
             }
             setTimeout(() => (sendError = false), 5000);
         }
@@ -800,6 +804,12 @@
         $chatMessageDraftTenorGif = undefined;
         editorView.focus();
     }
+
+    async function pointsPromise(): Promise<PointsInfoResponse> {
+        let response = await apiClient.pointsInfo();
+        $currentSubscription = response.getCurrentSubscription();
+        return response;
+    }
 </script>
 
 {#if showMediaPicker}
@@ -808,7 +818,18 @@
 {#if sendError}
     <div class="px-2 pb-2 text-xs mt-2">
         <ErrorMessage>
-            {sendErrorMessage}
+            {#if sendErrorMessage == "insufficient-points"}
+                You don't have sufficient points to send this message. <a href="/points" use:link>More information</a>
+            {:else if sendErrorMessage == "emotes-need-subscription"}
+                To use the emotes in your message,
+                <a href="/points" use:link>subscribe to <span class="font-semibold">JungleTV Nice</span></a>.
+            {:else if sendErrorMessage == "rate-limited"}
+                You're going too fast. Slow down.
+            {:else if sendErrorMessage == "generic" && customSendErrorMessage == ""}
+                Failed to send your message. Please try again.
+            {:else}
+                {customSendErrorMessage}
+            {/if}
         </ErrorMessage>
     </div>
 {/if}
@@ -853,7 +874,7 @@
                     <div>
                         <PointsIcon />
                         <span class="font-semibold">{-$chatMessageDraftTenorGif.getPointsCost()}</span>
-                        {#await apiClient.pointsInfo()}
+                        {#await pointsPromise()}
                             <span class="text-xs inline-flex">
                                 <span class="mr-1">/</span>
                                 <Moon size="15" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
