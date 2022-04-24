@@ -168,5 +168,12 @@ func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (*chat.Message
 }
 
 func (c *Manager) TenorGifAttachmentCostForUser(ctx context.Context, user auth.User) (int, error) {
+	subscribed, err := c.pointsManager.IsUserCurrentlySubscribed(ctx, user)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	if subscribed {
+		return 19, nil
+	}
 	return 42, nil
 }

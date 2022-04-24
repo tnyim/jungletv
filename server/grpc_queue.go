@@ -142,8 +142,17 @@ func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEn
 		return nil, stacktrace.NewError("unknown direction")
 	}
 
+	cost := 119
+	subscribed, err := s.pointsManager.IsUserCurrentlySubscribed(ctx, user)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if subscribed {
+		cost = 69
+	}
+
 	// begin by deducting the points as this is what we can rollback if the queue movement fails, unlike the queue changes
-	_, err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -119, pointsmanager.TxExtraField{
+	_, err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -cost, pointsmanager.TxExtraField{
 		Key:   "media",
 		Value: r.Id,
 	}, pointsmanager.TxExtraField{

@@ -18,6 +18,10 @@ func (m *Manager) GetCurrentUserSubscription(ctxCtx context.Context, user auth.U
 	}
 	subscription, present := m.subscriptionCache.Get(user.Address())
 	if present {
+		if subscription != nil && time.Now().After(subscription.EndsAt) {
+			m.subscriptionCache.SetDefault(user.Address(), nil)
+			return nil, nil
+		}
 		return subscription, nil
 	}
 
