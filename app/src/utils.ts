@@ -251,7 +251,7 @@ const emoteTokenizerMarkedExtension = {
     childTokens: ['img']
 }
 
-export const emoteURLFromID = function(id: string, animated: boolean): string {
+export const emoteURLFromID = function (id: string, animated: boolean): string {
     return `/emotes/${id}.${animated ? "gif" : "webp"}`;
 }
 
@@ -286,6 +286,15 @@ const configureMarked = function () {
 export const parseUserMessageMarkdown = function (markdown: string): string {
     configureMarked();
     return configuredMarked.parseInline(markdown);
+}
+
+export const parseSystemMessageMarkdown = function (markdown: string): string {
+    configureMarked();
+    let t = new marked.Tokenizer();
+    // avoid links in queue entry titles becoming clickable
+    t.autolink = () => undefined;
+    t.url = () => undefined;
+    return configuredMarked.parseInline(markdown, { tokenizer: t });
 }
 
 export const parseCompleteMarkdownInline = function (markdown: string): string {
