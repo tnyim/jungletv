@@ -1140,6 +1140,28 @@ export namespace ConsumeChatRequest {
 }
 
 export class ChatUpdate extends jspb.Message {
+  clearEventsList(): void;
+  getEventsList(): Array<ChatUpdateEvent>;
+  setEventsList(value: Array<ChatUpdateEvent>): void;
+  addEvents(value?: ChatUpdateEvent, index?: number): ChatUpdateEvent;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatUpdate.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatUpdate): ChatUpdate.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatUpdate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatUpdate;
+  static deserializeBinaryFromReader(message: ChatUpdate, reader: jspb.BinaryReader): ChatUpdate;
+}
+
+export namespace ChatUpdate {
+  export type AsObject = {
+    eventsList: Array<ChatUpdateEvent.AsObject>,
+  }
+}
+
+export class ChatUpdateEvent extends jspb.Message {
   hasDisabled(): boolean;
   clearDisabled(): void;
   getDisabled(): ChatDisabledEvent | undefined;
@@ -1180,18 +1202,18 @@ export class ChatUpdate extends jspb.Message {
   getEmoteCreated(): ChatEmoteCreatedEvent | undefined;
   setEmoteCreated(value?: ChatEmoteCreatedEvent): void;
 
-  getEventCase(): ChatUpdate.EventCase;
+  getEventCase(): ChatUpdateEvent.EventCase;
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ChatUpdate.AsObject;
-  static toObject(includeInstance: boolean, msg: ChatUpdate): ChatUpdate.AsObject;
+  toObject(includeInstance?: boolean): ChatUpdateEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatUpdateEvent): ChatUpdateEvent.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ChatUpdate, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ChatUpdate;
-  static deserializeBinaryFromReader(message: ChatUpdate, reader: jspb.BinaryReader): ChatUpdate;
+  static serializeBinaryToWriter(message: ChatUpdateEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatUpdateEvent;
+  static deserializeBinaryFromReader(message: ChatUpdateEvent, reader: jspb.BinaryReader): ChatUpdateEvent;
 }
 
-export namespace ChatUpdate {
+export namespace ChatUpdateEvent {
   export type AsObject = {
     disabled?: ChatDisabledEvent.AsObject,
     enabled?: ChatEnabledEvent.AsObject,

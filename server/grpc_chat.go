@@ -53,17 +53,15 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
+	initialEvents := []*proto.ChatUpdateEvent{}
 	for i := range blockedAddresses {
-		err := stream.Send(&proto.ChatUpdate{
-			Event: &proto.ChatUpdate_BlockedUserCreated{
+		initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
+			Event: &proto.ChatUpdateEvent_BlockedUserCreated{
 				BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
 					BlockedUserAddress: blockedAddresses[i],
 				},
 			},
 		})
-		if err != nil {
-			return stacktrace.Propagate(err, "failed to send initial blocked users list")
-		}
 	}
 
 	chatEmotes, err := s.chat.ChatEmotes(ctx)
@@ -71,8 +69,8 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		return stacktrace.Propagate(err, "failed to list chat emotes")
 	}
 	for _, emote := range chatEmotes {
-		err = stream.Send(&proto.ChatUpdate{
-			Event: &proto.ChatUpdate_EmoteCreated{
+		initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
+			Event: &proto.ChatUpdateEvent_EmoteCreated{
 				EmoteCreated: &proto.ChatEmoteCreatedEvent{
 					Id:                   emote.ID,
 					Shortcode:            emote.Shortcode,
@@ -81,9 +79,6 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				},
 			},
 		})
-		if err != nil {
-			return stacktrace.Propagate(err, "failed to send chat emote")
-		}
 	}
 
 	chatEnabled, disabledReason := s.chat.Enabled()
@@ -101,28 +96,29 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 			return stacktrace.Propagate(err, "failed to load chat messages")
 		}
 		for i := range protoMessages {
-			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_MessageCreated{
+			initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
+				Event: &proto.ChatUpdateEvent_MessageCreated{
 					MessageCreated: &proto.ChatMessageCreatedEvent{
 						Message: protoMessages[i],
 					},
 				},
 			})
-			if err != nil {
-				return stacktrace.Propagate(err, "failed to send initial chat state")
-			}
 		}
 	} else {
-		err := stream.Send(&proto.ChatUpdate{
-			Event: &proto.ChatUpdate_Disabled{
+		initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
+			Event: &proto.ChatUpdateEvent_Disabled{
 				Disabled: &proto.ChatDisabledEvent{
 					Reason: disabledReason.SerializeForAPI(),
 				},
 			},
 		})
-		if err != nil {
-			return stacktrace.Propagate(err, "failed to send initial chat state")
-		}
+	}
+
+	err = stream.Send(&proto.ChatUpdate{
+		Events: initialEvents,
+	})
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to send initial events")
 	}
 
 	for {
@@ -130,62 +126,69 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		select {
 		case reason := <-onChatDisabled:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_Disabled{
-					Disabled: &proto.ChatDisabledEvent{
-						Reason: reason.SerializeForAPI(),
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_Disabled{
+						Disabled: &proto.ChatDisabledEvent{
+							Reason: reason.SerializeForAPI(),
+						},
 					},
-				},
-			})
+				}}})
 		case <-onChatEnabled:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_Enabled{
-					Enabled: &proto.ChatEnabledEvent{},
-				},
-			})
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_Enabled{
+						Enabled: &proto.ChatEnabledEvent{},
+					},
+				}}})
 		case args := <-onMessageCreated:
 			msg := args.Message
 			if !msg.Shadowbanned || (msg.Author != nil && user != nil && msg.Author.Address() == user.Address()) {
 				err = stream.Send(&proto.ChatUpdate{
-					Event: &proto.ChatUpdate_MessageCreated{
-						MessageCreated: &proto.ChatMessageCreatedEvent{
-							Message: args.ProtobufRepresentation,
+					Events: []*proto.ChatUpdateEvent{{
+						Event: &proto.ChatUpdateEvent_MessageCreated{
+							MessageCreated: &proto.ChatMessageCreatedEvent{
+								Message: args.ProtobufRepresentation,
+							},
 						},
-					},
-				})
+					}}})
 			}
 		case v := <-onMessageDeleted:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_MessageDeleted{
-					MessageDeleted: &proto.ChatMessageDeletedEvent{
-						Id: v.Int64(),
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_MessageDeleted{
+						MessageDeleted: &proto.ChatMessageDeletedEvent{
+							Id: v.Int64(),
+						},
 					},
-				},
-			})
+				}}})
 		case <-heartbeat.C:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_Heartbeat{
-					Heartbeat: &proto.ChatHeartbeatEvent{
-						Sequence: seq,
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_Heartbeat{
+						Heartbeat: &proto.ChatHeartbeatEvent{
+							Sequence: seq,
+						},
 					},
-				},
-			})
+				}}})
 			seq++
 		case v := <-onUserBlocked:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_BlockedUserCreated{
-					BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
-						BlockedUserAddress: v,
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_BlockedUserCreated{
+						BlockedUserCreated: &proto.ChatBlockedUserCreatedEvent{
+							BlockedUserAddress: v,
+						},
 					},
-				},
-			})
+				}}})
 		case v := <-onUserUnblocked:
 			err = stream.Send(&proto.ChatUpdate{
-				Event: &proto.ChatUpdate_BlockedUserDeleted{
-					BlockedUserDeleted: &proto.ChatBlockedUserDeletedEvent{
-						BlockedUserAddress: v,
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_BlockedUserDeleted{
+						BlockedUserDeleted: &proto.ChatBlockedUserDeletedEvent{
+							BlockedUserAddress: v,
+						},
 					},
-				},
-			})
+				}}})
 		case <-stream.Context().Done():
 			return nil
 		}

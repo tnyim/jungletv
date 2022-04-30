@@ -348,6 +348,10 @@ message ConsumeChatRequest {
 }
 
 message ChatUpdate {
+    repeated ChatUpdateEvent events = 1;
+}
+
+message ChatUpdateEvent {
     oneof event {
         ChatDisabledEvent disabled = 1;
         ChatEnabledEvent enabled = 2;

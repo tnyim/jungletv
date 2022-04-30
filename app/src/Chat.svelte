@@ -12,7 +12,7 @@
     import ChatUserMessage from "./ChatUserMessage.svelte";
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
-    import { ChatDisabledReason, ChatMessage, ChatUpdate } from "./proto/jungletv_pb";
+    import { ChatDisabledReason, ChatMessage, ChatUpdate, ChatUpdateEvent } from "./proto/jungletv_pb";
     import {
         blockedUsers,
         chatEmote,
@@ -33,11 +33,12 @@
     let chatEnabled = true;
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
-    let seenMessageIDs: { [id: string]: boolean } = {};
+    let seenMessageIDs = new Set<string>();
     let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
     let allowExpensiveCSSAnimations = false;
     let consumeChatTimeoutHandle: number = null;
+    const messageHistorySize = 250;
 
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
@@ -79,10 +80,11 @@
             // when the document is hidden, shouldAutoScroll can be incorrectly set to false
             // because browsers stop doing visibility calculations when the page is in the background
             let now = new Date();
-            let tolerance = chatContainer && chatContainer.lastElementChild ? chatContainer.lastElementChild.clientHeight : 40;
+            let tolerance =
+                chatContainer && chatContainer.lastElementChild ? chatContainer.lastElementChild.clientHeight : 40;
             shouldAutoScroll =
-                (chatContainer &&
-                    chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - tolerance);
+                chatContainer &&
+                chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - tolerance;
         } else {
             // we were in the background and beforeUpdate is triggered, so a new message came in
             // therefore, we should autoscroll
@@ -109,25 +111,25 @@
         });
         ensureScrollToBottom();
     }
-    onMount(() => onScrollCheckTimeout = setTimeout(scrollToBottom, 1000))
+    onMount(() => (onScrollCheckTimeout = setTimeout(scrollToBottom, 1000)));
 
     let lastSeenScrollTop: number;
     let onScrollCheckTimeout: number;
     function ensureScrollToBottom() {
         let curTop = chatContainer.scrollTop;
-        if(lastSeenScrollTop != curTop) {
+        if (lastSeenScrollTop != curTop) {
             // still has not stopped scrolling
             lastSeenScrollTop = curTop;
             onScrollCheckTimeout = setTimeout(ensureScrollToBottom, 100);
         } else {
             clearTimeout(onScrollCheckTimeout);
             lastSeenScrollTop = undefined;
-            if(chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight - 2) {
+            if (chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight - 2) {
                 scrollToBottom();
             }
         }
     }
-    onDestroy(() => clearTimeout(onScrollCheckTimeout))
+    onDestroy(() => clearTimeout(onScrollCheckTimeout));
 
     let hasBlockedMessages = false;
     function refreshHasBlockedMessages(bu: Set<string>) {
@@ -144,32 +146,26 @@
     }
     $: refreshHasBlockedMessages($blockedUsers);
 
-    function handleChatUpdated(update: ChatUpdate): void {
-        if (consumeChatTimeoutHandle != null) {
-            clearTimeout(consumeChatTimeoutHandle);
-        }
-        consumeChatTimeoutHandle = setTimeout(consumeChatTimeout, 20000);
-        if (update.hasMessageCreated()) {
-            let msg = update.getMessageCreated().getMessage();
-            if (seenMessageIDs[msg.getId()]) {
-                return;
+    type requiredUpdateType = {
+        messageCreated: boolean;
+        messageDeleted: boolean;
+        emoteCreated: boolean;
+    };
+
+    function handleChatEvent(event: ChatUpdateEvent, updatesRequired: requiredUpdateType): requiredUpdateType {
+        if (event.hasMessageCreated()) {
+            let msg = event.getMessageCreated().getMessage();
+            if (seenMessageIDs.has(msg.getId())) {
+                return updatesRequired;
             }
-            seenMessageIDs[msg.getId()] = true;
+            seenMessageIDs.add(msg.getId());
             chatMessages.push(msg);
-            // this sort has millisecond precision. we can do nanosecond precision if we really need to, but this is easier
-            chatMessages.sort(
-                (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
-            );
-            if (sentMsgFlag) {
-                sentMsgFlag = false;
-                mustAutoScroll = true;
-            }
             if (msg.hasUserMessage() && $blockedUsers.has(msg.getUserMessage().getAuthor().getAddress())) {
                 hasBlockedMessages = true;
             }
-            chatMessages = chatMessages.slice(Math.max(0, chatMessages.length - 250)); // this triggers Svelte's reactivity and removes old messages
-        } else if (update.hasMessageDeleted()) {
-            let deletedId = update.getMessageDeleted().getId();
+            updatesRequired.messageCreated = true;
+        } else if (event.hasMessageDeleted()) {
+            let deletedId = event.getMessageDeleted().getId();
             for (var i = chatMessages.length - 1; i >= 0; i--) {
                 if (chatMessages[i].hasReference() && chatMessages[i].getReference().getId() == deletedId) {
                     chatMessages[i].clearReference();
@@ -178,11 +174,11 @@
                     chatMessages.splice(i, 1);
                 }
             }
-            chatMessages = chatMessages; // this triggers Svelte's reactivity
-            refreshHasBlockedMessages($blockedUsers);
-        } else if (update.hasDisabled()) {
+            seenMessageIDs.delete(deletedId);
+            updatesRequired.messageDeleted = true;
+        } else if (event.hasDisabled()) {
             chatEnabled = false;
-            switch (update.getDisabled().getReason()) {
+            switch (event.getDisabled().getReason()) {
                 case ChatDisabledReason.UNSPECIFIED:
                     chatDisabledReason = "";
                     break;
@@ -190,20 +186,20 @@
                     chatDisabledReason = " because no moderators are available";
                     break;
             }
-        } else if (update.hasEnabled()) {
+        } else if (event.hasEnabled()) {
             chatEnabled = true;
-        } else if (update.hasBlockedUserCreated()) {
-            $blockedUsers = $blockedUsers.add(update.getBlockedUserCreated().getBlockedUserAddress());
-        } else if (update.hasBlockedUserDeleted()) {
+        } else if (event.hasBlockedUserCreated()) {
+            $blockedUsers = $blockedUsers.add(event.getBlockedUserCreated().getBlockedUserAddress());
+        } else if (event.hasBlockedUserDeleted()) {
             let bu = $blockedUsers;
-            bu.delete(update.getBlockedUserDeleted().getBlockedUserAddress());
+            bu.delete(event.getBlockedUserDeleted().getBlockedUserAddress());
             $blockedUsers = bu;
-        } else if (update.hasEmoteCreated()) {
+        } else if (event.hasEmoteCreated()) {
             let newEmote = {
-                id: update.getEmoteCreated().getId(),
-                shortcode: update.getEmoteCreated().getShortcode(),
-                animated: update.getEmoteCreated().getAnimated(),
-                requiresSubscription: update.getEmoteCreated().getRequiresSubscription(),
+                id: event.getEmoteCreated().getId(),
+                shortcode: event.getEmoteCreated().getShortcode(),
+                animated: event.getEmoteCreated().getAnimated(),
+                requiresSubscription: event.getEmoteCreated().getRequiresSubscription(),
             };
             chatEmotes.update((oldValue): chatEmote[] => {
                 for (let emoteIdx = 0; emoteIdx < oldValue.length; emoteIdx++) {
@@ -218,6 +214,45 @@
                 oldValue.push(newEmote);
                 return oldValue;
             });
+            updatesRequired.emoteCreated = true;
+        }
+        return updatesRequired;
+    }
+
+    function handleChatUpdated(update: ChatUpdate): void {
+        if (consumeChatTimeoutHandle != null) {
+            clearTimeout(consumeChatTimeoutHandle);
+        }
+        consumeChatTimeoutHandle = setTimeout(consumeChatTimeout, 20000);
+        let updatesRequired = {
+            messageCreated: false,
+            messageDeleted: false,
+            emoteCreated: false,
+        };
+        for (let event of update.getEventsList()) {
+            updatesRequired = handleChatEvent(event, updatesRequired);
+        }
+        if (updatesRequired.messageCreated) {
+            // this sort has millisecond precision. we can do nanosecond precision if we really need to, but this is easier
+            chatMessages.sort(
+                (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
+            );
+            if (sentMsgFlag) {
+                sentMsgFlag = false;
+                mustAutoScroll = true;
+            }
+            // avoid growing the set too large unnecessarily
+            let removedMessages = chatMessages.splice(0, Math.max(0, chatMessages.length - messageHistorySize));
+            for (let m of removedMessages) {
+                seenMessageIDs.delete(m.getId());
+            }
+            chatMessages = chatMessages; // this triggers Svelte's reactivity
+        }
+        if (updatesRequired.messageDeleted) {
+            chatMessages = chatMessages; // this triggers Svelte's reactivity
+            refreshHasBlockedMessages($blockedUsers);
+        }
+        if (updatesRequired.emoteCreated) {
             let customEmoji: CustomEmoji[] = $chatEmotes.map((emote): CustomEmoji => {
                 return {
                     name: emote.shortcode,
