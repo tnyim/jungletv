@@ -250,7 +250,10 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 		s.stoppedWatching = time.Time{}
 		if s.remoteAddress != remoteAddress {
 			// changing IPs makes one lose human verification status
-			d := r.durationUntilNextActivityChallenge(user, true)
+			d, err := r.durationUntilNextActivityChallenge(ctx, user, true)
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "")
+			}
 			s.nextActivityCheckTime = now.Add(d)
 			s.activityCheckTimer = time.NewTimer(d)
 			s.lastHardChallengeSolvedAt = time.Time{}
@@ -259,7 +262,10 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 		}
 		s.onReconnected.Notify()
 	} else {
-		d := r.durationUntilNextActivityChallenge(user, true)
+		d, err := r.durationUntilNextActivityChallenge(ctx, user, true)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 		s = &spectator{
 			legitimate:            true, // everyone starts in good standings
 			user:                  user,

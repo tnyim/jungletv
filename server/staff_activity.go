@@ -62,7 +62,7 @@ func (s *StaffActivityManager) IsActivelyModerating(staffMember auth.User) bool 
 }
 
 // MarkAsActive marks the specified staff member as active
-func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
+func (s *StaffActivityManager) MarkAsActive(ctx context.Context, staffMember auth.User) {
 	if !auth.UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
 		return
 	}
@@ -71,7 +71,7 @@ func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
 		// this triggers a recalculation of the time until the next activity challenge
 		// it must happen outside of the mutex-protected region to avoid a deadlock
 		if s.rewardsHandler != nil {
-			s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(staffMember.Address())
+			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 
@@ -82,11 +82,11 @@ func (s *StaffActivityManager) MarkAsActive(staffMember auth.User) {
 }
 
 // MarkAsActive marks the specified staff member as inactive
-func (s *StaffActivityManager) MarkAsInactive(staffMember auth.User) {
+func (s *StaffActivityManager) MarkAsInactive(ctx context.Context, staffMember auth.User) {
 	defer func() {
 		// restore usual staff member activity challenge behavior
 		if s.rewardsHandler != nil {
-			s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(staffMember.Address())
+			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 
@@ -98,7 +98,7 @@ func (s *StaffActivityManager) MarkAsInactive(staffMember auth.User) {
 
 // MarkAsActivityChallenged marks the specified staff member as having been challenged for activity with the specified
 // challenge response timeout
-func (s *StaffActivityManager) MarkAsActivityChallenged(staffMember auth.User, tolerance time.Duration) {
+func (s *StaffActivityManager) MarkAsActivityChallenged(ctx context.Context, staffMember auth.User, tolerance time.Duration) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.challenged[staffMember.Address()] = struct{}{}
@@ -115,7 +115,7 @@ func (s *StaffActivityManager) MarkAsActivityChallenged(staffMember auth.User, t
 
 		if s.rewardsHandler != nil {
 			// restore usual staff member activity challenge behavior
-			s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(staffMember.Address())
+			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 }

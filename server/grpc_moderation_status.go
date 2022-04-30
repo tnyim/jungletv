@@ -65,7 +65,7 @@ func (s *grpcServer) MarkAsActivelyModerating(ctx context.Context, r *proto.Mark
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	s.staffActivityManager.MarkAsActive(moderator)
+	s.staffActivityManager.MarkAsActive(ctx, moderator)
 
 	return &proto.MarkAsActivelyModeratingResponse{}, nil
 }
@@ -77,7 +77,7 @@ func (s *grpcServer) StopActivelyModerating(ctx context.Context, r *proto.StopAc
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	s.staffActivityManager.MarkAsInactive(moderator)
+	s.staffActivityManager.MarkAsInactive(ctx, moderator)
 
 	return &proto.StopActivelyModeratingResponse{}, nil
 }

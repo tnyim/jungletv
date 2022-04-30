@@ -44,18 +44,27 @@ func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Rew
 
 var serverStartedAt = time.Now()
 
-func (r *RewardsHandler) durationUntilNextActivityChallenge(user auth.User, first bool) time.Duration {
+func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context, user auth.User, first bool) (time.Duration, error) {
 	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) && !r.staffActivityManager.IsActivelyModerating(user) {
 		// exempt admins/moderators from activity challenges
-		return 100 * 24 * time.Hour
+		return 100 * 24 * time.Hour, nil
 	}
+
 	if first {
 		if time.Since(serverStartedAt) < 2*time.Minute {
-			return 1*time.Minute + time.Duration(rand.Intn(180))*time.Second
+			return 1*time.Minute + time.Duration(rand.Intn(180))*time.Second, nil
 		}
-		return 10*time.Second + time.Duration(rand.Intn(20))*time.Second
+		return 10*time.Second + time.Duration(rand.Intn(20))*time.Second, nil
 	}
-	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second
+
+	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctx, user)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	if subscribed {
+		return 42*time.Minute + time.Duration(rand.Intn(480)*int(time.Second)), nil
+	}
+	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second, nil
 }
 
 func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator *spectator) {
@@ -76,7 +85,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 			Type:         "moderating",
 			Tolerance:    2 * time.Minute,
 		}
-		r.staffActivityManager.MarkAsActivityChallenged(spectator.user, spectator.activityChallenge.Tolerance)
+		r.staffActivityManager.MarkAsActivityChallenged(ctx, spectator.user, spectator.activityChallenge.Tolerance)
 	} else {
 		spectator.activityChallenge = &activityChallenge{
 			ID:           uuid.NewV4().String(),
@@ -173,7 +182,11 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "considered not legitimate")
 	}
 
-	d := r.durationUntilNextActivityChallenge(spectator.user, false)
+	d, err := r.durationUntilNextActivityChallenge(ctx, spectator.user, false)
+	if err != nil {
+		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+	}
+
 	spectator.nextActivityCheckTime = now.Add(d)
 	spectator.activityCheckTimer.Reset(d)
 	spectator.activityChallenge = nil
@@ -189,25 +202,33 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	return skipsIntegrityChecks, nil
 }
 
-func (r *RewardsHandler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) {
+func (r *RewardsHandler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	if ok && spectator.activityChallenge == nil {
-		d := r.durationUntilNextActivityChallenge(spectator.user, false)
+		d, err := r.durationUntilNextActivityChallenge(ctx, spectator.user, false)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 		spectator.nextActivityCheckTime = time.Now().Add(d)
 		spectator.activityCheckTimer.Reset(d)
 	}
+	return nil
 }
 
-func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(address string) {
+func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(ctx context.Context, address string) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	if ok {
-		d := r.durationUntilNextActivityChallenge(spectator.user, false)
+		d, err := r.durationUntilNextActivityChallenge(ctx, spectator.user, false)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
 		spectator.nextActivityCheckTime = time.Now().Add(d)
 		spectator.activityCheckTimer.Reset(d)
 
@@ -216,6 +237,7 @@ func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(address string) {
 		}
 		spectator.activityChallenge = nil
 	}
+	return nil
 }
 
 func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address string) {
