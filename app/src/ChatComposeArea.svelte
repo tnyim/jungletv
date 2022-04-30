@@ -510,7 +510,10 @@
                 },
                 ".cm-completionEmoji > img": {
                     display: "inline",
-                    height: "1.3em",
+                    height: "1.375em",
+                    width: "1.375em",
+                    "min-width": "1.375em",
+                    "object-fit": "contain",
                     "margin-top": "-0.25rem",
                 },
                 ".cm-tooltip-autocomplete ul li[aria-selected]": {
@@ -702,7 +705,7 @@
                 if (!valid) {
                     sendError = true;
                     customSendErrorMessage = errMsg;
-                    setTimeout(() => (sendError = false), 5000);
+                    setTimeout(() => (sendError = false), 10000);
                     return;
                 }
             } else {
@@ -722,7 +725,7 @@
             } else {
                 sendErrorMessage = "generic";
             }
-            setTimeout(() => (sendError = false), 5000);
+            setTimeout(() => (sendError = false), 10000);
         }
         editorView.focus();
     }
@@ -769,10 +772,10 @@
             toggleMediaPicker();
         }
         if (event.detail.unicode) {
-            editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode));
+            editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode + " "));
         } else {
             editorView.dispatch(
-                editorView.state.replaceSelection(emoteStringFromCustomEmoji(event.detail.emoji as CustomEmoji))
+                editorView.state.replaceSelection(emoteStringFromCustomEmoji(event.detail.emoji as CustomEmoji) + " ")
             );
         }
         editorView.focus();
@@ -860,7 +863,7 @@
 {#if replyingToMessage !== undefined}
     <ChatReplyingBanner {replyingToMessage} {allowExpensiveCSSAnimations} on:clearReply={() => dispatch("clearReply")}>
         <svelte:fragment slot="message-content">
-            {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent())}
+            {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false)[0]}
         </svelte:fragment>
     </ChatReplyingBanner>
 {/if}

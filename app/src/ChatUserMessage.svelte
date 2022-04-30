@@ -8,7 +8,7 @@
 
     import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
-    import { parseCompleteMarkdownInline, parseUserMessageMarkdown } from "./utils";
+    import { parseUserMessageMarkdown } from "./utils";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
@@ -37,15 +37,19 @@
         await apiClient.removeChatMessage(message.getId());
     }
 
-    function renderMessage(): string {
+    function renderMessage(msg: ChatMessage): [string, boolean] {
         let result = "";
-        if (message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)) {
-            result = parseCompleteMarkdownInline(message.getUserMessage().getContent());
-        } else {
-            result = parseUserMessageMarkdown(message.getUserMessage().getContent());
-        }
-        return result.replaceAll("<a ", '<a target="_blank" rel="noopener" ');
+        let emotesOnly = false;
+        [result, emotesOnly] = parseUserMessageMarkdown(
+            msg.getUserMessage().getContent(),
+            msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
+        );
+        return [result.replaceAll("<a ", '<a target="_blank" rel="noopener" '), emotesOnly];
     }
+
+    let renderedMessage = "";
+    let emotesOnly = false;
+    $: [renderedMessage, emotesOnly] = renderMessage(message);
 </script>
 
 {#if message.hasReference()}
@@ -70,7 +74,7 @@
             <span class={getClassForMessageAuthor(message.getReference(), allowExpensiveCSSAnimations)}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
-            {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent())}
+            {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent(), false)[0]}
         </p>
     {/if}
 {/if}
@@ -92,8 +96,9 @@
         <i class="fas fa-history cursor-pointer ml-1" on:click={() => dispatch("history")} />
         <i class="fas fa-edit cursor-pointer" on:click={() => dispatch("changeNickname")} />
     {/if}
-    <div class="overflow-hidden">
+    <div class="{emotesOnly ? "" : "overflow-hidden"}">
         <span
+            class={emotesOnly ? "align-middle" : ""}
             tabindex="0"
             on:keydown={(ev) => {
                 if (ev.key == "Enter") {
@@ -137,7 +142,7 @@
                 />
             {/if}:
         </span>
-        {@html renderMessage()}
+        <span class={emotesOnly ? "text-2xl align-middle" : ""}>{@html renderedMessage}</span>
         {#each message.getAttachmentsList() as attachment}
             {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
                 <div class="p-1 text-sm text-gray-600 dark:text-gray-400">

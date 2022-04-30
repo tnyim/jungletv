@@ -5,6 +5,7 @@ import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
+import emojiRegex from "emoji-regex";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -195,7 +196,6 @@ const timestampTokenizerMarkedExtension = {
             return `<span title="${long}" class="markdown-timestamp">${short}</span>`;
         }
     },
-    childTokens: ['span']
 }
 
 const spoilerTokenizerMarkedExtension = {
@@ -218,7 +218,31 @@ const spoilerTokenizerMarkedExtension = {
     renderer(token) {
         return `<span class="filter blur-sm hover:blur-none active:blur-none transition-all">${this.parser.parseInline(token.text)}</span>`;
     },
-    childTokens: ['span']
+    childTokens: ['text']
+}
+
+const regexEmojiForStart = new RegExp(emojiRegex().toString().substring(1).replace("/g", ""));
+const regexEmojiForTokenizer = new RegExp("^(?:" + emojiRegex().toString().substring(1).replace("/g", ")"));
+
+// this is just so we can make unicode emojis larger and also make it easier to check whether a message only contains emotes and emoji
+const emojiTokenizerMarkedExtension = {
+    name: "emoji",
+    level: "inline",
+    start(src) {
+        return src.match(regexEmojiForStart)?.index;
+    },
+    tokenizer(src, tokens) {
+        const match = regexEmojiForTokenizer.exec(src);
+        if (match) {
+            return {
+                type: "emoji", // Should match "name" above
+                raw: match[0], // Text to consume from the source
+            };
+        }
+    },
+    renderer(token) {
+        return `<span class="markdown-emoji">${token.raw}</span>`;
+    },
 }
 
 const emoteTokenizerMarkedExtension = {
@@ -243,12 +267,11 @@ const emoteTokenizerMarkedExtension = {
     renderer(token) {
         let alt = token.shortcode ? ":" + token.shortcode + ":" : "";
         return `<img
-            class="inline align-middle -mt-1 markdown-emote"
+            class="inline align-middle -mt-0.5 markdown-emote"
             alt="${alt}"
             title="${alt}"
             src="${emoteURLFromID(token.id, token.animated)}" />`;
     },
-    childTokens: ['img']
 }
 
 export const emoteURLFromID = function (id: string, animated: boolean): string {
@@ -275,17 +298,13 @@ const configureMarked = function () {
             extensions: [
                 timestampTokenizerMarkedExtension,
                 spoilerTokenizerMarkedExtension,
+                emojiTokenizerMarkedExtension,
                 emoteTokenizerMarkedExtension
             ],
             tokenizer: disableLinksTokenizer
         });
         configuredMarked = marked;
     }
-}
-
-export const parseUserMessageMarkdown = function (markdown: string): string {
-    configureMarked();
-    return configuredMarked.parseInline(markdown);
 }
 
 export const parseSystemMessageMarkdown = function (markdown: string): string {
@@ -297,9 +316,28 @@ export const parseSystemMessageMarkdown = function (markdown: string): string {
     return configuredMarked.parseInline(markdown, { tokenizer: t });
 }
 
-export const parseCompleteMarkdownInline = function (markdown: string): string {
+export const parseUserMessageMarkdown = function (markdown: string, isModerator: boolean): [string, boolean] {
     configureMarked();
-    return configuredMarked.parseInline(markdown, { tokenizer: undefined });
+    let onlyEmotes = markdown.trim().length > 0;
+    let emoteCount = 0;
+    const walkTokens = (token) => {
+        if (token.type === 'text') {
+            onlyEmotes = onlyEmotes && token.text.trim().length === 0;
+        }
+        if (token.type === 'emote') {
+            emoteCount++;
+        }
+        if (token.type === 'emoji') {
+            emoteCount++;
+        }
+    };
+    let rendered = "";
+    if (isModerator) {
+        rendered = configuredMarked.parseInline(markdown, { walkTokens })
+    } else {
+        rendered = configuredMarked.parseInline(markdown, { tokenizer: undefined, walkTokens })
+    }
+    return [rendered, onlyEmotes && emoteCount < 7];
 }
 
 export const parseCompleteMarkdown = function (markdown: string): string {

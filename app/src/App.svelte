@@ -345,10 +345,39 @@
 			background-color: hsla(0, 0%, 100%, 0.06);
 		}
 
+		.markdown-emoji {
+			/* used for unicode emoji */
+			font-size: 137%;
+			vertical-align: sub;
+		}
+		.align-middle > .markdown-emoji {
+			vertical-align: middle;
+			display: inline-block;
+			height: 33px;
+			margin-top: -7px;
+			margin-bottom: 2px;
+		}
+
 		.markdown-emote {
-			height: 1.3em;
-			width: 1.3em;
+			height: 1.375em;
+			width: 1.375em;
+			min-height: 1.375em;
 			object-fit: contain;
+		}
+
+		@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+			.markdown-emote {
+				image-rendering: -webkit-optimize-contrast !important;
+			}
+		}
+
+		/* Unset for Safari 11+ */
+		@media not all and (min-resolution: 0.001dpcm) {
+			@supports (-webkit-appearance: none) and (stroke-color: transparent) {
+				.markdown-emote {
+					image-rendering: unset !important;
+				}
+			}
 		}
 
 		em .markdown-emote {
