@@ -10,6 +10,7 @@
     import QueueTotals from "./QueueTotals.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { permissionLevel } from "./stores";
+    import VirtualList from "./VirtualList.svelte";
 
     export let mode = "sidebar";
 
@@ -109,7 +110,7 @@
     }
 
     let isStaff = false;
-    $: isStaff = ($permissionLevel == PermissionLevel.ADMIN);
+    $: isStaff = $permissionLevel == PermissionLevel.ADMIN;
 
     function sumDurationOfEntriesBeforeIndex(idx: number): Duration {
         if (queueEntries[idx].getId() == insertCursor) {
@@ -145,7 +146,13 @@
             {currentEntryOffset}
             {playingSince}
         />
-        {#each queueEntries as entry, i}
+        <VirtualList items={queueEntries} let:item={entry} let:index={i} let:visible>
+            <div class="px-2 py-2" slot="else">
+                Nothing playing.
+                {#if mode !== "popout"}
+                    <a href="/enqueue" use:link>Get something going</a>!
+                {/if}
+            </div>
             {#if insertCursor == entry.getId()}
                 <div class="border-t border-red-600 bg-red-600 flex flex-row mx-2 mb-1 pr-2 rounded-r-md">
                     <div class="flex-grow bg-white dark:bg-gray-900 rounded-tr-md" />
@@ -162,19 +169,23 @@
                     </div>
                 </div>
             {/if}
-            <div
-                class="px-2 py-1 flex flex-row text-sm
+            {#if visible}
+                <div
+                    class="px-2 py-1 flex flex-row text-sm
                         bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
-                on:click={() => openOrCollapse(entry)}
-            >
-                <QueueEntryHeader
-                    {entry}
-                    isPlaying={i == 0}
-                    {mode}
-                    on:remove={() => removeEntry(entry, false)}
-                    on:disallow={() => removeEntry(entry, true)}
-                />
-            </div>
+                    on:click={() => openOrCollapse(entry)}
+                >
+                    <QueueEntryHeader
+                        {entry}
+                        isPlaying={i == 0}
+                        {mode}
+                        on:remove={() => removeEntry(entry, false)}
+                        on:disallow={() => removeEntry(entry, true)}
+                    />
+                </div>
+            {:else}
+                <div style="height: 98px" />
+            {/if}
             {#if expandedEntryID == entry.getId()}
                 <QueueEntryDetails
                     {entry}
@@ -188,13 +199,6 @@
                     }}
                 />
             {/if}
-        {:else}
-            <div class="px-2 py-2">
-                Nothing playing.
-                {#if mode !== "popout"}
-                    <a href="/enqueue" use:link>Get something going</a>!
-                {/if}
-            </div>
-        {/each}
+        </VirtualList>
     </div>
 {/if}
