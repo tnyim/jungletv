@@ -56,6 +56,9 @@ type Manager struct {
 	userBlockedBy        map[string]*event.Event[string]
 	userUnblockedByMutex sync.RWMutex
 	userUnblockedBy      map[string]*event.Event[string]
+
+	userChangedNicknameMutex sync.RWMutex
+	userChangedNickname      map[string]*event.Event[string]
 }
 
 // New returns an initialized chat Manager
@@ -128,6 +131,8 @@ func New(log *log.Logger, statsClient *statsd.Client,
 
 		userBlockedBy:   make(map[string]*event.Event[string]),
 		userUnblockedBy: make(map[string]*event.Event[string]),
+
+		userChangedNickname: make(map[string]*event.Event[string]),
 
 		chatEnabled:    event.NewNoArg(),
 		chatDisabled:   event.New[DisabledReason](),

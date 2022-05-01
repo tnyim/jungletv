@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/JohannesKaufmann/html-to-markdown/escape"
 	"github.com/bwmarrin/snowflake"
 	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
@@ -18,6 +20,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.JungleTV_ConsumeChatServer) error {
@@ -41,6 +44,9 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 
 	onUserUnblocked, userUnblockedU := s.chat.OnUserUnblockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
 	defer userUnblockedU()
+
+	onChangedOwnNickname, changedOwnNicknameU := s.chat.OnUserChangedNickname(user).Subscribe(event.AtLeastOnceGuarantee)
+	defer changedOwnNicknameU()
 
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
@@ -191,6 +197,24 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 						},
 					},
 				}}})
+		case newNickname := <-onChangedOwnNickname:
+			newNickname = escape.MarkdownCharacters(newNickname)
+			err = stream.Send(&proto.ChatUpdate{
+				Events: []*proto.ChatUpdateEvent{{
+					Event: &proto.ChatUpdateEvent_MessageCreated{
+						MessageCreated: &proto.ChatMessageCreatedEvent{
+							Message: &proto.ChatMessage{
+								Id:        s.snowflakeNode.Generate().Int64(),
+								CreatedAt: timestamppb.Now(),
+								Message: &proto.ChatMessage_SystemMessage{
+									SystemMessage: &proto.SystemChatMessage{
+										Content: fmt.Sprintf("_You changed your nickname to_ **%s**", newNickname),
+									},
+								},
+							},
+						},
+					},
+				}}})
 		case <-stream.Context().Done():
 			return nil
 		}
@@ -280,6 +304,9 @@ func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNickna
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+
+	s.chat.OnUserChangedNickname(user).Notify(r.Nickname)
+
 	return &proto.SetChatNicknameResponse{}, nil
 }
 

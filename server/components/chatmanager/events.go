@@ -95,3 +95,34 @@ func (c *Manager) OnUserUnblockedBy(user auth.User) *event.Event[string] {
 	c.userUnblockedBy[address] = e
 	return e
 }
+
+// OnUserChangedNickname returns an event that is fired when the specified user changes nickname
+// The new nickname will be sent as the event argument
+func (c *Manager) OnUserChangedNickname(user auth.User) *event.Event[string] {
+	if user == nil || user.IsUnknown() {
+		// will never fire, and satisfies the consumer
+		return event.New[string]()
+	}
+
+	c.userChangedNicknameMutex.Lock()
+	defer c.userChangedNicknameMutex.Unlock()
+
+	address := user.Address()
+
+	if e, ok := c.userChangedNickname[address]; ok {
+		return e
+	}
+
+	e := event.New[string]()
+	var unsubscribe func()
+	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
+		if subscriberCount == 0 {
+			c.userChangedNicknameMutex.Lock()
+			defer c.userChangedNicknameMutex.Unlock()
+			delete(c.userChangedNickname, address)
+			unsubscribe()
+		}
+	})
+	c.userChangedNickname[address] = e
+	return e
+}
