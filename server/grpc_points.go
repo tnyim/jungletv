@@ -30,22 +30,25 @@ func (s *grpcServer) PointsInfo(ctxCtx context.Context, r *proto.PointsInfoReque
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	var protoSub *proto.SubscriptionDetails
 	subscription, err := s.pointsManager.GetCurrentUserSubscription(ctx, userClaims)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	if subscription != nil {
-		protoSub = &proto.SubscriptionDetails{
-			SubscribedAt:    timestamppb.New(subscription.StartsAt),
-			SubscribedUntil: timestamppb.New(subscription.EndsAt),
-		}
-	}
 
 	return &proto.PointsInfoResponse{
 		Balance:             int32(balance.Balance),
-		CurrentSubscription: protoSub,
+		CurrentSubscription: convertSubscription(subscription),
 	}, nil
+}
+
+func convertSubscription(orig *types.Subscription) *proto.SubscriptionDetails {
+	if orig != nil {
+		return &proto.SubscriptionDetails{
+			SubscribedAt:    timestamppb.New(orig.StartsAt),
+			SubscribedUntil: timestamppb.New(orig.EndsAt),
+		}
+	}
+	return nil
 }
 
 func (s *grpcServer) PointsTransactions(ctxCtx context.Context, r *proto.PointsTransactionsRequest) (*proto.PointsTransactionsResponse, error) {

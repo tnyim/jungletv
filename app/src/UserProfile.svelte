@@ -1,5 +1,8 @@
 <script lang="ts">
+    import { DateTime } from "luxon";
+
     import { onDestroy, onMount } from "svelte";
+    import { navigate } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
     import {
@@ -120,11 +123,18 @@
         bu.delete(userAddress);
         $blockedUsers = bu;
     }
+
+    function formatSubscriptionDate(date: Date): string {
+        return DateTime.fromJSDate(date)
+            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+            .toLocal()
+            .toLocaleString(DateTime.DATE_MED);
+    }
 </script>
 
 <div class="flex flex-col justify-center bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded-t-lg">
     <div class="flex flex-row p-2 pr-12 overflow-x-hidden">
-        <div class="relative">
+        <div class="relative h-28">
             <img
                 src="https://monkey.banano.cc/api/v1/monkey/{userAddress}"
                 alt="&nbsp;"
@@ -199,12 +209,26 @@
             {#if rolesList.includes(UserRole.TIER_1_REQUESTER)}
                 <br />
                 <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 video requester</span>
+                <span class="text-xs">- between 1 and 4 videos recently played or currently enqueued</span>
             {:else if rolesList.includes(UserRole.TIER_2_REQUESTER)}
                 <br />
                 <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 video requester</span>
+                <span class="text-xs">- between 5 and 9 videos recently played or currently enqueued</span>
             {:else if rolesList.includes(UserRole.TIER_3_REQUESTER)}
                 <br />
                 <span class="text-sm text-green-500 dark:text-green-300">Tier 3 video requester</span>
+                <span class="text-xs">- 10 or more videos recently played or currently enqueued</span>
+            {/if}
+            {#if userProfile?.hasCurrentSubscription()}
+                <br />
+                <span class="text-sm">
+                    <span
+                        class="text-green-600 dark:text-green-400 font-semibold hover:underline cursor-pointer"
+                        on:click={() => navigate("/points#nice")}>Nice</span
+                    >
+                    subscriber since
+                    {formatSubscriptionDate(userProfile.getCurrentSubscription().getSubscribedAt().toDate())}
+                </span>
             {/if}
         </div>
         {#if !isSelf && $rewardAddress != ""}

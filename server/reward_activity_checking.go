@@ -45,9 +45,13 @@ func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Rew
 var serverStartedAt = time.Now()
 
 func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context, user auth.User, first bool) (time.Duration, error) {
-	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) && !r.staffActivityManager.IsActivelyModerating(user) {
-		// exempt admins/moderators from activity challenges
-		return 100 * 24 * time.Hour, nil
+	activelyModerating := false
+	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
+		activelyModerating = !r.staffActivityManager.IsActivelyModerating(user)
+		if !activelyModerating {
+			// exempt admins/moderators from activity challenges
+			return 100 * 24 * time.Hour, nil
+		}
 	}
 
 	if first {
@@ -61,7 +65,7 @@ func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context,
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
-	if subscribed {
+	if subscribed && !activelyModerating {
 		return 42*time.Minute + time.Duration(rand.Intn(480)*int(time.Second)), nil
 	}
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second, nil

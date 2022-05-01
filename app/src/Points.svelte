@@ -34,7 +34,7 @@
     }
     $: hasEnoughPointsToSubscribe = typeof pointsInfo !== "undefined" && checkCanSubscribe(pointsInfo);
 
-    let pointsInfoPromise = (async function () {
+    let pointsInfoPromise = async function () {
         try {
             pointsInfo = await apiClient.pointsInfo();
             $currentSubscription = pointsInfo.getCurrentSubscription();
@@ -42,7 +42,7 @@
             console.log(ex);
             navigate("/rewards/address");
         }
-    });
+    };
 
     let cur_points_txs_page = 0;
     async function getPointsTransactionsPage(pagParams: PaginationParameters): Promise<[PointsTransaction[], number]> {
@@ -139,7 +139,7 @@
         </div>
     </div>
     <div slot="extra_2">
-        <div class="shadow sm:rounded-md sm:overflow-hidden">
+        <div class="shadow sm:rounded-md sm:overflow-hidden" id="nice">
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-4 sm:p-6">
                 <p class="text-lg font-semibold text-green-600 dark:text-green-400">JungleTV Nice</p>
                 <div class="flex flex-row gap-4 sm:gap-6 mb-4 align-center">
@@ -181,17 +181,23 @@
                 </div>
                 <p>
                     <span class="font-semibold">Nice</span> is a monthly subscription for JungleTV.
-                    <span class="font-semibold">Nice</span> members get exclusive perks that let them stand out in the community
-                    and make the JungleTV experience more amenable.
+                    <span class="font-semibold">Nice</span> members enjoy exclusive perks:
                 </p>
-                <p>
-                    Becoming a member does not affect the Banano rewards received by watching JungleTV and participating
-                    in events.
-                </p>
+                <ul class="list-disc list-outside" style="padding: 0 0 0 20px;">
+                    <li>Ability to use dozens more emotes in chat</li>
+                    <li>Reduced <PointsIcon /> costs on actions that require them</li>
+                    <li>Greatly reduced captcha frequency</li>
+                </ul>
                 <p>
                     <span class="font-semibold">Nice</span> membership is exclusively obtainable in exchange for
                     JungleTV Points, with a cost of {subscriptionCost}
                     <PointsIcon /> per month.
+                </p>
+                <p class="text-sm">
+                    Membership does not affect the Banano rewards or other extra rewards, like NFTs, received by
+                    watching JungleTV and participating in events. Member status does not circumvent moderation measures
+                    applied to users' accounts by the team. Memberships, like other points transactions, are not
+                    refundable.
                 </p>
             </div>
         </div>

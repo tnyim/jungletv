@@ -824,7 +824,7 @@
                 You don't have sufficient points to send this message. <a href="/points" use:link>More information</a>
             {:else if sendErrorMessage == "emotes-need-subscription"}
                 To use the emotes in your message,
-                <a href="/points" use:link>subscribe to <span class="font-semibold">JungleTV Nice</span></a>.
+                <a href="/points#nice" use:link>subscribe to <span class="font-semibold">JungleTV Nice</span></a>.
             {:else if sendErrorMessage == "rate-limited"}
                 You're going too fast. Slow down.
             {:else if sendErrorMessage == "generic" && customSendErrorMessage == ""}

@@ -23,7 +23,7 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := s.userSerializer(ctx, auth.NewAddressOnlyUser(r.Address))
+	user := auth.NewAddressOnlyUser(r.Address)
 
 	recentlyRequestedMedia, err := types.LastRequestsOfAddress(ctx, r.Address, 10, true)
 	if err != nil {
@@ -55,10 +55,16 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 		}
 	}
 
+	subscription, err := s.pointsManager.GetCurrentUserSubscription(ctx, user)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	return &proto.UserProfileResponse{
-		User:                   user,
+		User:                   s.userSerializer(ctx, user),
 		RecentlyPlayedRequests: convertPlayedMedias(ctx, s.userSerializer, recentlyRequestedMedia),
 		Biography:              profile.Biography,
+		CurrentSubscription:    convertSubscription(subscription),
 		FeaturedMedia:          featuredMedia,
 	}, nil
 }

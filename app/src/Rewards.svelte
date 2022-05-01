@@ -21,6 +21,7 @@
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
+    import { DateTime } from "luxon";
 
     let pendingWithdrawal = false;
     let withdrawalPositionInQueue = 0;
@@ -99,6 +100,10 @@
         $currentSubscription = response.getCurrentSubscription();
         return response;
     }
+
+    $: currentSubAboutToExpire =
+        $currentSubscription != null &&
+        DateTime.fromJSDate($currentSubscription.getSubscribedUntil().toDate()).diffNow().as("days") < 7;
 </script>
 
 <Wizard>
@@ -195,9 +200,23 @@
                     <div class="flex-grow">
                         <p class="text-lg font-semibold text-gray-800 dark:text-white">JungleTV Points</p>
                         <p class="text-sm">Participate in the community and earn points to spend in JungleTV.</p>
-                        <p class="text-sm">
-                            Upgrade to <span class="font-semibold">Nice</span> to get perks and stand out among other users!
-                        </p>
+                        {#if typeof $currentSubscription !== "undefined" && $currentSubscription != null}
+                            <p class="text-sm">
+                                Your <span class="font-semibold text-green-500 dark:text-green-300">
+                                    JungleTV Nice
+                                </span>
+                                membership gets you awesome perks{#if currentSubAboutToExpire}
+                                    <span class="font-semibold text-red-600 dark:text-red-400">
+                                        &nbsp;and is about to expire</span
+                                    >{/if}.
+                            </p>
+                        {:else}
+                            <p class="text-sm">
+                                Upgrade to <span class="font-semibold text-green-500 dark:text-green-300">
+                                    JungleTV Nice
+                                </span> to get awesome perks!
+                            </p>
+                        {/if}
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -213,20 +232,20 @@
                         points.
                     </div>
                     <div class="flex flex-row gap-4 sm:gap-6">
-                    <a
-                        use:link
-                        href="/points/frombanano"
-                        class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                    >
-                        Get points with Banano
-                    </a>
-                    <span
-                        on:click={() => navigate("/points")}
-                        class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
-                    >
-                        Learn more
-                    </span>
-                </div>
+                        <a
+                            use:link
+                            href="/points/frombanano"
+                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                        >
+                            Get points with Banano
+                        </a>
+                        <span
+                            on:click={() => navigate("/points")}
+                            class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
+                        >
+                            Learn more
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

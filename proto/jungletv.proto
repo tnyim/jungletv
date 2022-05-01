@@ -947,8 +947,9 @@ message UserProfileResponse {
     User user = 1;
     repeated PlayedMedia recently_played_requests = 2;
     string biography = 3;
+    optional SubscriptionDetails current_subscription = 4;
     oneof featured_media {
-        QueueYouTubeVideoData youtube_video_data = 4;
+        QueueYouTubeVideoData youtube_video_data = 5;
     }
 }
 

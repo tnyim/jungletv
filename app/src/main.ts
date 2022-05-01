@@ -44,7 +44,7 @@ const app = new App({
       if (hash.startsWith("#") && hash.length > 1 && !hash.endsWith("#")) {
         let element = shadowRoot.getElementById(hash.substring(1));
         if (element != null) {
-          element.scrollIntoView();
+          element.scrollIntoView({ behavior: "smooth" });
           // we do this so that consecutive clicks to the same hash can work
           // (hashchange doesn't fire otherwise)
           window.location.hash += "#";

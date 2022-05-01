@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 	import { DateTime } from "luxon";
-	import { onMount } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 	import { globalHistory, Route, Router } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
 	import About from "./About.svelte";
@@ -125,12 +125,36 @@
 	let modalClose: any;
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
+	let hashToJumpTo = "";
 	historyStore.subscribe((v) => {
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
 		if (modalClose !== undefined) {
 			modalClose();
 		}
 		refreshOnLineStatus();
+
+		let hash = v.location.hash;
+		if (
+			hash.startsWith("#") &&
+			hash.length > 1 &&
+			!hash.endsWith("#") &&
+			typeof rootInsideShadowRoot !== "undefined"
+		) {
+			hashToJumpTo = hash;
+		}
+	});
+
+	afterUpdate(() => {
+		if (hashToJumpTo != "") {
+			let element = rootInsideShadowRoot.querySelector(hashToJumpTo);
+			if (element != null) {
+				element.scrollIntoView({ behavior: "smooth" });
+				// we do this so that consecutive clicks to the same hash can work
+				// (hashchange doesn't fire otherwise)
+				window.location.hash += "#";
+			}
+			hashToJumpTo = "";
+		}
 	});
 
 	featureFlags.subscribe((v) => {

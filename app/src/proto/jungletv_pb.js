@@ -32702,14 +32702,14 @@ proto.jungletv.UserProfileResponse.repeatedFields_ = [2];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.UserProfileResponse.oneofGroups_ = [[4]];
+proto.jungletv.UserProfileResponse.oneofGroups_ = [[5]];
 
 /**
  * @enum {number}
  */
 proto.jungletv.UserProfileResponse.FeaturedMediaCase = {
   FEATURED_MEDIA_NOT_SET: 0,
-  YOUTUBE_VIDEO_DATA: 4
+  YOUTUBE_VIDEO_DATA: 5
 };
 
 /**
@@ -32754,6 +32754,7 @@ proto.jungletv.UserProfileResponse.toObject = function(includeInstance, msg) {
     recentlyPlayedRequestsList: jspb.Message.toObjectList(msg.getRecentlyPlayedRequestsList(),
     proto.jungletv.PlayedMedia.toObject, includeInstance),
     biography: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    currentSubscription: (f = msg.getCurrentSubscription()) && proto.jungletv.SubscriptionDetails.toObject(includeInstance, f),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.QueueYouTubeVideoData.toObject(includeInstance, f)
   };
 
@@ -32806,6 +32807,11 @@ proto.jungletv.UserProfileResponse.deserializeBinaryFromReader = function(msg, r
       msg.setBiography(value);
       break;
     case 4:
+      var value = new proto.jungletv.SubscriptionDetails;
+      reader.readMessage(value,proto.jungletv.SubscriptionDetails.deserializeBinaryFromReader);
+      msg.setCurrentSubscription(value);
+      break;
+    case 5:
       var value = new proto.jungletv.QueueYouTubeVideoData;
       reader.readMessage(value,proto.jungletv.QueueYouTubeVideoData.deserializeBinaryFromReader);
       msg.setYoutubeVideoData(value);
@@ -32862,10 +32868,18 @@ proto.jungletv.UserProfileResponse.serializeBinaryToWriter = function(message, w
       f
     );
   }
-  f = message.getYoutubeVideoData();
+  f = message.getCurrentSubscription();
   if (f != null) {
     writer.writeMessage(
       4,
+      f,
+      proto.jungletv.SubscriptionDetails.serializeBinaryToWriter
+    );
+  }
+  f = message.getYoutubeVideoData();
+  if (f != null) {
+    writer.writeMessage(
+      5,
       f,
       proto.jungletv.QueueYouTubeVideoData.serializeBinaryToWriter
     );
@@ -32967,12 +32981,49 @@ proto.jungletv.UserProfileResponse.prototype.setBiography = function(value) {
 
 
 /**
- * optional QueueYouTubeVideoData youtube_video_data = 4;
+ * optional SubscriptionDetails current_subscription = 4;
+ * @return {?proto.jungletv.SubscriptionDetails}
+ */
+proto.jungletv.UserProfileResponse.prototype.getCurrentSubscription = function() {
+  return /** @type{?proto.jungletv.SubscriptionDetails} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.SubscriptionDetails, 4));
+};
+
+
+/**
+ * @param {?proto.jungletv.SubscriptionDetails|undefined} value
+ * @return {!proto.jungletv.UserProfileResponse} returns this
+*/
+proto.jungletv.UserProfileResponse.prototype.setCurrentSubscription = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.UserProfileResponse} returns this
+ */
+proto.jungletv.UserProfileResponse.prototype.clearCurrentSubscription = function() {
+  return this.setCurrentSubscription(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.UserProfileResponse.prototype.hasCurrentSubscription = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional QueueYouTubeVideoData youtube_video_data = 5;
  * @return {?proto.jungletv.QueueYouTubeVideoData}
  */
 proto.jungletv.UserProfileResponse.prototype.getYoutubeVideoData = function() {
   return /** @type{?proto.jungletv.QueueYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 4));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 5));
 };
 
 
@@ -32981,7 +33032,7 @@ proto.jungletv.UserProfileResponse.prototype.getYoutubeVideoData = function() {
  * @return {!proto.jungletv.UserProfileResponse} returns this
 */
 proto.jungletv.UserProfileResponse.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 4, proto.jungletv.UserProfileResponse.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 5, proto.jungletv.UserProfileResponse.oneofGroups_[0], value);
 };
 
 
@@ -32999,7 +33050,7 @@ proto.jungletv.UserProfileResponse.prototype.clearYoutubeVideoData = function() 
  * @return {boolean}
  */
 proto.jungletv.UserProfileResponse.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 4) != null;
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

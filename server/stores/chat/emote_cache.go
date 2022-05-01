@@ -32,14 +32,11 @@ func (c *EmoteCache) ChatEmotes(ctx context.Context) ([]*types.ChatEmote, error)
 
 	// will upgrade to write lock, this operation is not atomic,
 	// we will check the condition again inside the function
-	err := c.refreshCache(ctx)
+	emotes, err := c.refreshCache(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	return c.cachedEmotes, nil
+	return emotes, nil
 }
 
 func (c *EmoteCache) EmoteByID(ctx context.Context, id snowflake.ID) (*types.ChatEmote, bool) {
@@ -50,24 +47,24 @@ func (c *EmoteCache) EmoteByID(ctx context.Context, id snowflake.ID) (*types.Cha
 	return emote, found
 }
 
-func (c *EmoteCache) refreshCache(ctxCtx context.Context) error {
+func (c *EmoteCache) refreshCache(ctxCtx context.Context) ([]*types.ChatEmote, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	// repeat check inside write lock
 	if time.Since(c.lastUpdated) <= 1*time.Minute {
-		return nil
+		return c.cachedEmotes, nil
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
 	emotes, _, err := types.GetChatEmotes(ctx, nil)
 	if err != nil {
-		return stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	c.cachedEmotes = emotes
 
@@ -75,5 +72,5 @@ func (c *EmoteCache) refreshCache(ctxCtx context.Context) error {
 	for _, emote := range emotes {
 		c.cachedEmotesByID[snowflake.ID(emote.ID)] = emote
 	}
-	return nil
+	return emotes, nil
 }

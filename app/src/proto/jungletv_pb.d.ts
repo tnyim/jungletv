@@ -4147,6 +4147,11 @@ export class UserProfileResponse extends jspb.Message {
   getBiography(): string;
   setBiography(value: string): void;
 
+  hasCurrentSubscription(): boolean;
+  clearCurrentSubscription(): void;
+  getCurrentSubscription(): SubscriptionDetails | undefined;
+  setCurrentSubscription(value?: SubscriptionDetails): void;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -4168,12 +4173,13 @@ export namespace UserProfileResponse {
     user?: User.AsObject,
     recentlyPlayedRequestsList: Array<PlayedMedia.AsObject>,
     biography: string,
+    currentSubscription?: SubscriptionDetails.AsObject,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
   }
 
   export enum FeaturedMediaCase {
     FEATURED_MEDIA_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 4,
+    YOUTUBE_VIDEO_DATA = 5,
   }
 }
 

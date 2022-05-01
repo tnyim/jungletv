@@ -81,7 +81,7 @@
                             let span2 = document.createElement("span");
                             span2.textContent = "subscribe to JungleTV Nice";
                             span2.classList.add("link");
-                            span2.addEventListener("click", () => navigate("/points"));
+                            span2.addEventListener("click", () => navigate("/points#nice"));
                             inner.appendChild(span2);
                             overlay.appendChild(inner);
                             overlay.setAttribute("id", "emoteUpsellOverlay");
