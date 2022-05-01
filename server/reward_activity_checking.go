@@ -194,7 +194,16 @@ func (r *RewardsHandler) SolveActivityChallenge(ctx context.Context, challenge, 
 	delete(r.spectatorByActivityChallenge, challenge)
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
-	_, err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, 10)
+	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctx, spectator.user)
+	if err != nil {
+		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+	}
+	reward := 10
+	if subscribed {
+		reward = 22
+	}
+
+	_, err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, reward)
 	if err != nil {
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
 	}
