@@ -16,7 +16,7 @@
     }
 </script>
 
-<div class="relative" style="width: fit-content">
+<div class="relative" style="height: {attachment.getHeight()}px;">
     <VisibilityGuard let:visible>
         {#if visible}
             <!-- svelte-ignore a11y-media-has-caption -->
@@ -69,7 +69,9 @@
         vertical-align: bottom;
         border-radius: 2px;
     }
+    div.relative,
     .placeholder {
+        width: fit-content;
         max-height: 200px;
     }
 </style>
