@@ -11,7 +11,7 @@
     export let direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap];
     export let entry: QueueEntry;
 
-    const cost = 119;
+    $: cost = typeof $currentSubscription !== "undefined" && $currentSubscription != null ? 69 : 119;
 
     let dirString = "";
     let errorMessage = "";
