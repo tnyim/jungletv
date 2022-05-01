@@ -69,16 +69,18 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		return stacktrace.Propagate(err, "failed to list chat emotes")
 	}
 	for _, emote := range chatEmotes {
-		initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
-			Event: &proto.ChatUpdateEvent_EmoteCreated{
-				EmoteCreated: &proto.ChatEmoteCreatedEvent{
-					Id:                   emote.ID,
-					Shortcode:            emote.Shortcode,
-					Animated:             emote.Animated,
-					RequiresSubscription: emote.RequiresSubscription,
+		if emote.AvailableForNewMessages {
+			initialEvents = append(initialEvents, &proto.ChatUpdateEvent{
+				Event: &proto.ChatUpdateEvent_EmoteCreated{
+					EmoteCreated: &proto.ChatEmoteCreatedEvent{
+						Id:                   emote.ID,
+						Shortcode:            emote.Shortcode,
+						Animated:             emote.Animated,
+						RequiresSubscription: emote.RequiresSubscription,
+					},
 				},
-			},
-		})
+			})
+		}
 	}
 
 	chatEnabled, disabledReason := s.chat.Enabled()
@@ -206,7 +208,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	// remove emoji that can be confused for chat moderator icons
 	r.Content = disallowedEmojiRegex.ReplaceAllString(r.Content, "")
 	r.Content = strings.Map(func(r rune) rune {
-		if unicode.IsGraphic(r) || r == '\n' {
+		if unicode.IsGraphic(r) || r == '\n' || r == '\u200d' {
 			return r
 		}
 		return -1
