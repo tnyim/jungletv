@@ -12,9 +12,6 @@
             .toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS);
     }
 
-    let winningChance = "";
-    let drawDate = "";
-
     $: winningChance =
         ((ongoingRaffleInfo.getUserTickets() / ongoingRaffleInfo.getTotalTickets()) * 100).toFixed(1) + "%";
 

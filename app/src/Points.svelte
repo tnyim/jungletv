@@ -16,9 +16,6 @@
     import Wizard from "./Wizard.svelte";
 
     let pointsInfo: PointsInfoResponse;
-    let currentlySubscribed = false;
-    let canRenewSubscription = false;
-    let hasEnoughPointsToSubscribe = false;
     const subscriptionCost = 6900;
 
     $: currentlySubscribed = typeof $currentSubscription !== "undefined" && $currentSubscription != null;

@@ -71,8 +71,7 @@
     export let replyingToMessage: ChatMessage;
     export let hasBlockedMessages: boolean;
 
-    let sendError = false;
-    let sendErrorMessage: "" | "insufficient-points" | "emotes-need-subscription" | "rate-limited" | "generic";
+    let sendErrorMessage: "" | "insufficient-points" | "emotes-need-subscription" | "rate-limited" | "generic" = "";
     let customSendErrorMessage = "";
     let editorContainer: HTMLElement;
     let editorView: EditorView;
@@ -703,19 +702,19 @@
                 }
                 let [valid, errMsg] = await setNickname(nickname);
                 if (!valid) {
-                    sendError = true;
                     customSendErrorMessage = errMsg;
-                    setTimeout(() => (sendError = false), 10000);
+                    sendErrorMessage = "generic";
+                    setTimeout(() => (sendErrorMessage = ""), 10000);
                     return;
                 }
             } else {
                 dispatch("sentMessage");
                 await apiClient.sendChatMessage(msg, isTrusted, refMsg, tenorGif?.getId());
             }
+            sendErrorMessage = "";
         } catch (ex) {
             $chatMessageDraft = msg;
             $chatMessageDraftTenorGif = tenorGif;
-            sendError = true;
             if (ex.includes("insufficient points balance")) {
                 sendErrorMessage = "insufficient-points";
             } else if (ex.includes("user is not allowed to use this emote")) {
@@ -725,7 +724,7 @@
             } else {
                 sendErrorMessage = "generic";
             }
-            setTimeout(() => (sendError = false), 10000);
+            setTimeout(() => (sendErrorMessage = ""), 10000);
         }
         editorView.focus();
     }
@@ -818,7 +817,7 @@
 {#if showMediaPicker}
     <ChatMediaPicker on:emoji-click={onEmojiPicked} on:gifSelected={onGifPicked} on:closePicker={toggleMediaPicker} />
 {/if}
-{#if sendError}
+{#if sendErrorMessage != ""}
     <div class="px-2 pb-2 text-xs mt-2">
         <ErrorMessage>
             {#if sendErrorMessage == "insufficient-points"}

@@ -13,6 +13,7 @@
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, ChatUpdateEvent } from "./proto/jungletv_pb";
+    import SidebarTabButton from "./SidebarTabButton.svelte";
     import {
         blockedUsers,
         chatEmote,
@@ -72,60 +73,116 @@
         }
     });
 
-    let shouldAutoScroll = false;
-    let mustAutoScroll = false;
+    let bottomDetectionDiv: HTMLDivElement;
+    let bottomVisible = true;
+    let prevChatClientHeight = 0;
+    let prevChatClientWidth = 0;
+    onMount(() => {
+        const observer = new IntersectionObserver((entries) => {
+            //let newBottomVisible = ;
+            // ensure that chat stays scrolled to the bottom when the compose area increases in height
+            // iff we were already at the bottom
+            if (
+                !sentMsgFlag &&
+                autoscrollStatus != "scrolling" &&
+                chatContainer &&
+                bottomVisible &&
+                (prevChatClientHeight != chatContainer.clientHeight || prevChatClientWidth != chatContainer.clientWidth)
+            ) {
+                scrollToBottom(true);
+            }
+            prevChatClientHeight = chatContainer.clientHeight;
+            prevChatClientWidth = chatContainer.clientWidth;
+            bottomVisible = entries.some((e) => e.isIntersecting);
+        });
+        observer.observe(bottomDetectionDiv);
+
+        scrollToBottom();
+        return () => observer.unobserve(bottomDetectionDiv);
+    });
+
+    type autoscrollStatusType =
+        | "at-bottom"
+        | "scrolled-up"
+        | "scrolled-up-new-message"
+        | "new-message"
+        | "new-own-message"
+        | "scrolling";
+    let autoscrollStatus: autoscrollStatusType = "at-bottom";
+
     let sentMsgFlag = false;
+    let hasNewMentions = false;
+    $: {
+        if (bottomVisible) {
+            if (autoscrollStatus == "scrolled-up" || autoscrollStatus == "scrolled-up-new-message") {
+                autoscrollStatus = "at-bottom";
+            }
+            hasNewMentions = false;
+        }
+    }
+
     beforeUpdate(() => {
         if (!document.hidden) {
             // when the document is hidden, shouldAutoScroll can be incorrectly set to false
             // because browsers stop doing visibility calculations when the page is in the background
-            let now = new Date();
-            let tolerance =
-                chatContainer && chatContainer.lastElementChild ? chatContainer.lastElementChild.clientHeight : 40;
-            shouldAutoScroll =
-                chatContainer &&
-                chatContainer.offsetHeight + chatContainer.scrollTop > chatContainer.scrollHeight - tolerance;
-        } else {
-            // we were in the background and beforeUpdate is triggered, so a new message came in
-            // therefore, we should autoscroll
-            shouldAutoScroll = true;
+            if (autoscrollStatus != "scrolling") {
+                if (bottomVisible) {
+                    if (
+                        autoscrollStatus == "at-bottom" ||
+                        autoscrollStatus == "scrolled-up" ||
+                        autoscrollStatus == "scrolled-up-new-message"
+                    ) {
+                        autoscrollStatus = "at-bottom";
+                    }
+                } else if (autoscrollStatus != "new-own-message") {
+                    autoscrollStatus = autoscrollStatus == "new-message" ? "scrolled-up-new-message" : "scrolled-up";
+                }
+            }
         }
     });
     afterUpdate(() => {
-        if (!document.hidden && (shouldAutoScroll || mustAutoScroll)) {
+        if (!document.hidden && (autoscrollStatus == "new-message" || autoscrollStatus == "new-own-message")) {
             scrollToBottom();
         }
     });
 
     function handleVisibilityChanged() {
-        if (!document.hidden && shouldAutoScroll) {
+        if (!document.hidden && autoscrollStatus == "new-message") {
             scrollToBottom();
         }
     }
 
-    function scrollToBottom() {
-        mustAutoScroll = false;
+    function scrollToBottom(instant?: boolean) {
+        autoscrollStatus = "scrolling";
         chatContainer.scrollTo({
             top: chatContainer.scrollHeight,
-            behavior: "smooth",
+            behavior: instant ? "auto" : "smooth",
         });
         ensureScrollToBottom();
     }
-    onMount(() => (onScrollCheckTimeout = setTimeout(scrollToBottom, 1000)));
 
     let lastSeenScrollTop: number;
     let onScrollCheckTimeout: number;
     function ensureScrollToBottom() {
         let curTop = chatContainer.scrollTop;
         if (lastSeenScrollTop != curTop) {
+            if (lastSeenScrollTop > curTop) {
+                // scrolled up, give up so we don't fight the user
+                clearTimeout(onScrollCheckTimeout);
+                lastSeenScrollTop = undefined;
+                autoscrollStatus = bottomVisible ? "at-bottom" : "scrolled-up";
+                return;
+            }
             // still has not stopped scrolling
             lastSeenScrollTop = curTop;
             onScrollCheckTimeout = setTimeout(ensureScrollToBottom, 100);
         } else {
             clearTimeout(onScrollCheckTimeout);
             lastSeenScrollTop = undefined;
-            if (chatContainer.offsetHeight + chatContainer.scrollTop < chatContainer.scrollHeight - 2) {
-                scrollToBottom();
+            if (!bottomVisible) {
+                scrollToBottom(true);
+            } else {
+                autoscrollStatus = "at-bottom";
             }
         }
     }
@@ -160,8 +217,15 @@
             }
             seenMessageIDs.add(msg.getId());
             chatMessages.push(msg);
-            if (msg.hasUserMessage() && $blockedUsers.has(msg.getUserMessage().getAuthor().getAddress())) {
-                hasBlockedMessages = true;
+            if (msg.hasUserMessage()) {
+                if ($blockedUsers.has(msg.getUserMessage().getAuthor().getAddress())) {
+                    hasBlockedMessages = true;
+                } else if (
+                    msg.hasReference() &&
+                    msg.getReference().getUserMessage().getAuthor().getAddress() == $rewardAddress
+                ) {
+                    hasNewMentions = true;
+                }
             }
             updatesRequired.messageCreated = true;
         } else if (event.hasMessageDeleted()) {
@@ -237,10 +301,10 @@
             chatMessages.sort(
                 (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
             );
-            if (sentMsgFlag) {
-                sentMsgFlag = false;
-                mustAutoScroll = true;
+            if (autoscrollStatus != "scrolling") {
+                autoscrollStatus = sentMsgFlag ? "new-own-message" : "new-message";
             }
+            sentMsgFlag = false;
             // avoid growing the set too large unnecessarily
             let removedMessages = chatMessages.splice(0, Math.max(0, chatMessages.length - messageHistorySize));
             for (let m of removedMessages) {
@@ -388,8 +452,8 @@
     }
 </script>
 
-<div class="flex flex-col {containerClasses}" on:pointerenter={hideMessageDetails}>
-    <div class="flex-grow overflow-y-auto px-2 pb-2 relative" bind:this={chatContainer}>
+<div class="flex flex-col {containerClasses} relative" on:pointerenter={hideMessageDetails}>
+    <div class="flex-grow overflow-y-auto px-2 relative" bind:this={chatContainer}>
         {#each chatMessages as message, idx (message.getId())}
             <div
                 transition:fade|local={{ duration: 200 }}
@@ -429,7 +493,16 @@
                 No messages. {#if chatEnabled}Say something!{/if}
             </div>
         {/each}
+        <div class="h-2" bind:this={bottomDetectionDiv} />
     </div>
+    {#if autoscrollStatus == "scrolled-up-new-message"}
+        <div class="flex flex-row border-t border-gray-200 dark:border-gray-500">
+            <div class="px-2 py-1 flex-grow">New {hasNewMentions ? "replies" : "messages"} below</div>
+            <SidebarTabButton selected={false} on:click={() => scrollToBottom()}>
+                Jump down <i class="fas fa-caret-down" />
+            </SidebarTabButton>
+        </div>
+    {/if}
     <div class="border-t border-gray-300 shadow-md flex flex-col">
         {#if $rewardAddress == ""}
             <div class="p-2 text-gray-600 dark:text-gray-400">
