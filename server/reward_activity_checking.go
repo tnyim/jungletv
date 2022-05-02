@@ -47,7 +47,7 @@ var serverStartedAt = time.Now()
 func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context, user auth.User, first bool) (time.Duration, error) {
 	activelyModerating := false
 	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
-		activelyModerating = !r.staffActivityManager.IsActivelyModerating(user)
+		activelyModerating = r.staffActivityManager.IsActivelyModerating(user)
 		if !activelyModerating {
 			// exempt admins/moderators from activity challenges
 			return 100 * 24 * time.Hour, nil
