@@ -333,9 +333,9 @@ export const parseUserMessageMarkdown = function (markdown: string, isModerator:
     };
     let rendered = "";
     if (isModerator) {
-        rendered = configuredMarked.parseInline(markdown, { walkTokens })
-    } else {
         rendered = configuredMarked.parseInline(markdown, { tokenizer: undefined, walkTokens })
+    } else {
+        rendered = configuredMarked.parseInline(markdown, { walkTokens })
     }
     return [rendered, onlyEmotes && emoteCount < 7];
 }
