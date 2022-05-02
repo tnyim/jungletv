@@ -1,10 +1,9 @@
 import { syntaxTree } from "@codemirror/language"
-import { RangeSet, RangeValue } from "@codemirror/rangeset"
 import {
-    CharCategory, EditorSelection, EditorState, Extension, MapMode, StateCommand,
-    StateEffect, StateField, Transaction
+    CharCategory, codePointAt, codePointSize, EditorSelection, EditorState,
+    Extension, fromCodePoint, MapMode, RangeSet, RangeValue, StateCommand,
+    StateEffect, StateField, Text, Transaction
 } from "@codemirror/state"
-import { codePointAt, codePointSize, fromCodePoint, Text } from "@codemirror/text"
 import { EditorView, KeyBinding } from "@codemirror/view"
 
 /// Configures bracket closing behavior for a syntax (via
@@ -19,7 +18,7 @@ export interface CloseBracketConfig {
     /// automatically closed. Closing always happens in front of
     /// whitespace. Defaults to `")]}'\":;>"`.
     before?: string,
-    notAfter?: string,
+    notAfter?: string
 }
 
 const defaults: Required<CloseBracketConfig> = {
@@ -118,7 +117,7 @@ export const deleteBracketPair: StateCommand = ({ state, dispatch }) => {
 }
 
 /// Close-brackets related key bindings. Binds Backspace to
-/// [`deleteBracketPair`](#closebrackets.deleteBracketPair).
+/// [`deleteBracketPair`](#autocomplete.deleteBracketPair).
 export const closeBracketsKeymap: readonly KeyBinding[] = [
     { key: "Backspace", run: deleteBracketPair }
 ]
@@ -130,7 +129,7 @@ export const closeBracketsKeymap: readonly KeyBinding[] = [
 /// previously-closed bracket), this function returns a transaction
 /// representing that custom behavior. (You only need this if you want
 /// to programmatically insert brackets—the
-/// [`closeBrackets`](#closebrackets.closeBrackets) extension will
+/// [`closeBrackets`](#autocomplete.closeBrackets) extension will
 /// take care of running this for user input.)
 export function insertBracket(state: EditorState, bracket: string): Transaction | null {
     let conf = config(state, state.selection.main.head)

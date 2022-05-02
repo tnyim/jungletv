@@ -1,12 +1,9 @@
 <script lang="ts">
-    import { acceptCompletion, completionKeymap } from "@codemirror/autocomplete";
+    import { acceptCompletion, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
     import { basicSetup } from "@codemirror/basic-setup";
-    import { closeBracketsKeymap } from "@codemirror/closebrackets";
-    import { defaultKeymap, indentWithTab } from "@codemirror/commands";
-    import { commentKeymap } from "@codemirror/comment";
-    import { foldKeymap } from "@codemirror/fold";
-    import { historyKeymap } from "@codemirror/history";
+    import { defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+    import { foldKeymap } from "@codemirror/language";
     import { lintKeymap } from "@codemirror/lint";
     import { searchKeymap } from "@codemirror/search";
     import { Compartment, EditorState, Extension } from "@codemirror/state";
@@ -145,7 +142,6 @@
                         ...searchKeymap,
                         ...historyKeymap,
                         ...foldKeymap,
-                        ...commentKeymap,
                         ...completionKeymap,
                         ...lintKeymap,
                         {
@@ -173,7 +169,9 @@
             parent: editorContainer,
         });
         editorView.focus();
-        onDestroy(() => { editorView.destroy() });
+        onDestroy(() => {
+            editorView.destroy();
+        });
     }
 
     $: {

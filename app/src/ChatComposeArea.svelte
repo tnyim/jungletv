@@ -8,13 +8,10 @@
         completionKeymap,
         CompletionResult,
     } from "@codemirror/autocomplete";
-    import { defaultKeymap, insertNewlineAndIndent } from "@codemirror/commands";
-    import { HighlightStyle, tags } from "@codemirror/highlight";
-    import { history, historyKeymap } from "@codemirror/history";
+    import { defaultKeymap, history, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-    import { syntaxTree } from "@codemirror/language";
-    import { bracketMatching } from "@codemirror/matchbrackets";
-    import { ChangeSpec, Compartment, EditorSelection, EditorState, Extension } from "@codemirror/state";
+    import { bracketMatching, HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";
+    import { ChangeSpec, Compartment, EditorSelection, EditorState, Extension, RangeSet } from "@codemirror/state";
     import {
         Decoration,
         DecorationSet,
@@ -24,11 +21,11 @@
         highlightSpecialChars,
         keymap,
         placeholder,
-        PluginField,
         ViewPlugin,
         ViewUpdate,
         WidgetType,
     } from "@codemirror/view";
+    import { tags } from "@lezer/highlight";
     import { Emoji as MarkdownEmoji, MarkdownConfig, Strikethrough } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
     import { createEventDispatcher, onDestroy } from "svelte";
@@ -148,7 +145,7 @@
                     apply: "/spoiler ",
                 },
             ],
-            span: /^\/\w*$/,
+            validFor: /^\/\w*$/,
         };
     }
 
@@ -422,6 +419,7 @@
     const emotePlugin = ViewPlugin.fromClass(
         class {
             decorations: DecorationSet;
+            atomicRanges: RangeSet<any>;
 
             constructor(view: EditorView) {
                 this.decorations = this.createEmoteReplacementWidgets(view);
@@ -433,9 +431,9 @@
                     syntaxTree(view.state).iterate({
                         from,
                         to,
-                        enter: (type, from, to) => {
-                            if (type.name == "Emote") {
-                                let match = view.state.doc.sliceString(from, to).match(emoteRegExp);
+                        enter: (node) => {
+                            if (node.type.name == "Emote") {
+                                let match = view.state.doc.sliceString(node.from, node.to).match(emoteRegExp);
                                 let deco = Decoration.replace({
                                     widget: new EmoteWidget(
                                         match[0],
@@ -444,7 +442,7 @@
                                         match[1] == "a"
                                     ),
                                 });
-                                widgets.push(deco.range(from, to));
+                                widgets.push(deco.range(node.from, node.to));
                             }
                         },
                     });
@@ -459,7 +457,11 @@
         },
         {
             decorations: (v) => v.decorations,
-            provide: PluginField.atomicRanges.from((val) => val.decorations),
+            provide: (plugin) =>
+                EditorView.atomicRanges.of((view) => {
+                    let value = view.plugin(plugin);
+                    return value ? value.decorations : Decoration.none;
+                }),
         }
     );
 
@@ -546,13 +548,15 @@
             return codeMirrorHighlightStyle(darkMode);
         }
 
-        return HighlightStyle.define([
-            { tag: tags.emphasis, fontStyle: "italic" },
-            { tag: tags.strong, fontWeight: "bold" },
-            { tag: tags.strikethrough, textDecoration: "line-through" },
-            { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
-            { tag: tags.character, color: "#a11" }, // Used by emoji shortcodes that aren't matched
-        ]);
+        return syntaxHighlighting(
+            HighlightStyle.define([
+                { tag: tags.emphasis, fontStyle: "italic" },
+                { tag: tags.strong, fontWeight: "bold" },
+                { tag: tags.strikethrough, textDecoration: "line-through" },
+                { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
+                { tag: tags.character, color: "#a11" }, // Used by emoji shortcodes that aren't matched
+            ])
+        );
     }
 
     function setupEditor() {

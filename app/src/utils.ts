@@ -1,11 +1,12 @@
-import { HighlightStyle, tags } from "@codemirror/highlight";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import type { Extension } from "@codemirror/state";
+import { tags } from "@lezer/highlight";
+import emojiRegex from "emoji-regex";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { apiClient } from "./api_client";
 import type { User } from "./proto/jungletv_pb";
-import emojiRegex from "emoji-regex";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -346,7 +347,7 @@ export const parseCompleteMarkdown = function (markdown: string): string {
 }
 
 export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension {
-    return HighlightStyle.define([
+    return syntaxHighlighting(HighlightStyle.define([
         { tag: tags.link, textDecoration: "underline" },
         { tag: tags.heading, textDecoration: "underline", fontWeight: "bold" },
         { tag: tags.emphasis, fontStyle: "italic" },
@@ -370,5 +371,5 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
         { tag: tags.meta, color: "#7a757a" },
         { tag: tags.invalid, color: "#f00" },
         { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
-    ]);
+    ]));
 }
