@@ -57,7 +57,7 @@
         <p
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden italic
+                : 'mt-1'} h-5 overflow-hidden italic whitespace-nowrap
         {getBackgroundColorForMessage()}"
         >
             <i class="fas fa-reply" />
@@ -67,7 +67,7 @@
         <p
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden cursor-pointer {getBackgroundColorForMessage()}"
+                : 'mt-1'} h-5 overflow-hidden cursor-pointer whitespace-nowrap {getBackgroundColorForMessage()}"
             on:click={() => dispatch("highlight", message.getReference())}
         >
             <i class="fas fa-reply" />
@@ -96,7 +96,7 @@
         <i class="fas fa-history cursor-pointer ml-1" on:click={() => dispatch("history")} />
         <i class="fas fa-edit cursor-pointer" on:click={() => dispatch("changeNickname")} />
     {/if}
-    <div class="{emotesOnly ? "" : "overflow-hidden"}">
+    <div class={emotesOnly ? "" : "overflow-hidden"}>
         <span
             class={emotesOnly ? "align-middle" : ""}
             tabindex="0"
