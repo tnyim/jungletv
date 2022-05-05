@@ -11,8 +11,30 @@
     export let entry: QueueEntry;
     export let isPlaying: boolean;
     export let mode: string;
+    export let index: number;
+    export let showPosition: boolean;
+
+    function onJumpToKeyDown(ev: KeyboardEvent) {
+        if (ev.key == "Enter") {
+            dispatch("jumpTo");
+        }
+    }
 </script>
 
+{#if showPosition}
+    <div class="w-10 flex-shrink-0 flex flex-col gap-2 place-content-center items-center text-xl">
+        <div class={index + 1 > 999 ? "text-lg" : index + 1 > 99 ? "text-xl" : "text-2xl"} title="Position in queue">
+            {index + 1}
+        </div>
+        <i
+            tabindex="0"
+            title="See in the complete queue"
+            class="fas fa-location-arrow text-gray-500 hover:text-purple-500 cursor-pointer ease-linear transition-all"
+            on:click|stopPropagation={() => dispatch("jumpTo")}
+            on:keydown={onJumpToKeyDown}
+        />
+    </div>
+{/if}
 <div class="w-32 flex-shrink-0 thumbnail">
     <img
         src={entry.getYoutubeVideoData().getThumbnailUrl()}

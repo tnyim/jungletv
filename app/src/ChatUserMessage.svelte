@@ -15,22 +15,26 @@
     export let mode: string;
     export let allowExpensiveCSSAnimations: boolean;
     export let detailsOpenForMsgID: string;
+    export let highlighted = false;
 
     let gifExpanded = false;
     let gifExplicitlyCollapsed = false;
 
     const dispatch = createEventDispatcher();
 
-    function getBackgroundColorForMessage(): string {
+    function getBackgroundColorForMessage(highlighted: boolean): string {
+        if (highlighted) {
+            return "transition-colors ease-in-out duration-1000 bg-yellow-100 dark:bg-yellow-800";
+        }
         if (message.getUserMessage().getAuthor().getAddress() == $rewardAddress) {
-            return "bg-gray-100 dark:bg-gray-800";
+            return "transition-colors ease-in-out duration-1000 bg-gray-100 dark:bg-gray-800";
         } else if (
             message.hasReference() &&
             message.getReference().getUserMessage().getAuthor().getAddress() == $rewardAddress
         ) {
-            return "bg-yellow-100 dark:bg-yellow-800";
+            return "transition-colors ease-in-out duration-1000 bg-yellow-100 dark:bg-yellow-800";
         }
-        return "";
+        return "transition-colors ease-in-out duration-1000";
     }
 
     async function removeChatMessage() {
@@ -58,7 +62,7 @@
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
                 : 'mt-1'} h-5 overflow-hidden italic whitespace-nowrap
-        {getBackgroundColorForMessage()}"
+        {getBackgroundColorForMessage(highlighted)}"
         >
             <i class="fas fa-reply" />
             <span class="italic">Message from blocked user</span>
@@ -67,7 +71,8 @@
         <p
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden cursor-pointer whitespace-nowrap {getBackgroundColorForMessage()}"
+                : 'mt-1'} h-5 overflow-hidden cursor-pointer whitespace-nowrap
+                {getBackgroundColorForMessage(highlighted)}"
             on:click={() => dispatch("highlight", message.getReference())}
         >
             <i class="fas fa-reply" />
@@ -84,7 +89,7 @@
         : message.hasReference()
         ? ''
         : 'mt-0.5'} break-words relative
-    {getBackgroundColorForMessage()}"
+    {getBackgroundColorForMessage(highlighted)}"
     on:pointerleave={(ev) => {
         if (ev.pointerType != "touch") {
             dispatch("hideDetails");

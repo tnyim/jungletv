@@ -373,21 +373,21 @@
     function clearReplyToMessage() {
         replyingToMessage = undefined;
     }
+    let highlightedMessageID = "";
+    let highlightedMessageTimeout: number;
+    onDestroy(() => clearTimeout(highlightedMessageTimeout));
     function highlightMessage(message: ChatMessage) {
         let msgElement = (chatContainer.getRootNode() as ShadowRoot).getElementById("chat-message-" + message.getId());
         if (msgElement == null) {
             return;
         }
-        chatContainer.scrollTo({
-            top: msgElement.offsetTop,
-            behavior: "smooth",
-        });
-        msgElement.classList.add("bg-yellow-100");
-        msgElement.classList.add("dark:bg-yellow-800");
-        setTimeout(() => {
-            msgElement.classList.remove("bg-yellow-100");
-            msgElement.classList.remove("dark:bg-yellow-800");
-        }, 2000);
+        msgElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        highlightedMessageID = message.getId();
+        clearTimeout(highlightedMessageTimeout);
+        highlightedMessageTimeout = setTimeout(() => {
+            highlightedMessageID = "";
+            highlightedMessageTimeout = undefined;
+        }, 2500);
     }
 
     function openChatHistoryForAuthorOfMessage(message: ChatMessage) {
@@ -455,11 +455,7 @@
 <div class="flex flex-col {containerClasses} relative" on:pointerenter={hideMessageDetails}>
     <div class="flex-grow overflow-y-auto px-2 relative" bind:this={chatContainer}>
         {#each chatMessages as message, idx (message.getId())}
-            <div
-                transition:fade|local={{ duration: 200 }}
-                id="chat-message-{message.getId()}"
-                class="transition-colors ease-in-out duration-1000"
-            >
+            <div transition:fade|local={{ duration: 200 }} id="chat-message-{message.getId()}">
                 {#if shouldShowTimeSeparator(idx)}
                     <div
                         class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center"
@@ -476,6 +472,7 @@
                         {allowExpensiveCSSAnimations}
                         {mode}
                         {detailsOpenForMsgID}
+                        highlighted={highlightedMessageID == message.getId()}
                         on:reply={() => replyToMessage(message)}
                         on:highlight={(e) => highlightMessage(e.detail)}
                         on:history={() => openChatHistoryForAuthorOfMessage(message)}

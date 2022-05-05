@@ -1,21 +1,26 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { onDestroy, onMount } from "svelte";
-    import { PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
-    import { DateTime, Duration } from "luxon";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
+    import { DateTime, Duration } from "luxon";
+    import { onDestroy, onMount, tick } from "svelte";
     import { link } from "svelte-navigator";
+    import { apiClient } from "./api_client";
+    import Fuzzy from "./Fuzzy.svelte";
+    import { PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
-    import { editNicknameForUser } from "./utils";
-    import QueueTotals from "./QueueTotals.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
-    import { permissionLevel } from "./stores";
+    import { permissionLevel, rewardAddress } from "./stores";
+    import { editNicknameForUser } from "./utils";
     import VirtualList from "./VirtualList.svelte";
+    import QueueTop from "./QueueTop.svelte";
 
     export let mode = "sidebar";
 
+    type QueueEntryWithIndex = QueueEntry & {
+        queueIndex: number;
+    };
+
     let firstLoaded = false;
-    let queueEntries: QueueEntry[] = [];
+    let queueEntries: QueueEntryWithIndex[] = [];
     let insertCursor: string = "";
     let playingSince: DateTime;
     let removalOfOwnEntriesAllowed = false;
@@ -54,7 +59,12 @@
         monitorQueueTimeoutHandle = setTimeout(monitorQueueTimeout, 20000);
         if (!queue.getIsHeartbeat()) {
             removalOfOwnEntriesAllowed = queue.getOwnEntryRemovalEnabled();
-            queueEntries = queue.getEntriesList();
+            queueEntries = queue.getEntriesList().map((entry, index): QueueEntryWithIndex => {
+                return Object.assign(new QueueEntry(), entry, {
+                    queueIndex: index,
+                });
+            });
+            console.log(queue.getEntriesList(), queueEntries);
             if (queue.hasInsertCursor()) {
                 insertCursor = queue.getInsertCursor();
             } else {
@@ -132,28 +142,98 @@
         }
         return tl;
     }
+
+    let searching = false;
+    let searchQuery = "";
+    let showOnlyOwnEntries = false;
+    let useExtendedSearch = false;
+    $: entriesToSearch =
+        showOnlyOwnEntries && $rewardAddress != ""
+            ? queueEntries.filter((e) => e.getRequestedBy()?.getAddress() == $rewardAddress)
+            : queueEntries;
+
+    $: fuseOptions = {
+        threshold: 0.3,
+        ignoreLocation: true,
+        useExtendedSearch: useExtendedSearch,
+        keys: [
+            { name: "title", getFn: (entry: QueueEntry): string => entry.getYoutubeVideoData().getTitle(), weight: 5 },
+            {
+                name: "channel",
+                getFn: (entry: QueueEntry): string => entry.getYoutubeVideoData().getChannelTitle(),
+                weight: 3,
+            },
+            {
+                name: "requestedByNickname",
+                getFn: (entry: QueueEntry): string => entry.getRequestedBy()?.getNickname(),
+                weight: 2,
+            },
+        ],
+    };
+    $: if (searchQuery != "") {
+        expandedEntryID = "";
+    }
+
+    let searchResults = [];
+
+    let highlightedEntryID = "";
+    let highlightedEntryTimeout: number;
+    onDestroy(() => clearTimeout(highlightedEntryTimeout));
+
+    let queueContainer: HTMLDivElement;
+    function jumpToEntry(entry: QueueEntryWithIndex) {
+        searching = false;
+        tick().then(() => {
+            queueContainer.querySelectorAll("[data-virtual-list-index]").forEach((e) => {
+                if (+e.getAttribute("data-virtual-list-index") == entry.queueIndex) {
+                    e.scrollIntoView({ behavior: "smooth", block: "center" });
+                    highlightedEntryID = entry.getId();
+                    clearTimeout(highlightedEntryTimeout);
+                    highlightedEntryTimeout = setTimeout(() => {
+                        highlightedEntryID = "";
+                        highlightedEntryTimeout = undefined;
+                    }, 2500);
+                }
+            });
+        });
+    }
 </script>
 
 {#if !firstLoaded}
     <div class="px-2 py-2">Loading...</div>
 {:else}
-    <div class="lg:overflow-y-auto overflow-x-hidden">
-        <QueueTotals
+    <div class="lg:overflow-y-auto overflow-x-hidden" bind:this={queueContainer}>
+        <QueueTop
             numEntries={queueEntries.length}
             totalLength={totalQueueLength}
             numParticipants={totalQueueParticipants}
             {totalQueueValue}
             {currentEntryOffset}
             {playingSince}
+            bind:searching
+            bind:searchQuery
+            bind:showOnlyOwnEntries
+            bind:useExtendedSearch
         />
-        <VirtualList items={queueEntries} let:item={entry} let:index={i} let:visible>
+
+        <Fuzzy query={searchQuery} data={entriesToSearch} options={fuseOptions} bind:result={searchResults} />
+        <VirtualList
+            items={searchQuery != "" ? searchResults.map((e) => e.item) : entriesToSearch}
+            let:item={entry}
+            let:index={i}
+            let:visible
+        >
             <div class="px-2 py-2" slot="else">
-                Nothing playing.
-                {#if mode !== "popout"}
-                    <a href="/enqueue" use:link>Get something going</a>!
+                {#if searching}
+                    No entries found matching the criteria.
+                {:else}
+                    Nothing playing.
+                    {#if mode !== "popout"}
+                        <a href="/enqueue" use:link>Get something going</a>!
+                    {/if}
                 {/if}
             </div>
-            {#if insertCursor == entry.getId()}
+            {#if insertCursor == entry.getId() && !searching}
                 <div class="border-t border-red-600 bg-red-600 flex flex-row mx-2 mb-1 pr-2 rounded-r-md">
                     <div class="flex-grow bg-white dark:bg-gray-900 rounded-tr-md" />
                     <div class="bg-white dark:bg-gray-900">
@@ -171,16 +251,21 @@
             {/if}
             {#if visible}
                 <div
-                    class="px-2 py-1 flex flex-row text-sm
-                        bg-white dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                    class="px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm
+                        transition-colors ease-in-out duration-1000
+                        {highlightedEntryID == entry.getId() ? 'bg-yellow-100 dark:bg-yellow-800' : ''}
+                        hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
                     on:click={() => openOrCollapse(entry)}
                 >
                     <QueueEntryHeader
                         {entry}
                         isPlaying={i == 0}
                         {mode}
+                        showPosition={searching}
+                        index={entry.queueIndex}
                         on:remove={() => removeEntry(entry, false)}
                         on:disallow={() => removeEntry(entry, true)}
+                        on:jumpTo={() => jumpToEntry(entry)}
                     />
                 </div>
             {:else}
