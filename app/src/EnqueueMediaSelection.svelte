@@ -154,6 +154,8 @@
     let tempPlayer: YouTubePlayer;
     let instantiateTempPlayer = false;
 
+    let rangeSliderContainer: HTMLDivElement;
+
     $: {
         if (minRangeLength > videoLengthInSeconds) {
             minRangeLength = videoLengthInSeconds;
@@ -163,7 +165,7 @@
     }
 
     $: {
-        let activeSlider = document.querySelector("#videoRangeSlider .rangeHandle.active");
+        let activeSlider = rangeSliderContainer?.querySelector("#videoRangeSlider .rangeHandle.active");
         let activeSliderIdx = activeSlider == null || activeSlider.getAttribute("data-handle") == "0" ? 0 : 1;
         if (videoRange.length == 2 && videoRange[1] - videoRange[0] < minRangeLength) {
             // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
@@ -379,7 +381,7 @@
                     {/if}
                     {#if enqueueRange && videoID.length == 11}
                         {#if videoRangeValuesFilled}
-                            <div class="mb-11 mx-3">
+                            <div class="mb-11 mx-3" bind:this={rangeSliderContainer}>
                                 <RangeSlider
                                     id="videoRangeSlider"
                                     bind:values={videoRange}
