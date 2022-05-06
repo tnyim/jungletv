@@ -83,7 +83,7 @@ export default [
 				include: "node_modules/@codemirror/view/dist/**",
 				delimiters: ["", ""],
 				preventAssignment: true,
-				"function deepActiveElement() {" : "function deepActiveElement(node) { return node.getRootNode().activeElement;",
+				"function deepActiveElement() {": "function deepActiveElement(node) { return node.getRootNode().activeElement;",
 				"deepActiveElement() ==": "deepActiveElement(root) ==",
 			}),
 			/*replace({
@@ -148,6 +148,10 @@ export default [
 			production && terser(
 				{
 					ecma: 2020,
+					toplevel: true,
+					format: {
+						comments: false
+					}
 				}
 			),
 		],
@@ -181,7 +185,13 @@ export default [
 
 			// If we're building for production (npm run build
 			// instead of npm run dev), minify
-			production && terser(),
+			production && terser(
+				{
+					format: {
+						comments: false
+					}
+				}
+			),
 		]
 	}
 ];

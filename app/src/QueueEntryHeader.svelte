@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { QueueEntry } from "./proto/jungletv_pb";
-    import { formatQueueEntryThumbnailDuration, getReadableUserString } from "./utils";
+    import { buildMonKeyURL, formatQueueEntryThumbnailDuration, getReadableUserString } from "./utils";
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { playerCurrentTime } from "./stores";
     import { apiClient } from "./api_client";
@@ -94,7 +94,7 @@
     <p class="text-xs whitespace-nowrap">
         {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
             Enqueued by <img
-                src="https://monkey.banano.cc/api/v1/monkey/{entry.getRequestedBy().getAddress()}?monkey=png"
+                src={buildMonKeyURL(entry.getRequestedBy().getAddress(), "png")}
                 alt="&nbsp;"
                 class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
             />

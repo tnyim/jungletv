@@ -5,7 +5,8 @@
     import Toggle from "svelte-toggle";
     import watchMedia from "svelte-media";
     import NavbarAlert from "./NavbarAlert.svelte";
-import { onDestroy } from "svelte";
+    import { onDestroy } from "svelte";
+    import { buildMonKeyURL } from "./utils";
 
     const media = watchMedia({
         large: "(min-width: 1024px)",
@@ -113,7 +114,7 @@ import { onDestroy } from "svelte";
                             on:click={() => navigate("/rewards")}
                         >
                             <img
-                                src="https://monkey.banano.cc/api/v1/monkey/{rAddress}?format=png"
+                                src={buildMonKeyURL(rAddress, "png")}
                                 alt="&nbsp;"
                                 title="MonKey for your address"
                                 class="h-9"

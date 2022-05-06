@@ -18,24 +18,16 @@
 
     function handleFloatValueChange(e: Event & { currentTarget: EventTarget & HTMLInputElement }) {
         let parts = e.currentTarget.value.split(":");
-        if (parts.length == 1) {
-            let s = parseInt(parts[0]);
-            if (!isNaN(s)) {
-                values[index] = s;
+        if (parts.length > 3) {
+            return;
+        }
+        values[index] = 0;
+        for (let i = 0; i < parts.length; i++) {
+            let n = parseInt(parts[i]);
+            if (isNaN(n)) {
+                return;
             }
-        } else if (parts.length == 2) {
-            let m = parseInt(parts[0]);
-            let s = parseInt(parts[1]);
-            if (!isNaN(m) && !isNaN(s)) {
-                values[index] = m * 60 + s;
-            }
-        } else if (parts.length == 3) {
-            let h = parseInt(parts[0]);
-            let m = parseInt(parts[1]);
-            let s = parseInt(parts[2]);
-            if (!isNaN(h) && !isNaN(m) && !isNaN(s)) {
-                values[index] = h * 60 * 60 + m * 60 + s;
-            }
+            values[index] = n * Math.pow(60, parts.length - 1 - i) + values[index];
         }
         values = values;
     }

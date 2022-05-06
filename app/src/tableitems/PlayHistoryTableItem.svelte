@@ -3,7 +3,7 @@
     import { apiClient } from "../api_client";
     import { openUserProfile } from "../profile_utils";
     import { PlayedMedia } from "../proto/jungletv_pb";
-    import { formatQueueEntryThumbnailDuration } from "../utils";
+    import { buildMonKeyURL, formatQueueEntryThumbnailDuration } from "../utils";
 
     export let media: PlayedMedia;
 
@@ -74,7 +74,7 @@
         {#if media.hasRequestedBy()}
             <span on:click={openProfile} class="cursor-pointer">
                 <img
-                    src="https://monkey.banano.cc/api/v1/monkey/{media.getRequestedBy().getAddress()}?format=png"
+                    src={buildMonKeyURL(media.getRequestedBy().getAddress(), "png")}
                     alt="&nbsp;"
                     title=""
                     class="inline h-7 -ml-1 -mt-4 -mb-3"

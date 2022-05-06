@@ -373,3 +373,10 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
         { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
     ]));
 }
+
+export const buildMonKeyURL = function(address: string, format?: string): string {
+    if (typeof format !== "undefined") {
+        return "https://monkey.banano.cc/api/v1/monkey/" + address + "?format=" + format;
+    }
+    return "https://monkey.banano.cc/api/v1/monkey/" + address;
+}

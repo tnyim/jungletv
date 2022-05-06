@@ -11,7 +11,7 @@
     import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
     import { DateTime, Duration, DurationUnit } from "luxon";
     import { slide } from "svelte/transition";
-    import { copyToClipboard } from "./utils";
+    import { buildMonKeyURL, copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
     import { openUserProfile } from "./profile_utils";
     import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
@@ -143,7 +143,7 @@
         <p>Added to the queue {formatEnqueuedAt(entry)} by</p>
         <div class="flex flex-row">
             <img
-                src="https://monkey.banano.cc/api/v1/monkey/{requestedBy.getAddress()}"
+                src={buildMonKeyURL(requestedBy.getAddress())}
                 alt="&nbsp;"
                 title="monKey for this user's address"
                 class="h-20"

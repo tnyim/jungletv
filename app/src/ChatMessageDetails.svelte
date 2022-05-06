@@ -3,7 +3,7 @@
     import QrCode from "svelte-qrcode";
     import { darkMode, permissionLevel } from "./stores";
     import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
-    import { copyToClipboard } from "./utils";
+    import { buildMonKeyURL, copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
     import { openUserProfile } from "./profile_utils";
 
@@ -61,7 +61,7 @@
     <div class="bg-gray-200 dark:bg-black rounded flex flex-col shadow-md">
         <div class="flex flex-row px-2 pt-2 overflow-x-hidden max-w-full" on:mouseenter={() => dispatch("mouseLeft")}>
             <img
-                src="https://monkey.banano.cc/api/v1/monkey/{msg.getUserMessage().getAuthor().getAddress()}"
+                src={buildMonKeyURL(msg.getUserMessage().getAuthor().getAddress())}
                 alt="&nbsp;"
                 title="monKey for this user's address"
                 class="h-20"

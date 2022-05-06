@@ -8,7 +8,7 @@
 
     import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
-    import { parseUserMessageMarkdown } from "./utils";
+    import { buildMonKeyURL, parseUserMessageMarkdown } from "./utils";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
@@ -119,10 +119,7 @@
             }}
         >
             <img
-                src="https://monkey.banano.cc/api/v1/monkey/{message
-                    .getUserMessage()
-                    .getAuthor()
-                    .getAddress()}?format=png"
+                src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress(), "png")}
                 alt="&nbsp;"
                 title="Click to reply"
                 class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"

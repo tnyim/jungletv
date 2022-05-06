@@ -2,6 +2,7 @@
     import { DateTime } from "luxon";
     import { openUserProfile } from "../profile_utils";
     import type { UserVerification } from "../proto/jungletv_pb";
+    import { buildMonKeyURL } from "../utils";
 
     export let verification: UserVerification;
 
@@ -53,7 +54,7 @@
         on:click={() => openUserProfile(verification.getAddress())}
     >
         <img
-            src="https://monkey.banano.cc/api/v1/monkey/{verification.getAddress()}?format=png"
+            src={buildMonKeyURL(verification.getAddress(), "png")}
             alt="&nbsp;"
             title=""
             class="inline h-7 -ml-1 -mt-4 -mb-3"
