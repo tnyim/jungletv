@@ -225,6 +225,11 @@ func (r *RewardsHandler) SolveActivityChallenge(ctxCtx context.Context, challeng
 		reward = 22
 	}
 
+	minSpanForReward, err := r.minDurationBetweenActivityChallengePointsReward(ctxCtx, spectator.user)
+	if err != nil {
+		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+	}
+
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
@@ -236,12 +241,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctxCtx context.Context, challeng
 		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
 	}
 
-	minSpanForReward, err := r.minDurationBetweenActivityChallengePointsReward(ctx, spectator.user)
-	if err != nil {
-		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
-	}
-
-	if errors.Is(err, types.ErrPointsTxNotFound) || time.Since(lastActivityChallengeReward.UpdatedAt) > minSpanForReward {
+	if errors.Is(err, types.ErrPointsTxNotFound) || lastActivityChallengeReward == nil || time.Since(lastActivityChallengeReward.UpdatedAt) > minSpanForReward {
 		_, err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, reward)
 		if err != nil {
 			return skipsIntegrityChecks, stacktrace.Propagate(err, "")
