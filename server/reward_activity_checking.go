@@ -78,10 +78,15 @@ func (r *RewardsHandler) minDurationBetweenActivityChallengePointsReward(ctx con
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
+	min := 16 * time.Minute
 	if subscribed {
-		return 42 * time.Minute, nil
+		min = 42 * time.Minute
 	}
-	return 16 * time.Minute, nil
+	s := time.Since(serverStartedAt)
+	if s < min {
+		return s, nil
+	}
+	return min, nil
 }
 
 func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator *spectator) {
