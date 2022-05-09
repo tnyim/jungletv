@@ -1,6 +1,6 @@
 <script lang="ts">
     import { DateTime, Duration } from "luxon";
-    import { afterUpdate, onDestroy, onMount, tick } from "svelte";
+    import { onDestroy, onMount, tick } from "svelte";
     import { apiClient } from "./api_client";
     import { playerCurrentTime, rewardAddress } from "./stores";
 
@@ -69,6 +69,10 @@
     export let useExtendedSearch = false;
 
     let searchBox: HTMLInputElement;
+
+    $: if (numEntries == 0) {
+        searching = false;
+    }
 
     $: if (!searching) {
         searchQuery = "";
@@ -164,14 +168,16 @@
             </div>
         </div>
     {/if}
-    <button
-        title="Search queue entries"
-        class="text-purple-700 dark:text-purple-500 min-h-full w-8 p-2
+    {#if numEntries > 0}
+        <button
+            title="Search queue entries"
+            class="text-purple-700 dark:text-purple-500 min-h-full w-8 p-2
         dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
-        on:click={() => (searching = !searching)}
-    >
-        <i class="fas {searching ? 'fa-times' : 'fa-search'}" />
-    </button>
+            on:click={() => (searching = !searching)}
+        >
+            <i class="fas {searching ? 'fa-times' : 'fa-search'}" />
+        </button>
+    {/if}
 </div>
 {#if formattedPlayingSince != "" && !searching}
     <div class="w-full px-2 mb-2 text-center text-yellow-600">

@@ -51,6 +51,26 @@ func GetLatestPointsTxForAddress(node sqalx.Node, address string) (*PointsTx, er
 	return txs[0], nil
 }
 
+// GetLatestPointsTxForAddress returns the most recent points transaction of the given type for the given address
+func GetLatestPointsTxOfTypeForAddress(node sqalx.Node, txType PointsTxType, address string) (*PointsTx, error) {
+	s := sdb.Select().
+		Where(subQueryEq(
+			"points_tx.id",
+			sq.Select("MAX(e.id)").
+				From("points_tx e").
+				Where(sq.Eq{"e.rewards_address": address}).
+				Where(sq.Eq{"e.type": txType}),
+		))
+	txs, err := GetWithSelect[*PointsTx](node, s)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if len(txs) == 0 {
+		return nil, stacktrace.Propagate(ErrPointsTxNotFound, "")
+	}
+	return txs[0], nil
+}
+
 // Insert inserts the PointsTx
 func (obj *PointsTx) Insert(node sqalx.Node) error {
 	return Insert(node, obj)
