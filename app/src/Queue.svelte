@@ -220,7 +220,6 @@
         <VirtualList
             items={searchQuery != "" ? searchResults.map((e) => e.item) : entriesToSearch}
             let:item={entry}
-            let:index={i}
             let:visible
         >
             <div class="px-2 py-2" slot="else">
@@ -259,7 +258,7 @@
                 >
                     <QueueEntryHeader
                         {entry}
-                        isPlaying={i == 0}
+                        isPlaying={entry.queueIndex == 0}
                         {mode}
                         showPosition={searching}
                         index={entry.queueIndex}
@@ -274,9 +273,9 @@
             {#if expandedEntryID == entry.getId()}
                 <QueueEntryDetails
                     {entry}
-                    entryIndex={i}
+                    entryIndex={entry.queueIndex}
                     {removalOfOwnEntriesAllowed}
-                    timeUntilStarting={sumDurationOfEntriesBeforeIndex(i)}
+                    timeUntilStarting={sumDurationOfEntriesBeforeIndex(entry.queueIndex)}
                     on:remove={() => removeEntry(entry, false)}
                     on:disallow={() => removeEntry(entry, true)}
                     on:changeNickname={async () => {
