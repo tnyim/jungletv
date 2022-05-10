@@ -90,8 +90,15 @@
             }
         }
     }
-</script>
 
+    function documentKeyDown(e: KeyboardEvent) {
+        if (e.ctrlKey && e.key == "f" && numEntries != 0) {
+            e.preventDefault();
+            searching = true;
+        }
+    }
+</script>
+<svelte:body on:keydown={documentKeyDown} />
 <div class="w-full flex flex-row">
     {#if searching}
         <div class="flex-grow flex flex-col px-2 gap-2 mb-2" on:keydown={onKeyDown}>
