@@ -105,7 +105,7 @@
             <input
                 type="text"
                 placeholder="Search queue entries..."
-                class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md sm:text-sm border border-gray-300 p-2"
+                class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border border-gray-300 p-2"
                 bind:value={searchQuery}
                 bind:this={searchBox}
             />
