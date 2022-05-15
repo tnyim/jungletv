@@ -322,7 +322,6 @@ export const parseUserMessageMarkdown = function (markdown: string, isModerator:
     let onlyEmotes = markdown.trim().length > 0;
     let emoteCount = 0;
     const walkTokens = (token) => {
-        console.log(token)
         if (token.type === 'text' || token.type === 'codespan') {
             onlyEmotes = onlyEmotes && token.text.trim().length === 0;
         }
