@@ -60,8 +60,10 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/jamesog/iptoasn v0.1.0 // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rickb777/plural v1.4.1 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
