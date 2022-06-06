@@ -220,6 +220,18 @@ func main() {
 		mainLog.Fatalln("IP check token not present in keybox")
 	}
 
+	badASNs := []int{}
+	badASNsString, present := secrets.Get("badASNs")
+	if present {
+		for _, asnString := range strings.Split(badASNsString, ",") {
+			asn, err := strconv.Atoi(asnString)
+			if err != nil {
+				mainLog.Fatalln("invalid bad ASN:", err)
+			}
+			badASNs = append(badASNs, asn)
+		}
+	}
+
 	modLogWebhook, present := secrets.Get("modLogWebhook")
 	if !present {
 		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
@@ -309,6 +321,7 @@ func main() {
 		TicketCheckPeriod:         ticketCheckPeriod,
 		IPCheckEndpoint:           ipCheckEndpoint,
 		IPCheckToken:              ipCheckToken,
+		BadASNs:                   badASNs,
 		YoutubeAPIkey:             youtubeAPIkey,
 		RaffleSecretKey:           raffleSecretKey,
 		ModLogWebhook:             modLogWebhook,

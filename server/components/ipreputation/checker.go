@@ -20,6 +20,8 @@ type Checker struct {
 	reputationLock sync.RWMutex
 	httpClient     http.Client
 
+	badASNs map[int]struct{}
+
 	endpoint  string
 	authToken string
 
@@ -27,7 +29,11 @@ type Checker struct {
 }
 
 // NewChecker initializes and returns a new Checker
-func NewChecker(log *log.Logger, endpoint, authToken string) *Checker {
+func NewChecker(log *log.Logger, endpoint, authToken string, badASNs []int) *Checker {
+	badASNsMap := make(map[int]struct{})
+	for _, asn := range badASNs {
+		badASNsMap[asn] = struct{}{}
+	}
 	return &Checker{
 		log:        log,
 		reputation: make(map[string]float32),
@@ -139,7 +145,7 @@ func (c *Checker) Worker(ctx context.Context) {
 			if response.Privacy.Proxy || response.Privacy.Hosting {
 				r = 1.0
 				c.log.Printf("IP %v is bad actor", addressToCheck)
-			} else if response.ASN.ASN == 38247 || response.ASN.ASN == 17390 {
+			} else if _, present := c.badASNs[response.ASN.ASN]; present {
 				r = 1.0
 				c.log.Printf("IP %v is from disallowed ASN %d", addressToCheck, response.ASN.ASN)
 			} else {
