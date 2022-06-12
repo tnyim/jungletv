@@ -215,11 +215,6 @@ func main() {
 		mainLog.Fatalln("IP check endpoint not present in keybox")
 	}
 
-	ipCheckToken, present := secrets.Get("ipCheckToken")
-	if !present {
-		mainLog.Fatalln("IP check token not present in keybox")
-	}
-
 	badASNs := []int{}
 	badASNsString, present := secrets.Get("badASNs")
 	if present {
@@ -320,7 +315,6 @@ func main() {
 		AuthInterceptor:           authInterceptor,
 		TicketCheckPeriod:         ticketCheckPeriod,
 		IPCheckEndpoint:           ipCheckEndpoint,
-		IPCheckToken:              ipCheckToken,
 		BadASNs:                   badASNs,
 		YoutubeAPIkey:             youtubeAPIkey,
 		RaffleSecretKey:           raffleSecretKey,

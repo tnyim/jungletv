@@ -1,12 +1,14 @@
 package ipreputation
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 	"sync"
 	"time"
 
@@ -23,14 +25,13 @@ type Checker struct {
 
 	badASNs map[int]struct{}
 
-	endpoint  string
-	authToken string
+	endpoint string
 
 	checkQueue chan string
 }
 
 // NewChecker initializes and returns a new Checker
-func NewChecker(log *log.Logger, endpoint, authToken string, badASNs []int) *Checker {
+func NewChecker(log *log.Logger, endpoint string, badASNs []int) *Checker {
 	badASNsMap := make(map[int]struct{})
 	for _, asn := range badASNs {
 		badASNsMap[asn] = struct{}{}
@@ -43,8 +44,7 @@ func NewChecker(log *log.Logger, endpoint, authToken string, badASNs []int) *Che
 			Timeout: 10 * time.Second,
 		},
 
-		endpoint:  endpoint,
-		authToken: authToken,
+		endpoint: endpoint,
 	}
 }
 
@@ -87,36 +87,48 @@ func (c *Checker) isBadASN(ip string, asn int) (bool, int, error) {
 }
 
 func (c *Checker) Worker(ctx context.Context) {
-	rateLimitTicker := time.NewTicker(500 * time.Millisecond)
+	rateLimitTicker := time.NewTicker(10 * time.Second)
 	defer rateLimitTicker.Stop()
 	for {
-		select {
-		case addressToCheck := <-c.checkQueue:
-			addressAlreadyChecked := false
-			func() {
-				c.reputationLock.RLock()
-				defer c.reputationLock.RUnlock()
-				_, addressAlreadyChecked = c.reputation[addressToCheck]
-			}()
-			if addressAlreadyChecked {
-				continue
+		<-rateLimitTicker.C // rate limit
+		addressesToCheck := []string{}
+		goingToCheck := make(map[string]struct{})
+	addLoop:
+		for {
+			select {
+			case addressToCheck := <-c.checkQueue:
+				addressAlreadyChecked := false
+				func() {
+					c.reputationLock.RLock()
+					defer c.reputationLock.RUnlock()
+					_, addressAlreadyChecked = c.reputation[addressToCheck]
+				}()
+				if _, present := goingToCheck[addressToCheck]; !present && !addressAlreadyChecked {
+					goingToCheck[addressToCheck] = struct{}{}
+					addressesToCheck = append(addressesToCheck, addressToCheck)
+				}
+				if len(addressesToCheck) >= 99 {
+					break addLoop
+				}
+			default:
+				break addLoop
 			}
-			<-rateLimitTicker.C // rate limit
+		}
 
-			err := c.checkIPonAS207111(ctx, addressToCheck)
+		if len(addressesToCheck) > 0 {
+			err := c.checkIPs(ctx, addressesToCheck)
 			if err != nil {
-				c.log.Println("error checking IP info on AS207111:", stacktrace.Propagate(err, ""))
-				badASN, asn, err := c.isBadASN(addressToCheck, 0)
-				if err != nil {
-					c.log.Println("error checking IP ASN:", stacktrace.Propagate(err, ""))
-				} else if badASN {
-					c.setAddressReputation(addressToCheck, 1.0)
-					c.log.Printf("IP %v is from disallowed ASN %d", addressToCheck, asn)
+				c.log.Println("error checking IP info:", stacktrace.Propagate(err, ""))
+				for _, ip := range addressesToCheck {
+					c.setAddressReputation(ip, 0.5)
 				}
 			}
+		}
 
+		select {
 		case <-ctx.Done():
 			return
+		default:
 		}
 	}
 }
@@ -127,60 +139,87 @@ func (c *Checker) setAddressReputation(address string, reputation float32) {
 	c.reputation[address] = reputation
 }
 
-func (c *Checker) checkIPonAS207111(ctx context.Context, addressToCheck string) error {
-	url := fmt.Sprintf(c.endpoint, addressToCheck)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+var asRegexp = regexp.MustCompile(`AS([0-9]+)\s.*`)
+
+func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error {
+	requestBody, err := json.Marshal(addressesToCheck)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	req.Header.Add("Authorization", "Bearer "+c.authToken)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		c.setAddressReputation(addressToCheck, 0.5)
 		return stacktrace.Propagate(err, "")
 	}
 	if resp.StatusCode != http.StatusOK {
-		c.setAddressReputation(addressToCheck, 0.5)
-		return stacktrace.NewError("non-200 status code when checking IP reputation for address %s", addressToCheck)
+		return stacktrace.NewError("non-200 status code when checking IP reputation")
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		c.log.Println("error reading response body:", stacktrace.Propagate(err, ""))
-		c.setAddressReputation(addressToCheck, 0.5)
 		return stacktrace.Propagate(err, "")
 	}
 
-	var response struct {
-		ASN struct {
-			ASN int `json:"asn"`
-		} `json:"asn"`
-		Privacy struct {
-			Proxy   bool `json:"proxy"`
-			Hosting bool `json:"hosting"`
-		} `json:"privacy"`
+	type result struct {
+		Status  string `json:"status"`
+		AS      string `json:"as"`
+		Proxy   bool   `json:"proxy"`
+		Hosting bool   `json:"hosting"`
+		Query   string `json:"query"`
 	}
+
+	response := []result{}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	isBadASN, _, err := c.isBadASN("", response.ASN.ASN)
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
+	for _, result := range response {
+		if result.Status != "success" {
+			c.log.Printf("Could not check reputation for IP %v due to non-success status", result.Query)
+			c.setAddressReputation(result.Query, 0.5)
+			continue
+		}
+		asn, err := extractASN(result.AS)
+		if err != nil {
+			c.log.Printf("Could not determine AS number for IP %v: %v", result.Query, err)
+		} else {
+			isBadASN, _, err := c.isBadASN("", asn)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			if isBadASN {
+				c.log.Printf("IP %v is from disallowed ASN %d", result.Query, asn)
+				c.setAddressReputation(result.Query, 1)
+				continue
+			}
+		}
 
-	r := float32(0.0)
-	if response.Privacy.Proxy || response.Privacy.Hosting {
-		r = 1.0
-		c.log.Printf("IP %v is bad actor", addressToCheck)
-	} else if isBadASN {
-		r = 1.0
-		c.log.Printf("IP %v is from disallowed ASN %d", addressToCheck, response.ASN.ASN)
-	} else {
-		c.log.Printf("IP %v seems good", addressToCheck)
+		if result.Proxy || result.Hosting {
+			c.log.Printf("IP %v is bad actor", result.Query)
+			c.setAddressReputation(result.Query, 1)
+			continue
+		}
+		c.log.Printf("IP %v seems good", result.Query)
+		c.setAddressReputation(result.Query, 0)
 	}
-
-	c.setAddressReputation(addressToCheck, r)
 	return nil
+}
+
+func extractASN(as string) (int, error) {
+	matches := asRegexp.FindStringSubmatch(as)
+	if len(matches) >= 2 {
+		asn, err := strconv.Atoi(matches[1])
+		if err != nil {
+			return 0, stacktrace.Propagate(err, "")
+		}
+		return asn, nil
+	}
+	return 0, stacktrace.NewError("invalid AS string")
 }
