@@ -1,6 +1,6 @@
 <script lang="ts">
     import { acceptCompletion, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
-    import { basicSetup } from "@codemirror/basic-setup";
+    import { basicSetup } from "codemirror";
     import { defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { foldKeymap } from "@codemirror/language";
