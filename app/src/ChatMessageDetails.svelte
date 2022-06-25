@@ -25,7 +25,7 @@
 
     function openExplorer() {
         window.open(
-            "https://www.yellowspyglass.com/account/" + msg.getUserMessage().getAuthor().getAddress(),
+            "https://creeper.banano.cc/account/" + msg.getUserMessage().getAuthor().getAddress(),
             "",
             "noopener"
         );

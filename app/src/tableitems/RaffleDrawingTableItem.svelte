@@ -59,7 +59,7 @@
         class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
         {#if drawing.hasPrizeTxHash()}
-            <a href="https://yellowspyglass.com/hash/{drawing.getPrizeTxHash()}" target="_blank" rel="noopener">
+            <a href="https://creeper.banano.cc/hash/{drawing.getPrizeTxHash()}" target="_blank" rel="noopener">
                 <i class="fas fa-external-link-alt" />
             </a>
         {/if}

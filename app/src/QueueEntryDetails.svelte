@@ -78,7 +78,7 @@
     }
 
     function openExplorer() {
-        window.open("https://www.yellowspyglass.com/account/" + requestedBy.getAddress(), "", "noopener");
+        window.open("https://creeper.banano.cc/account/" + requestedBy.getAddress(), "", "noopener");
     }
 
     async function setCursor() {
