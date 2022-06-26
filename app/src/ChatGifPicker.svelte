@@ -7,6 +7,7 @@
     import { darkMode } from "./stores";
 
     let searchInput: HTMLInputElement;
+    export let mediaPickerSearchValue = ""; // set from outside
     let searchInputValue = ""; // pre-debouncing
     let searchQuery = ""; // debounced
     let prevQuery = "";
@@ -31,12 +32,18 @@
         }, 500);
     };
 
+    $: {
+        searchQuery = mediaPickerSearchValue;
+        searchInputValue = mediaPickerSearchValue;
+    }
+
     $: debounce(searchInputValue);
 
     onDestroy(() => {
         if (typeof timer !== "undefined") {
             clearTimeout(timer);
         }
+        mediaPickerSearchValue = searchInputValue;
     });
 
     async function doSearch(query: string) {

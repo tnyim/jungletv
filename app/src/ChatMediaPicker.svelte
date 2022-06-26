@@ -14,6 +14,8 @@
         localStorage.setItem("chatMediaPickerMode", selectedTab);
     }
 
+    let searchQuery: string;
+
     const dispatch = createEventDispatcher();
 
     function onKeyDown(ev: KeyboardEvent) {
@@ -41,9 +43,9 @@
     </div>
     <div class="h-72">
         {#if selectedTab == "emoji"}
-            <ChatEmojiPicker on:emoji-click />
+            <ChatEmojiPicker on:emoji-click bind:searchQuery />
         {:else if selectedTab == "gifs"}
-            <ChatGifPicker on:click={(e) => dispatch("gifSelected", e.detail)} />
+            <ChatGifPicker on:click={(e) => dispatch("gifSelected", e.detail)} bind:mediaPickerSearchValue={searchQuery} />
         {:else if selectedTab == "settings"}
             <ChatSettings />
         {/if}

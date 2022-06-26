@@ -5,9 +5,13 @@
     import { emojiDatabase } from "./chat_utils";
     import { chatEmotesAsCustomEmoji, currentSubscription, darkMode } from "./stores";
 
+    export let searchQuery = "";
+
     let emojiPicker: Picker;
 
     let emojiPickerTabObserver: MutationObserver;
+
+    let searchBox: HTMLInputElement;
 
     onMount(() => {
         // the i18n property appears to rely on some kind of custom setter
@@ -24,7 +28,7 @@
                 return 2;
             }
             return category1.localeCompare(category2);
-        }
+        };
         const style = document.createElement("style");
         style.textContent = `
             .emoji, button.emoji {
@@ -62,18 +66,21 @@
         emojiPicker.shadowRoot.appendChild(style);
         emojiPicker.customEmoji = emojiDatabase.customEmoji;
 
-        let searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
+        searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;
         searchBox.setSelectionRange(0, searchBox.value.length);
         searchBox.focus();
+        searchBox.addEventListener("input", (e) => {
+            searchQuery = searchBox.value;
+        });
 
         let emotesTab = emojiPicker.shadowRoot.querySelector(".tabpanel") as HTMLDivElement;
         if (emotesTab !== null) {
             emojiPickerTabObserver = new MutationObserver(function (mutations) {
                 mutations.forEach(function (mutation) {
-                    if ((mutation.type === "attributes" && mutation.attributeName == "id")) {
+                    if (mutation.type === "attributes" && mutation.attributeName == "id") {
                         if (emotesTab.getAttribute("id") == "tab--1" && $currentSubscription == null) {
                             let overlay = document.createElement("div");
-                            let inner = document.createElement("div")
+                            let inner = document.createElement("div");
                             let span1 = document.createElement("span");
                             span1.textContent = "To use Nice emotes,";
                             inner.appendChild(span1);
@@ -113,6 +120,18 @@
             emojiPicker.customEmoji = $chatEmotesAsCustomEmoji;
         }
     }
+
+    $: {
+        if (typeof searchBox !== "undefined") {
+            searchBox.value = searchQuery;
+            // trigger an event that causes the emoji picker svelte to realize there are changes
+            let event = new Event("input", {
+                bubbles: true,
+                cancelable: true,
+            });
+            searchBox.dispatchEvent(event);
+        }
+    }
 </script>
 
 <emoji-picker class="w-full h-full {$darkMode ? 'dark' : ''}" bind:this={emojiPicker} on:emoji-click />
@@ -133,7 +152,7 @@
         --border-color: rgb(209, 213, 219);
         --upsell-text-color: black;
         --category-font-color: black;
-        --upsell-background-color: #FEF3C7;
+        --upsell-background-color: #fef3c7;
         --upsell-link-color: rgb(37, 99, 235);
     }
     emoji-picker.dark {
@@ -146,7 +165,7 @@
         --input-background-color: rgb(10, 14, 22);
         --upsell-text-color: white;
         --category-font-color: white;
-        --upsell-background-color: #3730A3;
+        --upsell-background-color: #3730a3;
         --upsell-link-color: rgb(96, 165, 250);
     }
     @media (min-width: 640px) {
