@@ -215,16 +215,9 @@ func main() {
 		mainLog.Fatalln("IP check endpoint not present in keybox")
 	}
 
-	badASNs := []int{}
-	badASNsString, present := secrets.Get("badASNs")
-	if present {
-		for _, asnString := range strings.Split(badASNsString, ",") {
-			asn, err := strconv.Atoi(asnString)
-			if err != nil {
-				mainLog.Fatalln("invalid bad ASN:", err)
-			}
-			badASNs = append(badASNs, asn)
-		}
+	badASNsFilePath, present := secrets.Get("badASNsFilePath")
+	if !present {
+		mainLog.Fatalln("bad ASNs file path not present in keybox")
 	}
 
 	modLogWebhook, present := secrets.Get("modLogWebhook")
@@ -315,7 +308,7 @@ func main() {
 		AuthInterceptor:           authInterceptor,
 		TicketCheckPeriod:         ticketCheckPeriod,
 		IPCheckEndpoint:           ipCheckEndpoint,
-		BadASNs:                   badASNs,
+		BadASNsFilePath:           badASNsFilePath,
 		YoutubeAPIkey:             youtubeAPIkey,
 		RaffleSecretKey:           raffleSecretKey,
 		ModLogWebhook:             modLogWebhook,

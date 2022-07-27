@@ -121,7 +121,7 @@ type Options struct {
 
 	TicketCheckPeriod time.Duration
 	IPCheckEndpoint   string
-	BadASNs           []int
+	BadASNsFilePath   string
 	YoutubeAPIkey     string
 	RaffleSecretKey   string
 
@@ -231,7 +231,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		autoEnqueueVideoListFile:  options.AutoEnqueueVideoListFile,
 		autoEnqueueVideos:         options.AutoEnqueueVideoListFile != "",
 		allowVideoEnqueuing:       proto.AllowedVideoEnqueuingType_ENABLED,
-		ipReputationChecker:       ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.BadASNs),
+		ipReputationChecker:       ipreputation.NewChecker(options.Log, options.IPCheckEndpoint, options.BadASNsFilePath),
 		ticketCheckPeriod:         options.TicketCheckPeriod,
 		staffActivityManager:      NewStaffActivityManager(options.StatsClient),
 		moderationStore:           modStore,

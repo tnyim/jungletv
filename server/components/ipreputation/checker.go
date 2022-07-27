@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,7 +24,9 @@ type Checker struct {
 	reputationLock sync.RWMutex
 	httpClient     http.Client
 
-	badASNs map[int]struct{}
+	badASNsFile string
+	badASNs     map[int]struct{}
+	badASNsLock sync.RWMutex
 
 	endpoint string
 
@@ -31,12 +34,8 @@ type Checker struct {
 }
 
 // NewChecker initializes and returns a new Checker
-func NewChecker(log *log.Logger, endpoint string, badASNs []int) *Checker {
-	badASNsMap := make(map[int]struct{})
-	for _, asn := range badASNs {
-		badASNsMap[asn] = struct{}{}
-	}
-	return &Checker{
+func NewChecker(log *log.Logger, endpoint string, badASNsFile string) *Checker {
+	c := &Checker{
 		log:        log,
 		reputation: make(map[string]float32),
 		checkQueue: make(chan string, 10000),
@@ -44,8 +43,15 @@ func NewChecker(log *log.Logger, endpoint string, badASNs []int) *Checker {
 			Timeout: 10 * time.Second,
 		},
 
+		badASNsFile: badASNsFile,
+		badASNs:     make(map[int]struct{}),
+
 		endpoint: endpoint,
 	}
+
+	c.updateBadASNsFromFile()
+
+	return c
 }
 
 func (c *Checker) CanReceiveRewards(remoteAddress string) bool {
@@ -82,6 +88,10 @@ func (c *Checker) isBadASN(ip string, asn int) (bool, int, error) {
 		}
 		asn = int(ipInfo.ASNum)
 	}
+
+	c.badASNsLock.RLock()
+	defer c.badASNsLock.RUnlock()
+
 	_, present := c.badASNs[asn]
 	return present, asn, nil
 }
@@ -89,46 +99,54 @@ func (c *Checker) isBadASN(ip string, asn int) (bool, int, error) {
 func (c *Checker) Worker(ctx context.Context) {
 	rateLimitTicker := time.NewTicker(10 * time.Second)
 	defer rateLimitTicker.Stop()
+
+	reloadBadASNsTicker := time.NewTicker(5 * time.Minute)
+	defer reloadBadASNsTicker.Stop()
+
 	for {
-		<-rateLimitTicker.C // rate limit
-		addressesToCheck := []string{}
-		goingToCheck := make(map[string]struct{})
-	addLoop:
-		for {
-			select {
-			case addressToCheck := <-c.checkQueue:
-				addressAlreadyChecked := false
-				func() {
-					c.reputationLock.RLock()
-					defer c.reputationLock.RUnlock()
-					_, addressAlreadyChecked = c.reputation[addressToCheck]
-				}()
-				if _, present := goingToCheck[addressToCheck]; !present && !addressAlreadyChecked {
-					goingToCheck[addressToCheck] = struct{}{}
-					addressesToCheck = append(addressesToCheck, addressToCheck)
-				}
-				if len(addressesToCheck) >= 99 {
-					break addLoop
-				}
-			default:
-				break addLoop
-			}
-		}
-
-		if len(addressesToCheck) > 0 {
-			err := c.checkIPs(ctx, addressesToCheck)
-			if err != nil {
-				c.log.Println("error checking IP info:", stacktrace.Propagate(err, ""))
-				for _, ip := range addressesToCheck {
-					c.setAddressReputation(ip, 0.5)
-				}
-			}
-		}
-
 		select {
+		case <-rateLimitTicker.C: // rate limit
+			c.processQueueStep(ctx)
+		case <-reloadBadASNsTicker.C:
+			c.updateBadASNsFromFile()
 		case <-ctx.Done():
 			return
+		}
+	}
+}
+
+func (c *Checker) processQueueStep(ctx context.Context) {
+	addressesToCheck := []string{}
+	goingToCheck := make(map[string]struct{})
+addLoop:
+	for {
+		select {
+		case addressToCheck := <-c.checkQueue:
+			addressAlreadyChecked := false
+			func() {
+				c.reputationLock.RLock()
+				defer c.reputationLock.RUnlock()
+				_, addressAlreadyChecked = c.reputation[addressToCheck]
+			}()
+			if _, present := goingToCheck[addressToCheck]; !present && !addressAlreadyChecked {
+				goingToCheck[addressToCheck] = struct{}{}
+				addressesToCheck = append(addressesToCheck, addressToCheck)
+			}
+			if len(addressesToCheck) >= 99 {
+				break addLoop
+			}
 		default:
+			break addLoop
+		}
+	}
+
+	if len(addressesToCheck) > 0 {
+		err := c.checkIPs(ctx, addressesToCheck)
+		if err != nil {
+			c.log.Println("error checking IP info:", stacktrace.Propagate(err, ""))
+			for _, ip := range addressesToCheck {
+				c.setAddressReputation(ip, 0.5)
+			}
 		}
 	}
 }
@@ -210,6 +228,35 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 		c.setAddressReputation(result.Query, 0)
 	}
 	return nil
+}
+
+func (c *Checker) updateBadASNsFromFile() {
+	fileBytes, err := ioutil.ReadFile(c.badASNsFile)
+	if err != nil {
+		c.log.Printf("Failed to read bad ASNs file: %v", stacktrace.Propagate(err, ""))
+		return
+	}
+
+	lines := strings.Split(strings.ReplaceAll(string(fileBytes), "\r\n", "\n"), "\n")
+
+	badASNsMap := make(map[int]struct{})
+	for _, asnLine := range lines {
+		if asnLine == "" || asnLine[0] == '#' {
+			continue
+		}
+		asn, err := strconv.Atoi(asnLine)
+		if err != nil {
+			c.log.Printf("Failed to read bad ASNs file: %v", stacktrace.Propagate(err, ""))
+			return
+		}
+		badASNsMap[asn] = struct{}{}
+	}
+
+	c.log.Printf("Loaded %d ASNs marked as disallowed", len(badASNsMap))
+
+	c.badASNsLock.Lock()
+	defer c.badASNsLock.Unlock()
+	c.badASNs = badASNsMap
 }
 
 func extractASN(as string) (int, error) {
