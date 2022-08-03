@@ -40,16 +40,21 @@
     }
 
     async function getVideoIDFromURL(videoURL: string) {
-        let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
-        if (idRegExp.test(videoURL)) {
-            // we were provided just a video ID
-            videoID = videoURL;
-        }
-
         // this ensures that our reactive statements trigger, and the player always reloads the video,
         // even if only the timestamp changes
         videoID = "";
         await tick();
+
+        let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
+        if (idRegExp.test(videoURL)) {
+            // we were provided just a video ID
+            videoID = videoURL;
+            return;
+        }
+
+        if (!videoURL.startsWith("http://") && !videoURL.startsWith("https://")) {
+            videoURL = "https://" + videoURL;
+        }
 
         try {
             let url = new URL(videoURL);
