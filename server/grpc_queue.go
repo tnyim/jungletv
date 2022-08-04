@@ -25,19 +25,18 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	defer unregister()
 
 	send := func() error {
-		tokensExhausted := false
+		canRemoveOwnEntries := false
 		if user != nil && !user.IsUnknown() {
-			used, remaining, err := s.ownEntryRemovalRateLimiter.Get(ctx, user.Address())
+			var err error
+			canRemoveOwnEntries, err = s.mediaQueue.UserCanRemoveOwnEntries(ctx, user)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-			// rate limiter memory store returns 0, 0 when it doesn't find a key, instead of returning the maximum for remaining...
-			tokensExhausted = remaining == 0 && used != 0
 		}
 
 		queue := &proto.Queue{
 			IsHeartbeat:            false,
-			OwnEntryRemovalEnabled: !tokensExhausted && s.mediaQueue.RemovalOfOwnEntriesAllowed(),
+			OwnEntryRemovalEnabled: canRemoveOwnEntries && s.mediaQueue.RemovalOfOwnEntriesAllowed(),
 		}
 		entries := s.mediaQueue.Entries()
 		queue.Entries = make([]*proto.QueueEntry, len(entries))
@@ -99,20 +98,12 @@ func (s *grpcServer) RemoveOwnQueueEntry(ctx context.Context, r *proto.RemoveOwn
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.mediaQueue.RemoveOwnEntry(r.Id, user)
+	err := s.mediaQueue.RemoveOwnEntry(ctx, r.Id, user)
 	if err != nil {
 		if errors.Is(err, ErrInsufficientPermissionsToRemoveEntry) {
 			return nil, status.Error(codes.PermissionDenied, "insufficient permissions")
 		}
 		return nil, stacktrace.Propagate(err, "failed to remove queue entry")
-	}
-
-	_, _, _, ok, err := s.ownEntryRemovalRateLimiter.Take(ctx, user.Address())
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	if !ok {
-		return nil, status.Errorf(codes.ResourceExhausted, "rate limit reached")
 	}
 
 	s.log.Printf("Queue entry with ID %s removed by its requester", r.Id)

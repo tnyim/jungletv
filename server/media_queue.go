@@ -13,6 +13,8 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -21,6 +23,8 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"github.com/vburenin/nsync"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -39,6 +43,8 @@ type MediaQueue struct {
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
 	playingSince                    time.Time
+
+	ownEntryRemovalRateLimiter limiter.Store
 
 	queueUpdated           *event.NoArgEvent
 	skippingAllowedUpdated *event.NoArgEvent
@@ -84,6 +90,14 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		entryReorderingAllowed:          true,
 		skippingEnabled:                 true,
 	}
+	var err error
+	q.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   4,
+		Interval: 4 * time.Hour,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	if persistenceFile != "" {
 		err := q.restoreQueueFromFile(persistenceFile)
 		if err != nil {
@@ -110,6 +124,16 @@ func (q *MediaQueue) SetEntryReorderingAllowed(allowed bool) {
 
 func (q *MediaQueue) RemovalOfOwnEntriesAllowed() bool {
 	return q.removalOfOwnEntriesAllowed
+}
+
+func (q *MediaQueue) UserCanRemoveOwnEntries(ctx context.Context, user auth.User) (bool, error) {
+	used, remaining, err := q.ownEntryRemovalRateLimiter.Get(ctx, user.Address())
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+	// rate limiter memory store returns (0, 0, nil) when it doesn't find a key, instead of returning the maximum for remaining...
+	tokensExhausted := remaining == 0 && used != 0
+	return !tokensExhausted, nil
 }
 
 func (q *MediaQueue) SetRemovalOfOwnEntriesAllowed(allowed bool) {
@@ -278,7 +302,7 @@ func (q *MediaQueue) RemoveEntry(entryID string) (media.QueueEntry, error) {
 	return entry, stacktrace.Propagate(err, "")
 }
 
-func (q *MediaQueue) RemoveOwnEntry(entryID string, user auth.User) error {
+func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user auth.User) error {
 	if !q.removalOfOwnEntriesAllowed {
 		return stacktrace.NewError("queue entry removal disallowed")
 	}
@@ -291,6 +315,15 @@ func (q *MediaQueue) RemoveOwnEntry(entryID string, user auth.User) error {
 			if reqBy == nil || reqBy.IsUnknown() || (reqBy != nil && reqBy.Address() != user.Address()) {
 				return ErrInsufficientPermissionsToRemoveEntry
 			}
+
+			_, _, _, ok, err := q.ownEntryRemovalRateLimiter.Take(ctx, user.Address())
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			if !ok {
+				return status.Errorf(codes.ResourceExhausted, "rate limit reached")
+			}
+
 			entry, err := q.removeEntryInMutex(entryID)
 			if err != nil {
 				return stacktrace.Propagate(err, "")

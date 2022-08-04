@@ -51,22 +51,21 @@ type grpcServer struct {
 	//proto.UnimplementedJungleTVServer
 	proto.UnsafeJungleTVServer // disabling forward compatibility is exactly what we want in order to get compilation errors when we forget to implement a server method
 
-	log                        *log.Logger
-	statsClient                *statsd.Client
-	wallet                     *wallet.Wallet
-	collectorAccount           *wallet.Account
-	collectorAccountQueue      chan func(*wallet.Account, *rpc.Client, *rpc.Client)
-	skipAccount                *wallet.Account
-	rainAccount                *wallet.Account
-	jwtManager                 *auth.JWTManager
-	enqueueRequestRateLimiter  limiter.Store
-	signInRateLimiter          limiter.Store
-	ownEntryRemovalRateLimiter limiter.Store
-	segchaRateLimiter          limiter.Store
-	ipReputationChecker        *ipreputation.Checker
-	userSerializer             auth.APIUserSerializer
-	websiteURL                 string
-	snowflakeNode              *snowflake.Node
+	log                       *log.Logger
+	statsClient               *statsd.Client
+	wallet                    *wallet.Wallet
+	collectorAccount          *wallet.Account
+	collectorAccountQueue     chan func(*wallet.Account, *rpc.Client, *rpc.Client)
+	skipAccount               *wallet.Account
+	rainAccount               *wallet.Account
+	jwtManager                *auth.JWTManager
+	enqueueRequestRateLimiter limiter.Store
+	signInRateLimiter         limiter.Store
+	segchaRateLimiter         limiter.Store
+	ipReputationChecker       *ipreputation.Checker
+	userSerializer            auth.APIUserSerializer
+	websiteURL                string
+	snowflakeNode             *snowflake.Node
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
 	oauthStates  *cache.Cache[string, oauthStateData]
@@ -282,13 +281,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   10,
 		Interval: 5 * time.Minute,
-	})
-	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
-	}
-	s.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
-		Tokens:   4,
-		Interval: 4 * time.Hour,
 	})
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
