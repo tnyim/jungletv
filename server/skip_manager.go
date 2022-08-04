@@ -14,6 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -99,7 +100,7 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 		select {
 		case entry := <-onMediaChanged:
 			s.mediaStartNoSkipPeriodOver = false
-			if entry == nil || entry == (MediaQueueEntry)(nil) {
+			if entry == nil || entry == (media.QueueEntry)(nil) {
 				s.currentMediaID = nil
 				s.currentMediaRequester = nil
 				mediaStartTimer.Reset(time.Duration(math.MaxInt64))

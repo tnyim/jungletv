@@ -15,13 +15,14 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-func (r *RewardsHandler) rewardUsers(ctx context.Context, media MediaQueueEntry) error {
+func (r *RewardsHandler) rewardUsers(ctx context.Context, media media.QueueEntry) error {
 	defer func() {
 		err := r.withdrawalHandler.AutoWithdrawBalances(ctx)
 		if err != nil {

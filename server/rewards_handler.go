@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
@@ -44,7 +45,7 @@ type RewardsHandler struct {
 	skipManager           *SkipManager
 	chatManager           *chatmanager.Manager
 	paymentAccountPool    *payment.PaymentAccountPool
-	lastMedia             MediaQueueEntry
+	lastMedia             media.QueueEntry
 	moderationStore       moderation.Store
 	staffActivityManager  *StaffActivityManager
 	eligibleMovingAverage *movingaverage.MovingAverage
@@ -84,7 +85,7 @@ type rewardsDistributedEventArgs struct {
 	rewardBudget       payment.Amount
 	eligibleSpectators int
 	requesterReward    payment.Amount
-	media              MediaQueueEntry
+	media              media.QueueEntry
 }
 
 type spectatorRewardedEventArgs struct {
@@ -394,7 +395,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 		select {
 		case v := <-onMediaChanged:
 			var err error
-			if v == nil || v == (MediaQueueEntry)(nil) {
+			if v == nil || v == (media.QueueEntry)(nil) {
 				err = r.onMediaChanged(ctx, nil)
 			} else {
 				err = r.onMediaChanged(ctx, v)
@@ -438,7 +439,7 @@ func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending
 	}
 }
 
-func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia MediaQueueEntry) error {
+func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia media.QueueEntry) error {
 	if newMedia == r.lastMedia {
 		return nil
 	}
@@ -458,7 +459,7 @@ func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia MediaQueue
 	return nil
 }
 
-func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed MediaQueueEntry) error {
+func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) error {
 	r.log.Printf("Media with ID %s removed from queue", removed.QueueID())
 	amountToReimburse := removed.RequestCost()
 	if amountToReimburse.Cmp(big.NewInt(0)) == 0 {
@@ -518,7 +519,7 @@ func (r *RewardsHandler) markAddressAsMentionedInChat(ctx context.Context, addre
 	}
 }
 
-func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueueEntry) error {
+func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
 	requestedBy := m.RequestedBy()
 	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() {
 		return nil
@@ -536,7 +537,7 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m MediaQueue
 	return nil
 }
 
-func (r *RewardsHandler) getPointsRewardForMedia(m MediaQueueEntry) int {
+func (r *RewardsHandler) getPointsRewardForMedia(m media.QueueEntry) int {
 	return int(m.MediaInfo().Length().Seconds())/10 + 1
 }
 

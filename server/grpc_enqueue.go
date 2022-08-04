@@ -6,7 +6,9 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -21,6 +23,48 @@ func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequ
 			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
 				Failure: &proto.EnqueueMediaFailure{
 					FailureReason: "Rate limit reached",
+				},
+			},
+		}, nil
+	}
+
+	isAdmin := false
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, authinterceptor.RemoteAddressFromContext(ctx)); err == nil && banned {
+		return &proto.EnqueueMediaResponse{
+			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+				Failure: &proto.EnqueueMediaFailure{
+					FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
+				},
+			},
+		}, nil
+	}
+	if user != nil {
+		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
+		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
+			return &proto.EnqueueMediaResponse{
+				EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+					Failure: &proto.EnqueueMediaFailure{
+						FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
+					},
+				},
+			}, nil
+		}
+	}
+	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
+		return &proto.EnqueueMediaResponse{
+			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+				Failure: &proto.EnqueueMediaFailure{
+					FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
+				},
+			},
+		}, nil
+	}
+	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+		return &proto.EnqueueMediaResponse{
+			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
+				Failure: &proto.EnqueueMediaFailure{
+					FailureReason: "At this moment, only JungleTV staff can enqueue videos",
 				},
 			},
 		}, nil
@@ -48,7 +92,11 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx (for now)
-	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, r.Id, r.StartOffset, r.EndOffset, origReq.Unskippable)
+
+	request, result, err := s.youtubeRequestCreator.NewEnqueueRequest(ctx, r.Id, r.StartOffset, r.EndOffset, origReq.Unskippable,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -56,7 +104,7 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 	var failureReason string
 
 	switch result {
-	case youTubeVideoEnqueueRequestCreationSucceeded:
+	case media.EnqueueRequestCreationSucceeded:
 		ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
 		if err != nil {
 			if strings.Contains(err.Error(), "failed to check balance for account") {
@@ -79,28 +127,24 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 				Ticket: resp,
 			},
 		}, nil
-	case youTubeVideoEnqueueRequestCreationVideoNotFound:
-		failureReason = "Video not found"
-	case youTubeVideoEnqueueRequestCreationVideoAgeRestricted:
+	case media.EnqueueRequestCreationFailedMediumNotFound:
+		failureReason = "Content not found"
+	case media.EnqueueRequestCreationFailedMediumAgeRestricted:
 		failureReason = "This content is age-restricted"
-	case youTubeVideoEnqueueRequestCreationVideoIsUpcomingLiveBroadcast:
+	case media.EnqueueRequestCreationFailedMediumIsUpcomingLiveBroadcast:
 		failureReason = "This is an upcoming live broadcast"
-	case youTubeVideoEnqueueRequestCreationVideoIsUnpopularLiveBroadcast:
+	case media.EnqueueRequestCreationFailedMediumIsUnpopularLiveBroadcast:
 		failureReason = "This live broadcast has insufficient viewers to be allowed on JungleTV"
-	case youTubeVideoEnqueueRequestCreationVideoIsNotEmbeddable:
-		failureReason = "This content can't be played outside of YouTube"
-	case youTubeVideoEnqueueRequestCreationVideoIsTooLong:
-		failureReason = "This video is longer than 35 minutes"
-	case youTubeVideoEnqueueRequestCreationVideoIsAlreadyInQueue:
+	case media.EnqueueRequestCreationFailedMediumIsNotEmbeddable:
+		failureReason = "This content can't be played outside of its original website"
+	case media.EnqueueRequestCreationFailedMediumIsTooLong:
+		failureReason = "This content is longer than 35 minutes"
+	case media.EnqueueRequestCreationFailedMediumIsAlreadyInQueue:
 		failureReason = "This content (or the selected time range) is already in the queue"
-	case youTubeVideoEnqueueRequestCreationVideoPlayedTooRecently:
+	case media.EnqueueRequestCreationFailedMediumPlayedTooRecently:
 		failureReason = "This content (or the selected time range) was last played on JungleTV too recently"
-	case youTubeVideoEnqueueRequestCreationVideoIsDisallowed:
-		failureReason = "This video is disallowed on JungleTV"
-	case youTubeVideoEnqueueRequestVideoEnqueuingDisabled:
-		failureReason = "Video enqueuing is currently disabled due to upcoming maintenance"
-	case youTubeVideoEnqueueRequestVideoEnqueuingStaffOnly:
-		failureReason = "At this moment, only JungleTV staff can enqueue videos"
+	case media.EnqueueRequestCreationFailedMediumIsDisallowed:
+		failureReason = "This content is disallowed on JungleTV"
 	}
 
 	return &proto.EnqueueMediaResponse{

@@ -95,7 +95,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		if initialHistorySize > 1000 {
 			initialHistorySize = 1000
 		}
-		var u auth.User = &unknownUser{}
+		var u auth.User = auth.UnknownUser
 		if user != nil {
 			u = user
 		}

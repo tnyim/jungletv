@@ -8,32 +8,6 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 )
 
-type unknownUser struct {
-}
-
-func (u *unknownUser) Address() string {
-	return ""
-}
-
-func (u *unknownUser) Nickname() *string {
-	return nil
-}
-
-func (u *unknownUser) PermissionLevel() auth.PermissionLevel {
-	return auth.UnauthenticatedPermissionLevel
-}
-
-func (u *unknownUser) SerializeForAPI() *proto.User {
-	return &proto.User{}
-}
-
-func (u *unknownUser) IsUnknown() bool {
-	return true
-}
-
-func (u *unknownUser) SetNickname(s *string) {
-}
-
 func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *proto.User {
 	userAddress := user.Address()
 	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)

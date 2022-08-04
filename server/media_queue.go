@@ -15,6 +15,8 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/media/youtube"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -26,7 +28,7 @@ import (
 type MediaQueue struct {
 	log                             *log.Logger
 	statsClient                     *statsd.Client
-	queue                           []MediaQueueEntry
+	queue                           []media.QueueEntry
 	queueMutex                      sync.RWMutex
 	recentEntryCounts               map[string]int
 	recentEntryCountsMutex          sync.RWMutex
@@ -40,24 +42,24 @@ type MediaQueue struct {
 
 	queueUpdated           *event.NoArgEvent
 	skippingAllowedUpdated *event.NoArgEvent
-	mediaChanged           *event.Event[MediaQueueEntry]
+	mediaChanged           *event.Event[media.QueueEntry]
 	entryAdded             *event.Event[entryAddedEventArg]
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
-	deepEntryRemoved *event.Event[MediaQueueEntry]
-	ownEntryRemoved  *event.Event[MediaQueueEntry] // receives the removed entry as an argument
+	deepEntryRemoved *event.Event[media.QueueEntry]
+	ownEntryRemoved  *event.Event[media.QueueEntry] // receives the removed entry as an argument
 	entryMoved       *event.Event[entryMovedEventArg]
 }
 
 type entryAddedEventArg struct {
 	addType string
-	entry   MediaQueueEntry
+	entry   media.QueueEntry
 }
 
 type entryMovedEventArg struct {
 	user  auth.User
-	entry MediaQueueEntry
+	entry media.QueueEntry
 	up    bool
 }
 
@@ -71,11 +73,11 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		recentEntryCounts:               make(map[string]int),
 		recentEntryCountsCacheUserMutex: nsync.NewNamedMutex(),
 		queueUpdated:                    event.NewNoArg(),
-		mediaChanged:                    event.New[MediaQueueEntry](),
+		mediaChanged:                    event.New[media.QueueEntry](),
 		skippingAllowedUpdated:          event.NewNoArg(),
 		entryAdded:                      event.New[entryAddedEventArg](),
-		deepEntryRemoved:                event.New[MediaQueueEntry](),
-		ownEntryRemoved:                 event.New[MediaQueueEntry](),
+		deepEntryRemoved:                event.New[media.QueueEntry](),
+		ownEntryRemoved:                 event.New[media.QueueEntry](),
 		entryMoved:                      event.New[entryMovedEventArg](),
 		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
 		removalOfOwnEntriesAllowed:      true,
@@ -186,15 +188,15 @@ func (q *MediaQueue) PlayingSince() time.Time {
 	return q.playingSince
 }
 
-func (q *MediaQueue) Entries() []MediaQueueEntry {
+func (q *MediaQueue) Entries() []media.QueueEntry {
 	q.queueMutex.RLock()
 	defer q.queueMutex.RUnlock()
-	queueCopy := make([]MediaQueueEntry, len(q.queue))
+	queueCopy := make([]media.QueueEntry, len(q.queue))
 	copy(queueCopy, q.queue)
 	return queueCopy
 }
 
-func (q *MediaQueue) Enqueue(newEntry MediaQueueEntry) {
+func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
@@ -222,7 +224,7 @@ func (q *MediaQueue) Enqueue(newEntry MediaQueueEntry) {
 	q.entryAdded.Notify(entryAddedEventArg{"enqueue", newEntry})
 }
 
-func (q *MediaQueue) playAfterNextNoMutex(entry MediaQueueEntry) {
+func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) {
 	if len(q.queue) < 2 {
 		q.queue = append(q.queue, entry)
 	} else {
@@ -232,7 +234,7 @@ func (q *MediaQueue) playAfterNextNoMutex(entry MediaQueueEntry) {
 	}
 }
 
-func (q *MediaQueue) PlayAfterNext(entry MediaQueueEntry) {
+func (q *MediaQueue) PlayAfterNext(entry media.QueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
@@ -242,7 +244,7 @@ func (q *MediaQueue) PlayAfterNext(entry MediaQueueEntry) {
 	q.entryAdded.Notify(entryAddedEventArg{"play_after_next", entry})
 }
 
-func (q *MediaQueue) PlayNow(entry MediaQueueEntry) {
+func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
@@ -268,7 +270,7 @@ func (q *MediaQueue) SkipCurrentEntry() {
 	}
 }
 
-func (q *MediaQueue) RemoveEntry(entryID string) (MediaQueueEntry, error) {
+func (q *MediaQueue) RemoveEntry(entryID string) (media.QueueEntry, error) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
@@ -301,7 +303,7 @@ func (q *MediaQueue) RemoveOwnEntry(entryID string, user auth.User) error {
 	return stacktrace.NewError("queue entry not found")
 }
 
-func (q *MediaQueue) removeEntryInMutex(entryID string) (MediaQueueEntry, error) {
+func (q *MediaQueue) removeEntryInMutex(entryID string) (media.QueueEntry, error) {
 	if len(q.queue) == 0 {
 		return nil, stacktrace.NewError("the queue is empty")
 	}
@@ -397,11 +399,11 @@ func (q *MediaQueue) canMoveEntryInMutex(i int, user auth.User, up bool) error {
 func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 	onQueueUpdated, queueUpdatedU := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
 	defer queueUpdatedU()
-	var prevQueueEntry MediaQueueEntry
+	var prevQueueEntry media.QueueEntry
 	for {
 		onNextMedia := make(<-chan struct{})
 		unsubscribe := func() {}
-		var currentQueueEntry MediaQueueEntry
+		var currentQueueEntry media.QueueEntry
 		func() {
 			q.queueMutex.Lock()
 			defer q.queueMutex.Unlock()
@@ -473,7 +475,7 @@ func (q *MediaQueue) playNext() {
 	q.queueUpdated.Notify()
 }
 
-func (q *MediaQueue) CurrentlyPlaying() (MediaQueueEntry, bool) {
+func (q *MediaQueue) CurrentlyPlaying() (media.QueueEntry, bool) {
 	q.queueMutex.RLock()
 	defer q.queueMutex.RUnlock()
 	if len(q.queue) == 0 {
@@ -523,7 +525,11 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 		return stacktrace.Propagate(err, "error reading queue from file: %v", err)
 	}
 
-	var entries []*queueEntryYouTubeVideo
+	type unknownTypeEntry struct {
+		Type string
+	}
+
+	var entries []json.RawMessage
 	err = json.Unmarshal(b, &entries)
 	if err != nil {
 		return stacktrace.Propagate(err, "error decoding queue from file: %v", err)
@@ -531,9 +537,23 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	q.queue = make([]MediaQueueEntry, len(entries))
+	q.queue = make([]media.QueueEntry, len(entries))
 	for i := range entries {
-		q.queue[i] = entries[i]
+		unknownEntry := unknownTypeEntry{}
+		err := json.Unmarshal(entries[i], &unknownEntry)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		switch unknownEntry.Type {
+		case "youtube-video":
+			q.queue[i], err = youtube.UnmarshalQueueEntryJSON(entries[i])
+		default:
+			return stacktrace.NewError("unknown media queue entry type %s in persisted queue", unknownEntry.Type)
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify()
@@ -567,7 +587,7 @@ func (q *MediaQueue) restorePlayingSinceFromDatabase(ctxCtx context.Context) err
 	return nil
 }
 
-func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia MediaQueueEntry, newMedia MediaQueueEntry) error {
+func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.QueueEntry, newMedia media.QueueEntry) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

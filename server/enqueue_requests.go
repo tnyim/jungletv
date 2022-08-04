@@ -13,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -39,16 +40,9 @@ type EnqueueManager struct {
 	recentlyEvictedRequests *cache.Cache[string, EnqueueTicket]
 }
 
-// EnqueueRequest is a request to create an EnqueueTicket
-type EnqueueRequest interface {
-	RequestedBy() auth.User
-	Unskippable() bool
-	MediaInfo() MediaInfo
-}
-
 // EnqueueTicket is a request to enqueue media that is pending payment
 type EnqueueTicket interface {
-	EnqueueRequest
+	media.EnqueueRequest
 	ID() string
 	CreatedAt() time.Time
 	RequestedBy() auth.User
@@ -96,7 +90,7 @@ func (e *EnqueueManager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool
 	e.newEntriesAlwaysUnskippableForFree = enabled
 }
 
-func (e *EnqueueManager) RegisterRequest(ctx context.Context, request EnqueueRequest) (EnqueueTicket, error) {
+func (e *EnqueueManager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
 	paymentAddress, paymentReceivedEvent, err := e.paymentAccountPool.ReceivePayment()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -143,7 +137,7 @@ func (e *EnqueueManager) tryEnqueuingTicket(ctx context.Context, balance payment
 	pricing := ticket.RequestPricing()
 	forceEnqueuing, forcedEnqueuingType := ticket.EnqueuingForced()
 
-	var playFn func(MediaQueueEntry)
+	var playFn func(media.QueueEntry)
 	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
 		playFn = e.mediaQueue.PlayNow
 	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
@@ -208,7 +202,7 @@ type ticket struct {
 	unskippable    bool
 	requestedBy    auth.User
 	createdAt      time.Time
-	mediaInfo      MediaInfo
+	mediaInfo      media.Info
 	paymentAddress string
 	pricing        EnqueuePricing
 	statusChanged  *event.NoArgEvent
@@ -219,7 +213,7 @@ func (t *ticket) Unskippable() bool {
 	return t.unskippable
 }
 
-func (t *ticket) MediaInfo() MediaInfo {
+func (t *ticket) MediaInfo() media.Info {
 	return t.mediaInfo
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/JohannesKaufmann/html-to-markdown/escape"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 )
@@ -40,7 +41,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 		select {
 		case v := <-mediaChangedC:
 			var err error
-			if v == nil || v == (MediaQueueEntry)(nil) {
+			if v == nil || v == (media.QueueEntry)(nil) {
 				_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
 			} else {
 				title := escape.MarkdownCharacters(v.MediaInfo().Title())

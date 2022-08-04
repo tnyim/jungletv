@@ -31,6 +31,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/media/youtube"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
@@ -41,7 +43,7 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
-	"google.golang.org/api/youtube/v3"
+	youtubeapi "google.golang.org/api/youtube/v3"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -99,8 +101,9 @@ type grpcServer struct {
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
 
-	youtube       *youtube.Service
-	modLogWebhook api.WebhookClient
+	youtube               *youtubeapi.Service
+	youtubeRequestCreator *youtube.RequestCreator
+	modLogWebhook         api.WebhookClient
 
 	raffleSecretKey *ecdsa.PrivateKey
 
@@ -344,10 +347,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.youtube, err = youtube.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
+	s.youtube, err = youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
+
+	s.youtubeRequestCreator = youtube.NewRequestCreator(s.mediaQueue, s.youtube)
 
 	skBytes, err := hex.DecodeString(options.RaffleSecretKey)
 	if err != nil {
@@ -608,7 +613,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case v := <-mediaChangedC:
-				if v == nil || v == (MediaQueueEntry)(nil) {
+				if v == nil || v == (media.QueueEntry)(nil) {
 					wait = time.Duration(90+rand.Intn(180)) * time.Second
 					t.Reset(wait)
 				}
@@ -671,12 +676,12 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.Propagate(err, "")
 	}
 
-	request, result, err := s.NewYouTubeVideoEnqueueRequest(ctx, videoID, nil, nil, false)
+	request, result, err := s.youtubeRequestCreator.NewEnqueueRequest(ctx, videoID, nil, nil, false, false, false, false)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	if result != youTubeVideoEnqueueRequestCreationSucceeded {
+	if result != media.EnqueueRequestCreationSucceeded {
 		return stacktrace.NewError("enqueue request for video %s creation failed due to video characteristics", videoID)
 	}
 
