@@ -13,108 +13,83 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-func (s *grpcServer) EnqueueMedia(ctx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
-	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, authinterceptor.RemoteAddressFromContext(ctx))
+func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
+	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	if !ok {
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-				Failure: &proto.EnqueueMediaFailure{
-					FailureReason: "Rate limit reached",
-				},
-			},
-		}, nil
+		return produceEnqueueMediaFailureResponse("Rate limit reached")
 	}
 
 	isAdmin := false
-	user := authinterceptor.UserClaimsFromContext(ctx)
-	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctx, authinterceptor.RemoteAddressFromContext(ctx)); err == nil && banned {
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-				Failure: &proto.EnqueueMediaFailure{
-					FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
-				},
-			},
-		}, nil
+	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx)); err == nil && banned {
+		return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
 	}
 	if user != nil {
 		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
-		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, user.Address()); err == nil && banned {
-			return &proto.EnqueueMediaResponse{
-				EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-					Failure: &proto.EnqueueMediaFailure{
-						FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
-					},
-				},
-			}, nil
+		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctxCtx, user.Address()); err == nil && banned {
+			return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
 		}
 	}
 	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-				Failure: &proto.EnqueueMediaFailure{
-					FailureReason: "Video enqueuing is currently disabled due to upcoming maintenance",
-				},
-			},
-		}, nil
+		return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
 	}
 	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-				Failure: &proto.EnqueueMediaFailure{
-					FailureReason: "At this moment, only JungleTV staff can enqueue videos",
-				},
-			},
-		}, nil
+		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue videos")
 	}
 
-	switch x := r.GetMediaInfo().(type) {
-	case *proto.EnqueueMediaRequest_StubData:
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-				Failure: &proto.EnqueueMediaFailure{
-					FailureReason: "Enqueuing of stub media always fails",
-				},
-			},
-		}, nil
-	case *proto.EnqueueMediaRequest_YoutubeVideoData:
-		return s.enqueueYouTubeVideo(ctx, r, x.YoutubeVideoData)
-	default:
-		return nil, stacktrace.NewError("invalid media info type")
-	}
-}
-
-func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.EnqueueMediaRequest, r *proto.EnqueueYouTubeVideoData) (*proto.EnqueueMediaResponse, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx (for now)
 
-	request, result, err := s.youtubeRequestCreator.NewEnqueueRequest(ctx, r.Id, r.StartOffset, r.EndOffset, origReq.Unskippable,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
+	var request media.EnqueueRequest
+	var result media.EnqueueRequestCreationResult
+
+	switch x := r.GetMediaInfo().(type) {
+	case *proto.EnqueueMediaRequest_StubData:
+		return produceEnqueueMediaFailureResponse("Enqueuing of stub media always fails")
+	case *proto.EnqueueMediaRequest_YoutubeVideoData:
+		yr := x.YoutubeVideoData
+		request, result, err = s.youtubeRequestCreator.NewEnqueueRequest(ctx, yr.Id, yr.StartOffset, yr.EndOffset, r.Unskippable,
+			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
+	default:
+		return nil, stacktrace.NewError("invalid media info type")
+	}
+
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	var failureReason string
-
 	switch result {
+	case media.EnqueueRequestCreationFailedMediumNotFound:
+		return produceEnqueueMediaFailureResponse("Content not found")
+	case media.EnqueueRequestCreationFailedMediumAgeRestricted:
+		return produceEnqueueMediaFailureResponse("This content is age-restricted")
+	case media.EnqueueRequestCreationFailedMediumIsUpcomingLiveBroadcast:
+		return produceEnqueueMediaFailureResponse("This is an upcoming live broadcast")
+	case media.EnqueueRequestCreationFailedMediumIsUnpopularLiveBroadcast:
+		return produceEnqueueMediaFailureResponse("This live broadcast has insufficient viewers to be allowed on JungleTV")
+	case media.EnqueueRequestCreationFailedMediumIsNotEmbeddable:
+		return produceEnqueueMediaFailureResponse("This content can't be played outside of its original website")
+	case media.EnqueueRequestCreationFailedMediumIsTooLong:
+		return produceEnqueueMediaFailureResponse("This content is longer than 35 minutes")
+	case media.EnqueueRequestCreationFailedMediumIsAlreadyInQueue:
+		return produceEnqueueMediaFailureResponse("This content (or the selected time range) is already in the queue")
+	case media.EnqueueRequestCreationFailedMediumPlayedTooRecently:
+		return produceEnqueueMediaFailureResponse("This content (or the selected time range) was last played on JungleTV too recently")
+	case media.EnqueueRequestCreationFailedMediumIsDisallowed:
+		return produceEnqueueMediaFailureResponse("This content is disallowed on JungleTV")
 	case media.EnqueueRequestCreationSucceeded:
 		ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
 		if err != nil {
 			if strings.Contains(err.Error(), "failed to check balance for account") {
-				return &proto.EnqueueMediaResponse{
-					EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
-						Failure: &proto.EnqueueMediaFailure{
-							FailureReason: "The JungleTV payment subsystem is unavailable",
-						},
-					},
-				}, nil
+				return produceEnqueueMediaFailureResponse("The JungleTV payment subsystem is unavailable")
 			}
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -127,30 +102,15 @@ func (s *grpcServer) enqueueYouTubeVideo(ctxCtx context.Context, origReq *proto.
 				Ticket: resp,
 			},
 		}, nil
-	case media.EnqueueRequestCreationFailedMediumNotFound:
-		failureReason = "Content not found"
-	case media.EnqueueRequestCreationFailedMediumAgeRestricted:
-		failureReason = "This content is age-restricted"
-	case media.EnqueueRequestCreationFailedMediumIsUpcomingLiveBroadcast:
-		failureReason = "This is an upcoming live broadcast"
-	case media.EnqueueRequestCreationFailedMediumIsUnpopularLiveBroadcast:
-		failureReason = "This live broadcast has insufficient viewers to be allowed on JungleTV"
-	case media.EnqueueRequestCreationFailedMediumIsNotEmbeddable:
-		failureReason = "This content can't be played outside of its original website"
-	case media.EnqueueRequestCreationFailedMediumIsTooLong:
-		failureReason = "This content is longer than 35 minutes"
-	case media.EnqueueRequestCreationFailedMediumIsAlreadyInQueue:
-		failureReason = "This content (or the selected time range) is already in the queue"
-	case media.EnqueueRequestCreationFailedMediumPlayedTooRecently:
-		failureReason = "This content (or the selected time range) was last played on JungleTV too recently"
-	case media.EnqueueRequestCreationFailedMediumIsDisallowed:
-		failureReason = "This content is disallowed on JungleTV"
 	}
+	return produceEnqueueMediaFailureResponse("Enqueue request failed")
+}
 
+func produceEnqueueMediaFailureResponse(reason string) (*proto.EnqueueMediaResponse, error) {
 	return &proto.EnqueueMediaResponse{
 		EnqueueResponse: &proto.EnqueueMediaResponse_Failure{
 			Failure: &proto.EnqueueMediaFailure{
-				FailureReason: failureReason,
+				FailureReason: reason,
 			},
 		},
 	}, nil
