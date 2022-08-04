@@ -5,6 +5,7 @@ import (
 
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/exp/maps"
 )
@@ -29,7 +30,7 @@ type CommonQueueEntry struct {
 	mediaInfo Info
 }
 
-func (e *CommonQueueEntry) InitializeQueueEntryCommons(mediaInfo Info) {
+func (e *CommonQueueEntry) InitializeBase(mediaInfo Info) {
 	e.donePlaying = event.NewNoArg()
 	e.movedBy = make(map[string]struct{})
 	e.mediaInfo = mediaInfo
@@ -150,4 +151,16 @@ func (e *CommonQueueEntry) SetAsMovedBy(user auth.User) {
 // MovedBy implements the QueueEntry interface
 func (e *CommonQueueEntry) MovedBy() []string {
 	return maps.Keys(e.movedBy)
+}
+
+func (e *CommonQueueEntry) BaseProducePlayedMedia() *types.PlayedMedia {
+	return &types.PlayedMedia{
+		ID:          e.QueueID(),
+		EnqueuedAt:  e.RequestedAt(),
+		MediaLength: types.Duration(e.mediaInfo.Length()),
+		MediaOffset: types.Duration(e.mediaInfo.Offset()),
+		RequestedBy: e.RequestedBy().Address(),
+		RequestCost: e.RequestCost().Decimal(),
+		Unskippable: e.Unskippable(),
+	}
 }

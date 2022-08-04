@@ -130,7 +130,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.SetRequestCost(payment.NewAmount(t.RequestCost))
 	e.SetRequestedAt(t.RequestedAt)
 	e.SetUnskippable(t.Unskippable)
-	e.InitializeQueueEntryCommons(e)
+	e.InitializeBase(e)
 	for _, m := range t.MovedBy {
 		e.SetAsMovedBy(auth.NewAddressOnlyUser(m))
 	}
@@ -171,4 +171,14 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, us
 		cp.RequestedBy = userSerializer(ctx, e.RequestedBy())
 	}
 	return cp
+}
+
+func (e *queueEntryYouTubeVideo) ProducePlayedMedia() *types.PlayedMedia {
+	playedMedia := e.BaseProducePlayedMedia()
+	playedMedia.MediaType = types.MediaTypeYouTubeVideo
+	playedMedia.YouTubeVideoID = &e.id
+	mediaTitle := e.MediaInfo().Title()
+	playedMedia.YouTubeVideoTitle = &mediaTitle
+
+	return playedMedia
 }

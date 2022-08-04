@@ -620,29 +620,8 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 	}
 
 	if newMedia != nil {
-		mediaInfo := newMedia.MediaInfo()
-		newPlayedMedia := &types.PlayedMedia{
-			ID:          newMedia.QueueID(),
-			EnqueuedAt:  newMedia.RequestedAt(),
-			StartedAt:   now,
-			MediaLength: types.Duration(mediaInfo.Length()),
-			MediaOffset: types.Duration(mediaInfo.Offset()),
-			RequestedBy: newMedia.RequestedBy().Address(),
-			RequestCost: newMedia.RequestCost().Decimal(),
-			Unskippable: newMedia.Unskippable(),
-		}
-		// this is not elegant but it will have to do for now
-		// later on, we can specify that media queue entries need to know how to serialize themselves into a PlayedMedia
-		mediaType, mediaID := mediaInfo.MediaID()
-		switch mediaType {
-		case types.MediaTypeYouTubeVideo:
-			newPlayedMedia.MediaType = types.MediaTypeYouTubeVideo
-			newPlayedMedia.YouTubeVideoID = &mediaID
-			mediaTitle := mediaInfo.Title()
-			newPlayedMedia.YouTubeVideoTitle = &mediaTitle
-		default:
-			return stacktrace.NewError("unknown media queue entry type")
-		}
+		newPlayedMedia := newMedia.ProducePlayedMedia()
+		newPlayedMedia.StartedAt = now
 
 		err = newPlayedMedia.Update(ctx)
 		if err != nil {

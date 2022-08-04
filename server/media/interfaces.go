@@ -23,6 +23,7 @@ type QueueEntry interface {
 	MediaInfo() Info
 	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry
 	ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
+	ProducePlayedMedia() *types.PlayedMedia
 	Play()
 	Stop()
 	Played() bool
