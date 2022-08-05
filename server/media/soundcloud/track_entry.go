@@ -19,10 +19,11 @@ import (
 type queueEntrySoundCloudTrack struct {
 	media.CommonQueueEntry
 	media.CommonInfo
-	id        string
-	uploader  string
-	artist    string
-	permalink string
+	id           string
+	uploader     string
+	artist       string
+	permalink    string
+	thumbnailURL string
 }
 
 func (e *queueEntrySoundCloudTrack) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) media.QueueEntry {
@@ -52,7 +53,7 @@ func (e *queueEntrySoundCloudTrack) SerializeForAPI(ctx context.Context, userSer
 			SoundcloudTrackData: &proto.QueueSoundCloudTrackData{
 				Id:           e.id,
 				Title:        e.Title(),
-				ThumbnailUrl: e.ThumbnailURL(),
+				ThumbnailUrl: e.thumbnailURL,
 				Uploader:     e.uploader,
 				Artist:       e.artist,
 				Permalink:    e.permalink,
@@ -101,7 +102,7 @@ func (e *queueEntrySoundCloudTrack) MarshalJSON() ([]byte, error) {
 		Uploader:     e.uploader,
 		Artist:       e.artist,
 		Permalink:    e.permalink,
-		ThumbnailURL: e.ThumbnailURL(),
+		ThumbnailURL: e.thumbnailURL,
 		Duration:     e.Length(),
 		Offset:       e.Offset(),
 		RequestedBy:  e.RequestedBy().Address(),
@@ -128,7 +129,7 @@ func (e *queueEntrySoundCloudTrack) UnmarshalJSON(b []byte) error {
 	e.uploader = t.Uploader
 	e.artist = t.Artist
 	e.permalink = t.Permalink
-	e.SetThumbnailURL(t.ThumbnailURL)
+	e.thumbnailURL = t.ThumbnailURL
 	e.SetLength(t.Duration)
 	e.SetOffset(t.Offset)
 	e.SetRequestedBy(auth.NewAddressOnlyUser(t.RequestedBy))
@@ -151,7 +152,7 @@ func (e *queueEntrySoundCloudTrack) FillAPITicketMediaInfo(ticket *proto.Enqueue
 			Uploader:     e.uploader,
 			Artist:       e.artist,
 			Permalink:    e.permalink,
-			ThumbnailUrl: e.ThumbnailURL(),
+			ThumbnailUrl: e.thumbnailURL,
 		},
 	}
 }

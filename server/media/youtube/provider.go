@@ -147,10 +147,10 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 		id:            videoItem.Id,
 		channelTitle:  videoItem.Snippet.ChannelTitle,
 		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",
+		thumbnailURL:  videoItem.Snippet.Thumbnails.Default.Url,
 	}
 	request.InitializeBase(request)
 	request.SetTitle(videoItem.Snippet.Title)
-	request.SetThumbnailURL(videoItem.Snippet.Thumbnails.Default.Url)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)
 	request.SetUnskippable(unskippable)

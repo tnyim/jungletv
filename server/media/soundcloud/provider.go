@@ -122,14 +122,14 @@ func (c *TrackProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 	}
 
 	request := &queueEntrySoundCloudTrack{
-		id:        idString,
-		uploader:  response.User.Username,
-		artist:    response.PublisherMetadata.Artist,
-		permalink: response.PermalinkURL,
+		id:           idString,
+		uploader:     response.User.Username,
+		artist:       response.PublisherMetadata.Artist,
+		permalink:    response.PermalinkURL,
+		thumbnailURL: response.ArtworkURL,
 	}
 	request.InitializeBase(request)
 	request.SetTitle(response.Title)
-	request.SetThumbnailURL(response.ArtworkURL)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)
 	request.SetUnskippable(unskippable)

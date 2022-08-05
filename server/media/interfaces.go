@@ -43,7 +43,6 @@ type QueueEntry interface {
 type Info interface {
 	Title() string
 	MediaID() (types.MediaType, string)
-	ThumbnailURL() string
 	Offset() time.Duration
 	Length() time.Duration
 	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) QueueEntry

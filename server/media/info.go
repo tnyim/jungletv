@@ -4,10 +4,9 @@ import "time"
 
 // CommonInfo contains the common implementation of some Info functionality
 type CommonInfo struct {
-	title        string
-	thumbnailURL string
-	duration     time.Duration
-	offset       time.Duration
+	title    string
+	duration time.Duration
+	offset   time.Duration
 }
 
 // Title implements the Info interface
@@ -17,15 +16,6 @@ func (e *CommonInfo) Title() string {
 
 func (e *CommonInfo) SetTitle(title string) {
 	e.title = title
-}
-
-// ThumbnailURL implements the Info interface
-func (e *CommonInfo) ThumbnailURL() string {
-	return e.thumbnailURL
-}
-
-func (e *CommonInfo) SetThumbnailURL(url string) {
-	e.thumbnailURL = url
 }
 
 // Length implements the Info interface

@@ -22,6 +22,7 @@ type queueEntryYouTubeVideo struct {
 	id            string
 	channelTitle  string
 	liveBroadcast bool
+	thumbnailURL  string
 }
 
 func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) media.QueueEntry {
@@ -51,7 +52,7 @@ func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerial
 			YoutubeVideoData: &proto.QueueYouTubeVideoData{
 				Id:            e.id,
 				Title:         e.Title(),
-				ThumbnailUrl:  e.ThumbnailURL(),
+				ThumbnailUrl:  e.thumbnailURL,
 				ChannelTitle:  e.channelTitle,
 				LiveBroadcast: e.liveBroadcast,
 			},
@@ -96,7 +97,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		ID:            e.id,
 		Title:         e.Title(),
 		ChannelTitle:  e.channelTitle,
-		ThumbnailURL:  e.ThumbnailURL(),
+		ThumbnailURL:  e.thumbnailURL,
 		Duration:      e.Length(),
 		Offset:        e.Offset(),
 		LiveBroadcast: e.liveBroadcast,
@@ -122,7 +123,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.id = t.ID
 	e.SetTitle(t.Title)
 	e.channelTitle = t.ChannelTitle
-	e.SetThumbnailURL(t.ThumbnailURL)
+	e.thumbnailURL = t.ThumbnailURL
 	e.SetLength(t.Duration)
 	e.SetOffset(t.Offset)
 	e.liveBroadcast = t.LiveBroadcast
@@ -144,7 +145,7 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 			Id:            e.id,
 			Title:         e.Title(),
 			ChannelTitle:  e.channelTitle,
-			ThumbnailUrl:  e.ThumbnailURL(),
+			ThumbnailUrl:  e.thumbnailURL,
 			LiveBroadcast: e.liveBroadcast,
 		},
 	}
