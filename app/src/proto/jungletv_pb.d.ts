@@ -214,6 +214,38 @@ export namespace EnqueueYouTubeVideoData {
   }
 }
 
+export class EnqueueSoundCloudTrackData extends jspb.Message {
+  getPermalink(): string;
+  setPermalink(value: string): void;
+
+  hasStartOffset(): boolean;
+  clearStartOffset(): void;
+  getStartOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setStartOffset(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasEndOffset(): boolean;
+  clearEndOffset(): void;
+  getEndOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setEndOffset(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EnqueueSoundCloudTrackData.AsObject;
+  static toObject(includeInstance: boolean, msg: EnqueueSoundCloudTrackData): EnqueueSoundCloudTrackData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EnqueueSoundCloudTrackData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EnqueueSoundCloudTrackData;
+  static deserializeBinaryFromReader(message: EnqueueSoundCloudTrackData, reader: jspb.BinaryReader): EnqueueSoundCloudTrackData;
+}
+
+export namespace EnqueueSoundCloudTrackData {
+  export type AsObject = {
+    permalink: string,
+    startOffset?: google_protobuf_duration_pb.Duration.AsObject,
+    endOffset?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
 export class EnqueueStubData extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EnqueueStubData.AsObject;
@@ -244,6 +276,11 @@ export class EnqueueMediaRequest extends jspb.Message {
   getYoutubeVideoData(): EnqueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: EnqueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): EnqueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: EnqueueSoundCloudTrackData): void;
+
   getMediaInfoCase(): EnqueueMediaRequest.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EnqueueMediaRequest.AsObject;
@@ -260,12 +297,14 @@ export namespace EnqueueMediaRequest {
     unskippable: boolean,
     stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: EnqueueSoundCloudTrackData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
     STUB_DATA = 2,
     YOUTUBE_VIDEO_DATA = 3,
+    SOUNDCLOUD_TRACK_DATA = 4,
   }
 }
 
@@ -364,6 +403,11 @@ export class EnqueueMediaTicket extends jspb.Message {
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
+
   getMediaInfoCase(): EnqueueMediaTicket.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EnqueueMediaTicket.AsObject;
@@ -388,11 +432,13 @@ export namespace EnqueueMediaTicket {
     currentlyPlayingIsUnskippable: boolean,
     mediaLength?: google_protobuf_duration_pb.Duration.AsObject,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
     YOUTUBE_VIDEO_DATA = 11,
+    SOUNDCLOUD_TRACK_DATA = 12,
   }
 }
 
@@ -544,6 +590,26 @@ export namespace NowPlayingYouTubeVideoData {
   }
 }
 
+export class NowPlayingSoundCloudTrackData extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NowPlayingSoundCloudTrackData.AsObject;
+  static toObject(includeInstance: boolean, msg: NowPlayingSoundCloudTrackData): NowPlayingSoundCloudTrackData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NowPlayingSoundCloudTrackData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NowPlayingSoundCloudTrackData;
+  static deserializeBinaryFromReader(message: NowPlayingSoundCloudTrackData, reader: jspb.BinaryReader): NowPlayingSoundCloudTrackData;
+}
+
+export namespace NowPlayingSoundCloudTrackData {
+  export type AsObject = {
+    id: string,
+  }
+}
+
 export class MediaConsumptionCheckpoint extends jspb.Message {
   getMediaPresent(): boolean;
   setMediaPresent(value: boolean): void;
@@ -592,6 +658,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getYoutubeVideoData(): NowPlayingYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: NowPlayingYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): NowPlayingSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: NowPlayingSoundCloudTrackData): void;
+
   hasLatestAnnouncement(): boolean;
   clearLatestAnnouncement(): void;
   getLatestAnnouncement(): number;
@@ -631,6 +702,7 @@ export namespace MediaConsumptionCheckpoint {
     activityChallenge?: ActivityChallenge.AsObject,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
+    soundcloudTrackData?: NowPlayingSoundCloudTrackData.AsObject,
     latestAnnouncement: number,
     hasChatMention: boolean,
     mediaTitle: string,
@@ -640,6 +712,7 @@ export namespace MediaConsumptionCheckpoint {
     MEDIA_INFO_NOT_SET = 0,
     STUB_DATA = 10,
     YOUTUBE_VIDEO_DATA = 11,
+    SOUNDCLOUD_TRACK_DATA = 12,
   }
 }
 
@@ -767,6 +840,46 @@ export namespace QueueYouTubeVideoData {
   }
 }
 
+export class QueueSoundCloudTrackData extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getThumbnailUrl(): string;
+  setThumbnailUrl(value: string): void;
+
+  getUploader(): string;
+  setUploader(value: string): void;
+
+  getArtist(): string;
+  setArtist(value: string): void;
+
+  getPermalink(): string;
+  setPermalink(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueueSoundCloudTrackData.AsObject;
+  static toObject(includeInstance: boolean, msg: QueueSoundCloudTrackData): QueueSoundCloudTrackData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: QueueSoundCloudTrackData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueueSoundCloudTrackData;
+  static deserializeBinaryFromReader(message: QueueSoundCloudTrackData, reader: jspb.BinaryReader): QueueSoundCloudTrackData;
+}
+
+export namespace QueueSoundCloudTrackData {
+  export type AsObject = {
+    id: string,
+    title: string,
+    thumbnailUrl: string,
+    uploader: string,
+    artist: string,
+    permalink: string,
+  }
+}
+
 export class QueueEntry extends jspb.Message {
   getId(): string;
   setId(value: string): void;
@@ -808,6 +921,11 @@ export class QueueEntry extends jspb.Message {
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
+
   getMediaInfoCase(): QueueEntry.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueueEntry.AsObject;
@@ -831,11 +949,13 @@ export namespace QueueEntry {
     canMoveUp: boolean,
     canMoveDown: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
     YOUTUBE_VIDEO_DATA = 10,
+    SOUNDCLOUD_TRACK_DATA = 11,
   }
 }
 
@@ -2307,11 +2427,11 @@ export class DisallowedVideo extends jspb.Message {
   getDisallowedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setDisallowedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  getYtVideoId(): string;
-  setYtVideoId(value: string): void;
+  getMediaId(): string;
+  setMediaId(value: string): void;
 
-  getYtVideoTitle(): string;
-  setYtVideoTitle(value: string): void;
+  getMediaTitle(): string;
+  setMediaTitle(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DisallowedVideo.AsObject;
@@ -2328,8 +2448,8 @@ export namespace DisallowedVideo {
     id: string,
     disallowedBy: string,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    ytVideoId: string,
-    ytVideoTitle: string,
+    mediaId: string,
+    mediaTitle: string,
   }
 }
 
@@ -2870,6 +2990,11 @@ export class ReceivedReward extends jspb.Message {
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
+
   getMediaInfoCase(): ReceivedReward.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ReceivedReward.AsObject;
@@ -2889,11 +3014,13 @@ export namespace ReceivedReward {
     receivedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     mediaId: string,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
     YOUTUBE_VIDEO_DATA = 6,
+    SOUNDCLOUD_TRACK_DATA = 7,
   }
 }
 
@@ -4157,6 +4284,11 @@ export class UserProfileResponse extends jspb.Message {
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
+
   getFeaturedMediaCase(): UserProfileResponse.FeaturedMediaCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserProfileResponse.AsObject;
@@ -4175,11 +4307,13 @@ export namespace UserProfileResponse {
     biography: string,
     currentSubscription?: SubscriptionDetails.AsObject,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
   }
 
   export enum FeaturedMediaCase {
     FEATURED_MEDIA_NOT_SET = 0,
     YOUTUBE_VIDEO_DATA = 5,
+    SOUNDCLOUD_TRACK_DATA = 6,
   }
 }
 
@@ -4316,6 +4450,11 @@ export class PlayedMedia extends jspb.Message {
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
   setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
 
+  hasSoundcloudTrackData(): boolean;
+  clearSoundcloudTrackData(): void;
+  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
+  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
+
   getMediaInfoCase(): PlayedMedia.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PlayedMedia.AsObject;
@@ -4339,11 +4478,13 @@ export namespace PlayedMedia {
     offset?: google_protobuf_duration_pb.Duration.AsObject,
     unskippable: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
+    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
     YOUTUBE_VIDEO_DATA = 10,
+    SOUNDCLOUD_TRACK_DATA = 11,
   }
 }
 

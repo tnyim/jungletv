@@ -30,22 +30,31 @@ func (s *grpcServer) PlayedMediaHistory(ctxCtx context.Context, r *proto.PlayedM
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	protoPlayedMedias, err := s.convertPlayedMedias(ctx, s.userSerializer, playedMedia)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	return &proto.PlayedMediaHistoryResponse{
-		PlayedMedia: convertPlayedMedias(ctx, s.userSerializer, playedMedia),
+		PlayedMedia: protoPlayedMedias,
 		Offset:      readOffset(r),
 		Total:       total,
 	}, nil
 }
 
-func convertPlayedMedias(ctx context.Context, userSerializer auth.APIUserSerializer, orig []*types.PlayedMedia) []*proto.PlayedMedia {
+func (s *grpcServer) convertPlayedMedias(ctx context.Context, userSerializer auth.APIUserSerializer, orig []*types.PlayedMedia) ([]*proto.PlayedMedia, error) {
 	protoEntries := make([]*proto.PlayedMedia, len(orig))
 	for i, entry := range orig {
-		protoEntries[i] = convertPlayedMedia(ctx, userSerializer, entry)
+		var err error
+		protoEntries[i], err = s.convertPlayedMedia(ctx, userSerializer, entry)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 	}
-	return protoEntries
+	return protoEntries, nil
 }
 
-func convertPlayedMedia(ctx context.Context, userSerializer auth.APIUserSerializer, orig *types.PlayedMedia) *proto.PlayedMedia {
+func (s *grpcServer) convertPlayedMedia(ctx context.Context, userSerializer auth.APIUserSerializer, orig *types.PlayedMedia) (*proto.PlayedMedia, error) {
 	media := &proto.PlayedMedia{
 		Id:          orig.ID,
 		EnqueuedAt:  timestamppb.New(orig.EnqueuedAt),
@@ -62,15 +71,11 @@ func convertPlayedMedia(ctx context.Context, userSerializer auth.APIUserSerializ
 	if orig.RequestedBy != "" {
 		media.RequestedBy = userSerializer(ctx, auth.NewAddressOnlyUser(orig.RequestedBy))
 	}
-	switch orig.MediaType {
-	case types.MediaTypeYouTubeVideo:
-		media.MediaInfo = &proto.PlayedMedia_YoutubeVideoData{
-			YoutubeVideoData: &proto.QueueYouTubeVideoData{
-				Id:    *orig.YouTubeVideoID,
-				Title: *orig.YouTubeVideoTitle,
-			},
-		}
+	var err error
+	media.MediaInfo, err = s.mediaProviders[orig.MediaType].SerializePlayedMediaMediaInfo(orig)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return media
+	return media, nil
 }

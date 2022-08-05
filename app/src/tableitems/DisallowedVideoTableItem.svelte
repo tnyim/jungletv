@@ -23,10 +23,10 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-mono"
     >
-        {video.getYtVideoId()}
+        {video.getMediaId()}
     </td>
     <td class="border-t-0 px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white">
-        {video.getYtVideoTitle()}
+        {video.getMediaTitle()}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white font-mono"

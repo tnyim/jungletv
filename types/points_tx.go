@@ -6,6 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/sqalx"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/palantir/stacktrace"
 )
 
@@ -17,7 +18,7 @@ type PointsTx struct {
 	UpdatedAt      time.Time
 	Value          int
 	Type           PointsTxType
-	Extra          string
+	Extra          types.JSONText
 }
 
 // GetPointsTxForAddress returns all the points transactions for the given address

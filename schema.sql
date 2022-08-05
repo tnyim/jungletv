@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS "media_type";
 CREATE TABLE IF NOT EXISTS "media_type" (
     media_type VARCHAR(10) PRIMARY KEY
 );
-INSERT INTO "media_type" VALUES ('yt_video');
+INSERT INTO "media_type" VALUES ('yt_video', 'sc_track');
 
 CREATE TABLE IF NOT EXISTS "played_media" (
     id VARCHAR(36) PRIMARY KEY,
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS "played_media" (
     request_cost NUMERIC(39, 0) NOT NULL,
     unskippable BOOLEAN NOT NULL,
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),
-    yt_video_id VARCHAR(11),
-    yt_video_title VARCHAR(150)
+    media_id VARCHAR(36) NOT NULL,
+    media_info JSONB NOT NULL,
 );
 CREATE INDEX index_requested_by_on_played_media ON played_media USING BTREE (requested_by);
 CREATE INDEX index_started_at_on_played_media ON played_media USING BTREE (started_at);
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS "disallowed_media" (
     disallowed_by VARCHAR(64),
     disallowed_at TIMESTAMP WITH TIME ZONE NOT NULL,
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),
-    yt_video_id VARCHAR(11),
-    yt_video_title VARCHAR(150)
+    media_id VARCHAR(36) NOT NULL,
+    media_title VARCHAR(150) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "document" (
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS "points_tx" (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     value INTEGER NOT NULL,
     type INTEGER NOT NULL REFERENCES points_tx_type (points_tx_type),
-    extra TEXT NOT NULL
+    extra JSONB NOT NULL
 );
 CREATE INDEX ON points_tx (created_at);
 CREATE INDEX ON points_tx (rewards_address);

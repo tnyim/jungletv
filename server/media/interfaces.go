@@ -10,6 +10,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // QueueEntry represents one entry in the media queue
@@ -23,7 +24,7 @@ type QueueEntry interface {
 	MediaInfo() Info
 	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry
 	ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
-	ProducePlayedMedia() *types.PlayedMedia
+	ProducePlayedMedia() (*types.PlayedMedia, error)
 	Play()
 	Stop()
 	Played() bool
@@ -47,4 +48,15 @@ type Info interface {
 	Length() time.Duration
 	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) QueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
+}
+
+// Provider provides media enqueuing and serialization facilities
+type Provider interface {
+	CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool
+	NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
+		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
+
+	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
+	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)
+	SerializeUserProfileResponseFeaturedMedia(playedMedia *types.PlayedMedia) (proto.IsUserProfileResponse_FeaturedMedia, error)
 }

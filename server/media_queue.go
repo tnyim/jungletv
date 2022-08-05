@@ -653,7 +653,10 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 	}
 
 	if newMedia != nil {
-		newPlayedMedia := newMedia.ProducePlayedMedia()
+		newPlayedMedia, err := newMedia.ProducePlayedMedia()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
 		newPlayedMedia.StartedAt = now
 
 		err = newPlayedMedia.Update(ctx)

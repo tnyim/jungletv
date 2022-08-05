@@ -1,8 +1,10 @@
 package media
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
@@ -153,8 +155,8 @@ func (e *CommonQueueEntry) MovedBy() []string {
 	return maps.Keys(e.movedBy)
 }
 
-func (e *CommonQueueEntry) BaseProducePlayedMedia() *types.PlayedMedia {
-	return &types.PlayedMedia{
+func (e *CommonQueueEntry) BaseProducePlayedMedia(mediaType types.MediaType, mediaID string, mediaInfo interface{}) (*types.PlayedMedia, error) {
+	playedMedia := &types.PlayedMedia{
 		ID:          e.QueueID(),
 		EnqueuedAt:  e.RequestedAt(),
 		MediaLength: types.Duration(e.mediaInfo.Length()),
@@ -162,5 +164,17 @@ func (e *CommonQueueEntry) BaseProducePlayedMedia() *types.PlayedMedia {
 		RequestedBy: e.RequestedBy().Address(),
 		RequestCost: e.RequestCost().Decimal(),
 		Unskippable: e.Unskippable(),
+		MediaType:   mediaType,
+		MediaID:     mediaID,
 	}
+
+	if mediaInfo != nil {
+		var err error
+		playedMedia.MediaInfo, err = json.Marshal(mediaInfo)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+	}
+
+	return playedMedia, nil
 }

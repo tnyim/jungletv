@@ -55,8 +55,8 @@ func convertDisallowedVideo(orig *types.DisallowedMedia) *proto.DisallowedVideo 
 		Id:           orig.ID,
 		DisallowedBy: orig.DisallowedBy,
 		DisallowedAt: timestamppb.New(orig.DisallowedAt),
-		YtVideoId:    *orig.YouTubeVideoID,
-		YtVideoTitle: *orig.YouTubeVideoTitle,
+		MediaId:      orig.MediaID,
+		MediaTitle:   orig.MediaTitle,
 	}
 }
 
@@ -84,12 +84,12 @@ func (s *grpcServer) AddDisallowedVideo(ctxCtx context.Context, r *proto.AddDisa
 	videoItem := response.Items[0]
 
 	disallowedMedia := &types.DisallowedMedia{
-		ID:                uuid.NewV4().String(),
-		DisallowedBy:      moderator.RewardAddress,
-		DisallowedAt:      time.Now(),
-		MediaType:         types.MediaTypeYouTubeVideo,
-		YouTubeVideoID:    &r.YtVideoId,
-		YouTubeVideoTitle: &videoItem.Snippet.Title,
+		ID:           uuid.NewV4().String(),
+		DisallowedBy: moderator.RewardAddress,
+		DisallowedAt: time.Now(),
+		MediaType:    types.MediaTypeYouTubeVideo,
+		MediaID:      r.YtVideoId,
+		MediaTitle:   videoItem.Snippet.Title,
 	}
 
 	err = disallowedMedia.Update(ctx)
@@ -153,13 +153,13 @@ func (s *grpcServer) RemoveDisallowedVideo(ctxCtx context.Context, r *proto.Remo
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Video with ID %s reallowed by %s (remote address %s)", *disallowedMedia.YouTubeVideoID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Video with ID %s reallowed by %s (remote address %s)", disallowedMedia.MediaID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("YouTube video with ID `%s` (\"%s\") reallowed by moderator: %s (%s)",
-				*disallowedMedia.YouTubeVideoID,
-				*disallowedMedia.YouTubeVideoTitle,
+				disallowedMedia.MediaID,
+				disallowedMedia.MediaTitle,
 				moderator.Address()[:14],
 				moderator.Username))
 		if err != nil {

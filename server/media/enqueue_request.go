@@ -24,4 +24,5 @@ const (
 	EnqueueRequestCreationFailedMediumIsAlreadyInQueue
 	EnqueueRequestCreationFailedMediumPlayedTooRecently
 	EnqueueRequestCreationFailedMediumIsDisallowed
+	EnqueueRequestCreationFailedMediumIsNotATrack
 )

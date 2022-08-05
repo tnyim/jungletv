@@ -46,22 +46,22 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	}
 	defer ctx.Commit() // read-only tx (for now)
 
-	var request media.EnqueueRequest
-	var result media.EnqueueRequestCreationResult
+	var provider media.Provider
 
-	switch x := r.GetMediaInfo().(type) {
-	case *proto.EnqueueMediaRequest_StubData:
-		return produceEnqueueMediaFailureResponse("Enqueuing of stub media always fails")
-	case *proto.EnqueueMediaRequest_YoutubeVideoData:
-		yr := x.YoutubeVideoData
-		request, result, err = s.youtubeRequestCreator.NewEnqueueRequest(ctx, yr.Id, yr.StartOffset, yr.EndOffset, r.Unskippable,
-			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-			s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
-	default:
-		return nil, stacktrace.NewError("invalid media info type")
+	for _, p := range s.mediaProviders {
+		if p.CanHandleRequestType(r.GetMediaInfo()) {
+			provider = p
+		}
 	}
 
+	if provider == media.Provider(nil) {
+		return nil, stacktrace.NewError("no provider found")
+	}
+
+	request, result, err := provider.NewEnqueueRequest(ctx, r.GetMediaInfo(), r.Unskippable,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
+		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -85,6 +85,8 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		return produceEnqueueMediaFailureResponse("This content (or the selected time range) was last played on JungleTV too recently")
 	case media.EnqueueRequestCreationFailedMediumIsDisallowed:
 		return produceEnqueueMediaFailureResponse("This content is disallowed on JungleTV")
+	case media.EnqueueRequestCreationFailedMediumIsNotATrack:
+		return produceEnqueueMediaFailureResponse("This is not a SoundCloud track")
 	case media.EnqueueRequestCreationSucceeded:
 		ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
 		if err != nil {

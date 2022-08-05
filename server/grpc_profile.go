@@ -35,7 +35,23 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	var featuredMedia *proto.UserProfileResponse_YoutubeVideoData
+	subscription, err := s.pointsManager.GetCurrentUserSubscription(ctx, user)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	protoPlayedMedias, err := s.convertPlayedMedias(ctx, s.userSerializer, recentlyRequestedMedia)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	response := &proto.UserProfileResponse{
+		User:                   s.userSerializer(ctx, user),
+		RecentlyPlayedRequests: protoPlayedMedias,
+		Biography:              profile.Biography,
+		CurrentSubscription:    convertSubscription(subscription),
+	}
+
 	if profile.FeaturedMedia != nil {
 		id := *profile.FeaturedMedia
 		playedMedia, err := types.GetPlayedMediaWithIDs(ctx, []string{id})
@@ -43,30 +59,14 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 			return nil, stacktrace.Propagate(err, "")
 		}
 		if m, ok := playedMedia[id]; ok {
-			switch m.MediaType {
-			case types.MediaTypeYouTubeVideo:
-				featuredMedia = &proto.UserProfileResponse_YoutubeVideoData{
-					YoutubeVideoData: &proto.QueueYouTubeVideoData{
-						Id:    *m.YouTubeVideoID,
-						Title: *m.YouTubeVideoTitle,
-					},
-				}
+			response.FeaturedMedia, err = s.mediaProviders[m.MediaType].SerializeUserProfileResponseFeaturedMedia(m)
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "")
 			}
 		}
 	}
 
-	subscription, err := s.pointsManager.GetCurrentUserSubscription(ctx, user)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	return &proto.UserProfileResponse{
-		User:                   s.userSerializer(ctx, user),
-		RecentlyPlayedRequests: convertPlayedMedias(ctx, s.userSerializer, recentlyRequestedMedia),
-		Biography:              profile.Biography,
-		CurrentSubscription:    convertSubscription(subscription),
-		FeaturedMedia:          featuredMedia,
-	}, nil
+	return response, nil
 }
 
 var statsDataAvailableSince = time.Date(2021, time.July, 19, 0, 0, 0, 0, time.UTC)
@@ -197,7 +197,7 @@ func (s *grpcServer) SetProfileFeaturedMedia(ctxCtx context.Context, r *proto.Se
 			return nil, status.Error(codes.NotFound, "media not found")
 		}
 
-		allowed, err := types.IsMediaAllowed(ctx, playedMedia.MediaType, playedMedia.ID)
+		allowed, err := types.IsMediaAllowed(ctx, playedMedia.MediaType, playedMedia.MediaID)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

@@ -5,33 +5,38 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/rickb777/date/period"
+	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/api/youtube/v3"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type mediaQueue interface {
 	Entries() []media.QueueEntry
 }
 
-// RequestCreator creates YouTube video enqueue requests
-type RequestCreator struct {
+// VideoProvider provides YouTube videos
+type VideoProvider struct {
 	mediaQueue mediaQueue
 	youtube    *youtube.Service
 }
 
-// NewRequestCreator returns a new YouTube video request creator
-func NewRequestCreator(mediaQueue mediaQueue, youtube *youtube.Service) *RequestCreator {
-	return &RequestCreator{
+// NewProvider returns a new YouTube video provider
+func NewProvider(mediaQueue mediaQueue, youtube *youtube.Service) media.Provider {
+	return &VideoProvider{
 		mediaQueue: mediaQueue,
 		youtube:    youtube,
 	}
 }
 
-func (c *RequestCreator) NewEnqueueRequest(ctx *transaction.WrappingContext, videoID string, startOffset, endOffset *durationpb.Duration, unskippable bool,
+func (c *VideoProvider) CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool {
+	_, ok := mediaParameters.(*proto.EnqueueMediaRequest_YoutubeVideoData)
+	return ok
+}
+
+func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
 	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 
 	ctx, err := transaction.Begin(ctx)
@@ -40,7 +45,15 @@ func (c *RequestCreator) NewEnqueueRequest(ctx *transaction.WrappingContext, vid
 	}
 	defer ctx.Commit() // read-only tx
 
-	response, err := c.youtube.Videos.List([]string{"snippet", "contentDetails", "status", "liveStreamingDetails"}).Id(videoID).MaxResults(1).Do()
+	youTubeParameters, ok := mediaParameters.(*proto.EnqueueMediaRequest_YoutubeVideoData)
+	if !ok {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("invalid parameter type for YouTube video provider")
+	}
+
+	response, err := c.youtube.Videos.
+		List([]string{"snippet", "contentDetails", "status", "liveStreamingDetails"}).
+		Id(youTubeParameters.YoutubeVideoData.GetId()).
+		MaxResults(1).Do()
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -72,12 +85,12 @@ func (c *RequestCreator) NewEnqueueRequest(ctx *transaction.WrappingContext, vid
 	}
 
 	var startOffsetDuration time.Duration
-	if startOffset != nil {
-		startOffsetDuration = startOffset.AsDuration()
+	if youTubeParameters.YoutubeVideoData.StartOffset != nil {
+		startOffsetDuration = youTubeParameters.YoutubeVideoData.StartOffset.AsDuration()
 	}
 	var endOffsetDuration time.Duration
-	if endOffset != nil {
-		endOffsetDuration = endOffset.AsDuration()
+	if youTubeParameters.YoutubeVideoData.EndOffset != nil {
+		endOffsetDuration = youTubeParameters.YoutubeVideoData.EndOffset.AsDuration()
 		if endOffsetDuration <= startOffsetDuration {
 			return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "video start offset past video end offset")
 		}
@@ -89,7 +102,7 @@ func (c *RequestCreator) NewEnqueueRequest(ctx *transaction.WrappingContext, vid
 		if videoItem.LiveStreamingDetails.ConcurrentViewers < 10 && !allowUnpopular {
 			return nil, media.EnqueueRequestCreationFailedMediumIsUnpopularLiveBroadcast, nil
 		}
-		if endOffset != nil {
+		if youTubeParameters.YoutubeVideoData.EndOffset != nil {
 			playFor = endOffsetDuration - startOffsetDuration
 			startOffsetDuration = 0
 			endOffsetDuration = playFor
@@ -150,7 +163,7 @@ func (c *RequestCreator) NewEnqueueRequest(ctx *transaction.WrappingContext, vid
 	return request, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (s *RequestCreator) checkYouTubeVideoContentDuplication(ctx *transaction.WrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (media.EnqueueRequestCreationResult, error) {
+func (s *VideoProvider) checkYouTubeVideoContentDuplication(ctx *transaction.WrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (media.EnqueueRequestCreationResult, error) {
 	toleranceMargin := 1 * time.Minute
 	if totalVideoLength/10 < toleranceMargin {
 		toleranceMargin = totalVideoLength / 10
@@ -196,7 +209,7 @@ func (s *RequestCreator) checkYouTubeVideoContentDuplication(ctx *transaction.Wr
 	return media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (s *RequestCreator) checkYouTubeBroadcastContentDuplication(ctx *transaction.WrappingContext, videoID string, length time.Duration) (media.EnqueueRequestCreationResult, error) {
+func (s *VideoProvider) checkYouTubeBroadcastContentDuplication(ctx *transaction.WrappingContext, videoID string, length time.Duration) (media.EnqueueRequestCreationResult, error) {
 	// check total enqueued length
 	totalLength := length
 	for idx, entry := range s.mediaQueue.Entries() {

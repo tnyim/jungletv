@@ -126,6 +126,12 @@ message EnqueueYouTubeVideoData {
     optional google.protobuf.Duration end_offset = 3;
 }
 
+message EnqueueSoundCloudTrackData {
+    string permalink = 1;
+    optional google.protobuf.Duration start_offset = 2;
+    optional google.protobuf.Duration end_offset = 3;
+}
+
 // EnqueueStubData allows us to prepare and confirm that polymorphism is working properly
 message EnqueueStubData {}
 
@@ -134,6 +140,7 @@ message EnqueueMediaRequest {
     oneof media_info {
         EnqueueStubData stub_data = 2;
         EnqueueYouTubeVideoData youtube_video_data = 3;
+        EnqueueSoundCloudTrackData soundcloud_track_data = 4;
     }
 }
 
@@ -167,6 +174,7 @@ message EnqueueMediaTicket {
     google.protobuf.Duration media_length = 10;
     oneof media_info {
         QueueYouTubeVideoData youtube_video_data = 11;
+        QueueSoundCloudTrackData soundcloud_track_data = 12;
     }
 }
 
@@ -202,6 +210,10 @@ message NowPlayingYouTubeVideoData {
     string id = 1;
 }
 
+message NowPlayingSoundCloudTrackData {
+    string id = 1;
+}
+
 message MediaConsumptionCheckpoint {
     bool media_present = 1;
     google.protobuf.Duration current_position = 2;
@@ -215,10 +227,11 @@ message MediaConsumptionCheckpoint {
     oneof media_info {
         NowPlayingStubData stub_data = 10;
         NowPlayingYouTubeVideoData youtube_video_data = 11;
+        NowPlayingSoundCloudTrackData soundcloud_track_data = 12;
     }
-    optional uint32 latest_announcement = 12;
-    optional bool has_chat_mention = 13;
-    optional string media_title = 14;
+    optional uint32 latest_announcement = 13;
+    optional bool has_chat_mention = 14;
+    optional string media_title = 15;
 }
 
 message ActivityChallenge {
@@ -245,6 +258,15 @@ message QueueYouTubeVideoData {
     bool live_broadcast = 5;
 }
 
+message QueueSoundCloudTrackData {
+    string id = 1;
+    string title = 2;
+    string thumbnail_url = 3;
+    string uploader = 4;
+    string artist = 5;
+    string permalink = 6;
+}
+
 message QueueEntry {
     string id = 1;
     User requested_by = 2;
@@ -257,6 +279,7 @@ message QueueEntry {
     bool can_move_down = 9;
     oneof media_info {
         QueueYouTubeVideoData youtube_video_data = 10;
+        QueueSoundCloudTrackData soundcloud_track_data = 11;
     }
 }
 
@@ -591,8 +614,8 @@ message DisallowedVideo {
     string id = 1;
     string disallowed_by = 2;
     google.protobuf.Timestamp disallowed_at = 3;
-    string yt_video_id = 4;
-    string yt_video_title = 5;
+    string media_id = 4;
+    string media_title = 5;
 }
 
 message DisallowedVideosResponse {
@@ -703,6 +726,7 @@ message ReceivedReward {
     string media_id = 5;
     oneof media_info {
         QueueYouTubeVideoData youtube_video_data = 6;
+        QueueSoundCloudTrackData soundcloud_track_data = 7;
     }
 }
 
@@ -950,6 +974,7 @@ message UserProfileResponse {
     optional SubscriptionDetails current_subscription = 4;
     oneof featured_media {
         QueueYouTubeVideoData youtube_video_data = 5;
+        QueueSoundCloudTrackData soundcloud_track_data = 6;
     }
 }
 
@@ -982,6 +1007,7 @@ message PlayedMedia {
     bool unskippable = 9;
     oneof media_info {
         QueueYouTubeVideoData youtube_video_data = 10;
+        QueueSoundCloudTrackData soundcloud_track_data = 11;
     }
 }
 

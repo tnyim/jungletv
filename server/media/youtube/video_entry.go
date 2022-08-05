@@ -172,13 +172,3 @@ func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, us
 	}
 	return cp
 }
-
-func (e *queueEntryYouTubeVideo) ProducePlayedMedia() *types.PlayedMedia {
-	playedMedia := e.BaseProducePlayedMedia()
-	playedMedia.MediaType = types.MediaTypeYouTubeVideo
-	playedMedia.YouTubeVideoID = &e.id
-	mediaTitle := e.MediaInfo().Title()
-	playedMedia.YouTubeVideoTitle = &mediaTitle
-
-	return playedMedia
-}

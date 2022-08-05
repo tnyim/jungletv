@@ -6,24 +6,25 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gbl08ma/sqalx"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
 )
 
 // PlayedMedia is media that has played on the service
 type PlayedMedia struct {
-	ID                string `dbKey:"true"`
-	EnqueuedAt        time.Time
-	StartedAt         time.Time
-	EndedAt           sql.NullTime
-	MediaLength       Duration
-	MediaOffset       Duration
-	RequestedBy       string
-	RequestCost       decimal.Decimal
-	Unskippable       bool
-	MediaType         MediaType
-	YouTubeVideoID    *string `dbColumn:"yt_video_id"`
-	YouTubeVideoTitle *string `dbColumn:"yt_video_title"`
+	ID          string `dbKey:"true"`
+	EnqueuedAt  time.Time
+	StartedAt   time.Time
+	EndedAt     sql.NullTime
+	MediaLength Duration
+	MediaOffset Duration
+	RequestedBy string
+	RequestCost decimal.Decimal
+	Unskippable bool
+	MediaType   MediaType
+	MediaID     string `dbColumn:"media_id"`
+	MediaInfo   types.JSONText
 }
 
 // GetPlayedMedia returns all played media in the database according to the given filters
@@ -33,7 +34,7 @@ func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying 
 	if excludeDisallowed {
 		s = s.LeftJoin(`disallowed_media ON
 				disallowed_media.media_type = played_media.media_type AND
-				COALESCE(disallowed_media.yt_video_id, '') = COALESCE(played_media.yt_video_id, '')`).
+				disallowed_media.media_id = played_media.media_id`).
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}
 	if excludeCurrentlyPlaying {
@@ -44,8 +45,8 @@ func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying 
 	}
 	if filter != "" {
 		s = s.Where(sq.Or{
-			sq.Eq{"played_media.yt_video_id": filter},
-			sq.Expr("UPPER(played_media.yt_video_title) LIKE UPPER(?)", "%"+filter+"%"),
+			sq.Eq{"played_media.media_id": filter},
+			sq.Expr("UPPER(played_media.media_title) LIKE UPPER(?)", "%"+filter+"%"),
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
@@ -81,19 +82,12 @@ func GetPlayedMediaRequestedBySince(node sqalx.Node, requestedBy string, since t
 }
 
 // LastPlaysOfMedia returns the times the specified media was played since the specified time
-func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, ytVideoID string) ([]*PlayedMedia, error) {
+func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, mediaID string) ([]*PlayedMedia, error) {
 	s := sdb.Select().
-		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since})
-	switch mediaType {
-	case MediaTypeYouTubeVideo:
-		s = s.Where(sq.And{
-			sq.Eq{"played_media.media_type": string(mediaType)},
-			sq.Eq{"played_media.yt_video_id": ytVideoID},
-		})
-	default:
-		return []*PlayedMedia{}, stacktrace.NewError("invalid media type")
-	}
-	s = s.OrderBy("started_at DESC").Limit(1)
+		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since}).
+		Where(sq.Eq{"played_media.media_type": string(mediaType)}).
+		Where(sq.Eq{"played_media.media_id": mediaID}).
+		OrderBy("started_at DESC").Limit(1)
 	m, err := GetWithSelect[*PlayedMedia](node, s)
 	return m, stacktrace.Propagate(err, "")
 }
@@ -146,7 +140,7 @@ func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDi
 	if excludeDisallowed {
 		s = s.LeftJoin(`disallowed_media ON
 				disallowed_media.media_type = played_media.media_type AND
-				COALESCE(disallowed_media.yt_video_id, '') = COALESCE(played_media.yt_video_id, '')`).
+				disallowed_media.media_id = played_media.media_id`).
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}
 	s = s.OrderBy("started_at DESC").Limit(uint64(count))
@@ -167,9 +161,9 @@ func (obj *PlayedMedia) Delete(node sqalx.Node) error {
 // PlayedMediaRaffleEntry is the raffle entry representation of a played media entry
 // It corresponds to the same DB entry as PlayedMedia, it's just a different "view" over it
 type PlayedMediaRaffleEntry struct {
-	TicketNumber   int `dbColumnRaw:"ROW_NUMBER() OVER (ORDER BY played_media.started_at) AS ticket_number"`
-	RequestedBy    string
-	YouTubeVideoID *string `dbColumn:"yt_video_id"`
+	TicketNumber int `dbColumnRaw:"ROW_NUMBER() OVER (ORDER BY played_media.started_at) AS ticket_number"`
+	RequestedBy  string
+	MediaID      string `dbColumn:"media_id"`
 }
 
 func (p *PlayedMediaRaffleEntry) tableName() string {

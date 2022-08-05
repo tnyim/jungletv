@@ -449,11 +449,7 @@ JungleTV.
 		return stacktrace.Propagate(err, "")
 	}
 	for _, entry := range entries {
-		vid := ""
-		if entry.YouTubeVideoID != nil {
-			vid = *entry.YouTubeVideoID
-		}
-		err = csvWriter.Write([]string{fmt.Sprintf("%d", entry.TicketNumber), vid, entry.RequestedBy})
+		err = csvWriter.Write([]string{fmt.Sprintf("%d", entry.TicketNumber), entry.MediaID, entry.RequestedBy})
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}

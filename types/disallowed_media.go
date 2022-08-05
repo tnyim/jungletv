@@ -10,12 +10,12 @@ import (
 
 // DisallowedMedia is media that can't be played on the service
 type DisallowedMedia struct {
-	ID                string `dbKey:"true"`
-	DisallowedBy      string
-	DisallowedAt      time.Time
-	MediaType         MediaType
-	YouTubeVideoID    *string `dbColumn:"yt_video_id"`
-	YouTubeVideoTitle *string `dbColumn:"yt_video_title"`
+	ID           string `dbKey:"true"`
+	DisallowedBy string
+	DisallowedAt time.Time
+	MediaType    MediaType
+	MediaID      string `dbColumn:"media_id"`
+	MediaTitle   string
 }
 
 // GetDisallowedMedia returns all disallowed media in the database
@@ -57,8 +57,8 @@ func GetDisallowedMediaWithTypeAndFilter(node sqalx.Node, mediaType MediaType, f
 		Where(sq.Eq{"disallowed_media.media_type": string(mediaType)}).
 		Where(sq.Or{
 			sq.Eq{"disallowed_media.id": filter},
-			sq.Eq{"disallowed_media.yt_video_id": filter},
-			sq.Expr("UPPER(disallowed_media.yt_video_title) LIKE UPPER(?)", "%"+filter+"%"),
+			sq.Eq{"disallowed_media.media_id": filter},
+			sq.Expr("UPPER(disallowed_media.media_title) LIKE UPPER(?)", "%"+filter+"%"),
 		}).
 		OrderBy("disallowed_media.media_type DESC")
 	s = applyPaginationParameters(s, pagParams)
@@ -66,17 +66,10 @@ func GetDisallowedMediaWithTypeAndFilter(node sqalx.Node, mediaType MediaType, f
 }
 
 // IsMediaAllowed returns whether the specified media is allowed
-func IsMediaAllowed(node sqalx.Node, mediaType MediaType, ytVideoID string) (bool, error) {
-	s := sdb.Select()
-	switch mediaType {
-	case MediaTypeYouTubeVideo:
-		s = s.Where(sq.And{
-			sq.Eq{"disallowed_media.media_type": string(mediaType)},
-			sq.Eq{"disallowed_media.yt_video_id": ytVideoID},
-		})
-	default:
-		return false, stacktrace.NewError("invalid media type")
-	}
+func IsMediaAllowed(node sqalx.Node, mediaType MediaType, mediaID string) (bool, error) {
+	s := sdb.Select().
+		Where(sq.Eq{"disallowed_media.media_type": string(mediaType)}).
+		Where(sq.Eq{"disallowed_media.media_id": mediaID})
 	m, err := GetWithSelect[*DisallowedMedia](node, s)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")

@@ -32,6 +32,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/media/soundcloud"
 	"github.com/tnyim/jungletv/server/media/youtube"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -100,9 +101,9 @@ type grpcServer struct {
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
 
-	youtube               *youtubeapi.Service
-	youtubeRequestCreator *youtube.RequestCreator
-	modLogWebhook         api.WebhookClient
+	youtube        *youtubeapi.Service
+	mediaProviders map[types.MediaType]media.Provider
+	modLogWebhook  api.WebhookClient
 
 	raffleSecretKey *ecdsa.PrivateKey
 
@@ -344,7 +345,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
 
-	s.youtubeRequestCreator = youtube.NewRequestCreator(s.mediaQueue, s.youtube)
+	s.mediaProviders = map[types.MediaType]media.Provider{
+		types.MediaTypeYouTubeVideo:    youtube.NewProvider(s.mediaQueue, s.youtube),
+		types.MediaTypeSoundCloudTrack: soundcloud.NewProvider(s.mediaQueue, "api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030"), // TODO unhardcode
+	}
 
 	skBytes, err := hex.DecodeString(options.RaffleSecretKey)
 	if err != nil {
@@ -668,7 +672,11 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.Propagate(err, "")
 	}
 
-	request, result, err := s.youtubeRequestCreator.NewEnqueueRequest(ctx, videoID, nil, nil, false, false, false, false)
+	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].NewEnqueueRequest(ctx, &proto.EnqueueMediaRequest_YoutubeVideoData{
+		YoutubeVideoData: &proto.EnqueueYouTubeVideoData{
+			Id: videoID,
+		},
+	}, false, false, false, false)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

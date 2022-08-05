@@ -81,7 +81,7 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 		return 0, stacktrace.Propagate(ctx.Commit(), "")
 	}
 
-	extra := ""
+	extra := []byte{}
 	extraFieldsMap := make(map[string]any)
 	for _, field := range extraFields {
 		extraFieldsMap[field.Key] = field.Value
@@ -94,11 +94,10 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	}
 
 	if len(extraFields) > 0 {
-		jsonBytes, err := json.Marshal(extraFieldsMap)
+		extra, err = json.Marshal(extraFieldsMap)
 		if err != nil {
 			return 0, stacktrace.Propagate(err, "")
 		}
-		extra = string(jsonBytes)
 	}
 	now := time.Now()
 	tx := &types.PointsTx{

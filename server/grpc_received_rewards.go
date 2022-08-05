@@ -44,22 +44,31 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 		}
 	}
 
+	protoReceivedRewards, err := s.convertReceivedRewards(receivedRewards, playedMedia)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	return &proto.RewardHistoryResponse{
-		ReceivedRewards: convertReceivedRewards(receivedRewards, playedMedia),
+		ReceivedRewards: protoReceivedRewards,
 		Offset:          readOffset(r),
 		Total:           total,
 	}, nil
 }
 
-func convertReceivedRewards(orig []*types.ReceivedReward, playedMedia map[string]*types.PlayedMedia) []*proto.ReceivedReward {
+func (s *grpcServer) convertReceivedRewards(orig []*types.ReceivedReward, playedMedia map[string]*types.PlayedMedia) ([]*proto.ReceivedReward, error) {
 	protoEntries := make([]*proto.ReceivedReward, len(orig))
 	for i, entry := range orig {
-		protoEntries[i] = convertReceivedReward(entry, playedMedia[entry.Media])
+		var err error
+		protoEntries[i], err = s.convertReceivedReward(entry, playedMedia[entry.Media])
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
 	}
-	return protoEntries
+	return protoEntries, nil
 }
 
-func convertReceivedReward(orig *types.ReceivedReward, playedMedia *types.PlayedMedia) *proto.ReceivedReward {
+func (s *grpcServer) convertReceivedReward(orig *types.ReceivedReward, playedMedia *types.PlayedMedia) (*proto.ReceivedReward, error) {
 	reward := &proto.ReceivedReward{
 		Id:             orig.ID,
 		RewardsAddress: orig.RewardsAddress,
@@ -69,16 +78,12 @@ func convertReceivedReward(orig *types.ReceivedReward, playedMedia *types.Played
 	}
 
 	if playedMedia != nil {
-		switch playedMedia.MediaType {
-		case types.MediaTypeYouTubeVideo:
-			reward.MediaInfo = &proto.ReceivedReward_YoutubeVideoData{
-				YoutubeVideoData: &proto.QueueYouTubeVideoData{
-					Id:    *playedMedia.YouTubeVideoID,
-					Title: *playedMedia.YouTubeVideoTitle,
-				},
-			}
+		var err error
+		reward.MediaInfo, err = s.mediaProviders[playedMedia.MediaType].SerializeReceivedRewardMediaInfo(playedMedia)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
 		}
 	}
 
-	return reward
+	return reward, nil
 }
