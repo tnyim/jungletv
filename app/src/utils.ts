@@ -6,7 +6,7 @@ import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/du
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { apiClient } from "./api_client";
-import type { User } from "./proto/jungletv_pb";
+import type { QueueSoundCloudTrackData, User } from "./proto/jungletv_pb";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -76,6 +76,21 @@ export const formatQueueEntryThumbnailDuration = function (duration: google_prot
         return (part + " - " + part2).replace(/^00:00 - /, "");
     }
     return Duration.fromMillis(duration.getSeconds() * 1000 + duration.getNanos() / 1000000).toFormat("mm:ss");
+}
+
+export const formatSoundCloudTrackAttribution = function (trackData: QueueSoundCloudTrackData): string {
+    let artist = trackData.getArtist();
+    let uploader = trackData.getUploader();
+    if (artist !== "" && uploader !== "") {
+        if (artist.toLowerCase() == uploader.toLowerCase()) {
+            return artist;
+        }
+        return artist + " via " + uploader;
+    }
+    if (artist !== "") {
+        return artist;
+    }
+    return uploader;
 }
 
 export const insertAtCursor = function (input: HTMLInputElement | HTMLTextAreaElement, textToInsert: string) {
@@ -374,7 +389,7 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
     ]));
 }
 
-export const buildMonKeyURL = function(address: string, format?: string): string {
+export const buildMonKeyURL = function (address: string, format?: string): string {
     if (typeof format !== "undefined") {
         return "https://monkey.banano.cc/api/v1/monkey/" + address + "?format=" + format;
     }

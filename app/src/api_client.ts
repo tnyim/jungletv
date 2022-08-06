@@ -160,7 +160,8 @@ import {
     SetQueueEntryReorderingAllowedResponse,
     SetQueueEntryReorderingAllowedRequest,
     StartOrExtendSubscriptionResponse,
-    StartOrExtendSubscriptionRequest
+    StartOrExtendSubscriptionRequest,
+    EnqueueSoundCloudTrackData
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -295,6 +296,21 @@ class APIClient {
             ytData.setEndOffset(endOffset);
         }
         request.setYoutubeVideoData(ytData);
+        return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
+    }
+
+    async enqueueSoundCloudTrack(url: string, unskippable: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+        let request = new EnqueueMediaRequest();
+        request.setUnskippable(unskippable);
+        let scData = new EnqueueSoundCloudTrackData();
+        scData.setPermalink(url);
+        if (typeof startOffset !== 'undefined') {
+            scData.setStartOffset(startOffset);
+        }
+        if (typeof endOffset !== 'undefined') {
+            scData.setEndOffset(endOffset);
+        }
+        request.setSoundcloudTrackData(scData);
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 

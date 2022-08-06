@@ -14,6 +14,7 @@
     const dispatch = createEventDispatcher();
 
     export let ticket: EnqueueMediaTicket;
+    export let mediaType: "video" | "track";
 
     let monitorTicketRequest: Request;
     let ticketTimeRemainingFormatted = "";
@@ -72,17 +73,17 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a video</h3>
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaType}</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Looks like this video can be played on JungleTV. The prices shown are valid for two minutes, regardless of
+            Looks like this {mediaType} can be played on JungleTV. The prices shown are valid for ten minutes, regardless of
             the changes in queue length and viewership during this period.
         </p>
         <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
-            In addition to the minimum price, there are two additional price tiers you can use to play the video sooner.
+            In addition to the minimum price, there are two additional price tiers you can use to play the {mediaType} sooner.
             Beware: these might not make much sense if the queue is already short!
         </p>
         <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
-            If you decide to enqueue the video right after the current one, beware that until the current video finishes
+            If you decide to enqueue the {mediaType} right after the currently playing content, beware that until the current entry finishes
             playing, it is still possible for others to dethrone it by using the same option.
         </p>
     </div>
@@ -91,7 +92,7 @@
         {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE}
             <EnqueueTicketPreview {ticket} />
             <p class="mt-8">
-                The video will be added to the queue once at least <span class="font-bold"
+                The {mediaType} will be added to the queue once at least <span class="font-bold"
                     >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
                 > is sent to the following address:
             </p>
@@ -108,7 +109,7 @@
             </div>
             {#if ticket.getUnskippable()}
                 <div class="flex justify-center text-yellow-800 dark:text-yellow-400">
-                    <strong>Prices have been heavily increased as you wish for this video to be unskippable.</strong>
+                    <strong>Prices have been heavily increased as you wish for this {mediaType} to be unskippable.</strong>
                 </div>
             {/if}
             <div class="flex justify-center">
@@ -125,7 +126,7 @@
                             <td class="text-right font-bold p-2">
                                 Send {apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN
                             </td>
-                            <td class="p-2">to add the video to the end of the queue</td>
+                            <td class="p-2">to add the {mediaType} to the end of the queue</td>
                         </tr>
                         <tr>
                             <td>
@@ -138,7 +139,7 @@
                             <td class="text-right font-bold p-2">
                                 Send {apiClient.formatBANPrice(ticket.getPlayNextPrice())} BAN
                             </td>
-                            <td class="p-2">to play the video right after the current one</td>
+                            <td class="p-2">to play the {mediaType} right after the current entry</td>
                         </tr>
                         <tr>
                             <td>
@@ -156,7 +157,7 @@
                                 Send {apiClient.formatBANPrice(ticket.getPlayNowPrice())} BAN
                             </td>
                             <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? 'line-through' : ''}"
-                                >to skip the current video and play immediately</td
+                                >to skip the current content and play immediately</td
                             >
                         </tr>
                     </tbody>
@@ -165,12 +166,12 @@
             {#if ticket.getCurrentlyPlayingIsUnskippable()}
                 <div class="mt-3">
                     <WarningMessage>
-                        The currently playing video is unskippable; even if you pay the price to play immediately, it
+                        The currently playing content is unskippable; even if you pay the price to play immediately, it
                         will still be enqueued to play after the current one.
                     </WarningMessage>
                 </div>
             {/if}
-            <p class="mt-2">Sending more BAN will increase the rewards for viewers when watching this video.</p>
+            <p class="mt-2">Sending more BAN will increase the rewards for viewers when {mediaType == "video" ? "watching" : "listening to"} this {mediaType}.</p>
             <p class="mt-2">
                 This price and address will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
             </p>

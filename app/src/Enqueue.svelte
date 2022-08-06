@@ -12,6 +12,7 @@
 
     let step = 0;
     let ticket: EnqueueMediaTicket;
+    let mediaType: "video" | "track" = "video";
     function onMediaSelected(event: CustomEvent<EnqueueMediaResponse>) {
         ticket = event.detail.getTicket();
         step = 1;
@@ -31,6 +32,16 @@
     }
 
     let ongoingRaffleInfo: OngoingRaffleInfo;
+
+    $: {
+        if (typeof ticket !== "undefined") {
+            if (ticket.hasYoutubeVideoData()) {
+                mediaType = "video";
+            } else if (ticket.hasSoundcloudTrackData()) {
+                mediaType = "track";
+            }
+        }
+    }
 
     onMount(async () => {
         let resp = await apiClient.ongoingRaffleInfo();
@@ -55,6 +66,7 @@
         on:ticketExpired={onTicketExpired}
         on:connectionLost={onConnectionLost}
         bind:ticket
+        {mediaType}
     >
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
@@ -63,7 +75,7 @@
         </svelte:fragment>
     </EnqueuePayment>
 {:else if step == 2}
-    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket>
+    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket {mediaType}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />
@@ -71,7 +83,7 @@
         </svelte:fragment>
     </EnqueueSuccess>
 {:else if step == 3}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket>
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket {mediaType}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />
@@ -79,7 +91,7 @@
         </svelte:fragment>
     </EnqueueFailure>
 {:else if step == 4}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true}>
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true} {mediaType}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />
