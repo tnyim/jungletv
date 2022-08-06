@@ -346,6 +346,15 @@ type JungleTVStartOrExtendSubscription = {
   readonly responseType: typeof jungletv_pb.StartOrExtendSubscriptionResponse;
 };
 
+type JungleTVSoundCloudTrackDetails = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SoundCloudTrackDetailsRequest;
+  readonly responseType: typeof jungletv_pb.SoundCloudTrackDetailsResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -728,6 +737,7 @@ export class JungleTV {
   static readonly ChatGifSearch: JungleTVChatGifSearch;
   static readonly ConvertBananoToPoints: JungleTVConvertBananoToPoints;
   static readonly StartOrExtendSubscription: JungleTVStartOrExtendSubscription;
+  static readonly SoundCloudTrackDetails: JungleTVSoundCloudTrackDetails;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1085,6 +1095,15 @@ export class JungleTVClient {
   startOrExtendSubscription(
     requestMessage: jungletv_pb.StartOrExtendSubscriptionRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.StartOrExtendSubscriptionResponse|null) => void
+  ): UnaryResponse;
+  soundCloudTrackDetails(
+    requestMessage: jungletv_pb.SoundCloudTrackDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SoundCloudTrackDetailsResponse|null) => void
+  ): UnaryResponse;
+  soundCloudTrackDetails(
+    requestMessage: jungletv_pb.SoundCloudTrackDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SoundCloudTrackDetailsResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

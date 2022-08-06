@@ -46,6 +46,7 @@ service JungleTV {
     rpc ChatGifSearch (ChatGifSearchRequest) returns (ChatGifSearchResponse) {}
     rpc ConvertBananoToPoints (ConvertBananoToPointsRequest) returns (stream ConvertBananoToPointsStatus) {}
     rpc StartOrExtendSubscription (StartOrExtendSubscriptionRequest) returns (StartOrExtendSubscriptionResponse) {}
+    rpc SoundCloudTrackDetails (SoundCloudTrackDetailsRequest) returns (SoundCloudTrackDetailsResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -1166,4 +1167,12 @@ message StartOrExtendSubscriptionRequest {}
 
 message StartOrExtendSubscriptionResponse {
     SubscriptionDetails subscription = 1;
+}
+
+message SoundCloudTrackDetailsRequest {
+    string track_url = 1;
+}
+
+message SoundCloudTrackDetailsResponse {
+    google.protobuf.Duration length = 1;
 }

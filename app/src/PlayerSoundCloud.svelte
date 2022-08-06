@@ -14,13 +14,6 @@
             iframe: playerIframe,
             useDefaultStyle: false,
         });
-        /*player.on("stateChange", (event) => {
-            if (!playerBecameReady && event.data == 1 && firstSeekTo !== undefined) {
-                playerBecameReady = true;
-                updatePlayerVolumeIntervalHandle = setInterval(updatePlayerVolume, 10000);
-                player.seekTo(firstSeekTo, true);
-            }
-        });*/
 
         document.addEventListener("visibilitychange", updatePlayerVolume);
     });

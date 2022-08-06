@@ -63,6 +63,7 @@ type grpcServer struct {
 	enqueueRequestRateLimiter limiter.Store
 	signInRateLimiter         limiter.Store
 	segchaRateLimiter         limiter.Store
+	mediaPreviewLimiter       limiter.Store
 	ipReputationChecker       *ipreputation.Checker
 	userSerializer            auth.APIUserSerializer
 	websiteURL                string
@@ -101,9 +102,10 @@ type grpcServer struct {
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
 
-	youtube        *youtubeapi.Service
-	mediaProviders map[types.MediaType]media.Provider
-	modLogWebhook  api.WebhookClient
+	youtube            *youtubeapi.Service
+	soundCloudProvider *soundcloud.TrackProvider
+	mediaProviders     map[types.MediaType]media.Provider
+	modLogWebhook      api.WebhookClient
 
 	raffleSecretKey *ecdsa.PrivateKey
 
@@ -216,9 +218,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
 
+	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030") // TODO unhardcode
+
 	mediaProviders := map[types.MediaType]media.Provider{
 		types.MediaTypeYouTubeVideo:    youtube.NewProvider(ytClient),
-		types.MediaTypeSoundCloudTrack: soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030"), // TODO unhardcode
+		types.MediaTypeSoundCloudTrack: soundCloudProvider,
 	}
 
 	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
@@ -259,8 +263,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),
 		segchaClient:           options.SegchaClient,
 
-		mediaProviders: mediaProviders,
-		youtube:        ytClient,
+		mediaProviders:     mediaProviders,
+		youtube:            ytClient,
+		soundCloudProvider: soundCloudProvider.(*soundcloud.TrackProvider),
 
 		announcementsUpdated: event.New[int](),
 	}
@@ -303,6 +308,14 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.segchaRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   4,
 		Interval: 2 * time.Minute,
+	})
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+
+	s.mediaPreviewLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   4,
+		Interval: 1 * time.Minute,
 	})
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")

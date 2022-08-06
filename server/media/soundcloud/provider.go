@@ -62,7 +62,7 @@ func (c *TrackProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("invalid parameter type for SoundCloud track provider")
 	}
 
-	response, err := c.getTrackInfo(soundCloudParameters.SoundcloudTrackData.GetPermalink())
+	response, err := c.TrackInfo(soundCloudParameters.SoundcloudTrackData.GetPermalink())
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
@@ -187,7 +187,7 @@ func (s *TrackProvider) checkSoundCloudTrackContentDuplication(ctx *transaction.
 	return media.EnqueueRequestCreationSucceeded, nil
 }
 
-type apiResponse struct {
+type APIResponse struct {
 	ArtworkURL        string               `json:"artwork_url"`
 	Duration          int64                `json:"duration"`
 	EmbeddableBy      string               `json:"embeddable_by"`
@@ -195,23 +195,23 @@ type apiResponse struct {
 	ID                int64                `json:"id"`
 	PermalinkURL      string               `json:"permalink_url"`
 	Public            bool                 `json:"public"`
-	PublisherMetadata apiPublisherMetadata `json:"publisher_metadata"`
+	PublisherMetadata APIPublisherMetadata `json:"publisher_metadata"`
 	Sharing           string               `json:"sharing"`
 	Streamable        bool                 `json:"streamable"`
 	Title             string               `json:"title"`
-	User              apiUser              `json:"user"`
+	User              APIUser              `json:"user"`
 }
 
-type apiPublisherMetadata struct {
+type APIPublisherMetadata struct {
 	Artist        string `json:"artist"`
 	ContainsMusic bool   `json:"contains_music"`
 }
 
-type apiUser struct {
+type APIUser struct {
 	Username string `json:"username"`
 }
 
-func (c *TrackProvider) getTrackInfo(trackURL string) (*apiResponse, error) {
+func (c *TrackProvider) TrackInfo(trackURL string) (*APIResponse, error) {
 	query := url.Values{}
 	query.Set("url", trackURL)
 	query.Set("format", "json")
@@ -231,7 +231,7 @@ func (c *TrackProvider) getTrackInfo(trackURL string) (*apiResponse, error) {
 
 	defer response.Body.Close()
 
-	var responseData apiResponse
+	var responseData APIResponse
 	err = json.NewDecoder(response.Body).Decode(&responseData)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")

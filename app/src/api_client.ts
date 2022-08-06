@@ -161,7 +161,9 @@ import {
     SetQueueEntryReorderingAllowedRequest,
     StartOrExtendSubscriptionResponse,
     StartOrExtendSubscriptionRequest,
-    EnqueueSoundCloudTrackData
+    EnqueueSoundCloudTrackData,
+    SoundCloudTrackDetailsResponse,
+    SoundCloudTrackDetailsRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -312,6 +314,12 @@ class APIClient {
         }
         request.setSoundcloudTrackData(scData);
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
+    }
+
+    async soundCloudTrackDetails(url: string): Promise<SoundCloudTrackDetailsResponse> {
+        let request = new SoundCloudTrackDetailsRequest();
+        request.setTrackUrl(url);
+        return this.unaryRPC<SoundCloudTrackDetailsRequest, SoundCloudTrackDetailsResponse>(JungleTV.SoundCloudTrackDetails, request);
     }
 
     consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {

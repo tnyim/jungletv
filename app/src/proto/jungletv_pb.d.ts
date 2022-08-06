@@ -5291,6 +5291,48 @@ export namespace StartOrExtendSubscriptionResponse {
   }
 }
 
+export class SoundCloudTrackDetailsRequest extends jspb.Message {
+  getTrackUrl(): string;
+  setTrackUrl(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SoundCloudTrackDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SoundCloudTrackDetailsRequest): SoundCloudTrackDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SoundCloudTrackDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SoundCloudTrackDetailsRequest;
+  static deserializeBinaryFromReader(message: SoundCloudTrackDetailsRequest, reader: jspb.BinaryReader): SoundCloudTrackDetailsRequest;
+}
+
+export namespace SoundCloudTrackDetailsRequest {
+  export type AsObject = {
+    trackUrl: string,
+  }
+}
+
+export class SoundCloudTrackDetailsResponse extends jspb.Message {
+  hasLength(): boolean;
+  clearLength(): void;
+  getLength(): google_protobuf_duration_pb.Duration | undefined;
+  setLength(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SoundCloudTrackDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SoundCloudTrackDetailsResponse): SoundCloudTrackDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SoundCloudTrackDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SoundCloudTrackDetailsResponse;
+  static deserializeBinaryFromReader(message: SoundCloudTrackDetailsResponse, reader: jspb.BinaryReader): SoundCloudTrackDetailsResponse;
+}
+
+export namespace SoundCloudTrackDetailsResponse {
+  export type AsObject = {
+    length?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

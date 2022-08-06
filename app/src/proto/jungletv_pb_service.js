@@ -352,6 +352,15 @@ JungleTV.StartOrExtendSubscription = {
   responseType: jungletv_pb.StartOrExtendSubscriptionResponse
 };
 
+JungleTV.SoundCloudTrackDetails = {
+  methodName: "SoundCloudTrackDetails",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SoundCloudTrackDetailsRequest,
+  responseType: jungletv_pb.SoundCloudTrackDetailsResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -1909,6 +1918,37 @@ JungleTVClient.prototype.startOrExtendSubscription = function startOrExtendSubsc
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.StartOrExtendSubscription, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.soundCloudTrackDetails = function soundCloudTrackDetails(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SoundCloudTrackDetails, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

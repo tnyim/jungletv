@@ -56,6 +56,7 @@ type JungleTVClient interface {
 	ChatGifSearch(ctx context.Context, in *ChatGifSearchRequest, opts ...grpc.CallOption) (*ChatGifSearchResponse, error)
 	ConvertBananoToPoints(ctx context.Context, in *ConvertBananoToPointsRequest, opts ...grpc.CallOption) (JungleTV_ConvertBananoToPointsClient, error)
 	StartOrExtendSubscription(ctx context.Context, in *StartOrExtendSubscriptionRequest, opts ...grpc.CallOption) (*StartOrExtendSubscriptionResponse, error)
+	SoundCloudTrackDetails(ctx context.Context, in *SoundCloudTrackDetailsRequest, opts ...grpc.CallOption) (*SoundCloudTrackDetailsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -608,6 +609,15 @@ func (c *jungleTVClient) StartOrExtendSubscription(ctx context.Context, in *Star
 	return out, nil
 }
 
+func (c *jungleTVClient) SoundCloudTrackDetails(ctx context.Context, in *SoundCloudTrackDetailsRequest, opts ...grpc.CallOption) (*SoundCloudTrackDetailsResponse, error) {
+	out := new(SoundCloudTrackDetailsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SoundCloudTrackDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -1015,6 +1025,7 @@ type JungleTVServer interface {
 	ChatGifSearch(context.Context, *ChatGifSearchRequest) (*ChatGifSearchResponse, error)
 	ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error
 	StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error)
+	SoundCloudTrackDetails(context.Context, *SoundCloudTrackDetailsRequest) (*SoundCloudTrackDetailsResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1174,6 +1185,9 @@ func (UnimplementedJungleTVServer) ConvertBananoToPoints(*ConvertBananoToPointsR
 }
 func (UnimplementedJungleTVServer) StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartOrExtendSubscription not implemented")
+}
+func (UnimplementedJungleTVServer) SoundCloudTrackDetails(context.Context, *SoundCloudTrackDetailsRequest) (*SoundCloudTrackDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SoundCloudTrackDetails not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -2007,6 +2021,24 @@ func _JungleTV_StartOrExtendSubscription_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SoundCloudTrackDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SoundCloudTrackDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SoundCloudTrackDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SoundCloudTrackDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SoundCloudTrackDetails(ctx, req.(*SoundCloudTrackDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -2824,6 +2856,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartOrExtendSubscription",
 			Handler:    _JungleTV_StartOrExtendSubscription_Handler,
+		},
+		{
+			MethodName: "SoundCloudTrackDetails",
+			Handler:    _JungleTV_SoundCloudTrackDetails_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

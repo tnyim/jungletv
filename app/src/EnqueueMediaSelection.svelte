@@ -1,17 +1,17 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import { EnqueueMediaResponse } from "./proto/jungletv_pb";
-    import { createEventDispatcher, onDestroy, tick } from "svelte";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import Wizard from "./Wizard.svelte";
-    import RangeSlider from "./slider/RangeSlider.svelte";
-    import YouTube, { PlayerState } from "./YouTube.svelte";
-    import type { YouTubePlayer } from "youtube-player/dist/types";
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
-    import VideoRangeFloat from "./VideoRangeFloat.svelte";
+    import { createEventDispatcher, onDestroy, tick } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
+    import { link } from "svelte-navigator";
+    import type { YouTubePlayer } from "youtube-player/dist/types";
+    import { apiClient } from "./api_client";
+    import ErrorMessage from "./ErrorMessage.svelte";
+    import { EnqueueMediaResponse } from "./proto/jungletv_pb";
+    import RangeSlider from "./slider/RangeSlider.svelte";
+    import VideoRangeFloat from "./VideoRangeFloat.svelte";
+    import Wizard from "./Wizard.svelte";
+    import YouTube, { PlayerState } from "./YouTube.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -72,7 +72,7 @@
                     let v = url.searchParams.get("v");
                     if (idRegExp.test(v)) {
                         videoID = v;
-                        hasValidURL = true;
+                        hasValidURL = videoID.length == 11;
                         mediaType = "video";
                         return;
                     }
@@ -80,7 +80,7 @@
                     let parts = url.pathname.split("/");
                     if (idRegExp.test(parts[parts.length - 1])) {
                         videoID = parts[parts.length - 1];
-                        hasValidURL = true;
+                        hasValidURL = videoID.length == 11;
                         mediaType = "video";
                         return;
                     }
@@ -89,7 +89,7 @@
                 let parts = url.pathname.split("/");
                 if (idRegExp.test(parts[parts.length - 1])) {
                     videoID = parts[parts.length - 1];
-                    hasValidURL = true;
+                    hasValidURL = videoID.length == 11;
                     mediaType = "video";
                     return;
                 }
@@ -292,6 +292,31 @@
             mediaRangeValuesFilled = true;
         }
     }
+
+    async function updateSoundCloudTrackRanges() {
+        try {
+            let response = await apiClient.soundCloudTrackDetails(mediaURL);
+            mediaLengthInSeconds = response.getLength().getSeconds();
+            videoIsBroadcast = false;
+            sliderRangeType = true;
+            sliderMin = 0;
+            let rangeStart = 0;
+            mediaRange = [rangeStart, Math.min(mediaLengthInSeconds, rangeStart + maxRangeLength)];
+
+            // convenience function: when pasting the URL for a track that is over 35 minutes long,
+            // immediately offer the option to adjust the length
+            enqueueRange = enqueueRange || mediaLengthInSeconds > maxRangeLength;
+            pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
+            mediaRangeValuesFilled = true;
+        } catch (e) {
+            console.log(e);
+            mediaRangeValuesFilled = false;
+            failureReason = "Track not found or not playable on JungleTV";
+        }
+    }
+    $: if (hasValidURL && mediaType === "track") {
+        updateSoundCloudTrackRanges();
+    }
 </script>
 
 <Wizard>
@@ -409,7 +434,7 @@
                             />
                         </div>
                     {/if}
-                    {#if enqueueRange && videoID.length == 11}
+                    {#if enqueueRange && hasValidURL}
                         {#if mediaRangeValuesFilled}
                             <div class="mb-11 mx-3" bind:this={rangeSliderContainer}>
                                 <RangeSlider

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
@@ -11,6 +12,9 @@ import (
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
@@ -159,4 +163,27 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 			return nil
 		}
 	}
+}
+
+func (s *grpcServer) SoundCloudTrackDetails(ctx context.Context, r *proto.SoundCloudTrackDetailsRequest) (*proto.SoundCloudTrackDetailsResponse, error) {
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
+
+	_, _, _, ok, err := s.mediaPreviewLimiter.Take(ctx, remoteAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return nil, status.Errorf(codes.ResourceExhausted, "rate limit reached")
+	}
+
+	response, err := s.soundCloudProvider.TrackInfo(r.TrackUrl)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if response.Kind != "track" {
+		return nil, status.Error(codes.NotFound, "track not found")
+	}
+	return &proto.SoundCloudTrackDetailsResponse{
+		Length: durationpb.New(time.Duration(response.Duration) * time.Millisecond),
+	}, nil
 }
