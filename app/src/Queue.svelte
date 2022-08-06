@@ -157,10 +157,31 @@
         ignoreLocation: true,
         useExtendedSearch: useExtendedSearch,
         keys: [
-            { name: "title", getFn: (entry: QueueEntry): string => entry.getYoutubeVideoData().getTitle(), weight: 5 },
+            {
+                name: "title",
+                getFn: (entry: QueueEntry): string => {
+                    if (entry.hasYoutubeVideoData()) {
+                        return entry.getYoutubeVideoData().getTitle();
+                    } else if (entry.hasSoundcloudTrackData()) {
+                        return entry.getSoundcloudTrackData().getTitle();
+                    }
+                    return null;
+                },
+                weight: 5,
+            },
             {
                 name: "channel",
-                getFn: (entry: QueueEntry): string => entry.getYoutubeVideoData().getChannelTitle(),
+                getFn: (entry: QueueEntry): string => entry.getYoutubeVideoData()?.getChannelTitle(),
+                weight: 3,
+            },
+            {
+                name: "artist",
+                getFn: (entry: QueueEntry): string => entry.getSoundcloudTrackData()?.getArtist(),
+                weight: 3,
+            },
+            {
+                name: "uploader",
+                getFn: (entry: QueueEntry): string => entry.getSoundcloudTrackData()?.getUploader(),
                 weight: 3,
             },
             {

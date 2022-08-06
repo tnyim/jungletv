@@ -1,0 +1,56 @@
+.requester-user-address {
+    font-size: 0.7rem;
+    @apply font-mono;
+}
+
+.requester-user-nickname {
+    font-size: 0.8rem;
+    @apply font-semibold;
+}
+
+.queue-entry-title {
+    overflow: hidden;
+    height: 4.5rem;
+    position: relative;
+    mix-blend-mode: hard-light;
+}
+.queue-entry-title::after {
+    position: absolute;
+    content: "";
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 1rem;
+    background: linear-gradient(transparent, gray);
+    pointer-events: none;
+}
+
+.thumbnail {
+    position: relative;
+}
+.thumbnail-length-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+}
+.thumbnail-now-playing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    animation: thumbnail-now-playing-pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes thumbnail-now-playing-pulse {
+    0%,
+    100% {
+        opacity: 0.75;
+    }
+    50% {
+        opacity: 0.25;
+    }
+}

@@ -192,12 +192,22 @@
                     class="{commonButtonClasses} col-span-2"
                     on:click={() =>
                         window.open(
-                            "https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId(),
+                            (() => {
+                                if (entry.hasYoutubeVideoData()) {
+                                    return "https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId();
+                                } else if (entry.hasSoundcloudTrackData()) {
+                                    return entry.getSoundcloudTrackData().getPermalink();
+                                }
+                            })(),
                             "",
                             "noopener"
                         )}
                 >
-                    <i class="fab fa-youtube" /> YouTube
+                    {#if entry.hasYoutubeVideoData()}
+                        <i class="fab fa-youtube" /> YouTube
+                    {:else if entry.hasSoundcloudTrackData()}
+                        <i class="fab fa-soundcloud" /> SoundCloud
+                    {/if}
                 </div>
                 <div class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
                     <i class="fas fa-search-dollar" /> Explorer
