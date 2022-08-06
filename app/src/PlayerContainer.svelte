@@ -127,7 +127,7 @@
 </script>
 <svelte:window bind:innerHeight={windowInnerHeight} />
 <div
-    class="{playerOpen ? '' : 'hidden'} player-minimized bg-black z-30 player-container"
+    class="{playerOpen ? '' : 'hidden'} player-minimized bg-black text-white z-30 player-container"
     style="transition-duration: {sidebarOpenCloseAnimDuration}ms"
     bind:this={playerContainer}
 >

@@ -47,7 +47,7 @@
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
     <p class="text-xl font-semibold mb-2">Move queue entry {dirString}?</p>
     <div class="mb-4 flex flex-row text-sm">
-        <QueueEntryHeader {entry} isPlaying={false} mode="sidebar" />
+        <QueueEntryHeader {entry} isPlaying={false} mode="sidebar" showPosition={false} index={0} />
     </div>
     <p>
         Moving this queue entry <span class="font-semibold">{dirString}</span> by one position will cost

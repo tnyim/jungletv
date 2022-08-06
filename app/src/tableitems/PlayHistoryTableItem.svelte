@@ -35,6 +35,8 @@
                 <!-- this isn't used for now since we don't store this information with each played media -->
                 <i class="fas fa-broadcast-tower" title="Live broadcast" />
             {/if}
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.SOUNDCLOUD_TRACK_DATA}
+            <i class="fab fa-soundcloud" />
         {/if}
     </td>
     <td
@@ -51,6 +53,10 @@
             >
                 {media.getYoutubeVideoData().getTitle()}
             </a>
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.SOUNDCLOUD_TRACK_DATA}
+            <a href={media.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
+                {media.getSoundcloudTrackData().getTitle()}
+            </a>
         {/if}
         {#if media.getEndedAt().toDate().getTime() - media.getStartedAt().toDate().getTime() < media
                 .getLength()
@@ -64,9 +70,7 @@
     <td
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white whitespace-nowrap text-xs sm:text-sm"
     >
-        {#if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.YOUTUBE_VIDEO_DATA}
-            {formatQueueEntryThumbnailDuration(media.getLength(), media.getOffset())}
-        {/if}
+        {formatQueueEntryThumbnailDuration(media.getLength(), media.getOffset())}
     </td>
     <td
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"

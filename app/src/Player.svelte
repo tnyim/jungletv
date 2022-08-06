@@ -1,40 +1,31 @@
 <script lang="ts">
-    import YouTube from "./YouTube.svelte";
-    import { apiClient } from "./api_client";
-    import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
-    import type { Options, YouTubePlayer } from "youtube-player/dist/types";
-    import { onDestroy, onMount } from "svelte";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
+    import { onDestroy, onMount } from "svelte";
+    import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
+    import { link } from "svelte-navigator";
+    import { apiClient } from "./api_client";
+    import PlayerYouTube from "./PlayerYouTube.svelte";
+    import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import {
         activityChallengeReceived,
         currentlyWatching,
+        darkMode,
         mostRecentAnnouncement,
         playerConnected,
         playerCurrentTime,
-        playerVolume,
         rewardBalance,
         rewardReceived,
         unreadAnnouncement,
         unreadChatMention,
     } from "./stores";
 
-    const options: Options = {
-        height: "100%",
-        width: "100%",
-        //  see https://developers.google.com/youtube/player_parameters
-        playerVars: {
-            autoplay: 1,
-            playsinline: 1,
-        },
-    };
-
     export let fullSize: boolean;
 
-    let videoId = "";
-    let videoTitle = "";
+    let checkpoint: MediaConsumptionCheckpoint;
+    let mediaTitle = "";
     $: {
-        if (fullSize && videoTitle != "") {
-            document.title = videoTitle + " - JungleTV";
+        if (fullSize && mediaTitle != "") {
+            document.title = mediaTitle + " - JungleTV";
         } else {
             document.title = "JungleTV";
         }
@@ -42,22 +33,9 @@
 
     let consumeMediaRequest: Request;
     let consumeMediaTimeoutHandle: number = null;
-    let updatePlayerVolumeTimeoutHandle: number = null;
-    let playerBecameReady = false;
-    let firstSeekTo: number;
-    let highestSeenLiveStreamCurrentTime: number;
-    let highestSeenLiveStreamCurrentTimeIsForVideo: string;
 
     onMount(() => {
         consumeMedia();
-        player.on("stateChange", (event) => {
-            if (!playerBecameReady && event.data == 1 && firstSeekTo !== undefined) {
-                playerBecameReady = true;
-                player.seekTo(firstSeekTo, true);
-            }
-        });
-        updatePlayerVolumeTimeoutHandle = setTimeout(updatePlayerVolume, 10000);
-        document.addEventListener("visibilitychange", updatePlayerVolume);
     });
     function consumeMedia() {
         consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
@@ -79,62 +57,23 @@
         if (consumeMediaTimeoutHandle != null) {
             clearTimeout(consumeMediaTimeoutHandle);
         }
-        if (updatePlayerVolumeTimeoutHandle != null) {
-            clearTimeout(updatePlayerVolumeTimeoutHandle);
-        }
-        document.removeEventListener("visibilitychange", updatePlayerVolume);
         activityChallengeReceived.update((_) => null);
         document.title = "JungleTV";
     });
 
-    let player: YouTubePlayer;
-
-    function updatePlayerVolume() {
-        $playerVolume = player.isMuted() ? 0 : player.getVolume() / 100;
-    }
-
-    async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {
+    async function handleCheckpoint(cp: MediaConsumptionCheckpoint) {
         if (consumeMediaTimeoutHandle != null) {
             clearTimeout(consumeMediaTimeoutHandle);
         }
         consumeMediaTimeoutHandle = setTimeout(consumeMediaTimeout, 20000);
         playerConnected.update(() => true);
+        checkpoint = cp;
         if (checkpoint.getMediaPresent()) {
-            let currentTimeFromServer = checkpoint.getCurrentPosition().getSeconds();
-            playerCurrentTime.set(currentTimeFromServer);
-            videoId = checkpoint.getYoutubeVideoData().getId();
-            let currentPlayerTime = await player.getCurrentTime();
-            if (!checkpoint.getLiveBroadcast()) {
-                highestSeenLiveStreamCurrentTime = undefined;
-                firstSeekTo = currentTimeFromServer;
-                let leniencySeconds = 3;
-                if (player.getVideoLoadedFraction() * player.getDuration() < 10) {
-                    leniencySeconds = 10;
-                }
-                if (Math.abs(currentPlayerTime - currentTimeFromServer) > leniencySeconds) {
-                    player.seekTo(currentTimeFromServer, true);
-                }
-            } else {
-                if (
-                    highestSeenLiveStreamCurrentTime === undefined ||
-                    highestSeenLiveStreamCurrentTime < currentPlayerTime ||
-                    highestSeenLiveStreamCurrentTimeIsForVideo != videoId
-                ) {
-                    highestSeenLiveStreamCurrentTime = currentPlayerTime;
-                    highestSeenLiveStreamCurrentTimeIsForVideo = videoId;
-                } else if (currentPlayerTime < highestSeenLiveStreamCurrentTime) {
-                    player.seekTo(Number.MAX_VALUE, true);
-                }
-            }
+            playerCurrentTime.set(cp.getCurrentPosition().getSeconds());
+            mediaTitle = cp.getMediaTitle();
         } else {
             playerCurrentTime.set(0);
-            player.stopVideo();
-            if (videoId != "") {
-                videoId = "cdwal5Kw3Fc"; // ensure whatever video was there is really gone
-            } else {
-                videoId = "";
-            }
-            videoTitle = "";
+            mediaTitle = "";
         }
         rewardReceived.update((_) => checkpoint.getReward());
         if (checkpoint.getRewardBalance() !== "") {
@@ -153,10 +92,33 @@
             unreadChatMention.set(true);
         }
         if (checkpoint.hasMediaTitle()) {
-            videoTitle = checkpoint.getMediaTitle();
+            mediaTitle = checkpoint.getMediaTitle();
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }
 </script>
 
-<YouTube {videoId} id="player" class="h-full w-full" {options} bind:player />
+{#if typeof checkpoint == "undefined"}
+    <div class="flex h-full w-full justify-center items-center">
+        <Moon size="80" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" />
+    </div>
+{:else if checkpoint.getMediaPresent()}
+    {#if checkpoint.hasYoutubeVideoData()}
+        <PlayerYouTube {checkpoint} />
+    {:else}
+        <div class="flex h-full w-full justify-center items-center text-xl">
+            <div class="text-center">
+                <p class="text-4xl"><i class="fas fa-ban"></i></p>
+                <p class="mt-3 text-xl">Unknown media type</p>
+            </div>
+        </div>
+    {/if}
+{:else}
+    <div class="flex h-full w-full justify-center items-center">
+        <div class="text-center">
+            <p class="text-4xl"><i class="far fa-stop-circle"></i></p>
+            <p class="mt-3 text-xl">Nothing playing</p>
+            <p class="mt-3"><a href="/enqueue" use:link>Get something going!</a></p>
+        </div>
+    </div>
+{/if}

@@ -206,7 +206,7 @@
                     {#if entry.hasYoutubeVideoData()}
                         <i class="fab fa-youtube" /> YouTube
                     {:else if entry.hasSoundcloudTrackData()}
-                        <i class="fab fa-soundcloud" /> SoundCloud
+                        <i class="fab fa-soundcloud" /> <span class="text-xs">SoundCloud</span>
                     {/if}
                 </div>
                 <div class="{commonButtonClasses} col-span-2" on:click={openExplorer}>

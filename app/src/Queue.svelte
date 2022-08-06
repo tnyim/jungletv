@@ -64,7 +64,6 @@
                     queueIndex: index,
                 });
             });
-            console.log(queue.getEntriesList(), queueEntries);
             if (queue.hasInsertCursor()) {
                 insertCursor = queue.getInsertCursor();
             } else {
