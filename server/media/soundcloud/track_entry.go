@@ -84,19 +84,10 @@ type queueEntrySoundCloudTrackJsonRepresentation struct {
 	MovedBy      []string
 }
 
-func UnmarshalQueueEntryJSON(b []byte) (media.QueueEntry, error) {
-	v := &queueEntrySoundCloudTrack{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return v, nil
-}
-
 func (e *queueEntrySoundCloudTrack) MarshalJSON() ([]byte, error) {
 	j, err := json.Marshal(queueEntrySoundCloudTrackJsonRepresentation{
 		QueueID:      e.QueueID(),
-		Type:         "soundcloud-track",
+		Type:         string(types.MediaTypeSoundCloudTrack),
 		ID:           e.id,
 		Title:        e.Title(),
 		Uploader:     e.uploader,

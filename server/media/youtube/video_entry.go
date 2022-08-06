@@ -81,19 +81,10 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	MovedBy       []string
 }
 
-func UnmarshalQueueEntryJSON(b []byte) (media.QueueEntry, error) {
-	v := &queueEntryYouTubeVideo{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return v, nil
-}
-
 func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 	j, err := json.Marshal(queueEntryYouTubeVideoJsonRepresentation{
 		QueueID:       e.QueueID(),
-		Type:          "youtube-video",
+		Type:          string(types.MediaTypeYouTubeVideo),
 		ID:            e.id,
 		Title:         e.Title(),
 		ChannelTitle:  e.channelTitle,

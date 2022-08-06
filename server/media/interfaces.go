@@ -51,11 +51,20 @@ type Info interface {
 
 // Provider provides media enqueuing and serialization facilities
 type Provider interface {
+	SetMediaQueue(mediaQueue MediaQueueStub)
 	CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool
 	NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
 		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
+	CanUnmarshalQueueEntryJSONType(jsonType string) bool // TODO remove this once simplified
+	UnmarshalQueueEntryJSON(b []byte) (QueueEntry, error)
+
 	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
 	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)
 	SerializeUserProfileResponseFeaturedMedia(playedMedia *types.PlayedMedia) (proto.IsUserProfileResponse_FeaturedMedia, error)
+}
+
+// MediaQueueStub contains a subset of the methods implemented by the media queue which are useful to media providers
+type MediaQueueStub interface {
+	Entries() []QueueEntry
 }

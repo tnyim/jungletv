@@ -1,8 +1,11 @@
 package youtube
 
 import (
+	"encoding/json"
+
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 )
 
@@ -57,4 +60,18 @@ func (s *VideoProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 			Title: info.Title,
 		},
 	}, nil
+}
+
+func (s *VideoProvider) UnmarshalQueueEntryJSON(b []byte) (media.QueueEntry, error) {
+	v := &queueEntryYouTubeVideo{}
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return v, nil
+}
+
+// TODO remove this once simplified
+func (s *VideoProvider) CanUnmarshalQueueEntryJSONType(t string) bool {
+	return t == "youtube-video" || t == string(types.MediaTypeYouTubeVideo)
 }

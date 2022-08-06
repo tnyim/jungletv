@@ -15,13 +15,9 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-type mediaQueue interface {
-	Entries() []media.QueueEntry
-}
-
 // TrackProvider provides SoundCloud track media
 type TrackProvider struct {
-	mediaQueue mediaQueue
+	mediaQueue media.MediaQueueStub
 
 	apiHost    string
 	clientID   string
@@ -31,9 +27,8 @@ type TrackProvider struct {
 }
 
 // NewProvider returns a new SoundCloud track provider
-func NewProvider(mediaQueue mediaQueue, apiHost, clientID, appVersion string) media.Provider {
+func NewProvider(apiHost, clientID, appVersion string) media.Provider {
 	return &TrackProvider{
-		mediaQueue: mediaQueue,
 
 		apiHost:    apiHost,
 		clientID:   clientID,
@@ -43,6 +38,10 @@ func NewProvider(mediaQueue mediaQueue, apiHost, clientID, appVersion string) me
 			Timeout: time.Second * 5,
 		},
 	}
+}
+
+func (c *TrackProvider) SetMediaQueue(mediaQueue media.MediaQueueStub) {
+	c.mediaQueue = mediaQueue
 }
 
 func (c *TrackProvider) CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool {

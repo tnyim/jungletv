@@ -13,22 +13,21 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-type mediaQueue interface {
-	Entries() []media.QueueEntry
-}
-
 // VideoProvider provides YouTube videos
 type VideoProvider struct {
-	mediaQueue mediaQueue
+	mediaQueue media.MediaQueueStub
 	youtube    *youtube.Service
 }
 
 // NewProvider returns a new YouTube video provider
-func NewProvider(mediaQueue mediaQueue, youtube *youtube.Service) media.Provider {
+func NewProvider(youtube *youtube.Service) media.Provider {
 	return &VideoProvider{
-		mediaQueue: mediaQueue,
-		youtube:    youtube,
+		youtube: youtube,
 	}
+}
+
+func (c *VideoProvider) SetMediaQueue(mediaQueue media.MediaQueueStub) {
+	c.mediaQueue = mediaQueue
 }
 
 func (c *VideoProvider) CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool {

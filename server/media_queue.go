@@ -18,7 +18,6 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/media"
-	"github.com/tnyim/jungletv/server/media/youtube"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -43,6 +42,8 @@ type MediaQueue struct {
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
 	playingSince                    time.Time
+
+	mediaProviders map[types.MediaType]media.Provider
 
 	ownEntryRemovalRateLimiter limiter.Store
 
@@ -72,7 +73,7 @@ type entryMovedEventArg struct {
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
 var ErrInsufficientPermissionsToRemoveEntry = errors.New("insufficient permissions to remove queue entry")
 
-func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string) (*MediaQueue, error) {
+func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string, mediaProviders map[types.MediaType]media.Provider) (*MediaQueue, error) {
 	q := &MediaQueue{
 		log:                             log,
 		statsClient:                     statsClient,
@@ -89,6 +90,10 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		removalOfOwnEntriesAllowed:      true,
 		entryReorderingAllowed:          true,
 		skippingEnabled:                 true,
+		mediaProviders:                  mediaProviders,
+	}
+	for _, provider := range mediaProviders {
+		provider.SetMediaQueue(q)
 	}
 	var err error
 	q.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -578,14 +583,30 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 			return stacktrace.Propagate(err, "")
 		}
 
-		switch unknownEntry.Type {
-		case "youtube-video":
-			q.queue[i], err = youtube.UnmarshalQueueEntryJSON(entries[i])
-		default:
-			return stacktrace.NewError("unknown media queue entry type %s in persisted queue", unknownEntry.Type)
+		provider, ok := q.mediaProviders[types.MediaType(unknownEntry.Type)]
+		if ok {
+			q.queue[i], err = provider.UnmarshalQueueEntryJSON(entries[i])
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+			continue
 		}
-		if err != nil {
-			return stacktrace.Propagate(err, "")
+
+		// TODO remove once simplified (i.e. once all queue entries use their types.MediaType to identify their JSON queue entries)
+		success := false
+		for _, provider := range q.mediaProviders {
+			if provider.CanUnmarshalQueueEntryJSONType(unknownEntry.Type) {
+				q.queue[i], err = provider.UnmarshalQueueEntryJSON(entries[i])
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				success = true
+				break
+			}
+		}
+
+		if !success {
+			return stacktrace.NewError("unknown media queue entry type %s in persisted queue", unknownEntry.Type)
 		}
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))

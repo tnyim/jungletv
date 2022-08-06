@@ -211,7 +211,17 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/StopActivelyModerating", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AdjustPointsBalance", auth.AdminPermissionLevel)
 
-	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile)
+	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
+	}
+
+	mediaProviders := map[types.MediaType]media.Provider{
+		types.MediaTypeYouTubeVideo:    youtube.NewProvider(ytClient),
+		types.MediaTypeSoundCloudTrack: soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030"), // TODO unhardcode
+	}
+
+	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -338,16 +348,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
-	}
-
-	s.youtube, err = youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
-	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
-	}
-
-	s.mediaProviders = map[types.MediaType]media.Provider{
-		types.MediaTypeYouTubeVideo:    youtube.NewProvider(s.mediaQueue, s.youtube),
-		types.MediaTypeSoundCloudTrack: soundcloud.NewProvider(s.mediaQueue, "api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030"), // TODO unhardcode
 	}
 
 	skBytes, err := hex.DecodeString(options.RaffleSecretKey)
