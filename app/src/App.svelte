@@ -37,6 +37,7 @@
 		featureFlags,
 		modal,
 		permissionLevel,
+		playerVolume,
 		rewardAddress,
 		rewardBalance,
 	} from "./stores";
@@ -57,6 +58,7 @@
 	$: localStorage.convertEmoticons = $convertEmoticons;
 	$: localStorage.autoCloseMediaPickerOnInsert = $autoCloseMediaPickerOnInsert;
 	$: localStorage.autoCloseMediaPickerOnSend = $autoCloseMediaPickerOnSend;
+	$: localStorage.playerVolume = $playerVolume + "";
 
 	let isAdmin = false;
 	let isOnline = true;

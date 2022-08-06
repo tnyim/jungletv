@@ -71,7 +71,6 @@
         checkpoint = cp;
         if (checkpoint.getMediaPresent()) {
             playerCurrentTime.set(cp.getCurrentPosition().getSeconds());
-            mediaTitle = cp.getMediaTitle();
         } else {
             playerCurrentTime.set(0);
             mediaTitle = "";

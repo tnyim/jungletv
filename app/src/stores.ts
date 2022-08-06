@@ -6,7 +6,12 @@ type valueof<T> = T[keyof T];
 
 export const playerConnected = writable(false);
 export const playerCurrentTime = writable(0);
-export const playerVolume = writable(0);
+export const playerVolume = writable(((): number => {
+    if (!('playerVolume' in localStorage)) {
+        return 1;
+    }
+    return parseFloat(localStorage.playerVolume);
+})());
 export const rewardAddress = writable("");
 export const rewardBalance = writable("");
 export const rewardReceived = writable("");

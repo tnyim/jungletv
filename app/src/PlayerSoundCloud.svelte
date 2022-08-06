@@ -2,6 +2,7 @@
     import { onDestroy, onMount } from "svelte";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import { Widget } from "./soundcloud";
+    import { playerVolume } from "./stores";
 
     let trackID = "";
 
@@ -13,8 +14,9 @@
         player = new Widget({
             iframe: playerIframe,
             useDefaultStyle: false,
+            initialVolume: $playerVolume * 100,
         });
-
+        updatePlayerVolumeIntervalHandle = setInterval(updatePlayerVolume, 10000);
         document.addEventListener("visibilitychange", updatePlayerVolume);
     });
 
@@ -30,13 +32,13 @@
 
     async function updatePlayerVolume() {
         if (typeof player !== "undefined") {
-            //$playerVolume = (await player.isMuted()) ? 0 : (await player.getVolume()) / 100;
+            $playerVolume = (await player.getVolume()) / 100;
         }
     }
 
     function pickColor(): string {
         let colors = ["#4CBF4B", "#7C1CED", "#FBDD11"];
-        return colors[Math.floor(Math.random() * colors.length)]
+        return colors[Math.floor(Math.random() * colors.length)];
     }
 
     async function handleCheckpoint(checkpoint: MediaConsumptionCheckpoint) {

@@ -30,6 +30,12 @@
             if (!playerBecameReady && event.data == 1 && firstSeekTo !== undefined) {
                 playerBecameReady = true;
                 updatePlayerVolumeIntervalHandle = setInterval(updatePlayerVolume, 10000);
+                if ($playerVolume > 0){
+                    player.unMute();
+                    player.setVolume($playerVolume * 100);
+                } else {
+                    player.mute();
+                }
                 player.seekTo(firstSeekTo, true);
             }
         });

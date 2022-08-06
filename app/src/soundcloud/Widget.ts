@@ -7,16 +7,19 @@ export interface WidgetOptions {
     iframe: HTMLIFrameElement;
     invokeTimeout: number;
     useDefaultStyle: boolean;
+    initialVolume: number;
 }
 
 export class Widget extends Invoker {
     invokeTimeout: number;
     iframe: HTMLIFrameElement;
+    initialVolume: number;
 
     constructor({
         iframe,
         invokeTimeout,
         useDefaultStyle,
+        initialVolume,
     }: Partial<WidgetOptions> = {}) {
         super();
 
@@ -38,6 +41,7 @@ export class Widget extends Invoker {
 
         this.invokeTimeout = invokeTimeout || 5e3;
         window.addEventListener('message', this._onMessage);
+        this.initialVolume = initialVolume;
     }
 
     protected _onMessage = (evt: MessageEvent) => {
@@ -52,6 +56,7 @@ export class Widget extends Invoker {
                 this._addEventListener('seek');
                 this._addEventListener('finish');
                 this._refreshMetadata();
+                this.setVolume(this.initialVolume);
                 break;
             }
 
@@ -107,6 +112,14 @@ export class Widget extends Invoker {
         this._currentTime = data.currentPosition;
         if (this.metadata?.id !== data.soundId) this._refreshMetadata();
     };
+
+    async getVolume(): Promise<number> {
+        return await this._invokeGetter<number>('getVolume');
+    }
+
+    async setVolume(value: number) {
+        await this._invoke('setVolume', value);
+    }
 
     loadFromURI = (url: string, opts?: Partial<LoadOptions>) => {
         this.isPaused = true;
