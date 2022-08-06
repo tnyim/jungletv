@@ -259,6 +259,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),
 		segchaClient:           options.SegchaClient,
 
+		mediaProviders: mediaProviders,
+		youtube:        ytClient,
+
 		announcementsUpdated: event.New[int](),
 	}
 	s.userSerializer = s.serializeUserForAPI
