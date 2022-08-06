@@ -110,6 +110,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 
+	e.InitializeBase(e)
 	e.SetQueueID(t.QueueID)
 	e.id = t.ID
 	e.SetTitle(t.Title)
@@ -122,7 +123,6 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.SetRequestCost(payment.NewAmount(t.RequestCost))
 	e.SetRequestedAt(t.RequestedAt)
 	e.SetUnskippable(t.Unskippable)
-	e.InitializeBase(e)
 	for _, m := range t.MovedBy {
 		e.SetAsMovedBy(auth.NewAddressOnlyUser(m))
 	}
