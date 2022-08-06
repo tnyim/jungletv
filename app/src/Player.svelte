@@ -4,6 +4,7 @@
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
     import PlayerYouTube from "./PlayerYouTube.svelte";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import {
@@ -105,10 +106,12 @@
 {:else if checkpoint.getMediaPresent()}
     {#if checkpoint.hasYoutubeVideoData()}
         <PlayerYouTube {checkpoint} />
+    {:else if checkpoint.hasSoundcloudTrackData()}
+        <PlayerSoundCloud {checkpoint} />
     {:else}
         <div class="flex h-full w-full justify-center items-center text-xl">
             <div class="text-center">
-                <p class="text-4xl"><i class="fas fa-ban"></i></p>
+                <p class="text-4xl"><i class="fas fa-ban" /></p>
                 <p class="mt-3 text-xl">Unknown media type</p>
             </div>
         </div>
@@ -116,7 +119,7 @@
 {:else}
     <div class="flex h-full w-full justify-center items-center">
         <div class="text-center">
-            <p class="text-4xl"><i class="far fa-stop-circle"></i></p>
+            <p class="text-4xl"><i class="far fa-stop-circle" /></p>
             <p class="mt-3 text-xl">Nothing playing</p>
             <p class="mt-3"><a href="/enqueue" use:link>Get something going!</a></p>
         </div>

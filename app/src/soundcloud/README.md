@@ -1,0 +1,1 @@
+Adapted from https://github.com/nouvist/soundcloud-embed/commit/76c5c5be42169d219e4de4288226ce66dd51e37a

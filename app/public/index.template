@@ -20,7 +20,7 @@
 	<meta name="jungletv-version-hash" content="{{ .VersionHash }}">
 
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src https:; script-src 'self' https://youtube.com https://www.youtube.com; frame-src https://youtube.com https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src https: data:">
+		content="default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com; frame-src https://youtube.com https://www.youtube.com https://w.soundcloud.com; style-src 'self' 'unsafe-inline'; img-src https: data:">
 
 	<link rel="icon" type="image/png" href="/favicon.png">
 

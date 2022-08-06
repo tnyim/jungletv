@@ -82,7 +82,7 @@ export const formatSoundCloudTrackAttribution = function (trackData: QueueSoundC
     let artist = trackData.getArtist();
     let uploader = trackData.getUploader();
     if (artist !== "" && uploader !== "") {
-        if (artist.toLowerCase() == uploader.toLowerCase()) {
+        if (artist.toLowerCase().indexOf(uploader.toLowerCase()) !== -1) {
             return artist;
         }
         return artist + " via " + uploader;
