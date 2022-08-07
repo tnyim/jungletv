@@ -35,9 +35,20 @@ func (c *VideoProvider) CanHandleRequestType(mediaParameters proto.IsEnqueueMedi
 	return ok
 }
 
-func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
-	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+type initialInfo struct {
+	videoItem  *youtube.Video
+	parameters *proto.EnqueueMediaRequest_YoutubeVideoData
+}
 
+func (i *initialInfo) MediaID() (types.MediaType, string) {
+	return types.MediaTypeYouTubeVideo, i.videoItem.Id
+}
+
+func (i *initialInfo) Collections() []string {
+	return []string{i.videoItem.Snippet.ChannelId}
+}
+
+func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -63,14 +74,6 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 
 	videoItem := response.Items[0]
 
-	allowed, err := types.IsMediaAllowed(ctx, types.MediaTypeYouTubeVideo, videoItem.Id)
-	if err != nil {
-		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
-	}
-	if !allowed {
-		return nil, media.EnqueueRequestCreationFailedMediumIsDisallowed, nil
-	}
-
 	if videoItem.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
 		return nil, media.EnqueueRequestCreationFailedMediumAgeRestricted, nil
 	}
@@ -83,13 +86,33 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 		return nil, media.EnqueueRequestCreationFailedMediumIsUpcomingLiveBroadcast, nil
 	}
 
+	return &initialInfo{
+		videoItem:  videoItem,
+		parameters: youTubeParameters,
+	}, media.EnqueueRequestCreationSucceeded, nil
+}
+
+func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable bool,
+	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+
+	ctx, err := transaction.Begin(ctx)
+	if err != nil {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	preInfo, ok := genericInfo.(*initialInfo)
+	if !ok {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("unexpected type")
+	}
+
 	var startOffsetDuration time.Duration
-	if youTubeParameters.YoutubeVideoData.StartOffset != nil {
-		startOffsetDuration = youTubeParameters.YoutubeVideoData.StartOffset.AsDuration()
+	if preInfo.parameters.YoutubeVideoData.StartOffset != nil {
+		startOffsetDuration = preInfo.parameters.YoutubeVideoData.StartOffset.AsDuration()
 	}
 	var endOffsetDuration time.Duration
-	if youTubeParameters.YoutubeVideoData.EndOffset != nil {
-		endOffsetDuration = youTubeParameters.YoutubeVideoData.EndOffset.AsDuration()
+	if preInfo.parameters.YoutubeVideoData.EndOffset != nil {
+		endOffsetDuration = preInfo.parameters.YoutubeVideoData.EndOffset.AsDuration()
 		if endOffsetDuration <= startOffsetDuration {
 			return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "video start offset past video end offset")
 		}
@@ -97,17 +120,17 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 
 	var playFor = 10 * time.Minute
 	var totalVideoDuration time.Duration
-	if videoItem.Snippet.LiveBroadcastContent == "live" {
-		if videoItem.LiveStreamingDetails.ConcurrentViewers < 10 && !allowUnpopular {
+	if preInfo.videoItem.Snippet.LiveBroadcastContent == "live" {
+		if preInfo.videoItem.LiveStreamingDetails.ConcurrentViewers < 10 && !allowUnpopular {
 			return nil, media.EnqueueRequestCreationFailedMediumIsUnpopularLiveBroadcast, nil
 		}
-		if youTubeParameters.YoutubeVideoData.EndOffset != nil {
+		if preInfo.parameters.YoutubeVideoData.EndOffset != nil {
 			playFor = endOffsetDuration - startOffsetDuration
 			startOffsetDuration = 0
 			endOffsetDuration = playFor
 		}
 	} else {
-		videoDurationPeriod, err := period.Parse(videoItem.ContentDetails.Duration)
+		videoDurationPeriod, err := period.Parse(preInfo.videoItem.ContentDetails.Duration)
 		if err != nil {
 			return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "error parsing video duration")
 		}
@@ -129,13 +152,13 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 	}
 
 	if !skipDuplicationChecks {
-		if videoItem.Snippet.LiveBroadcastContent == "live" {
-			result, err := c.checkYouTubeBroadcastContentDuplication(ctx, videoItem.Id, playFor)
+		if preInfo.videoItem.Snippet.LiveBroadcastContent == "live" {
+			result, err := c.checkYouTubeBroadcastContentDuplication(ctx, preInfo.videoItem.Id, playFor)
 			if err != nil || result != media.EnqueueRequestCreationSucceeded {
 				return nil, result, stacktrace.Propagate(err, "")
 			}
 		} else {
-			result, err := c.checkYouTubeVideoContentDuplication(ctx, videoItem.Id, startOffsetDuration, playFor, totalVideoDuration)
+			result, err := c.checkYouTubeVideoContentDuplication(ctx, preInfo.videoItem.Id, startOffsetDuration, playFor, totalVideoDuration)
 			if err != nil || result != media.EnqueueRequestCreationSucceeded {
 				return nil, result, stacktrace.Propagate(err, "")
 			}
@@ -143,13 +166,13 @@ func (c *VideoProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 	}
 
 	request := &queueEntryYouTubeVideo{
-		id:            videoItem.Id,
-		channelTitle:  videoItem.Snippet.ChannelTitle,
-		liveBroadcast: videoItem.Snippet.LiveBroadcastContent == "live",
-		thumbnailURL:  videoItem.Snippet.Thumbnails.Default.Url,
+		id:            preInfo.videoItem.Id,
+		channelTitle:  preInfo.videoItem.Snippet.ChannelTitle,
+		liveBroadcast: preInfo.videoItem.Snippet.LiveBroadcastContent == "live",
+		thumbnailURL:  preInfo.videoItem.Snippet.Thumbnails.Default.Url,
 	}
 	request.InitializeBase(request)
-	request.SetTitle(videoItem.Snippet.Title)
+	request.SetTitle(preInfo.videoItem.Snippet.Title)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)
 	request.SetUnskippable(unskippable)

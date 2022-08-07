@@ -688,17 +688,26 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.Propagate(err, "")
 	}
 
-	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].NewEnqueueRequest(ctx, &proto.EnqueueMediaRequest_YoutubeVideoData{
+	preInfo, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].BeginEnqueueRequest(ctx, &proto.EnqueueMediaRequest_YoutubeVideoData{
 		YoutubeVideoData: &proto.EnqueueYouTubeVideoData{
 			Id: videoID,
 		},
-	}, false, false, false, false)
+	})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
 	if result != media.EnqueueRequestCreationSucceeded {
 		return stacktrace.NewError("enqueue request for video %s creation failed due to video characteristics", videoID)
+	}
+
+	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].ContinueEnqueueRequest(ctx, preInfo, false, false, false, false)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	if result != media.EnqueueRequestCreationSucceeded {
+		return stacktrace.NewError("enqueue request for video %s creation failed", videoID)
 	}
 
 	ticket, err := s.enqueueManager.RegisterRequest(ctx, request)

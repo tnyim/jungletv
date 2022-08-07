@@ -49,8 +49,21 @@ func (c *TrackProvider) CanHandleRequestType(mediaParameters proto.IsEnqueueMedi
 	return ok
 }
 
-func (c *TrackProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
-	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+type initialInfo struct {
+	id         string
+	response   *APIResponse
+	parameters *proto.EnqueueMediaRequest_SoundcloudTrackData
+}
+
+func (i *initialInfo) MediaID() (types.MediaType, string) {
+	return types.MediaTypeSoundCloudTrack, i.id
+}
+
+func (i *initialInfo) Collections() []string {
+	return []string{i.response.User.Username}
+}
+
+func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -77,27 +90,39 @@ func (c *TrackProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 
 	idString := fmt.Sprintf("%d", response.ID)
 
-	allowed, err := types.IsMediaAllowed(ctx, types.MediaTypeSoundCloudTrack, idString)
+	return &initialInfo{
+		id:         idString,
+		response:   response,
+		parameters: soundCloudParameters,
+	}, media.EnqueueRequestCreationSucceeded, nil
+}
+
+func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable bool,
+	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
 	}
-	if !allowed {
-		return nil, media.EnqueueRequestCreationFailedMediumIsDisallowed, nil
+	defer ctx.Commit() // read-only tx
+
+	preInfo, ok := genericInfo.(*initialInfo)
+	if !ok {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("unexpected type")
 	}
 
 	var startOffsetDuration time.Duration
-	if soundCloudParameters.SoundcloudTrackData.StartOffset != nil {
-		startOffsetDuration = soundCloudParameters.SoundcloudTrackData.StartOffset.AsDuration()
+	if preInfo.parameters.SoundcloudTrackData.StartOffset != nil {
+		startOffsetDuration = preInfo.parameters.SoundcloudTrackData.StartOffset.AsDuration()
 	}
 	var endOffsetDuration time.Duration
-	if soundCloudParameters.SoundcloudTrackData.EndOffset != nil {
-		endOffsetDuration = soundCloudParameters.SoundcloudTrackData.EndOffset.AsDuration()
+	if preInfo.parameters.SoundcloudTrackData.EndOffset != nil {
+		endOffsetDuration = preInfo.parameters.SoundcloudTrackData.EndOffset.AsDuration()
 		if endOffsetDuration <= startOffsetDuration {
 			return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "track start offset past track end offset")
 		}
 	}
 
-	trackDuration := parseSoundCloudDuration(response.Duration)
+	trackDuration := parseSoundCloudDuration(preInfo.response.Duration)
 
 	if endOffsetDuration == 0 || endOffsetDuration > trackDuration {
 		endOffsetDuration = trackDuration
@@ -114,21 +139,21 @@ func (c *TrackProvider) NewEnqueueRequest(ctx *transaction.WrappingContext, medi
 	}
 
 	if !skipDuplicationChecks {
-		result, err := c.checkSoundCloudTrackContentDuplication(ctx, idString, startOffsetDuration, playFor, trackDuration)
+		result, err := c.checkSoundCloudTrackContentDuplication(ctx, preInfo.id, startOffsetDuration, playFor, trackDuration)
 		if err != nil || result != media.EnqueueRequestCreationSucceeded {
 			return nil, result, stacktrace.Propagate(err, "")
 		}
 	}
 
 	request := &queueEntrySoundCloudTrack{
-		id:           idString,
-		uploader:     response.User.Username,
-		artist:       response.PublisherMetadata.Artist,
-		permalink:    response.PermalinkURL,
-		thumbnailURL: response.ArtworkURL,
+		id:           preInfo.id,
+		uploader:     preInfo.response.User.Username,
+		artist:       preInfo.response.PublisherMetadata.Artist,
+		permalink:    preInfo.response.PermalinkURL,
+		thumbnailURL: preInfo.response.ArtworkURL,
 	}
 	request.InitializeBase(request)
-	request.SetTitle(response.Title)
+	request.SetTitle(preInfo.response.Title)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)
 	request.SetUnskippable(unskippable)

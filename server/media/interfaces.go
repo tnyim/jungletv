@@ -49,11 +49,18 @@ type Info interface {
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 }
 
+// InitialInfo provides the initial information for blocklist checking during the enqueuing process
+type InitialInfo interface {
+	MediaID() (types.MediaType, string)
+	Collections() []string
+}
+
 // Provider provides media enqueuing and serialization facilities
 type Provider interface {
 	SetMediaQueue(mediaQueue MediaQueueStub)
 	CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool
-	NewEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo, unskippable bool,
+	BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (InitialInfo, EnqueueRequestCreationResult, error)
+	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable bool,
 		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
 	CanUnmarshalQueueEntryJSONType(jsonType string) bool // TODO remove this once simplified

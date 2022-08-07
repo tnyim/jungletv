@@ -10,6 +10,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
@@ -61,15 +62,59 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	if provider == media.Provider(nil) {
 		return nil, stacktrace.NewError("no provider found")
 	}
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 
-	request, result, err := provider.NewEnqueueRequest(ctx, r.GetMediaInfo(), r.Unskippable,
+	preInfo, result, err := provider.BeginEnqueueRequest(ctx, r.GetMediaInfo())
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if result != media.EnqueueRequestCreationSucceeded {
+		return produceEnqueueRequestCreationFailedResponse(result)
+	}
+
+	mediaType, mediaID := preInfo.MediaID()
+	allowed, err := types.IsMediaAllowed(ctx, mediaType, mediaID)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if !allowed {
+		return produceEnqueueRequestCreationFailedResponse(media.EnqueueRequestCreationFailedMediumIsDisallowed)
+	}
+
+	// TODO check collections for disallowed ones
+
+	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable,
 		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
 		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
 		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	if result != media.EnqueueRequestCreationSucceeded {
+		return produceEnqueueRequestCreationFailedResponse(result)
+	}
 
+	ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
+	if err != nil {
+		if strings.Contains(err.Error(), "failed to check balance for account") {
+			return produceEnqueueMediaFailureResponse("The JungleTV payment subsystem is unavailable")
+		}
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	resp := ticket.SerializeForAPI()
+	currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
+	resp.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
+	return &proto.EnqueueMediaResponse{
+		EnqueueResponse: &proto.EnqueueMediaResponse_Ticket{
+			Ticket: resp,
+		},
+	}, nil
+}
+
+func produceEnqueueRequestCreationFailedResponse(result media.EnqueueRequestCreationResult) (*proto.EnqueueMediaResponse, error) {
 	switch result {
 	case media.EnqueueRequestCreationFailedMediumNotFound:
 		return produceEnqueueMediaFailureResponse("Content not found")
@@ -91,25 +136,9 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		return produceEnqueueMediaFailureResponse("This content is disallowed on JungleTV")
 	case media.EnqueueRequestCreationFailedMediumIsNotATrack:
 		return produceEnqueueMediaFailureResponse("This is not a SoundCloud track")
-	case media.EnqueueRequestCreationSucceeded:
-		ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
-		if err != nil {
-			if strings.Contains(err.Error(), "failed to check balance for account") {
-				return produceEnqueueMediaFailureResponse("The JungleTV payment subsystem is unavailable")
-			}
-			return nil, stacktrace.Propagate(err, "")
-		}
-
-		resp := ticket.SerializeForAPI()
-		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
-		resp.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
-		return &proto.EnqueueMediaResponse{
-			EnqueueResponse: &proto.EnqueueMediaResponse_Ticket{
-				Ticket: resp,
-			},
-		}, nil
+	default:
+		return produceEnqueueMediaFailureResponse("Enqueue request failed")
 	}
-	return produceEnqueueMediaFailureResponse("Enqueue request failed")
 }
 
 func produceEnqueueMediaFailureResponse(reason string) (*proto.EnqueueMediaResponse, error) {
