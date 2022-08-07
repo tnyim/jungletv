@@ -259,7 +259,7 @@
                             href="/enqueue"
                         >
                             <i class="fas fa-plus" />
-                            <div class="text-xs font-bold uppercase">Enqueue video</div>
+                            <div class="text-xs font-bold uppercase">Enqueue media</div>
                         </a>
                     </li>
                 {/if}

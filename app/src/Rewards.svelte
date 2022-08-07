@@ -110,16 +110,16 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            At the end of every video, the amount paid to enqueue the video is distributed evenly among eligible users.
-            To minimize the amount of Banano transactions caused by JungleTV, rewards are added to a balance before they
+            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible users.
+            To minimize the number of Banano transactions caused by JungleTV, rewards are added to a balance before they
             are sent to you. You can wait for an automated withdrawal or withdraw manually at any time.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Some videos have e.g. regional restrictions and may not display for you. You will still be rewarded as long
-            as you keep the JungleTV page open throughout the duration of the video.
+            Some content has e.g. regional restrictions and may not display for you. You will still be rewarded as long
+            as you keep the JungleTV page open throughout the duration of the queue entry.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            If you have watched multiple videos and have not received a reward, please confirm that you are not using a
+            If you have watched multiple pieces of content and have not received a reward, please confirm that you are not using a
             VPN or proxy and that you did not violate the <a use:link href="/guidelines">Guidelines</a>.
         </p>
     </div>
@@ -294,7 +294,7 @@
                         border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
                         bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
                 >
-                    Video
+                    Media
                 </th>
             </tr>
 

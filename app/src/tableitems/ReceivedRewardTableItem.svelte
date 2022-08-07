@@ -29,6 +29,10 @@
             <a href="https://youtube.com/watch?v={reward.getYoutubeVideoData().getId()}" target="_blank" rel="noopener">
                 {reward.getYoutubeVideoData().getTitle()}
             </a>
+        {:else if reward.hasSoundcloudTrackData()}
+            <a href={reward.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
+                {reward.getSoundcloudTrackData().getTitle()}
+            </a>
         {/if}
     </td>
 </tr>

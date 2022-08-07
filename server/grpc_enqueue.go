@@ -30,19 +30,19 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	isAdmin := false
 	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx)); err == nil && banned {
-		return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
+		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
 	if user != nil {
 		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctxCtx, user.Address()); err == nil && banned {
-			return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
+			return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 		}
 	}
 	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
-		return produceEnqueueMediaFailureResponse("Video enqueuing is currently disabled due to upcoming maintenance")
+		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
 	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
-		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue videos")
+		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue media")
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
