@@ -64,6 +64,9 @@ service JungleTV {
     rpc DisallowedMedia(DisallowedMediaRequest) returns (DisallowedMediaResponse) {}
     rpc AddDisallowedMedia(AddDisallowedMediaRequest) returns (AddDisallowedMediaResponse) {}
     rpc RemoveDisallowedMedia(RemoveDisallowedMediaRequest) returns (RemoveDisallowedMediaResponse) {}
+    rpc DisallowedMediaCollections(DisallowedMediaCollectionsRequest) returns (DisallowedMediaCollectionsResponse) {}
+    rpc AddDisallowedMediaCollection(AddDisallowedMediaCollectionRequest) returns (AddDisallowedMediaCollectionResponse) {}
+    rpc RemoveDisallowedMediaCollection(RemoveDisallowedMediaCollectionRequest) returns (RemoveDisallowedMediaCollectionResponse) {}
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
@@ -646,6 +649,47 @@ message RemoveDisallowedMediaRequest {
 }
 
 message RemoveDisallowedMediaResponse {}
+
+message DisallowedMediaCollectionsRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+enum DisallowedMediaCollectionType {
+    UNKNOWN_DISALLOWED_MEDIA_COLLECTION_TYPE = 0;
+    DISALLOWED_MEDIA_COLLECTION_TYPE_YOUTUBE_CHANNEL = 1;
+    DISALLOWED_MEDIA_COLLECTION_TYPE_SOUNDCLOUD_USER = 2;
+}
+
+message DisallowedMediaCollection {
+    string id = 1;
+    string disallowed_by = 2;
+    google.protobuf.Timestamp disallowed_at = 3;
+    DisallowedMediaCollectionType collection_type = 4;
+    string collection_id = 5;
+    string collection_title = 6;
+}
+
+message DisallowedMediaCollectionsResponse {
+    repeated DisallowedMediaCollection disallowed_media_collections = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message AddDisallowedMediaCollectionRequest {
+    // Do this so we can repurpose the same types and part of the code
+    EnqueueMediaRequest disallowed_media_request = 1;
+}
+
+message AddDisallowedMediaCollectionResponse {
+    repeated string ids = 1;
+}
+
+message RemoveDisallowedMediaCollectionRequest {
+    string id = 1;
+}
+
+message RemoveDisallowedMediaCollectionResponse {}
 
 message GetDocumentRequest {
     string id = 1;

@@ -42,6 +42,19 @@ func GetDisallowedMediaCollectionsWithIDs(node sqalx.Node, ids []string) (map[st
 	return result, nil
 }
 
+// GetDisallowedMediaCollectionsWithFilter returns all disallowed media collections that match the specified filter
+func GetDisallowedMediaCollectionsWithFilter(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+	s := sdb.Select().
+		Where(sq.Or{
+			sq.Eq{"disallowed_media_collection.id": filter},
+			sq.Eq{"disallowed_media_collection.collection_id": filter},
+			sq.Expr("UPPER(disallowed_media_collection.collection_title) LIKE UPPER(?)", "%"+filter+"%"),
+		}).
+		OrderBy("disallowed_media_collection.disallowed_at DESC")
+	s = applyPaginationParameters(s, pagParams)
+	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
+}
+
 // GetDisallowedMediaCollectionWithType returns all disallowed media collections of the specified type
 func GetDisallowedMediaCollectionWithType(node sqalx.Node, collectionType MediaCollectionType, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
@@ -51,10 +64,10 @@ func GetDisallowedMediaCollectionWithType(node sqalx.Node, collectionType MediaC
 	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
 }
 
-// GetDisallowedMediaCollectionsWithTypeAndFilter returns all disallowed media collections of the given type that matches the specified filter
-func GetDisallowedMediaCollectionsWithTypeAndFilter(node sqalx.Node, mediaType MediaType, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+// GetDisallowedMediaCollectionsWithTypeAndFilter returns all disallowed media collections of the given type that match the specified filter
+func GetDisallowedMediaCollectionsWithTypeAndFilter(node sqalx.Node, collectionType MediaCollectionType, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
-		Where(sq.Eq{"disallowed_media_collection.media_type": string(mediaType)}).
+		Where(sq.Eq{"disallowed_media_collection.collection_type": string(collectionType)}).
 		Where(sq.Or{
 			sq.Eq{"disallowed_media_collection.id": filter},
 			sq.Eq{"disallowed_media_collection.collection_id": filter},

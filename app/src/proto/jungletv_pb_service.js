@@ -496,6 +496,33 @@ JungleTV.RemoveDisallowedMedia = {
   responseType: jungletv_pb.RemoveDisallowedMediaResponse
 };
 
+JungleTV.DisallowedMediaCollections = {
+  methodName: "DisallowedMediaCollections",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.DisallowedMediaCollectionsRequest,
+  responseType: jungletv_pb.DisallowedMediaCollectionsResponse
+};
+
+JungleTV.AddDisallowedMediaCollection = {
+  methodName: "AddDisallowedMediaCollection",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.AddDisallowedMediaCollectionRequest,
+  responseType: jungletv_pb.AddDisallowedMediaCollectionResponse
+};
+
+JungleTV.RemoveDisallowedMediaCollection = {
+  methodName: "RemoveDisallowedMediaCollection",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveDisallowedMediaCollectionRequest,
+  responseType: jungletv_pb.RemoveDisallowedMediaCollectionResponse
+};
+
 JungleTV.UpdateDocument = {
   methodName: "UpdateDocument",
   service: JungleTV,
@@ -2414,6 +2441,99 @@ JungleTVClient.prototype.removeDisallowedMedia = function removeDisallowedMedia(
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.RemoveDisallowedMedia, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.disallowedMediaCollections = function disallowedMediaCollections(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.DisallowedMediaCollections, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.addDisallowedMediaCollection = function addDisallowedMediaCollection(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.AddDisallowedMediaCollection, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeDisallowedMediaCollection = function removeDisallowedMediaCollection(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveDisallowedMediaCollection, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

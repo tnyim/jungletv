@@ -2,36 +2,30 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import ErrorMessage from "../ErrorMessage.svelte";
-    import PaginatedTable from "../PaginatedTable.svelte";
-    import type { AddDisallowedMediaResponse, DisallowedMedia, PaginationParameters } from "../proto/jungletv_pb";
+    import type { AddDisallowedMediaCollectionResponse, AddDisallowedMediaResponse } from "../proto/jungletv_pb";
     import SuccessMessage from "../SuccessMessage.svelte";
-    import DisallowedMediaTableItem from "../tableitems/DisallowedMediaTableItem.svelte";
     import { parseURLForMediaSelection } from "../utils";
+    import DisallowedMediaCollectionsTable from "./DisallowedMediaCollectionsTable.svelte";
+    import DisallowedMediaEntryTable from "./DisallowedMediaEntryTable.svelte";
 
-    export let searchQuery = "";
-    let prevSearchQuery = "";
-
-    let cur_page = 0;
-    async function getPage(pagParams: PaginationParameters): Promise<[DisallowedMedia[], number]> {
-        let resp = await apiClient.disallowedMedia(searchQuery, pagParams);
-        return [resp.getDisallowedMediaList(), resp.getTotal()];
-    }
-
-    $: {
-        if (searchQuery != prevSearchQuery) {
-            cur_page = 0;
-            prevSearchQuery = searchQuery;
-        }
-    }
+    let entriesTable: DisallowedMediaEntryTable;
+    let collectionsTable: DisallowedMediaCollectionsTable;
 
     let disallowMediaURL = "";
-    let disallowMediaSuccessful = false;
-    let disallowMediaError = "";
+
+    let operationSuccessful = false;
+    let operationError = "";
+    let lastOperationItemType: "Media" | "Collection" = "Media";
+
     async function disallowMedia() {
+        operationSuccessful = false;
+        operationError = "";
+        lastOperationItemType = "Media";
+
         let result = parseURLForMediaSelection(disallowMediaURL);
         if (!result.valid) {
-            disallowMediaSuccessful = false;
-            disallowMediaError = "Failed to parse media URL";
+            operationSuccessful = false;
+            operationError = "Failed to parse media URL";
             return;
         }
 
@@ -45,11 +39,41 @@
         try {
             await reqPromise;
             disallowMediaURL = "";
-            disallowMediaSuccessful = true;
-            cur_page = -1;
+            operationSuccessful = true;
+            entriesTable.refresh();
         } catch (e) {
-            disallowMediaError = e;
-            disallowMediaSuccessful = false;
+            operationError = e;
+            operationSuccessful = false;
+        }
+    }
+
+    async function disallowMediaCollection() {
+        operationSuccessful = false;
+        operationError = "";
+        lastOperationItemType = "Collection";
+
+        let result = parseURLForMediaSelection(disallowMediaURL);
+        if (!result.valid) {
+            operationSuccessful = false;
+            operationError = "Failed to parse media URL";
+            return;
+        }
+
+        let reqPromise: Promise<AddDisallowedMediaCollectionResponse>;
+
+        if (result.type == "yt_video") {
+            reqPromise = apiClient.addDisallowedYouTubeChannel(result.videoID);
+        } else if (result.type == "sc_track") {
+            reqPromise = apiClient.addDisallowedSoundCloudUser(result.trackURL);
+        }
+        try {
+            await reqPromise;
+            disallowMediaURL = "";
+            operationSuccessful = true;
+            collectionsTable.refresh();
+        } catch (e) {
+            operationError = e;
+            operationSuccessful = false;
         }
     }
 </script>
@@ -64,9 +88,10 @@
             Back to moderation dashboard
         </a>
     </p>
-    <div class="px-2 grid grid-rows-1 grid-cols-3 gap-6 max-w-screen-sm mb-6">
+    <p class="mt-6">Note: always enter a specific video or track URL even when disallowing a channel or user</p>
+    <div class="px-2 grid grid-rows-1 grid-cols-5 gap-6 max-w-screen-md mb-6">
         <input
-            class="col-span-2 dark:text-black"
+            class="col-span-3 dark:text-black"
             type="text"
             placeholder="URL of YouTube video or SoundCloud track to disallow"
             bind:value={disallowMediaURL}
@@ -78,41 +103,23 @@
         >
             Disallow media
         </button>
+        <button
+            type="submit"
+            class="col-span-1 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            on:click={disallowMediaCollection}
+        >
+            Disallow channel/user
+        </button>
         <div class="col-span-2 mt-3">
-            {#if disallowMediaSuccessful}
+            {#if operationSuccessful}
                 <SuccessMessage>Media disallowed successfully</SuccessMessage>
-            {:else if disallowMediaError != ""}
-                <ErrorMessage>{disallowMediaError}</ErrorMessage>
+            {:else if operationError != ""}
+                <ErrorMessage>{operationError}</ErrorMessage>
             {/if}
         </div>
     </div>
 
-    <PaginatedTable
-        title={"Disallowed media"}
-        column_count={5}
-        error_message={"Error loading disallowed media"}
-        no_items_message={"No disallowed media"}
-        data_promise_factory={getPage}
-        bind:cur_page
-        bind:search_query={searchQuery}
-        show_search_box={true}
-    >
-        <tr
-            slot="thead"
-            class="border border-solid border-l-0 border-r-0
-        bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600
-        text-xs uppercase whitespace-nowrap text-left"
-        >
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Type </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Media ID </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Media Title </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed by </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed at </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
-        </tr>
-
-        <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
-            <DisallowedMediaTableItem media={item} {updateDataCallback} />
-        </tbody>
-    </PaginatedTable>
+    <DisallowedMediaEntryTable bind:this={entriesTable} />
+    <div class="h-6" />
+    <DisallowedMediaCollectionsTable bind:this={collectionsTable} />
 </div>
