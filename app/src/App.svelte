@@ -482,5 +482,13 @@
 		.dark #videoRangeSlider {
 			--range-slider: theme("colors.gray.600");
 		}
+
+		#soundcloudVolumeSlider {
+			margin: 11px;
+		}
+		#soundcloudVolumeSlider > .rangeHandle {
+			height: 1em;
+			width: 1em;
+		}
 	}
 </style>

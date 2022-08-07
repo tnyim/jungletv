@@ -133,7 +133,7 @@
 >
     {#if playerOpen}
         {#key rAddress}
-            <Player {fullSize} />
+            <Player {fullSize} {bigMinimizedPlayer} />
             {#if rAddress}
                 <!-- stupid thing to make the key block depend on it, otherwise it doesn't actually recreate -->
             {/if}

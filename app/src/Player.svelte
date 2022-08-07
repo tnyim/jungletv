@@ -21,6 +21,7 @@
     } from "./stores";
 
     export let fullSize: boolean;
+    export let bigMinimizedPlayer: boolean;
 
     let checkpoint: MediaConsumptionCheckpoint;
     let mediaTitle = "";
@@ -106,7 +107,7 @@
     {#if checkpoint.hasYoutubeVideoData()}
         <PlayerYouTube {checkpoint} />
     {:else if checkpoint.hasSoundcloudTrackData()}
-        <PlayerSoundCloud {checkpoint} />
+        <PlayerSoundCloud {checkpoint} {fullSize} {bigMinimizedPlayer} />
     {:else}
         <div class="flex h-full w-full justify-center items-center text-xl">
             <div class="text-center">
@@ -120,7 +121,9 @@
         <div class="text-center">
             <p class="text-4xl"><i class="far fa-stop-circle" /></p>
             <p class="mt-3 text-xl">Nothing playing</p>
-            <p class="mt-3"><a href="/enqueue" use:link>Get something going!</a></p>
+            {#if fullSize || bigMinimizedPlayer}
+                <p class="mt-3"><a href="/enqueue" use:link>Get something going!</a></p>
+            {/if}
         </div>
     </div>
 {/if}
