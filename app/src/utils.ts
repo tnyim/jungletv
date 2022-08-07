@@ -5,8 +5,10 @@ import emojiRegex from "emoji-regex";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
+import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
 import type { QueueSoundCloudTrackData, User } from "./proto/jungletv_pb";
+import { playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -497,8 +499,38 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
                 type: "sc_track",
             };
         }
-    } catch {}
+    } catch { }
     return {
         valid: false,
     };
+}
+
+export const ttsAudioAlert = function (message: string) {
+    if (typeof (window.speechSynthesis) === 'undefined') {
+        return;
+    }
+    let speechSynth = window.speechSynthesis;
+    let voices = speechSynth.getVoices();
+    let usableVoice: SpeechSynthesisVoice = null;
+    for (let voice of voices) {
+        if (voice.lang === "en" || voice.lang.startsWith("en-")) {
+            usableVoice = voice;
+            break;
+        }
+    }
+    if (usableVoice == null) {
+        return;
+    }
+
+    let utterance = new SpeechSynthesisUtterance(message);
+    utterance.voice = usableVoice;
+    utterance.volume = get(playerVolume);
+    utterance.lang = "en-US";
+    utterance.addEventListener("start", () => {
+        playerVolume.set(utterance.volume / 3);
+    });
+    utterance.addEventListener("end", () => {
+        playerVolume.set(utterance.volume);
+    })
+    speechSynth.speak(utterance);
 }

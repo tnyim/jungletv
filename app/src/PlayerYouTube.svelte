@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
-    import type { Options, YouTubePlayer } from "youtube-player/dist/types";
+    import { onDestroy,onMount } from "svelte";
+    import type { Options,YouTubePlayer } from "youtube-player/dist/types";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import { playerVolume } from "./stores";
     import YouTube from "./YouTube.svelte";
@@ -29,13 +29,7 @@
         player.on("stateChange", (event) => {
             if (!playerBecameReady && event.data == 1 && firstSeekTo !== undefined) {
                 playerBecameReady = true;
-                updatePlayerVolumeIntervalHandle = setInterval(updatePlayerVolume, 10000);
-                if ($playerVolume > 0){
-                    player.unMute();
-                    player.setVolume($playerVolume * 100);
-                } else {
-                    player.mute();
-                }
+                updatePlayerVolumeIntervalHandle = setInterval(updatePlayerVolume, 5000);
                 player.seekTo(firstSeekTo, true);
             }
         });
@@ -52,9 +46,23 @@
 
     let player: YouTubePlayer;
 
+    let updatingVolumeStore = false;
+    $: {
+        if (typeof player !== "undefined" && playerBecameReady && !updatingVolumeStore) {
+            if ($playerVolume > 0) {
+                player.unMute();
+                player.setVolume($playerVolume * 100);
+            } else {
+                player.mute();
+            }
+        }
+    }
+
     async function updatePlayerVolume() {
         if (typeof player !== "undefined") {
+            updatingVolumeStore = true;
             $playerVolume = (await player.isMuted()) ? 0 : (await player.getVolume()) / 100;
+            updatingVolumeStore = false;
         }
     }
 

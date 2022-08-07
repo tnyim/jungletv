@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
-    import { fly } from "svelte/transition";
-    import { defaultSidebarTabIDs } from "./tabStores";
-    import type { SidebarTab } from "./tabStores";
-    import { sidebarTabs } from "./tabStores";
+    import { createEventDispatcher, onDestroy } from "svelte";
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
+    import { fly } from "svelte/transition";
+    import SidebarTabButton from "./SidebarTabButton.svelte";
+    import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
+    import type { SidebarTab } from "./tabStores";
+    import { defaultSidebarTabIDs, sidebarTabs } from "./tabStores";
     import { openPopout } from "./utils";
 
     const dispatch = createEventDispatcher();
@@ -14,7 +13,7 @@
     let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
     let selectedTab: SidebarTab;
 
-    let currentlyWatchingCount = 0
+    let currentlyWatchingCount = 0;
     $: currentlyWatchingCount = $currentlyWatching;
 
     const unreadAnnouncementUnsubscribe = unreadAnnouncement.subscribe((hasUnread) => {

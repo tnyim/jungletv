@@ -14,11 +14,13 @@
         mostRecentAnnouncement,
         playerConnected,
         playerCurrentTime,
+        playerVolume,
         rewardBalance,
         rewardReceived,
         unreadAnnouncement,
         unreadChatMention,
     } from "./stores";
+    import { ttsAudioAlert } from "./utils";
 
     export let fullSize: boolean;
     export let bigMinimizedPlayer: boolean;
@@ -63,6 +65,28 @@
         document.title = "JungleTV";
     });
 
+    let lastTTSAlertAt = 0;
+
+    function onVisibilityChange() {
+        if (document.hidden) {
+            lastTTSAlertAt = 0;
+        }
+    }
+
+    $: {
+        if (!fullSize) {
+            lastTTSAlertAt = 0;
+        }
+    }
+
+    onMount(() => {
+        document.addEventListener("visibilitychange", onVisibilityChange);
+    });
+
+    onDestroy(() => {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+    });
+
     async function handleCheckpoint(cp: MediaConsumptionCheckpoint) {
         if (consumeMediaTimeoutHandle != null) {
             clearTimeout(consumeMediaTimeoutHandle);
@@ -91,6 +115,15 @@
         }
         if (checkpoint.hasHasChatMention() && checkpoint.getHasChatMention()) {
             unreadChatMention.set(true);
+            let now = new Date().getTime();
+            if (
+                (document.hidden || document.fullscreenElement != null || !fullSize) &&
+                $playerVolume > 0 &&
+                now - lastTTSAlertAt > 30000
+            ) {
+                ttsAudioAlert("New Jungle TV chat reply");
+                lastTTSAlertAt = now;
+            }
         }
         if (checkpoint.hasMediaTitle()) {
             mediaTitle = checkpoint.getMediaTitle();

@@ -1,11 +1,12 @@
 <script lang="ts">
-    import Sidebar from "./Sidebar.svelte";
-    import { fly, scale } from "svelte/transition";
-    import watchMedia from "svelte-media";
-    import { activityChallengeReceived, playerVolume } from "./stores";
-    import { cubicOut } from "svelte/easing";
-    import ActivityChallenge from "./ActivityChallenge.svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
+    import watchMedia from "svelte-media";
+    import { cubicOut } from "svelte/easing";
+    import { fly, scale } from "svelte/transition";
+    import ActivityChallenge from "./ActivityChallenge.svelte";
+    import Sidebar from "./Sidebar.svelte";
+    import { activityChallengeReceived, playerVolume } from "./stores";
+    import { ttsAudioAlert } from "./utils";
 
     let largeScreen = false;
     const media = watchMedia({ large: "(min-width: 1024px)" });
@@ -54,8 +55,8 @@
         }
         hasChallenge = true;
         checkShowCaptcha();
-        if (document.hidden && c.getType() != "moderating") {
-            captchaAudioAlert($playerVolume);
+        if ((document.hidden || document.fullscreenElement != null) && c.getType() != "moderating" && $playerVolume > 0) {
+            ttsAudioAlert("Hey, are you still listening to Jungle TV?");
         }
     });
     onDestroy(activityChallengeReceivedUnsubscribe);
@@ -68,30 +69,6 @@
         if (!document.hidden && hasChallenge) {
             showCaptcha = true;
         }
-    }
-
-    function captchaAudioAlert(volume: number) {
-        if (volume == 0 || typeof(window.speechSynthesis) === 'undefined') {
-            return;
-        }
-        let speechSynth = window.speechSynthesis;
-        let voices = speechSynth.getVoices();
-        let usableVoice: SpeechSynthesisVoice = null;
-        for (let voice of voices) {
-            if (voice.lang === "en" || voice.lang.startsWith("en-")) {
-                usableVoice = voice;
-                break;
-            }
-        }
-        if (usableVoice == null) {
-            return;
-        }
-
-        let utterance = new SpeechSynthesisUtterance("Hey, are you still listening to Jungle TV?");
-        utterance.voice = usableVoice;
-        utterance.volume = volume;
-        utterance.lang = "en-US";
-        speechSynth.speak(utterance);
     }
 </script>
 
