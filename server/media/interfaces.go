@@ -48,11 +48,16 @@ type Info interface {
 	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) QueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 }
+type CollectionKey struct {
+	Type  types.MediaCollectionType
+	ID    string
+	Title string
+}
 
 // InitialInfo provides the initial information for blocklist checking during the enqueuing process
 type InitialInfo interface {
 	MediaID() (types.MediaType, string)
-	Collections() []string
+	Collections() []CollectionKey
 }
 
 // Provider provides media enqueuing and serialization facilities

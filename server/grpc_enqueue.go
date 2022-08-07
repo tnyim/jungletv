@@ -83,7 +83,15 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		return produceEnqueueRequestCreationFailedResponse(media.EnqueueRequestCreationFailedMediumIsDisallowed)
 	}
 
-	// TODO check collections for disallowed ones
+	for _, collection := range preInfo.Collections() {
+		allowed, err := types.IsMediaCollectionAllowed(ctx, collection.Type, collection.ID)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		if !allowed {
+			return produceEnqueueRequestCreationFailedResponse(media.EnqueueRequestCreationFailedMediumIsDisallowed)
+		}
+	}
 
 	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable,
 		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,

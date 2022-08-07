@@ -44,8 +44,14 @@ func (i *initialInfo) MediaID() (types.MediaType, string) {
 	return types.MediaTypeYouTubeVideo, i.videoItem.Id
 }
 
-func (i *initialInfo) Collections() []string {
-	return []string{i.videoItem.Snippet.ChannelId}
+func (i *initialInfo) Collections() []media.CollectionKey {
+	return []media.CollectionKey{
+		{
+			ID:    i.videoItem.Snippet.ChannelId,
+			Title: i.videoItem.Snippet.ChannelTitle,
+			Type:  types.MediaCollectionTypeYouTubeChannel,
+		},
+	}
 }
 
 func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {

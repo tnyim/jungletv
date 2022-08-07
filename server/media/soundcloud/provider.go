@@ -2,9 +2,9 @@ package soundcloud
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -59,8 +59,14 @@ func (i *initialInfo) MediaID() (types.MediaType, string) {
 	return types.MediaTypeSoundCloudTrack, i.id
 }
 
-func (i *initialInfo) Collections() []string {
-	return []string{i.response.User.Username}
+func (i *initialInfo) Collections() []media.CollectionKey {
+	return []media.CollectionKey{
+		{
+			ID:    strconv.FormatInt(i.response.User.ID, 10),
+			Title: i.response.User.Username,
+			Type:  types.MediaCollectionTypeSoundCloudUser,
+		},
+	}
 }
 
 func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
@@ -88,7 +94,7 @@ func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 		return nil, media.EnqueueRequestCreationFailedMediumIsNotEmbeddable, nil
 	}
 
-	idString := fmt.Sprintf("%d", response.ID)
+	idString := strconv.FormatInt(response.ID, 10)
 
 	return &initialInfo{
 		id:         idString,
@@ -234,6 +240,7 @@ type APIPublisherMetadata struct {
 
 type APIUser struct {
 	Username string `json:"username"`
+	ID       int64  `json:"id"`
 }
 
 func (c *TrackProvider) TrackInfo(trackURL string) (*APIResponse, error) {

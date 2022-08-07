@@ -23,6 +23,8 @@ DROP TABLE IF EXISTS "received_reward";
 DROP TABLE IF EXISTS "chat_message";
 DROP TABLE IF EXISTS "chat_user";
 DROP TABLE IF EXISTS "document";
+DROP TABLE IF EXISTS "disallowed_media_collections";
+DROP TABLE IF EXISTS "media_collection_type";
 DROP TABLE IF EXISTS "disallowed_media";
 DROP TABLE IF EXISTS "played_media";
 DROP TABLE IF EXISTS "media_type";
@@ -30,7 +32,7 @@ DROP TABLE IF EXISTS "media_type";
 CREATE TABLE IF NOT EXISTS "media_type" (
     media_type VARCHAR(10) PRIMARY KEY
 );
-INSERT INTO "media_type" VALUES ('yt_video', 'sc_track');
+INSERT INTO "media_type" VALUES ('yt_video'), ('sc_track');
 
 CREATE TABLE IF NOT EXISTS "played_media" (
     id VARCHAR(36) PRIMARY KEY,
@@ -56,6 +58,20 @@ CREATE TABLE IF NOT EXISTS "disallowed_media" (
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),
     media_id VARCHAR(36) NOT NULL,
     media_title VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "media_collection_type" (
+    collection_type VARCHAR(10) PRIMARY KEY
+);
+INSERT INTO "media_collection_type" VALUES ('yt_channel'), ('sc_user');
+
+CREATE TABLE IF NOT EXISTS "disallowed_media_collection" (
+    id VARCHAR(36) PRIMARY KEY,
+    disallowed_by VARCHAR(64),
+    disallowed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    collection_type VARCHAR(10) NOT NULL REFERENCES media_collection_type (collection_type),
+    collection_id VARCHAR(36) NOT NULL,
+    collection_title VARCHAR(150) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "document" (
