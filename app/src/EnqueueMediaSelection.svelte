@@ -9,6 +9,7 @@
     import ErrorMessage from "./ErrorMessage.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
+    import { MediaSelectionKind, parseURLForMediaSelection } from "./utils";
     import VideoRangeFloat from "./VideoRangeFloat.svelte";
     import Wizard from "./Wizard.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
@@ -18,7 +19,7 @@
     let mediaURL: string = "";
     let videoID: string = "";
     let hasValidURL = false;
-    let mediaType: "video" | "track" = "video";
+    let mediaKind: MediaSelectionKind = "video";
     let extractedTimestamp: number = 0;
     let videoIsBroadcast = false;
     $: {
@@ -48,58 +49,23 @@
         hasValidURL = false;
         await tick();
 
-        let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
-        if (idRegExp.test(urlString)) {
-            // we were provided just a video ID
-            videoID = urlString;
+        let result = parseURLForMediaSelection(urlString);
+        if (!result.valid) {
             return;
         }
 
-        if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-            urlString = "https://" + urlString;
-        }
+        hasValidURL = result.valid;
+        mediaKind = result.selectionKind;
 
-        try {
-            let url = new URL(urlString);
-            let t = url.searchParams.get("t");
-            if (t != null && !isNaN(Number(t))) {
-                extractedTimestamp = Number(t);
-            } else {
-                extractedTimestamp = 0;
-            }
-            if (/^(.*\.){0,1}youtube.com$/.test(url.host)) {
-                if (url.pathname == "/watch") {
-                    let v = url.searchParams.get("v");
-                    if (idRegExp.test(v)) {
-                        videoID = v;
-                        hasValidURL = videoID.length == 11;
-                        mediaType = "video";
-                        return;
-                    }
-                } else if (url.pathname.startsWith("/shorts/")) {
-                    let parts = url.pathname.split("/");
-                    if (idRegExp.test(parts[parts.length - 1])) {
-                        videoID = parts[parts.length - 1];
-                        hasValidURL = videoID.length == 11;
-                        mediaType = "video";
-                        return;
-                    }
-                }
-            } else if (url.host == "youtu.be") {
-                let parts = url.pathname.split("/");
-                if (idRegExp.test(parts[parts.length - 1])) {
-                    videoID = parts[parts.length - 1];
-                    hasValidURL = videoID.length == 11;
-                    mediaType = "video";
-                    return;
-                }
-            } else if (url.host == "soundcloud.com") {
-                // TODO do some more sanity checking
-                hasValidURL = true;
-                videoID = "";
-                mediaType = "track";
-            }
-        } catch {}
+        switch (result.type) {
+            case "yt_video":
+                videoID = result.videoID;
+                extractedTimestamp = result.extractedTimestamp;
+                break;
+            case "sc_track":
+                // nothing to do
+                break;
+        }
     }
 
     async function submit() {
@@ -125,15 +91,15 @@
                 endOffset.setSeconds(mediaRange[1]);
             }
 
-            if (mediaType == "video") {
+            if (mediaKind == "video") {
                 reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable, startOffset, endOffset);
-            } else if (mediaType == "track") {
+            } else if (mediaKind == "track") {
                 reqPromise = apiClient.enqueueSoundCloudTrack(mediaURL, unskippable, startOffset, endOffset);
             }
         } else {
-            if (mediaType == "video") {
+            if (mediaKind == "video") {
                 reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable);
-            } else if (mediaType == "track") {
+            } else if (mediaKind == "track") {
                 reqPromise = apiClient.enqueueSoundCloudTrack(mediaURL, unskippable);
             }
         }
@@ -314,7 +280,7 @@
             failureReason = "Track not found or not playable on JungleTV";
         }
     }
-    $: if (hasValidURL && mediaType === "track") {
+    $: if (hasValidURL && mediaKind === "track") {
         updateSoundCloudTrackRanges();
     }
 </script>
@@ -331,10 +297,10 @@
             and the current JungleTV viewership.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Longer {mediaType}s suffer an increasing price penalty.
+            Longer {mediaKind}s suffer an increasing price penalty.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            The amount you pay will be distributed among eligible spectators by the time your {mediaType} ends. If none are
+            The amount you pay will be distributed among eligible spectators by the time your {mediaKind} ends. If none are
             around by then, you will be reimbursed.
         </p>
     </div>
@@ -379,12 +345,12 @@
                 </div>
                 <div class="ml-3 text-sm">
                     <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300">
-                        Make {mediaType} unskippable</label
+                        Make {mediaKind} unskippable</label
                     >
                     <p class="text-gray-500">
-                        Prevent this {mediaType} from being skipped even if users pay enough to do so.<br />
+                        Prevent this {mediaKind} from being skipped even if users pay enough to do so.<br />
                         <span class="font-semibold">
-                            This will increase the price to enqueue this {mediaType} by 6.9 times.
+                            This will increase the price to enqueue this {mediaKind} by 6.9 times.
                         </span>
                     </p>
                 </div>
@@ -415,10 +381,10 @@
                             Select a time range to play</label
                         >
                         <p class="text-gray-500">
-                            Enqueue just part of a longer {mediaType}. Prices will be relative to the length that plays.
+                            Enqueue just part of a longer {mediaKind}. Prices will be relative to the length that plays.
                             {#if mediaLengthInSeconds > maxRangeLength}
                                 <br />
-                                {mediaType == "video" ? "Videos" : "Tracks"} longer than {maxRangeLength / 60} minutes must
+                                {mediaKind == "video" ? "Videos" : "Tracks"} longer than {maxRangeLength / 60} minutes must
                                 be enqueued in shorter non-overlapping segments, each up to {maxRangeLength / 60} minutes
                                 long.
                             {/if}
@@ -464,12 +430,12 @@
                             </div>
                             {#if mediaLengthInSeconds <= defaultMinRangeLength}
                                 <p class="text-red-500">
-                                    This {mediaType} is shorter than {defaultMinRangeLength} seconds and can only be enqueued
+                                    This {mediaKind} is shorter than {defaultMinRangeLength} seconds and can only be enqueued
                                     in its entirety.
                                 </p>
                             {/if}
                         {:else if failureReason == ""}
-                            <div class="mt-2 mb-9">Loading {mediaType} information...</div>
+                            <div class="mt-2 mb-9">Loading {mediaKind} information...</div>
                         {/if}
                     {/if}
                 </div>

@@ -395,3 +395,110 @@ export const buildMonKeyURL = function (address: string, format?: string): strin
     }
     return "https://monkey.banano.cc/api/v1/monkey/" + address;
 }
+
+export type MediaSelectionKind = "video" | "track";
+
+type BaseMediaSelectionParseResult = {
+    readonly valid: boolean;
+}
+
+type InvalidMediaSelectionParseResult = BaseMediaSelectionParseResult & {
+    readonly valid: false;
+}
+
+type PossiblyValidMediaSelectionParseResult = BaseMediaSelectionParseResult & {
+    readonly valid: boolean;
+    readonly selectionKind: MediaSelectionKind;
+    readonly type: "yt_video" | "sc_track";
+}
+
+type YouTubeVideoSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
+    readonly selectionKind: "video",
+    readonly type: "yt_video",
+    readonly videoID: string;
+    readonly extractedTimestamp: number;
+}
+
+type SoundCloudTrackSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
+    readonly selectionKind: "track",
+    readonly type: "sc_track",
+    readonly trackURL: string;
+}
+
+type MediaSelectionParseResult = InvalidMediaSelectionParseResult | YouTubeVideoSelectionParseResult | SoundCloudTrackSelectionParseResult;
+
+export const parseURLForMediaSelection = function (urlString: string): MediaSelectionParseResult {
+    let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
+    if (idRegExp.test(urlString)) {
+        // we were provided just a video ID
+        return {
+            valid: true,
+            videoID: urlString,
+            extractedTimestamp: 0,
+            selectionKind: "video",
+            type: "yt_video",
+        };
+    }
+
+    if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
+        urlString = "https://" + urlString;
+    }
+
+    try {
+        let url = new URL(urlString);
+        let t = url.searchParams.get("t");
+        let extractedTimestamp = 0;
+        if (t != null && !isNaN(Number(t))) {
+            extractedTimestamp = Number(t);
+        } else {
+            extractedTimestamp = 0;
+        }
+        if (/^(.*\.){0,1}youtube.com$/.test(url.host)) {
+            if (url.pathname == "/watch") {
+                let v = url.searchParams.get("v");
+                if (idRegExp.test(v)) {
+                    return {
+                        valid: v.length == 11,
+                        videoID: v,
+                        extractedTimestamp: extractedTimestamp,
+                        selectionKind: "video",
+                        type: "yt_video",
+                    };
+                }
+            } else if (url.pathname.startsWith("/shorts/")) {
+                let parts = url.pathname.split("/");
+                if (idRegExp.test(parts[parts.length - 1])) {
+                    return {
+                        valid: parts[parts.length - 1].length == 11,
+                        videoID: parts[parts.length - 1],
+                        extractedTimestamp: extractedTimestamp,
+                        selectionKind: "video",
+                        type: "yt_video",
+                    };
+                }
+            }
+        } else if (url.host == "youtu.be") {
+            let parts = url.pathname.split("/");
+            if (idRegExp.test(parts[parts.length - 1])) {
+                return {
+                    valid: parts[parts.length - 1].length == 11,
+                    videoID: parts[parts.length - 1],
+                    extractedTimestamp: extractedTimestamp,
+                    selectionKind: "video",
+                    type: "yt_video",
+                };
+            }
+        } else if (url.host == "soundcloud.com") {
+            // TODO do some more sanity checking
+            return {
+                valid: true,
+                trackURL: urlString,
+                selectionKind: "track",
+                type: "sc_track",
+            };
+        }
+    } catch {}
+    return {
+        valid: false,
+    };
+}

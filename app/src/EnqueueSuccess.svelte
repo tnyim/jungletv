@@ -1,14 +1,15 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
     import { navigate } from "svelte-navigator";
-    import Wizard from "./Wizard.svelte";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
+    import type { MediaSelectionKind } from "./utils";
+    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 
     export let ticket: EnqueueMediaTicket;
-    export let mediaType: "video" | "track";
+    export let mediaKind: MediaSelectionKind;
 
     function enqueueAnother() {
         dispatch("enqueueAnother");
@@ -21,12 +22,12 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaType}</h3>
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaKind}</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">You just made JungleTV more interesting!</p>
     </div>
     <div slot="main-content">
         <EnqueueTicketPreview {ticket} />
-        <p class="mt-8">{mediaType == "video" ? "Video" : "Track"} enqueued successfully! Thank you!</p>
+        <p class="mt-8">{mediaKind == "video" ? "Video" : "Track"} enqueued successfully! Thank you!</p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <button

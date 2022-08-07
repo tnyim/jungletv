@@ -9,10 +9,11 @@
     import EnqueueRafflePromotion from "./EnqueueRafflePromotion.svelte";
     import EnqueueSuccess from "./EnqueueSuccess.svelte";
     import type { EnqueueMediaResponse, EnqueueMediaTicket, OngoingRaffleInfo } from "./proto/jungletv_pb";
+    import type { MediaSelectionKind } from "./utils";
 
     let step = 0;
     let ticket: EnqueueMediaTicket;
-    let mediaType: "video" | "track" = "video";
+    let mediaKind: MediaSelectionKind = "video";
     function onMediaSelected(event: CustomEvent<EnqueueMediaResponse>) {
         ticket = event.detail.getTicket();
         step = 1;
@@ -36,9 +37,9 @@
     $: {
         if (typeof ticket !== "undefined") {
             if (ticket.hasYoutubeVideoData()) {
-                mediaType = "video";
+                mediaKind = "video";
             } else if (ticket.hasSoundcloudTrackData()) {
-                mediaType = "track";
+                mediaKind = "track";
             }
         }
     }
@@ -66,7 +67,7 @@
         on:ticketExpired={onTicketExpired}
         on:connectionLost={onConnectionLost}
         bind:ticket
-        {mediaType}
+        {mediaKind}
     >
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
@@ -75,7 +76,7 @@
         </svelte:fragment>
     </EnqueuePayment>
 {:else if step == 2}
-    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket {mediaType}>
+    <EnqueueSuccess on:enqueueAnother={onUserCanceled} bind:ticket {mediaKind}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />
@@ -83,7 +84,7 @@
         </svelte:fragment>
     </EnqueueSuccess>
 {:else if step == 3}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket {mediaType}>
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket {mediaKind}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />
@@ -91,7 +92,7 @@
         </svelte:fragment>
     </EnqueueFailure>
 {:else if step == 4}
-    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true} {mediaType}>
+    <EnqueueFailure on:enqueueAnother={onUserCanceled} bind:ticket connectionLost={true} {mediaKind}>
         <svelte:fragment slot="raffle-info">
             {#if ongoingRaffleInfo !== undefined}
                 <EnqueueRafflePromotion {ongoingRaffleInfo} />

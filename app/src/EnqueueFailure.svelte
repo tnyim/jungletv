@@ -1,15 +1,16 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
     import { navigate } from "svelte-navigator";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import Wizard from "./Wizard.svelte";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import ErrorMessage from "./ErrorMessage.svelte";
+    import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
+    import type { MediaSelectionKind } from "./utils";
+    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 
     export let ticket: EnqueueMediaTicket;
-    export let mediaType: "video" | "track";
+    export let mediaKind: MediaSelectionKind;
     export let connectionLost = false;
 
     function enqueueAnother() {
@@ -23,10 +24,10 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaType}</h3>
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaKind}</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            <strong>Beware:</strong> if you just paid before the prices expired, it is possible your {mediaType} was enqueued anyway.
-            Double-check before trying again!
+            <strong>Beware:</strong> if you just paid before the prices expired, it is possible your {mediaKind} was enqueued
+            anyway. Double-check before trying again!
         </p>
     </div>
     <div slot="main-content">
@@ -37,7 +38,8 @@
                     Connection to the server lost. If you already paid, <strong
                         class="cursor-pointer hover:underline"
                         on:click={closeEnqueue}>Cancel</strong
-                    > and check the queue to see if your {mediaType} was enqueued.
+                    >
+                    and check the queue to see if your {mediaKind} was enqueued.
                 {:else}
                     Payment not received in time. If you did not make a payment yet, please try again.<br />
                     If you made a payment but it has not been taken into account, you will receive a refund once the JungleTV

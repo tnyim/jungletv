@@ -1,20 +1,21 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { DateTime } from "luxon";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import AddressBox from "./AddressBox.svelte";
+    import { apiClient } from "./api_client";
+    import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
+    import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
+    import { darkMode } from "./stores";
+    import type { MediaSelectionKind } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
-    import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
-    import { darkMode } from "./stores";
 
     const dispatch = createEventDispatcher();
 
     export let ticket: EnqueueMediaTicket;
-    export let mediaType: "video" | "track";
+    export let mediaKind: MediaSelectionKind;
 
     let monitorTicketRequest: Request;
     let ticketTimeRemainingFormatted = "";
@@ -73,18 +74,18 @@
 
 <Wizard>
     <div slot="step-info">
-        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaType}</h3>
+        <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Enqueue a {mediaKind}</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Looks like this {mediaType} can be played on JungleTV. The prices shown are valid for ten minutes, regardless of
-            the changes in queue length and viewership during this period.
+            Looks like this {mediaKind} can be played on JungleTV. The prices shown are valid for ten minutes, regardless
+            of the changes in queue length and viewership during this period.
         </p>
         <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
-            In addition to the minimum price, there are two additional price tiers you can use to play the {mediaType} sooner.
+            In addition to the minimum price, there are two additional price tiers you can use to play the {mediaKind} sooner.
             Beware: these might not make much sense if the queue is already short!
         </p>
         <p class="mt-1 md:mt-3 text-sm text-gray-600 dark:text-gray-400">
-            If you decide to enqueue the {mediaType} right after the currently playing content, beware that until the current entry finishes
-            playing, it is still possible for others to dethrone it by using the same option.
+            If you decide to enqueue the {mediaKind} right after the currently playing content, beware that until the current
+            entry finishes playing, it is still possible for others to dethrone it by using the same option.
         </p>
     </div>
     <!-- if the ticket is paid/expired it'll be missing some fields this component needs -->
@@ -92,9 +93,9 @@
         {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE}
             <EnqueueTicketPreview {ticket} />
             <p class="mt-8">
-                The {mediaType} will be added to the queue once at least <span class="font-bold"
-                    >{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span
-                > is sent to the following address:
+                The {mediaKind} will be added to the queue once at least
+                <span class="font-bold">{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span> is sent to the following
+                address:
             </p>
             <div class="mt-1 mb-4">
                 <AddressBox
@@ -109,7 +110,9 @@
             </div>
             {#if ticket.getUnskippable()}
                 <div class="flex justify-center text-yellow-800 dark:text-yellow-400">
-                    <strong>Prices have been heavily increased as you wish for this {mediaType} to be unskippable.</strong>
+                    <strong
+                        >Prices have been heavily increased as you wish for this {mediaKind} to be unskippable.</strong
+                    >
                 </div>
             {/if}
             <div class="flex justify-center">
@@ -126,7 +129,7 @@
                             <td class="text-right font-bold p-2">
                                 Send {apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN
                             </td>
-                            <td class="p-2">to add the {mediaType} to the end of the queue</td>
+                            <td class="p-2">to add the {mediaKind} to the end of the queue</td>
                         </tr>
                         <tr>
                             <td>
@@ -139,7 +142,7 @@
                             <td class="text-right font-bold p-2">
                                 Send {apiClient.formatBANPrice(ticket.getPlayNextPrice())} BAN
                             </td>
-                            <td class="p-2">to play the {mediaType} right after the current entry</td>
+                            <td class="p-2">to play the {mediaKind} right after the current entry</td>
                         </tr>
                         <tr>
                             <td>
@@ -171,7 +174,11 @@
                     </WarningMessage>
                 </div>
             {/if}
-            <p class="mt-2">Sending more BAN will increase the rewards for viewers when {mediaType == "video" ? "watching" : "listening to"} this {mediaType}.</p>
+            <p class="mt-2">
+                Sending more BAN will increase the rewards for viewers when {mediaKind == "video"
+                    ? "watching"
+                    : "listening to"} this {mediaKind}.
+            </p>
             <p class="mt-2">
                 This price and address will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
             </p>
