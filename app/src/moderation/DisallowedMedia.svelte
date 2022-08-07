@@ -94,7 +94,8 @@
         no_items_message={"No disallowed media"}
         data_promise_factory={getPage}
         bind:cur_page
-        search_query={searchQuery}
+        bind:search_query={searchQuery}
+        show_search_box={true}
     >
         <tr
             slot="thead"
