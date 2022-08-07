@@ -5,7 +5,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Fuzzy from "./Fuzzy.svelte";
-    import { PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
+    import { AddDisallowedMediaResponse, PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { permissionLevel, rewardAddress } from "./stores";
@@ -103,7 +103,14 @@
     async function removeEntry(entry: QueueEntry, disallow: boolean) {
         await apiClient.removeQueueEntry(entry.getId());
         if (disallow) {
-            await apiClient.addDisallowedVideo(entry.getYoutubeVideoData().getId());
+            let reqPromise: Promise<AddDisallowedMediaResponse>;
+
+            if (entry.hasYoutubeVideoData()) {
+                reqPromise = apiClient.addDisallowedYouTubeVideo(entry.getYoutubeVideoData().getId());
+            } else if (entry.hasSoundcloudTrackData()) {
+                reqPromise = apiClient.addDisallowedSoundCloudTrack(entry.getSoundcloudTrackData().getPermalink());
+            }
+            await reqPromise;
         }
     }
 

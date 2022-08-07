@@ -469,31 +469,31 @@ JungleTV.UserChatMessages = {
   responseType: jungletv_pb.UserChatMessagesResponse
 };
 
-JungleTV.DisallowedVideos = {
-  methodName: "DisallowedVideos",
+JungleTV.DisallowedMedia = {
+  methodName: "DisallowedMedia",
   service: JungleTV,
   requestStream: false,
   responseStream: false,
-  requestType: jungletv_pb.DisallowedVideosRequest,
-  responseType: jungletv_pb.DisallowedVideosResponse
+  requestType: jungletv_pb.DisallowedMediaRequest,
+  responseType: jungletv_pb.DisallowedMediaResponse
 };
 
-JungleTV.AddDisallowedVideo = {
-  methodName: "AddDisallowedVideo",
+JungleTV.AddDisallowedMedia = {
+  methodName: "AddDisallowedMedia",
   service: JungleTV,
   requestStream: false,
   responseStream: false,
-  requestType: jungletv_pb.AddDisallowedVideoRequest,
-  responseType: jungletv_pb.AddDisallowedVideoResponse
+  requestType: jungletv_pb.AddDisallowedMediaRequest,
+  responseType: jungletv_pb.AddDisallowedMediaResponse
 };
 
-JungleTV.RemoveDisallowedVideo = {
-  methodName: "RemoveDisallowedVideo",
+JungleTV.RemoveDisallowedMedia = {
+  methodName: "RemoveDisallowedMedia",
   service: JungleTV,
   requestStream: false,
   responseStream: false,
-  requestType: jungletv_pb.RemoveDisallowedVideoRequest,
-  responseType: jungletv_pb.RemoveDisallowedVideoResponse
+  requestType: jungletv_pb.RemoveDisallowedMediaRequest,
+  responseType: jungletv_pb.RemoveDisallowedMediaResponse
 };
 
 JungleTV.UpdateDocument = {
@@ -2347,11 +2347,11 @@ JungleTVClient.prototype.userChatMessages = function userChatMessages(requestMes
   };
 };
 
-JungleTVClient.prototype.disallowedVideos = function disallowedVideos(requestMessage, metadata, callback) {
+JungleTVClient.prototype.disallowedMedia = function disallowedMedia(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(JungleTV.DisallowedVideos, {
+  var client = grpc.unary(JungleTV.DisallowedMedia, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -2378,11 +2378,11 @@ JungleTVClient.prototype.disallowedVideos = function disallowedVideos(requestMes
   };
 };
 
-JungleTVClient.prototype.addDisallowedVideo = function addDisallowedVideo(requestMessage, metadata, callback) {
+JungleTVClient.prototype.addDisallowedMedia = function addDisallowedMedia(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(JungleTV.AddDisallowedVideo, {
+  var client = grpc.unary(JungleTV.AddDisallowedMedia, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -2409,11 +2409,11 @@ JungleTVClient.prototype.addDisallowedVideo = function addDisallowedVideo(reques
   };
 };
 
-JungleTVClient.prototype.removeDisallowedVideo = function removeDisallowedVideo(requestMessage, metadata, callback) {
+JungleTVClient.prototype.removeDisallowedMedia = function removeDisallowedMedia(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(JungleTV.RemoveDisallowedVideo, {
+  var client = grpc.unary(JungleTV.RemoveDisallowedMedia, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

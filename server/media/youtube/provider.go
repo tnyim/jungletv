@@ -44,6 +44,10 @@ func (i *initialInfo) MediaID() (types.MediaType, string) {
 	return types.MediaTypeYouTubeVideo, i.videoItem.Id
 }
 
+func (i *initialInfo) Title() string {
+	return i.videoItem.Snippet.Title
+}
+
 func (i *initialInfo) Collections() []media.CollectionKey {
 	return []media.CollectionKey{
 		{

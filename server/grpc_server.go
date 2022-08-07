@@ -102,7 +102,6 @@ type grpcServer struct {
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
 
-	youtube            *youtubeapi.Service
 	soundCloudProvider *soundcloud.TrackProvider
 	mediaProviders     map[types.MediaType]media.Provider
 	modLogWebhook      api.WebhookClient
@@ -264,7 +263,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		segchaClient:           options.SegchaClient,
 
 		mediaProviders:     mediaProviders,
-		youtube:            ytClient,
 		soundCloudProvider: soundCloudProvider.(*soundcloud.TrackProvider),
 
 		announcementsUpdated: event.New[int](),

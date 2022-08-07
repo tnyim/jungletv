@@ -42,6 +42,19 @@ func GetDisallowedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*Disal
 	return result, nil
 }
 
+// GetDisallowedMediaWithFilter returns all disallowed media that matches the specified filter
+func GetDisallowedMediaWithFilter(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*DisallowedMedia, uint64, error) {
+	s := sdb.Select().
+		Where(sq.Or{
+			sq.Eq{"disallowed_media.id": filter},
+			sq.Eq{"disallowed_media.media_id": filter},
+			sq.Expr("UPPER(disallowed_media.media_title) LIKE UPPER(?)", "%"+filter+"%"),
+		}).
+		OrderBy("disallowed_media.disallowed_at DESC")
+	s = applyPaginationParameters(s, pagParams)
+	return GetWithSelectAndCount[*DisallowedMedia](node, s)
+}
+
 // GetDisallowedMediaWithType returns all disallowed media of the specified type
 func GetDisallowedMediaWithType(node sqalx.Node, mediaType MediaType, pagParams *PaginationParams) ([]*DisallowedMedia, uint64, error) {
 	s := sdb.Select().

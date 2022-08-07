@@ -61,9 +61,9 @@ service JungleTV {
     rpc VerifyUser(VerifyUserRequest) returns (VerifyUserResponse) {}
     rpc RemoveUserVerification(RemoveUserVerificationRequest) returns (RemoveUserVerificationResponse) {}
     rpc UserChatMessages(UserChatMessagesRequest) returns (UserChatMessagesResponse) {}
-    rpc DisallowedVideos(DisallowedVideosRequest) returns (DisallowedVideosResponse) {}
-    rpc AddDisallowedVideo(AddDisallowedVideoRequest) returns (AddDisallowedVideoResponse) {}
-    rpc RemoveDisallowedVideo(RemoveDisallowedVideoRequest) returns (RemoveDisallowedVideoResponse) {}
+    rpc DisallowedMedia(DisallowedMediaRequest) returns (DisallowedMediaResponse) {}
+    rpc AddDisallowedMedia(AddDisallowedMediaRequest) returns (AddDisallowedMediaResponse) {}
+    rpc RemoveDisallowedMedia(RemoveDisallowedMediaRequest) returns (RemoveDisallowedMediaResponse) {}
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
@@ -606,38 +606,46 @@ message UserPermissionLevelResponse {
     PermissionLevel permission_level = 1;
 }
 
-message DisallowedVideosRequest {
+message DisallowedMediaRequest {
     PaginationParameters pagination_params = 1;
     string search_query = 2;
 }
 
-message DisallowedVideo {
+enum DisallowedMediaType {
+    UNKNOWN_DISALLOWED_MEDIA_TYPE = 0;
+    DISALLOWED_MEDIA_TYPE_YOUTUBE_VIDEO = 1;
+    DISALLOWED_MEDIA_TYPE_SOUNDCLOUD_TRACK = 2;
+}
+
+message DisallowedMedia {
     string id = 1;
     string disallowed_by = 2;
     google.protobuf.Timestamp disallowed_at = 3;
-    string media_id = 4;
-    string media_title = 5;
+    DisallowedMediaType media_type = 4;
+    string media_id = 5;
+    string media_title = 6;
 }
 
-message DisallowedVideosResponse {
-    repeated DisallowedVideo disallowed_videos = 1;
+message DisallowedMediaResponse {
+    repeated DisallowedMedia disallowed_media = 1;
     uint64 offset = 2;
     uint64 total = 3;
 }
 
-message AddDisallowedVideoRequest {
-    string yt_video_id = 1;
+message AddDisallowedMediaRequest {
+    // Do this so we can repurpose the same types and part of the code
+    EnqueueMediaRequest disallowed_media_request = 1;
 }
 
-message AddDisallowedVideoResponse {
+message AddDisallowedMediaResponse {
     string id = 1;
 }
 
-message RemoveDisallowedVideoRequest {
+message RemoveDisallowedMediaRequest {
     string id = 1;
 }
 
-message RemoveDisallowedVideoResponse {}
+message RemoveDisallowedMediaResponse {}
 
 message GetDocumentRequest {
     string id = 1;

@@ -43,13 +43,7 @@ import {
     UserPermissionLevelRequest,
     UserChatMessagesResponse,
     UserChatMessagesRequest,
-    DisallowedVideosRequest,
-    DisallowedVideosResponse,
     PaginationParameters,
-    AddDisallowedVideoResponse,
-    AddDisallowedVideoRequest,
-    RemoveDisallowedVideoRequest,
-    RemoveDisallowedVideoResponse,
     Document,
     GetDocumentRequest,
     UpdateDocumentResponse,
@@ -163,7 +157,13 @@ import {
     StartOrExtendSubscriptionRequest,
     EnqueueSoundCloudTrackData,
     SoundCloudTrackDetailsResponse,
-    SoundCloudTrackDetailsRequest
+    SoundCloudTrackDetailsRequest,
+    DisallowedMediaResponse,
+    DisallowedMediaRequest,
+    AddDisallowedMediaResponse,
+    AddDisallowedMediaRequest,
+    RemoveDisallowedMediaResponse,
+    RemoveDisallowedMediaRequest
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -593,23 +593,37 @@ class APIClient {
         return this.unaryRPC<SetMinimumPricesMultiplierRequest, SetMinimumPricesMultiplierResponse>(JungleTV.SetMinimumPricesMultiplier, request);
     }
 
-    async disallowedVideos(searchQuery: string, pagParams: PaginationParameters): Promise<DisallowedVideosResponse> {
-        let request = new DisallowedVideosRequest();
+    async disallowedMedia(searchQuery: string, pagParams: PaginationParameters): Promise<DisallowedMediaResponse> {
+        let request = new DisallowedMediaRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
-        return this.unaryRPC<DisallowedVideosRequest, DisallowedVideosResponse>(JungleTV.DisallowedVideos, request);
+        return this.unaryRPC<DisallowedMediaRequest, DisallowedMediaResponse>(JungleTV.DisallowedMedia, request);
     }
 
-    async addDisallowedVideo(ytVideoID: string): Promise<AddDisallowedVideoResponse> {
-        let request = new AddDisallowedVideoRequest();
-        request.setYtVideoId(ytVideoID);
-        return this.unaryRPC<AddDisallowedVideoRequest, AddDisallowedVideoResponse>(JungleTV.AddDisallowedVideo, request);
+    async addDisallowedYouTubeVideo(ytVideoID: string): Promise<AddDisallowedMediaResponse> {
+        let request = new AddDisallowedMediaRequest();
+        let data = new EnqueueMediaRequest();
+        let ytData = new EnqueueYouTubeVideoData();
+        ytData.setId(ytVideoID);
+        data.setYoutubeVideoData(ytData);
+        request.setDisallowedMediaRequest(data);
+        return this.unaryRPC<AddDisallowedMediaRequest, AddDisallowedMediaResponse>(JungleTV.AddDisallowedMedia, request);
     }
 
-    async removeDisallowedVideo(id: string): Promise<RemoveDisallowedVideoResponse> {
-        let request = new RemoveDisallowedVideoRequest();
+    async addDisallowedSoundCloudTrack(trackURL: string): Promise<AddDisallowedMediaResponse> {
+        let request = new AddDisallowedMediaRequest();
+        let data = new EnqueueMediaRequest();
+        let scData = new EnqueueSoundCloudTrackData();
+        scData.setPermalink(trackURL);
+        data.setSoundcloudTrackData(scData);
+        request.setDisallowedMediaRequest(data);
+        return this.unaryRPC<AddDisallowedMediaRequest, AddDisallowedMediaResponse>(JungleTV.AddDisallowedMedia, request);
+    }
+
+    async removeDisallowedMedia(id: string): Promise<RemoveDisallowedMediaResponse> {
+        let request = new RemoveDisallowedMediaRequest();
         request.setId(id);
-        return this.unaryRPC<RemoveDisallowedVideoRequest, RemoveDisallowedVideoResponse>(JungleTV.RemoveDisallowedVideo, request);
+        return this.unaryRPC<RemoveDisallowedMediaRequest, RemoveDisallowedMediaResponse>(JungleTV.RemoveDisallowedMedia, request);
     }
 
     async setCrowdfundedSkippingEnabled(enabled: boolean): Promise<SetCrowdfundedSkippingEnabledResponse> {

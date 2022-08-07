@@ -2389,7 +2389,7 @@ export namespace UserPermissionLevelResponse {
   }
 }
 
-export class DisallowedVideosRequest extends jspb.Message {
+export class DisallowedMediaRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
   getPaginationParams(): PaginationParameters | undefined;
@@ -2399,23 +2399,23 @@ export class DisallowedVideosRequest extends jspb.Message {
   setSearchQuery(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): DisallowedVideosRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: DisallowedVideosRequest): DisallowedVideosRequest.AsObject;
+  toObject(includeInstance?: boolean): DisallowedMediaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DisallowedMediaRequest): DisallowedMediaRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: DisallowedVideosRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): DisallowedVideosRequest;
-  static deserializeBinaryFromReader(message: DisallowedVideosRequest, reader: jspb.BinaryReader): DisallowedVideosRequest;
+  static serializeBinaryToWriter(message: DisallowedMediaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DisallowedMediaRequest;
+  static deserializeBinaryFromReader(message: DisallowedMediaRequest, reader: jspb.BinaryReader): DisallowedMediaRequest;
 }
 
-export namespace DisallowedVideosRequest {
+export namespace DisallowedMediaRequest {
   export type AsObject = {
     paginationParams?: PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
 
-export class DisallowedVideo extends jspb.Message {
+export class DisallowedMedia extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
@@ -2427,6 +2427,9 @@ export class DisallowedVideo extends jspb.Message {
   getDisallowedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setDisallowedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  getMediaType(): DisallowedMediaTypeMap[keyof DisallowedMediaTypeMap];
+  setMediaType(value: DisallowedMediaTypeMap[keyof DisallowedMediaTypeMap]): void;
+
   getMediaId(): string;
   setMediaId(value: string): void;
 
@@ -2434,30 +2437,31 @@ export class DisallowedVideo extends jspb.Message {
   setMediaTitle(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): DisallowedVideo.AsObject;
-  static toObject(includeInstance: boolean, msg: DisallowedVideo): DisallowedVideo.AsObject;
+  toObject(includeInstance?: boolean): DisallowedMedia.AsObject;
+  static toObject(includeInstance: boolean, msg: DisallowedMedia): DisallowedMedia.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: DisallowedVideo, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): DisallowedVideo;
-  static deserializeBinaryFromReader(message: DisallowedVideo, reader: jspb.BinaryReader): DisallowedVideo;
+  static serializeBinaryToWriter(message: DisallowedMedia, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DisallowedMedia;
+  static deserializeBinaryFromReader(message: DisallowedMedia, reader: jspb.BinaryReader): DisallowedMedia;
 }
 
-export namespace DisallowedVideo {
+export namespace DisallowedMedia {
   export type AsObject = {
     id: string,
     disallowedBy: string,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    mediaType: DisallowedMediaTypeMap[keyof DisallowedMediaTypeMap],
     mediaId: string,
     mediaTitle: string,
   }
 }
 
-export class DisallowedVideosResponse extends jspb.Message {
-  clearDisallowedVideosList(): void;
-  getDisallowedVideosList(): Array<DisallowedVideo>;
-  setDisallowedVideosList(value: Array<DisallowedVideo>): void;
-  addDisallowedVideos(value?: DisallowedVideo, index?: number): DisallowedVideo;
+export class DisallowedMediaResponse extends jspb.Message {
+  clearDisallowedMediaList(): void;
+  getDisallowedMediaList(): Array<DisallowedMedia>;
+  setDisallowedMediaList(value: Array<DisallowedMedia>): void;
+  addDisallowedMedia(value?: DisallowedMedia, index?: number): DisallowedMedia;
 
   getOffset(): number;
   setOffset(value: number): void;
@@ -2466,95 +2470,97 @@ export class DisallowedVideosResponse extends jspb.Message {
   setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): DisallowedVideosResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: DisallowedVideosResponse): DisallowedVideosResponse.AsObject;
+  toObject(includeInstance?: boolean): DisallowedMediaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DisallowedMediaResponse): DisallowedMediaResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: DisallowedVideosResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): DisallowedVideosResponse;
-  static deserializeBinaryFromReader(message: DisallowedVideosResponse, reader: jspb.BinaryReader): DisallowedVideosResponse;
+  static serializeBinaryToWriter(message: DisallowedMediaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DisallowedMediaResponse;
+  static deserializeBinaryFromReader(message: DisallowedMediaResponse, reader: jspb.BinaryReader): DisallowedMediaResponse;
 }
 
-export namespace DisallowedVideosResponse {
+export namespace DisallowedMediaResponse {
   export type AsObject = {
-    disallowedVideosList: Array<DisallowedVideo.AsObject>,
+    disallowedMediaList: Array<DisallowedMedia.AsObject>,
     offset: number,
     total: number,
   }
 }
 
-export class AddDisallowedVideoRequest extends jspb.Message {
-  getYtVideoId(): string;
-  setYtVideoId(value: string): void;
+export class AddDisallowedMediaRequest extends jspb.Message {
+  hasDisallowedMediaRequest(): boolean;
+  clearDisallowedMediaRequest(): void;
+  getDisallowedMediaRequest(): EnqueueMediaRequest | undefined;
+  setDisallowedMediaRequest(value?: EnqueueMediaRequest): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): AddDisallowedVideoRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: AddDisallowedVideoRequest): AddDisallowedVideoRequest.AsObject;
+  toObject(includeInstance?: boolean): AddDisallowedMediaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AddDisallowedMediaRequest): AddDisallowedMediaRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: AddDisallowedVideoRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): AddDisallowedVideoRequest;
-  static deserializeBinaryFromReader(message: AddDisallowedVideoRequest, reader: jspb.BinaryReader): AddDisallowedVideoRequest;
+  static serializeBinaryToWriter(message: AddDisallowedMediaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddDisallowedMediaRequest;
+  static deserializeBinaryFromReader(message: AddDisallowedMediaRequest, reader: jspb.BinaryReader): AddDisallowedMediaRequest;
 }
 
-export namespace AddDisallowedVideoRequest {
+export namespace AddDisallowedMediaRequest {
   export type AsObject = {
-    ytVideoId: string,
+    disallowedMediaRequest?: EnqueueMediaRequest.AsObject,
   }
 }
 
-export class AddDisallowedVideoResponse extends jspb.Message {
+export class AddDisallowedMediaResponse extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): AddDisallowedVideoResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: AddDisallowedVideoResponse): AddDisallowedVideoResponse.AsObject;
+  toObject(includeInstance?: boolean): AddDisallowedMediaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AddDisallowedMediaResponse): AddDisallowedMediaResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: AddDisallowedVideoResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): AddDisallowedVideoResponse;
-  static deserializeBinaryFromReader(message: AddDisallowedVideoResponse, reader: jspb.BinaryReader): AddDisallowedVideoResponse;
+  static serializeBinaryToWriter(message: AddDisallowedMediaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddDisallowedMediaResponse;
+  static deserializeBinaryFromReader(message: AddDisallowedMediaResponse, reader: jspb.BinaryReader): AddDisallowedMediaResponse;
 }
 
-export namespace AddDisallowedVideoResponse {
+export namespace AddDisallowedMediaResponse {
   export type AsObject = {
     id: string,
   }
 }
 
-export class RemoveDisallowedVideoRequest extends jspb.Message {
+export class RemoveDisallowedMediaRequest extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RemoveDisallowedVideoRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: RemoveDisallowedVideoRequest): RemoveDisallowedVideoRequest.AsObject;
+  toObject(includeInstance?: boolean): RemoveDisallowedMediaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveDisallowedMediaRequest): RemoveDisallowedMediaRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RemoveDisallowedVideoRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RemoveDisallowedVideoRequest;
-  static deserializeBinaryFromReader(message: RemoveDisallowedVideoRequest, reader: jspb.BinaryReader): RemoveDisallowedVideoRequest;
+  static serializeBinaryToWriter(message: RemoveDisallowedMediaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveDisallowedMediaRequest;
+  static deserializeBinaryFromReader(message: RemoveDisallowedMediaRequest, reader: jspb.BinaryReader): RemoveDisallowedMediaRequest;
 }
 
-export namespace RemoveDisallowedVideoRequest {
+export namespace RemoveDisallowedMediaRequest {
   export type AsObject = {
     id: string,
   }
 }
 
-export class RemoveDisallowedVideoResponse extends jspb.Message {
+export class RemoveDisallowedMediaResponse extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RemoveDisallowedVideoResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: RemoveDisallowedVideoResponse): RemoveDisallowedVideoResponse.AsObject;
+  toObject(includeInstance?: boolean): RemoveDisallowedMediaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveDisallowedMediaResponse): RemoveDisallowedMediaResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RemoveDisallowedVideoResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RemoveDisallowedVideoResponse;
-  static deserializeBinaryFromReader(message: RemoveDisallowedVideoResponse, reader: jspb.BinaryReader): RemoveDisallowedVideoResponse;
+  static serializeBinaryToWriter(message: RemoveDisallowedMediaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveDisallowedMediaResponse;
+  static deserializeBinaryFromReader(message: RemoveDisallowedMediaResponse, reader: jspb.BinaryReader): RemoveDisallowedMediaResponse;
 }
 
-export namespace RemoveDisallowedVideoResponse {
+export namespace RemoveDisallowedMediaResponse {
   export type AsObject = {
   }
 }
@@ -5409,6 +5415,14 @@ export interface PermissionLevelMap {
 }
 
 export const PermissionLevel: PermissionLevelMap;
+
+export interface DisallowedMediaTypeMap {
+  UNKNOWN_DISALLOWED_MEDIA_TYPE: 0;
+  DISALLOWED_MEDIA_TYPE_YOUTUBE_VIDEO: 1;
+  DISALLOWED_MEDIA_TYPE_SOUNDCLOUD_TRACK: 2;
+}
+
+export const DisallowedMediaType: DisallowedMediaTypeMap;
 
 export interface LeaderboardPeriodMap {
   UNKNOWN_LEADERBOARD_PERIOD: 0;

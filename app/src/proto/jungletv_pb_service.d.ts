@@ -463,31 +463,31 @@ type JungleTVUserChatMessages = {
   readonly responseType: typeof jungletv_pb.UserChatMessagesResponse;
 };
 
-type JungleTVDisallowedVideos = {
+type JungleTVDisallowedMedia = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof jungletv_pb.DisallowedVideosRequest;
-  readonly responseType: typeof jungletv_pb.DisallowedVideosResponse;
+  readonly requestType: typeof jungletv_pb.DisallowedMediaRequest;
+  readonly responseType: typeof jungletv_pb.DisallowedMediaResponse;
 };
 
-type JungleTVAddDisallowedVideo = {
+type JungleTVAddDisallowedMedia = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof jungletv_pb.AddDisallowedVideoRequest;
-  readonly responseType: typeof jungletv_pb.AddDisallowedVideoResponse;
+  readonly requestType: typeof jungletv_pb.AddDisallowedMediaRequest;
+  readonly responseType: typeof jungletv_pb.AddDisallowedMediaResponse;
 };
 
-type JungleTVRemoveDisallowedVideo = {
+type JungleTVRemoveDisallowedMedia = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof jungletv_pb.RemoveDisallowedVideoRequest;
-  readonly responseType: typeof jungletv_pb.RemoveDisallowedVideoResponse;
+  readonly requestType: typeof jungletv_pb.RemoveDisallowedMediaRequest;
+  readonly responseType: typeof jungletv_pb.RemoveDisallowedMediaResponse;
 };
 
 type JungleTVUpdateDocument = {
@@ -750,9 +750,9 @@ export class JungleTV {
   static readonly VerifyUser: JungleTVVerifyUser;
   static readonly RemoveUserVerification: JungleTVRemoveUserVerification;
   static readonly UserChatMessages: JungleTVUserChatMessages;
-  static readonly DisallowedVideos: JungleTVDisallowedVideos;
-  static readonly AddDisallowedVideo: JungleTVAddDisallowedVideo;
-  static readonly RemoveDisallowedVideo: JungleTVRemoveDisallowedVideo;
+  static readonly DisallowedMedia: JungleTVDisallowedMedia;
+  static readonly AddDisallowedMedia: JungleTVAddDisallowedMedia;
+  static readonly RemoveDisallowedMedia: JungleTVRemoveDisallowedMedia;
   static readonly UpdateDocument: JungleTVUpdateDocument;
   static readonly SetUserChatNickname: JungleTVSetUserChatNickname;
   static readonly SetPricesMultiplier: JungleTVSetPricesMultiplier;
@@ -1213,32 +1213,32 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.UserChatMessagesRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.UserChatMessagesResponse|null) => void
   ): UnaryResponse;
-  disallowedVideos(
-    requestMessage: jungletv_pb.DisallowedVideosRequest,
+  disallowedMedia(
+    requestMessage: jungletv_pb.DisallowedMediaRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.DisallowedVideosResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.DisallowedMediaResponse|null) => void
   ): UnaryResponse;
-  disallowedVideos(
-    requestMessage: jungletv_pb.DisallowedVideosRequest,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.DisallowedVideosResponse|null) => void
+  disallowedMedia(
+    requestMessage: jungletv_pb.DisallowedMediaRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.DisallowedMediaResponse|null) => void
   ): UnaryResponse;
-  addDisallowedVideo(
-    requestMessage: jungletv_pb.AddDisallowedVideoRequest,
+  addDisallowedMedia(
+    requestMessage: jungletv_pb.AddDisallowedMediaRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddDisallowedVideoResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddDisallowedMediaResponse|null) => void
   ): UnaryResponse;
-  addDisallowedVideo(
-    requestMessage: jungletv_pb.AddDisallowedVideoRequest,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddDisallowedVideoResponse|null) => void
+  addDisallowedMedia(
+    requestMessage: jungletv_pb.AddDisallowedMediaRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddDisallowedMediaResponse|null) => void
   ): UnaryResponse;
-  removeDisallowedVideo(
-    requestMessage: jungletv_pb.RemoveDisallowedVideoRequest,
+  removeDisallowedMedia(
+    requestMessage: jungletv_pb.RemoveDisallowedMediaRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveDisallowedVideoResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveDisallowedMediaResponse|null) => void
   ): UnaryResponse;
-  removeDisallowedVideo(
-    requestMessage: jungletv_pb.RemoveDisallowedVideoRequest,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveDisallowedVideoResponse|null) => void
+  removeDisallowedMedia(
+    requestMessage: jungletv_pb.RemoveDisallowedMediaRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveDisallowedMediaResponse|null) => void
   ): UnaryResponse;
   updateDocument(
     requestMessage: jungletv_pb.Document,

@@ -340,7 +340,7 @@
             </div>
         </div>
         <p class="px-2 py-2 text-lg">
-            <a href="/moderate/media/disallowed" use:link>Manage disallowed videos</a>
+            <a href="/moderate/media/disallowed" use:link>Manage disallowed media</a>
         </p>
     </div>
     <div class="mt-10">

@@ -62,9 +62,6 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	if provider == media.Provider(nil) {
 		return nil, stacktrace.NewError("no provider found")
 	}
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
 
 	preInfo, result, err := provider.BeginEnqueueRequest(ctx, r.GetMediaInfo())
 	if err != nil {

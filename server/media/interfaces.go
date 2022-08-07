@@ -57,6 +57,7 @@ type CollectionKey struct {
 // InitialInfo provides the initial information for blocklist checking during the enqueuing process
 type InitialInfo interface {
 	MediaID() (types.MediaType, string)
+	Title() string
 	Collections() []CollectionKey
 }
 

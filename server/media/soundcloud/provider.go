@@ -59,6 +59,10 @@ func (i *initialInfo) MediaID() (types.MediaType, string) {
 	return types.MediaTypeSoundCloudTrack, i.id
 }
 
+func (i *initialInfo) Title() string {
+	return i.response.Title
+}
+
 func (i *initialInfo) Collections() []media.CollectionKey {
 	return []media.CollectionKey{
 		{

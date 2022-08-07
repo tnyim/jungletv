@@ -70,9 +70,9 @@ type JungleTVClient interface {
 	VerifyUser(ctx context.Context, in *VerifyUserRequest, opts ...grpc.CallOption) (*VerifyUserResponse, error)
 	RemoveUserVerification(ctx context.Context, in *RemoveUserVerificationRequest, opts ...grpc.CallOption) (*RemoveUserVerificationResponse, error)
 	UserChatMessages(ctx context.Context, in *UserChatMessagesRequest, opts ...grpc.CallOption) (*UserChatMessagesResponse, error)
-	DisallowedVideos(ctx context.Context, in *DisallowedVideosRequest, opts ...grpc.CallOption) (*DisallowedVideosResponse, error)
-	AddDisallowedVideo(ctx context.Context, in *AddDisallowedVideoRequest, opts ...grpc.CallOption) (*AddDisallowedVideoResponse, error)
-	RemoveDisallowedVideo(ctx context.Context, in *RemoveDisallowedVideoRequest, opts ...grpc.CallOption) (*RemoveDisallowedVideoResponse, error)
+	DisallowedMedia(ctx context.Context, in *DisallowedMediaRequest, opts ...grpc.CallOption) (*DisallowedMediaResponse, error)
+	AddDisallowedMedia(ctx context.Context, in *AddDisallowedMediaRequest, opts ...grpc.CallOption) (*AddDisallowedMediaResponse, error)
+	RemoveDisallowedMedia(ctx context.Context, in *RemoveDisallowedMediaRequest, opts ...grpc.CallOption) (*RemoveDisallowedMediaResponse, error)
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
@@ -726,27 +726,27 @@ func (c *jungleTVClient) UserChatMessages(ctx context.Context, in *UserChatMessa
 	return out, nil
 }
 
-func (c *jungleTVClient) DisallowedVideos(ctx context.Context, in *DisallowedVideosRequest, opts ...grpc.CallOption) (*DisallowedVideosResponse, error) {
-	out := new(DisallowedVideosResponse)
-	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/DisallowedVideos", in, out, opts...)
+func (c *jungleTVClient) DisallowedMedia(ctx context.Context, in *DisallowedMediaRequest, opts ...grpc.CallOption) (*DisallowedMediaResponse, error) {
+	out := new(DisallowedMediaResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/DisallowedMedia", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *jungleTVClient) AddDisallowedVideo(ctx context.Context, in *AddDisallowedVideoRequest, opts ...grpc.CallOption) (*AddDisallowedVideoResponse, error) {
-	out := new(AddDisallowedVideoResponse)
-	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/AddDisallowedVideo", in, out, opts...)
+func (c *jungleTVClient) AddDisallowedMedia(ctx context.Context, in *AddDisallowedMediaRequest, opts ...grpc.CallOption) (*AddDisallowedMediaResponse, error) {
+	out := new(AddDisallowedMediaResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/AddDisallowedMedia", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *jungleTVClient) RemoveDisallowedVideo(ctx context.Context, in *RemoveDisallowedVideoRequest, opts ...grpc.CallOption) (*RemoveDisallowedVideoResponse, error) {
-	out := new(RemoveDisallowedVideoResponse)
-	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveDisallowedVideo", in, out, opts...)
+func (c *jungleTVClient) RemoveDisallowedMedia(ctx context.Context, in *RemoveDisallowedMediaRequest, opts ...grpc.CallOption) (*RemoveDisallowedMediaResponse, error) {
+	out := new(RemoveDisallowedMediaResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveDisallowedMedia", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,9 +1039,9 @@ type JungleTVServer interface {
 	VerifyUser(context.Context, *VerifyUserRequest) (*VerifyUserResponse, error)
 	RemoveUserVerification(context.Context, *RemoveUserVerificationRequest) (*RemoveUserVerificationResponse, error)
 	UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error)
-	DisallowedVideos(context.Context, *DisallowedVideosRequest) (*DisallowedVideosResponse, error)
-	AddDisallowedVideo(context.Context, *AddDisallowedVideoRequest) (*AddDisallowedVideoResponse, error)
-	RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error)
+	DisallowedMedia(context.Context, *DisallowedMediaRequest) (*DisallowedMediaResponse, error)
+	AddDisallowedMedia(context.Context, *AddDisallowedMediaRequest) (*AddDisallowedMediaResponse, error)
+	RemoveDisallowedMedia(context.Context, *RemoveDisallowedMediaRequest) (*RemoveDisallowedMediaResponse, error)
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
 	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
@@ -1225,14 +1225,14 @@ func (UnimplementedJungleTVServer) RemoveUserVerification(context.Context, *Remo
 func (UnimplementedJungleTVServer) UserChatMessages(context.Context, *UserChatMessagesRequest) (*UserChatMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserChatMessages not implemented")
 }
-func (UnimplementedJungleTVServer) DisallowedVideos(context.Context, *DisallowedVideosRequest) (*DisallowedVideosResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DisallowedVideos not implemented")
+func (UnimplementedJungleTVServer) DisallowedMedia(context.Context, *DisallowedMediaRequest) (*DisallowedMediaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisallowedMedia not implemented")
 }
-func (UnimplementedJungleTVServer) AddDisallowedVideo(context.Context, *AddDisallowedVideoRequest) (*AddDisallowedVideoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddDisallowedVideo not implemented")
+func (UnimplementedJungleTVServer) AddDisallowedMedia(context.Context, *AddDisallowedMediaRequest) (*AddDisallowedMediaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddDisallowedMedia not implemented")
 }
-func (UnimplementedJungleTVServer) RemoveDisallowedVideo(context.Context, *RemoveDisallowedVideoRequest) (*RemoveDisallowedVideoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveDisallowedVideo not implemented")
+func (UnimplementedJungleTVServer) RemoveDisallowedMedia(context.Context, *RemoveDisallowedMediaRequest) (*RemoveDisallowedMediaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDisallowedMedia not implemented")
 }
 func (UnimplementedJungleTVServer) UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocument not implemented")
@@ -2255,56 +2255,56 @@ func _JungleTV_UserChatMessages_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JungleTV_DisallowedVideos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DisallowedVideosRequest)
+func _JungleTV_DisallowedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisallowedMediaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(JungleTVServer).DisallowedVideos(ctx, in)
+		return srv.(JungleTVServer).DisallowedMedia(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/jungletv.JungleTV/DisallowedVideos",
+		FullMethod: "/jungletv.JungleTV/DisallowedMedia",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JungleTVServer).DisallowedVideos(ctx, req.(*DisallowedVideosRequest))
+		return srv.(JungleTVServer).DisallowedMedia(ctx, req.(*DisallowedMediaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JungleTV_AddDisallowedVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddDisallowedVideoRequest)
+func _JungleTV_AddDisallowedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddDisallowedMediaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(JungleTVServer).AddDisallowedVideo(ctx, in)
+		return srv.(JungleTVServer).AddDisallowedMedia(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/jungletv.JungleTV/AddDisallowedVideo",
+		FullMethod: "/jungletv.JungleTV/AddDisallowedMedia",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JungleTVServer).AddDisallowedVideo(ctx, req.(*AddDisallowedVideoRequest))
+		return srv.(JungleTVServer).AddDisallowedMedia(ctx, req.(*AddDisallowedMediaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JungleTV_RemoveDisallowedVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveDisallowedVideoRequest)
+func _JungleTV_RemoveDisallowedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveDisallowedMediaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(JungleTVServer).RemoveDisallowedVideo(ctx, in)
+		return srv.(JungleTVServer).RemoveDisallowedMedia(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/jungletv.JungleTV/RemoveDisallowedVideo",
+		FullMethod: "/jungletv.JungleTV/RemoveDisallowedMedia",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JungleTVServer).RemoveDisallowedVideo(ctx, req.(*RemoveDisallowedVideoRequest))
+		return srv.(JungleTVServer).RemoveDisallowedMedia(ctx, req.(*RemoveDisallowedMediaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2910,16 +2910,16 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_UserChatMessages_Handler,
 		},
 		{
-			MethodName: "DisallowedVideos",
-			Handler:    _JungleTV_DisallowedVideos_Handler,
+			MethodName: "DisallowedMedia",
+			Handler:    _JungleTV_DisallowedMedia_Handler,
 		},
 		{
-			MethodName: "AddDisallowedVideo",
-			Handler:    _JungleTV_AddDisallowedVideo_Handler,
+			MethodName: "AddDisallowedMedia",
+			Handler:    _JungleTV_AddDisallowedMedia_Handler,
 		},
 		{
-			MethodName: "RemoveDisallowedVideo",
-			Handler:    _JungleTV_RemoveDisallowedVideo_Handler,
+			MethodName: "RemoveDisallowedMedia",
+			Handler:    _JungleTV_RemoveDisallowedMedia_Handler,
 		},
 		{
 			MethodName: "UpdateDocument",

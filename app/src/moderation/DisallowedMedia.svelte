@@ -3,17 +3,18 @@
     import { apiClient } from "../api_client";
     import ErrorMessage from "../ErrorMessage.svelte";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import type { DisallowedVideo, PaginationParameters } from "../proto/jungletv_pb";
+    import type { AddDisallowedMediaResponse, DisallowedMedia, PaginationParameters } from "../proto/jungletv_pb";
     import SuccessMessage from "../SuccessMessage.svelte";
-    import DisallowedVideoTableItem from "../tableitems/DisallowedVideoTableItem.svelte";
+    import DisallowedMediaTableItem from "../tableitems/DisallowedMediaTableItem.svelte";
+    import { parseURLForMediaSelection } from "../utils";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
 
     let cur_page = 0;
-    async function getPage(pagParams: PaginationParameters): Promise<[DisallowedVideo[], number]> {
-        let resp = await apiClient.disallowedVideos(searchQuery, pagParams);
-        return [resp.getDisallowedVideosList(), resp.getTotal()];
+    async function getPage(pagParams: PaginationParameters): Promise<[DisallowedMedia[], number]> {
+        let resp = await apiClient.disallowedMedia(searchQuery, pagParams);
+        return [resp.getDisallowedMediaList(), resp.getTotal()];
     }
 
     $: {
@@ -23,18 +24,32 @@
         }
     }
 
-    let disallowVideoID = "";
-    let disallowVideoSuccessful = false;
-    let disallowVideoError = "";
-    async function disallowVideo() {
+    let disallowMediaURL = "";
+    let disallowMediaSuccessful = false;
+    let disallowMediaError = "";
+    async function disallowMedia() {
+        let result = parseURLForMediaSelection(disallowMediaURL);
+        if (!result.valid) {
+            disallowMediaSuccessful = false;
+            disallowMediaError = "Failed to parse media URL";
+            return;
+        }
+
+        let reqPromise: Promise<AddDisallowedMediaResponse>;
+
+        if (result.type == "yt_video") {
+            reqPromise = apiClient.addDisallowedYouTubeVideo(result.videoID);
+        } else if (result.type == "sc_track") {
+            reqPromise = apiClient.addDisallowedSoundCloudTrack(result.trackURL);
+        }
         try {
-            await apiClient.addDisallowedVideo(disallowVideoID);
-            disallowVideoID = "";
-            disallowVideoSuccessful = true;
+            await reqPromise;
+            disallowMediaURL = "";
+            disallowMediaSuccessful = true;
             cur_page = -1;
         } catch (e) {
-            disallowVideoError = e;
-            disallowVideoSuccessful = false;
+            disallowMediaError = e;
+            disallowMediaSuccessful = false;
         }
     }
 </script>
@@ -53,30 +68,30 @@
         <input
             class="col-span-2 dark:text-black"
             type="text"
-            placeholder="YouTube video ID to disallow"
-            bind:value={disallowVideoID}
+            placeholder="URL of YouTube video or SoundCloud track to disallow"
+            bind:value={disallowMediaURL}
         />
         <button
             type="submit"
             class="col-span-1 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            on:click={disallowVideo}
+            on:click={disallowMedia}
         >
-            Disallow video
+            Disallow media
         </button>
         <div class="col-span-2 mt-3">
-            {#if disallowVideoSuccessful}
-                <SuccessMessage>Video disallowed successfully</SuccessMessage>
-            {:else if disallowVideoError != ""}
-                <ErrorMessage>{disallowVideoError}</ErrorMessage>
+            {#if disallowMediaSuccessful}
+                <SuccessMessage>Media disallowed successfully</SuccessMessage>
+            {:else if disallowMediaError != ""}
+                <ErrorMessage>{disallowMediaError}</ErrorMessage>
             {/if}
         </div>
     </div>
 
     <PaginatedTable
-        title={"Disallowed videos"}
+        title={"Disallowed media"}
         column_count={5}
-        error_message={"Error loading disallowed videos"}
-        no_items_message={"No disallowed videos"}
+        error_message={"Error loading disallowed media"}
+        no_items_message={"No disallowed media"}
         data_promise_factory={getPage}
         bind:cur_page
         search_query={searchQuery}
@@ -87,15 +102,16 @@
         bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600
         text-xs uppercase whitespace-nowrap text-left"
         >
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Video ID </th>
-            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Video Title </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Type </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Media ID </th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Media Title </th>
             <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed by </th>
             <th class="px-4 sm:px-6 align-middle py-3 font-semibold"> Disallowed at </th>
             <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
         </tr>
 
         <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
-            <DisallowedVideoTableItem video={item} {updateDataCallback} />
+            <DisallowedMediaTableItem media={item} {updateDataCallback} />
         </tbody>
     </PaginatedTable>
 </div>
