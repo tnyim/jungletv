@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -543,7 +542,7 @@ func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
 				q.log.Printf("error serializing queue: %v", err)
 				continue
 			}
-			err = ioutil.WriteFile(file, marshalled, 0644)
+			err = os.WriteFile(file, marshalled, 0644)
 			if err != nil {
 				q.log.Printf("error writing queue to file: %v", err)
 				continue
@@ -555,7 +554,7 @@ func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
 }
 
 func (q *MediaQueue) restoreQueueFromFile(file string) error {
-	b, err := ioutil.ReadFile(file)
+	b, err := os.ReadFile(file)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil

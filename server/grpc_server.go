@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -718,7 +718,7 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 }
 
 func (s *grpcServer) getRandomVideoForAutoEnqueue() (string, error) {
-	b, err := ioutil.ReadFile(s.autoEnqueueVideoListFile)
+	b, err := os.ReadFile(s.autoEnqueueVideoListFile)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "error reading auto enqueue videos from file: %v", err)
 	}
