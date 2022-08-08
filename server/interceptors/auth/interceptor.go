@@ -2,9 +2,7 @@ package auth
 
 import (
 	"context"
-	"errors"
-	"net"
-	"strconv"
+	"net/netip"
 	"strings"
 
 	"github.com/palantir/stacktrace"
@@ -185,37 +183,16 @@ func (interceptor *Interceptor) getRemoteAddress(ctx context.Context, md metadat
 		}
 	}
 
-	netIP, _, _, err := parseIPPort(ip)
-	if err != nil {
-		return ip
+	addrPort, err := netip.ParseAddrPort(ip)
+	if err == nil {
+		return addrPort.Addr().Unmap().WithZone("").String()
+	} else if err != nil && !strings.Contains(err.Error(), "no port") {
+		return ""
 	}
-	return netIP.String()
-}
 
-func parseIPPort(s string) (ip net.IP, port, space string, err error) {
-	ip = net.ParseIP(s)
-	if ip == nil {
-		var host string
-		host, port, err = net.SplitHostPort(s)
-		if err != nil {
-			return
-		}
-		if port != "" {
-			// This check only makes sense if service names are not allowed
-			if _, err = strconv.ParseUint(port, 10, 16); err != nil {
-				return
-			}
-		}
-		ip = net.ParseIP(host)
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return ""
 	}
-	if ip == nil {
-		err = errors.New("invalid address format")
-	} else {
-		space = "IPv6"
-		if ip4 := ip.To4(); ip4 != nil {
-			space = "IPv4"
-			ip = ip4
-		}
-	}
-	return
+	return addr.Unmap().WithZone("").String()
 }

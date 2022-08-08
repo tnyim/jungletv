@@ -137,7 +137,6 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 
 	return &proto.TriggerAnnouncementsNotificationResponse{}, nil
-
 }
 
 func (s *grpcServer) getAnnouncementsCounter(ctxCtx context.Context) (*types.Counter, error) {

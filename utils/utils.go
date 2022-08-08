@@ -1,24 +1,26 @@
 package utils
 
 import (
-	"net"
+	"net/netip"
 	"regexp"
 )
 
 // GetUniquifiedIP returns a uniquified version of an IP address
 // (sets the lower bits of a IPv6 to zero, leaves IPv4 untouched)
 func GetUniquifiedIP(remoteAddress string) string {
-	ip := net.ParseIP(remoteAddress)
-	if ip == nil {
+	addr, err := netip.ParseAddr(remoteAddress)
+	if err != nil {
 		return remoteAddress
 	}
-	if ip.To4() != nil || len(ip) != net.IPv6len {
+	keepTopBits := 64
+	if keepTopBits > addr.BitLen() {
+		keepTopBits = addr.BitLen()
+	}
+	prefix, err := addr.Prefix(keepTopBits)
+	if err != nil {
 		return remoteAddress
 	}
-	for i := net.IPv6len / 2; i < net.IPv6len; i++ {
-		ip[i] = 0
-	}
-	return ip.String()
+	return prefix.Addr().Unmap().WithZone("").String()
 }
 
 // ReplaceAllStringSubmatchFunc is a version of func (*regexp.Regexp) ReplaceAllStringFunc

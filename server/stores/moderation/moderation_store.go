@@ -134,7 +134,11 @@ func (m *StoreDatabase) LoadUserBannedFromChat(ctx context.Context, address, rem
 	m.l.RLock()
 	defer m.l.RUnlock()
 	_, addrBan := m.bannedFromChat[address]
-	_, remBan := m.remoteAddressesBannedFromChat[utils.GetUniquifiedIP(remoteAddress)]
+	remBan := false
+	if remoteAddress != "" {
+		// we don't know the remote address in all contexts
+		_, remBan = m.remoteAddressesBannedFromChat[utils.GetUniquifiedIP(remoteAddress)]
+	}
 	return addrBan || remBan, nil
 }
 
