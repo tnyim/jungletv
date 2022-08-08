@@ -162,6 +162,7 @@
                 showArtwork: true,
                 showPlayCount: true,
                 showComments: true,
+                showTeaser: false, // allows the player to work on mobile instead of forcing usage of the app
                 color: color,
             });
         }

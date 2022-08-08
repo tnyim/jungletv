@@ -159,6 +159,7 @@ export interface LoadOptions {
     singleActive: boolean;
     visual: boolean;
     showComments: boolean;
+    showTeaser: boolean;
 }
 
 export const LOAD_OPTIONS_MAPPING = {
@@ -172,4 +173,7 @@ export const LOAD_OPTIONS_MAPPING = {
     showUser: 'show_user',
     startTrack: 'start_track',
     singleActive: 'single_active',
+    visual: 'visual',
+    showComments: 'show_comments',
+    showTeaser: 'show_teaser',
 };
