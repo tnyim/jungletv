@@ -215,11 +215,6 @@ func main() {
 		mainLog.Fatalln("IP check endpoint not present in keybox")
 	}
 
-	badASNsFilePath, present := secrets.Get("badASNsFilePath")
-	if !present {
-		mainLog.Fatalln("bad ASNs file path not present in keybox")
-	}
-
 	modLogWebhook, present := secrets.Get("modLogWebhook")
 	if !present {
 		mainLog.Println("ModLog webhook not present in keybox, will not send moderation log to Discord")
@@ -308,7 +303,6 @@ func main() {
 		AuthInterceptor:           authInterceptor,
 		TicketCheckPeriod:         ticketCheckPeriod,
 		IPCheckEndpoint:           ipCheckEndpoint,
-		BadASNsFilePath:           badASNsFilePath,
 		YoutubeAPIkey:             youtubeAPIkey,
 		RaffleSecretKey:           raffleSecretKey,
 		ModLogWebhook:             modLogWebhook,

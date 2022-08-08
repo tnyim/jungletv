@@ -9,12 +9,13 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/jamesog/iptoasn"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Checker checks the reputation of IP addresses
@@ -24,7 +25,6 @@ type Checker struct {
 	reputationLock sync.RWMutex
 	httpClient     http.Client
 
-	badASNsFile string
 	badASNs     map[int]struct{}
 	badASNsLock sync.RWMutex
 
@@ -34,7 +34,7 @@ type Checker struct {
 }
 
 // NewChecker initializes and returns a new Checker
-func NewChecker(log *log.Logger, endpoint string, badASNsFile string) *Checker {
+func NewChecker(ctx context.Context, log *log.Logger, endpoint string) *Checker {
 	c := &Checker{
 		log:        log,
 		reputation: make(map[string]float32),
@@ -43,13 +43,12 @@ func NewChecker(log *log.Logger, endpoint string, badASNsFile string) *Checker {
 			Timeout: 10 * time.Second,
 		},
 
-		badASNsFile: badASNsFile,
-		badASNs:     make(map[int]struct{}),
+		badASNs: make(map[int]struct{}),
 
 		endpoint: endpoint,
 	}
 
-	c.updateBadASNsFromFile()
+	c.updateBadASNsFromDatabase(ctx)
 
 	return c
 }
@@ -108,7 +107,7 @@ func (c *Checker) Worker(ctx context.Context) {
 		case <-rateLimitTicker.C: // rate limit
 			c.processQueueStep(ctx)
 		case <-reloadBadASNsTicker.C:
-			c.updateBadASNsFromFile()
+			c.updateBadASNsFromDatabase(ctx)
 		case <-ctx.Done():
 			return
 		}
@@ -230,26 +229,23 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 	return nil
 }
 
-func (c *Checker) updateBadASNsFromFile() {
-	fileBytes, err := ioutil.ReadFile(c.badASNsFile)
+func (c *Checker) updateBadASNsFromDatabase(ctxCtx context.Context) {
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		c.log.Printf("Failed to read bad ASNs file: %v", stacktrace.Propagate(err, ""))
+		c.log.Printf("Failed to read bad ASNs from database: %v", stacktrace.Propagate(err, ""))
+		return
+	}
+	defer ctx.Commit() // read-only tx
+
+	badReputations, _, err := types.GetProxyASNumberReputations(ctx, nil)
+	if err != nil {
+		c.log.Printf("Failed to read bad ASNs from database: %v", stacktrace.Propagate(err, ""))
 		return
 	}
 
-	lines := strings.Split(strings.ReplaceAll(string(fileBytes), "\r\n", "\n"), "\n")
-
 	badASNsMap := make(map[int]struct{})
-	for _, asnLine := range lines {
-		if asnLine == "" || asnLine[0] == '#' {
-			continue
-		}
-		asn, err := strconv.Atoi(asnLine)
-		if err != nil {
-			c.log.Printf("Failed to read bad ASNs file: %v", stacktrace.Propagate(err, ""))
-			return
-		}
-		badASNsMap[asn] = struct{}{}
+	for _, r := range badReputations {
+		badASNsMap[r.ASNumber] = struct{}{}
 	}
 
 	c.log.Printf("Loaded %d ASNs marked as disallowed", len(badASNsMap))

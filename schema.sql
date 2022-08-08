@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "as_number_reputation";
 DROP TABLE IF EXISTS "subscription";
 DROP TABLE IF EXISTS "points_balance";
 DROP TABLE IF EXISTS "points_tx";
@@ -296,4 +297,11 @@ CREATE TABLE IF NOT EXISTS "subscription" (
     ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
     payment_txs BIGINT[] NOT NULL,
     PRIMARY KEY (rewards_address, starts_at)
+);
+
+CREATE TABLE IF NOT EXISTS "as_number_reputation" (
+    as_number INTEGER PRIMARY KEY,
+    is_proxy BOOLEAN NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

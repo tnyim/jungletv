@@ -16,7 +16,7 @@ type Counter struct {
 }
 
 // GetCounters returns all registered counters
-func GetCounters(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*Counter, uint64, error) {
+func GetCounters(node sqalx.Node, pagParams *PaginationParams) ([]*Counter, uint64, error) {
 	s := sdb.Select().
 		OrderBy("counter.counter_name ASC")
 	s = applyPaginationParameters(s, pagParams)
