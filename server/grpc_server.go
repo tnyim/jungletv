@@ -32,6 +32,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/media/document"
 	"github.com/tnyim/jungletv/server/media/soundcloud"
 	"github.com/tnyim/jungletv/server/media/youtube"
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
@@ -221,6 +222,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	mediaProviders := map[types.MediaType]media.Provider{
 		types.MediaTypeYouTubeVideo:    youtube.NewProvider(ytClient),
 		types.MediaTypeSoundCloudTrack: soundCloudProvider,
+		types.MediaTypeDocument:        document.NewProvider(),
 	}
 
 	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)

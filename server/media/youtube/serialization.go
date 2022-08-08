@@ -1,6 +1,7 @@
 package youtube
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/palantir/stacktrace"
@@ -62,7 +63,7 @@ func (s *VideoProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 	}, nil
 }
 
-func (s *VideoProvider) UnmarshalQueueEntryJSON(b []byte) (media.QueueEntry, error) {
+func (s *VideoProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, error) {
 	v := &queueEntryYouTubeVideo{}
 	err := json.Unmarshal(b, &v)
 	if err != nil {

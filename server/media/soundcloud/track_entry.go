@@ -13,7 +13,6 @@ import (
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type queueEntrySoundCloudTrack struct {
@@ -39,31 +38,18 @@ func (e *queueEntrySoundCloudTrack) MediaID() (types.MediaType, string) {
 	return types.MediaTypeSoundCloudTrack, e.id
 }
 
-func (e *queueEntrySoundCloudTrack) SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry {
-	entry := &proto.QueueEntry{
-		Id:          e.QueueID(),
-		Length:      durationpb.New(e.Length()),
-		Offset:      durationpb.New(e.Offset()),
-		Unskippable: e.Unskippable(),
-		RequestCost: e.RequestCost().SerializeForAPI(),
-		RequestedAt: timestamppb.New(e.RequestedAt()),
-		CanMoveUp:   canMoveUp,
-		CanMoveDown: canMoveDown,
-		MediaInfo: &proto.QueueEntry_SoundcloudTrackData{
-			SoundcloudTrackData: &proto.QueueSoundCloudTrackData{
-				Id:           e.id,
-				Title:        e.Title(),
-				ThumbnailUrl: e.thumbnailURL,
-				Uploader:     e.uploader,
-				Artist:       e.artist,
-				Permalink:    e.permalink,
-			},
+func (e *queueEntrySoundCloudTrack) SerializeForAPIQueue(ctx context.Context) proto.IsQueueEntry_MediaInfo {
+	info := &proto.QueueEntry_SoundcloudTrackData{
+		SoundcloudTrackData: &proto.QueueSoundCloudTrackData{
+			Id:           e.id,
+			Title:        e.Title(),
+			ThumbnailUrl: e.thumbnailURL,
+			Uploader:     e.uploader,
+			Artist:       e.artist,
+			Permalink:    e.permalink,
 		},
 	}
-	if !e.RequestedBy().IsUnknown() {
-		entry.RequestedBy = userSerializer(ctx, e.RequestedBy())
-	}
-	return entry
+	return info
 }
 
 type queueEntrySoundCloudTrackJsonRepresentation struct {
@@ -103,7 +89,7 @@ func (e *queueEntrySoundCloudTrack) MarshalJSON() ([]byte, error) {
 		MovedBy:      e.MovedBy(),
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.id)
+		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.QueueID())
 	}
 	return j, nil
 }
@@ -148,24 +134,12 @@ func (e *queueEntrySoundCloudTrack) FillAPITicketMediaInfo(ticket *proto.Enqueue
 	}
 }
 
-func (e *queueEntrySoundCloudTrack) ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
-	cp := &proto.MediaConsumptionCheckpoint{
-		MediaPresent:    true,
-		CurrentPosition: durationpb.New(e.Offset() + e.PlayedFor()),
-		RequestCost:     e.RequestCost().SerializeForAPI(),
-		// Reward is optionally filled outside this function
+func (e *queueEntrySoundCloudTrack) ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint {
+	return &proto.MediaConsumptionCheckpoint{
 		MediaInfo: &proto.MediaConsumptionCheckpoint_SoundcloudTrackData{
 			SoundcloudTrackData: &proto.NowPlayingSoundCloudTrackData{
 				Id: e.id,
 			},
 		},
 	}
-	if needsTitle {
-		title := e.Title()
-		cp.MediaTitle = &title
-	}
-	if !e.RequestedBy().IsUnknown() {
-		cp.RequestedBy = userSerializer(ctx, e.RequestedBy())
-	}
-	return cp
 }

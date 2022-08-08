@@ -13,7 +13,6 @@ import (
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type queueEntryYouTubeVideo struct {
@@ -38,30 +37,17 @@ func (e *queueEntryYouTubeVideo) MediaID() (types.MediaType, string) {
 	return types.MediaTypeYouTubeVideo, e.id
 }
 
-func (e *queueEntryYouTubeVideo) SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry {
-	entry := &proto.QueueEntry{
-		Id:          e.QueueID(),
-		Length:      durationpb.New(e.Length()),
-		Offset:      durationpb.New(e.Offset()),
-		Unskippable: e.Unskippable(),
-		RequestCost: e.RequestCost().SerializeForAPI(),
-		RequestedAt: timestamppb.New(e.RequestedAt()),
-		CanMoveUp:   canMoveUp,
-		CanMoveDown: canMoveDown,
-		MediaInfo: &proto.QueueEntry_YoutubeVideoData{
-			YoutubeVideoData: &proto.QueueYouTubeVideoData{
-				Id:            e.id,
-				Title:         e.Title(),
-				ThumbnailUrl:  e.thumbnailURL,
-				ChannelTitle:  e.channelTitle,
-				LiveBroadcast: e.liveBroadcast,
-			},
+func (e *queueEntryYouTubeVideo) SerializeForAPIQueue(ctx context.Context) proto.IsQueueEntry_MediaInfo {
+	info := &proto.QueueEntry_YoutubeVideoData{
+		YoutubeVideoData: &proto.QueueYouTubeVideoData{
+			Id:            e.id,
+			Title:         e.Title(),
+			ThumbnailUrl:  e.thumbnailURL,
+			ChannelTitle:  e.channelTitle,
+			LiveBroadcast: e.liveBroadcast,
 		},
 	}
-	if !e.RequestedBy().IsUnknown() {
-		entry.RequestedBy = userSerializer(ctx, e.RequestedBy())
-	}
-	return entry
+	return info
 }
 
 type queueEntryYouTubeVideoJsonRepresentation struct {
@@ -99,7 +85,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		MovedBy:       e.MovedBy(),
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.id)
+		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.QueueID())
 	}
 	return j, nil
 }
@@ -142,25 +128,15 @@ func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMed
 	}
 }
 
-func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint {
+func (e *queueEntryYouTubeVideo) ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint {
 	cp := &proto.MediaConsumptionCheckpoint{
-		MediaPresent:    true,
-		CurrentPosition: durationpb.New(e.Offset() + e.PlayedFor()),
-		LiveBroadcast:   e.liveBroadcast,
-		RequestCost:     e.RequestCost().SerializeForAPI(),
+		LiveBroadcast: e.liveBroadcast,
 		// Reward is optionally filled outside this function
 		MediaInfo: &proto.MediaConsumptionCheckpoint_YoutubeVideoData{
 			YoutubeVideoData: &proto.NowPlayingYouTubeVideoData{
 				Id: e.id,
 			},
 		},
-	}
-	if needsTitle {
-		title := e.Title()
-		cp.MediaTitle = &title
-	}
-	if !e.RequestedBy().IsUnknown() {
-		cp.RequestedBy = userSerializer(ctx, e.RequestedBy())
 	}
 	return cp
 }

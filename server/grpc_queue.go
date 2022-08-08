@@ -14,6 +14,7 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -41,9 +42,20 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		entries := s.mediaQueue.Entries()
 		queue.Entries = make([]*proto.QueueEntry, len(entries))
 		for i, entry := range entries {
-			canMoveUp := s.mediaQueue.CanMoveEntryByIndex(i, user, true)
-			canMoveDown := s.mediaQueue.CanMoveEntryByIndex(i, user, false)
-			queue.Entries[i] = entry.SerializeForAPI(ctx, s.userSerializer, canMoveUp, canMoveDown)
+			queue.Entries[i] = &proto.QueueEntry{
+				Id:          entry.QueueID(),
+				Length:      durationpb.New(entry.MediaInfo().Length()),
+				Offset:      durationpb.New(entry.MediaInfo().Offset()),
+				Unskippable: entry.Unskippable(),
+				RequestCost: entry.RequestCost().SerializeForAPI(),
+				RequestedAt: timestamppb.New(entry.RequestedAt()),
+				MediaInfo:   entry.MediaInfo().SerializeForAPIQueue(ctx),
+				CanMoveUp:   s.mediaQueue.CanMoveEntryByIndex(i, user, true),
+				CanMoveDown: s.mediaQueue.CanMoveEntryByIndex(i, user, false),
+			}
+			if !entry.RequestedBy().IsUnknown() {
+				queue.Entries[i].RequestedBy = s.userSerializer(ctx, entry.RequestedBy())
+			}
 		}
 
 		insertCursor, hasInsertCursor := s.mediaQueue.InsertCursor()

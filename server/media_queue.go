@@ -23,6 +23,7 @@ import (
 	"github.com/vburenin/nsync"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
@@ -103,7 +104,7 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		return nil, stacktrace.Propagate(err, "")
 	}
 	if persistenceFile != "" {
-		err := q.restoreQueueFromFile(persistenceFile)
+		err := q.restoreQueueFromFile(ctx, persistenceFile)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -527,7 +528,18 @@ func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer
 		return &proto.MediaConsumptionCheckpoint{}
 	}
 	// the user serializer may request the queue lock. hence why we get the currently playing entry separately
-	return currentEntry.ProduceCheckpointForAPI(ctx, userSerializer, needsTitle)
+	cp := currentEntry.ProduceCheckpointForAPI(ctx)
+	cp.MediaPresent = true
+	cp.CurrentPosition = durationpb.New(currentEntry.MediaInfo().Offset() + currentEntry.PlayedFor())
+	cp.RequestCost = currentEntry.RequestCost().SerializeForAPI()
+	if needsTitle {
+		title := currentEntry.MediaInfo().Title()
+		cp.MediaTitle = &title
+	}
+	if !currentEntry.RequestedBy().IsUnknown() {
+		cp.RequestedBy = userSerializer(ctx, currentEntry.RequestedBy())
+	}
+	return cp
 }
 
 func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
@@ -553,7 +565,7 @@ func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
 	}
 }
 
-func (q *MediaQueue) restoreQueueFromFile(file string) error {
+func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) error {
 	b, err := os.ReadFile(file)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -584,7 +596,7 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 
 		provider, ok := q.mediaProviders[types.MediaType(unknownEntry.Type)]
 		if ok {
-			q.queue[i], err = provider.UnmarshalQueueEntryJSON(entries[i])
+			q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -595,7 +607,7 @@ func (q *MediaQueue) restoreQueueFromFile(file string) error {
 		success := false
 		for _, provider := range q.mediaProviders {
 			if provider.CanUnmarshalQueueEntryJSONType(unknownEntry.Type) {
-				q.queue[i], err = provider.UnmarshalQueueEntryJSON(entries[i])
+				q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}

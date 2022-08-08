@@ -22,8 +22,7 @@ type QueueEntry interface {
 	RequestedAt() time.Time
 	Unskippable() bool
 	MediaInfo() Info
-	SerializeForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, canMoveUp bool, canMoveDown bool) *proto.QueueEntry
-	ProduceCheckpointForAPI(ctx context.Context, userSerializer auth.APIUserSerializer, needsTitle bool) *proto.MediaConsumptionCheckpoint
+	ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint
 	ProducePlayedMedia() (*types.PlayedMedia, error)
 	Play()
 	Stop()
@@ -47,6 +46,7 @@ type Info interface {
 	Length() time.Duration
 	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) QueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
+	SerializeForAPIQueue(ctx context.Context) proto.IsQueueEntry_MediaInfo
 }
 type CollectionKey struct {
 	Type  types.MediaCollectionType
@@ -70,7 +70,7 @@ type Provider interface {
 		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
 	CanUnmarshalQueueEntryJSONType(jsonType string) bool // TODO remove this once simplified
-	UnmarshalQueueEntryJSON(b []byte) (QueueEntry, error)
+	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, error)
 
 	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
 	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)

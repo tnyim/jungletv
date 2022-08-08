@@ -1,6 +1,7 @@
 package soundcloud
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/palantir/stacktrace"
@@ -71,7 +72,7 @@ func (s *TrackProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 	}, nil
 }
 
-func (s *TrackProvider) UnmarshalQueueEntryJSON(b []byte) (media.QueueEntry, error) {
+func (s *TrackProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, error) {
 	v := &queueEntrySoundCloudTrack{}
 	err := json.Unmarshal(b, &v)
 	if err != nil {

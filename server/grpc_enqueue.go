@@ -112,6 +112,13 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	resp := ticket.SerializeForAPI()
 	currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
 	resp.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
+
+	// it's not very elegant to put this check here, but this avoids having to expose the concept of tickets to the media providers
+	// (and a media type that allows for doing this should very much be the exception, anyway)
+	if r.GetDocumentData() != nil && r.GetDocumentData().EnqueueType != nil {
+		ticket.ForceEnqueuing(r.GetDocumentData().GetEnqueueType())
+	}
+
 	return &proto.EnqueueMediaResponse{
 		EnqueueResponse: &proto.EnqueueMediaResponse_Ticket{
 			Ticket: resp,

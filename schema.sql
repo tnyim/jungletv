@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS "media_type";
 CREATE TABLE IF NOT EXISTS "media_type" (
     media_type VARCHAR(10) PRIMARY KEY
 );
-INSERT INTO "media_type" VALUES ('yt_video'), ('sc_track');
+INSERT INTO "media_type" VALUES ('yt_video'), ('sc_track'), ('document');
 
 CREATE TABLE IF NOT EXISTS "played_media" (
     id VARCHAR(36) PRIMARY KEY,
