@@ -38,10 +38,10 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 			return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 		}
 	}
-	if s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_DISABLED {
+	if s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_DISABLED {
 		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
-	if !isAdmin && s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY {
+	if !isAdmin && s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY {
 		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue media")
 	}
 
@@ -91,9 +91,9 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	}
 
 	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY,
-		s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_STAFF_ONLY)
+		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
+		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
+		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

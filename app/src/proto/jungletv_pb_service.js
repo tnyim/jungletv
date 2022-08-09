@@ -397,13 +397,13 @@ JungleTV.SetChatSettings = {
   responseType: jungletv_pb.SetChatSettingsResponse
 };
 
-JungleTV.SetVideoEnqueuingEnabled = {
-  methodName: "SetVideoEnqueuingEnabled",
+JungleTV.SetMediaEnqueuingEnabled = {
+  methodName: "SetMediaEnqueuingEnabled",
   service: JungleTV,
   requestStream: false,
   responseStream: false,
-  requestType: jungletv_pb.SetVideoEnqueuingEnabledRequest,
-  responseType: jungletv_pb.SetVideoEnqueuingEnabledResponse
+  requestType: jungletv_pb.SetMediaEnqueuingEnabledRequest,
+  responseType: jungletv_pb.SetMediaEnqueuingEnabledResponse
 };
 
 JungleTV.UserBans = {
@@ -2126,11 +2126,11 @@ JungleTVClient.prototype.setChatSettings = function setChatSettings(requestMessa
   };
 };
 
-JungleTVClient.prototype.setVideoEnqueuingEnabled = function setVideoEnqueuingEnabled(requestMessage, metadata, callback) {
+JungleTVClient.prototype.setMediaEnqueuingEnabled = function setMediaEnqueuingEnabled(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(JungleTV.SetVideoEnqueuingEnabled, {
+  var client = grpc.unary(JungleTV.SetMediaEnqueuingEnabled, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -380,52 +380,52 @@ func (ChatDisabledReason) EnumDescriptor() ([]byte, []int) {
 	return file_jungletv_proto_rawDescGZIP(), []int{6}
 }
 
-type AllowedVideoEnqueuingType int32
+type AllowedMediaEnqueuingType int32
 
 const (
-	AllowedVideoEnqueuingType_DISABLED   AllowedVideoEnqueuingType = 0
-	AllowedVideoEnqueuingType_STAFF_ONLY AllowedVideoEnqueuingType = 1
-	AllowedVideoEnqueuingType_ENABLED    AllowedVideoEnqueuingType = 2
+	AllowedMediaEnqueuingType_DISABLED   AllowedMediaEnqueuingType = 0
+	AllowedMediaEnqueuingType_STAFF_ONLY AllowedMediaEnqueuingType = 1
+	AllowedMediaEnqueuingType_ENABLED    AllowedMediaEnqueuingType = 2
 )
 
-// Enum value maps for AllowedVideoEnqueuingType.
+// Enum value maps for AllowedMediaEnqueuingType.
 var (
-	AllowedVideoEnqueuingType_name = map[int32]string{
+	AllowedMediaEnqueuingType_name = map[int32]string{
 		0: "DISABLED",
 		1: "STAFF_ONLY",
 		2: "ENABLED",
 	}
-	AllowedVideoEnqueuingType_value = map[string]int32{
+	AllowedMediaEnqueuingType_value = map[string]int32{
 		"DISABLED":   0,
 		"STAFF_ONLY": 1,
 		"ENABLED":    2,
 	}
 )
 
-func (x AllowedVideoEnqueuingType) Enum() *AllowedVideoEnqueuingType {
-	p := new(AllowedVideoEnqueuingType)
+func (x AllowedMediaEnqueuingType) Enum() *AllowedMediaEnqueuingType {
+	p := new(AllowedMediaEnqueuingType)
 	*p = x
 	return p
 }
 
-func (x AllowedVideoEnqueuingType) String() string {
+func (x AllowedMediaEnqueuingType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (AllowedVideoEnqueuingType) Descriptor() protoreflect.EnumDescriptor {
+func (AllowedMediaEnqueuingType) Descriptor() protoreflect.EnumDescriptor {
 	return file_jungletv_proto_enumTypes[7].Descriptor()
 }
 
-func (AllowedVideoEnqueuingType) Type() protoreflect.EnumType {
+func (AllowedMediaEnqueuingType) Type() protoreflect.EnumType {
 	return &file_jungletv_proto_enumTypes[7]
 }
 
-func (x AllowedVideoEnqueuingType) Number() protoreflect.EnumNumber {
+func (x AllowedMediaEnqueuingType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use AllowedVideoEnqueuingType.Descriptor instead.
-func (AllowedVideoEnqueuingType) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use AllowedMediaEnqueuingType.Descriptor instead.
+func (AllowedMediaEnqueuingType) EnumDescriptor() ([]byte, []int) {
 	return file_jungletv_proto_rawDescGZIP(), []int{7}
 }
 
@@ -5938,16 +5938,16 @@ func (x *UserVerificationsResponse) GetTotal() uint64 {
 	return 0
 }
 
-type SetVideoEnqueuingEnabledRequest struct {
+type SetMediaEnqueuingEnabledRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Allowed AllowedVideoEnqueuingType `protobuf:"varint,1,opt,name=allowed,proto3,enum=jungletv.AllowedVideoEnqueuingType" json:"allowed,omitempty"`
+	Allowed AllowedMediaEnqueuingType `protobuf:"varint,1,opt,name=allowed,proto3,enum=jungletv.AllowedMediaEnqueuingType" json:"allowed,omitempty"`
 }
 
-func (x *SetVideoEnqueuingEnabledRequest) Reset() {
-	*x = SetVideoEnqueuingEnabledRequest{}
+func (x *SetMediaEnqueuingEnabledRequest) Reset() {
+	*x = SetMediaEnqueuingEnabledRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_jungletv_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -5955,13 +5955,13 @@ func (x *SetVideoEnqueuingEnabledRequest) Reset() {
 	}
 }
 
-func (x *SetVideoEnqueuingEnabledRequest) String() string {
+func (x *SetMediaEnqueuingEnabledRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SetVideoEnqueuingEnabledRequest) ProtoMessage() {}
+func (*SetMediaEnqueuingEnabledRequest) ProtoMessage() {}
 
-func (x *SetVideoEnqueuingEnabledRequest) ProtoReflect() protoreflect.Message {
+func (x *SetMediaEnqueuingEnabledRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_jungletv_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -5973,26 +5973,26 @@ func (x *SetVideoEnqueuingEnabledRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SetVideoEnqueuingEnabledRequest.ProtoReflect.Descriptor instead.
-func (*SetVideoEnqueuingEnabledRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetMediaEnqueuingEnabledRequest.ProtoReflect.Descriptor instead.
+func (*SetMediaEnqueuingEnabledRequest) Descriptor() ([]byte, []int) {
 	return file_jungletv_proto_rawDescGZIP(), []int{80}
 }
 
-func (x *SetVideoEnqueuingEnabledRequest) GetAllowed() AllowedVideoEnqueuingType {
+func (x *SetMediaEnqueuingEnabledRequest) GetAllowed() AllowedMediaEnqueuingType {
 	if x != nil {
 		return x.Allowed
 	}
-	return AllowedVideoEnqueuingType_DISABLED
+	return AllowedMediaEnqueuingType_DISABLED
 }
 
-type SetVideoEnqueuingEnabledResponse struct {
+type SetMediaEnqueuingEnabledResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *SetVideoEnqueuingEnabledResponse) Reset() {
-	*x = SetVideoEnqueuingEnabledResponse{}
+func (x *SetMediaEnqueuingEnabledResponse) Reset() {
+	*x = SetMediaEnqueuingEnabledResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_jungletv_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6000,13 +6000,13 @@ func (x *SetVideoEnqueuingEnabledResponse) Reset() {
 	}
 }
 
-func (x *SetVideoEnqueuingEnabledResponse) String() string {
+func (x *SetMediaEnqueuingEnabledResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SetVideoEnqueuingEnabledResponse) ProtoMessage() {}
+func (*SetMediaEnqueuingEnabledResponse) ProtoMessage() {}
 
-func (x *SetVideoEnqueuingEnabledResponse) ProtoReflect() protoreflect.Message {
+func (x *SetMediaEnqueuingEnabledResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_jungletv_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6018,8 +6018,8 @@ func (x *SetVideoEnqueuingEnabledResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SetVideoEnqueuingEnabledResponse.ProtoReflect.Descriptor instead.
-func (*SetVideoEnqueuingEnabledResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetMediaEnqueuingEnabledResponse.ProtoReflect.Descriptor instead.
+func (*SetMediaEnqueuingEnabledResponse) Descriptor() ([]byte, []int) {
 	return file_jungletv_proto_rawDescGZIP(), []int{81}
 }
 
@@ -9679,7 +9679,7 @@ type ModerationStatusOverview struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AllowedVideoEnqueuing               AllowedVideoEnqueuingType `protobuf:"varint,1,opt,name=allowed_video_enqueuing,json=allowedVideoEnqueuing,proto3,enum=jungletv.AllowedVideoEnqueuingType" json:"allowed_video_enqueuing,omitempty"`
+	AllowedMediaEnqueuing               AllowedMediaEnqueuingType `protobuf:"varint,1,opt,name=allowed_media_enqueuing,json=allowedMediaEnqueuing,proto3,enum=jungletv.AllowedMediaEnqueuingType" json:"allowed_media_enqueuing,omitempty"`
 	EnqueuingPricesMultiplier           int32                     `protobuf:"varint,2,opt,name=enqueuing_prices_multiplier,json=enqueuingPricesMultiplier,proto3" json:"enqueuing_prices_multiplier,omitempty"`
 	CrowdfundedSkippingEnabled          bool                      `protobuf:"varint,3,opt,name=crowdfunded_skipping_enabled,json=crowdfundedSkippingEnabled,proto3" json:"crowdfunded_skipping_enabled,omitempty"`
 	CrowdfundedSkippingPricesMultiplier int32                     `protobuf:"varint,4,opt,name=crowdfunded_skipping_prices_multiplier,json=crowdfundedSkippingPricesMultiplier,proto3" json:"crowdfunded_skipping_prices_multiplier,omitempty"`
@@ -9724,11 +9724,11 @@ func (*ModerationStatusOverview) Descriptor() ([]byte, []int) {
 	return file_jungletv_proto_rawDescGZIP(), []int{150}
 }
 
-func (x *ModerationStatusOverview) GetAllowedVideoEnqueuing() AllowedVideoEnqueuingType {
+func (x *ModerationStatusOverview) GetAllowedMediaEnqueuing() AllowedMediaEnqueuingType {
 	if x != nil {
-		return x.AllowedVideoEnqueuing
+		return x.AllowedMediaEnqueuing
 	}
-	return AllowedVideoEnqueuingType_DISABLED
+	return AllowedMediaEnqueuingType_DISABLED
 }
 
 func (x *ModerationStatusOverview) GetEnqueuingPricesMultiplier() int32 {
@@ -13850,13 +13850,13 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x6f, 0x6e, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x04, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74,
 	0x6f, 0x74, 0x61, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61,
-	0x6c, 0x22, 0x60, 0x0a, 0x1f, 0x53, 0x65, 0x74, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71,
+	0x6c, 0x22, 0x60, 0x0a, 0x1f, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71,
 	0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x3d, 0x0a, 0x07, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x23, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76,
-	0x2e, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71,
+	0x2e, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71,
 	0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x54, 0x79, 0x70, 0x65, 0x52, 0x07, 0x61, 0x6c, 0x6c, 0x6f,
-	0x77, 0x65, 0x64, 0x22, 0x22, 0x0a, 0x20, 0x53, 0x65, 0x74, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45,
+	0x77, 0x65, 0x64, 0x22, 0x22, 0x0a, 0x20, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45,
 	0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x56, 0x0a, 0x17, 0x55, 0x73, 0x65, 0x72, 0x43,
 	0x68, 0x61, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
@@ -14328,12 +14328,12 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x22, 0x80, 0x06, 0x0a, 0x18, 0x4d, 0x6f, 0x64, 0x65, 0x72, 0x61, 0x74,
 	0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x4f, 0x76, 0x65, 0x72, 0x76, 0x69, 0x65,
-	0x77, 0x12, 0x5b, 0x0a, 0x17, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x76, 0x69, 0x64,
-	0x65, 0x6f, 0x5f, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x18, 0x01, 0x20, 0x01,
+	0x77, 0x12, 0x5b, 0x0a, 0x17, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x6d, 0x65, 0x64,
+	0x69, 0x61, 0x5f, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0e, 0x32, 0x23, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x6c,
-	0x6c, 0x6f, 0x77, 0x65, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75,
+	0x6c, 0x6f, 0x77, 0x65, 0x64, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75,
 	0x69, 0x6e, 0x67, 0x54, 0x79, 0x70, 0x65, 0x52, 0x15, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64,
-	0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x12, 0x3e,
+	0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x12, 0x3e,
 	0x0a, 0x1b, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x5f, 0x70, 0x72, 0x69, 0x63,
 	0x65, 0x73, 0x5f, 0x6d, 0x75, 0x6c, 0x74, 0x69, 0x70, 0x6c, 0x69, 0x65, 0x72, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x05, 0x52, 0x19, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x50, 0x72,
@@ -14821,7 +14821,7 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10,
 	0x00, 0x12, 0x19, 0x0a, 0x15, 0x4d, 0x4f, 0x44, 0x45, 0x52, 0x41, 0x54, 0x4f, 0x52, 0x5f, 0x4e,
 	0x4f, 0x54, 0x5f, 0x50, 0x52, 0x45, 0x53, 0x45, 0x4e, 0x54, 0x10, 0x01, 0x2a, 0x46, 0x0a, 0x19,
-	0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75,
+	0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75,
 	0x65, 0x75, 0x69, 0x6e, 0x67, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0c, 0x0a, 0x08, 0x44, 0x49, 0x53,
 	0x41, 0x42, 0x4c, 0x45, 0x44, 0x10, 0x00, 0x12, 0x0e, 0x0a, 0x0a, 0x53, 0x54, 0x41, 0x46, 0x46,
 	0x5f, 0x4f, 0x4e, 0x4c, 0x59, 0x10, 0x01, 0x12, 0x0b, 0x0a, 0x07, 0x45, 0x4e, 0x41, 0x42, 0x4c,
@@ -15150,12 +15150,12 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
 	0x76, 0x2e, 0x53, 0x65, 0x74, 0x43, 0x68, 0x61, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
 	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x18, 0x53,
-	0x65, 0x74, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67,
+	0x65, 0x74, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67,
 	0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x29, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65,
-	0x74, 0x76, 0x2e, 0x53, 0x65, 0x74, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75, 0x65,
+	0x74, 0x76, 0x2e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75, 0x65,
 	0x75, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x53, 0x65,
-	0x74, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x45,
+	0x74, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x69, 0x6e, 0x67, 0x45,
 	0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
 	0x12, 0x43, 0x0a, 0x08, 0x55, 0x73, 0x65, 0x72, 0x42, 0x61, 0x6e, 0x73, 0x12, 0x19, 0x2e, 0x6a,
 	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x42, 0x61, 0x6e, 0x73,
@@ -15420,7 +15420,7 @@ var file_jungletv_proto_goTypes = []interface{}{
 	(UserStatus)(0),                                     // 4: jungletv.UserStatus
 	(ForcedTicketEnqueueType)(0),                        // 5: jungletv.ForcedTicketEnqueueType
 	(ChatDisabledReason)(0),                             // 6: jungletv.ChatDisabledReason
-	(AllowedVideoEnqueuingType)(0),                      // 7: jungletv.AllowedVideoEnqueuingType
+	(AllowedMediaEnqueuingType)(0),                      // 7: jungletv.AllowedMediaEnqueuingType
 	(PermissionLevel)(0),                                // 8: jungletv.PermissionLevel
 	(DisallowedMediaType)(0),                            // 9: jungletv.DisallowedMediaType
 	(DisallowedMediaCollectionType)(0),                  // 10: jungletv.DisallowedMediaCollectionType
@@ -15508,8 +15508,8 @@ var file_jungletv_proto_goTypes = []interface{}{
 	(*UserVerification)(nil),                            // 92: jungletv.UserVerification
 	(*UserVerificationsRequest)(nil),                    // 93: jungletv.UserVerificationsRequest
 	(*UserVerificationsResponse)(nil),                   // 94: jungletv.UserVerificationsResponse
-	(*SetVideoEnqueuingEnabledRequest)(nil),             // 95: jungletv.SetVideoEnqueuingEnabledRequest
-	(*SetVideoEnqueuingEnabledResponse)(nil),            // 96: jungletv.SetVideoEnqueuingEnabledResponse
+	(*SetMediaEnqueuingEnabledRequest)(nil),             // 95: jungletv.SetMediaEnqueuingEnabledRequest
+	(*SetMediaEnqueuingEnabledResponse)(nil),            // 96: jungletv.SetMediaEnqueuingEnabledResponse
 	(*UserChatMessagesRequest)(nil),                     // 97: jungletv.UserChatMessagesRequest
 	(*UserChatMessagesResponse)(nil),                    // 98: jungletv.UserChatMessagesResponse
 	(*UserPermissionLevelRequest)(nil),                  // 99: jungletv.UserPermissionLevelRequest
@@ -15721,7 +15721,7 @@ var file_jungletv_proto_depIdxs = []int32{
 	50,  // 73: jungletv.UserVerification.verified_by:type_name -> jungletv.User
 	15,  // 74: jungletv.UserVerificationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
 	92,  // 75: jungletv.UserVerificationsResponse.user_verifications:type_name -> jungletv.UserVerification
-	7,   // 76: jungletv.SetVideoEnqueuingEnabledRequest.allowed:type_name -> jungletv.AllowedVideoEnqueuingType
+	7,   // 76: jungletv.SetMediaEnqueuingEnabledRequest.allowed:type_name -> jungletv.AllowedMediaEnqueuingType
 	62,  // 77: jungletv.UserChatMessagesResponse.messages:type_name -> jungletv.ChatMessage
 	8,   // 78: jungletv.UserPermissionLevelResponse.permission_level:type_name -> jungletv.PermissionLevel
 	15,  // 79: jungletv.DisallowedMediaRequest.pagination_params:type_name -> jungletv.PaginationParameters
@@ -15763,7 +15763,7 @@ var file_jungletv_proto_depIdxs = []int32{
 	228, // 115: jungletv.Spectator.not_legitimate_since:type_name -> google.protobuf.Timestamp
 	228, // 116: jungletv.Spectator.stopped_watching_at:type_name -> google.protobuf.Timestamp
 	41,  // 117: jungletv.Spectator.activity_challenge:type_name -> jungletv.ActivityChallenge
-	7,   // 118: jungletv.ModerationStatusOverview.allowed_video_enqueuing:type_name -> jungletv.AllowedVideoEnqueuingType
+	7,   // 118: jungletv.ModerationStatusOverview.allowed_media_enqueuing:type_name -> jungletv.AllowedMediaEnqueuingType
 	50,  // 119: jungletv.ModerationStatusOverview.actively_moderating:type_name -> jungletv.User
 	13,  // 120: jungletv.Connection.service:type_name -> jungletv.ConnectionService
 	228, // 121: jungletv.Connection.created_at:type_name -> google.protobuf.Timestamp
@@ -15852,7 +15852,7 @@ var file_jungletv_proto_depIdxs = []int32{
 	53,  // 204: jungletv.JungleTV.RemoveQueueEntry:input_type -> jungletv.RemoveQueueEntryRequest
 	77,  // 205: jungletv.JungleTV.RemoveChatMessage:input_type -> jungletv.RemoveChatMessageRequest
 	79,  // 206: jungletv.JungleTV.SetChatSettings:input_type -> jungletv.SetChatSettingsRequest
-	95,  // 207: jungletv.JungleTV.SetVideoEnqueuingEnabled:input_type -> jungletv.SetVideoEnqueuingEnabledRequest
+	95,  // 207: jungletv.JungleTV.SetMediaEnqueuingEnabled:input_type -> jungletv.SetMediaEnqueuingEnabledRequest
 	86,  // 208: jungletv.JungleTV.UserBans:input_type -> jungletv.UserBansRequest
 	81,  // 209: jungletv.JungleTV.BanUser:input_type -> jungletv.BanUserRequest
 	83,  // 210: jungletv.JungleTV.RemoveBan:input_type -> jungletv.RemoveBanRequest
@@ -15932,7 +15932,7 @@ var file_jungletv_proto_depIdxs = []int32{
 	54,  // 284: jungletv.JungleTV.RemoveQueueEntry:output_type -> jungletv.RemoveQueueEntryResponse
 	78,  // 285: jungletv.JungleTV.RemoveChatMessage:output_type -> jungletv.RemoveChatMessageResponse
 	80,  // 286: jungletv.JungleTV.SetChatSettings:output_type -> jungletv.SetChatSettingsResponse
-	96,  // 287: jungletv.JungleTV.SetVideoEnqueuingEnabled:output_type -> jungletv.SetVideoEnqueuingEnabledResponse
+	96,  // 287: jungletv.JungleTV.SetMediaEnqueuingEnabled:output_type -> jungletv.SetMediaEnqueuingEnabledResponse
 	87,  // 288: jungletv.JungleTV.UserBans:output_type -> jungletv.UserBansResponse
 	82,  // 289: jungletv.JungleTV.BanUser:output_type -> jungletv.BanUserResponse
 	84,  // 290: jungletv.JungleTV.RemoveBan:output_type -> jungletv.RemoveBanResponse
@@ -16943,7 +16943,7 @@ func file_jungletv_proto_init() {
 			}
 		}
 		file_jungletv_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetVideoEnqueuingEnabledRequest); i {
+			switch v := v.(*SetMediaEnqueuingEnabledRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -16955,7 +16955,7 @@ func file_jungletv_proto_init() {
 			}
 		}
 		file_jungletv_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetVideoEnqueuingEnabledResponse); i {
+			switch v := v.(*SetMediaEnqueuingEnabledResponse); i {
 			case 0:
 				return &v.state
 			case 1:

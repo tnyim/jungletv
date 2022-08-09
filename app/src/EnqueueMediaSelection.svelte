@@ -7,10 +7,10 @@
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
+    import MediaRangeFloat from "./MediaRangeFloat.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
     import { MediaSelectionKind, MediaSelectionParseResult, parseURLForMediaSelection } from "./utils";
-    import VideoRangeFloat from "./VideoRangeFloat.svelte";
     import Wizard from "./Wizard.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
 
@@ -442,7 +442,7 @@
                                     pushy
                                 >
                                     <div slot="float" let:formattedValue let:value let:index>
-                                        <VideoRangeFloat
+                                        <MediaRangeFloat
                                             {formattedValue}
                                             {value}
                                             {index}

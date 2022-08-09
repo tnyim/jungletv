@@ -80,7 +80,7 @@ type grpcServer struct {
 	captchaGenerationMutex sync.Mutex
 	segchaClient           segchaproto.SegchaClient
 
-	allowVideoEnqueuing      proto.AllowedVideoEnqueuingType
+	allowMediaEnqueuing      proto.AllowedMediaEnqueuingType
 	autoEnqueueVideos        bool
 	autoEnqueueVideoListFile string
 	ticketCheckPeriod        time.Duration
@@ -247,7 +247,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		collectorAccountQueue:     make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
 		autoEnqueueVideoListFile:  options.AutoEnqueueVideoListFile,
 		autoEnqueueVideos:         options.AutoEnqueueVideoListFile != "",
-		allowVideoEnqueuing:       proto.AllowedVideoEnqueuingType_ENABLED,
+		allowMediaEnqueuing:       proto.AllowedMediaEnqueuingType_ENABLED,
 		ipReputationChecker:       ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint),
 		ticketCheckPeriod:         options.TicketCheckPeriod,
 		staffActivityManager:      NewStaffActivityManager(options.StatsClient),
@@ -630,7 +630,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 				}
 			case <-t.C:
 				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos &&
-					s.allowVideoEnqueuing == proto.AllowedVideoEnqueuingType_ENABLED {
+					s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_ENABLED {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := func() error {
 							tx, err := transaction.Begin(ctx)

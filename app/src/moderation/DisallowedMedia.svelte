@@ -112,7 +112,7 @@
         </button>
         <div class="col-span-2 mt-3">
             {#if operationSuccessful}
-                <SuccessMessage>Media disallowed successfully</SuccessMessage>
+                <SuccessMessage>{lastOperationItemType} disallowed successfully</SuccessMessage>
             {:else if operationError != ""}
                 <ErrorMessage>{operationError}</ErrorMessage>
             {/if}

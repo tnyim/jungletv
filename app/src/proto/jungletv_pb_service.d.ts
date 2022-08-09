@@ -391,13 +391,13 @@ type JungleTVSetChatSettings = {
   readonly responseType: typeof jungletv_pb.SetChatSettingsResponse;
 };
 
-type JungleTVSetVideoEnqueuingEnabled = {
+type JungleTVSetMediaEnqueuingEnabled = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof jungletv_pb.SetVideoEnqueuingEnabledRequest;
-  readonly responseType: typeof jungletv_pb.SetVideoEnqueuingEnabledResponse;
+  readonly requestType: typeof jungletv_pb.SetMediaEnqueuingEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetMediaEnqueuingEnabledResponse;
 };
 
 type JungleTVUserBans = {
@@ -769,7 +769,7 @@ export class JungleTV {
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
   static readonly SetChatSettings: JungleTVSetChatSettings;
-  static readonly SetVideoEnqueuingEnabled: JungleTVSetVideoEnqueuingEnabled;
+  static readonly SetMediaEnqueuingEnabled: JungleTVSetMediaEnqueuingEnabled;
   static readonly UserBans: JungleTVUserBans;
   static readonly BanUser: JungleTVBanUser;
   static readonly RemoveBan: JungleTVRemoveBan;
@@ -1171,14 +1171,14 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.SetChatSettingsRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetChatSettingsResponse|null) => void
   ): UnaryResponse;
-  setVideoEnqueuingEnabled(
-    requestMessage: jungletv_pb.SetVideoEnqueuingEnabledRequest,
+  setMediaEnqueuingEnabled(
+    requestMessage: jungletv_pb.SetMediaEnqueuingEnabledRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetVideoEnqueuingEnabledResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMediaEnqueuingEnabledResponse|null) => void
   ): UnaryResponse;
-  setVideoEnqueuingEnabled(
-    requestMessage: jungletv_pb.SetVideoEnqueuingEnabledRequest,
-    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetVideoEnqueuingEnabledResponse|null) => void
+  setMediaEnqueuingEnabled(
+    requestMessage: jungletv_pb.SetMediaEnqueuingEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMediaEnqueuingEnabledResponse|null) => void
   ): UnaryResponse;
   userBans(
     requestMessage: jungletv_pb.UserBansRequest,

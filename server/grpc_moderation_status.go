@@ -23,7 +23,7 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 		}
 
 		overview := &proto.ModerationStatusOverview{
-			AllowedVideoEnqueuing:               s.allowVideoEnqueuing,
+			AllowedMediaEnqueuing:               s.allowMediaEnqueuing,
 			EnqueuingPricesMultiplier:           int32(s.pricer.finalPricesMultiplier),
 			CrowdfundedSkippingEnabled:          s.skipManager.CrowdfundedSkippingEnabled(),
 			CrowdfundedSkippingPricesMultiplier: int32(s.pricer.crowdfundedSkipMultiplier),

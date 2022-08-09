@@ -2391,38 +2391,38 @@ export namespace UserVerificationsResponse {
   }
 }
 
-export class SetVideoEnqueuingEnabledRequest extends jspb.Message {
-  getAllowed(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
-  setAllowed(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;
+export class SetMediaEnqueuingEnabledRequest extends jspb.Message {
+  getAllowed(): AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap];
+  setAllowed(value: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap]): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SetVideoEnqueuingEnabledRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: SetVideoEnqueuingEnabledRequest): SetVideoEnqueuingEnabledRequest.AsObject;
+  toObject(includeInstance?: boolean): SetMediaEnqueuingEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMediaEnqueuingEnabledRequest): SetMediaEnqueuingEnabledRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: SetVideoEnqueuingEnabledRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SetVideoEnqueuingEnabledRequest;
-  static deserializeBinaryFromReader(message: SetVideoEnqueuingEnabledRequest, reader: jspb.BinaryReader): SetVideoEnqueuingEnabledRequest;
+  static serializeBinaryToWriter(message: SetMediaEnqueuingEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMediaEnqueuingEnabledRequest;
+  static deserializeBinaryFromReader(message: SetMediaEnqueuingEnabledRequest, reader: jspb.BinaryReader): SetMediaEnqueuingEnabledRequest;
 }
 
-export namespace SetVideoEnqueuingEnabledRequest {
+export namespace SetMediaEnqueuingEnabledRequest {
   export type AsObject = {
-    allowed: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap],
+    allowed: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap],
   }
 }
 
-export class SetVideoEnqueuingEnabledResponse extends jspb.Message {
+export class SetMediaEnqueuingEnabledResponse extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SetVideoEnqueuingEnabledResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: SetVideoEnqueuingEnabledResponse): SetVideoEnqueuingEnabledResponse.AsObject;
+  toObject(includeInstance?: boolean): SetMediaEnqueuingEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMediaEnqueuingEnabledResponse): SetMediaEnqueuingEnabledResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: SetVideoEnqueuingEnabledResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SetVideoEnqueuingEnabledResponse;
-  static deserializeBinaryFromReader(message: SetVideoEnqueuingEnabledResponse, reader: jspb.BinaryReader): SetVideoEnqueuingEnabledResponse;
+  static serializeBinaryToWriter(message: SetMediaEnqueuingEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMediaEnqueuingEnabledResponse;
+  static deserializeBinaryFromReader(message: SetMediaEnqueuingEnabledResponse, reader: jspb.BinaryReader): SetMediaEnqueuingEnabledResponse;
 }
 
-export namespace SetVideoEnqueuingEnabledResponse {
+export namespace SetMediaEnqueuingEnabledResponse {
   export type AsObject = {
   }
 }
@@ -4102,8 +4102,8 @@ export namespace MonitorModerationStatusRequest {
 }
 
 export class ModerationStatusOverview extends jspb.Message {
-  getAllowedVideoEnqueuing(): AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap];
-  setAllowedVideoEnqueuing(value: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap]): void;
+  getAllowedMediaEnqueuing(): AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap];
+  setAllowedMediaEnqueuing(value: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap]): void;
 
   getEnqueuingPricesMultiplier(): number;
   setEnqueuingPricesMultiplier(value: number): void;
@@ -4151,7 +4151,7 @@ export class ModerationStatusOverview extends jspb.Message {
 
 export namespace ModerationStatusOverview {
   export type AsObject = {
-    allowedVideoEnqueuing: AllowedVideoEnqueuingTypeMap[keyof AllowedVideoEnqueuingTypeMap],
+    allowedMediaEnqueuing: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap],
     enqueuingPricesMultiplier: number,
     crowdfundedSkippingEnabled: boolean,
     crowdfundedSkippingPricesMultiplier: number,
@@ -5725,13 +5725,13 @@ export interface ChatDisabledReasonMap {
 
 export const ChatDisabledReason: ChatDisabledReasonMap;
 
-export interface AllowedVideoEnqueuingTypeMap {
+export interface AllowedMediaEnqueuingTypeMap {
   DISABLED: 0;
   STAFF_ONLY: 1;
   ENABLED: 2;
 }
 
-export const AllowedVideoEnqueuingType: AllowedVideoEnqueuingTypeMap;
+export const AllowedMediaEnqueuingType: AllowedMediaEnqueuingTypeMap;
 
 export interface PermissionLevelMap {
   UNAUTHENTICATED: 0;

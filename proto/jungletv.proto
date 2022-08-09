@@ -53,7 +53,7 @@ service JungleTV {
     rpc RemoveQueueEntry(RemoveQueueEntryRequest) returns (RemoveQueueEntryResponse) {}
     rpc RemoveChatMessage(RemoveChatMessageRequest) returns (RemoveChatMessageResponse) {}
     rpc SetChatSettings(SetChatSettingsRequest) returns (SetChatSettingsResponse) {}
-    rpc SetVideoEnqueuingEnabled(SetVideoEnqueuingEnabledRequest) returns (SetVideoEnqueuingEnabledResponse) {}
+    rpc SetMediaEnqueuingEnabled(SetMediaEnqueuingEnabledRequest) returns (SetMediaEnqueuingEnabledResponse) {}
     rpc UserBans(UserBansRequest) returns (UserBansResponse) {}
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
     rpc RemoveBan(RemoveBanRequest) returns (RemoveBanResponse) {}
@@ -598,17 +598,17 @@ message UserVerificationsResponse {
     uint64 total = 3;
 }
 
-enum AllowedVideoEnqueuingType {
+enum AllowedMediaEnqueuingType {
     DISABLED = 0;
     STAFF_ONLY = 1;
     ENABLED = 2;
 }
 
-message SetVideoEnqueuingEnabledRequest {
-    AllowedVideoEnqueuingType allowed = 1;
+message SetMediaEnqueuingEnabledRequest {
+    AllowedMediaEnqueuingType allowed = 1;
 }
 
-message SetVideoEnqueuingEnabledResponse {}
+message SetMediaEnqueuingEnabledResponse {}
 
 message UserChatMessagesRequest {
     string address = 1;
@@ -955,7 +955,7 @@ message ResetSpectatorStatusResponse {}
 message MonitorModerationStatusRequest {}
 
 message ModerationStatusOverview {
-    AllowedVideoEnqueuingType allowed_video_enqueuing = 1;
+    AllowedMediaEnqueuingType allowed_media_enqueuing = 1;
     int32 enqueuing_prices_multiplier = 2;
     bool crowdfunded_skipping_enabled = 3;
     int32 crowdfunded_skipping_prices_multiplier = 4;

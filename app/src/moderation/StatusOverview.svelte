@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { AllowedVideoEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
+    import { AllowedMediaEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
     import { rewardAddress } from "../stores";
 
     let statusOverview: ModerationStatusOverview;
@@ -56,12 +56,12 @@
     {:else}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
             <div>
-                Video enqueuing
-                {#if statusOverview.getAllowedVideoEnqueuing() == AllowedVideoEnqueuingType.DISABLED}
+                Media enqueuing
+                {#if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.DISABLED}
                     disabled
-                {:else if statusOverview.getAllowedVideoEnqueuing() == AllowedVideoEnqueuingType.STAFF_ONLY}
+                {:else if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.STAFF_ONLY}
                     restricted to staff
-                {:else if statusOverview.getAllowedVideoEnqueuing() == AllowedVideoEnqueuingType.ENABLED}
+                {:else if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.ENABLED}
                     enabled
                 {/if}
             </div>

@@ -4,7 +4,7 @@
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
     import StatusOverview from "./moderation/StatusOverview.svelte";
-    import { AllowedVideoEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
+    import { AllowedMediaEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
 
     let ticketID = "";
@@ -24,14 +24,14 @@
         await apiClient.setChatSettings(enabled, slowmode);
     }
 
-    async function setVideoEnqueuingEnabled() {
-        await apiClient.setVideoEnqueuingEnabled(AllowedVideoEnqueuingType.ENABLED);
+    async function setMediaEnqueuingEnabled() {
+        await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.ENABLED);
     }
-    async function setVideoEnqueuingStaffOnly() {
-        await apiClient.setVideoEnqueuingEnabled(AllowedVideoEnqueuingType.STAFF_ONLY);
+    async function setMediaEnqueuingStaffOnly() {
+        await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.STAFF_ONLY);
     }
-    async function setVideoEnqueuingDisabled() {
-        await apiClient.setVideoEnqueuingEnabled(AllowedVideoEnqueuingType.DISABLED);
+    async function setMediaEnqueuingDisabled() {
+        await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.DISABLED);
     }
 
     async function setCrowdfundedSkippingEnabled() {
@@ -77,7 +77,7 @@
 
     async function setSkipPriceMultiplier() {
         let multiplierStr = prompt(
-            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single video with the "Play now" option).\nMinimum is 1, default is 150.'
+            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single entry with the "Play now" option).\nMinimum is 1, default is 150.'
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
@@ -214,23 +214,23 @@
             <button
                 type="submit"
                 class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={setVideoEnqueuingEnabled}
+                on:click={setMediaEnqueuingEnabled}
             >
-                Allow video enqueuing
+                Allow media enqueuing
             </button>
             <button
                 type="submit"
                 class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                on:click={setVideoEnqueuingStaffOnly}
+                on:click={setMediaEnqueuingStaffOnly}
             >
                 Allow only staff to enqueue
             </button>
             <button
                 type="submit"
                 class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={setVideoEnqueuingDisabled}
+                on:click={setMediaEnqueuingDisabled}
             >
-                Disable video enqueuing
+                Disable media enqueuing
             </button>
             <button
                 type="submit"
