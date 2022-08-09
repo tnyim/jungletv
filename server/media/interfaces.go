@@ -80,4 +80,5 @@ type Provider interface {
 // MediaQueueStub contains a subset of the methods implemented by the media queue which are useful to media providers
 type MediaQueueStub interface {
 	Entries() []QueueEntry
+	LongRunningContext() context.Context
 }

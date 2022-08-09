@@ -42,6 +42,7 @@ type MediaQueue struct {
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
 	playingSince                    time.Time
+	longRunningContextForProviders  context.Context
 
 	mediaProviders map[types.MediaType]media.Provider
 
@@ -91,6 +92,7 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		entryReorderingAllowed:          true,
 		skippingEnabled:                 true,
 		mediaProviders:                  mediaProviders,
+		longRunningContextForProviders:  ctx,
 	}
 	for _, provider := range mediaProviders {
 		provider.SetMediaQueue(q)
@@ -116,6 +118,10 @@ func NewMediaQueue(ctx context.Context, log *log.Logger, statsClient *statsd.Cli
 		go q.persistenceWorker(ctx, persistenceFile)
 	}
 	return q, nil
+}
+
+func (q *MediaQueue) LongRunningContext() context.Context {
+	return q.longRunningContextForProviders
 }
 
 func (q *MediaQueue) EntryReorderingAllowed() bool {

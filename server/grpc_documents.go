@@ -13,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentRequest) (*proto.Document, error) {
@@ -37,9 +38,10 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 	}
 
 	return &proto.Document{
-		Id:      document.ID,
-		Format:  document.Format,
-		Content: document.Content,
+		Id:        document.ID,
+		Format:    document.Format,
+		Content:   document.Content,
+		UpdatedAt: timestamppb.New(document.UpdatedAt),
 	}, nil
 }
 

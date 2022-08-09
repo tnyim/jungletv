@@ -9,7 +9,7 @@
     import ErrorMessage from "./ErrorMessage.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
-    import { MediaSelectionKind, parseURLForMediaSelection } from "./utils";
+    import { MediaSelectionKind, MediaSelectionParseResult, parseURLForMediaSelection } from "./utils";
     import VideoRangeFloat from "./VideoRangeFloat.svelte";
     import Wizard from "./Wizard.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
@@ -17,8 +17,7 @@
     const dispatch = createEventDispatcher();
 
     let mediaURL: string = "";
-    let videoID: string = "";
-    let hasValidURL = false;
+    let parseResult: MediaSelectionParseResult = { valid: false };
     let mediaKind: MediaSelectionKind = "video";
     let extractedTimestamp: number = 0;
     let videoIsBroadcast = false;
@@ -26,7 +25,12 @@
         parseURL(mediaURL);
     }
     $: {
-        if (videoID.length == 11) {
+        if (
+            typeof parseResult !== "undefined" &&
+            parseResult.valid &&
+            parseResult.type == "yt_video" &&
+            parseResult.videoID.length == 11
+        ) {
             instantiateTempPlayer = true;
         }
         mediaRangeValuesFilled = false;
@@ -45,8 +49,8 @@
     async function parseURL(urlString: string) {
         // this ensures that our reactive statements trigger, and the player always reloads the video,
         // even if only the timestamp changes
-        videoID = "";
-        hasValidURL = false;
+        parseResult = { valid: false };
+        videoIsBroadcast = false;
         await tick();
 
         let result = parseURLForMediaSelection(urlString);
@@ -54,16 +58,20 @@
             return;
         }
 
-        hasValidURL = result.valid;
+        parseResult = result;
         mediaKind = result.selectionKind;
 
+        extractedTimestamp = 0;
         switch (result.type) {
             case "yt_video":
-                videoID = result.videoID;
                 extractedTimestamp = result.extractedTimestamp;
                 break;
-            case "sc_track":
-                // nothing to do
+            case "document":
+                mediaRange = [5 * 60];
+                mediaLengthInSeconds = maxRangeLength;
+                enqueueRange = true;
+                await tick();
+                mediaRangeValuesFilled = true;
                 break;
         }
     }
@@ -73,7 +81,7 @@
             clearTimeout(errorTimeout);
             errorTimeout = undefined;
         }
-        if (!hasValidURL) {
+        if (!parseResult.valid) {
             failureReason = "A supported media URL must be provided";
             return;
         }
@@ -91,16 +99,37 @@
                 endOffset.setSeconds(mediaRange[1]);
             }
 
-            if (mediaKind == "video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable, startOffset, endOffset);
-            } else if (mediaKind == "track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(mediaURL, unskippable, startOffset, endOffset);
+            if (parseResult.type == "yt_video") {
+                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, startOffset, endOffset);
+            } else if (parseResult.type == "sc_track") {
+                reqPromise = apiClient.enqueueSoundCloudTrack(
+                    parseResult.trackURL,
+                    unskippable,
+                    startOffset,
+                    endOffset
+                );
+            } else if (parseResult.type == "document") {
+                reqPromise = apiClient.enqueueDocument(
+                    parseResult.documentID,
+                    parseResult.title,
+                    unskippable,
+                    endOffset,
+                    parseResult.enqueueType
+                );
             }
         } else {
-            if (mediaKind == "video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(videoID, unskippable);
-            } else if (mediaKind == "track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(mediaURL, unskippable);
+            if (parseResult.type == "yt_video") {
+                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable);
+            } else if (parseResult.type == "sc_track") {
+                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable);
+            } else if (parseResult.type == "document") {
+                reqPromise = apiClient.enqueueDocument(
+                    parseResult.documentID,
+                    parseResult.title,
+                    unskippable,
+                    undefined,
+                    parseResult.enqueueType
+                );
             }
         }
 
@@ -144,6 +173,8 @@
     let mediaRange = [0, defaultMinRangeLength];
     let mediaLengthInSeconds = 500;
     let pipStep = 60;
+    $: pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
+    $: sliderRangeType = mediaRange.length == 1 ? "min" : true;
     let tempPlayer: YouTubePlayer;
     let instantiateTempPlayer = false;
 
@@ -222,7 +253,6 @@
                 return;
             }
             videoIsBroadcast = false;
-            sliderRangeType = true;
             sliderMin = 0;
             let rangeStart = 0;
             let extractedValidTimestamp = extractedTimestamp > 0 && extractedTimestamp < mediaLengthInSeconds;
@@ -235,7 +265,6 @@
             // immediately offer the option to adjust the length
             // same when the pasted link contains a timestamp
             enqueueRange = enqueueRange || mediaLengthInSeconds > maxRangeLength || extractedValidTimestamp;
-            pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
             mediaRangeValuesFilled = true;
         } else if (event.detail.data == PlayerState.PLAYING) {
             // turns out it is a broadcast
@@ -247,14 +276,12 @@
             instantiateTempPlayer = false;
             videoIsBroadcast = true;
             mediaLengthInSeconds = maxRangeLength;
-            sliderRangeType = "min";
             sliderMin = defaultMinRangeLength;
             mediaRange = [10 * 60];
 
             // convenience function: when pasting a broadcast URL, immediately offer the option to adjust the length
             enqueueRange = true;
 
-            pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
             mediaRangeValuesFilled = true;
         }
     }
@@ -264,7 +291,6 @@
             let response = await apiClient.soundCloudTrackDetails(mediaURL);
             mediaLengthInSeconds = response.getLength().getSeconds();
             videoIsBroadcast = false;
-            sliderRangeType = true;
             sliderMin = 0;
             let rangeStart = 0;
             mediaRange = [rangeStart, Math.min(mediaLengthInSeconds, rangeStart + maxRangeLength)];
@@ -272,7 +298,6 @@
             // convenience function: when pasting the URL for a track that is over 35 minutes long,
             // immediately offer the option to adjust the length
             enqueueRange = enqueueRange || mediaLengthInSeconds > maxRangeLength;
-            pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
             mediaRangeValuesFilled = true;
         } catch (e) {
             console.log(e);
@@ -280,7 +305,7 @@
             failureReason = "Track not found or not playable on JungleTV";
         }
     }
-    $: if (hasValidURL && mediaKind === "track") {
+    $: if (parseResult.valid && parseResult.type === "sc_track") {
         updateSoundCloudTrackRanges();
     }
 </script>
@@ -390,17 +415,17 @@
                             {/if}
                         </p>
                     {/if}
-                    {#if videoID.length == 11 && instantiateTempPlayer}
+                    {#if instantiateTempPlayer && parseResult.valid && parseResult.type == "yt_video"}
                         <div class="hidden">
                             <YouTube
-                                videoId={videoID}
+                                videoId={parseResult.videoID}
                                 id="tmpplayer"
                                 bind:player={tempPlayer}
                                 on:stateChange={tempPlayerStateChange}
                             />
                         </div>
                     {/if}
-                    {#if enqueueRange && hasValidURL}
+                    {#if enqueueRange && parseResult.valid}
                         {#if mediaRangeValuesFilled}
                             <div class="mb-11 mx-3" bind:this={rangeSliderContainer}>
                                 <RangeSlider

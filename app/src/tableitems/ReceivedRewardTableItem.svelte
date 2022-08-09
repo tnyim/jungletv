@@ -1,5 +1,6 @@
 <script lang="ts">
     import { DateTime } from "luxon";
+    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { ReceivedReward } from "../proto/jungletv_pb";
 
@@ -32,6 +33,10 @@
         {:else if reward.hasSoundcloudTrackData()}
             <a href={reward.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
                 {reward.getSoundcloudTrackData().getTitle()}
+            </a>
+        {:else if reward.hasDocumentData()}
+            <a use:link href="/documents/{reward.getDocumentData().getId()}">
+                {reward.getDocumentData().getTitle()}
             </a>
         {/if}
     </td>

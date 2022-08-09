@@ -669,6 +669,11 @@ export class NowPlayingDocumentData extends jspb.Message {
   getUpdatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setUpdatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  hasDocument(): boolean;
+  clearDocument(): void;
+  getDocument(): Document | undefined;
+  setDocument(value?: Document): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): NowPlayingDocumentData.AsObject;
   static toObject(includeInstance: boolean, msg: NowPlayingDocumentData): NowPlayingDocumentData.AsObject;
@@ -683,6 +688,7 @@ export namespace NowPlayingDocumentData {
   export type AsObject = {
     id: string,
     updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    document?: Document.AsObject,
   }
 }
 
@@ -2887,6 +2893,11 @@ export class Document extends jspb.Message {
   getContent(): string;
   setContent(value: string): void;
 
+  hasUpdatedAt(): boolean;
+  clearUpdatedAt(): void;
+  getUpdatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setUpdatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Document.AsObject;
   static toObject(includeInstance: boolean, msg: Document): Document.AsObject;
@@ -2902,6 +2913,7 @@ export namespace Document {
     id: string,
     format: string,
     content: string,
+    updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 

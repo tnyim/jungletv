@@ -229,7 +229,8 @@ message NowPlayingSoundCloudTrackData {
 
 message NowPlayingDocumentData {
     string id = 1;
-    google.protobuf.Timestamp updated_at = 3;
+    google.protobuf.Timestamp updated_at = 2;
+    optional Document document = 3;
 }
 
 message MediaConsumptionCheckpoint {
@@ -720,6 +721,7 @@ message Document {
     string id = 1;
     string format = 2;
     string content = 3;
+    google.protobuf.Timestamp updated_at = 4;
 }
 
 message UpdateDocumentResponse {}

@@ -9203,7 +9203,8 @@ proto.jungletv.NowPlayingDocumentData.prototype.toObject = function(opt_includeI
 proto.jungletv.NowPlayingDocumentData.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    updatedAt: (f = msg.getUpdatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
+    updatedAt: (f = msg.getUpdatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    document: (f = msg.getDocument()) && proto.jungletv.Document.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -9244,10 +9245,15 @@ proto.jungletv.NowPlayingDocumentData.deserializeBinaryFromReader = function(msg
       var value = /** @type {string} */ (reader.readString());
       msg.setId(value);
       break;
-    case 3:
+    case 2:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setUpdatedAt(value);
+      break;
+    case 3:
+      var value = new proto.jungletv.Document;
+      reader.readMessage(value,proto.jungletv.Document.deserializeBinaryFromReader);
+      msg.setDocument(value);
       break;
     default:
       reader.skipField();
@@ -9288,9 +9294,17 @@ proto.jungletv.NowPlayingDocumentData.serializeBinaryToWriter = function(message
   f = message.getUpdatedAt();
   if (f != null) {
     writer.writeMessage(
-      3,
+      2,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getDocument();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.jungletv.Document.serializeBinaryToWriter
     );
   }
 };
@@ -9315,12 +9329,12 @@ proto.jungletv.NowPlayingDocumentData.prototype.setId = function(value) {
 
 
 /**
- * optional google.protobuf.Timestamp updated_at = 3;
+ * optional google.protobuf.Timestamp updated_at = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
 proto.jungletv.NowPlayingDocumentData.prototype.getUpdatedAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
 
 
@@ -9329,7 +9343,7 @@ proto.jungletv.NowPlayingDocumentData.prototype.getUpdatedAt = function() {
  * @return {!proto.jungletv.NowPlayingDocumentData} returns this
 */
 proto.jungletv.NowPlayingDocumentData.prototype.setUpdatedAt = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+  return jspb.Message.setWrapperField(this, 2, value);
 };
 
 
@@ -9347,6 +9361,43 @@ proto.jungletv.NowPlayingDocumentData.prototype.clearUpdatedAt = function() {
  * @return {boolean}
  */
 proto.jungletv.NowPlayingDocumentData.prototype.hasUpdatedAt = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Document document = 3;
+ * @return {?proto.jungletv.Document}
+ */
+proto.jungletv.NowPlayingDocumentData.prototype.getDocument = function() {
+  return /** @type{?proto.jungletv.Document} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.Document, 3));
+};
+
+
+/**
+ * @param {?proto.jungletv.Document|undefined} value
+ * @return {!proto.jungletv.NowPlayingDocumentData} returns this
+*/
+proto.jungletv.NowPlayingDocumentData.prototype.setDocument = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.NowPlayingDocumentData} returns this
+ */
+proto.jungletv.NowPlayingDocumentData.prototype.clearDocument = function() {
+  return this.setDocument(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.NowPlayingDocumentData.prototype.hasDocument = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -24588,7 +24639,8 @@ proto.jungletv.Document.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
     format: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    content: jspb.Message.getFieldWithDefault(msg, 3, "")
+    content: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    updatedAt: (f = msg.getUpdatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -24636,6 +24688,11 @@ proto.jungletv.Document.deserializeBinaryFromReader = function(msg, reader) {
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setContent(value);
+      break;
+    case 4:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setUpdatedAt(value);
       break;
     default:
       reader.skipField();
@@ -24685,6 +24742,14 @@ proto.jungletv.Document.serializeBinaryToWriter = function(message, writer) {
     writer.writeString(
       3,
       f
+    );
+  }
+  f = message.getUpdatedAt();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
 };
@@ -24741,6 +24806,43 @@ proto.jungletv.Document.prototype.getContent = function() {
  */
 proto.jungletv.Document.prototype.setContent = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp updated_at = 4;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.jungletv.Document.prototype.getUpdatedAt = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 4));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.jungletv.Document} returns this
+*/
+proto.jungletv.Document.prototype.setUpdatedAt = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.Document} returns this
+ */
+proto.jungletv.Document.prototype.clearUpdatedAt = function() {
+  return this.setUpdatedAt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.Document.prototype.hasUpdatedAt = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

@@ -8,7 +8,6 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
-	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 func (e *queueEntryDocument) ProducePlayedMedia() (*types.PlayedMedia, error) {
@@ -30,6 +29,7 @@ func (s *DocumentProvider) serializeProtoTrackData(playedMedia *types.PlayedMedi
 	}
 	return &proto.QueueDocumentData{
 		Title: info.Title,
+		Id:    playedMedia.MediaID,
 	}, nil
 }
 
@@ -64,28 +64,13 @@ func (s *DocumentProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia
 }
 
 func (s *DocumentProvider) UnmarshalQueueEntryJSON(ctxCtx context.Context, b []byte) (media.QueueEntry, error) {
-	v := &queueEntryDocument{}
+	v := &queueEntryDocument{
+		backgroundContext: s.mediaQueue.LongRunningContext(),
+	}
 	err := json.Unmarshal(b, &v)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-
-	ctx, err := transaction.Begin(ctxCtx)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	defer ctx.Commit() // read-only tx
-
-	documents, err := types.GetDocumentsWithIDs(ctx, []string{v.documentID})
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	document, ok := documents[v.documentID]
-	if !ok {
-		return nil, stacktrace.NewError("document in queue not found in database")
-	}
-
-	v.document = document
 
 	return v, nil
 }

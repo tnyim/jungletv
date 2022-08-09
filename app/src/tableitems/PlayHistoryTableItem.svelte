@@ -1,5 +1,6 @@
 <script lang="ts">
     import { DateTime } from "luxon";
+    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { openUserProfile } from "../profile_utils";
     import { PlayedMedia } from "../proto/jungletv_pb";
@@ -37,6 +38,8 @@
             {/if}
         {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.SOUNDCLOUD_TRACK_DATA}
             <i class="fab fa-soundcloud" />
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.DOCUMENT_DATA}
+            <i class="fas fa-file-alt" />
         {/if}
     </td>
     <td
@@ -56,6 +59,10 @@
         {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.SOUNDCLOUD_TRACK_DATA}
             <a href={media.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
                 {media.getSoundcloudTrackData().getTitle()}
+            </a>
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.DOCUMENT_DATA}
+            <a use:link href="/documents/{media.getDocumentData().getId()}">
+                {media.getDocumentData().getTitle()}
             </a>
         {/if}
         {#if media.getEndedAt().toDate().getTime() - media.getStartedAt().toDate().getTime() < media

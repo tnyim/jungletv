@@ -1,9 +1,10 @@
 <script lang="ts">
+    import EnqueueTicketPreviewDocument from "./EnqueueTicketPreviewDocument.svelte";
+
     import EnqueueTicketPreviewSoundCloud from "./EnqueueTicketPreviewSoundCloud.svelte";
 
     import EnqueueTicketPreviewYouTube from "./EnqueueTicketPreviewYouTube.svelte";
     import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
-    import { formatQueueEntryThumbnailDuration } from "./utils";
 
     export let ticket: EnqueueMediaTicket;
 </script>
@@ -13,5 +14,7 @@
         <EnqueueTicketPreviewYouTube {ticket} />
     {:else if ticket.hasSoundcloudTrackData()}
         <EnqueueTicketPreviewSoundCloud {ticket} />
+    {:else if ticket.hasDocumentData()}
+        <EnqueueTicketPreviewDocument {ticket} />
     {/if}
 </div>

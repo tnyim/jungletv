@@ -7,8 +7,8 @@ import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
-import type { QueueSoundCloudTrackData, User } from "./proto/jungletv_pb";
-import { playerVolume } from "./stores";
+import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, User } from "./proto/jungletv_pb";
+import { permissionLevel, playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
     try {
@@ -398,7 +398,7 @@ export const buildMonKeyURL = function (address: string, format?: string): strin
     return "https://monkey.banano.cc/api/v1/monkey/" + address;
 }
 
-export type MediaSelectionKind = "video" | "track";
+export type MediaSelectionKind = "video" | "track" | "document";
 
 type BaseMediaSelectionParseResult = {
     readonly valid: boolean;
@@ -409,25 +409,33 @@ type InvalidMediaSelectionParseResult = BaseMediaSelectionParseResult & {
 }
 
 type PossiblyValidMediaSelectionParseResult = BaseMediaSelectionParseResult & {
-    readonly valid: boolean;
-    readonly selectionKind: MediaSelectionKind;
-    readonly type: "yt_video" | "sc_track";
+    readonly valid: boolean,
+    readonly selectionKind: MediaSelectionKind,
+    readonly type: "yt_video" | "sc_track" | "document",
 }
 
 type YouTubeVideoSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
     readonly selectionKind: "video",
     readonly type: "yt_video",
-    readonly videoID: string;
-    readonly extractedTimestamp: number;
+    readonly videoID: string,
+    readonly extractedTimestamp: number,
 }
 
 type SoundCloudTrackSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
     readonly selectionKind: "track",
     readonly type: "sc_track",
-    readonly trackURL: string;
+    readonly trackURL: string,
 }
 
-type MediaSelectionParseResult = InvalidMediaSelectionParseResult | YouTubeVideoSelectionParseResult | SoundCloudTrackSelectionParseResult;
+type DocumentSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
+    readonly selectionKind: "document",
+    readonly type: "document",
+    readonly documentID: string,
+    readonly title: string,
+    readonly enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap],
+}
+
+export type MediaSelectionParseResult = InvalidMediaSelectionParseResult | YouTubeVideoSelectionParseResult | SoundCloudTrackSelectionParseResult | DocumentSelectionParseResult;
 
 export const parseURLForMediaSelection = function (urlString: string): MediaSelectionParseResult {
     let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
@@ -442,20 +450,49 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
         };
     }
 
-    if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-        urlString = "https://" + urlString;
-    }
-
     try {
-        let url = new URL(urlString);
-        let t = url.searchParams.get("t");
-        let extractedTimestamp = 0;
-        if (t != null && !isNaN(Number(t))) {
-            extractedTimestamp = Number(t);
-        } else {
-            extractedTimestamp = 0;
+        let url: URL;
+        try {
+            url = new URL(urlString)
+        } catch {
+            urlString = "https://" + urlString;
+            url = new URL(urlString)
         }
+
+        if (url.protocol == "document:" && get(permissionLevel) == PermissionLevel.ADMIN && url.pathname != "") {
+            let title = url.searchParams.get("title");
+            if (title == null || title == "") {
+                return { valid: false };
+            }
+            let enqueueType: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap];
+            switch (url.searchParams.get("play")) {
+                case "now":
+                    enqueueType = ForcedTicketEnqueueType.PLAY_NOW;
+                    break;
+                case "next":
+                    enqueueType = ForcedTicketEnqueueType.PLAY_NEXT;
+                    break;
+                case "enqueue":
+                    enqueueType = ForcedTicketEnqueueType.ENQUEUE;
+                    break;
+            }
+            return {
+                valid: true,
+                documentID: url.pathname,
+                title: title,
+                selectionKind: "document",
+                type: "document",
+                enqueueType: enqueueType,
+            };
+        }
+
         if (/^(.*\.){0,1}youtube.com$/.test(url.host)) {
+            let t = url.searchParams.get("t");
+            let extractedTimestamp = 0;
+            if (t != null && !isNaN(Number(t))) {
+                extractedTimestamp = Number(t);
+            }
+
             if (url.pathname == "/watch") {
                 let v = url.searchParams.get("v");
                 if (idRegExp.test(v)) {
@@ -480,6 +517,12 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
                 }
             }
         } else if (url.host == "youtu.be") {
+            let t = url.searchParams.get("t");
+            let extractedTimestamp = 0;
+            if (t != null && !isNaN(Number(t))) {
+                extractedTimestamp = Number(t);
+            }
+
             let parts = url.pathname.split("/");
             if (idRegExp.test(parts[parts.length - 1])) {
                 return {

@@ -4,6 +4,7 @@
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import PlayerDocument from "./PlayerDocument.svelte";
     import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
     import PlayerYouTube from "./PlayerYouTube.svelte";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
@@ -141,6 +142,8 @@
         <PlayerYouTube {checkpoint} />
     {:else if checkpoint.hasSoundcloudTrackData()}
         <PlayerSoundCloud {checkpoint} {fullSize} {bigMinimizedPlayer} />
+    {:else if checkpoint.hasDocumentData()}
+        <PlayerDocument {checkpoint} />
     {:else}
         <div class="flex h-full w-full justify-center items-center text-xl">
             <div class="text-center">

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"sync"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -12,6 +13,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -19,8 +22,12 @@ import (
 type queueEntryDocument struct {
 	media.CommonQueueEntry
 	media.CommonInfo
-	document   *types.Document
-	documentID string // used temporarily during the JSON unmarshalling process
+
+	backgroundContext context.Context
+
+	lock             sync.RWMutex
+	document         *types.Document
+	sendFullContents bool
 }
 
 func (e *queueEntryDocument) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) media.QueueEntry {
@@ -84,10 +91,25 @@ func (e *queueEntryDocument) UnmarshalJSON(b []byte) error {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 
+	ctx, err := transaction.Begin(e.backgroundContext)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	documents, err := types.GetDocumentsWithIDs(ctx, []string{t.ID})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	document, ok := documents[t.ID]
+	if !ok {
+		return stacktrace.NewError("document in queue not found in database")
+	}
+
 	e.InitializeBase(e)
 	e.SetQueueID(t.QueueID)
 	e.SetTitle(t.Title)
-	e.documentID = t.ID
+	e.document = document
 	e.SetLength(t.Duration)
 	e.SetOffset(0)
 	e.SetRequestedBy(auth.NewAddressOnlyUser(t.RequestedBy))
@@ -111,13 +133,113 @@ func (e *queueEntryDocument) FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTi
 }
 
 func (e *queueEntryDocument) ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint {
-	cp := &proto.MediaConsumptionCheckpoint{
-		MediaInfo: &proto.MediaConsumptionCheckpoint_DocumentData{
-			DocumentData: &proto.NowPlayingDocumentData{
-				Id:        e.document.ID,
-				UpdatedAt: timestamppb.New(e.document.UpdatedAt),
-			},
+	e.lock.RLock()
+	defer e.lock.RUnlock()
+	documentData := &proto.MediaConsumptionCheckpoint_DocumentData{
+		DocumentData: &proto.NowPlayingDocumentData{
+			Id:        e.document.ID,
+			UpdatedAt: timestamppb.New(e.document.UpdatedAt),
 		},
 	}
-	return cp
+	if e.sendFullContents {
+		documentData.DocumentData.Document = &proto.Document{
+			Id:        e.document.ID,
+			Format:    e.document.Format,
+			Content:   e.document.Content,
+			UpdatedAt: timestamppb.New(e.document.UpdatedAt),
+		}
+	}
+	return &proto.MediaConsumptionCheckpoint{
+		MediaInfo: documentData,
+	}
+}
+
+// Play implements the QueueEntry interface
+func (e *queueEntryDocument) Play() {
+	e.CommonQueueEntry.Play()
+
+	e.lock.RLock()
+	defer e.lock.RUnlock()
+
+	// ensure already connected clients receive the document via push, not by self-DDoSing ourselves
+	// we'll set this to false 5s after liveUpdateWorker starts
+	e.sendFullContents = true
+
+	go e.liveUpdateWorker(e.backgroundContext, e.document.ID, e.document.UpdatedAt)
+}
+
+func (e *queueEntryDocument) liveUpdateWorker(ctx context.Context, documentID string, updatedAt time.Time) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	donePlaying, unsubscribe := e.DonePlaying().Subscribe(event.AtLeastOnceGuarantee)
+	defer unsubscribe()
+
+	childContext, cancelChildContext := context.WithCancel(ctx)
+	defer cancelChildContext()
+
+	isFirstUpdate := true
+	for {
+		select {
+		case <-ticker.C:
+			if isFirstUpdate {
+				e.sendFullContents = false
+				isFirstUpdate = false
+			}
+			hasUpdate, updatedDocument, err := fetchUpdatedDocument(ctx, documentID, updatedAt)
+			if err != nil {
+				continue
+			}
+			if hasUpdate {
+				updatedAt = updatedDocument.UpdatedAt
+				e.updateDocument(childContext, updatedDocument)
+			}
+		case <-donePlaying:
+			return
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func fetchUpdatedDocument(ctxCtx context.Context, documentID string, prevUpdatedAt time.Time) (bool, *types.Document, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return false, nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	documents, err := types.GetDocumentsWithIDs(ctx, []string{documentID})
+	if err != nil {
+		return false, nil, stacktrace.Propagate(err, "")
+	}
+	updatedDocument, ok := documents[documentID]
+	if !ok {
+		return false, nil, stacktrace.NewError("document in queue not found in database")
+	}
+
+	return updatedDocument.UpdatedAt.After(prevUpdatedAt), updatedDocument, nil
+}
+
+func (e *queueEntryDocument) updateDocument(ctx context.Context, newDocument *types.Document) {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+
+	e.document = newDocument
+
+	// temporarily send full document contents in media consumption checkpoints,
+	// so that clients receive the document in a "push" strategy instead of having to
+	// request it from the server and causing a self-DDoS
+	e.sendFullContents = true
+
+	timer := time.NewTimer(7 * time.Second)
+	go func() {
+		select {
+		case <-timer.C:
+			e.lock.Lock()
+			defer e.lock.Unlock()
+			e.sendFullContents = false
+		case <-ctx.Done():
+		}
+	}()
 }

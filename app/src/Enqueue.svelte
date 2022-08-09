@@ -40,6 +40,8 @@
                 mediaKind = "video";
             } else if (ticket.hasSoundcloudTrackData()) {
                 mediaKind = "track";
+            } else if (ticket.hasDocumentData()) {
+                mediaKind = "document";
             }
         }
     }

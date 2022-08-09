@@ -169,7 +169,9 @@ import {
     AddDisallowedMediaCollectionResponse,
     AddDisallowedMediaCollectionRequest,
     RemoveDisallowedMediaCollectionRequest,
-    RemoveDisallowedMediaCollectionResponse
+    RemoveDisallowedMediaCollectionResponse,
+    EnqueueDocumentData,
+    ForcedTicketEnqueueType
 } from "./proto/jungletv_pb";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
@@ -319,6 +321,22 @@ class APIClient {
             scData.setEndOffset(endOffset);
         }
         request.setSoundcloudTrackData(scData);
+        return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
+    }
+
+    async enqueueDocument(id: string, title: string, unskippable: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
+        let request = new EnqueueMediaRequest();
+        request.setUnskippable(unskippable);
+        let docData = new EnqueueDocumentData();
+        docData.setDocumentId(id);
+        docData.setTitle(title);
+        if (typeof duration !== 'undefined') {
+            docData.setDuration(duration);
+        }
+        if (typeof enqueueType !== 'undefined') {
+            docData.setEnqueueType(enqueueType);
+        }
+        request.setDocumentData(docData);
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 

@@ -1,6 +1,8 @@
 package document
 
 import (
+	"time"
+
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -90,12 +92,18 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("unexpected type")
 	}
 
+	duration := 5 * time.Minute
+	if preInfo.parameters.DocumentData.Duration != nil {
+		duration = preInfo.parameters.DocumentData.Duration.AsDuration()
+	}
+
 	request := &queueEntryDocument{
-		document: preInfo.document,
+		document:          preInfo.document,
+		backgroundContext: c.mediaQueue.LongRunningContext(),
 	}
 	request.InitializeBase(request)
 	request.SetTitle(preInfo.parameters.DocumentData.Title)
-	request.SetLength(preInfo.parameters.DocumentData.Duration.AsDuration())
+	request.SetLength(duration)
 	request.SetOffset(0)
 	request.SetUnskippable(unskippable)
 
