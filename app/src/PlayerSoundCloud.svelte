@@ -164,11 +164,13 @@
                 showComments: true,
                 showTeaser: false, // allows the player to work on mobile instead of forcing usage of the app
                 color: color,
+                initialTime: currentTimeFromServer,
             });
-        }
-        let leniencyMillis = 3000;
-        if (Math.abs(player.currentTime - currentTimeFromServer) > leniencyMillis) {
-            player.currentTime = currentTimeFromServer;
+        } else {
+            let leniencyMillis = 3000;
+            if (Math.abs(player.currentTime - currentTimeFromServer) > leniencyMillis) {
+                player.currentTime = currentTimeFromServer;
+            }
         }
     }
 

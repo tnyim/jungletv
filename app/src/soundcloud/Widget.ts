@@ -13,7 +13,8 @@ export interface WidgetOptions {
 export class Widget extends Invoker {
     invokeTimeout: number;
     iframe: HTMLIFrameElement;
-    initialVolume: number;
+    protected _initialVolume: number;
+    protected _initialTime?: number;
 
     constructor({
         iframe,
@@ -41,7 +42,7 @@ export class Widget extends Invoker {
 
         this.invokeTimeout = invokeTimeout || 5e3;
         window.addEventListener('message', this._onMessage);
-        this.initialVolume = initialVolume;
+        this._initialVolume = initialVolume;
     }
 
     protected _onMessage = (evt: MessageEvent) => {
@@ -56,7 +57,7 @@ export class Widget extends Invoker {
                 this._addEventListener('seek');
                 this._addEventListener('finish');
                 this._refreshMetadata();
-                this.setVolume(this.initialVolume);
+                this.setVolume(this._initialVolume);
                 break;
             }
 
@@ -71,6 +72,10 @@ export class Widget extends Invoker {
             }
             case 'play': {
                 this.isPaused = false;
+                if (typeof this._initialTime !== "undefined") {
+                    this.currentTime = this._initialTime
+                    this._initialTime = undefined;
+                }
                 this._refreshTime(data.value);
                 break;
             }
@@ -125,6 +130,10 @@ export class Widget extends Invoker {
         this.isPaused = true;
         this._currentTime = 0;
         this._currentTimeLast = 0;
+        if (typeof opts !== "undefined") {
+            this._initialTime = opts.initialTime;
+            delete opts.initialTime;
+        }
 
         const query = Object.entries({ ...opts, url })
             .map(
@@ -160,6 +169,7 @@ export interface LoadOptions {
     visual: boolean;
     showComments: boolean;
     showTeaser: boolean;
+    initialTime: number;
 }
 
 export const LOAD_OPTIONS_MAPPING = {
