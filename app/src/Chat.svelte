@@ -8,6 +8,7 @@
     import { fade } from "svelte/transition";
     import { apiClient } from "./api_client";
     import ChatComposeArea from "./ChatComposeArea.svelte";
+    import ChatSeparator from "./ChatSeparator.svelte";
     import ChatSystemMessage from "./ChatSystemMessage.svelte";
     import ChatUserMessage from "./ChatUserMessage.svelte";
     import { getReadableMessageAuthor } from "./chat_utils";
@@ -25,6 +26,14 @@
     import type { SidebarTab } from "./tabStores";
     import { editNicknameForUser } from "./utils";
 
+    type systemMessageGroupInfo = {
+        expand: boolean;
+        isGroupHeader: boolean;
+        isGroupFooter: boolean;
+        groupSize?: number;
+        groupID?: string;
+    };
+
     const dispatch = createEventDispatcher();
 
     export let mode = "sidebar";
@@ -39,6 +48,9 @@
     let chatContainer: HTMLElement;
     let allowExpensiveCSSAnimations = false;
     let consumeChatTimeoutHandle: number = null;
+    let currentlyExpandedSystemMessageGroup = "";
+    let chatSystemMessageGroupInfo: systemMessageGroupInfo[] = [];
+    const systemMessageMinGroupSize = 5;
     const messageHistorySize = 250;
 
     onMount(() => {
@@ -333,6 +345,14 @@
         if (curIdx == 0) {
             return true;
         }
+        let groupInfo = chatSystemMessageGroupInfo[curIdx - 1];
+        if (
+            !chatSystemMessageGroupInfo[curIdx - 1].expand &&
+            groupInfo.groupID != currentlyExpandedSystemMessageGroup
+        ) {
+            // last message was collapsed, always show separator after collapsed messages
+            return true;
+        }
         let thisMsgDate = DateTime.fromJSDate(chatMessages[curIdx].getCreatedAt().toDate()).toLocal();
         let prevMsgDate = DateTime.fromJSDate(chatMessages[curIdx - 1].getCreatedAt().toDate()).toLocal();
         return (
@@ -353,6 +373,53 @@
             prevMsgAuthor = chatMessages[curIdx - 1].getUserMessage().getAuthor().getAddress();
         }
         return thisMsgAuthor != prevMsgAuthor;
+    }
+
+    $: refreshSystemMessageGroupingInfo(chatMessages);
+
+    function refreshSystemMessageGroupingInfo(chatMessages: ChatMessage[]) {
+        let groups: systemMessageGroupInfo[] = [];
+        groups.length = chatMessages.length;
+        for (let i = 0; i < groups.length; i++) {
+            groups[i] = {
+                expand: true,
+                isGroupHeader: false,
+                isGroupFooter: false,
+            };
+        }
+
+        let createGroup = function (startIndex: number, size: number) {
+            for (let i = startIndex; i < startIndex + size; i++) {
+                groups[i] = {
+                    expand: false,
+                    isGroupHeader: i == startIndex,
+                    isGroupFooter: i == startIndex + size - 1,
+                    groupID: chatMessages[startIndex].getId(),
+                    groupSize: curGroupSize,
+                };
+            }
+        };
+
+        let curGroupSize = 0;
+        // we start on the second to last message,
+        // so that if the most recent chat message is always visible even if it is a system message
+        for (let curIdx = chatMessages.length - 2; curIdx >= 0; curIdx--) {
+            if (chatMessages[curIdx].hasSystemMessage()) {
+                curGroupSize++;
+                continue;
+            }
+            // not a system message anymore
+            // let's see if we need to create a group
+            if (curGroupSize >= systemMessageMinGroupSize) {
+                // create new group starting on last seen message (= oldest message of the group)
+                createGroup(curIdx + 1, curGroupSize);
+            }
+            curGroupSize = 0;
+        }
+        if (curGroupSize >= systemMessageMinGroupSize) {
+            createGroup(0, curGroupSize);
+        }
+        chatSystemMessageGroupInfo = groups;
     }
 
     function formatMessageCreatedAtForSeparator(curIdx: number): string {
@@ -456,16 +523,12 @@
     <div class="flex-grow overflow-y-auto px-2 relative" bind:this={chatContainer}>
         {#each chatMessages as message, idx (message.getId())}
             <div transition:fade|local={{ duration: 200 }} id="chat-message-{message.getId()}">
-                {#if shouldShowTimeSeparator(idx)}
-                    <div
-                        class="mt-1 flex flex-row text-xs text-gray-600 dark:text-gray-400 justify-center items-center"
-                    >
-                        <hr class="flex-1 ml-8" />
-                        <div class="px-2">{formatMessageCreatedAtForSeparator(idx)}</div>
-                        <hr class="flex-1 mr-8" />
-                    </div>
-                {/if}
                 {#if message.hasUserMessage() && !$blockedUsers.has(message.getUserMessage().getAuthor().getAddress())}
+                    {#if shouldShowTimeSeparator(idx)}
+                        <ChatSeparator>
+                            {formatMessageCreatedAtForSeparator(idx)}
+                        </ChatSeparator>
+                    {/if}
                     <ChatUserMessage
                         {message}
                         additionalPadding={shouldAddAdditionalPadding(idx)}
@@ -482,7 +545,36 @@
                         on:hideDetails={hideMessageDetails}
                     />
                 {:else if message.hasSystemMessage()}
-                    <ChatSystemMessage {message} />
+                    {#if chatSystemMessageGroupInfo[idx].isGroupHeader && chatSystemMessageGroupInfo[idx].groupID != currentlyExpandedSystemMessageGroup}
+                        <ChatSeparator>
+                            {chatSystemMessageGroupInfo[idx].groupSize} events collapsed.
+                            <span
+                                class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+                                on:click={() =>
+                                    (currentlyExpandedSystemMessageGroup = chatSystemMessageGroupInfo[idx].groupID)}
+                            >
+                                Expand
+                            </span>
+                        </ChatSeparator>
+                    {/if}
+                    {#if chatSystemMessageGroupInfo[idx].expand || chatSystemMessageGroupInfo[idx].groupID == currentlyExpandedSystemMessageGroup}
+                        {#if shouldShowTimeSeparator(idx)}
+                            <ChatSeparator>
+                                {formatMessageCreatedAtForSeparator(idx)}
+                            </ChatSeparator>
+                        {/if}
+                        <ChatSystemMessage {message} />
+                    {/if}
+                    {#if chatSystemMessageGroupInfo[idx].isGroupFooter && chatSystemMessageGroupInfo[idx].groupID == currentlyExpandedSystemMessageGroup}
+                        <ChatSeparator>
+                            <span
+                                class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+                                on:click={() => (currentlyExpandedSystemMessageGroup = "")}
+                            >
+                                Collapse {chatSystemMessageGroupInfo[idx].groupSize} events
+                            </span>
+                        </ChatSeparator>
+                    {/if}
                 {/if}
             </div>
         {:else}

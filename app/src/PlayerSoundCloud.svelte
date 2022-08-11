@@ -136,7 +136,7 @@
     let player: Widget;
 
     async function updatePlayerVolume() {
-        if (typeof player !== "undefined") {
+        if (typeof player !== "undefined" && !player.isPaused) {
             $playerVolume = (await player.getVolume()) / 100;
         }
     }
