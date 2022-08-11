@@ -763,7 +763,7 @@ func (q *MediaQueue) incrementRecentlyPlayedFor(requester auth.User, incrementFo
 	q.recentEntryCounts[requester.Address()]--
 }
 
-func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, requester auth.User) (int, error) {
+func (q *MediaQueue) getRecentlyPlayedMediaRequestedBy(ctx context.Context, requester auth.User) (int, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, nil
 	}
@@ -778,14 +778,14 @@ func (q *MediaQueue) getRecentlyPlayedVideosRequestedBy(ctx context.Context, req
 	if present {
 		return count, nil
 	}
-	count, err := q.fetchAndUpdateRecentlyPlayedVideosCount(ctx, requester)
+	count, err := q.fetchAndUpdateRecentlyPlayedMediaCount(ctx, requester)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
 	return count, nil
 }
 
-func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Context, requester auth.User) (int, error) {
+func (q *MediaQueue) fetchAndUpdateRecentlyPlayedMediaCount(ctxCtx context.Context, requester auth.User) (int, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, nil
 	}
@@ -806,7 +806,7 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedVideosCount(ctxCtx context.Cont
 		if !m.EndedAt.Valid {
 			// we subtract one because this function should only return the count for entries that have already finished playing
 			// (we include the currently playing entry in the total that is computed from the current queue in
-			// CountEnqueuedOrRecentlyPlayedVideosRequestedBy)
+			// CountEnqueuedOrRecentlyPlayedMediaRequestedBy)
 			count--
 			continue
 		}
@@ -821,9 +821,9 @@ type recentEntryCountsValue struct {
 	requestedCurrent bool
 }
 
-// CountEnqueuedOrRecentlyPlayedVideosRequestedBy returns the number of videos which are currently in queue or which have
+// CountEnqueuedOrRecentlyPlayedMediaRequestedBy returns the number of entries which are currently in queue or which have
 // been recently enqueued by the specified user.
-func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.Context, requester auth.User) (int, bool, error) {
+func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx context.Context, requester auth.User) (int, bool, error) {
 	if requester == nil || requester.IsUnknown() {
 		return 0, false, nil
 	}
@@ -855,7 +855,7 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx context.
 		}
 	}()
 
-	recentCount, err := q.getRecentlyPlayedVideosRequestedBy(ctx, requester)
+	recentCount, err := q.getRecentlyPlayedMediaRequestedBy(ctx, requester)
 	if err != nil {
 		return 0, false, stacktrace.Propagate(err, "")
 	}

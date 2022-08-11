@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { Options } from "youtube-player/dist/types";
-    import { UserProfileResponse } from "./proto/jungletv_pb";
+    import type { QueueYouTubeVideoData } from "./proto/jungletv_pb";
     import YouTube from "./YouTube.svelte";
 
-    export let userProfile: UserProfileResponse;
+    export let data: QueueYouTubeVideoData;
 
     const options: Options = {
         height: "100%",
@@ -15,6 +15,4 @@
     };
 </script>
 
-{#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
-    <YouTube videoId={userProfile.getYoutubeVideoData().getId()} {options} class="w-full h-full" />
-{/if}
+<YouTube videoId={data.getId()} {options} class="w-full h-full" />

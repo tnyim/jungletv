@@ -17,14 +17,14 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
-	videoCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedVideosRequestedBy(ctx, user)
+	mediaCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx, user)
 	if err == nil {
 		switch {
-		case videoCount >= 10:
+		case mediaCount >= 10:
 			roles = append(roles, proto.UserRole_TIER_3_REQUESTER)
-		case videoCount >= 5:
+		case mediaCount >= 5:
 			roles = append(roles, proto.UserRole_TIER_2_REQUESTER)
-		case videoCount > 0:
+		case mediaCount > 0:
 			roles = append(roles, proto.UserRole_TIER_1_REQUESTER)
 		}
 		if requestedCurrent {

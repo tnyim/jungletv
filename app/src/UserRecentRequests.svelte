@@ -1,6 +1,7 @@
 <script lang="ts">
     import { DateTime } from "luxon";
     import { createEventDispatcher } from "svelte";
+    import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import type { PlayedMedia } from "./proto/jungletv_pb";
 
@@ -44,7 +45,7 @@
                      bg-gray-300 text-gray-600  dark:bg-gray-700 dark:text-gray-400
                      border-gray-200 dark:border-gray-600"
             >
-                Video
+                Media
             </th>
             <th
                 class="px-4 align-middle border border-solid py-3 text-xs uppercase
@@ -80,6 +81,14 @@
                             rel="noopener"
                         >
                             {request.getYoutubeVideoData().getTitle()}
+                        </a>
+                    {:else if request.hasSoundcloudTrackData()}
+                        <a href={request.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
+                            {request.getSoundcloudTrackData().getTitle()}
+                        </a>
+                    {:else if request.hasDocumentData()}
+                        <a use:link href="/documents/{request.getDocumentData().getId()}">
+                            {request.getDocumentData().getTitle()}
                         </a>
                     {/if}
                 </td>

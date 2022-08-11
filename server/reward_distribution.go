@@ -121,7 +121,7 @@ func getEligibleSpectators(ctx context.Context,
 	moderationStore moderation.Store,
 	spectatorsByRemoteAddress map[string][]*spectator,
 	exceptAddress string,
-	videoPlayedFor time.Duration) map[string]*spectator {
+	mediaPlayedFor time.Duration) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
@@ -135,7 +135,7 @@ func getEligibleSpectators(ctx context.Context,
 		spectatorsByUniquifiedRemoteAddress[uniquifiedIP] = append(spectatorsByUniquifiedRemoteAddress[uniquifiedIP], spectators...)
 	}
 
-	minAcceptableDuration := ((videoPlayedFor * 40) / 100)
+	minAcceptableDuration := ((mediaPlayedFor * 40) / 100)
 
 	for k := range spectatorsByUniquifiedRemoteAddress {
 		spectators := spectatorsByUniquifiedRemoteAddress[k]
@@ -155,7 +155,7 @@ func getEligibleSpectators(ctx context.Context,
 				// spectator not currently watching
 				continue
 			}
-			// do not reward spectators who didn't watch at least 40% of the video
+			// do not reward spectators who didn't watch at least 40% of the media
 			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
 				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
 				continue

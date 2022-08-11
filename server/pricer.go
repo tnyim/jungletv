@@ -79,11 +79,11 @@ type EnqueuePricing struct {
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
-func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable bool) EnqueuePricing {
+func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.3))
 	// UnskippableFactor is 19 if unskippable, else 0
-	// LengthInSeconds gets wonky for videos under 75 seconds
+	// LengthInSeconds gets wonky for media under 75 seconds
 	// EnqueuePrice = ( BaseEnqueuePrice * LengthInSeconds * (1000 + QueueLengthFactor + currentlyWatching * minimumPricesMultiplier) ) / 500000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3
 	// PlayNowPrice = EnqueuePrice * (10 + floor(queueLength / 10))
@@ -97,9 +97,9 @@ func (p *Pricer) ComputeEnqueuePricing(videoDuration time.Duration, unskippable 
 	}
 	queueLengthFactor := int64(100.0 * math.Pow(float64(queueLength), 1.3))
 
-	lengthInSeconds := int64(videoDuration.Seconds())
+	lengthInSeconds := int64(mediaDuration.Seconds())
 
-	// penalize very short videos
+	// penalize very short media
 	if lengthInSeconds < 75 {
 		lengthInSeconds = int64(math.Pow(float64(lengthInSeconds+1), -0.6)*3600.0) - 192
 	}

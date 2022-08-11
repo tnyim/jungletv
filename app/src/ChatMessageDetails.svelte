@@ -86,17 +86,17 @@
                     <br />
                     <span class="text-sm">
                         <i class="fas fa-coins text-green-700 dark:text-green-500" title="" />
-                        Video requester
+                        Media requester
                     </span>
                 {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_1_REQUESTER)}
                     <br />
-                    <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 video requester</span>
+                    <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 media requester</span>
                 {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_2_REQUESTER)}
                     <br />
-                    <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 video requester</span>
+                    <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 media requester</span>
                 {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)}
                     <br />
-                    <span class="text-sm text-green-500 dark:text-green-300">Tier 3 video requester</span>
+                    <span class="text-sm text-green-500 dark:text-green-300">Tier 3 media requester</span>
                 {/if}
             </div>
             <QrCode

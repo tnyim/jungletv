@@ -5,6 +5,7 @@
     import { navigate } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
+    import Document from "./Document.svelte";
     import {
         PermissionLevel,
         PlayedMedia,
@@ -17,7 +18,8 @@
     import SidebarTabButton from "./SidebarTabButton.svelte";
     import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
     import UserModerationInfo from "./UserModerationInfo.svelte";
-    import UserProfileFeaturedMedia from "./UserProfileFeaturedMedia.svelte";
+    import UserProfileFeaturedMediaSoundCloud from "./UserProfileFeaturedMediaSoundCloud.svelte";
+    import UserProfileFeaturedMediaYouTube from "./UserProfileFeaturedMediaYouTube.svelte";
     import UserProfileInfo from "./UserProfileInfo.svelte";
     import UserRecentRequests from "./UserRecentRequests.svelte";
     import UserStats from "./UserStats.svelte";
@@ -198,21 +200,21 @@
                 <br />
                 <span class="text-sm">
                     <i class="fas fa-coins text-green-700 dark:text-green-500" title="" />
-                    Requester of currently playing video
+                    Requester of currently playing queue entry
                 </span>
             {/if}
             {#if rolesList.includes(UserRole.TIER_1_REQUESTER)}
                 <br />
-                <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 video requester</span>
-                <span class="text-xs">- between 1 and 4 videos recently played or currently enqueued</span>
+                <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 media requester</span>
+                <span class="text-xs">- between 1 and 4 queue entries recently played or currently enqueued</span>
             {:else if rolesList.includes(UserRole.TIER_2_REQUESTER)}
                 <br />
-                <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 video requester</span>
-                <span class="text-xs">- between 5 and 9 videos recently played or currently enqueued</span>
+                <span class="text-sm text-yellow-600 dark:text-yellow-200">Tier 2 media requester</span>
+                <span class="text-xs">- between 5 and 9 queue entries recently played or currently enqueued</span>
             {:else if rolesList.includes(UserRole.TIER_3_REQUESTER)}
                 <br />
-                <span class="text-sm text-green-500 dark:text-green-300">Tier 3 video requester</span>
-                <span class="text-xs">- 10 or more videos recently played or currently enqueued</span>
+                <span class="text-sm text-green-500 dark:text-green-300">Tier 3 media requester</span>
+                <span class="text-xs">- 10 or more queue entries recently played or currently enqueued</span>
             {/if}
             {#if userProfile?.hasCurrentSubscription()}
                 <br />
@@ -311,7 +313,13 @@
     </div>
     <div class="h-80 overflow-y-auto">
         {#if selectedTab == "featuredMedia"}
-            <UserProfileFeaturedMedia {userProfile} />
+            {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
+                <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
+            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
+                <UserProfileFeaturedMediaSoundCloud data={userProfile.getSoundcloudTrackData()} />
+            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.DOCUMENT_DATA}
+                <Document mode="player" documentID={userProfile.getDocumentData().getId()} />
+            {/if}
         {:else if selectedTab == "info"}
             <div class="p-2 px-4">
                 <UserProfileInfo bind:biography {isSelf} />
