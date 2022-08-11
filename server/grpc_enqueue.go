@@ -19,14 +19,6 @@ import (
 )
 
 func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
-	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	if !ok {
-		return produceEnqueueMediaFailureResponse("Rate limit reached")
-	}
-
 	isAdmin := false
 	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx)); err == nil && banned {
@@ -43,6 +35,20 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	}
 	if !isAdmin && s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY {
 		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue media")
+	}
+
+	if s.allowMediaEnqueuing != proto.AllowedMediaEnqueuingType_STAFF_ONLY {
+		_, _, _, ok, err := s.enqueueRequestLongTermRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		_, _, _, ok2, err := s.enqueueRequestRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		if !ok || !ok2 {
+			return produceEnqueueMediaFailureResponse("Rate limit reached")
+		}
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)

@@ -5,6 +5,8 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/rickb777/date/period"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -15,15 +17,30 @@ import (
 
 // VideoProvider provides YouTube videos
 type VideoProvider struct {
-	mediaQueue media.MediaQueueStub
-	youtube    *youtube.Service
+	mediaQueue        media.MediaQueueStub
+	youtube           *youtube.Service
+	globalRateLimiter limiter.Store
 }
 
+const globalRateLimiterKey = "global"
+
 // NewProvider returns a new YouTube video provider
-func NewProvider(youtube *youtube.Service) media.Provider {
-	return &VideoProvider{
-		youtube: youtube,
+func NewProvider(youtube *youtube.Service) (media.Provider, error) {
+	// YouTube limits us to 10000 lookups (of the kind we do) per day
+	// ensure a coordinated set of malicious users can't consume the whole quota for the day at once,
+	// by enforcing our own 3-hour-period rate limit
+	rateLimiter, err := memorystore.New(&memorystore.Config{
+		Tokens:   1250,          // 1250*8=10000
+		Interval: 3 * time.Hour, // 3h*8=24h
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
+
+	return &VideoProvider{
+		youtube:           youtube,
+		globalRateLimiter: rateLimiter,
+	}, nil
 }
 
 func (c *VideoProvider) SetMediaQueue(mediaQueue media.MediaQueueStub) {
@@ -68,6 +85,14 @@ func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 	youTubeParameters, ok := mediaParameters.(*proto.EnqueueMediaRequest_YoutubeVideoData)
 	if !ok {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("invalid parameter type for YouTube video provider")
+	}
+
+	_, _, _, ok, err = c.globalRateLimiter.Take(ctx, globalRateLimiterKey)
+	if err != nil {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("global rate limit for YouTube provider reached")
 	}
 
 	response, err := c.youtube.Videos.

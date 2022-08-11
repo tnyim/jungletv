@@ -22,8 +22,7 @@ var latestGeneratedChallenge *segcha.Challenge
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
-	s.segchaRateLimiter.Take(ctx, user.Address())
-	_, _, _, ok, err := s.enqueueRequestRateLimiter.Take(ctx, authinterceptor.RemoteAddressFromContext(ctx))
+	_, _, _, ok, err := s.segchaRateLimiter.Take(ctx, user.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

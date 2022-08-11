@@ -53,22 +53,23 @@ type grpcServer struct {
 	//proto.UnimplementedJungleTVServer
 	proto.UnsafeJungleTVServer // disabling forward compatibility is exactly what we want in order to get compilation errors when we forget to implement a server method
 
-	log                       *log.Logger
-	statsClient               *statsd.Client
-	wallet                    *wallet.Wallet
-	collectorAccount          *wallet.Account
-	collectorAccountQueue     chan func(*wallet.Account, *rpc.Client, *rpc.Client)
-	skipAccount               *wallet.Account
-	rainAccount               *wallet.Account
-	jwtManager                *auth.JWTManager
-	enqueueRequestRateLimiter limiter.Store
-	signInRateLimiter         limiter.Store
-	segchaRateLimiter         limiter.Store
-	mediaPreviewLimiter       limiter.Store
-	ipReputationChecker       *ipreputation.Checker
-	userSerializer            auth.APIUserSerializer
-	websiteURL                string
-	snowflakeNode             *snowflake.Node
+	log                               *log.Logger
+	statsClient                       *statsd.Client
+	wallet                            *wallet.Wallet
+	collectorAccount                  *wallet.Account
+	collectorAccountQueue             chan func(*wallet.Account, *rpc.Client, *rpc.Client)
+	skipAccount                       *wallet.Account
+	rainAccount                       *wallet.Account
+	jwtManager                        *auth.JWTManager
+	enqueueRequestRateLimiter         limiter.Store
+	enqueueRequestLongTermRateLimiter limiter.Store
+	signInRateLimiter                 limiter.Store
+	segchaRateLimiter                 limiter.Store
+	mediaPreviewLimiter               limiter.Store
+	ipReputationChecker               *ipreputation.Checker
+	userSerializer                    auth.APIUserSerializer
+	websiteURL                        string
+	snowflakeNode                     *snowflake.Node
 
 	oauthConfigs map[types.ConnectionService]*oauth2.Config
 	oauthStates  *cache.Cache[string, oauthStateData]
@@ -219,8 +220,13 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030") // TODO unhardcode
 
+	ytProvider, err := youtube.NewProvider(ytClient)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "error creating YouTube provider")
+	}
+
 	mediaProviders := map[types.MediaType]media.Provider{
-		types.MediaTypeYouTubeVideo:    youtube.NewProvider(ytClient),
+		types.MediaTypeYouTubeVideo:    ytProvider,
 		types.MediaTypeSoundCloudTrack: soundCloudProvider,
 		types.MediaTypeDocument:        document.NewProvider(),
 	}
@@ -292,6 +298,13 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   5,
 		Interval: time.Minute,
+	})
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "")
+	}
+	s.enqueueRequestLongTermRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   60,
+		Interval: time.Hour,
 	})
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
