@@ -199,6 +199,10 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 				}}})
 		case newNickname := <-onChangedOwnNickname:
 			newNickname = escape.MarkdownCharacters(newNickname)
+			msgContent := fmt.Sprintf("_You changed your nickname to_ **%s**", newNickname)
+			if newNickname == "" {
+				msgContent = "_You cleared your nickname_"
+			}
 			err = stream.Send(&proto.ChatUpdate{
 				Events: []*proto.ChatUpdateEvent{{
 					Event: &proto.ChatUpdateEvent_MessageCreated{
@@ -208,7 +212,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 								CreatedAt: timestamppb.Now(),
 								Message: &proto.ChatMessage_SystemMessage{
 									SystemMessage: &proto.SystemChatMessage{
-										Content: fmt.Sprintf("_You changed your nickname to_ **%s**", newNickname),
+										Content: msgContent,
 									},
 								},
 							},
