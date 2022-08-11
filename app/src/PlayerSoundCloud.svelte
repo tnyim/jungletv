@@ -50,6 +50,7 @@
 
     function onPointerEnterVolumeButton(ev: PointerEvent) {
         if (ev.pointerType != "touch") {
+            cancelClosingVolumeSlider();
             showVolumeSlider = true;
             suppressIframePointerEvents = true;
         }
@@ -196,6 +197,7 @@
         on:pointerdown={onPointerDownVolumeButton}
         on:click={onClickVolumeButton}
         on:pointerleave={onPointerLeaveVolumeElement}
+        title="Adjust volume"
         class="volume-button z-20 flex-row text-white cursor-pointer text-xl text-center place-content-center items-center"
         style="background: linear-gradient(to bottom, {color}, {gradientColor}); border-color: {darkerColor};"
     >
