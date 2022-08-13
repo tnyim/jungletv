@@ -437,9 +437,6 @@
     function replyToMessage(message: ChatMessage) {
         replyingToMessage = message;
     }
-    function clearReplyToMessage() {
-        replyingToMessage = undefined;
-    }
     let highlightedMessageID = "";
     let highlightedMessageTimeout: number;
     onDestroy(() => clearTimeout(highlightedMessageTimeout));
@@ -604,9 +601,8 @@
         {:else}
             <ChatComposeArea
                 {allowExpensiveCSSAnimations}
-                {replyingToMessage}
+                bind:replyingToMessage
                 {hasBlockedMessages}
-                on:clearReply={clearReplyToMessage}
                 on:sentMessage={() => (sentMsgFlag = true)}
             />
         {/if}

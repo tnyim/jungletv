@@ -682,7 +682,7 @@
         $chatMessageDraft = "";
         $chatMessageDraftTenorGif = undefined;
         let refMsg = replyingToMessage;
-        dispatch("clearReply");
+        replyingToMessage = undefined;
         if ($autoCloseMediaPickerOnSend) {
             showMediaPicker = false;
         }
@@ -718,6 +718,7 @@
             sendErrorMessage = "";
         } catch (ex) {
             $chatMessageDraft = msg;
+            replyingToMessage = refMsg;
             $chatMessageDraftTenorGif = tenorGif;
             if (ex.includes("insufficient points balance")) {
                 sendErrorMessage = "insufficient-points";
@@ -864,7 +865,13 @@
     </div>
 {/if}
 {#if replyingToMessage !== undefined}
-    <ChatReplyingBanner {replyingToMessage} {allowExpensiveCSSAnimations} on:clearReply={() => dispatch("clearReply")}>
+    <ChatReplyingBanner
+        {replyingToMessage}
+        {allowExpensiveCSSAnimations}
+        on:clearReply={() => {
+            replyingToMessage = undefined;
+        }}
+    >
         <svelte:fragment slot="message-content">
             {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false)[0]}
         </svelte:fragment>
