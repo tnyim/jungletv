@@ -39,14 +39,22 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
-	onUserBlocked, userBlockedU := s.chat.OnUserBlockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
-	defer userBlockedU()
+	onUserBlocked := make(<-chan string)
+	onUserUnblocked := make(<-chan string)
+	onChangedOwnNickname := make(<-chan string)
+	if user != nil && !user.IsUnknown() {
+		var userBlockedU func()
+		onUserBlocked, userBlockedU = s.chat.OnUserBlockedBy().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		defer userBlockedU()
 
-	onUserUnblocked, userUnblockedU := s.chat.OnUserUnblockedBy(user).Subscribe(event.AtLeastOnceGuarantee)
-	defer userUnblockedU()
+		var userUnblockedU func()
+		onUserUnblocked, userUnblockedU = s.chat.OnUserUnblockedBy().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		defer userUnblockedU()
 
-	onChangedOwnNickname, changedOwnNicknameU := s.chat.OnUserChangedNickname(user).Subscribe(event.AtLeastOnceGuarantee)
-	defer changedOwnNicknameU()
+		var changedOwnNicknameU func()
+		onChangedOwnNickname, changedOwnNicknameU = s.chat.OnUserChangedNickname().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		defer changedOwnNicknameU()
+	}
 
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
@@ -309,7 +317,7 @@ func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNickna
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat.OnUserChangedNickname(user).Notify(r.Nickname)
+	s.chat.OnUserChangedNickname().Notify(user.Address(), r.Nickname)
 
 	return &proto.SetChatNicknameResponse{}, nil
 }

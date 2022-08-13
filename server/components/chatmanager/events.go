@@ -3,7 +3,6 @@ package chatmanager
 import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/utils/event"
 )
@@ -34,95 +33,20 @@ func (c *Manager) OnMessageDeleted() *event.Event[snowflake.ID] {
 	return c.messageDeleted
 }
 
-// OnUserBlockedBy returns an event that is fired when the specified user blocks another user
-// The latter user will be sent as the event argument
-func (c *Manager) OnUserBlockedBy(user auth.User) *event.Event[string] {
-	if user == nil || user.IsUnknown() {
-		// will never fire, and satisfies the consumer
-		return event.New[string]()
-	}
-
-	c.userBlockedByMutex.Lock()
-	defer c.userBlockedByMutex.Unlock()
-
-	address := user.Address()
-
-	if e, ok := c.userBlockedBy[address]; ok {
-		return e
-	}
-
-	e := event.New[string]()
-	var unsubscribe func()
-	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
-		if subscriberCount == 0 {
-			c.userBlockedByMutex.Lock()
-			defer c.userBlockedByMutex.Unlock()
-			delete(c.userBlockedBy, address)
-			unsubscribe()
-		}
-	})
-	c.userBlockedBy[address] = e
-	return e
+// OnUserBlockedBy returns a keyed event whose key is the reward address of an user and is fired when that user blocks another user
+// The blocked user will be sent as the event argument
+func (c *Manager) OnUserBlockedBy() *event.Keyed[string, string] {
+	return c.userBlockedBy
 }
 
-// OnUserUnblockedBy returns an event that is fired when the specified user unblocks another user
-// The latter user will be sent as the event argument
-func (c *Manager) OnUserUnblockedBy(user auth.User) *event.Event[string] {
-	if user == nil || user.IsUnknown() {
-		// will never fire, and satisfies the consumer
-		return event.New[string]()
-	}
-
-	c.userUnblockedByMutex.Lock()
-	defer c.userUnblockedByMutex.Unlock()
-
-	address := user.Address()
-
-	if e, ok := c.userUnblockedBy[address]; ok {
-		return e
-	}
-
-	e := event.New[string]()
-	var unsubscribe func()
-	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
-		if subscriberCount == 0 {
-			c.userUnblockedByMutex.Lock()
-			defer c.userUnblockedByMutex.Unlock()
-			delete(c.userUnblockedBy, address)
-			unsubscribe()
-		}
-	})
-	c.userUnblockedBy[address] = e
-	return e
+// OnUserUnblockedBy returns a keyed event whose key is the reward address of an user and is fired when that user unblocks another user
+// The unblocked user will be sent as the event argument
+func (c *Manager) OnUserUnblockedBy() *event.Keyed[string, string] {
+	return c.userUnblockedBy
 }
 
-// OnUserChangedNickname returns an event that is fired when the specified user changes nickname
+// OnUserChangedNickname returns a keyed event whose key is the reward address of the user that changed nickname
 // The new nickname will be sent as the event argument
-func (c *Manager) OnUserChangedNickname(user auth.User) *event.Event[string] {
-	if user == nil || user.IsUnknown() {
-		// will never fire, and satisfies the consumer
-		return event.New[string]()
-	}
-
-	c.userChangedNicknameMutex.Lock()
-	defer c.userChangedNicknameMutex.Unlock()
-
-	address := user.Address()
-
-	if e, ok := c.userChangedNickname[address]; ok {
-		return e
-	}
-
-	e := event.New[string]()
-	var unsubscribe func()
-	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(subscriberCount int) {
-		if subscriberCount == 0 {
-			c.userChangedNicknameMutex.Lock()
-			defer c.userChangedNicknameMutex.Unlock()
-			delete(c.userChangedNickname, address)
-			unsubscribe()
-		}
-	})
-	c.userChangedNickname[address] = e
-	return e
+func (c *Manager) OnUserChangedNickname() *event.Keyed[string, string] {
+	return c.userChangedNickname
 }

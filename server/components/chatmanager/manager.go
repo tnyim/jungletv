@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -52,13 +51,9 @@ type Manager struct {
 	messageCreated *event.Event[MessageCreatedEventArgs]
 	messageDeleted *event.Event[snowflake.ID]
 
-	userBlockedByMutex   sync.RWMutex
-	userBlockedBy        map[string]*event.Event[string]
-	userUnblockedByMutex sync.RWMutex
-	userUnblockedBy      map[string]*event.Event[string]
-
-	userChangedNicknameMutex sync.RWMutex
-	userChangedNickname      map[string]*event.Event[string]
+	userBlockedBy       *event.Keyed[string, string]
+	userUnblockedBy     *event.Keyed[string, string]
+	userChangedNickname *event.Keyed[string, string]
 }
 
 // New returns an initialized chat Manager
@@ -129,10 +124,10 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		tenorAPIkey:   tenorAPIkey,
 		tenorGifCache: cache.New[string, *chat.MessageAttachmentTenorGifView](5*time.Minute, 1*time.Minute),
 
-		userBlockedBy:   make(map[string]*event.Event[string]),
-		userUnblockedBy: make(map[string]*event.Event[string]),
+		userBlockedBy:   event.NewKeyed[string, string](),
+		userUnblockedBy: event.NewKeyed[string, string](),
 
-		userChangedNickname: make(map[string]*event.Event[string]),
+		userChangedNickname: event.NewKeyed[string, string](),
 
 		chatEnabled:    event.NewNoArg(),
 		chatDisabled:   event.New[DisabledReason](),
