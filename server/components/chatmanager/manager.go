@@ -141,7 +141,7 @@ func (c *Manager) DeleteMessage(ctx context.Context, id snowflake.ID) (*chat.Mes
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to delete chat message")
 	}
-	c.messageDeleted.Notify(id)
+	c.messageDeleted.Notify(id, false)
 	return message, nil
 }
 

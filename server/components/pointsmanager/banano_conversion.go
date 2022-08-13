@@ -32,7 +32,7 @@ func (m *Manager) CreateOrRecoverBananoConversionFlow(user auth.User) (*BananoCo
 	defer m.bananoConversionFlowsLock.Unlock()
 
 	if existingFlow, present := m.bananoConversionFlows[user.Address()]; present && time.Until(existingFlow.Expiration()) > 10*time.Second {
-		existingFlow.clientReconnected.Notify()
+		existingFlow.clientReconnected.Notify(true)
 		return existingFlow, nil
 	}
 
@@ -150,7 +150,7 @@ type convertPointsToBananoFunction func(ctx context.Context, user auth.User, poi
 
 func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs], convertPointsFn convertPointsToBananoFunction, cleanupFn func()) {
 	defer cleanupFn()
-	defer f.destroyed.Notify()
+	defer f.destroyed.Notify(true)
 
 	f.createdOrRecoveredAt = time.Now()
 	expireTimer := time.NewTimer(flowExpiry)
@@ -174,7 +174,7 @@ func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent 
 			actualExpirationTimer.Reset(flowExpiry + flowExpiryTolerance)
 			f.lock.Unlock()
 		case <-expireTimer.C:
-			f.expired.Notify()
+			f.expired.Notify(true)
 		case <-actualExpirationTimer.C:
 			return
 		case <-ctx.Done():
@@ -197,7 +197,7 @@ func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent 
 					SessionBananoTotal: paymentArgs.Balance,
 					PointsAmount:       pointsAmount,
 					SessionPointsTotal: f.sessionPointsTotal,
-				})
+				}, true)
 			}()
 		}
 	}

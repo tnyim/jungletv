@@ -6,12 +6,11 @@ import (
 
 // Event is an event including dispatching mechanism
 type Event[T any] struct {
-	mu                       sync.RWMutex
-	subs                     []subscription[T]
-	closed                   bool
-	pendingNotification      bool
-	pendingNotificationParam T
-	onUnsubscribed           *Event[int]
+	mu                   sync.RWMutex
+	subs                 []subscription[T]
+	closed               bool
+	pendingNotifications []T
+	onUnsubscribed       *Event[int]
 }
 
 type subscription[T any] struct {
@@ -23,8 +22,16 @@ type subscription[T any] struct {
 type GuaranteeType int
 
 const (
+	// AtMostOnceGuarantee: subscribers will be notified only if they are actively waiting on the channel.
+	// (logically, it follows that any notifications happening inbetween channel reads will be lost)
 	AtMostOnceGuarantee = iota
+
+	// AtLeastOnceGuarantee: subscribers will be notified on the next channel read, even if they are not actively waiting on the channel.
+	// If more than one notification happens inbetween channel reads, they will be lost.
 	AtLeastOnceGuarantee
+
+	// ExactlyOnceGuarantee: subscribers will be notified exactly as many times as the event is fired,
+	// even if those notifications happen when they are not waiting on the channel.
 	ExactlyOnceGuarantee
 )
 
@@ -61,11 +68,11 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	}
 
 	e.subs = append(e.subs, s)
-	if e.pendingNotification && !e.closed {
-		e.notifyNowWithinMutex(e.pendingNotificationParam)
-		e.pendingNotification = false
-		var zeroValue T
-		e.pendingNotificationParam = zeroValue
+	if !e.closed {
+		for _, pending := range e.pendingNotifications {
+			e.notifyNowWithinMutex(pending)
+		}
+		e.pendingNotifications = []T{}
 	}
 	return s.ch, func() { e.unsubscribe(s.ch) }
 }
@@ -100,17 +107,24 @@ func (e *Event[T]) unsubscribe(ch <-chan T) {
 			e.subs[i] = e.subs[newLen]
 			e.subs = e.subs[:newLen]
 			if e.onUnsubscribed != nil {
-				e.onUnsubscribed.Notify(newLen)
+				e.onUnsubscribed.Notify(newLen, false)
 			}
 			return
 		}
 	}
 }
 
-// Notify notifies subscribers that the event has occurred
-func (e *Event[T]) Notify(param T) {
+// Notify notifies subscribers that the event has occurred.
+// deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
+// (subject to the GuaranteeType guarantees on the subscription side)
+func (e *Event[T]) Notify(param T, deferNotification bool) {
 	e.mu.RLock()
-	defer e.mu.RUnlock()
+	rUnlock := true
+	defer func() {
+		if rUnlock {
+			e.mu.RUnlock()
+		}
+	}()
 
 	if e.closed {
 		return
@@ -118,9 +132,16 @@ func (e *Event[T]) Notify(param T) {
 
 	if len(e.subs) > 0 {
 		e.notifyNowWithinMutex(param)
-	} else {
-		e.pendingNotification = true
-		e.pendingNotificationParam = param
+	} else if deferNotification {
+		e.mu.RUnlock()
+		rUnlock = false
+
+		e.mu.Lock()
+		defer e.mu.Unlock()
+		// must do checks again since conditions may have changed while we reacquired the lock
+		if !e.closed && len(e.subs) == 0 {
+			e.pendingNotifications = append(e.pendingNotifications, param)
+		}
 	}
 }
 

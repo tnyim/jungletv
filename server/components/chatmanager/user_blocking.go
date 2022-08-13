@@ -21,7 +21,7 @@ func (c *Manager) BlockUser(ctx context.Context, userToBlock, blockedBy auth.Use
 		return stacktrace.Propagate(err, "")
 	}
 
-	c.userBlockedBy.Notify(blockedBy.Address(), userToBlock.Address())
+	c.userBlockedBy.Notify(blockedBy.Address(), userToBlock.Address(), false)
 	return nil
 }
 
@@ -31,7 +31,7 @@ func (c *Manager) UnblockUser(ctx context.Context, blockID string, blockedBy aut
 		return stacktrace.Propagate(err, "")
 	}
 
-	c.userUnblockedBy.Notify(blockedBy.Address(), unblockedUser.Address())
+	c.userUnblockedBy.Notify(blockedBy.Address(), unblockedUser.Address(), false)
 	return nil
 }
 
@@ -41,6 +41,6 @@ func (c *Manager) UnblockUserByAddress(ctx context.Context, address string, bloc
 		return stacktrace.Propagate(err, "")
 	}
 
-	c.userUnblockedBy.Notify(blockedBy.Address(), unblockedUser.Address())
+	c.userUnblockedBy.Notify(blockedBy.Address(), unblockedUser.Address(), false)
 	return nil
 }

@@ -156,7 +156,7 @@ func (w *WithdrawalHandler) WithdrawBalances(ctxCtx context.Context, balances []
 		return stacktrace.Propagate(err, "")
 	}
 
-	ctx.DeferToCommit(func() { w.pendingWithdrawalCreated.Notify(pendingWithdrawals) })
+	ctx.DeferToCommit(func() { w.pendingWithdrawalCreated.Notify(pendingWithdrawals, false) })
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 

@@ -23,6 +23,6 @@ func (e *NoArgEvent) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunct
 
 // Notify is a convenience wrapper around the underlying event Notify
 // so that the caller doesn't need to provide an useless empty parameter
-func (e *NoArgEvent) Notify() {
-	e.Event.Notify(struct{}{})
+func (e *NoArgEvent) Notify(deferNotification bool) {
+	e.Event.Notify(struct{}{}, deferNotification)
 }

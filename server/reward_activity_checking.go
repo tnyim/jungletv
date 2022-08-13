@@ -134,7 +134,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 	}
 
 	r.spectatorByActivityChallenge[spectator.activityChallenge.ID] = spectator
-	spectator.onActivityChallenge.Notify(spectator.activityChallenge)
+	spectator.onActivityChallenge.Notify(spectator.activityChallenge, true)
 }
 
 func (r *RewardsHandler) SolveActivityChallenge(ctxCtx context.Context, challenge, captchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {

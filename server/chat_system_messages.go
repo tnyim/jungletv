@@ -13,25 +13,25 @@ import (
 )
 
 func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
-	mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
 	defer mediaChangedU()
 
-	entryAddedC, entryAddedU := s.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
+	entryAddedC, entryAddedU := s.mediaQueue.entryAdded.Subscribe(event.ExactlyOnceGuarantee)
 	defer entryAddedU()
 
-	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.ownEntryRemoved.Subscribe(event.AtLeastOnceGuarantee)
+	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.ownEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
 	defer ownEntryRemovedU()
 
-	entryMovedC, entryMovedU := s.mediaQueue.entryMoved.Subscribe(event.AtLeastOnceGuarantee)
+	entryMovedC, entryMovedU := s.mediaQueue.entryMoved.Subscribe(event.ExactlyOnceGuarantee)
 	defer entryMovedU()
 
-	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.AtLeastOnceGuarantee)
+	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.ExactlyOnceGuarantee)
 	defer rewardsDistributedU()
 
-	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.crowdfundedSkip.Subscribe(event.AtLeastOnceGuarantee)
+	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.crowdfundedSkip.Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedSkippedU()
 
-	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.AtLeastOnceGuarantee)
+	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedTransactionReceivedU()
 
 	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)

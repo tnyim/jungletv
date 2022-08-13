@@ -241,6 +241,8 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 	now := time.Now()
 	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
 
+	r.ipReputationChecker.EnqueueAddressForChecking(remoteAddress)
+
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -261,7 +263,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 			s.noToleranceOnNextChallenge = true
 			s.remoteAddresses[remoteAddress] = struct{}{}
 		}
-		s.onReconnected.Notify()
+		s.onReconnected.Notify(true)
 	} else {
 		d, err := r.durationUntilNextActivityChallenge(ctx, user, true)
 		if err != nil {
@@ -289,14 +291,12 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 	}
 	s.connectionCount++
 
-	r.ipReputationChecker.EnqueueAddressForChecking(s.remoteAddress)
-
 	reconnectingStr := ""
 	if found {
 		reconnectingStr = "-re"
 		// we must fire this event again since the timer may have been consumed by spectatorActivityWatchdog on another/a previous connection
 		if s.activityChallenge != nil {
-			s.onActivityChallenge.Notify(s.activityChallenge)
+			s.onActivityChallenge.Notify(s.activityChallenge, true)
 		}
 	}
 
@@ -320,7 +320,7 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 	s.connectionCount--
 	if s.connectionCount <= 0 {
 		s.stoppedWatching = time.Now()
-		s.onDisconnected.Notify()
+		s.onDisconnected.Notify(false)
 	}
 
 	activityChallengeInfo := ""
@@ -434,7 +434,7 @@ func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending
 	for _, p := range pending {
 		spectator, ok := r.spectatorsByRewardAddress[p.RewardsAddress]
 		if ok {
-			spectator.onWithdrew.Notify()
+			spectator.onWithdrew.Notify(false)
 		}
 	}
 }
@@ -515,7 +515,7 @@ func (r *RewardsHandler) markAddressAsMentionedInChat(ctx context.Context, addre
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	if ok {
-		spectator.onChatMentioned.Notify()
+		spectator.onChatMentioned.Notify(false)
 	}
 }
 

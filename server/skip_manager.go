@@ -228,14 +228,14 @@ func (s *SkipManager) checkBalances(ctx context.Context) error {
 
 	skipStatus := s.SkipAccountStatus()
 	if oldSkipBalance.Cmp(s.cachedSkipBalance.Int) != 0 || oldRainBalance.Cmp(s.cachedRainBalance.Int) != 0 {
-		s.statusUpdated.Notify(skipStatusUpdatedEventArgs{skipStatus, s.RainAccountStatus()})
+		s.statusUpdated.Notify(skipStatusUpdatedEventArgs{skipStatus, s.RainAccountStatus()}, false)
 	}
 
 	if skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_ALLOWED && skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
 		return nil
 	}
 	if s.cachedSkipBalance.Cmp(s.currentSkipThreshold.Int) >= 0 {
-		s.crowdfundedSkip.Notify(s.cachedSkipBalance)
+		s.crowdfundedSkip.Notify(s.cachedSkipBalance, true)
 		s.mediaQueue.SkipCurrentEntry()
 	}
 
@@ -285,7 +285,7 @@ func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia str
 
 	s.cachedSkipBalance = payment.NewAmount()
 	s.cachedRainBalance = payment.NewAmount()
-	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()})
+	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
 
 	return skipTotal, rainTotal, totalRainedByRequester, nil
 }
@@ -344,7 +344,7 @@ func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account
 			ForMedia:        forMedia,
 		}
 		transactions = append(transactions, tx)
-		s.crowdfundedTransactionReceived.Notify(tx)
+		s.crowdfundedTransactionReceived.Notify(tx, true)
 		if mediaRequestedBy != nil && *mediaRequestedBy == pending.Source {
 			fromMediaRequester.Add(fromMediaRequester, &pending.Amount.Int)
 		}
@@ -399,7 +399,7 @@ func (s *SkipManager) UpdateSkipThreshold() {
 	} else {
 		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing()
 	}
-	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()})
+	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
 }
 
 func (s *SkipManager) CrowdfundedSkippingEnabled() bool {

@@ -83,7 +83,7 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 		}
 	}
 
-	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)})
+	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)}, false)
 	go c.statsClient.Count("chat_message_created", 1)
 	return m, nil
 }
@@ -109,7 +109,7 @@ func (c *Manager) CreateSystemMessage(ctx context.Context, content string) (*cha
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)})
+	c.messageCreated.Notify(MessageCreatedEventArgs{m, m.SerializeForAPI(ctx, c.userSerializer)}, false)
 	return m, nil
 }
 

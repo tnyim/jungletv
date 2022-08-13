@@ -130,7 +130,7 @@ func (q *MediaQueue) EntryReorderingAllowed() bool {
 
 func (q *MediaQueue) SetEntryReorderingAllowed(allowed bool) {
 	q.entryReorderingAllowed = allowed
-	q.queueUpdated.Notify()
+	q.queueUpdated.Notify(false)
 }
 
 func (q *MediaQueue) RemovalOfOwnEntriesAllowed() bool {
@@ -149,7 +149,7 @@ func (q *MediaQueue) UserCanRemoveOwnEntries(ctx context.Context, user auth.User
 
 func (q *MediaQueue) SetRemovalOfOwnEntriesAllowed(allowed bool) {
 	q.removalOfOwnEntriesAllowed = allowed
-	q.queueUpdated.Notify()
+	q.queueUpdated.Notify(false)
 }
 
 func (q *MediaQueue) SkippingEnabled() bool {
@@ -158,7 +158,7 @@ func (q *MediaQueue) SkippingEnabled() bool {
 
 func (q *MediaQueue) SetSkippingEnabled(enabled bool) {
 	q.skippingEnabled = enabled
-	q.skippingAllowedUpdated.Notify()
+	q.skippingAllowedUpdated.Notify(false)
 }
 
 func (q *MediaQueue) InsertCursor() (string, bool) {
@@ -175,7 +175,7 @@ func (q *MediaQueue) SetInsertCursor(entryID string) error {
 		// never allow for setting the cursor to the currently playing entry
 		if i != 0 && entryID == entry.QueueID() {
 			q.insertCursor = entryID
-			q.queueUpdated.Notify()
+			q.queueUpdated.Notify(false)
 			return nil
 		}
 	}
@@ -189,7 +189,7 @@ func (q *MediaQueue) ClearInsertCursor() {
 
 	if q.insertCursor != "" {
 		q.insertCursor = ""
-		q.queueUpdated.Notify()
+		q.queueUpdated.Notify(false)
 	}
 }
 
@@ -255,8 +255,8 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 		q.queue = append(q.queue, newEntry)
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
-	q.queueUpdated.Notify()
-	q.entryAdded.Notify(entryAddedEventArg{"enqueue", newEntry})
+	q.queueUpdated.Notify(false)
+	q.entryAdded.Notify(entryAddedEventArg{"enqueue", newEntry}, false)
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) {
@@ -275,8 +275,8 @@ func (q *MediaQueue) PlayAfterNext(entry media.QueueEntry) {
 
 	q.playAfterNextNoMutex(entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
-	q.queueUpdated.Notify()
-	q.entryAdded.Notify(entryAddedEventArg{"play_after_next", entry})
+	q.queueUpdated.Notify(false)
+	q.entryAdded.Notify(entryAddedEventArg{"play_after_next", entry}, false)
 }
 
 func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
@@ -289,8 +289,8 @@ func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
 	}
 
 	go q.statsClient.Gauge("queue_length", len(q.queue))
-	q.queueUpdated.Notify()
-	q.entryAdded.Notify(entryAddedEventArg{"play_now", entry})
+	q.queueUpdated.Notify(false)
+	q.entryAdded.Notify(entryAddedEventArg{"play_now", entry}, false)
 }
 
 func (q *MediaQueue) SkipCurrentEntry() {
@@ -301,7 +301,7 @@ func (q *MediaQueue) SkipCurrentEntry() {
 		q.queue[0].Stop()
 
 		go q.statsClient.Gauge("queue_length", len(q.queue))
-		q.queueUpdated.Notify()
+		q.queueUpdated.Notify(false)
 	}
 }
 
@@ -339,7 +339,7 @@ func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user au
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-			q.ownEntryRemoved.Notify(entry)
+			q.ownEntryRemoved.Notify(entry, false)
 			return nil
 		}
 	}
@@ -360,9 +360,9 @@ func (q *MediaQueue) removeEntryInMutex(entryID string) (media.QueueEntry, error
 	for i, entry := range q.queue {
 		if entryID == entry.QueueID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
-			q.deepEntryRemoved.Notify(entry)
+			q.deepEntryRemoved.Notify(entry, true)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
-			q.queueUpdated.Notify()
+			q.queueUpdated.Notify(false)
 			return entry, nil
 		}
 	}
@@ -393,12 +393,12 @@ func (q *MediaQueue) MoveEntry(entryID string, user auth.User, up bool) error {
 		} else {
 			q.queue[i+1], q.queue[i] = q.queue[i], q.queue[i+1]
 		}
-		q.queueUpdated.Notify()
+		q.queueUpdated.Notify(false)
 		q.entryMoved.Notify(entryMovedEventArg{
 			user:  user,
 			entry: entry,
 			up:    up,
-		})
+		}, false)
 
 		return nil
 	}
@@ -472,7 +472,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 				q.log.Println("Error logging played media:", stacktrace.Propagate(err, ""))
 			}
 			prevQueueEntry = currentQueueEntry
-			q.mediaChanged.Notify(currentQueueEntry)
+			q.mediaChanged.Notify(currentQueueEntry, false)
 		}
 
 		if currentQueueEntry != nil {
@@ -516,7 +516,7 @@ func (q *MediaQueue) playNext() {
 	length = length - 1
 
 	go q.statsClient.Gauge("queue_length", length)
-	q.queueUpdated.Notify()
+	q.queueUpdated.Notify(false)
 }
 
 func (q *MediaQueue) CurrentlyPlaying() (media.QueueEntry, bool) {
@@ -627,7 +627,7 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 		}
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
-	q.queueUpdated.Notify()
+	q.queueUpdated.Notify(false)
 	return nil
 }
 

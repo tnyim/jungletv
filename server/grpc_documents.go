@@ -124,7 +124,7 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.announcementsUpdated.Notify(counter.CounterValue)
+	s.announcementsUpdated.Notify(counter.CounterValue, true)
 
 	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
 

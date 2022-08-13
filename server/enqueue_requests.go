@@ -257,7 +257,7 @@ func (t *ticket) SetPaid() error {
 		return stacktrace.NewError("ticket already paid")
 	}
 	t.paid = true
-	t.statusChanged.Notify()
+	t.statusChanged.Notify(true)
 	return nil
 }
 
@@ -310,7 +310,7 @@ func (t *ticket) worker(ctx context.Context, e *EnqueueManager, paymentReceivedE
 		var err error
 		select {
 		case <-expirationTimer.C:
-			t.statusChanged.Notify()
+			t.statusChanged.Notify(false)
 		case <-actualExpirationTimer.C:
 			return
 		case <-onStatusChanged:

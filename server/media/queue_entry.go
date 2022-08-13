@@ -60,7 +60,7 @@ func (e *CommonQueueEntry) Play() {
 		<-c
 		if e.Playing() {
 			e.played = true
-			e.donePlaying.Notify()
+			e.donePlaying.Notify(true)
 		}
 	}()
 }
@@ -77,7 +77,7 @@ func (e *CommonQueueEntry) Stop() {
 	}
 	e.played = true
 	e.stoppedPlaying = time.Now()
-	e.donePlaying.Notify()
+	e.donePlaying.Notify(true)
 }
 
 // Playing implements the QueueEntry interface

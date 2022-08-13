@@ -9,7 +9,7 @@ func (c *Manager) Enabled() (bool, DisabledReason) {
 func (c *Manager) EnableChat() {
 	if !c.enabled {
 		c.enabled = true
-		c.chatEnabled.Notify()
+		c.chatEnabled.Notify(false)
 	}
 }
 
@@ -17,7 +17,7 @@ func (c *Manager) DisableChat(reason DisabledReason) {
 	if c.enabled {
 		c.enabled = false
 		c.disabledReason = reason
-		c.chatDisabled.Notify(reason)
+		c.chatDisabled.Notify(reason, false)
 	}
 }
 

@@ -4,18 +4,16 @@ import "sync"
 
 // Keyed is a set of key-addressable events
 type Keyed[KeyType comparable, ArgType any] struct {
-	mu                       sync.RWMutex
-	events                   map[KeyType]*Event[ArgType]
-	pendingNotification      map[KeyType]bool
-	pendingNotificationParam map[KeyType]ArgType
+	mu                   sync.RWMutex
+	events               map[KeyType]*Event[ArgType]
+	pendingNotifications map[KeyType][]ArgType
 }
 
 // NewKeyed returns a new Keyed event
 func NewKeyed[KeyType comparable, ArgType any]() *Keyed[KeyType, ArgType] {
 	return &Keyed[KeyType, ArgType]{
-		events:                   make(map[KeyType]*Event[ArgType]),
-		pendingNotification:      make(map[KeyType]bool),
-		pendingNotificationParam: make(map[KeyType]ArgType),
+		events:               make(map[KeyType]*Event[ArgType]),
+		pendingNotifications: make(map[KeyType][]ArgType),
 	}
 }
 
@@ -34,8 +32,7 @@ func (k *Keyed[KeyType, ArgType]) getOrCreateEvent(key KeyType) *Event[ArgType] 
 			k.mu.Lock()
 			defer k.mu.Unlock()
 			delete(k.events, key)
-			delete(k.pendingNotificationParam, key)
-			delete(k.pendingNotification, key)
+			delete(k.pendingNotifications, key)
 			unsubscribe()
 		}
 	})
@@ -51,12 +48,11 @@ func (k *Keyed[KeyType, ArgType]) Subscribe(key KeyType, guaranteeType Guarantee
 	defer k.mu.Unlock()
 
 	event := k.getOrCreateEvent(key)
-	if k.pendingNotification[key] {
-		// pass the responsibility of notifying the first subscriber onto the event
-		event.Notify(k.pendingNotificationParam[key])
-		delete(k.pendingNotificationParam, key)
-		delete(k.pendingNotification, key)
+	// pass the responsibility of sending delayed notifications onto the event
+	for _, delayed := range k.pendingNotifications[key] {
+		event.Notify(delayed, true)
 	}
+	delete(k.pendingNotifications, key)
 	return event.Subscribe(guaranteeType)
 }
 
@@ -69,27 +65,38 @@ func (k *Keyed[KeyType, ArgType]) SubscribeUsingCallback(key KeyType, guaranteeT
 	defer k.mu.Unlock()
 
 	event := k.getOrCreateEvent(key)
-	if k.pendingNotification[key] {
-		// pass the responsibility of notifying the first subscriber onto the event
-		event.Notify(k.pendingNotificationParam[key])
-		delete(k.pendingNotificationParam, key)
-		delete(k.pendingNotification, key)
+	// pass the responsibility of sending delayed notifications onto the event
+	for _, delayed := range k.pendingNotifications[key] {
+		event.Notify(delayed, true)
 	}
+	delete(k.pendingNotifications, key)
 	return event.SubscribeUsingCallback(guaranteeType, cbFunction)
 }
 
 // Notify notifies subscribers that the event has occurred
-func (k *Keyed[KeyType, ArgType]) Notify(key KeyType, param ArgType) {
+func (k *Keyed[KeyType, ArgType]) Notify(key KeyType, param ArgType, deferNotification bool) {
 	k.mu.RLock()
-	defer k.mu.RUnlock()
+	rUnlock := true
+	defer func() {
+		if rUnlock {
+			k.mu.RUnlock()
+		}
+	}()
 
 	// do not use the `event` function as we do not want to create an event if one doesn't exist
 	if e, ok := k.events[key]; ok {
-		e.Notify(param)
-	} else {
+		e.Notify(param, deferNotification)
+	} else if deferNotification {
 		// event doesn't exist, store for later so we can notify the first subscriber for this key
-		k.pendingNotification[key] = true
-		k.pendingNotificationParam[key] = param
+		e.mu.RUnlock()
+		rUnlock = false
+
+		e.mu.Lock()
+		defer e.mu.Unlock()
+		// must do checks again since conditions may have changed while we reacquired the lock
+		if _, ok := k.events[key]; !ok {
+			k.pendingNotifications[key] = append(k.pendingNotifications[key], param)
+		}
 	}
 }
 

@@ -317,7 +317,7 @@ func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNickna
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.chat.OnUserChangedNickname().Notify(user.Address(), r.Nickname)
+	s.chat.OnUserChangedNickname().Notify(user.Address(), r.Nickname, false)
 
 	return &proto.SetChatNicknameResponse{}, nil
 }

@@ -251,7 +251,7 @@ func (p *PaymentAccountPool) processPaymentForMonitoredAccount(ctx context.Conte
 			From:      pending.Source,
 			Balance:   m.receivableBalance,
 			BlockHash: hash,
-		})
+		}, true)
 	}
 
 	return nil
