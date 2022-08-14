@@ -34,7 +34,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedTransactionReceivedU()
 
-	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.ExactlyOnceGuarantee)
 	defer announcementsUpdatedU()
 
 	for {

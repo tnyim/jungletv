@@ -2,20 +2,18 @@ package event
 
 import (
 	"sync"
+
+	"github.com/tnyim/jungletv/utils/fastcollection"
 )
 
 // Event is an event including dispatching mechanism
 type Event[T any] struct {
 	mu                   sync.RWMutex
-	subs                 []subscription[T]
+	nonBlockingSubs      fastcollection.FastCollection[chan T]
+	blockingSubs         fastcollection.FastCollection[chan T]
 	closed               bool
 	pendingNotifications []T
 	onUnsubscribed       *Event[int]
-}
-
-type subscription[T any] struct {
-	ch       chan T
-	blocking bool
 }
 
 // GuaranteeType defines what delivery guarantees event subscribers get
@@ -37,8 +35,7 @@ const (
 
 // New returns a new Event
 func New[T any]() *Event[T] {
-	e := &Event[T]{}
-	return e
+	return &Event[T]{}
 }
 
 // Subscribe returns a channel that will receive notification events.
@@ -46,35 +43,30 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	var s subscription[T]
+	var subID int
+	var subChan chan T
 	switch guaranteeType {
 	case AtMostOnceGuarantee:
-		s = subscription[T]{
-			ch:       make(chan T),
-			blocking: false,
-		}
+		subChan = make(chan T)
+		subID = e.nonBlockingSubs.Insert(subChan)
 	case AtLeastOnceGuarantee:
-		s = subscription[T]{
-			ch:       make(chan T, 1),
-			blocking: false,
-		}
+		subChan = make(chan T, 1)
+		subID = e.nonBlockingSubs.Insert(subChan)
 	case ExactlyOnceGuarantee:
-		s = subscription[T]{
-			ch:       make(chan T),
-			blocking: true,
-		}
+		subChan = make(chan T)
+		subID = e.blockingSubs.Insert(subChan)
 	default:
 		panic("invalid guarantee type")
 	}
 
-	e.subs = append(e.subs, s)
-	if !e.closed {
+	var unsubscribed bool
+	if !e.closed && e.pendingNotifications != nil {
 		for _, pending := range e.pendingNotifications {
 			e.notifyNowWithinMutex(pending)
 		}
-		e.pendingNotifications = []T{}
+		e.pendingNotifications = nil
 	}
-	return s.ch, func() { e.unsubscribe(s.ch) }
+	return subChan, func() { e.unsubscribe(subID, guaranteeType, &unsubscribed) }
 }
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
@@ -96,22 +88,35 @@ func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunctio
 
 // unsubscribe removes the provided channel from the list of subscriptions, i.e. the channel will no longer be notified.
 // It also closes the channel.
-func (e *Event[T]) unsubscribe(ch <-chan T) {
+func (e *Event[T]) unsubscribe(subID int, guaranteeType GuaranteeType, unsubscribed *bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	for i := range e.subs {
-		if e.subs[i].ch == ch {
-			close(e.subs[i].ch)
-			newLen := len(e.subs) - 1
-			e.subs[i] = e.subs[newLen]
-			e.subs = e.subs[:newLen]
-			if e.onUnsubscribed != nil {
-				e.onUnsubscribed.Notify(newLen, false)
-			}
-			return
-		}
+	if *unsubscribed {
+		return
 	}
+	*unsubscribed = true
+
+	var subChan chan T
+	switch guaranteeType {
+	case AtMostOnceGuarantee:
+		fallthrough
+	case AtLeastOnceGuarantee:
+		subChan = e.nonBlockingSubs.Delete(subID)
+	case ExactlyOnceGuarantee:
+		subChan = e.blockingSubs.Delete(subID)
+	default:
+		panic("invalid guarantee type")
+	}
+
+	close(subChan)
+	if e.onUnsubscribed != nil {
+		e.onUnsubscribed.Notify(e.len(), false)
+	}
+}
+
+func (e *Event[T]) len() int {
+	return e.nonBlockingSubs.Len() + e.blockingSubs.Len()
 }
 
 // Notify notifies subscribers that the event has occurred.
@@ -119,47 +124,45 @@ func (e *Event[T]) unsubscribe(ch <-chan T) {
 // (subject to the GuaranteeType guarantees on the subscription side)
 func (e *Event[T]) Notify(param T, deferNotification bool) {
 	e.mu.RLock()
-	rUnlock := true
-	defer func() {
-		if rUnlock {
-			e.mu.RUnlock()
-		}
-	}()
 
 	if e.closed {
+		e.mu.RUnlock()
 		return
 	}
 
-	if len(e.subs) > 0 {
+	if e.len() > 0 {
 		e.notifyNowWithinMutex(param)
 	} else if deferNotification {
 		e.mu.RUnlock()
-		rUnlock = false
 
 		e.mu.Lock()
 		defer e.mu.Unlock()
 		// must do checks again since conditions may have changed while we reacquired the lock
-		if !e.closed && len(e.subs) == 0 {
+		if !e.closed && e.len() == 0 {
 			e.pendingNotifications = append(e.pendingNotifications, param)
 		}
+		return
 	}
+	e.mu.RUnlock()
 }
 
 func (e *Event[T]) notifyNowWithinMutex(param T) {
-	for _, sub := range e.subs {
-		if sub.blocking {
+	for _, entry := range e.nonBlockingSubs.UnsafeBackingArray {
+		// no need to check if the entry is valid as sends on a nil channel block (and since we're using the select with default case, they won't block)
+		select {
+		case entry.Content <- param:
+		default:
+		}
+	}
+	for _, entry := range e.blockingSubs.UnsafeBackingArray {
+		if entry.NextDeleteIdx < 0 {
 			go func(sch chan T) {
 				defer func() {
 					recover() // we don't care if we panic on sending to closed channels
 					// (the point of us closing these channels is so goroutines like this one don't live forever)
 				}()
 				sch <- param
-			}(sub.ch)
-		} else {
-			select {
-			case sub.ch <- param:
-			default:
-			}
+			}(entry.Content)
 		}
 	}
 }
@@ -171,8 +174,15 @@ func (e *Event[T]) Close() {
 
 	if !e.closed {
 		e.closed = true
-		for _, sub := range e.subs {
-			close(sub.ch)
+		for _, entry := range e.nonBlockingSubs.UnsafeBackingArray {
+			if entry.NextDeleteIdx == -2 {
+				close(entry.Content)
+			}
+		}
+		for _, entry := range e.blockingSubs.UnsafeBackingArray {
+			if entry.NextDeleteIdx == -2 {
+				close(entry.Content)
+			}
 		}
 	}
 }
