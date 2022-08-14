@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS "verified_user" (
 
 CREATE TABLE IF NOT EXISTS "chat_emote" (
     id BIGINT PRIMARY KEY,
-    shortcode TEXT NOT NULL,
+    shortcode TEXT NOT NULL UNIQUE,
     animated BOOLEAN NOT NULL,
     available_for_new_messages BOOLEAN NOT NULL,
     requires_subscription BOOLEAN NOT NULL
