@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -30,6 +29,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/oauth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
@@ -51,7 +51,6 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/simplelogger"
 	"github.com/tnyim/jungletv/utils/transaction"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 	youtubeapi "google.golang.org/api/youtube/v3"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -79,8 +78,7 @@ type grpcServer struct {
 	websiteURL                        string
 	snowflakeNode                     *snowflake.Node
 
-	oauthConfigs map[types.ConnectionService]*oauth2.Config
-	oauthStates  *cache.Cache[string, oauthStateData]
+	oauthManager *oauth.Manager
 
 	captchaImageDB         *segcha.ImageDatabase
 	captchaFontPath        string
@@ -128,6 +126,7 @@ type Options struct {
 	StatsClient *statsd.Client
 
 	Wallet                *wallet.Wallet
+	OAuthManager          *oauth.Manager
 	RepresentativeAddress string
 
 	JWTManager      *auth.JWTManager
@@ -147,9 +146,6 @@ type Options struct {
 	AutoEnqueueVideoListFile string
 	QueueFile                string
 
-	CryptomonKeysClientID     string
-	CryptomonKeysClientSecret string
-
 	TenorAPIKey string
 
 	WebsiteURL  string
@@ -157,7 +153,7 @@ type Options struct {
 }
 
 // NewServer returns a new JungleTVServer
-func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]func(w http.ResponseWriter, r *http.Request), error) {
+func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor := options.AuthInterceptor
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RewardInfo", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Withdraw", auth.UserPermissionLevel)
@@ -223,14 +219,14 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "error creating YouTube client")
+		return nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
 
 	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030") // TODO unhardcode
 
 	ytProvider, err := youtube.NewProvider(ytClient)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "error creating YouTube provider")
+		return nil, stacktrace.Propagate(err, "error creating YouTube provider")
 	}
 
 	mediaProviders := map[types.MediaType]media.Provider{
@@ -241,12 +237,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	mediaQueue, err := mediaqueue.New(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	modStore, err := moderation.NewStoreDatabase(ctx)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s := &grpcServer{
@@ -269,7 +265,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		nicknameCache:             usercache.NewInMemory(),
 		websiteURL:                options.WebsiteURL,
 
-		oauthStates: cache.New[string, oauthStateData](2*time.Hour, 15*time.Minute),
+		oauthManager: options.OAuthManager,
 
 		captchaAnswers:         cache.New[string, []int](1*time.Hour, 5*time.Minute),
 		captchaImageDB:         options.CaptchaImageDB,
@@ -286,13 +282,13 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.snowflakeNode, err = snowflake.NewNode(1)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "failed to create snowflake node")
+		return nil, stacktrace.Propagate(err, "failed to create snowflake node")
 	}
 
 	if options.ModLogWebhook != "" {
 		s.modLogWebhook, err = disgohook.NewWebhookClientByToken(nil, simplelogger.New(s.log, false), options.ModLogWebhook)
 		if err != nil {
-			return nil, nil, stacktrace.Propagate(err, "")
+			return nil, stacktrace.Propagate(err, "")
 		}
 
 		if !options.DebugBuild {
@@ -308,21 +304,21 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		Interval: time.Minute,
 	})
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	s.enqueueRequestLongTermRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   60,
 		Interval: time.Hour,
 	})
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   10,
 		Interval: 5 * time.Minute,
 	})
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.segchaRateLimiter, err = memorystore.New(&memorystore.Config{
@@ -330,7 +326,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		Interval: 2 * time.Minute,
 	})
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.mediaPreviewLimiter, err = memorystore.New(&memorystore.Config{
@@ -338,17 +334,17 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		Interval: 1 * time.Minute,
 	})
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	err = s.setupSpecialAccounts(options.RepresentativeAddress)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.statsRegistry, err = stats.NewRegistry(s.log, s.statsClient)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	s.pricer = pricer.New(s.log, s.mediaQueue, s.statsRegistry)
@@ -364,7 +360,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
 		blockeduser.NewStoreDatabase(), s.userSerializer, s.pointsManager, s.snowflakeNode, options.TenorAPIKey)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	chatStore.SetAttachmentLoader(s.chat.AttachmentLoader)
 
@@ -375,7 +371,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
 		s.staffActivityManager, s.segchaResponseValid, options.VersionHash)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	s.staffActivityManager.SetAddressActivityMarker(s.rewardsHandler)
 	s.pricer.SetEligibleSpectatorsEstimator(s.rewardsHandler)
@@ -383,31 +379,21 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.enqueueManager, err = enqueuemanager.New(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
 		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	skBytes, err := hex.DecodeString(options.RaffleSecretKey)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	sk, _ := btcec.PrivKeyFromBytes(btcec.S256(), skBytes)
 	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	s.raffleSecretKey = sk.ToECDSA()
 
-	err = s.setupOAuthConfigs(options)
-	if err != nil {
-		return nil, nil, stacktrace.Propagate(err, "")
-	}
-
-	return s, map[string]func(w http.ResponseWriter, r *http.Request){
-		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets": s.wrapHTTPHandler(s.RaffleTickets),
-		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/":        s.wrapHTTPHandler(s.RaffleInfo),
-		"/oauth/callback":               s.wrapHTTPHandler(s.OAuthCallback),
-		"/oauth/monkeyconnect/callback": s.wrapHTTPHandler(s.OAuthCallback),
-	}, nil
+	return s, nil
 }
 
 func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
@@ -443,22 +429,6 @@ func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
 	err = s.rainAccount.SetRep(repAddress)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
-	}
-	return nil
-}
-
-func (s *grpcServer) setupOAuthConfigs(options Options) error {
-	s.oauthConfigs = map[types.ConnectionService]*oauth2.Config{
-		types.ConnectionServiceCryptomonKeys: {
-			RedirectURL:  s.websiteURL + "/oauth/monkeyconnect/callback",
-			Scopes:       []string{"name"},
-			ClientID:     options.CryptomonKeysClientID,
-			ClientSecret: options.CryptomonKeysClientSecret,
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://connect.cryptomonkeys.cc/o/authorize",
-				TokenURL: "https://connect.cryptomonkeys.cc/o/token/", // the trailing slash is needed
-			},
-		},
 	}
 	return nil
 }

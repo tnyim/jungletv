@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/raffle"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -26,9 +27,9 @@ func (s *grpcServer) RaffleDrawings(ctxCtx context.Context, r *proto.RaffleDrawi
 
 	// process the current raffle in order to create a raffle drawing record for the current week, if it doesn't exist yet
 	year, week := time.Now().UTC().ISOWeek()
-	raffleID, periodStart, periodEnd, valid := weeklyRaffleParameters(year, week)
+	raffleID, periodStart, periodEnd, valid := raffle.WeeklyRaffleParameters(year, week)
 	if valid {
-		_, _, err := processRaffle(ctx, raffleID, periodStart, periodEnd, s.raffleSecretKey)
+		_, _, err := raffle.ProcessRaffle(ctx, raffleID, periodStart, periodEnd, s.raffleSecretKey)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -85,8 +86,8 @@ func (s *grpcServer) convertRaffleDrawing(ctx context.Context, orig *types.Raffl
 
 	if strings.HasPrefix(orig.RaffleID, "weekly-") {
 		year, week := orig.PeriodStart.UTC().ISOWeek()
-		drawing.EntriesUrl = s.raffleEntriesURL(year, week)
-		drawing.InfoUrl = s.raffleInfoURL(year, week)
+		drawing.EntriesUrl = raffle.RaffleEntriesURL(s.websiteURL, year, week)
+		drawing.InfoUrl = raffle.RaffleInfoURL(s.websiteURL, year, week)
 	}
 
 	return drawing
@@ -96,7 +97,7 @@ func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingR
 	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 
 	year, week := time.Now().UTC().ISOWeek()
-	raffleID, periodStart, periodEnd, valid := weeklyRaffleParameters(year, week)
+	raffleID, periodStart, periodEnd, valid := raffle.WeeklyRaffleParameters(year, week)
 
 	if !valid {
 		return &proto.OngoingRaffleInfoResponse{}, nil
@@ -115,8 +116,8 @@ func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingR
 
 	raffleInfo := &proto.OngoingRaffleInfo{
 		RaffleId:     raffleID,
-		EntriesUrl:   s.raffleEntriesURL(year, week),
-		InfoUrl:      s.raffleInfoURL(year, week),
+		EntriesUrl:   raffle.RaffleEntriesURL(s.websiteURL, year, week),
+		InfoUrl:      raffle.RaffleInfoURL(s.websiteURL, year, week),
 		PeriodStart:  timestamppb.New(periodStart),
 		PeriodEnd:    timestamppb.New(periodEnd),
 		TotalTickets: uint32(totalTickets),
@@ -142,7 +143,7 @@ func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRa
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := confirmRaffleWinner(ctx, r.RaffleId)
+	err := raffle.ConfirmRaffleWinner(ctx, r.RaffleId)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to confirm raffle winner")
 	}
@@ -168,7 +169,7 @@ func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequ
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := redrawRaffle(ctx, r.RaffleId, r.Reason, s.raffleSecretKey)
+	err := raffle.RedrawRaffle(ctx, r.RaffleId, r.Reason, s.raffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to redraw raffle")
 	}
@@ -194,7 +195,7 @@ func (s *grpcServer) CompleteRaffle(ctx context.Context, r *proto.CompleteRaffle
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := completeRaffle(ctx, r.RaffleId, r.PrizeTxHash)
+	err := raffle.CompleteRaffle(ctx, r.RaffleId, r.PrizeTxHash)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to complete raffle")
 	}

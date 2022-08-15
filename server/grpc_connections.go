@@ -3,13 +3,13 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/palantir/stacktrace"
-	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
-	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/oauth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -69,12 +69,6 @@ func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsReq
 	}, nil
 }
 
-type oauthStateData struct {
-	Service    types.ConnectionService
-	OnCallback func(context.Context, *oauth2.Token, *types.Connection) error
-	User       auth.User
-}
-
 func (s *grpcServer) CreateConnection(ctxCtx context.Context, r *proto.CreateConnectionRequest) (*proto.CreateConnectionResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctxCtx)
 	if user == nil {
@@ -82,47 +76,29 @@ func (s *grpcServer) CreateConnection(ctxCtx context.Context, r *proto.CreateCon
 	}
 
 	var service types.ConnectionService
+	var callback oauth.ServiceCallbackFunction
 	switch r.Service {
 	case proto.ConnectionService_CRYPTOMONKEYS:
 		service = types.ConnectionServiceCryptomonKeys
+		callback = onCryptomonKeysCallback
 	default:
 		return nil, status.Error(codes.InvalidArgument, "unknown service")
 	}
 
-	ctx, err := transaction.Begin(ctxCtx)
+	authURL, err := s.oauthManager.BeginFlow(ctxCtx, service, user, callback)
 	if err != nil {
+		if errors.Is(err, oauth.ErrMaximumConnectionsReached) {
+			return nil, status.Error(codes.FailedPrecondition, "maximum number of connections to this service reached")
+		}
 		return nil, stacktrace.Propagate(err, "")
 	}
-	defer ctx.Commit() // read-only tx
-
-	existingConnections, err := types.GetConnectionsForServiceAndRewardsAddress(ctx, service, user.Address())
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	if max, hasMax := types.MaxConnectionsPerService[service]; hasMax && len(existingConnections) >= max {
-		return nil, status.Error(codes.FailedPrecondition, "maximum number of connections to this service reached")
-	}
-
-	oauthConfig, ok := s.oauthConfigs[service]
-	if !ok {
-		return nil, stacktrace.NewError("oauth config missing for specified service")
-	}
-
-	oauthState := uuid.NewV4().String()
-
-	s.oauthStates.SetDefault(oauthState, oauthStateData{
-		Service:    service,
-		OnCallback: s.onCryptomonKeysCallback,
-		User:       user,
-	})
 
 	return &proto.CreateConnectionResponse{
-		AuthUrl: oauthConfig.AuthCodeURL(oauthState),
+		AuthUrl: authURL,
 	}, nil
 }
 
-func (s *grpcServer) onCryptomonKeysCallback(ctx context.Context, token *oauth2.Token, connection *types.Connection) error {
+func onCryptomonKeysCallback(ctx context.Context, token *oauth2.Token, connection *types.Connection) error {
 	ctx, cancelFn := context.WithTimeout(ctx, 10*time.Second)
 	defer cancelFn()
 

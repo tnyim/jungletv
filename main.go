@@ -30,15 +30,18 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/httpserver"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/oauth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 )
@@ -293,32 +296,44 @@ func main() {
 	})
 	authInterceptor := authinterceptor.New(jwtManager, &authorizer{})
 
+	oauthManager := oauth.NewManager()
+
+	oauthManager.RegisterConnectionService(types.ConnectionServiceCryptomonKeys, &oauth2.Config{
+		RedirectURL:  websiteURL + "/oauth/monkeyconnect/callback",
+		Scopes:       []string{"name"},
+		ClientID:     cmClientID,
+		ClientSecret: cmClientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://connect.cryptomonkeys.cc/o/authorize",
+			TokenURL: "https://connect.cryptomonkeys.cc/o/token/", // the trailing slash is needed
+		},
+	})
+
 	options := server.Options{
-		DebugBuild:                DEBUG,
-		Log:                       apiLog,
-		StatsClient:               statsClient,
-		Wallet:                    wallet,
-		RepresentativeAddress:     repAddress,
-		JWTManager:                jwtManager,
-		AuthInterceptor:           authInterceptor,
-		TicketCheckPeriod:         ticketCheckPeriod,
-		IPCheckEndpoint:           ipCheckEndpoint,
-		YoutubeAPIkey:             youtubeAPIkey,
-		RaffleSecretKey:           raffleSecretKey,
-		ModLogWebhook:             modLogWebhook,
-		SegchaClient:              segchaClient,
-		CaptchaImageDB:            imageDB,
-		CaptchaFontPath:           segchaFontPath,
-		AutoEnqueueVideoListFile:  autoEnqueueVideoListFile,
-		QueueFile:                 queueFile,
-		CryptomonKeysClientID:     cmClientID,
-		CryptomonKeysClientSecret: cmClientSecret,
-		TenorAPIKey:               tenorAPIKey,
-		WebsiteURL:                websiteURL,
-		VersionHash:               versionHash,
+		DebugBuild:               DEBUG,
+		Log:                      apiLog,
+		StatsClient:              statsClient,
+		Wallet:                   wallet,
+		RepresentativeAddress:    repAddress,
+		JWTManager:               jwtManager,
+		AuthInterceptor:          authInterceptor,
+		TicketCheckPeriod:        ticketCheckPeriod,
+		IPCheckEndpoint:          ipCheckEndpoint,
+		YoutubeAPIkey:            youtubeAPIkey,
+		RaffleSecretKey:          raffleSecretKey,
+		ModLogWebhook:            modLogWebhook,
+		SegchaClient:             segchaClient,
+		CaptchaImageDB:           imageDB,
+		CaptchaFontPath:          segchaFontPath,
+		AutoEnqueueVideoListFile: autoEnqueueVideoListFile,
+		QueueFile:                queueFile,
+		TenorAPIKey:              tenorAPIKey,
+		WebsiteURL:               websiteURL,
+		VersionHash:              versionHash,
+		OAuthManager:             oauthManager,
 	}
 
-	apiServer, extraHTTProutes, err := server.NewServer(ctx, options)
+	apiServer, err := server.NewServer(ctx, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -328,7 +343,7 @@ func main() {
 		listenAddr = ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, extraHTTProutes, jwtManager, authInterceptor, listenAddr)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -383,7 +398,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request), jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr string) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr string, options server.Options) (*http.Server, error) {
 	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
 	versionInterceptor := version.New(versionHash)
 
@@ -394,8 +409,13 @@ func buildHTTPserver(apiServer proto.JungleTVServer, extraHTTProutes map[string]
 		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
+	httpServerRoutes, err := httpserver.New(webLog, options.OAuthManager, options.WebsiteURL, options.RaffleSecretKey)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	router := mux.NewRouter().StrictSlash(true)
-	configureRouter(router, extraHTTProutes)
+	configureRouter(router, httpServerRoutes)
 
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 	wrappedServer := grpcweb.WrapServer(grpcServer)
