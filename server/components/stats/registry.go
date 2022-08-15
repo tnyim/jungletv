@@ -1,4 +1,4 @@
-package server
+package stats
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
-// StatsHandler handles statistics
-type StatsHandler struct {
+// Registry handles statistics
+type Registry struct {
 	log         *log.Logger
 	statsClient *statsd.Client
 
@@ -19,37 +19,43 @@ type StatsHandler struct {
 	spectatorsByRemoteAddress map[string]int
 	spectatorsMutex           sync.RWMutex
 
-	streamingSubsCounters *cache.OrderedCache[StreamStatsType, int]
+	streamingSubsCounters *cache.OrderedCache[StatStreamConsumersType, int]
 }
 
-type StreamStatsType string
+// StatStreamConsumersType is a type of gRPC stream consumer count
+type StatStreamConsumersType string
 
-const StreamStatsQueue StreamStatsType = "queue"
-const StreamStatsCommunitySkipping StreamStatsType = "community_skipping"
-const StreamStatsChat StreamStatsType = "chat"
+// StatStreamConsumersQueue is the queue gRPC stream consumer count
+const StatStreamConsumersQueue StatStreamConsumersType = "queue"
 
-// NewStatsHandler creates a new StatsHandler
-func NewStatsHandler(log *log.Logger, statsClient *statsd.Client) (*StatsHandler, error) {
+// StatStreamConsumersCommunitySkipping is the community skipping gRPC stream consumer count
+const StatStreamConsumersCommunitySkipping StatStreamConsumersType = "community_skipping"
+
+// StatStreamConsumersChat is the chat gRPC stream consumer count
+const StatStreamConsumersChat StatStreamConsumersType = "chat"
+
+// NewRegistry creates a new stats Registry
+func NewRegistry(log *log.Logger, statsClient *statsd.Client) (*Registry, error) {
 	go statsClient.Gauge("spectators", 0)
-	s := &StatsHandler{
+	s := &Registry{
 		log:         log,
 		statsClient: statsClient,
 
 		spectatorsByRemoteAddress: make(map[string]int),
-		streamingSubsCounters:     cache.NewOrderedCache[StreamStatsType, int](cache.NoExpiration, -1),
+		streamingSubsCounters:     cache.NewOrderedCache[StatStreamConsumersType, int](cache.NoExpiration, -1),
 	}
 
-	s.streamingSubsCounters.SetDefault(StreamStatsQueue, 0)
-	s.streamingSubsCounters.SetDefault(StreamStatsQueue+"_authenticated", 0)
-	s.streamingSubsCounters.SetDefault(StreamStatsCommunitySkipping, 0)
-	s.streamingSubsCounters.SetDefault(StreamStatsCommunitySkipping+"_authenticated", 0)
-	s.streamingSubsCounters.SetDefault(StreamStatsChat, 0)
-	s.streamingSubsCounters.SetDefault(StreamStatsChat+"_authenticated", 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersQueue, 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersQueue+"_authenticated", 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersCommunitySkipping, 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersCommunitySkipping+"_authenticated", 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersChat, 0)
+	s.streamingSubsCounters.SetDefault(StatStreamConsumersChat+"_authenticated", 0)
 
 	return s, nil
 }
 
-func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
+func (s *Registry) RegisterSpectator(ctx context.Context) (func(), error) {
 	s.spectatorsMutex.Lock()
 	defer s.spectatorsMutex.Unlock()
 
@@ -71,13 +77,13 @@ func (s *StatsHandler) RegisterSpectator(ctx context.Context) (func(), error) {
 	}, nil
 }
 
-func (s *StatsHandler) CurrentlyWatching() int {
+func (s *Registry) CurrentlyWatching() int {
 	s.spectatorsMutex.RLock()
 	defer s.spectatorsMutex.RUnlock()
 	return len(s.spectatorsByRemoteAddress)
 }
 
-func (s *StatsHandler) RegisterStreamSubscriber(stream StreamStatsType, authenticated bool) func() {
+func (s *Registry) RegisterStreamSubscriber(stream StatStreamConsumersType, authenticated bool) func() {
 	s.streamingSubsCounters.Increment(stream, 1)
 
 	authenticatedKey := stream + "_authenticated"

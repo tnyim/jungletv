@@ -8,6 +8,7 @@ import (
 
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/components/stats"
 )
 
 // BananoUnit is 1 BAN
@@ -29,7 +30,7 @@ type Pricer struct {
 	log                       *log.Logger
 	mediaQueue                *mediaqueue.MediaQueue
 	rewardsHandler            *RewardsHandler
-	statsHandler              *StatsHandler
+	statsRegistry             *stats.Registry
 	minimumPricesMultiplier   int
 	finalPricesMultiplier     int
 	crowdfundedSkipMultiplier int
@@ -39,12 +40,12 @@ type Pricer struct {
 func NewPricer(log *log.Logger,
 	mediaQueue *mediaqueue.MediaQueue,
 	rewardsHandler *RewardsHandler,
-	statsHandler *StatsHandler) *Pricer {
+	statsRegistry *stats.Registry) *Pricer {
 	return &Pricer{
 		log:                       log,
 		mediaQueue:                mediaQueue,
 		rewardsHandler:            rewardsHandler,
-		statsHandler:              statsHandler,
+		statsRegistry:             statsRegistry,
 		minimumPricesMultiplier:   25,
 		finalPricesMultiplier:     100,
 		crowdfundedSkipMultiplier: 150, // this means crowdfunded skipping will be 1.5x as expensive as normal individual skipping
@@ -161,7 +162,7 @@ func (p *Pricer) currentlyWatchingEligible() int {
 	if p.rewardsHandler.eligibleMovingAverage.Count() == 0 {
 		// we didn't send rewards yet since restarting, take the total number of spectators and assume 50% are eligible
 		// (50% figure chosen based on observed data)
-		currentlyWatchingTotal := p.statsHandler.CurrentlyWatching()
+		currentlyWatchingTotal := p.statsRegistry.CurrentlyWatching()
 		currentlyWatchingEligible = currentlyWatchingTotal / 2
 	}
 	return currentlyWatchingEligible

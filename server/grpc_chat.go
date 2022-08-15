@@ -15,6 +15,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/stats"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/utils/event"
@@ -60,7 +61,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	defer heartbeat.Stop()
 	var seq uint32
 
-	unregister := s.statsHandler.RegisterStreamSubscriber(StreamStatsChat, user != nil && !user.IsUnknown())
+	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersChat, user != nil && !user.IsUnknown())
 	defer unregister()
 
 	blockedAddresses, err := s.chat.LoadUsersBlockedBy(ctx, user)

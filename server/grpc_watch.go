@@ -104,7 +104,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		}
 	})()
 
-	statsCleanup, err := s.statsHandler.RegisterSpectator(stream.Context())
+	statsCleanup, err := s.statsRegistry.RegisterSpectator(stream.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -147,6 +147,6 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context, needsTitle bool) *proto.MediaConsumptionCheckpoint {
 	cp := s.mediaQueue.ProduceCheckpointForAPI(ctx, s.userSerializer, needsTitle)
-	cp.CurrentlyWatching = uint32(s.statsHandler.CurrentlyWatching())
+	cp.CurrentlyWatching = uint32(s.statsRegistry.CurrentlyWatching())
 	return cp
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
+	"github.com/tnyim/jungletv/server/components/stats"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -99,7 +100,7 @@ type grpcServer struct {
 	skipManager          *SkipManager
 	rewardsHandler       *RewardsHandler
 	withdrawalHandler    *withdrawalhandler.Handler
-	statsHandler         *StatsHandler
+	statsRegistry        *stats.Registry
 	chat                 *chatmanager.Manager
 	pointsManager        *pointsmanager.Manager
 	staffActivityManager *staffactivitymanager.Manager
@@ -341,12 +342,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.statsHandler, err = NewStatsHandler(s.log, s.statsClient)
+	s.statsRegistry, err = stats.NewRegistry(s.log, s.statsClient)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.pricer = NewPricer(s.log, s.mediaQueue, s.rewardsHandler, s.statsHandler)
+	s.pricer = NewPricer(s.log, s.mediaQueue, s.rewardsHandler, s.statsRegistry)
 
 	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 

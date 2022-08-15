@@ -9,6 +9,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/stats"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -23,7 +24,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
-	unregister := s.statsHandler.RegisterStreamSubscriber(StreamStatsQueue, user != nil && !user.IsUnknown())
+	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersQueue, user != nil && !user.IsUnknown())
 	defer unregister()
 
 	send := func() error {
