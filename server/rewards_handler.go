@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -49,7 +50,7 @@ type RewardsHandler struct {
 	paymentAccountPool    *payment.PaymentAccountPool
 	lastMedia             media.QueueEntry
 	moderationStore       moderation.Store
-	staffActivityManager  *StaffActivityManager
+	staffActivityManager  *staffactivitymanager.Manager
 	eligibleMovingAverage *movingaverage.MovingAverage
 	segchaCheckFn         captchaResponseCheckFn
 	versionHash           string
@@ -195,7 +196,7 @@ func NewRewardsHandler(log *log.Logger,
 	pointsManager *pointsmanager.Manager,
 	paymentAccountPool *payment.PaymentAccountPool,
 	moderationStore moderation.Store,
-	staffActivityManager *StaffActivityManager,
+	staffActivityManager *staffactivitymanager.Manager,
 	segchaCheckFn captchaResponseCheckFn,
 	versionHash string) (*RewardsHandler, error) {
 	return &RewardsHandler{

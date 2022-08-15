@@ -31,6 +31,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -101,7 +102,7 @@ type grpcServer struct {
 	statsHandler         *StatsHandler
 	chat                 *chatmanager.Manager
 	pointsManager        *pointsmanager.Manager
-	staffActivityManager *StaffActivityManager
+	staffActivityManager *staffactivitymanager.Manager
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
@@ -258,7 +259,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		allowMediaEnqueuing:       proto.AllowedMediaEnqueuingType_ENABLED,
 		ipReputationChecker:       ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint),
 		ticketCheckPeriod:         options.TicketCheckPeriod,
-		staffActivityManager:      NewStaffActivityManager(options.StatsClient),
+		staffActivityManager:      staffactivitymanager.New(options.StatsClient),
 		moderationStore:           modStore,
 		nicknameCache:             usercache.NewInMemory(),
 		websiteURL:                options.WebsiteURL,
@@ -371,7 +372,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
-	s.staffActivityManager.SetRewardsHandler(s.rewardsHandler)
+	s.staffActivityManager.SetAddressActivityMarker(s.rewardsHandler)
 	s.pricer.rewardsHandler = s.rewardsHandler
 
 	s.enqueueManager, err = NewEnqueueManager(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,

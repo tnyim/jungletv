@@ -1,4 +1,4 @@
-package server
+package staffactivitymanager
 
 import (
 	"context"
@@ -10,19 +10,24 @@ import (
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
-// StaffActivityManager keeps track of what staff members are presently active in order to inform the rest of the staff
-type StaffActivityManager struct {
+// Manager keeps track of what staff members are presently active in order to inform the rest of the staff
+type Manager struct {
 	activelyModerating map[string]struct{}
 	challenged         map[string]struct{}
 	mutex              sync.RWMutex
 
-	rewardsHandler *RewardsHandler
+	activityMarker AddressActivityMarker
 	statsClient    *statsd.Client
 }
 
-// NewStaffActivityManager returns a new StaffActivityManager
-func NewStaffActivityManager(statsClient *statsd.Client) *StaffActivityManager {
-	manager := &StaffActivityManager{
+// AddressActivityMarker represents a component that can mark addresses as actively participating
+type AddressActivityMarker interface {
+	MarkAddressAsActiveEvenIfChallenged(ctx context.Context, address string) error
+}
+
+// New returns a new Manager
+func New(statsClient *statsd.Client) *Manager {
+	manager := &Manager{
 		activelyModerating: make(map[string]struct{}),
 		challenged:         make(map[string]struct{}),
 		statsClient:        statsClient,
@@ -31,11 +36,11 @@ func NewStaffActivityManager(statsClient *statsd.Client) *StaffActivityManager {
 	return manager
 }
 
-func (s *StaffActivityManager) SetRewardsHandler(r *RewardsHandler) {
-	s.rewardsHandler = r
+func (s *Manager) SetAddressActivityMarker(r AddressActivityMarker) {
+	s.activityMarker = r
 }
 
-func (s *StaffActivityManager) StatsWorker(ctx context.Context) {
+func (s *Manager) StatsWorker(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 	for {
@@ -54,7 +59,7 @@ func (s *StaffActivityManager) StatsWorker(ctx context.Context) {
 }
 
 // IsActivelyModerating returns whether the specified staff member is currently active
-func (s *StaffActivityManager) IsActivelyModerating(staffMember auth.User) bool {
+func (s *Manager) IsActivelyModerating(staffMember auth.User) bool {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	_, present := s.activelyModerating[staffMember.Address()]
@@ -62,7 +67,7 @@ func (s *StaffActivityManager) IsActivelyModerating(staffMember auth.User) bool 
 }
 
 // MarkAsActive marks the specified staff member as active
-func (s *StaffActivityManager) MarkAsActive(ctx context.Context, staffMember auth.User) {
+func (s *Manager) MarkAsActive(ctx context.Context, staffMember auth.User) {
 	if !auth.UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
 		return
 	}
@@ -70,8 +75,8 @@ func (s *StaffActivityManager) MarkAsActive(ctx context.Context, staffMember aut
 	defer func() {
 		// this triggers a recalculation of the time until the next activity challenge
 		// it must happen outside of the mutex-protected region to avoid a deadlock
-		if s.rewardsHandler != nil {
-			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
+		if s.activityMarker != nil {
+			_ = s.activityMarker.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 
@@ -82,11 +87,11 @@ func (s *StaffActivityManager) MarkAsActive(ctx context.Context, staffMember aut
 }
 
 // MarkAsActive marks the specified staff member as inactive
-func (s *StaffActivityManager) MarkAsInactive(ctx context.Context, staffMember auth.User) {
+func (s *Manager) MarkAsInactive(ctx context.Context, staffMember auth.User) {
 	defer func() {
 		// restore usual staff member activity challenge behavior
-		if s.rewardsHandler != nil {
-			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
+		if s.activityMarker != nil {
+			_ = s.activityMarker.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 
@@ -98,7 +103,7 @@ func (s *StaffActivityManager) MarkAsInactive(ctx context.Context, staffMember a
 
 // MarkAsActivityChallenged marks the specified staff member as having been challenged for activity with the specified
 // challenge response timeout
-func (s *StaffActivityManager) MarkAsActivityChallenged(ctx context.Context, staffMember auth.User, tolerance time.Duration) {
+func (s *Manager) MarkAsActivityChallenged(ctx context.Context, staffMember auth.User, tolerance time.Duration) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.challenged[staffMember.Address()] = struct{}{}
@@ -113,15 +118,15 @@ func (s *StaffActivityManager) MarkAsActivityChallenged(ctx context.Context, sta
 		}
 		s.mutex.Unlock()
 
-		if s.rewardsHandler != nil {
+		if s.activityMarker != nil {
 			// restore usual staff member activity challenge behavior
-			_ = s.rewardsHandler.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
+			_ = s.activityMarker.MarkAddressAsActiveEvenIfChallenged(ctx, staffMember.Address())
 		}
 	}()
 }
 
 // MarkAsStillActive clears the activity challenged status of the specified staff member, if they are actively moderating
-func (s *StaffActivityManager) MarkAsStillActive(staffMember auth.User) {
+func (s *Manager) MarkAsStillActive(staffMember auth.User) {
 	if !auth.UserPermissionLevelIsAtLeast(staffMember, auth.AdminPermissionLevel) {
 		return
 	}
@@ -134,7 +139,7 @@ func (s *StaffActivityManager) MarkAsStillActive(staffMember auth.User) {
 }
 
 // ActivelyModerating returns the list of actively moderating staff members
-func (s *StaffActivityManager) ActivelyModerating() []auth.User {
+func (s *Manager) ActivelyModerating() []auth.User {
 	list := []auth.User{}
 
 	for address := range s.activelyModerating {
