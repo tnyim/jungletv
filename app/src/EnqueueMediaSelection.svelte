@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
-    import { createEventDispatcher, onDestroy, tick } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
-    import { link } from "svelte-navigator";
+    import { link, useLocation } from "svelte-navigator";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
@@ -15,12 +15,20 @@
     import YouTube, { PlayerState } from "./YouTube.svelte";
 
     const dispatch = createEventDispatcher();
+    const location = useLocation();
 
     let mediaURL: string = "";
     let parseResult: MediaSelectionParseResult = { valid: false };
     let mediaKind: MediaSelectionKind = "video";
     let extractedTimestamp: number = 0;
     let videoIsBroadcast = false;
+
+    onMount(() => {
+        const searchParams = new URLSearchParams($location.search);
+        if (searchParams.has("url")) {
+            mediaURL = searchParams.get("url");
+        }
+    });
     $: {
         parseURL(mediaURL);
     }
