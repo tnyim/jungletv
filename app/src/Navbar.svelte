@@ -158,7 +158,7 @@
                 {#if moreOpen}
                     <li>
                         <div
-                            style="margin-right:46px;"
+                            style="margin-right:48px;"
                             class="cursor-pointer p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             on:click={() => (moreOpen = false)}
                         >
