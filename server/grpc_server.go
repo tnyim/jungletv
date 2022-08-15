@@ -27,6 +27,7 @@ import (
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
@@ -99,7 +100,7 @@ type grpcServer struct {
 
 	mediaQueue           *mediaqueue.MediaQueue
 	pricer               *pricer.Pricer
-	enqueueManager       *EnqueueManager
+	enqueueManager       *enqueuemanager.Manager
 	skipManager          *skipmanager.Manager
 	rewardsHandler       *rewards.Handler
 	withdrawalHandler    *withdrawalhandler.Handler
@@ -379,7 +380,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	s.staffActivityManager.SetAddressActivityMarker(s.rewardsHandler)
 	s.pricer.SetEligibleSpectatorsEstimator(s.rewardsHandler)
 
-	s.enqueueManager, err = NewEnqueueManager(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
+	s.enqueueManager, err = enqueuemanager.New(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
 		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")

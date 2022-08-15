@@ -1,4 +1,4 @@
-package server
+package enqueuemanager
 
 import (
 	"context"
@@ -25,8 +25,8 @@ import (
 
 const TicketExpiration = 10 * time.Minute
 
-// EnqueueManager manages requests for enqueuing that are pending payment
-type EnqueueManager struct {
+// Manager manages requests for enqueuing that are pending payment
+type Manager struct {
 	workerContext                      context.Context
 	statsClient                        *statsd.Client
 	mediaQueue                         *mediaqueue.MediaQueue
@@ -59,8 +59,8 @@ type EnqueueTicket interface {
 	EnqueuingForced() (bool, proto.ForcedTicketEnqueueType)
 }
 
-// NewEnqueueManager returns a new EnqueueManager
-func NewEnqueueManager(
+// New returns a new Manager
+func New(
 	workerContext context.Context,
 	log *log.Logger,
 	statsClient *statsd.Client,
@@ -69,8 +69,8 @@ func NewEnqueueManager(
 	paymentAccountPool *payment.PaymentAccountPool,
 	rewardsHandler *rewards.Handler,
 	moderationStore moderation.Store,
-	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
-	return &EnqueueManager{
+	modLogWebhook api.WebhookClient) (*Manager, error) {
+	return &Manager{
 		workerContext:           workerContext,
 		log:                     log,
 		statsClient:             statsClient,
@@ -85,15 +85,15 @@ func NewEnqueueManager(
 	}, nil
 }
 
-func (e *EnqueueManager) NewEntriesAlwaysUnskippableForFree() bool {
+func (e *Manager) NewEntriesAlwaysUnskippableForFree() bool {
 	return e.newEntriesAlwaysUnskippableForFree
 }
 
-func (e *EnqueueManager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
+func (e *Manager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
 	e.newEntriesAlwaysUnskippableForFree = enabled
 }
 
-func (e *EnqueueManager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
+func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
 	paymentAddress, paymentReceivedEvent, err := e.paymentAccountPool.ReceivePayment()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -120,7 +120,7 @@ func (e *EnqueueManager) RegisterRequest(ctx context.Context, request media.Enqu
 	return t, nil
 }
 
-func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
+func (e *Manager) GetTicket(id string) EnqueueTicket {
 	e.requestsLock.RLock()
 	defer e.requestsLock.RUnlock()
 	if r, ok := e.requests[id]; ok {
@@ -133,7 +133,7 @@ func (e *EnqueueManager) GetTicket(id string) EnqueueTicket {
 	return nil
 }
 
-func (e *EnqueueManager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket EnqueueTicket) error {
+func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket EnqueueTicket) error {
 	if ticket.Status() == proto.EnqueueMediaTicketStatus_PAID {
 		return nil
 	}
@@ -189,7 +189,7 @@ func (e *EnqueueManager) tryEnqueuingTicket(ctx context.Context, balance payment
 	return nil
 }
 
-func (e *EnqueueManager) cleanupTicket(ticket EnqueueTicket) {
+func (e *Manager) cleanupTicket(ticket EnqueueTicket) {
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
 	e.recentlyEvictedRequests.SetDefault(ticket.ID(), ticket)
@@ -290,7 +290,7 @@ func (t *ticket) EnqueuingForced() (bool, proto.ForcedTicketEnqueueType) {
 	return false, 0
 }
 
-func (t *ticket) worker(ctx context.Context, e *EnqueueManager, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs]) {
+func (t *ticket) worker(ctx context.Context, e *Manager, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs]) {
 	defer e.cleanupTicket(t)
 
 	expirationTimer := time.NewTimer(TicketExpiration)
