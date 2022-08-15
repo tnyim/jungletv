@@ -31,6 +31,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/media/document"
@@ -96,7 +97,7 @@ type grpcServer struct {
 	enqueueManager       *EnqueueManager
 	skipManager          *SkipManager
 	rewardsHandler       *RewardsHandler
-	withdrawalHandler    *WithdrawalHandler
+	withdrawalHandler    *withdrawalhandler.Handler
 	statsHandler         *StatsHandler
 	chat                 *chatmanager.Manager
 	pointsManager        *pointsmanager.Manager
@@ -361,7 +362,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 	}
 	chatStore.SetAttachmentLoader(s.chat.AttachmentLoader)
 
-	s.withdrawalHandler = NewWithdrawalHandler(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
+	s.withdrawalHandler = withdrawalhandler.New(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
 	s.rewardsHandler, err = NewRewardsHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,

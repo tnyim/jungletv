@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -40,7 +41,7 @@ type RewardsHandler struct {
 	statsClient           *statsd.Client
 	mediaQueue            *mediaqueue.MediaQueue
 	ipReputationChecker   *ipreputation.Checker
-	withdrawalHandler     *WithdrawalHandler
+	withdrawalHandler     *withdrawalhandler.Handler
 	wallet                *wallet.Wallet
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client)
 	skipManager           *SkipManager
@@ -186,7 +187,7 @@ func NewRewardsHandler(log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *mediaqueue.MediaQueue,
 	ipReputationChecker *ipreputation.Checker,
-	withdrawalHandler *WithdrawalHandler,
+	withdrawalHandler *withdrawalhandler.Handler,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
 	skipManager *SkipManager,
@@ -378,8 +379,8 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.DeepEntryRemoved().Subscribe(event.ExactlyOnceGuarantee)
 	defer deepEntryRemovedU()
 
-	onPendingWithdrawalCreated, pendingWithdrawalCreatedU := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
-	defer pendingWithdrawalCreatedU()
+	onPendingWithdrawalsCreated, pendingWithdrawalsCreatedU := r.withdrawalHandler.PendingWithdrawalsCreated().Subscribe(event.AtLeastOnceGuarantee)
+	defer pendingWithdrawalsCreatedU()
 
 	onChatMessageCreated, onChatMessageCreatedU := r.chatManager.OnMessageCreated().Subscribe(event.AtLeastOnceGuarantee)
 	defer onChatMessageCreatedU()
@@ -409,7 +410,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case pendingWithdrawals := <-onPendingWithdrawalCreated:
+		case pendingWithdrawals := <-onPendingWithdrawalsCreated:
 			r.onPendingWithdrawalCreated(ctx, pendingWithdrawals)
 		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
