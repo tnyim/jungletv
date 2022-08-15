@@ -28,6 +28,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -90,7 +91,7 @@ type grpcServer struct {
 	delegatorCountsPerRep     *cache.Cache[string, uint64]
 	addressesWithGoodRepCache *cache.Cache[string, struct{}]
 
-	mediaQueue           *MediaQueue
+	mediaQueue           *mediaqueue.MediaQueue
 	pricer               *Pricer
 	enqueueManager       *EnqueueManager
 	skipManager          *SkipManager
@@ -231,7 +232,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		types.MediaTypeDocument:        document.NewProvider(),
 	}
 
-	mediaQueue, err := NewMediaQueue(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
+	mediaQueue, err := mediaqueue.New(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
 	if err != nil {
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
@@ -628,7 +629,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}()
 
 	go func() {
-		mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+		mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
 		defer mediaChangedU()
 
 		wait := time.Duration(90+rand.Intn(180)) * time.Second

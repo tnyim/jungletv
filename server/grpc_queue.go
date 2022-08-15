@@ -7,6 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
@@ -71,7 +72,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		return stacktrace.Propagate(stream.Send(queue), "")
 	}
 
-	onQueueChanged, queueUpdatedU := s.mediaQueue.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	onQueueChanged, queueUpdatedU := s.mediaQueue.QueueUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer queueUpdatedU()
 
 	err := send()
@@ -112,7 +113,7 @@ func (s *grpcServer) RemoveOwnQueueEntry(ctx context.Context, r *proto.RemoveOwn
 
 	err := s.mediaQueue.RemoveOwnEntry(ctx, r.Id, user)
 	if err != nil {
-		if errors.Is(err, ErrInsufficientPermissionsToRemoveEntry) {
+		if errors.Is(err, mediaqueue.ErrInsufficientPermissionsToRemoveEntry) {
 			return nil, status.Error(codes.PermissionDenied, "insufficient permissions")
 		}
 		return nil, stacktrace.Propagate(err, "failed to remove queue entry")

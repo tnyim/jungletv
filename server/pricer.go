@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 )
 
@@ -26,7 +27,7 @@ var dustThreshold *big.Int = new(big.Int).Div(BananoUnit, big.NewInt(1000))
 // Pricer manages pricing
 type Pricer struct {
 	log                       *log.Logger
-	mediaQueue                *MediaQueue
+	mediaQueue                *mediaqueue.MediaQueue
 	rewardsHandler            *RewardsHandler
 	statsHandler              *StatsHandler
 	minimumPricesMultiplier   int
@@ -36,7 +37,7 @@ type Pricer struct {
 
 // NewPricer returns an initialized pricer
 func NewPricer(log *log.Logger,
-	mediaQueue *MediaQueue,
+	mediaQueue *mediaqueue.MediaQueue,
 	rewardsHandler *RewardsHandler,
 	statsHandler *StatsHandler) *Pricer {
 	return &Pricer{

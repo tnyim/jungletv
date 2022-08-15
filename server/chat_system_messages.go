@@ -13,16 +13,16 @@ import (
 )
 
 func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
-	mediaChangedC, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
+	mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.ExactlyOnceGuarantee)
 	defer mediaChangedU()
 
-	entryAddedC, entryAddedU := s.mediaQueue.entryAdded.Subscribe(event.ExactlyOnceGuarantee)
+	entryAddedC, entryAddedU := s.mediaQueue.EntryAdded().Subscribe(event.ExactlyOnceGuarantee)
 	defer entryAddedU()
 
-	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.ownEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
+	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.OwnEntryRemoved().Subscribe(event.ExactlyOnceGuarantee)
 	defer ownEntryRemovedU()
 
-	entryMovedC, entryMovedU := s.mediaQueue.entryMoved.Subscribe(event.ExactlyOnceGuarantee)
+	entryMovedC, entryMovedU := s.mediaQueue.EntryMoved().Subscribe(event.ExactlyOnceGuarantee)
 	defer entryMovedU()
 
 	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.ExactlyOnceGuarantee)
@@ -51,8 +51,8 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 		case args := <-entryAddedC:
-			t := args.addType
-			entry := args.entry
+			t := args.AddType
+			entry := args.Entry
 			if !entry.RequestedBy().IsUnknown() {
 				name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
 				if err != nil {
@@ -89,14 +89,14 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 		case args := <-entryMovedC:
-			name, err := s.getChatFriendlyUserName(ctx, args.user.Address())
+			name, err := s.getChatFriendlyUserName(ctx, args.User.Address())
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
 			name = escape.MarkdownCharacters(name)
-			title := escape.MarkdownCharacters(args.entry.MediaInfo().Title())
+			title := escape.MarkdownCharacters(args.Entry.MediaInfo().Title())
 			direction := "down"
-			if args.up {
+			if args.Up {
 				direction = "up"
 			}
 			_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(

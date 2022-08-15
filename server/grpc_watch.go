@@ -114,7 +114,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	defer t.Stop()
 	// if we set this ticker to e.g. 10 seconds, it seems to be too long and CloudFlare or something drops connection :(
 
-	onMediaChanged, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
 	defer mediaChangedU()
 	sendTitle := false
 	lastTitleSend := time.Now()

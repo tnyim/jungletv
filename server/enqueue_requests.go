@@ -12,6 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/moderation"
@@ -26,7 +27,7 @@ const TicketExpiration = 10 * time.Minute
 type EnqueueManager struct {
 	workerContext                      context.Context
 	statsClient                        *statsd.Client
-	mediaQueue                         *MediaQueue
+	mediaQueue                         *mediaqueue.MediaQueue
 	pricer                             *Pricer
 	paymentAccountPool                 *payment.PaymentAccountPool
 	rewardsHandler                     *RewardsHandler
@@ -61,7 +62,7 @@ func NewEnqueueManager(
 	workerContext context.Context,
 	log *log.Logger,
 	statsClient *statsd.Client,
-	mediaQueue *MediaQueue,
+	mediaQueue *mediaqueue.MediaQueue,
 	pricer *Pricer,
 	paymentAccountPool *payment.PaymentAccountPool,
 	rewardsHandler *RewardsHandler,

@@ -18,6 +18,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -37,7 +38,7 @@ type captchaResponseCheckFn func(context.Context, string) (bool, error)
 type RewardsHandler struct {
 	log                   *log.Logger
 	statsClient           *statsd.Client
-	mediaQueue            *MediaQueue
+	mediaQueue            *mediaqueue.MediaQueue
 	ipReputationChecker   *ipreputation.Checker
 	withdrawalHandler     *WithdrawalHandler
 	wallet                *wallet.Wallet
@@ -183,7 +184,7 @@ func (s *spectator) ConnectionCount() int {
 // NewRewardsHandler creates a new RewardsHandler
 func NewRewardsHandler(log *log.Logger,
 	statsClient *statsd.Client,
-	mediaQueue *MediaQueue,
+	mediaQueue *mediaqueue.MediaQueue,
 	ipReputationChecker *ipreputation.Checker,
 	withdrawalHandler *WithdrawalHandler,
 	wallet *wallet.Wallet,
@@ -368,13 +369,13 @@ func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
 }
 
 func (r *RewardsHandler) Worker(ctx context.Context) error {
-	onEntryAdded, entryAddedU := r.mediaQueue.entryAdded.Subscribe(event.AtLeastOnceGuarantee)
+	onEntryAdded, entryAddedU := r.mediaQueue.EntryAdded().Subscribe(event.AtLeastOnceGuarantee)
 	defer entryAddedU()
 
-	onMediaChanged, mediaChangedU := r.mediaQueue.mediaChanged.Subscribe(event.ExactlyOnceGuarantee)
+	onMediaChanged, mediaChangedU := r.mediaQueue.MediaChanged().Subscribe(event.ExactlyOnceGuarantee)
 	defer mediaChangedU()
 
-	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.deepEntryRemoved.Subscribe(event.ExactlyOnceGuarantee)
+	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.DeepEntryRemoved().Subscribe(event.ExactlyOnceGuarantee)
 	defer deepEntryRemovedU()
 
 	onPendingWithdrawalCreated, pendingWithdrawalCreatedU := r.withdrawalHandler.pendingWithdrawalCreated.Subscribe(event.AtLeastOnceGuarantee)
@@ -413,7 +414,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
 		case entryAddedArgs := <-onEntryAdded:
-			err := r.handleQueueEntryAdded(ctx, entryAddedArgs.entry)
+			err := r.handleQueueEntryAdded(ctx, entryAddedArgs.Entry)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

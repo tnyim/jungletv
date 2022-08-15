@@ -13,6 +13,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
@@ -29,7 +30,7 @@ type SkipManager struct {
 	skipAccount             *wallet.Account
 	rainAccount             *wallet.Account
 	collectorAccountAddress string
-	mediaQueue              *MediaQueue
+	mediaQueue              *mediaqueue.MediaQueue
 	pricer                  *Pricer
 
 	accountMovementLock        sync.Mutex
@@ -59,7 +60,7 @@ func NewSkipManager(log *log.Logger,
 	skipAccount *wallet.Account,
 	rainAccount *wallet.Account,
 	collectorAccountAddress string,
-	mediaQueue *MediaQueue,
+	mediaQueue *mediaqueue.MediaQueue,
 	pricer *Pricer,
 ) *SkipManager {
 	return &SkipManager{
@@ -82,10 +83,10 @@ func NewSkipManager(log *log.Logger,
 }
 
 func (s *SkipManager) Worker(ctx context.Context) error {
-	onMediaChanged, mediaChangedU := s.mediaQueue.mediaChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
 	defer mediaChangedU()
 
-	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.skippingAllowedUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.SkippingAllowedUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer skippingAllowedUpdatedU()
 
 	s.UpdateSkipThreshold()
