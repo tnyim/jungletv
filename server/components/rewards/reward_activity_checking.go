@@ -1,4 +1,4 @@
-package server
+package rewards
 
 import (
 	"context"
@@ -16,14 +16,7 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	skippedClientIntegrityChecks, err := s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted, r.ClientVersion)
-	return &proto.SubmitActivityChallengeResponse{
-		SkippedClientIntegrityChecks: skippedClientIntegrityChecks,
-	}, stacktrace.Propagate(err, "")
-}
-
-func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *RewardsHandler) {
+func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Handler) {
 	// this function runs once per spectator
 	// it keeps running until all connections of the spectator disconnect
 	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)
@@ -46,7 +39,7 @@ func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Rew
 
 var serverStartedAt = time.Now()
 
-func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context, user auth.User, first bool) (time.Duration, error) {
+func (r *Handler) durationUntilNextActivityChallenge(ctx context.Context, user auth.User, first bool) (time.Duration, error) {
 	activelyModerating := false
 	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		activelyModerating = r.staffActivityManager.IsActivelyModerating(user)
@@ -73,7 +66,7 @@ func (r *RewardsHandler) durationUntilNextActivityChallenge(ctx context.Context,
 	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second, nil
 }
 
-func (r *RewardsHandler) minDurationBetweenActivityChallengePointsReward(ctx context.Context, user auth.User) (time.Duration, error) {
+func (r *Handler) minDurationBetweenActivityChallengePointsReward(ctx context.Context, user auth.User) (time.Duration, error) {
 	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctx, user)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
@@ -89,7 +82,7 @@ func (r *RewardsHandler) minDurationBetweenActivityChallengePointsReward(ctx con
 	return min, nil
 }
 
-func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator *spectator) {
+func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spectator) {
 	hadChallengeStr := ""
 	defer r.log.Println("Produced activity challenge for spectator", spectator.user.Address(), spectator.remoteAddress, hadChallengeStr)
 	r.spectatorsMutex.Lock()
@@ -101,7 +94,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 		delete(r.spectatorByActivityChallenge, spectator.activityChallenge.ID)
 	}
 	if r.staffActivityManager.IsActivelyModerating(spectator.user) {
-		spectator.activityChallenge = &activityChallenge{
+		spectator.activityChallenge = &ActivityChallenge{
 			ID:           uuid.NewV4().String(),
 			ChallengedAt: time.Now(),
 			Type:         "moderating",
@@ -109,7 +102,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 		}
 		r.staffActivityManager.MarkAsActivityChallenged(ctx, spectator.user, spectator.activityChallenge.Tolerance)
 	} else {
-		spectator.activityChallenge = &activityChallenge{
+		spectator.activityChallenge = &ActivityChallenge{
 			ID:           uuid.NewV4().String(),
 			ChallengedAt: time.Now(),
 			Type:         "button",
@@ -137,7 +130,7 @@ func (r *RewardsHandler) produceActivityChallenge(ctx context.Context, spectator
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge, true)
 }
 
-func (r *RewardsHandler) SolveActivityChallenge(ctxCtx context.Context, challenge, captchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
+func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, captchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
 	var spectator *spectator
 	var timeUntilChallengeResponse time.Duration
 	var captchaValid bool
@@ -251,7 +244,7 @@ func (r *RewardsHandler) SolveActivityChallenge(ctxCtx context.Context, challeng
 	return skipsIntegrityChecks, stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (r *RewardsHandler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
+func (r *Handler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -267,7 +260,7 @@ func (r *RewardsHandler) markAddressAsActiveIfNotChallenged(ctx context.Context,
 	return nil
 }
 
-func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(ctx context.Context, address string) error {
+func (r *Handler) MarkAddressAsActiveEvenIfChallenged(ctx context.Context, address string) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -289,7 +282,7 @@ func (r *RewardsHandler) MarkAddressAsActiveEvenIfChallenged(ctx context.Context
 	return nil
 }
 
-func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address string) {
+func (r *Handler) MarkAddressAsNotLegitimate(ctx context.Context, address string) {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -301,7 +294,7 @@ func (r *RewardsHandler) MarkAddressAsNotLegitimate(ctx context.Context, address
 	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
 }
 
-func (r *RewardsHandler) SpectatorHasActivityChallenge(address string, challengeType string) bool {
+func (r *Handler) SpectatorHasActivityChallenge(address string, challengeType string) bool {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -312,7 +305,7 @@ func (r *RewardsHandler) SpectatorHasActivityChallenge(address string, challenge
 	return spectator.activityChallenge.Type == challengeType
 }
 
-func (r *RewardsHandler) ResetAddressLegitimacyStatus(ctx context.Context, address string) error {
+func (r *Handler) ResetAddressLegitimacyStatus(ctx context.Context, address string) error {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -326,7 +319,7 @@ func (r *RewardsHandler) ResetAddressLegitimacyStatus(ctx context.Context, addre
 	return nil
 }
 
-func (r *RewardsHandler) GetSpectatorActivityStatus(address string) proto.UserStatus {
+func (r *Handler) GetSpectatorActivityStatus(address string) proto.UserStatus {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 

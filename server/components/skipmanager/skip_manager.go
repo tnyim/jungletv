@@ -1,4 +1,4 @@
-package server
+package skipmanager
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -23,15 +24,15 @@ import (
 
 var NoSkipPeriodBeforeMediaEnd = 30 * time.Second
 
-// SkipManager manages skipping and tipping
-type SkipManager struct {
+// Manager manages skipping and tipping
+type Manager struct {
 	log                     *log.Logger
 	rpc                     rpc.Client
 	skipAccount             *wallet.Account
 	rainAccount             *wallet.Account
 	collectorAccountAddress string
 	mediaQueue              *mediaqueue.MediaQueue
-	pricer                  *Pricer
+	pricer                  *pricer.Pricer
 
 	accountMovementLock        sync.Mutex
 	cachedSkipBalance          payment.Amount
@@ -44,26 +45,21 @@ type SkipManager struct {
 	startupNoSkipPeriodOver    bool
 	mediaStartNoSkipPeriodOver bool
 
-	statusUpdated                  *event.Event[skipStatusUpdatedEventArgs]
+	statusUpdated                  *event.Event[SkipStatusUpdatedEventArgs]
 	crowdfundedSkip                *event.Event[payment.Amount]
 	crowdfundedTransactionReceived *event.Event[*types.CrowdfundedTransaction]
 }
 
-type skipStatusUpdatedEventArgs struct {
-	skipAccountStatus *SkipAccountStatus
-	rainAccountStatus *RainAccountStatus
-}
-
-// NewSkipManager returns an initialized skip manager
-func NewSkipManager(log *log.Logger,
+// New returns an initialized skip manager
+func New(log *log.Logger,
 	rpc rpc.Client,
 	skipAccount *wallet.Account,
 	rainAccount *wallet.Account,
 	collectorAccountAddress string,
 	mediaQueue *mediaqueue.MediaQueue,
-	pricer *Pricer,
-) *SkipManager {
-	return &SkipManager{
+	pricer *pricer.Pricer,
+) *Manager {
+	return &Manager{
 		log:                            log,
 		rpc:                            rpc,
 		skipAccount:                    skipAccount,
@@ -71,7 +67,7 @@ func NewSkipManager(log *log.Logger,
 		collectorAccountAddress:        collectorAccountAddress,
 		mediaQueue:                     mediaQueue,
 		pricer:                         pricer,
-		statusUpdated:                  event.New[skipStatusUpdatedEventArgs](),
+		statusUpdated:                  event.New[SkipStatusUpdatedEventArgs](),
 		crowdfundedSkip:                event.New[payment.Amount](),
 		cachedSkipBalance:              payment.NewAmount(),
 		cachedRainBalance:              payment.NewAmount(),
@@ -82,7 +78,7 @@ func NewSkipManager(log *log.Logger,
 	}
 }
 
-func (s *SkipManager) Worker(ctx context.Context) error {
+func (s *Manager) Worker(ctx context.Context) error {
 	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
 	defer mediaChangedU()
 
@@ -139,7 +135,7 @@ func (s *SkipManager) Worker(ctx context.Context) error {
 	}
 }
 
-func (s *SkipManager) BalancesWorker(ctx context.Context, interval time.Duration) error {
+func (s *Manager) BalancesWorker(ctx context.Context, interval time.Duration) error {
 	// since this operation takes time, runs on a separate goroutine from the main worker select{}
 	// this should help the onMediaChanged handler run in time
 	t := time.NewTicker(interval)
@@ -157,7 +153,7 @@ func (s *SkipManager) BalancesWorker(ctx context.Context, interval time.Duration
 	}
 }
 
-func (s *SkipManager) retroactivelyUpdateForMedia(ctxCtx context.Context, mediaID string) error {
+func (s *Manager) retroactivelyUpdateForMedia(ctxCtx context.Context, mediaID string) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -172,7 +168,7 @@ func (s *SkipManager) retroactivelyUpdateForMedia(ctxCtx context.Context, mediaI
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *SkipManager) computeMediaEndTimer() *time.Timer {
+func (s *Manager) computeMediaEndTimer() *time.Timer {
 	currentEntry, isCurrentlyPlaying := s.mediaQueue.CurrentlyPlaying()
 	if !isCurrentlyPlaying {
 		// return a timer that will never end
@@ -188,7 +184,7 @@ func (s *SkipManager) computeMediaEndTimer() *time.Timer {
 	return time.NewTimer(durationUntilNoSkipPeriodBegins)
 }
 
-func (s *SkipManager) checkBalances(ctx context.Context) error {
+func (s *Manager) checkBalances(ctx context.Context) error {
 	s.accountMovementLock.Lock()
 	defer s.accountMovementLock.Unlock()
 	_, err := s.receiveAndRegisterPendings(ctx, s.skipAccount, types.CrowdfundedTransactionTypeSkip, s.currentMediaID, s.currentMediaRequester)
@@ -229,7 +225,7 @@ func (s *SkipManager) checkBalances(ctx context.Context) error {
 
 	skipStatus := s.SkipAccountStatus()
 	if oldSkipBalance.Cmp(s.cachedSkipBalance.Int) != 0 || oldRainBalance.Cmp(s.cachedRainBalance.Int) != 0 {
-		s.statusUpdated.Notify(skipStatusUpdatedEventArgs{skipStatus, s.RainAccountStatus()}, false)
+		s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{skipStatus, s.RainAccountStatus()}, false)
 	}
 
 	if skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_ALLOWED && skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
@@ -243,7 +239,7 @@ func (s *SkipManager) checkBalances(ctx context.Context) error {
 	return nil
 }
 
-func (s *SkipManager) computeSkipStatus() proto.SkipStatus {
+func (s *Manager) computeSkipStatus() proto.SkipStatus {
 	currentEntry, isCurrentlyPlaying := s.mediaQueue.CurrentlyPlaying()
 	if !isCurrentlyPlaying {
 		return proto.SkipStatus_SKIP_STATUS_NO_MEDIA
@@ -268,7 +264,7 @@ func (s *SkipManager) computeSkipStatus() proto.SkipStatus {
 }
 
 // EmptySkipAndRainAccounts empties the skipping and tipping accounts and returns the total balance that was contained in both
-func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia string, mediaRequestedBy *string) (skipTotal, rainTotal, rainedByRequester payment.Amount, err error) {
+func (s *Manager) EmptySkipAndRainAccounts(ctx context.Context, forMedia string, mediaRequestedBy *string) (skipTotal, rainTotal, rainedByRequester payment.Amount, err error) {
 	s.accountMovementLock.Lock()
 	defer s.accountMovementLock.Unlock()
 
@@ -286,12 +282,12 @@ func (s *SkipManager) EmptySkipAndRainAccounts(ctx context.Context, forMedia str
 
 	s.cachedSkipBalance = payment.NewAmount()
 	s.cachedRainBalance = payment.NewAmount()
-	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
+	s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
 
 	return skipTotal, rainTotal, totalRainedByRequester, nil
 }
 
-func (s *SkipManager) sendFullBalanceToCollector(ctx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia, mediaRequestedBy *string) (payment.Amount, payment.Amount, error) {
+func (s *Manager) sendFullBalanceToCollector(ctx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia, mediaRequestedBy *string) (payment.Amount, payment.Amount, error) {
 	sentByRequester, err := s.receiveAndRegisterPendings(ctx, account, txType, forMedia, mediaRequestedBy)
 	if err != nil {
 		return payment.NewAmount(), payment.NewAmount(), stacktrace.Propagate(err, "failed to receive pendings in account")
@@ -316,8 +312,8 @@ func (s *SkipManager) sendFullBalanceToCollector(ctx context.Context, account *w
 	return totalBalance, sentByRequester, nil
 }
 
-func (s *SkipManager) receiveAndRegisterPendings(ctxCtx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia *string, mediaRequestedBy *string) (payment.Amount, error) {
-	recvPendings, err := account.ReceiveAndReturnPendings(dustThreshold)
+func (s *Manager) receiveAndRegisterPendings(ctxCtx context.Context, account *wallet.Account, txType types.CrowdfundedTransactionType, forMedia *string, mediaRequestedBy *string) (payment.Amount, error) {
+	recvPendings, err := account.ReceiveAndReturnPendings(pricer.DustThreshold)
 	if err != nil {
 		return payment.NewAmount(), stacktrace.Propagate(err, "")
 	}
@@ -367,7 +363,7 @@ type SkipAccountStatus struct {
 	Threshold  payment.Amount
 }
 
-func (s *SkipManager) SkipAccountStatus() *SkipAccountStatus {
+func (s *Manager) SkipAccountStatus() *SkipAccountStatus {
 	return &SkipAccountStatus{
 		SkipStatus: s.computeSkipStatus(),
 		Address:    s.skipAccount.Address(),
@@ -382,32 +378,28 @@ type RainAccountStatus struct {
 	Balance payment.Amount
 }
 
-func (s *SkipManager) RainAccountStatus() *RainAccountStatus {
+func (s *Manager) RainAccountStatus() *RainAccountStatus {
 	return &RainAccountStatus{
 		Address: s.rainAccount.Address(),
 		Balance: s.cachedRainBalance,
 	}
 }
 
-func (s *SkipManager) StatusUpdated() *event.Event[skipStatusUpdatedEventArgs] {
-	return s.statusUpdated
-}
-
-func (s *SkipManager) UpdateSkipThreshold() {
+func (s *Manager) UpdateSkipThreshold() {
 	status := s.computeSkipStatus()
 	if status != proto.SkipStatus_SKIP_STATUS_ALLOWED && status != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
 		s.currentSkipThreshold = payment.NewAmount(big.NewInt(1).Exp(big.NewInt(2), big.NewInt(128), big.NewInt(0)))
 	} else {
 		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing()
 	}
-	s.statusUpdated.Notify(skipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
+	s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
 }
 
-func (s *SkipManager) CrowdfundedSkippingEnabled() bool {
+func (s *Manager) CrowdfundedSkippingEnabled() bool {
 	return s.skippingEnabled
 }
 
-func (s *SkipManager) SetCrowdfundedSkippingEnabled(enabled bool) {
+func (s *Manager) SetCrowdfundedSkippingEnabled(enabled bool) {
 	s.skippingEnabled = enabled
 	s.UpdateSkipThreshold()
 }

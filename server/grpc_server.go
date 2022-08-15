@@ -31,6 +31,9 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/server/components/rewards"
+	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
 	"github.com/tnyim/jungletv/server/components/stats"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
@@ -95,10 +98,10 @@ type grpcServer struct {
 	addressesWithGoodRepCache *cache.Cache[string, struct{}]
 
 	mediaQueue           *mediaqueue.MediaQueue
-	pricer               *Pricer
+	pricer               *pricer.Pricer
 	enqueueManager       *EnqueueManager
-	skipManager          *SkipManager
-	rewardsHandler       *RewardsHandler
+	skipManager          *skipmanager.Manager
+	rewardsHandler       *rewards.Handler
 	withdrawalHandler    *withdrawalhandler.Handler
 	statsRegistry        *stats.Registry
 	chat                 *chatmanager.Manager
@@ -347,12 +350,12 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 
-	s.pricer = NewPricer(s.log, s.mediaQueue, s.rewardsHandler, s.statsRegistry)
+	s.pricer = pricer.New(s.log, s.mediaQueue, s.statsRegistry)
 
-	s.skipManager = NewSkipManager(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
+	s.skipManager = skipmanager.New(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
 	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
-		payment.NewAmount(dustThreshold), s.collectorAccount.Address())
+		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address())
 
 	s.pointsManager = pointsmanager.New(ctx, s.snowflakeNode, s.paymentAccountPool)
 
@@ -366,7 +369,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 
 	s.withdrawalHandler = withdrawalhandler.New(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
-	s.rewardsHandler, err = NewRewardsHandler(
+	s.rewardsHandler, err = rewards.NewHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
 		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
 		s.staffActivityManager, s.segchaResponseValid, options.VersionHash)
@@ -374,7 +377,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, map[string]fu
 		return nil, nil, stacktrace.Propagate(err, "")
 	}
 	s.staffActivityManager.SetAddressActivityMarker(s.rewardsHandler)
-	s.pricer.rewardsHandler = s.rewardsHandler
+	s.pricer.SetEligibleSpectatorsEstimator(s.rewardsHandler)
 
 	s.enqueueManager, err = NewEnqueueManager(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
 		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)

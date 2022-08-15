@@ -25,13 +25,13 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	entryMovedC, entryMovedU := s.mediaQueue.EntryMoved().Subscribe(event.ExactlyOnceGuarantee)
 	defer entryMovedU()
 
-	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.rewardsDistributed.Subscribe(event.ExactlyOnceGuarantee)
+	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.RewardsDistributed().Subscribe(event.ExactlyOnceGuarantee)
 	defer rewardsDistributedU()
 
-	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.crowdfundedSkip.Subscribe(event.ExactlyOnceGuarantee)
+	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.CrowdfundedSkip().Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedSkippedU()
 
-	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.crowdfundedTransactionReceived.Subscribe(event.ExactlyOnceGuarantee)
+	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.CrowdfundedTransactionReceived().Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedTransactionReceivedU()
 
 	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.ExactlyOnceGuarantee)
@@ -105,10 +105,10 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 		case args := <-rewardsDistributedC:
-			amount := args.rewardBudget
-			eligibleCount := args.eligibleSpectators
-			enqueuerTip := args.requesterReward
-			mediaEntry := args.media
+			amount := args.RewardBudget
+			eligibleCount := args.EligibleSpectators
+			enqueuerTip := args.RequesterReward
+			mediaEntry := args.Media
 			exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)
 			banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 

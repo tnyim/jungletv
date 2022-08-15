@@ -14,6 +14,8 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/server/components/rewards"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/utils/event"
@@ -28,9 +30,9 @@ type EnqueueManager struct {
 	workerContext                      context.Context
 	statsClient                        *statsd.Client
 	mediaQueue                         *mediaqueue.MediaQueue
-	pricer                             *Pricer
+	pricer                             *pricer.Pricer
 	paymentAccountPool                 *payment.PaymentAccountPool
-	rewardsHandler                     *RewardsHandler
+	rewardsHandler                     *rewards.Handler
 	log                                *log.Logger
 	moderationStore                    moderation.Store
 	modLogWebhook                      api.WebhookClient
@@ -49,7 +51,7 @@ type EnqueueTicket interface {
 	RequestedBy() auth.User
 	PaymentAddress() string
 	SerializeForAPI() *proto.EnqueueMediaTicket
-	RequestPricing() EnqueuePricing
+	RequestPricing() pricer.EnqueuePricing
 	SetPaid() error
 	Status() proto.EnqueueMediaTicketStatus
 	StatusChanged() *event.NoArgEvent
@@ -63,9 +65,9 @@ func NewEnqueueManager(
 	log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *mediaqueue.MediaQueue,
-	pricer *Pricer,
+	pricer *pricer.Pricer,
 	paymentAccountPool *payment.PaymentAccountPool,
-	rewardsHandler *RewardsHandler,
+	rewardsHandler *rewards.Handler,
 	moderationStore moderation.Store,
 	modLogWebhook api.WebhookClient) (*EnqueueManager, error) {
 	return &EnqueueManager{
@@ -205,7 +207,7 @@ type ticket struct {
 	createdAt      time.Time
 	mediaInfo      media.Info
 	paymentAddress string
-	pricing        EnqueuePricing
+	pricing        pricer.EnqueuePricing
 	statusChanged  *event.NoArgEvent
 	forceEnqueuing *proto.ForcedTicketEnqueueType
 }
@@ -249,7 +251,7 @@ func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 	return serialized
 }
 
-func (t *ticket) RequestPricing() EnqueuePricing {
+func (t *ticket) RequestPricing() pricer.EnqueuePricing {
 	return t.pricing
 }
 

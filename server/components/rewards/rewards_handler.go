@@ -1,4 +1,4 @@
-package server
+package rewards
 
 import (
 	"context"
@@ -21,6 +21,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -36,8 +38,8 @@ import (
 
 type captchaResponseCheckFn func(context.Context, string) (bool, error)
 
-// RewardsHandler handles reward distribution among spectators
-type RewardsHandler struct {
+// Handler handles reward distribution among spectators
+type Handler struct {
 	log                   *log.Logger
 	statsClient           *statsd.Client
 	mediaQueue            *mediaqueue.MediaQueue
@@ -45,7 +47,7 @@ type RewardsHandler struct {
 	withdrawalHandler     *withdrawalhandler.Handler
 	wallet                *wallet.Wallet
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client)
-	skipManager           *SkipManager
+	skipManager           *skipmanager.Manager
 	chatManager           *chatmanager.Manager
 	paymentAccountPool    *payment.PaymentAccountPool
 	lastMedia             media.QueueEntry
@@ -56,7 +58,7 @@ type RewardsHandler struct {
 	versionHash           string
 	pointsManager         *pointsmanager.Manager
 
-	rewardsDistributed *event.Event[rewardsDistributedEventArgs]
+	rewardsDistributed *event.Event[RewardsDistributedEventArgs]
 
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
@@ -71,29 +73,17 @@ type RewardsHandler struct {
 }
 
 type Spectator interface {
-	OnRewarded() *event.Event[spectatorRewardedEventArgs]
+	OnRewarded() *event.Event[SpectatorRewardedEventArgs]
 	OnWithdrew() *event.NoArgEvent
 	OnChatMentioned() *event.NoArgEvent
-	OnActivityChallenge() *event.Event[*activityChallenge]
-	CurrentActivityChallenge() *activityChallenge
+	OnActivityChallenge() *event.Event[*ActivityChallenge]
+	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
 	RemoteAddressCanReceiveRewards(*ipreputation.Checker) bool
-	CountOtherConnectedSpectatorsOnSameRemoteAddress(*RewardsHandler) int
+	CountOtherConnectedSpectatorsOnSameRemoteAddress(*Handler) int
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
 	ConnectionCount() int
-}
-
-type rewardsDistributedEventArgs struct {
-	rewardBudget       payment.Amount
-	eligibleSpectators int
-	requesterReward    payment.Amount
-	media              media.QueueEntry
-}
-
-type spectatorRewardedEventArgs struct {
-	reward        payment.Amount
-	rewardBalance payment.Amount
 }
 
 type spectator struct {
@@ -108,26 +98,26 @@ type spectator struct {
 	stoppedWatching            time.Time
 	activityCheckTimer         *time.Timer
 	nextActivityCheckTime      time.Time
-	onRewarded                 *event.Event[spectatorRewardedEventArgs]
+	onRewarded                 *event.Event[SpectatorRewardedEventArgs]
 	onWithdrew                 *event.NoArgEvent
 	onDisconnected             *event.NoArgEvent
 	onReconnected              *event.NoArgEvent
 	onChatMentioned            *event.NoArgEvent
-	onActivityChallenge        *event.Event[*activityChallenge]
-	activityChallenge          *activityChallenge
+	onActivityChallenge        *event.Event[*ActivityChallenge]
+	activityChallenge          *ActivityChallenge
 	lastHardChallengeSolvedAt  time.Time
 	connectionCount            int
 	noToleranceOnNextChallenge bool
 }
 
-type activityChallenge struct {
+type ActivityChallenge struct {
 	ChallengedAt time.Time
 	ID           string
 	Type         string
 	Tolerance    time.Duration
 }
 
-func (a *activityChallenge) SerializeForAPI() *proto.ActivityChallenge {
+func (a *ActivityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	return &proto.ActivityChallenge{
 		Id:           a.ID,
 		Type:         a.Type,
@@ -135,7 +125,7 @@ func (a *activityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	}
 }
 
-func (s *spectator) OnRewarded() *event.Event[spectatorRewardedEventArgs] {
+func (s *spectator) OnRewarded() *event.Event[SpectatorRewardedEventArgs] {
 	return s.onRewarded
 }
 
@@ -147,11 +137,11 @@ func (s *spectator) OnChatMentioned() *event.NoArgEvent {
 	return s.onChatMentioned
 }
 
-func (s *spectator) OnActivityChallenge() *event.Event[*activityChallenge] {
+func (s *spectator) OnActivityChallenge() *event.Event[*ActivityChallenge] {
 	return s.onActivityChallenge
 }
 
-func (s *spectator) CurrentActivityChallenge() *activityChallenge {
+func (s *spectator) CurrentActivityChallenge() *ActivityChallenge {
 	return s.activityChallenge
 }
 
@@ -163,7 +153,7 @@ func (s *spectator) RemoteAddressCanReceiveRewards(checker *ipreputation.Checker
 	return checker.CanReceiveRewards(s.remoteAddress)
 }
 
-func (s *spectator) CountOtherConnectedSpectatorsOnSameRemoteAddress(r *RewardsHandler) int {
+func (s *spectator) CountOtherConnectedSpectatorsOnSameRemoteAddress(r *Handler) int {
 	c := r.CountConnectedSpectatorsOnRemoteAddress(s.remoteAddress)
 	if c == 0 {
 		return c
@@ -183,23 +173,23 @@ func (s *spectator) ConnectionCount() int {
 	return s.connectionCount
 }
 
-// NewRewardsHandler creates a new RewardsHandler
-func NewRewardsHandler(log *log.Logger,
+// NewHandler creates a new RewardsHandler
+func NewHandler(log *log.Logger,
 	statsClient *statsd.Client,
 	mediaQueue *mediaqueue.MediaQueue,
 	ipReputationChecker *ipreputation.Checker,
 	withdrawalHandler *withdrawalhandler.Handler,
 	wallet *wallet.Wallet,
 	collectorAccountQueue chan func(*wallet.Account, *rpc.Client, *rpc.Client),
-	skipManager *SkipManager,
+	skipManager *skipmanager.Manager,
 	chatManager *chatmanager.Manager,
 	pointsManager *pointsmanager.Manager,
 	paymentAccountPool *payment.PaymentAccountPool,
 	moderationStore moderation.Store,
 	staffActivityManager *staffactivitymanager.Manager,
 	segchaCheckFn captchaResponseCheckFn,
-	versionHash string) (*RewardsHandler, error) {
-	return &RewardsHandler{
+	versionHash string) (*Handler, error) {
+	return &Handler{
 		log:                   log,
 		statsClient:           statsClient,
 		mediaQueue:            mediaQueue,
@@ -216,7 +206,7 @@ func NewRewardsHandler(log *log.Logger,
 		segchaCheckFn:         segchaCheckFn,
 		pointsManager:         pointsManager,
 
-		rewardsDistributed: event.New[rewardsDistributedEventArgs](),
+		rewardsDistributed: event.New[RewardsDistributedEventArgs](),
 
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
 		spectatorsByRewardAddress:    make(map[string]*spectator),
@@ -229,15 +219,15 @@ func NewRewardsHandler(log *log.Logger,
 	}, nil
 }
 
-func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) (Spectator, error) {
+func (r *Handler) RegisterSpectator(ctx context.Context, user auth.User) (Spectator, error) {
 	ipCountry := authinterceptor.IPCountryFromContext(ctx)
 	if ipCountry == "T1" {
 		return &spectator{
 			isDummy:             true,
-			onRewarded:          event.New[spectatorRewardedEventArgs](),
+			onRewarded:          event.New[SpectatorRewardedEventArgs](),
 			onWithdrew:          event.NewNoArg(),
 			onChatMentioned:     event.NewNoArg(),
-			onActivityChallenge: event.New[*activityChallenge](),
+			onActivityChallenge: event.New[*ActivityChallenge](),
 		}, nil
 	}
 
@@ -279,12 +269,12 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 			startedWatching:       now,
 			nextActivityCheckTime: now.Add(d),
 			activityCheckTimer:    time.NewTimer(d),
-			onRewarded:            event.New[spectatorRewardedEventArgs](),
+			onRewarded:            event.New[SpectatorRewardedEventArgs](),
 			onWithdrew:            event.NewNoArg(),
 			onChatMentioned:       event.NewNoArg(),
 			onDisconnected:        event.NewNoArg(),
 			onReconnected:         event.NewNoArg(),
-			onActivityChallenge:   event.New[*activityChallenge](),
+			onActivityChallenge:   event.New[*ActivityChallenge](),
 			remoteAddresses: map[string]struct{}{
 				remoteAddress: {},
 			},
@@ -310,7 +300,7 @@ func (r *RewardsHandler) RegisterSpectator(ctx context.Context, user auth.User) 
 	return s, nil
 }
 
-func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spectator) error {
+func (r *Handler) UnregisterSpectator(ctx context.Context, sInterface Spectator) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -335,7 +325,7 @@ func (r *RewardsHandler) UnregisterSpectator(ctx context.Context, sInterface Spe
 	return nil
 }
 
-func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
+func (r *Handler) purgeOldDisconnectedSpectators() {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -370,7 +360,7 @@ func (r *RewardsHandler) purgeOldDisconnectedSpectators() {
 	}
 }
 
-func (r *RewardsHandler) Worker(ctx context.Context) error {
+func (r *Handler) Worker(ctx context.Context) error {
 	onEntryAdded, entryAddedU := r.mediaQueue.EntryAdded().Subscribe(event.AtLeastOnceGuarantee)
 	defer entryAddedU()
 
@@ -431,7 +421,7 @@ func (r *RewardsHandler) Worker(ctx context.Context) error {
 	}
 }
 
-func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending []*types.PendingWithdrawal) {
+func (r *Handler) onPendingWithdrawalCreated(ctx context.Context, pending []*types.PendingWithdrawal) {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 	for _, p := range pending {
@@ -442,7 +432,7 @@ func (r *RewardsHandler) onPendingWithdrawalCreated(ctx context.Context, pending
 	}
 }
 
-func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia media.QueueEntry) error {
+func (r *Handler) onMediaChanged(ctx context.Context, newMedia media.QueueEntry) error {
 	if newMedia == r.lastMedia {
 		return nil
 	}
@@ -462,7 +452,7 @@ func (r *RewardsHandler) onMediaChanged(ctx context.Context, newMedia media.Queu
 	return nil
 }
 
-func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) error {
+func (r *Handler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) error {
 	r.log.Printf("Media with ID %s removed from queue", removed.QueueID())
 	amountToReimburse := removed.RequestCost()
 	if amountToReimburse.Cmp(big.NewInt(0)) == 0 {
@@ -483,7 +473,7 @@ func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed media.Queue
 	if err != nil {
 		if errors.Is(err, types.ErrInsufficientPointsBalance) {
 			// user already spent the reward, let's deduct it from the refunded amount as if this was a points purchase
-			banoshi := new(big.Int).Div(BananoUnit, big.NewInt(100))
+			banoshi := new(big.Int).Div(pricer.BananoUnit, big.NewInt(100))
 			amountToKeep := new(big.Int).Mul(banoshi, big.NewInt(int64(pointsReward)))
 			amountToReimburse.Sub(amountToReimburse.Int, amountToKeep)
 		} else {
@@ -497,7 +487,7 @@ func (r *RewardsHandler) onMediaRemoved(ctx context.Context, removed media.Queue
 	return nil
 }
 
-func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAddress string) []string {
+func (r *Handler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAddress string) []string {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -512,7 +502,7 @@ func (r *RewardsHandler) RemoteAddressesForRewardAddress(ctx context.Context, re
 	return []string{}
 }
 
-func (r *RewardsHandler) markAddressAsMentionedInChat(ctx context.Context, address string) {
+func (r *Handler) markAddressAsMentionedInChat(ctx context.Context, address string) {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -522,7 +512,7 @@ func (r *RewardsHandler) markAddressAsMentionedInChat(ctx context.Context, addre
 	}
 }
 
-func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
+func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
 	requestedBy := m.RequestedBy()
 	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() {
 		return nil
@@ -540,11 +530,11 @@ func (r *RewardsHandler) handleQueueEntryAdded(ctx context.Context, m media.Queu
 	return nil
 }
 
-func (r *RewardsHandler) getPointsRewardForMedia(m media.QueueEntry) int {
+func (r *Handler) getPointsRewardForMedia(m media.QueueEntry) int {
 	return int(m.MediaInfo().Length().Seconds())/10 + 1
 }
 
-func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Message) error {
+func (r *Handler) handleNewChatMessage(ctx context.Context, m *chat.Message) error {
 	if m.Author == nil || m.Author == (auth.User)(nil) || m.Author.IsUnknown() || m.Shadowbanned {
 		return nil
 	}
@@ -576,7 +566,7 @@ func (r *RewardsHandler) handleNewChatMessage(ctx context.Context, m *chat.Messa
 	return nil
 }
 
-func (r *RewardsHandler) GetSpectator(address string) (Spectator, bool) {
+func (r *Handler) GetSpectator(address string) (Spectator, bool) {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -584,7 +574,7 @@ func (r *RewardsHandler) GetSpectator(address string) (Spectator, bool) {
 	return spectator, ok
 }
 
-func (r *RewardsHandler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress string) int {
+func (r *Handler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress string) int {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -602,4 +592,11 @@ func (r *RewardsHandler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress s
 	}
 
 	return count
+}
+
+func (r *Handler) EstimateEligibleSpectators() (int, bool) {
+	if r.eligibleMovingAverage.Count() > 0 {
+		return int(r.eligibleMovingAverage.Avg()), true
+	}
+	return 0, false
 }
