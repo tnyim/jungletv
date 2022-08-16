@@ -1,19 +1,19 @@
 <script lang="ts">
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
-    import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
+    import { createEventDispatcher,onDestroy,onMount,tick } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
-    import { link, useLocation } from "svelte-navigator";
+    import { link,useLocation } from "svelte-navigator";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import MediaRangeFloat from "./MediaRangeFloat.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
-    import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
+    import type { MediaSelectionKind,MediaSelectionParseResult } from "./utils";
     import { parseURLForMediaSelection } from "./utils";
     import Wizard from "./Wizard.svelte";
-    import YouTube, { PlayerState } from "./YouTube.svelte";
+    import YouTube,{ PlayerState } from "./YouTube.svelte";
 
     const dispatch = createEventDispatcher();
     const location = useLocation();
@@ -296,8 +296,11 @@
     }
 
     async function updateSoundCloudTrackRanges() {
+        if (!parseResult.valid || parseResult.type !== "sc_track") {
+            return;
+        }
         try {
-            let response = await apiClient.soundCloudTrackDetails(mediaURL);
+            let response = await apiClient.soundCloudTrackDetails(parseResult.trackURL);
             mediaLengthInSeconds = response.getLength().getSeconds();
             videoIsBroadcast = false;
             sliderMin = 0;

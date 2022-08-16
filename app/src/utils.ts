@@ -438,6 +438,7 @@ type DocumentSelectionParseResult = PossiblyValidMediaSelectionParseResult & {
 export type MediaSelectionParseResult = InvalidMediaSelectionParseResult | YouTubeVideoSelectionParseResult | SoundCloudTrackSelectionParseResult | DocumentSelectionParseResult;
 
 export const parseURLForMediaSelection = function (urlString: string): MediaSelectionParseResult {
+    urlString = urlString.trim();
     let idRegExp = /^[A-Za-z0-9\-_]{11}$/;
     if (idRegExp.test(urlString)) {
         // we were provided just a video ID
