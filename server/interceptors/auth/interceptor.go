@@ -186,10 +186,7 @@ func (interceptor *Interceptor) getRemoteAddress(ctx context.Context, md metadat
 	addrPort, err := netip.ParseAddrPort(ip)
 	if err == nil {
 		return addrPort.Addr().Unmap().WithZone("").String()
-	} else if err != nil && !strings.Contains(err.Error(), "no port") {
-		return ""
 	}
-
 	addr, err := netip.ParseAddr(ip)
 	if err != nil {
 		return ""
