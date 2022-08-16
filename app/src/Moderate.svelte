@@ -151,7 +151,7 @@
             return;
         }
         let value = parseInt(valueStr);
-        if (value == NaN) {
+        if (isNaN(value)) {
             alert("Invalid value");
             return;
         }
