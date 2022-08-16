@@ -66,11 +66,11 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 						"_%s just enqueued_ %s", name, title))
 				case "play_after_next":
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-						"_%s just set_ %s _to play after the current video_",
+						"_%s just set_ %s _to play after the current queue entry_",
 						name, title))
 				case "play_now":
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-						"_%s just skipped the previous video!_", name))
+						"_%s just skipped the previous queue entry!_", name))
 				}
 				if err != nil {
 					return stacktrace.Propagate(err, "")
@@ -135,7 +135,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			banStr := new(big.Rat).SetFrac(amount.Int, exp).FloatString(2)
 
 			_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-				"_Spectators paid **%s BAN** to skip the previous video!_", banStr))
+				"_Spectators paid **%s BAN** to skip the previous queue entry!_", banStr))
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -152,9 +152,9 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			msg := ""
 			switch tx.TransactionType {
 			case types.CrowdfundedTransactionTypeSkip:
-				msg = fmt.Sprintf("_%s just contributed **%s BAN** towards skipping the current video!_", name, banStr)
+				msg = fmt.Sprintf("_%s just contributed **%s BAN** towards skipping the current queue entry!_", name, banStr)
 			case types.CrowdfundedTransactionTypeRain:
-				msg = fmt.Sprintf("_%s just increased the rewards for the current video by **%s BAN**!_", name, banStr)
+				msg = fmt.Sprintf("_%s just increased the rewards for the current queue entry by **%s BAN**!_", name, banStr)
 			}
 			if msg != "" {
 				_, err = s.chat.CreateSystemMessage(ctx, msg)

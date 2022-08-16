@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { onDestroy, onMount } from "svelte";
-    import { SkipAndTipStatus, SkipStatus } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
+    import { onDestroy, onMount } from "svelte";
     import { link } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
+    import { apiClient } from "./api_client";
+    import { SkipAndTipStatus, SkipStatus } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
 
     export let mode = "sidebar";
@@ -64,23 +64,23 @@
         <div class="px-2 py-2">
             <h3 class="text-lg font-bold">Crowdfunded skipping</h3>
             {#if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_UNSKIPPABLE}
-                <p>The currently playing video is unskippable; crowdfunded skipping is unavailable.</p>
+                <p>The currently playing content is unskippable; crowdfunded skipping is unavailable.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_START_OF_MEDIA_PERIOD}
-                <p>Crowdfunded skipping is presently unavailable as the current video just started.</p>
+                <p>Crowdfunded skipping is presently unavailable as the current content just started.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_END_OF_MEDIA_PERIOD}
-                <p>Crowdfunded skipping is presently unavailable as the current video is about to end.</p>
+                <p>Crowdfunded skipping is presently unavailable as the current content is about to end.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_UNAVAILABLE}
                 <p>Crowdfunded skipping is presently unavailable for technical reasons.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_DISABLED}
                 <p>Crowdfunded skipping is currently disabled.</p>
             {:else if skipAndTipStatus.getSkipStatus() == SkipStatus.SKIP_STATUS_ALLOWED}
                 <p>
-                    The video will be skipped once the balance of the skip pool reaches
+                    The content will be skipped once the balance of the skip pool reaches
                     {apiClient.formatBANPrice(skipAndTipStatus.getSkipThreshold())} BAN.
                 </p>
                 <p class="text-xs mb-1">
-                    The amount in the skip pool will be distributed among the active viewers at the end of the video,
-                    regardless of whether the video is skipped.
+                    The amount in the skip pool will be distributed among the active viewers at the end of the current
+                    queue entry, regardless of whether it is skipped.
                 </p>
                 <div class="border-r border-black dark:border-white">
                     <div class="text-xs flex flex-row mt-1 justify-end pr-1">
@@ -100,7 +100,7 @@
                     </div>
                 </div>
                 <p class="mb-2">
-                    If you think this video should be skipped, contribute to the pool by sending to the following
+                    If you think this content should be skipped, contribute to the pool by sending to the following
                     address:
                 </p>
                 <AddressBox
@@ -118,15 +118,17 @@
             <!-- svelte-ignore missing-declaration -->
             {#if Number(BigInt(skipAndTipStatus.getRainBalance())) > 0}
                 <p>
-                    This video will pay out an additional reward of
+                    This content will pay out an additional reward of
                     <span class="font-semibold text-xl">
                         {apiClient.formatBANPriceFixed(skipAndTipStatus.getRainBalance())} BAN</span
-                    >, that will be distributed among active viewers at the end of the video.
+                    >, that will be distributed among active viewers at the end of the current queue entry.
                 </p>
-                <p class="mb-2">Increase the additional reward for this video by sending to the following address:</p>
+                <p class="mb-2">
+                    Increase the additional reward for this queue entry by sending to the following address:
+                </p>
             {:else}
                 <p class="mb-2">
-                    Make it rain among active viewers! Increase the rewards for this video by sending BAN to the
+                    Make it rain among active viewers! Increase the rewards for this queue entry by sending BAN to the
                     following address:
                 </p>
             {/if}
@@ -138,8 +140,8 @@
                 qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
             />
             <p class="text-xs mt-4">
-                The user who enqueued the video will receive 20% of the community tip if they are registered to receive
-                rewards and are currently watching JungleTV or have disconnected in the last 15 minutes.
+                The user who enqueued the content will receive 20% of the community tip if they are registered to
+                receive rewards and are currently watching JungleTV or have disconnected in the last 15 minutes.
             </p>
         </div>
     {/if}

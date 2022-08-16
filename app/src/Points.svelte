@@ -100,7 +100,7 @@
                 <p>You can earn points by:</p>
                 <ul class="list-disc list-outside" style="padding: 0 0 0 20px;">
                     <li>Participating meaningfully in chat</li>
-                    <li>Enqueuing videos</li>
+                    <li>Enqueuing content</li>
                     <li>Solving captchas as you watch JungleTV</li>
                 </ul>
             </div>

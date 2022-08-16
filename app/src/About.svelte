@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, useFocus } from "svelte-navigator";
     import AddressBox from "./AddressBox.svelte";
-    import { useFocus } from "svelte-navigator";
     import { darkMode } from "./stores";
     const registerFocus = useFocus();
 
@@ -32,13 +31,13 @@
     </p>
     <p class="mt-3">
         You will have to spend some Banano to
-        <a href="/enqueue" use:link>enqueue a video</a>. How much you must spend is determined by factors like the
-        amount of people watching and the length of the queue.
+        <a href="/enqueue" use:link>enqueue media</a>. How much you must spend is determined by factors like the amount
+        of people watching and the length of the queue.
     </p>
     <p class="mt-3">
-        The Banano spent to enqueue each video is distributed among the JungleTV spectators who our fraud prevention
-        monkeys deem sufficiently ripe. Make sure to
-        <a href="/rewards/address" use:link> set your address to earn rewards</a>! If you watch enough videos, you'll
+        The Banano spent to enqueue each piece of content is distributed among the JungleTV spectators who our fraud
+        prevention monkeys deem sufficiently ripe. Make sure to
+        <a href="/rewards/address" use:link> set your address to earn rewards</a>! If you watch enough media, you'll
         eventually make enough to enqueue your own - or to recover your initial spending!
     </p>
     <hr class="mt-3" />

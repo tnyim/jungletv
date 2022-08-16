@@ -140,7 +140,7 @@
                 .includes(UserRole.CURRENT_ENTRY_REQUESTER)}
                 <i
                     class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
-                    title="Requester of currently playing video"
+                    title="Requester of currently playing content"
                 />
             {/if}:
         </span>
