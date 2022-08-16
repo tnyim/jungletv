@@ -1,13 +1,6 @@
 <script lang="ts">
-    import {
-        acceptCompletion,
-        autocompletion,
-        closeCompletion,
-        Completion,
-        CompletionContext,
-        completionKeymap,
-        CompletionResult,
-    } from "@codemirror/autocomplete";
+    import type { Completion, CompletionContext, CompletionResult } from "@codemirror/autocomplete";
+    import { acceptCompletion, autocompletion, closeCompletion, completionKeymap } from "@codemirror/autocomplete";
     import { defaultKeymap, history, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { bracketMatching, HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";

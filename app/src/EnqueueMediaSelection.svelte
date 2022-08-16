@@ -10,7 +10,8 @@
     import MediaRangeFloat from "./MediaRangeFloat.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
-    import { MediaSelectionKind, MediaSelectionParseResult, parseURLForMediaSelection } from "./utils";
+    import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
+    import { parseURLForMediaSelection } from "./utils";
     import Wizard from "./Wizard.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
 
