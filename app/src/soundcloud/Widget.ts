@@ -57,7 +57,10 @@ export class Widget extends Invoker {
                 this._addEventListener('seek');
                 this._addEventListener('finish');
                 this._refreshMetadata();
-                this.setVolume(this._initialVolume);
+                if (typeof this._initialVolume !== "undefined") {
+                    this.setVolume(this._initialVolume);
+                    this._initialVolume = undefined;
+                }
                 break;
             }
 
@@ -133,6 +136,10 @@ export class Widget extends Invoker {
         if (typeof opts !== "undefined") {
             this._initialTime = opts.initialTime;
             delete opts.initialTime;
+            if (typeof opts.initialVolume !== "undefined") {
+                this._initialVolume = opts.initialVolume;
+                delete opts.initialVolume;
+            }
         }
 
         const query = Object.entries({ ...opts, url })
@@ -170,6 +177,7 @@ export interface LoadOptions {
     showComments: boolean;
     showTeaser: boolean;
     initialTime: number;
+    initialVolume: number;
 }
 
 export const LOAD_OPTIONS_MAPPING = {

@@ -166,6 +166,7 @@
                 showTeaser: false, // allows the player to work on mobile instead of forcing usage of the app
                 color: color,
                 initialTime: currentTimeFromServer,
+                initialVolume: $playerVolume * 100,
             });
         } else {
             let leniencyMillis = 3000;
