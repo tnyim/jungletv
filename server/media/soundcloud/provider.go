@@ -94,7 +94,12 @@ func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 		return nil, media.EnqueueRequestCreationFailedMediumIsNotATrack, nil
 	}
 
-	if response.EmbeddableBy != "all" || !response.Public || response.Sharing != "public" || !response.Streamable {
+	if response.EmbeddableBy != "all" ||
+		!response.Public ||
+		response.Sharing != "public" ||
+		!response.Streamable ||
+		response.Policy == "SNIP" ||
+		response.MonetizationModel == "SUB_HIGH_TIER" {
 		return nil, media.EnqueueRequestCreationFailedMediumIsNotEmbeddable, nil
 	}
 
@@ -228,7 +233,9 @@ type APIResponse struct {
 	EmbeddableBy      string               `json:"embeddable_by"`
 	Kind              string               `json:"kind"`
 	ID                int64                `json:"id"`
+	MonetizationModel string               `json:"monetization_model"`
 	PermalinkURL      string               `json:"permalink_url"`
+	Policy            string               `json:"policy"`
 	Public            bool                 `json:"public"`
 	PublisherMetadata APIPublisherMetadata `json:"publisher_metadata"`
 	Sharing           string               `json:"sharing"`
