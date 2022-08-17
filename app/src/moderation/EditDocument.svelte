@@ -167,6 +167,7 @@
                 ],
             }),
             parent: editorContainer,
+            root: editorContainer.getRootNode() as ShadowRoot,
         });
         editorView.focus();
         onDestroy(() => {

@@ -84,7 +84,7 @@ export default [
 				delimiters: ["", ""],
 				preventAssignment: true,
 				"function deepActiveElement() {": "function deepActiveElement(node) { return node.getRootNode().activeElement;",
-				"deepActiveElement() ==": "deepActiveElement(root) ==",
+				"deepActiveElement() ==": "deepActiveElement(view.root) ==",
 			}),
 			/*replace({
 				// this might help fix things when proxied by Cloudflare? since they don't recognize grpc-web as being grpc
