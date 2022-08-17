@@ -46,7 +46,7 @@ func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying 
 	if filter != "" {
 		s = s.Where(sq.Or{
 			sq.Eq{"played_media.media_id": filter},
-			sq.Expr("UPPER(played_media.media_title) LIKE UPPER(?)", "%"+filter+"%"),
+			sq.Expr("UPPER(played_media.media_info->>'title') LIKE UPPER(?)", "%"+filter+"%"),
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
