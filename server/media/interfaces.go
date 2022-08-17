@@ -69,7 +69,6 @@ type Provider interface {
 	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable bool,
 		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
-	CanUnmarshalQueueEntryJSONType(jsonType string) bool // TODO remove this once simplified
 	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, error)
 
 	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)

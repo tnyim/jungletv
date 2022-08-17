@@ -71,8 +71,3 @@ func (s *VideoProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (
 	}
 	return v, nil
 }
-
-// TODO remove this once simplified
-func (s *VideoProvider) CanUnmarshalQueueEntryJSONType(t string) bool {
-	return t == "youtube-video" || t == string(types.MediaTypeYouTubeVideo)
-}

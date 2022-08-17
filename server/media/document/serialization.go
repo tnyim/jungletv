@@ -74,8 +74,3 @@ func (s *DocumentProvider) UnmarshalQueueEntryJSON(ctxCtx context.Context, b []b
 
 	return v, nil
 }
-
-// TODO remove this once simplified
-func (s *DocumentProvider) CanUnmarshalQueueEntryJSONType(t string) bool {
-	return t == string(types.MediaTypeDocument)
-}

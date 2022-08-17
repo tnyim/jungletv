@@ -590,29 +590,13 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 		}
 
 		provider, ok := q.mediaProviders[types.MediaType(unknownEntry.Type)]
-		if ok {
-			q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-			continue
-		}
-
-		// TODO remove once simplified (i.e. once all queue entries use their types.MediaType to identify their JSON queue entries)
-		success := false
-		for _, provider := range q.mediaProviders {
-			if provider.CanUnmarshalQueueEntryJSONType(unknownEntry.Type) {
-				q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
-				if err != nil {
-					return stacktrace.Propagate(err, "")
-				}
-				success = true
-				break
-			}
-		}
-
-		if !success {
+		if !ok {
 			return stacktrace.NewError("unknown media queue entry type %s in persisted queue", unknownEntry.Type)
+		}
+
+		q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
+		if err != nil {
+			return stacktrace.Propagate(err, "")
 		}
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))

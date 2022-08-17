@@ -80,8 +80,3 @@ func (s *TrackProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (
 	}
 	return v, nil
 }
-
-// TODO remove this once simplified
-func (s *TrackProvider) CanUnmarshalQueueEntryJSONType(t string) bool {
-	return t == "soundcloud-track" || t == string(types.MediaTypeSoundCloudTrack)
-}
