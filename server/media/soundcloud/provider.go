@@ -138,6 +138,14 @@ func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	}
 
 	trackDuration := parseSoundCloudDuration(preInfo.response.Duration)
+	if trackDuration == 0 {
+		// work around incorrect metadata on some tracks
+		// e.g. https://soundcloud.com/rojasonthebeat/look-at-me-ft-xxxtentacion
+		trackDuration = parseSoundCloudDuration(preInfo.response.FullDuration)
+	}
+	if trackDuration == 0 {
+		return nil, media.EnqueueRequestCreationFailedMediumIsNotEmbeddable, nil
+	}
 
 	if endOffsetDuration == 0 || endOffsetDuration > trackDuration {
 		endOffsetDuration = trackDuration
@@ -230,6 +238,7 @@ func (s *TrackProvider) checkSoundCloudTrackContentDuplication(ctx *transaction.
 type APIResponse struct {
 	ArtworkURL        string               `json:"artwork_url"`
 	Duration          int64                `json:"duration"`
+	FullDuration      int64                `json:"full_duration"`
 	EmbeddableBy      string               `json:"embeddable_by"`
 	Kind              string               `json:"kind"`
 	ID                int64                `json:"id"`

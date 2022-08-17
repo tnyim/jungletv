@@ -230,6 +230,9 @@ func (s *grpcServer) SoundCloudTrackDetails(ctx context.Context, r *proto.SoundC
 	if response.Kind != "track" {
 		return nil, status.Error(codes.NotFound, "track not found")
 	}
+	if response.Duration == 0 {
+		response.Duration = response.FullDuration
+	}
 	return &proto.SoundCloudTrackDetailsResponse{
 		Length: durationpb.New(time.Duration(response.Duration) * time.Millisecond),
 	}, nil
