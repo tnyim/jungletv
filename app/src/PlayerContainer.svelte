@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { beforeUpdate, onDestroy } from "svelte";
+    import { BroadcastChannel } from "broadcast-channel";
+    import { beforeUpdate, onDestroy, onMount } from "svelte";
     import watchMedia from "svelte-media";
     import { navigate } from "svelte-navigator";
     import Player from "./Player.svelte";
@@ -12,7 +13,7 @@
 
     let windowInnerHeight = 0;
 
-    let playerOpen = true;
+    let playerOpen = false;
     let wasFullSize = false;
     beforeUpdate(() => {
         wasFullSize = fullSize;
@@ -121,10 +122,41 @@
         }
     }
 
+    const playerPingMessage = "player ping";
+    const playerPongMessage = "player pong";
+    type playerPresenceMessage = "player ping" | "player pong";
+    const playerPresenceBroadcastChannel = new BroadcastChannel<playerPresenceMessage>("playerPresence");
+    let playerCheckTimeout: number;
+
+    function onBroadcastChannelMessage(e: playerPresenceMessage) {
+        if (e === playerPingMessage && playerOpen) {
+            playerPresenceBroadcastChannel.postMessage(playerPongMessage);
+        } else if (e === playerPongMessage && typeof playerCheckTimeout !== "undefined") {
+            clearTimeout(playerCheckTimeout);
+            playerCheckTimeout = undefined;
+        }
+    }
+
     let rAddress = null;
     const rewardAddressUnsubscribe = rewardAddress.subscribe((a) => (rAddress = a));
     onDestroy(rewardAddressUnsubscribe);
+
+    onMount(() => {
+        playerPresenceBroadcastChannel.addEventListener("message", onBroadcastChannelMessage);
+        playerPresenceBroadcastChannel.postMessage(playerPingMessage);
+        playerCheckTimeout = setTimeout(() => {
+            playerOpen = true;
+        }, 500);
+    });
+    onDestroy(() => {
+        if (typeof playerCheckTimeout !== "undefined") {
+            clearTimeout(playerCheckTimeout);
+        }
+        playerPresenceBroadcastChannel.removeEventListener("message", onBroadcastChannelMessage);
+        playerPresenceBroadcastChannel.close();
+    });
 </script>
+
 <svelte:window bind:innerHeight={windowInnerHeight} />
 <div
     class="{playerOpen ? '' : 'hidden'} player-minimized bg-black text-white z-30 player-container"

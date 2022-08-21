@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { BroadcastChannel } from "broadcast-channel";
 	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 	import { DateTime } from "luxon";
 	import { afterUpdate, onMount } from "svelte";
@@ -98,16 +99,13 @@
 		}
 		refreshOnLineStatus();
 
-		// safari doesn't support BroadcastChannel and a try-catch is an easy way to "solve" the problem
-		try {
-			const darkModeBroadcastChannel = new BroadcastChannel("darkMode");
-			darkMode.subscribe((newSetting) => {
-				darkModeBroadcastChannel.postMessage(newSetting);
-			});
-			darkModeBroadcastChannel.addEventListener("message", (e) => {
-				$darkMode = e.data;
-			});
-		} catch {}
+		const darkModeBroadcastChannel = new BroadcastChannel<boolean>("darkMode");
+		darkMode.subscribe((newSetting) => {
+			darkModeBroadcastChannel.postMessage(newSetting);
+		});
+		darkModeBroadcastChannel.addEventListener("message", (e) => {
+			$darkMode = e;
+		});
 
 		setInterval(() => {
 			rootInsideShadowRoot.querySelectorAll(".markdown-timestamp.relative").forEach((e) => {

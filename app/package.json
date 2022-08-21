@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.3.0",
     "@tsconfig/svelte": "^1.0.0",
@@ -44,6 +44,7 @@
     "@lezer/highlight": "^1.0.0",
     "@types/google-protobuf": "^3.15.2",
     "@types/marked": "^4.0.2",
+    "broadcast-channel": "^4.14.0",
     "codemirror": "^6.0.0",
     "country-flag-emoji-polyfill": "^0.1.1",
     "emoji-picker-element": "^1.8.1",
