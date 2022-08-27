@@ -148,7 +148,7 @@ func computeRaffleDrawing(ctxCtx context.Context, drawing *types.RaffleDrawing, 
 }
 
 func computeRaffleHashAndProof(plaintext string, secretKey *ecdsa.PrivateKey) (string, []byte, string, error) {
-	hash, proof, err := ecvrf.NewSecp256k1Sha256Tai().Prove(secretKey, []byte(plaintext))
+	hash, proof, err := ecvrf.Secp256k1Sha256Tai.Prove(secretKey, []byte(plaintext))
 	if err != nil {
 		return "", []byte{}, "", stacktrace.Propagate(err, "")
 	}

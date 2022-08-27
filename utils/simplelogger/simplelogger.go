@@ -14,7 +14,11 @@ type SimpleLogger struct {
 func New(l *log.Logger, debug bool) *SimpleLogger {
 	return &SimpleLogger{l, debug}
 }
-
+func (l *SimpleLogger) Trace(args ...interface{}) {
+	if l.debug {
+		l.Println("[TRACE]", args)
+	}
+}
 func (l *SimpleLogger) Debug(args ...interface{}) {
 	if l.debug {
 		l.Println("[DEBUG]", args)
@@ -37,6 +41,11 @@ func (l *SimpleLogger) Panic(args ...interface{}) {
 	panic(fmt.Sprintln("[PANIC]", args))
 }
 
+func (l *SimpleLogger) Tracef(format string, args ...interface{}) {
+	if l.debug {
+		l.Printf("[TRACE] "+format, args)
+	}
+}
 func (l *SimpleLogger) Debugf(format string, args ...interface{}) {
 	if l.debug {
 		l.Printf("[DEBUG] "+format, args)
