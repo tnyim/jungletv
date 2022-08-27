@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
-    import { fly } from "svelte/transition";
-    import type { ActivityChallenge } from "./proto/jungletv_pb";
     import { onMount } from "svelte";
-    import { modal } from "./stores";
+    import { fly } from "svelte/transition";
+    import { apiClient } from "./api_client";
+    import type { ActivityChallenge } from "./proto/jungletv_pb";
     import Segcha from "./Segcha.svelte";
+    import { modal } from "./stores";
+    import { checkShadowRootIntegrity } from "./utils";
 
     export let activityChallenge: ActivityChallenge;
     export let challengesDone: number;
@@ -13,108 +14,6 @@
     let trusted = false;
     let top = 0;
     let container: HTMLElement;
-
-    function checkShadowRootIntegrity(): boolean {
-        "use strict";
-        let rootNode = container.getRootNode() as ShadowRoot;
-
-        let valuesThatMustBeTrue = [
-            () => rootNode.mode === "closed",
-            () => typeof Object.getOwnPropertyDescriptor(rootNode, "mode") === "undefined",
-            () => typeof Function.prototype.toString.prototype === "undefined",
-            () => Function.prototype.toString.toString().startsWith("function toString"),
-            () => Function.prototype.toString.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () => Node.prototype.getRootNode.toString === Function.prototype.toString,
-            () => Node.prototype.getRootNode.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () => typeof Object.getOwnPropertyDescriptor.prototype === "undefined",
-            () => Object.getOwnPropertyDescriptor.toString().startsWith("function getOwnPropertyDescriptor"),
-            () => typeof Node.prototype.getRootNode.prototype === "undefined",
-            () => Node.prototype.getRootNode.toString().startsWith("function getRootNode"),
-            () => Object.getOwnPropertyDescriptor.toString === Function.prototype.toString,
-            () => Object.getOwnPropertyDescriptor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () =>
-                Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode")
-                    .get.toString()
-                    .replace(/\s+/g, "")
-                    .indexOf("[nativecode]") >= 0,
-            () => typeof Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "mode").get == "function",
-            () => function getOwnPropertyDescriptor(a, b) {}.toString().replace(/\s+/g, "").indexOf("[nativecode]") < 0,
-            () => document.body.attachShadow === Element.prototype.attachShadow,
-            () => Element.prototype.attachShadow.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () => Element.prototype.attachShadow.toString().startsWith("function attachShadow"),
-            () => Element.prototype.attachShadow.toString === Function.prototype.toString,
-            () => typeof Element.prototype.attachShadow.prototype === "undefined",
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof Object.getOwnPropertyDescriptor(window.speechSynthesis, "getVoices") === "undefined",
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.getVoices.toString === Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                window.speechSynthesis.getVoices.toString === Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof Object.getOwnPropertyDescriptor(window.speechSynthesis, "speak") === "undefined",
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.speak.toString === Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                window.speechSynthesis.speak.toString === Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                SpeechSynthesisUtterance.prototype.constructor.toString == Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.getVoices.toString().startsWith("function getVoices"),
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.speak.toString().startsWith("function speak"),
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesisUtterance.prototype.constructor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >=
-                    0,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.getVoices.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                typeof SpeechSynthesis === "undefined" ||
-                SpeechSynthesis.prototype.speak.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                SpeechSynthesisUtterance.constructor.toString().replace(/\s+/g, "").indexOf("[nativecode]") >= 0,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                SpeechSynthesisUtterance.constructor.toString === Function.prototype.toString,
-            () =>
-                typeof window.speechSynthesis === "undefined" ||
-                SpeechSynthesisUtterance.constructor.toString().startsWith("function Function"),
-        ];
-
-        // shuffle array so checks are not always carried out in the same order
-        // avoid calling out to Math.random so we have one less function to check, the quality of this randomness doesn't need to be good
-        let id = activityChallenge.getId();
-        let j = 0;
-        for (let i = valuesThatMustBeTrue.length - 1; i > 0; i--) {
-            j = (id.charCodeAt(i % id.length) * 3405983 + j) % valuesThatMustBeTrue.length;
-            [valuesThatMustBeTrue[i], valuesThatMustBeTrue[j]] = [valuesThatMustBeTrue[j], valuesThatMustBeTrue[i]];
-        }
-
-        for (let f of valuesThatMustBeTrue) {
-            if (!f()) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     async function submitChallenge(captchaResponse: string) {
         try {
@@ -154,7 +53,7 @@
         trusted =
             event.isTrusted &&
             !document.hidden &&
-            checkShadowRootIntegrity() &&
+            checkShadowRootIntegrity(container, activityChallenge.getId()) &&
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
         if (activityChallenge.getType() == "segcha") {
             await executeSegcha();

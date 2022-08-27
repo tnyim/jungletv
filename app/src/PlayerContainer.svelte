@@ -14,6 +14,7 @@
     let windowInnerHeight = 0;
 
     let playerOpen = false;
+    let playerWasClosedManuallyOnce = false;
     let wasFullSize = false;
     beforeUpdate(() => {
         wasFullSize = fullSize;
@@ -89,6 +90,7 @@
     function closePlayer() {
         if (!fullSize) {
             playerOpen = false;
+            playerWasClosedManuallyOnce = true;
         }
     }
 
@@ -145,7 +147,9 @@
         playerPresenceBroadcastChannel.addEventListener("message", onBroadcastChannelMessage);
         playerPresenceBroadcastChannel.postMessage(playerPingMessage);
         playerCheckTimeout = setTimeout(() => {
-            playerOpen = true;
+            if (!playerWasClosedManuallyOnce) {
+                playerOpen = true;
+            }
         }, 500);
     });
     onDestroy(() => {
