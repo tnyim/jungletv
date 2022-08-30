@@ -9,6 +9,7 @@
     <img
         alt="{ticket.getYoutubeVideoData().getTitle()} thumbnail"
         src={ticket.getYoutubeVideoData().getThumbnailUrl()}
+        style="width: 120px; height: 90px"
     />
     <div class="thumbnail-length-overlay text-white relative pr-2">
         <div

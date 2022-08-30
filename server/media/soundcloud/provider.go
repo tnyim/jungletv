@@ -264,6 +264,11 @@ type APIUser struct {
 }
 
 func (c *TrackProvider) TrackInfo(trackURL string) (*APIResponse, error) {
+	var err error
+	trackURL, err = c.resolvePermalink(trackURL)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	query := url.Values{}
 	query.Set("url", trackURL)
 	query.Set("format", "json")
@@ -290,6 +295,25 @@ func (c *TrackProvider) TrackInfo(trackURL string) (*APIResponse, error) {
 	}
 
 	return &responseData, nil
+}
+
+func (c *TrackProvider) resolvePermalink(trackURLString string) (string, error) {
+	url, err := url.Parse(trackURLString)
+	if err != nil {
+		// let it go just in case the soundcloud API can actually resolve this despite us not being able to parse it
+		return trackURLString, nil
+	}
+	if url.Host != "soundcloud.app.goo.gl" {
+		// let the SoundCloud API deal with it
+		return trackURLString, nil
+	}
+
+	resp, err := c.httpClient.Head(trackURLString)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	// The Request in the Response is the last URL the client tried to access.
+	return resp.Request.URL.String(), nil
 }
 
 func parseSoundCloudDuration(duration int64) time.Duration {

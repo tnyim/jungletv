@@ -546,6 +546,13 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
                 selectionKind: "track",
                 type: "sc_track",
             };
+        } else if (url.host == "soundcloud.app.goo.gl" && url.pathname != "") {
+            return {
+                valid: true,
+                trackURL: url.toString(),
+                selectionKind: "track",
+                type: "sc_track",
+            };
         }
     } catch { }
     return {
