@@ -534,11 +534,15 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
                     type: "yt_video",
                 };
             }
-        } else if (url.host == "soundcloud.com") {
+        } else if (/^(m\.){0,1}soundcloud.com$/.test(url.host)) {
+            // replace mobile soundcloud links with regular ones (essentially strip the m. from the URL) since the API can't resolve mobile ones
+            if(url.host !== "soundcloud.com") {
+                url.host = "soundcloud.com";
+            }
             // TODO do some more sanity checking
             return {
                 valid: true,
-                trackURL: urlString,
+                trackURL: url.toString(),
                 selectionKind: "track",
                 type: "sc_track",
             };
