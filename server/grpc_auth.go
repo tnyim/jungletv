@@ -94,6 +94,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		return stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_AccountUnopened{AccountUnopened: &proto.SignInAccountUnopened{}}})
 	}
 	sendCompleted := func() error {
+		s.log.Println(r.RewardsAddress, "completed SignIn process with remote address", remoteAddress)
 		return stream.Send(&proto.SignInProgress{
 			Step: &proto.SignInProgress_Response{
 				Response: &proto.SignInResponse{
