@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
     import { createEventDispatcher } from "svelte";
+    import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
-    import Wizard from "./Wizard.svelte";
     import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";
+    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -56,11 +56,12 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            At the end of every video, the amount paid to enqueue the video is distributed evenly among eligible users.
+            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible
+            users.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Some videos have e.g. regional restrictions and may not display for you. You will still be rewarded as long
-            as you keep the JungleTV page open throughout the duration of the video.
+            Some content has e.g. regional restrictions and may not display for you. You will still be rewarded as long
+            as you keep the JungleTV page open throughout the duration of the queue entry.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Fraud prevention measures apply.</p>
     </div>
