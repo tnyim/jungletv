@@ -698,18 +698,6 @@ export const checkShadowRootIntegrity = function (container: HTMLElement, randSo
             } catch { }
             return !flag;
         },
-        () => {
-            if ((window as any).chrome) {
-                return "app" in (window as any).chrome;
-            }
-            return true;
-        },
-        () => {
-            if ((window as any).chrome) {
-                return (navigator as any).plugins.length > 0;
-            }
-            return true;
-        }
     ];
 
     // shuffle array so checks are not always carried out in the same order
