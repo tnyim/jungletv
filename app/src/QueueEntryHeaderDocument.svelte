@@ -41,7 +41,7 @@
     <p class="text-xs whitespace-nowrap">
         {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
             Enqueued by <img
-                src={buildMonKeyURL(entry.getRequestedBy().getAddress(), "png")}
+                src={buildMonKeyURL(entry.getRequestedBy().getAddress())}
                 alt="&nbsp;"
                 class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
             />

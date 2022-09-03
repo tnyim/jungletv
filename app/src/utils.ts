@@ -391,11 +391,10 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
     ]));
 }
 
-export const buildMonKeyURL = function (address: string, format?: string): string {
-    if (typeof format !== "undefined") {
-        return "https://monkey.banano.cc/api/v1/monkey/" + address + "?format=" + format;
-    }
-    return "https://monkey.banano.cc/api/v1/monkey/" + address;
+var windowHostOrigin = (new URL(window.origin)).host;
+
+export const buildMonKeyURL = function (address: string): string {
+    return `https://monkey.banano.cc/api/v1/monkey/${address}?svc=${windowHostOrigin}&utm_source=${windowHostOrigin}`;
 }
 
 export type MediaSelectionKind = "video" | "track" | "document";

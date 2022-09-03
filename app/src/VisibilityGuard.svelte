@@ -1,6 +1,8 @@
 <script>
     import { onMount } from "svelte";
 
+    export let divClass = "";
+
     let el = null;
 
     let visible = false;
@@ -17,6 +19,6 @@
     });
 </script>
 
-<div bind:this={el}>
+<div bind:this={el} class={divClass}>
     <slot {visible} {hasBeenVisible} />
 </div>

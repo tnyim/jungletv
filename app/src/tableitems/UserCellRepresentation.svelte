@@ -16,7 +16,7 @@
 </script>
 
 <span on:click={openProfile} class="cursor-pointer">
-    <img src={buildMonKeyURL(user.getAddress(), "png")} alt="&nbsp;" title="" class="inline h-7 -ml-1 -mt-4 -mb-3" />
+    <img src={buildMonKeyURL(user.getAddress())} alt="&nbsp;" title="" class="inline h-7 -ml-1 -mt-4 -mb-3" />
     {#if user.hasNickname()}
         <span class="mr-4 text-sm font-semibold">{user.getNickname()}</span>
     {:else}

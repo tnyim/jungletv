@@ -85,7 +85,7 @@
         {#if media.hasRequestedBy()}
             <span on:click={openProfile} class="cursor-pointer">
                 <img
-                    src={buildMonKeyURL(media.getRequestedBy().getAddress(), "png")}
+                    src={buildMonKeyURL(media.getRequestedBy().getAddress())}
                     alt="&nbsp;"
                     title=""
                     class="inline h-7 -ml-1 -mt-4 -mb-3"

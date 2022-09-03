@@ -9,6 +9,7 @@
     <img
         alt="{ticket.getSoundcloudTrackData().getTitle()} thumbnail"
         src={ticket.getSoundcloudTrackData().getThumbnailUrl()}
+        style="width: 90px; height: 90px"
     />
     <div class="thumbnail-length-overlay text-white relative pr-2">
         <div

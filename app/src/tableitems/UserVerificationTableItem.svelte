@@ -54,7 +54,7 @@
         on:click={() => openUserProfile(verification.getAddress())}
     >
         <img
-            src={buildMonKeyURL(verification.getAddress(), "png")}
+            src={buildMonKeyURL(verification.getAddress())}
             alt="&nbsp;"
             title=""
             class="inline h-7 -ml-1 -mt-4 -mb-3"

@@ -9,6 +9,7 @@
     import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
     import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
     import { buildMonKeyURL, parseUserMessageMarkdown } from "./utils";
+    import VisibilityGuard from "./VisibilityGuard.svelte";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;
@@ -118,13 +119,19 @@
                 }
             }}
         >
-            <img
-                src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress(), "png")}
-                alt="&nbsp;"
-                title="Click to reply"
-                class="inline h-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                on:click={() => dispatch("reply")}
-            />
+            <VisibilityGuard let:visible divClass="inline">
+                {#if visible}
+                    <img
+                        src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress())}
+                        alt="&nbsp;"
+                        title="Click to reply"
+                        class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
+                        on:click={() => dispatch("reply")}
+                    />
+                {:else}
+                    <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
+                {/if}
+            </VisibilityGuard>
             <span
                 class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
                 title="Click to reply"

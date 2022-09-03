@@ -114,7 +114,7 @@
                             on:click={() => navigate("/rewards")}
                         >
                             <img
-                                src={buildMonKeyURL(rAddress, "png")}
+                                src={buildMonKeyURL(rAddress)}
                                 alt="&nbsp;"
                                 title="MonKey for your address"
                                 class="h-9"
