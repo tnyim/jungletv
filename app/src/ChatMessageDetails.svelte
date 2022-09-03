@@ -64,7 +64,7 @@
                 src={buildMonKeyURL(msg.getUserMessage().getAuthor().getAddress())}
                 alt="&nbsp;"
                 title="monKey for this user's address"
-                class="h-20"
+                class="h-20 w-20"
             />
             <div class="flex-grow overflow-x-hidden">
                 {#if msg.getUserMessage().getAuthor().hasNickname()}

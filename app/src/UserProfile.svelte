@@ -137,7 +137,7 @@
 <div class="flex flex-col justify-center bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded-t-lg">
     <div class="flex flex-row p-2 pr-12 overflow-x-hidden">
         <div class="relative h-28">
-            <img src={buildMonKeyURL(userAddress)} alt="&nbsp;" title="monKey for this user's address" class="h-28" />
+            <img src={buildMonKeyURL(userAddress)} alt="&nbsp;" title="monKey for this user's address" class="h-28 w-28" />
             <div class="absolute bottom-1 right-1/4">
                 {#if userStatus == UserStatus.USER_STATUS_OFFLINE}
                     <i class="fas fa-dot-circle text-gray-600 dark:text-gray-500" title="Disconnected" />

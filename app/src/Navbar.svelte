@@ -117,7 +117,7 @@
                                 src={buildMonKeyURL(rAddress)}
                                 alt="&nbsp;"
                                 title="MonKey for your address"
-                                class="h-9"
+                                class="h-9 w-9"
                                 style="margin-top: -3px;"
                             />
                             <div class="flex flex-col">

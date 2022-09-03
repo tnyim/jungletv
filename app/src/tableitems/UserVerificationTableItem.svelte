@@ -57,7 +57,7 @@
             src={buildMonKeyURL(verification.getAddress())}
             alt="&nbsp;"
             title=""
-            class="inline h-7 -ml-1 -mt-4 -mb-3"
+            class="inline h-7 w-7 -ml-1 -mt-4 -mb-3"
         />
         <span class="font-mono">{verification.getAddress().substr(0, 14)} </span>
     </td>

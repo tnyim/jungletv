@@ -62,7 +62,7 @@
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pb-4 pt-1 text-gray-700 dark:text-white font-mono cursor-pointer"
         on:click={() => openUserProfile(ban.getAddress())}
     >
-        <img src={buildMonKeyURL(ban.getAddress())} alt="&nbsp;" title="" class="inline h-7 -ml-1 -mt-4 -mb-3" />
+        <img src={buildMonKeyURL(ban.getAddress())} alt="&nbsp;" title="" class="inline h-7 w-7 -ml-1 -mt-4 -mb-3" />
         <span class="font-mono">{ban.getAddress().substring(0, 14)} </span>
     </td>
     <td

@@ -146,7 +146,7 @@
                 src={buildMonKeyURL(requestedBy.getAddress())}
                 alt="&nbsp;"
                 title="monKey for this user's address"
-                class="h-20"
+                class="h-20 w-20"
             />
             <div class="flex-grow">
                 {#if requestedBy.hasNickname()}
