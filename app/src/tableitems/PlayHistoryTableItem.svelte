@@ -4,7 +4,8 @@
     import { apiClient } from "../api_client";
     import { openUserProfile } from "../profile_utils";
     import { PlayedMedia } from "../proto/jungletv_pb";
-    import { buildMonKeyURL, formatQueueEntryThumbnailDuration } from "../utils";
+    import { formatQueueEntryThumbnailDuration } from "../utils";
+    import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let media: PlayedMedia;
 
@@ -83,19 +84,7 @@
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
         {#if media.hasRequestedBy()}
-            <span on:click={openProfile} class="cursor-pointer">
-                <img
-                    src={buildMonKeyURL(media.getRequestedBy().getAddress())}
-                    alt="&nbsp;"
-                    title=""
-                    class="inline h-7 -ml-1 -mt-4 -mb-3"
-                />
-                {#if media.getRequestedBy().hasNickname()}
-                    <span class="mr-4 text-sm font-semibold">{media.getRequestedBy().getNickname()}</span>
-                {:else}
-                    <span class="mr-4 text-xs font-mono">{media.getRequestedBy().getAddress().substring(0, 14)}</span>
-                {/if}
-            </span>
+            <UserCellRepresentation user={media.getRequestedBy()} />
         {:else}
             <span class="text-xs">JungleTV</span>
         {/if}
