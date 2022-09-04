@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import type { SignInProgress, SignInVerification } from "./proto/jungletv_pb";
     import { DateTime } from "luxon";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import AddressBox from "./AddressBox.svelte";
-    import Wizard from "./Wizard.svelte";
+    import type { SignInVerification } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
+    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -33,6 +33,7 @@
     function gbmRepChange() {
         (window as any).banano.request_rep_change(verification.getVerificationRepresentativeAddress());
     }
+    $: windowAsAny = window as any;
 </script>
 
 <Wizard>
@@ -74,10 +75,12 @@
             > This is a temporary representative change that we will instruct you to undo immediately after verification
             is complete.
         </p>
-        {#if (window as any).banano}
+        {#if windowAsAny.banano}
             <p class="mt-2">
-                Click
-                <a on:click={gbmRepChange}>here</a> to change rep with GoBanMe. To do this, make sure the address provided in the previous step is the same as the one on GoBanMe.
+                If the address you provided is the same as your GoBanMe address, you can <a
+                    href={"#"}
+                    on:click={gbmRepChange}>change representative with GoBanMe</a
+                >.
             </p>
         {/if}
         <p class="mt-2">
