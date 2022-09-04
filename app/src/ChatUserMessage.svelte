@@ -135,6 +135,7 @@
             <span
                 class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
                 title="Click to reply"
+                data-rewards-address="{message.getUserMessage().getAuthor().getAddress()}"
                 on:click={() => dispatch("reply")}>{getReadableMessageAuthor(message)}</span
             >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
                 <i
