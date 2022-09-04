@@ -24,7 +24,7 @@
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "svelte": "^3.0.0",
+    "svelte": "=3.49.0",
     "svelte-loading-spinners": "^0.1.7",
     "svelte-media": "^0.1.4",
     "svelte-toggle": "^3.0.0",
