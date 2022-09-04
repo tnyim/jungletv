@@ -31,7 +31,7 @@
     }
 
     function gbmRepChange() {
-        window.banano.request_rep_change(verification.getVerificationRepresentativeAddress());
+        (window as any).banano.request_rep_change(verification.getVerificationRepresentativeAddress());
     }
 </script>
 
@@ -74,7 +74,7 @@
             > This is a temporary representative change that we will instruct you to undo immediately after verification
             is complete.
         </p>
-        {#if window.banano}
+        {#if (window as any).banano}
             <p class="mt-2">
                 Click
                 <a on:click={gbmRepChange}>here</a> to change rep with GoBanMe. To do this, make sure the address provided in the previous step is the same as the one on GoBanMe.
