@@ -7,7 +7,7 @@ import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
-import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, User } from "./proto/jungletv_pb";
+import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails, User } from "./proto/jungletv_pb";
 import { permissionLevel, playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
@@ -535,7 +535,7 @@ export const parseURLForMediaSelection = function (urlString: string): MediaSele
             }
         } else if (/^(m\.){0,1}soundcloud.com$/.test(url.host)) {
             // replace mobile soundcloud links with regular ones (essentially strip the m. from the URL) since the API can't resolve mobile ones
-            if(url.host !== "soundcloud.com") {
+            if (url.host !== "soundcloud.com") {
                 url.host = "soundcloud.com";
             }
             // TODO do some more sanity checking
@@ -714,4 +714,9 @@ export const checkShadowRootIntegrity = function (container: HTMLElement, randSo
         }
     }
     return true;
+}
+
+export const isSubscriptionAboutToExpire = function (subscription: SubscriptionDetails): boolean {
+    return subscription != null &&
+        DateTime.fromJSDate(subscription.getSubscribedUntil().toDate()).diffNow().as("days") < 7;
 }

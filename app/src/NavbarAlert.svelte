@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import { badRepresentative, rewardReceived } from "./stores";
-    import { fade, fly } from "svelte/transition";
     import { onDestroy } from "svelte";
     import watchMedia from "svelte-media";
+    import { link } from "svelte-navigator";
+    import { apiClient } from "./api_client";
+    import NavbarAlertFlyer from "./NavbarAlertFlyer.svelte";
+    import { badRepresentative, currentSubscription, rewardReceived } from "./stores";
+    import { isSubscriptionAboutToExpire } from "./utils";
 
     const media = watchMedia({
         large: "(min-width: 1500px)",
@@ -15,48 +16,68 @@
         largeScreen = obj.large;
     });
 
-    let hideRewardTimeout: number;
-
     export let hasAlert = false;
-    $: hasAlert = $badRepresentative || lastReward != "";
+    $: hasAlert = $badRepresentative || lastReward != "" || showSubExpirationWarning;
 
     let lastReward = "";
 
     const rewardReceivedUnsubscribe = rewardReceived.subscribe((reward) => {
-        clearTimeout(hideRewardTimeout);
         if (reward != "") {
             lastReward = reward;
         }
-        hideRewardTimeout = setTimeout(() => {
-            lastReward = "";
-            hideRewardTimeout = undefined;
-        }, 7000);
     });
 
     onDestroy(() => {
-        if (hideRewardTimeout !== undefined) {
-            clearTimeout(hideRewardTimeout);
-            hideRewardTimeout = undefined;
-        }
         mediaUnsubscribe();
         rewardReceivedUnsubscribe();
     });
+
+    let showSubExpirationWarning = false;
+    let shownSubExpireWarning = false;
+    $: {
+        let aboutToExpire = isSubscriptionAboutToExpire($currentSubscription);
+        if(!aboutToExpire) {
+            showSubExpirationWarning = false;
+            shownSubExpireWarning = false;
+        } else if (!shownSubExpireWarning) {
+            showSubExpirationWarning = aboutToExpire;
+            if (showSubExpirationWarning) {
+                shownSubExpireWarning = true;
+            }
+        }
+    }
 </script>
 
 {#if lastReward !== ""}
-    <span
-        class="text-sm text-gray-700 bg-yellow-200 ml-5 p-1 rounded h-7 self-center"
-        in:fly={{ x: 200, duration: 1000 }}
-        out:fade
+    <NavbarAlertFlyer
+        classes="text-gray-700 bg-yellow-200"
+        duration={7000}
+        on:done={() => {
+            lastReward = "";
+        }}
     >
         Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
-    </span>
-{:else if $badRepresentative}
-    <span
-        class="text-sm text-gray-700 bg-gray-200 ml-5 p-1 rounded self-center"
-        in:fly={{ x: 200, duration: 1000 }}
-        out:fade
+    </NavbarAlertFlyer>
+{:else if showSubExpirationWarning}
+    <NavbarAlertFlyer
+        classes="text-gray-700 bg-gray-200"
+        duration={10000}
+        on:done={() => {
+            showSubExpirationWarning = false;
+        }}
     >
+        {#if largeScreen}
+            Your <span class="font-semibold text-green-500">Nice</span>
+            subscription is about to expire.
+            <a class="font-semibold text-blue-600" href="/points#nice" use:link>Renew</a>
+        {:else}
+            <a class="font-semibold text-blue-600" href="/points#nice" use:link>Renew</a> your
+            <span class="font-semibold text-green-500">Nice</span>
+            subscription
+        {/if}
+    </NavbarAlertFlyer>
+{:else if $badRepresentative}
+    <NavbarAlertFlyer classes="text-gray-700 bg-gray-200">
         {#if largeScreen}
             Switch your Banano address to a good representative!
             <a class="font-semibold" href="/documents/badrepresentativehelp" use:link>More information</a>
@@ -64,5 +85,5 @@
             Switch representatives!<br />
             <a class="font-semibold" href="/documents/badrepresentativehelp" use:link>More information</a>
         {/if}
-    </span>
+    </NavbarAlertFlyer>
 {/if}

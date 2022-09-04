@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { navigate, link } from "svelte-navigator";
     import { Moon } from "svelte-loading-spinners";
+    import { link, navigate } from "svelte-navigator";
     import AccountConnections from "./AccountConnections.svelte";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
@@ -19,9 +19,9 @@
     import SuccessMessage from "./SuccessMessage.svelte";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
+    import { isSubscriptionAboutToExpire } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
     import Wizard from "./Wizard.svelte";
-    import { DateTime } from "luxon";
 
     let pendingWithdrawal = false;
     let withdrawalPositionInQueue = 0;
@@ -101,26 +101,24 @@
         return response;
     }
 
-    $: currentSubAboutToExpire =
-        $currentSubscription != null &&
-        DateTime.fromJSDate($currentSubscription.getSubscribedUntil().toDate()).diffNow().as("days") < 7;
+    $: currentSubAboutToExpire = isSubscriptionAboutToExpire($currentSubscription);
 </script>
 
 <Wizard>
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible users.
-            To minimize the number of Banano transactions caused by JungleTV, rewards are added to a balance before they
-            are sent to you. You can wait for an automated withdrawal or withdraw manually at any time.
+            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible
+            users. To minimize the number of Banano transactions caused by JungleTV, rewards are added to a balance
+            before they are sent to you. You can wait for an automated withdrawal or withdraw manually at any time.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Some content has e.g. regional restrictions and may not display for you. You will still be rewarded as long
             as you keep the JungleTV page open throughout the duration of the queue entry.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            If you have watched multiple pieces of content and have not received a reward, please confirm that you are not using a
-            VPN or proxy and that you did not violate the <a use:link href="/guidelines">Guidelines</a>.
+            If you have watched multiple pieces of content and have not received a reward, please confirm that you are
+            not using a VPN or proxy and that you did not violate the <a use:link href="/guidelines">Guidelines</a>.
         </p>
     </div>
     <div slot="main-content">
