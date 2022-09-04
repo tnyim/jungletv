@@ -29,6 +29,10 @@
     function cancel() {
         dispatch("userCanceled");
     }
+
+    function gbmRepChange() {
+        (window as any).banano.request_rep_change(verification.getVerificationRepresentativeAddress());
+    }
 </script>
 
 <Wizard>
@@ -70,6 +74,12 @@
             > This is a temporary representative change that we will instruct you to undo immediately after verification
             is complete.
         </p>
+        {#if (window as any).banano}
+            <p class="mt-2">
+                Click
+                <a on:click={gbmRepChange}>here</a> to change rep with GoBanMe. To do this, make sure the address provided in the previous step is the same as the one on GoBanMe.
+            </p>
+        {/if}
         <p class="mt-2">
             If in doubt, please ask for help in the
             <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a> (not affiliated with JungleTV).
