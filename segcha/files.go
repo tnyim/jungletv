@@ -12,10 +12,14 @@ import (
 )
 
 type ImageDatabase struct {
-	cgiFilepaths        []string
-	photoFilepaths      []string
-	orientableFilepaths []string
-	allFilepaths        []string
+	cgiFilepaths           []string
+	photoFilepaths         []string
+	orientableFilepaths    []string
+	glassBottleFilepaths   []string
+	glassFilepaths         []string
+	unbrokenGlassFilepaths []string
+	brokenGlassFilepaths   []string
+	allFilepaths           []string
 }
 
 func NewImageDatabase(imagesFolder string) (*ImageDatabase, error) {
@@ -38,6 +42,17 @@ func NewImageDatabase(imagesFolder string) (*ImageDatabase, error) {
 				if strings.Contains(info.Name(), "[orientable]") {
 					db.orientableFilepaths = append(db.orientableFilepaths, path)
 				}
+				if strings.Contains(info.Name(), "[glassbottle]") {
+					db.glassBottleFilepaths = append(db.glassBottleFilepaths, path)
+					db.unbrokenGlassFilepaths = append(db.unbrokenGlassFilepaths, path)
+				}
+				if strings.Contains(info.Name(), "[glass]") {
+					db.glassFilepaths = append(db.glassFilepaths, path)
+					db.unbrokenGlassFilepaths = append(db.unbrokenGlassFilepaths, path)
+				}
+				if strings.Contains(info.Name(), "[brokenglass]") {
+					db.brokenGlassFilepaths = append(db.brokenGlassFilepaths, path)
+				}
 				db.allFilepaths = append(db.allFilepaths, path)
 			}
 			return nil
@@ -58,6 +73,22 @@ func (i *ImageDatabase) GetPhotoPicture(rng *rand.Rand) (image.Image, error) {
 
 func (i *ImageDatabase) GetOrientablePicture(rng *rand.Rand) (image.Image, error) {
 	return i.pick(rng, i.orientableFilepaths)
+}
+
+func (i *ImageDatabase) GetGlassBottlePicture(rng *rand.Rand) (image.Image, error) {
+	return i.pick(rng, i.glassBottleFilepaths)
+}
+
+func (i *ImageDatabase) GetGlassPicture(rng *rand.Rand) (image.Image, error) {
+	return i.pick(rng, i.glassFilepaths)
+}
+
+func (i *ImageDatabase) GetUnbrokenGlassPicture(rng *rand.Rand) (image.Image, error) {
+	return i.pick(rng, i.unbrokenGlassFilepaths)
+}
+
+func (i *ImageDatabase) GetBrokenGlassPicture(rng *rand.Rand) (image.Image, error) {
+	return i.pick(rng, i.brokenGlassFilepaths)
 }
 
 func (i *ImageDatabase) GetAnyPicture(rng *rand.Rand) (image.Image, error) {

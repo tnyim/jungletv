@@ -12,6 +12,7 @@ import (
 	"math/big"
 	"math/rand"
 
+	"github.com/anthonynsimon/bild/noise"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 	"github.com/palantir/stacktrace"
@@ -95,6 +96,10 @@ const (
 	challengeTypeSelectUpright
 	challengeTypeSelectGarbage
 	challengeTypeSimpleMath
+	challengeTypeSelectUnbrokenGlass
+	challengeTypeSelectBrokenGlass
+	challengeTypeSelectGlassBottle
+	challengeTypeSelectGlassCup
 )
 
 var allChallengeTypes = []challengeType{
@@ -104,6 +109,10 @@ var allChallengeTypes = []challengeType{
 	challengeTypeSelectUpright,
 	challengeTypeSelectGarbage,
 	challengeTypeSimpleMath,
+	challengeTypeSelectUnbrokenGlass,
+	challengeTypeSelectBrokenGlass,
+	challengeTypeSelectGlassBottle,
+	challengeTypeSelectGlassCup,
 }
 
 func (c *Challenge) createStep(rng *rand.Rand) (int, image.Image, error) {
@@ -217,20 +226,27 @@ func (c *Challenge) pickFourPics(rng *rand.Rand, cType challengeType, answer int
 				return nil, "", stacktrace.Propagate(err, "")
 			}
 			if i == answer {
-				pics[i] = imaging.Resize(pics[i], 600, 1000+rand.Intn(5000), imaging.NearestNeighbor)
+				pics[i] = imaging.Resize(pics[i], 600, 1000+rng.Intn(5000), imaging.NearestNeighbor)
 				for r := 0; r < 5; r++ {
-					ov1, err := c.imageDB.GetAnyPicture(rng)
-					if err != nil {
-						return nil, "", stacktrace.Propagate(err, "")
+					var ov1 image.Image
+					if rng.Intn(4) == 0 {
+						ov1 = noise.Generate(300, 300, &noise.Options{Monochrome: false, NoiseFn: noise.Uniform})
+					} else {
+						ov1, err = c.imageDB.GetAnyPicture(rng)
+						if err != nil {
+							return nil, "", stacktrace.Propagate(err, "")
+						}
 					}
 					ov1 = imaging.Rotate(ov1, rng.Float64()*360, color.Transparent)
-					ov1 = imaging.Resize(ov1, 500+rand.Intn(150), 1000+rand.Intn(5000), imaging.NearestNeighbor)
-					if rand.Intn(2) < 1 {
+					ov1 = imaging.Resize(ov1, 500+rng.Intn(150), 1000+rng.Intn(5000), imaging.NearestNeighbor)
+					if rng.Intn(2) < 1 {
 						ov1 = imaging.Invert(imaging.Rotate(ov1, rng.Float64()*360, color.Transparent))
 					}
-					pics[i] = imaging.OverlayCenter(pics[i], ov1, 0.5)
+					imaging.AdjustSaturation(ov1, -15.0+rng.Float64()*30.0)
+					imaging.AdjustBrightness(ov1, -10.0+rng.Float64()*20.0)
+					pics[i] = imaging.OverlayCenter(pics[i], ov1, 0.5+rng.Float64()*0.15)
 				}
-				if rand.Intn(2) < 1 {
+				if rng.Intn(2) < 1 {
 					pics[i] = imaging.Invert(pics[i])
 				}
 			}
@@ -258,6 +274,58 @@ func (c *Challenge) pickFourPics(rng *rand.Rand, cType challengeType, answer int
 					wrongResult = rng.Intn(20)
 				}
 				pics[i], err = c.picForNumber(rng, wrongResult)
+			}
+			if err != nil {
+				return nil, "", stacktrace.Propagate(err, "")
+			}
+		}
+	case challengeTypeSelectUnbrokenGlass:
+		instructions = "Select the picture without broken glass."
+		for i := 0; i < 4; i++ {
+			if i == answer {
+				pics[i], err = c.imageDB.GetUnbrokenGlassPicture(rng)
+			} else {
+				pics[i], err = c.imageDB.GetBrokenGlassPicture(rng)
+			}
+			if err != nil {
+				return nil, "", stacktrace.Propagate(err, "")
+			}
+		}
+	case challengeTypeSelectBrokenGlass:
+		instructions = "Select the picture with broken glass."
+		for i := 0; i < 4; i++ {
+			if i == answer {
+				pics[i], err = c.imageDB.GetBrokenGlassPicture(rng)
+			} else {
+				pics[i], err = c.imageDB.GetUnbrokenGlassPicture(rng)
+			}
+			if err != nil {
+				return nil, "", stacktrace.Propagate(err, "")
+			}
+		}
+	case challengeTypeSelectGlassBottle:
+		instructions = "Select the unbroken glass bottle."
+		for i := 0; i < 4; i++ {
+			if i == answer {
+				pics[i], err = c.imageDB.GetGlassBottlePicture(rng)
+			} else if rng.Intn(2) < 1 {
+				pics[i], err = c.imageDB.GetGlassPicture(rng)
+			} else {
+				pics[i], err = c.imageDB.GetBrokenGlassPicture(rng)
+			}
+			if err != nil {
+				return nil, "", stacktrace.Propagate(err, "")
+			}
+		}
+	case challengeTypeSelectGlassCup:
+		instructions = "Select the unbroken glass cup."
+		for i := 0; i < 4; i++ {
+			if i == answer {
+				pics[i], err = c.imageDB.GetGlassPicture(rng)
+			} else if rng.Intn(2) < 1 {
+				pics[i], err = c.imageDB.GetGlassBottlePicture(rng)
+			} else {
+				pics[i], err = c.imageDB.GetBrokenGlassPicture(rng)
 			}
 			if err != nil {
 				return nil, "", stacktrace.Propagate(err, "")
