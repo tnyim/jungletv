@@ -36,7 +36,7 @@ func New(log *log.Logger,
 		statsRegistry:             statsRegistry,
 		minimumPricesMultiplier:   25,
 		finalPricesMultiplier:     100,
-		crowdfundedSkipMultiplier: 150, // this means crowdfunded skipping will be 1.5x as expensive as normal individual skipping
+		crowdfundedSkipMultiplier: 120, // this means crowdfunded skipping will be 1.2x as expensive as normal individual skipping
 	}
 }
 
@@ -147,15 +147,18 @@ func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable 
 	return pricing
 }
 
-func (p *Pricer) ComputeCrowdfundedSkipPricing() payment.Amount {
+func (p *Pricer) ComputeCrowdfundedSkipPricing(recentCrowdfundedSkips int) payment.Amount {
 	pricing := p.ComputeEnqueuePricing(5*time.Minute, false)
-	v := big.NewInt(0).Div(
-		big.NewInt(0).Mul(
-			pricing.PlayNowPrice.Int,
-			big.NewInt(int64(p.crowdfundedSkipMultiplier)),
-		),
-		big.NewInt(100),
+	v := big.NewInt(0).Mul(
+		pricing.PlayNowPrice.Int,
+		big.NewInt(int64(p.crowdfundedSkipMultiplier)),
 	)
+	if recentCrowdfundedSkips > 0 {
+		recentSkipMul := math.Pow(1.1, float64(recentCrowdfundedSkips)) * 10000
+		v.Mul(v, big.NewInt(int64(recentSkipMul)))
+		v.Div(v, big.NewInt(10000))
+	}
+	v.Div(v, big.NewInt(100))
 	v.Div(v, PriceRoundingFactor)
 	v.Mul(v, PriceRoundingFactor)
 	return payment.NewAmount(v)

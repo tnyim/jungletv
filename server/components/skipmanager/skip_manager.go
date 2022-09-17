@@ -11,6 +11,7 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/shopspring/decimal"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
@@ -48,6 +49,8 @@ type Manager struct {
 	statusUpdated                  *event.Event[SkipStatusUpdatedEventArgs]
 	crowdfundedSkip                *event.Event[payment.Amount]
 	crowdfundedTransactionReceived *event.Event[*types.CrowdfundedTransaction]
+
+	recentCrowdfundedSkips *cache.Cache[string, struct{}]
 }
 
 // New returns an initialized skip manager
@@ -75,6 +78,7 @@ func New(log *log.Logger,
 		rainedByRequester:              payment.NewAmount(),
 		skippingEnabled:                true,
 		crowdfundedTransactionReceived: event.New[*types.CrowdfundedTransaction](),
+		recentCrowdfundedSkips:         cache.New[string, struct{}](30*time.Minute, 15*time.Minute),
 	}
 }
 
@@ -233,6 +237,10 @@ func (s *Manager) checkBalances(ctx context.Context) error {
 	}
 	if s.cachedSkipBalance.Cmp(s.currentSkipThreshold.Int) >= 0 {
 		s.crowdfundedSkip.Notify(s.cachedSkipBalance, true)
+		// currentMediaID should never be nil at this point, but it doesn't hurt to check
+		if s.currentMediaID != nil {
+			s.recentCrowdfundedSkips.SetDefault(*s.currentMediaID, struct{}{})
+		}
 		s.mediaQueue.SkipCurrentEntry()
 	}
 
@@ -390,7 +398,7 @@ func (s *Manager) UpdateSkipThreshold() {
 	if status != proto.SkipStatus_SKIP_STATUS_ALLOWED && status != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
 		s.currentSkipThreshold = payment.NewAmount(big.NewInt(1).Exp(big.NewInt(2), big.NewInt(128), big.NewInt(0)))
 	} else {
-		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing()
+		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing(len(s.recentCrowdfundedSkips.Items()))
 	}
 	s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
 }
