@@ -53,7 +53,9 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["rid"] = rid
-	session.Options.SameSite = http.SameSiteStrictMode
+	session.Options.SameSite = http.SameSiteNoneMode
+	session.Options.Secure = true
+	session.Options.HttpOnly = true
 	err = session.Save(r, w)
 	if err != nil {
 		authLog.Println("Error saving session:", err)

@@ -49,12 +49,12 @@ func (r *Handler) durationUntilNextActivityChallenge(ctx context.Context, user a
 		}
 	}
 
-	if first {
-		if time.Since(serverStartedAt) < 2*time.Minute {
-			return 1*time.Minute + time.Duration(rand.Intn(180))*time.Second, nil
-		}
-		return 10*time.Second + time.Duration(rand.Intn(20))*time.Second, nil
-	}
+	/*if first {
+	if time.Since(serverStartedAt) < 2*time.Minute {
+		return 1*time.Minute + time.Duration(rand.Intn(180))*time.Second, nil
+	}*/
+	return 10*time.Second + time.Duration(rand.Intn(20))*time.Second, nil
+	/*}
 
 	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctx, user)
 	if err != nil {
@@ -63,7 +63,7 @@ func (r *Handler) durationUntilNextActivityChallenge(ctx context.Context, user a
 	if subscribed && !activelyModerating {
 		return 42*time.Minute + time.Duration(rand.Intn(480)*int(time.Second)), nil
 	}
-	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second, nil
+	return 16*time.Minute + time.Duration(rand.Intn(360))*time.Second, nil*/
 }
 
 func (r *Handler) minDurationBetweenActivityChallengePointsReward(ctx context.Context, user auth.User) (time.Duration, error) {
@@ -108,12 +108,12 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 			Type:         "button",
 			Tolerance:    1 * time.Minute,
 		}
-		hardChallengeInterval := 1 * time.Hour
+		hardChallengeInterval := 1 * time.Second
 		hasReduced, err := r.moderationStore.LoadPaymentAddressHasReducedHardChallengeFrequency(ctx, spectator.user.Address())
 		if err != nil {
 			r.log.Println(stacktrace.Propagate(err, ""))
 		} else if hasReduced {
-			hardChallengeInterval = 3 * time.Hour
+			hardChallengeInterval = 3 * time.Second
 		}
 
 		if time.Since(spectator.lastHardChallengeSolvedAt) > hardChallengeInterval {
