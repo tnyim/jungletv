@@ -24,8 +24,7 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		case vipUserAppearanceVIP:
 			roles = append(roles, proto.UserRole_VIP)
 		case vipUserAppearanceVIPModerator:
-			roles = append(roles, proto.UserRole_VIP)
-			roles = append(roles, proto.UserRole_MODERATOR)
+			roles = append(roles, proto.UserRole_VIP, proto.UserRole_MODERATOR)
 		}
 	} else if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
 		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
