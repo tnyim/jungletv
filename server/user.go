@@ -17,27 +17,21 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 	s.vipUsersMutex.RUnlock()
 
 	roles := []proto.UserRole{}
-	appendedModRole := false
-	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
-		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
-		roles = append(roles, proto.UserRole_MODERATOR)
-		appendedModRole = true
-	}
 	if isVip {
 		switch vipUserAppearance {
 		case vipUserAppearanceModerator:
-			if !appendedModRole {
-				roles = append(roles, proto.UserRole_MODERATOR)
-			}
+			roles = append(roles, proto.UserRole_MODERATOR)
 		case vipUserAppearanceVIP:
 			roles = append(roles, proto.UserRole_VIP)
 		case vipUserAppearanceVIPModerator:
 			roles = append(roles, proto.UserRole_VIP)
-			if !appendedModRole {
-				roles = append(roles, proto.UserRole_MODERATOR)
-			}
+			roles = append(roles, proto.UserRole_MODERATOR)
 		}
+	} else if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
+		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
+		roles = append(roles, proto.UserRole_MODERATOR)
 	}
+
 	mediaCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx, user)
 	if err == nil {
 		switch {
