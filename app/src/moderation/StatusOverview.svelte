@@ -1,7 +1,7 @@
 <script lang="ts">
+    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { AllowedMediaEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
     import { rewardAddress } from "../stores";
 
@@ -115,6 +115,14 @@
                 {/if}
             </div>
         </div>
+        {#if statusOverview.getVipUsersList().length > 0}
+            <p class="font-semibold text-lg">VIP users</p>
+            <ul class="list-disc list-inside pt-2">
+                {#each statusOverview.getVipUsersList() as vipUser}
+                    <li>{vipUser.getNickname()} (<code>{vipUser.getAddress()}</code>)</li>
+                {/each}
+            </ul>
+        {/if}
     {/if}
 </div>
 <p class="mt-10 px-2 font-semibold text-lg">Staff members actively moderating</p>

@@ -6,6 +6,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,6 +23,15 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			protoUsers[i] = s.userSerializer(stream.Context(), users[i])
 		}
 
+		s.vipUsersMutex.RLock()
+		defer s.vipUsersMutex.RUnlock()
+		protoVipUsers := make([]*proto.User, len(s.vipUsers))
+		i := 0
+		for userAddress := range s.vipUsers {
+			protoVipUsers[i] = s.userSerializer(stream.Context(), auth.NewAddressOnlyUser(userAddress))
+			i++
+		}
+
 		overview := &proto.ModerationStatusOverview{
 			AllowedMediaEnqueuing:               s.allowMediaEnqueuing,
 			EnqueuingPricesMultiplier:           int32(s.pricer.FinalPricesMultiplier()),
@@ -33,6 +43,7 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			MinimumPricesMultiplier:             int32(s.pricer.MinimumPricesMultiplier()),
 			ActivelyModerating:                  protoUsers,
 			AllowEntryReordering:                s.mediaQueue.EntryReorderingAllowed(),
+			VipUsers:                            protoVipUsers,
 		}
 		queueInsertCursor, hasQueueInsertCursor := s.mediaQueue.InsertCursor()
 		if hasQueueInsertCursor {

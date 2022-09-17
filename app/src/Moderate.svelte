@@ -1,10 +1,14 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
-    import { navigate } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
     import StatusOverview from "./moderation/StatusOverview.svelte";
-    import { AllowedMediaEnqueuingType, ForcedTicketEnqueueType } from "./proto/jungletv_pb";
+    import {
+        AllowedMediaEnqueuingType,
+        ForcedTicketEnqueueType,
+        VipUserAppearance,
+        VipUserAppearanceMap,
+    } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
 
     let ticketID = "";
@@ -166,6 +170,64 @@
             alert("Balance adjustment successful");
         } catch (e) {
             alert("An error occurred when adjusting the points balance: " + e);
+        }
+    }
+
+    async function addVipUser() {
+        let rewardsAddress = prompt("Enter the rewards address to make VIP, or press cancel:");
+        if (rewardsAddress === null) {
+            return;
+        }
+        let valueStr = prompt(
+            "Enter the appearance for the VIP, or press cancel:\n\n0: appear as a normal user\n1: appear as a moderator\n2: appear as a VIP\n3: appear as a VIP moderator"
+        );
+        if (valueStr === null) {
+            return;
+        }
+        let value = parseInt(valueStr);
+        if (isNaN(value)) {
+            alert("Invalid value");
+            return;
+        }
+
+        let appearance: VipUserAppearanceMap[keyof VipUserAppearanceMap] =
+            VipUserAppearance.UNKNOWN_VIP_USER_APPEARANCE;
+        switch (value) {
+            case 0:
+                appearance = VipUserAppearance.VIP_USER_APPEARANCE_NORMAL;
+                break;
+            case 1:
+                appearance = VipUserAppearance.VIP_USER_APPEARANCE_MODERATOR;
+                break;
+            case 2:
+                appearance = VipUserAppearance.VIP_USER_APPEARANCE_VIP;
+                break;
+            case 3:
+                appearance = VipUserAppearance.VIP_USER_APPEARANCE_VIP_MODERATOR;
+                break;
+            default:
+                alert("Invalid value");
+                return;
+        }
+
+        try {
+            await apiClient.addVipUser(rewardsAddress, appearance);
+            alert("User successfully made VIP");
+        } catch (e) {
+            alert("An error occurred: " + e);
+        }
+    }
+
+    async function removeVipUser() {
+        let rewardsAddress = prompt("Enter the rewards address to make non-VIP, or press cancel:");
+        if (rewardsAddress === null) {
+            return;
+        }
+        try {
+            await apiClient.removeVipUser(rewardsAddress);
+            alert("User successfully made VIP");
+        } catch (e) {
+            alert("An error occurred: " + e);
         }
     }
 </script>
@@ -337,6 +399,27 @@
                 >
                     Set skip price multiplier
                 </button>
+            </div>
+            <div>
+                <p class="px-2 font-semibold text-md mt-4">VIP users</p>
+                <p class="px-2 text-sm mt-2">VIP users can enqueue while enqueuing is limited to staff, and can appear as a role they don't normally have.</p>
+                <div class="px-2 grid grid-cols-3 gap-6">
+                    <button
+                        type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                        on:click={addVipUser}
+                    >
+                        Add VIP user
+                    </button>
+                    <button
+                        type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                        on:click={removeVipUser}
+                    >
+                        Remove VIP user
+                    </button>
+                    <div />
+                </div>
             </div>
         </div>
         <p class="px-2 py-2 text-lg">

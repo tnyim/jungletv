@@ -4,7 +4,7 @@ import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/mess
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import {
-    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
+    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
     BanUserResponse, BlockedUsersRequest, BlockedUsersResponse, BlockUserRequest, BlockUserResponse, ChatGifSearchRequest,
     ChatGifSearchResponse, ChatMessage, ChatUpdate, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, EnqueueDocumentData, EnqueueMediaRequest,
     EnqueueMediaResponse,
@@ -17,7 +17,7 @@ import {
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
     RemoveConnectionResponse, RemoveDisallowedMediaCollectionRequest,
     RemoveDisallowedMediaCollectionResponse, RemoveDisallowedMediaRequest, RemoveDisallowedMediaResponse, RemoveOwnQueueEntryRequest, RemoveOwnQueueEntryResponse, RemoveQueueEntryRequest,
-    RemoveQueueEntryResponse, RemoveUserVerificationRequest, RemoveUserVerificationResponse, ResetSpectatorStatusRequest, ResetSpectatorStatusResponse, RewardHistoryRequest,
+    RemoveQueueEntryResponse, RemoveUserVerificationRequest, RemoveUserVerificationResponse, RemoveVipUserRequest, RemoveVipUserResponse, ResetSpectatorStatusRequest, ResetSpectatorStatusResponse, RewardHistoryRequest,
     RewardHistoryResponse, RewardInfoRequest,
     RewardInfoResponse, SendChatMessageRequest, SendChatMessageResponse, SetChatNicknameRequest, SetChatNicknameResponse, SetChatSettingsRequest,
     SetChatSettingsResponse, SetCrowdfundedSkippingEnabledRequest, SetCrowdfundedSkippingEnabledResponse, SetMediaEnqueuingEnabledRequest, SetMediaEnqueuingEnabledResponse, SetMinimumPricesMultiplierRequest,
@@ -30,7 +30,7 @@ import {
     StopActivelyModeratingResponse, SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse, TriggerAnnouncementsNotificationRequest,
     TriggerAnnouncementsNotificationResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
-    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse, WithdrawalHistoryRequest, WithdrawalHistoryResponse, WithdrawRequest, WithdrawResponse
+    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse, VipUserAppearanceMap, WithdrawalHistoryRequest, WithdrawalHistoryResponse, WithdrawRequest, WithdrawResponse
 } from "./proto/jungletv_pb";
 import { JungleTV } from "./proto/jungletv_pb_service";
 
@@ -698,6 +698,19 @@ class APIClient {
     async stopActivelyModerating(): Promise<StopActivelyModeratingResponse> {
         let request = new StopActivelyModeratingRequest();
         return this.unaryRPC<StopActivelyModeratingRequest, StopActivelyModeratingResponse>(JungleTV.StopActivelyModerating, request);
+    }
+
+    async addVipUser(address: string, appearance: VipUserAppearanceMap[keyof VipUserAppearanceMap]): Promise<AddVipUserResponse> {
+        let request = new AddVipUserRequest();
+        request.setRewardsAddress(address);
+        request.setAppearance(appearance);
+        return this.unaryRPC<AddVipUserRequest, AddVipUserResponse>(JungleTV.AddVipUser, request);
+    }
+
+    async removeVipUser(address: string): Promise<RemoveVipUserResponse> {
+        let request = new RemoveVipUserRequest();
+        request.setRewardsAddress(address);
+        return this.unaryRPC<RemoveVipUserRequest, RemoveVipUserResponse>(JungleTV.RemoveVipUser, request);
     }
 
     async adjustPointsBalance(rewardsAddress: string, value: number, reason: string): Promise<AdjustPointsBalanceResponse> {

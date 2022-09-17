@@ -135,9 +135,21 @@
             <span
                 class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
                 title="Click to reply"
-                data-rewards-address="{message.getUserMessage().getAuthor().getAddress()}"
+                data-rewards-address={message.getUserMessage().getAuthor().getAddress()}
                 on:click={() => dispatch("reply")}>{getReadableMessageAuthor(message)}</span
-            >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+            >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR) && message
+                    .getUserMessage()
+                    .getAuthor()
+                    .getRolesList()
+                    .includes(UserRole.VIP)}
+                <i
+                    class="fas fa-shield-alt text-xs ml-1 text-yellow-400 dark:text-yellow-600"
+                    title="VIP Chat moderator"
+                />{:else if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.VIP)}
+                <i
+                    class="fas fa-crown text-xs ml-1 text-yellow-400 dark:text-yellow-600"
+                    title="VIP"
+                />{:else if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
                 <i
                     class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
                     title="Chat moderator"
@@ -149,8 +161,7 @@
                 <i
                     class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
                     title="Requester of currently playing content"
-                />
-            {/if}:
+                />{/if}:
         </span>
         <span class={emotesOnly ? "text-2xl align-middle" : ""}>{@html renderedMessage}</span>
         {#each message.getAttachmentsList() as attachment}

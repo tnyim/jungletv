@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { fade } from "svelte/transition";
-    import QrCode from "svelte-qrcode";
-    import { darkMode, permissionLevel } from "./stores";
-    import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
-    import { buildMonKeyURL, copyToClipboard } from "./utils";
     import { createEventDispatcher } from "svelte";
+    import QrCode from "svelte-qrcode";
+    import { fade } from "svelte/transition";
     import { openUserProfile } from "./profile_utils";
+    import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
+    import { darkMode, permissionLevel } from "./stores";
+    import { buildMonKeyURL, copyToClipboard } from "./utils";
 
     export let msg: ChatMessage;
     export let allowReplies: boolean;
@@ -76,7 +76,23 @@
                 <span class="font-mono text-md">
                     {msg.getUserMessage().getAuthor().getAddress().substr(0, 14)}
                 </span>
-                {#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+                {#if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.VIP) && msg
+                        .getUserMessage()
+                        .getAuthor()
+                        .getRolesList()
+                        .includes(UserRole.MODERATOR)}
+                    <br />
+                    <span class="text-sm">
+                        <i class="fas fa-shield-alt text-yellow-400 dark:text-yellow-600" title="" />
+                        VIP chat moderator
+                    </span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.VIP)}
+                    <br />
+                    <span class="text-sm">
+                        <i class="fas fa-crown text-yellow-400 dark:text-yellow-600" title="" />
+                        VIP
+                    </span>
+                {:else if msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
                     <br />
                     <span class="text-sm">
                         <i class="fas fa-shield-alt text-purple-700 dark:text-purple-500" title="" />

@@ -117,6 +117,9 @@ type grpcServer struct {
 	raffleSecretKey *ecdsa.PrivateKey
 
 	announcementsUpdated *event.Event[int]
+
+	vipUsers      map[string]vipUserAppearance
+	vipUsersMutex sync.RWMutex
 }
 
 // Options contains the required options to start the server
@@ -216,6 +219,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/MarkAsActivelyModerating", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/StopActivelyModerating", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AdjustPointsBalance", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AddVipUser", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveVipUser", auth.AdminPermissionLevel)
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
@@ -277,6 +282,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		soundCloudProvider: soundCloudProvider.(*soundcloud.TrackProvider),
 
 		announcementsUpdated: event.New[int](),
+
+		vipUsers: make(map[string]vipUserAppearance),
 	}
 	s.userSerializer = s.serializeUserForAPI
 

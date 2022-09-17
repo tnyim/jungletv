@@ -730,6 +730,24 @@ JungleTV.AdjustPointsBalance = {
   responseType: jungletv_pb.AdjustPointsBalanceResponse
 };
 
+JungleTV.AddVipUser = {
+  methodName: "AddVipUser",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.AddVipUserRequest,
+  responseType: jungletv_pb.AddVipUserResponse
+};
+
+JungleTV.RemoveVipUser = {
+  methodName: "RemoveVipUser",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RemoveVipUserRequest,
+  responseType: jungletv_pb.RemoveVipUserResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -3255,6 +3273,68 @@ JungleTVClient.prototype.adjustPointsBalance = function adjustPointsBalance(requ
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.AdjustPointsBalance, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.addVipUser = function addVipUser(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.AddVipUser, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.removeVipUser = function removeVipUser(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RemoveVipUser, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -4139,6 +4139,11 @@ export class ModerationStatusOverview extends jspb.Message {
   getAllowEntryReordering(): boolean;
   setAllowEntryReordering(value: boolean): void;
 
+  clearVipUsersList(): void;
+  getVipUsersList(): Array<User>;
+  setVipUsersList(value: Array<User>): void;
+  addVipUsers(value?: User, index?: number): User;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModerationStatusOverview.AsObject;
   static toObject(includeInstance: boolean, msg: ModerationStatusOverview): ModerationStatusOverview.AsObject;
@@ -4162,6 +4167,7 @@ export namespace ModerationStatusOverview {
     minimumPricesMultiplier: number,
     activelyModeratingList: Array<User.AsObject>,
     allowEntryReordering: boolean,
+    vipUsersList: Array<User.AsObject>,
   }
 }
 
@@ -5664,6 +5670,82 @@ export namespace SoundCloudTrackDetailsResponse {
   }
 }
 
+export class AddVipUserRequest extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  getAppearance(): VipUserAppearanceMap[keyof VipUserAppearanceMap];
+  setAppearance(value: VipUserAppearanceMap[keyof VipUserAppearanceMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AddVipUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AddVipUserRequest): AddVipUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AddVipUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddVipUserRequest;
+  static deserializeBinaryFromReader(message: AddVipUserRequest, reader: jspb.BinaryReader): AddVipUserRequest;
+}
+
+export namespace AddVipUserRequest {
+  export type AsObject = {
+    rewardsAddress: string,
+    appearance: VipUserAppearanceMap[keyof VipUserAppearanceMap],
+  }
+}
+
+export class AddVipUserResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AddVipUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AddVipUserResponse): AddVipUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AddVipUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddVipUserResponse;
+  static deserializeBinaryFromReader(message: AddVipUserResponse, reader: jspb.BinaryReader): AddVipUserResponse;
+}
+
+export namespace AddVipUserResponse {
+  export type AsObject = {
+  }
+}
+
+export class RemoveVipUserRequest extends jspb.Message {
+  getRewardsAddress(): string;
+  setRewardsAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveVipUserRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveVipUserRequest): RemoveVipUserRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveVipUserRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveVipUserRequest;
+  static deserializeBinaryFromReader(message: RemoveVipUserRequest, reader: jspb.BinaryReader): RemoveVipUserRequest;
+}
+
+export namespace RemoveVipUserRequest {
+  export type AsObject = {
+    rewardsAddress: string,
+  }
+}
+
+export class RemoveVipUserResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveVipUserResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveVipUserResponse): RemoveVipUserResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveVipUserResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveVipUserResponse;
+  static deserializeBinaryFromReader(message: RemoveVipUserResponse, reader: jspb.BinaryReader): RemoveVipUserResponse;
+}
+
+export namespace RemoveVipUserResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -5698,6 +5780,7 @@ export interface UserRoleMap {
   TIER_2_REQUESTER: 2;
   TIER_3_REQUESTER: 3;
   CURRENT_ENTRY_REQUESTER: 4;
+  VIP: 5;
 }
 
 export const UserRole: UserRoleMap;
@@ -5798,4 +5881,14 @@ export interface PointsTransactionTypeMap {
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;
+
+export interface VipUserAppearanceMap {
+  UNKNOWN_VIP_USER_APPEARANCE: 0;
+  VIP_USER_APPEARANCE_NORMAL: 1;
+  VIP_USER_APPEARANCE_MODERATOR: 2;
+  VIP_USER_APPEARANCE_VIP: 3;
+  VIP_USER_APPEARANCE_VIP_MODERATOR: 4;
+}
+
+export const VipUserAppearance: VipUserAppearanceMap;
 

@@ -724,6 +724,24 @@ type JungleTVAdjustPointsBalance = {
   readonly responseType: typeof jungletv_pb.AdjustPointsBalanceResponse;
 };
 
+type JungleTVAddVipUser = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.AddVipUserRequest;
+  readonly responseType: typeof jungletv_pb.AddVipUserResponse;
+};
+
+type JungleTVRemoveVipUser = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RemoveVipUserRequest;
+  readonly responseType: typeof jungletv_pb.RemoveVipUserResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -806,6 +824,8 @@ export class JungleTV {
   static readonly MarkAsActivelyModerating: JungleTVMarkAsActivelyModerating;
   static readonly StopActivelyModerating: JungleTVStopActivelyModerating;
   static readonly AdjustPointsBalance: JungleTVAdjustPointsBalance;
+  static readonly AddVipUser: JungleTVAddVipUser;
+  static readonly RemoveVipUser: JungleTVRemoveVipUser;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1495,6 +1515,24 @@ export class JungleTVClient {
   adjustPointsBalance(
     requestMessage: jungletv_pb.AdjustPointsBalanceRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.AdjustPointsBalanceResponse|null) => void
+  ): UnaryResponse;
+  addVipUser(
+    requestMessage: jungletv_pb.AddVipUserRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddVipUserResponse|null) => void
+  ): UnaryResponse;
+  addVipUser(
+    requestMessage: jungletv_pb.AddVipUserRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AddVipUserResponse|null) => void
+  ): UnaryResponse;
+  removeVipUser(
+    requestMessage: jungletv_pb.RemoveVipUserRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveVipUserResponse|null) => void
+  ): UnaryResponse;
+  removeVipUser(
+    requestMessage: jungletv_pb.RemoveVipUserRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RemoveVipUserResponse|null) => void
   ): UnaryResponse;
 }
 

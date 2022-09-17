@@ -25,7 +25,7 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
 	if user != nil {
-		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
+		isAdmin = auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) || s.isVIPUser(user)
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctxCtx, user.Address()); err == nil && banned {
 			return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 		}

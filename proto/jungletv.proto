@@ -79,7 +79,7 @@ service JungleTV {
     rpc TriggerAnnouncementsNotification(TriggerAnnouncementsNotificationRequest) returns (TriggerAnnouncementsNotificationResponse) {}
     rpc SpectatorInfo(SpectatorInfoRequest) returns (Spectator) {}
     rpc ResetSpectatorStatus(ResetSpectatorStatusRequest) returns (ResetSpectatorStatusResponse) {}
-    rpc MonitorModerationStatus (MonitorModerationStatusRequest) returns (stream ModerationStatusOverview) {}
+    rpc MonitorModerationStatus(MonitorModerationStatusRequest) returns (stream ModerationStatusOverview) {}
     rpc SetOwnQueueEntryRemovalAllowed(SetOwnQueueEntryRemovalAllowedRequest) returns (SetOwnQueueEntryRemovalAllowedResponse) {}
     rpc SetQueueEntryReorderingAllowed(SetQueueEntryReorderingAllowedRequest) returns (SetQueueEntryReorderingAllowedResponse) {}
     rpc SetNewQueueEntriesAlwaysUnskippable(SetNewQueueEntriesAlwaysUnskippableRequest) returns (SetNewQueueEntriesAlwaysUnskippableResponse) {}
@@ -90,6 +90,8 @@ service JungleTV {
     rpc MarkAsActivelyModerating(MarkAsActivelyModeratingRequest) returns (MarkAsActivelyModeratingResponse) {}
     rpc StopActivelyModerating(StopActivelyModeratingRequest) returns (StopActivelyModeratingResponse) {}
     rpc AdjustPointsBalance(AdjustPointsBalanceRequest) returns (AdjustPointsBalanceResponse) {}
+    rpc AddVipUser(AddVipUserRequest) returns (AddVipUserResponse) {}
+    rpc RemoveVipUser(RemoveVipUserRequest) returns (RemoveVipUserResponse) {}
 }
 
 message PaginationParameters {
@@ -336,6 +338,7 @@ enum UserRole {
     TIER_2_REQUESTER = 2;
     TIER_3_REQUESTER = 3;
     CURRENT_ENTRY_REQUESTER = 4;
+    VIP = 5;
 }
 
 enum UserStatus {
@@ -966,6 +969,7 @@ message ModerationStatusOverview {
     int32 minimum_prices_multiplier = 9;
     repeated User actively_moderating = 10;
     bool allow_entry_reordering = 11;
+    repeated User vip_users = 12;
 }
 
 message SetQueueEntryReorderingAllowedRequest {
@@ -1254,3 +1258,24 @@ message SoundCloudTrackDetailsRequest {
 message SoundCloudTrackDetailsResponse {
     google.protobuf.Duration length = 1;
 }
+
+enum VipUserAppearance {
+    UNKNOWN_VIP_USER_APPEARANCE = 0;
+    VIP_USER_APPEARANCE_NORMAL = 1;
+    VIP_USER_APPEARANCE_MODERATOR = 2;
+    VIP_USER_APPEARANCE_VIP = 3;
+    VIP_USER_APPEARANCE_VIP_MODERATOR = 4;
+}
+
+message AddVipUserRequest {
+    string rewards_address = 1;
+    VipUserAppearance appearance = 2;
+}
+
+message AddVipUserResponse {}
+
+message RemoveVipUserRequest {
+    string rewards_address = 1;
+}
+
+message RemoveVipUserResponse {}

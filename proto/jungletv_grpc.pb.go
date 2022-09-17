@@ -99,6 +99,8 @@ type JungleTVClient interface {
 	MarkAsActivelyModerating(ctx context.Context, in *MarkAsActivelyModeratingRequest, opts ...grpc.CallOption) (*MarkAsActivelyModeratingResponse, error)
 	StopActivelyModerating(ctx context.Context, in *StopActivelyModeratingRequest, opts ...grpc.CallOption) (*StopActivelyModeratingResponse, error)
 	AdjustPointsBalance(ctx context.Context, in *AdjustPointsBalanceRequest, opts ...grpc.CallOption) (*AdjustPointsBalanceResponse, error)
+	AddVipUser(ctx context.Context, in *AddVipUserRequest, opts ...grpc.CallOption) (*AddVipUserResponse, error)
+	RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1013,6 +1015,24 @@ func (c *jungleTVClient) AdjustPointsBalance(ctx context.Context, in *AdjustPoin
 	return out, nil
 }
 
+func (c *jungleTVClient) AddVipUser(ctx context.Context, in *AddVipUserRequest, opts ...grpc.CallOption) (*AddVipUserResponse, error) {
+	out := new(AddVipUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/AddVipUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error) {
+	out := new(RemoveVipUserResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RemoveVipUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1098,6 +1118,8 @@ type JungleTVServer interface {
 	MarkAsActivelyModerating(context.Context, *MarkAsActivelyModeratingRequest) (*MarkAsActivelyModeratingResponse, error)
 	StopActivelyModerating(context.Context, *StopActivelyModeratingRequest) (*StopActivelyModeratingResponse, error)
 	AdjustPointsBalance(context.Context, *AdjustPointsBalanceRequest) (*AdjustPointsBalanceResponse, error)
+	AddVipUser(context.Context, *AddVipUserRequest) (*AddVipUserResponse, error)
+	RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1344,6 +1366,12 @@ func (UnimplementedJungleTVServer) StopActivelyModerating(context.Context, *Stop
 }
 func (UnimplementedJungleTVServer) AdjustPointsBalance(context.Context, *AdjustPointsBalanceRequest) (*AdjustPointsBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdjustPointsBalance not implemented")
+}
+func (UnimplementedJungleTVServer) AddVipUser(context.Context, *AddVipUserRequest) (*AddVipUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddVipUser not implemented")
+}
+func (UnimplementedJungleTVServer) RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveVipUser not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -2822,6 +2850,42 @@ func _JungleTV_AdjustPointsBalance_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_AddVipUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddVipUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).AddVipUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/AddVipUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).AddVipUser(ctx, req.(*AddVipUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_RemoveVipUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveVipUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RemoveVipUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RemoveVipUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RemoveVipUser(ctx, req.(*RemoveVipUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3116,6 +3180,14 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdjustPointsBalance",
 			Handler:    _JungleTV_AdjustPointsBalance_Handler,
+		},
+		{
+			MethodName: "AddVipUser",
+			Handler:    _JungleTV_AddVipUser_Handler,
+		},
+		{
+			MethodName: "RemoveVipUser",
+			Handler:    _JungleTV_RemoveVipUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

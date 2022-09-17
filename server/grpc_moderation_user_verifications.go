@@ -93,8 +93,9 @@ func (s *grpcServer) VerifyUser(ctx context.Context, r *proto.VerifyUserRequest)
 		perksStr = "With perks: " + strings.Join(perks, ", ")
 	}
 
+	s.log.Printf("User verification with ID %s added by %s (remote address %s) with reason %s", id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+
 	if s.modLogWebhook != nil {
-		s.log.Printf("User verification with ID %s added by %s (remote address %s) with reason %s", id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("**Added user verification with ID `%s`**\n\nUser: %s\n%s\nReason: %s\nBy moderator: %s (%s)",
 				id,

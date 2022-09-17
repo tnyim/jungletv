@@ -12,10 +12,31 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 	userAddress := user.Address()
 	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
 
+	s.vipUsersMutex.RLock()
+	vipUserAppearance, isVip := s.vipUsers[userAddress]
+	s.vipUsersMutex.RUnlock()
+
 	roles := []proto.UserRole{}
+	appendedModRole := false
 	if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
 		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
 		roles = append(roles, proto.UserRole_MODERATOR)
+		appendedModRole = true
+	}
+	if isVip {
+		switch vipUserAppearance {
+		case vipUserAppearanceModerator:
+			if !appendedModRole {
+				roles = append(roles, proto.UserRole_MODERATOR)
+			}
+		case vipUserAppearanceVIP:
+			roles = append(roles, proto.UserRole_VIP)
+		case vipUserAppearanceVIPModerator:
+			roles = append(roles, proto.UserRole_VIP)
+			if !appendedModRole {
+				roles = append(roles, proto.UserRole_MODERATOR)
+			}
+		}
 	}
 	mediaCount, requestedCurrent, err := s.mediaQueue.CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx, user)
 	if err == nil {
@@ -48,4 +69,23 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		Nickname: nickname,
 		Status:   s.rewardsHandler.GetSpectatorActivityStatus(userAddress),
 	}
+}
+
+type vipUserAppearance int
+
+const (
+	vipUserAppearanceNormal vipUserAppearance = iota
+	vipUserAppearanceModerator
+	vipUserAppearanceVIP
+	vipUserAppearanceVIPModerator
+)
+
+func (s *grpcServer) isVIPUser(user auth.User) bool {
+	s.vipUsersMutex.RLock()
+	defer s.vipUsersMutex.RUnlock()
+	if user != nil && !user.IsUnknown() {
+		_, present := s.vipUsers[user.Address()]
+		return present
+	}
+	return false
 }
