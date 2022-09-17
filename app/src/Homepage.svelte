@@ -5,7 +5,7 @@
     import { fly, scale } from "svelte/transition";
     import ActivityChallenge from "./ActivityChallenge.svelte";
     import Sidebar from "./Sidebar.svelte";
-    import { activityChallengeReceived, playerVolume } from "./stores";
+    import { activityChallengeReceived, activityChallengesDone, playerVolume } from "./stores";
     import { ttsAudioAlert } from "./utils";
 
     let largeScreen = false;
@@ -41,7 +41,6 @@
 
     let showCaptcha = false;
     let hasChallenge = false;
-    let challengesDone = 0;
     onMount(() => {
         document.addEventListener("visibilitychange", checkShowCaptcha);
     });
@@ -50,7 +49,7 @@
         if (c == null) {
             hasChallenge = false;
             showCaptcha = false;
-            challengesDone++;
+            activityChallengesDone.update(n => n+1);
             return;
         }
         hasChallenge = true;
@@ -84,7 +83,7 @@
         bind:clientHeight={playerContainerHeight}
     >
         {#if showCaptcha}
-            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} bind:challengesDone />
+            <ActivityChallenge bind:activityChallenge={$activityChallengeReceived} />
         {/if}
     </div>
     {#if sidebarExpanded || !largeScreen}

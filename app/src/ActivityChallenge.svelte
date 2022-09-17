@@ -2,13 +2,13 @@
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
     import { apiClient } from "./api_client";
+    import PostSegchaNiceUpsellingPrompt from "./PostSegchaNiceUpsellingPrompt.svelte";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
     import Segcha from "./Segcha.svelte";
-    import { modal } from "./stores";
+    import { activityChallengesDone, currentSubscription, modal, subscriptionUpsoldAfterSegcha } from "./stores";
     import { checkShadowRootIntegrity } from "./utils";
 
     export let activityChallenge: ActivityChallenge;
-    export let challengesDone: number;
 
     let clicked = false;
     let trusted = false;
@@ -62,10 +62,6 @@
         }
     }
 
-    async function activityCaptchaOnSubmit(token: string) {
-        await submitChallenge(token);
-    }
-
     onMount(() => {
         top = (0.25 + Math.random() / 2) * 100;
     });
@@ -89,8 +85,23 @@
     }
 
     async function onSegchaComplete(answer: string) {
+        let currentlySubscribed = typeof $currentSubscription !== "undefined" && $currentSubscription != null;
         modal.set(null);
-        activityCaptchaOnSubmit(answer);
+        if (!currentlySubscribed && !$subscriptionUpsoldAfterSegcha) {
+            $subscriptionUpsoldAfterSegcha = true;
+            modal.set({
+                component: PostSegchaNiceUpsellingPrompt,
+                options: {
+                    closeButton: false,
+                    closeOnEsc: true,
+                    closeOnOuterClick: true,
+                    styleContent: {
+                        padding: "0",
+                    },
+                },
+            });
+        }
+        await submitChallenge(answer);
     }
 
     async function dismissStillModeratingChallenge() {
@@ -115,7 +126,7 @@
                 >
                     No, dismiss this message.
                 </button>
-            {:else if challengesDone > 1}
+            {:else if $activityChallengesDone > 1}
                 <h3>Are you still watching?</h3>
                 <p class="text-xs text-gray-600 dark:text-gray-400 w-40">
                     To receive rewards, confirm you're still watching.
@@ -141,7 +152,7 @@
                 Awaiting captcha...
             {:else if activityChallenge?.getType() == "moderating"}
                 Still moderating
-            {:else if challengesDone > 1}
+            {:else if $activityChallengesDone > 1}
                 Still watching
             {:else}
                 I am human

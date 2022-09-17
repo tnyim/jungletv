@@ -55,6 +55,8 @@ export const chatEmotesAsCustomEmoji = writable([] as CustomEmoji[]);
 export const chatMessageDraft = writable("");
 export const chatMessageDraftTenorGif = writable<ChatGifSearchResult>();
 export const chatMessageDraftSelectionJSON = writable("");
+export const activityChallengesDone = writable(0);
+export const subscriptionUpsoldAfterSegcha = writable(false);
 
 type modalInfo = {
     component: any,
