@@ -125,7 +125,7 @@
         {/if}
     {/if}
 </div>
-<p class="mt-10 px-2 font-semibold text-lg">Staff members actively moderating</p>
+<p class="mt-6 px-2 font-semibold text-lg">Staff members actively moderating</p>
 <div class="px-2">
     {#if statusOverview === undefined}
         Loading...

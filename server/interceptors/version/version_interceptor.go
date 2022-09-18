@@ -9,11 +9,11 @@ import (
 
 // VersionInterceptor intercepts gRPC requests to add a header with the API version
 type VersionInterceptor struct {
-	version string
+	version *string
 }
 
 // New returns a new VersionInterceptor
-func New(version string) *VersionInterceptor {
+func New(version *string) *VersionInterceptor {
 	return &VersionInterceptor{
 		version: version,
 	}
@@ -27,7 +27,7 @@ func (interceptor *VersionInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		err := grpc.SetHeader(ctx, metadata.Pairs("X-API-Version", interceptor.version))
+		err := grpc.SetHeader(ctx, metadata.Pairs("X-API-Version", *interceptor.version))
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +43,7 @@ func (interceptor *VersionInterceptor) Stream() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		err := grpc.SetHeader(stream.Context(), metadata.Pairs("X-API-Version", interceptor.version))
+		err := grpc.SetHeader(stream.Context(), metadata.Pairs("X-API-Version", *interceptor.version))
 		if err != nil {
 			return err
 		}

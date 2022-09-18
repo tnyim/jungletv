@@ -76,6 +76,9 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	onQueueChanged, queueUpdatedU := s.mediaQueue.QueueUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer queueUpdatedU()
 
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer versionHashChangedU()
+
 	err := send()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -96,6 +99,8 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 			err = stream.Send(&proto.Queue{
 				IsHeartbeat: true,
 			})
+		case <-onVersionHashChanged:
+			return nil
 		case <-ctx.Done():
 			return nil
 		}

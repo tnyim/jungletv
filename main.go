@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -40,6 +41,7 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -65,7 +67,9 @@ var (
 	// BuildDate is provided by govvv at compile-time
 	BuildDate = "???"
 
-	versionHash = ""
+	forcedClientReloads = 0
+	baseVersionHash     = ""
+	versionHash         = ""
 )
 
 func main() {
@@ -329,7 +333,7 @@ func main() {
 		QueueFile:                queueFile,
 		TenorAPIKey:              tenorAPIKey,
 		WebsiteURL:               websiteURL,
-		VersionHash:              versionHash,
+		VersionHash:              &versionHash,
 		OAuthManager:             oauthManager,
 	}
 
@@ -337,6 +341,12 @@ func main() {
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
+
+	apiServer.ClientReloadTriggered().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+		forcedClientReloads++
+		versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
+		apiServer.NotifyVersionHashChanged()
+	})
 
 	listenAddr, present := secrets.Get("listenAddress")
 	if !present {
@@ -365,7 +375,8 @@ func init() {
 	}
 	h := sha256.New()
 	h.Write([]byte(BuildDate + GitCommit))
-	versionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
+	baseVersionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
+	versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
 	grpclog.SetLogger(grpcLog)
 }
 
@@ -400,7 +411,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr string, options server.Options) (*http.Server, error) {
 	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
-	versionInterceptor := version.New(versionHash)
+	versionInterceptor := version.New(&versionHash)
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(sqalxInterceptor.Stream(), versionInterceptor.Stream(), authInterceptor.Stream())
@@ -505,16 +516,17 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 	router.PathPrefix("/jungletv.webmanifest").Handler(http.FileServer(http.Dir("app/public/")))
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := webtemplate.ExecuteTemplate(w, "index.template", struct {
+		templateData := struct {
 			VersionHash string
 			FullURL     string
 		}{
 			FullURL:     websiteURL + r.URL.Path,
 			VersionHash: versionHash,
-		})
-		if DEBUG {
-			versionHash += "###" + uuid.NewV4().String()
 		}
+		if DEBUG {
+			templateData.VersionHash += "###" + uuid.NewV4().String()
+		}
+		err := webtemplate.ExecuteTemplate(w, "index.template", templateData)
 		if err != nil {
 			webLog.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)

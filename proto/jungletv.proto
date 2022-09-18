@@ -92,6 +92,7 @@ service JungleTV {
     rpc AdjustPointsBalance(AdjustPointsBalanceRequest) returns (AdjustPointsBalanceResponse) {}
     rpc AddVipUser(AddVipUserRequest) returns (AddVipUserResponse) {}
     rpc RemoveVipUser(RemoveVipUserRequest) returns (RemoveVipUserResponse) {}
+    rpc TriggerClientReload(TriggerClientReloadRequest) returns (TriggerClientReloadResponse) {}
 }
 
 message PaginationParameters {
@@ -1279,3 +1280,7 @@ message RemoveVipUserRequest {
 }
 
 message RemoveVipUserResponse {}
+
+message TriggerClientReloadRequest {}
+
+message TriggerClientReloadResponse {}

@@ -105,6 +105,9 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		}
 	})()
 
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer versionHashChangedU()
+
 	statsCleanup, err := s.statsRegistry.RegisterSpectator(stream.Context())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -127,6 +130,8 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			sendTitle = true
 			// unblock loop
 		case <-stream.Context().Done():
+			return nil
+		case <-onVersionHashChanged:
 			return nil
 		case err := <-errChan:
 			return err

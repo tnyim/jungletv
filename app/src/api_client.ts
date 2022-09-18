@@ -29,7 +29,7 @@ import {
     SpectatorInfoRequest, StartOrExtendSubscriptionRequest, StartOrExtendSubscriptionResponse, StopActivelyModeratingRequest,
     StopActivelyModeratingResponse, SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse, TriggerAnnouncementsNotificationRequest,
-    TriggerAnnouncementsNotificationResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
+    TriggerAnnouncementsNotificationResponse, TriggerClientReloadRequest, TriggerClientReloadResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
     UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse, VipUserAppearanceMap, WithdrawalHistoryRequest, WithdrawalHistoryResponse, WithdrawRequest, WithdrawResponse
 } from "./proto/jungletv_pb";
 import { JungleTV } from "./proto/jungletv_pb_service";
@@ -711,6 +711,11 @@ class APIClient {
         let request = new RemoveVipUserRequest();
         request.setRewardsAddress(address);
         return this.unaryRPC<RemoveVipUserRequest, RemoveVipUserResponse>(JungleTV.RemoveVipUser, request);
+    }
+
+    async triggerClientReload(): Promise<TriggerClientReloadResponse> {
+        let request = new TriggerClientReloadRequest();
+        return this.unaryRPC<TriggerClientReloadRequest, TriggerClientReloadResponse>(JungleTV.TriggerClientReload, request);
     }
 
     async adjustPointsBalance(rewardsAddress: string, value: number, reason: string): Promise<AdjustPointsBalanceResponse> {

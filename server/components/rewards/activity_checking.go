@@ -153,7 +153,7 @@ func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, capt
 	now := time.Now()
 	timeUntilChallengeResponse = now.Sub(spectator.activityChallenge.ChallengedAt)
 
-	newLegitimate := trusted && clientVersion == r.versionHash
+	newLegitimate := trusted && clientVersion == *r.versionHash
 	skipsIntegrityChecks, err := r.moderationStore.LoadPaymentAddressSkipsClientIntegrityChecks(ctxCtx, spectator.user.Address())
 	if err != nil {
 		r.log.Println(stacktrace.Propagate(err, ""))

@@ -37,6 +37,9 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onMessageDeleted, messageDeletedU := s.chat.OnMessageDeleted().Subscribe(event.AtLeastOnceGuarantee)
 	defer messageDeletedU()
 
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer versionHashChangedU()
+
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
@@ -228,6 +231,8 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 						},
 					},
 				}}})
+		case <-onVersionHashChanged:
+			return nil
 		case <-stream.Context().Done():
 			return nil
 		}

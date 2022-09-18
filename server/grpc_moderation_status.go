@@ -8,6 +8,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -15,6 +16,9 @@ import (
 func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusRequest, stream proto.JungleTV_MonitorModerationStatusServer) error {
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
+
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer versionHashChangedU()
 
 	send := func() error {
 		users := s.staffActivityManager.ActivelyModerating()
@@ -60,6 +64,8 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 		select {
 		case <-heartbeat.C:
 			err = send()
+		case <-onVersionHashChanged:
+			return nil
 		case <-stream.Context().Done():
 			return nil
 		}

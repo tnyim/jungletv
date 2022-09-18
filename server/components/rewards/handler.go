@@ -55,7 +55,7 @@ type Handler struct {
 	staffActivityManager  *staffactivitymanager.Manager
 	eligibleMovingAverage *movingaverage.MovingAverage
 	segchaCheckFn         captchaResponseCheckFn
-	versionHash           string
+	versionHash           *string
 	pointsManager         *pointsmanager.Manager
 
 	rewardsDistributed *event.Event[RewardsDistributedEventArgs]
@@ -188,7 +188,7 @@ func NewHandler(log *log.Logger,
 	moderationStore moderation.Store,
 	staffActivityManager *staffactivitymanager.Manager,
 	segchaCheckFn captchaResponseCheckFn,
-	versionHash string) (*Handler, error) {
+	versionHash *string) (*Handler, error) {
 	return &Handler{
 		log:                   log,
 		statsClient:           statsClient,

@@ -101,6 +101,7 @@ type JungleTVClient interface {
 	AdjustPointsBalance(ctx context.Context, in *AdjustPointsBalanceRequest, opts ...grpc.CallOption) (*AdjustPointsBalanceResponse, error)
 	AddVipUser(ctx context.Context, in *AddVipUserRequest, opts ...grpc.CallOption) (*AddVipUserResponse, error)
 	RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error)
+	TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1033,6 +1034,15 @@ func (c *jungleTVClient) RemoveVipUser(ctx context.Context, in *RemoveVipUserReq
 	return out, nil
 }
 
+func (c *jungleTVClient) TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error) {
+	out := new(TriggerClientReloadResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/TriggerClientReload", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1120,6 +1130,7 @@ type JungleTVServer interface {
 	AdjustPointsBalance(context.Context, *AdjustPointsBalanceRequest) (*AdjustPointsBalanceResponse, error)
 	AddVipUser(context.Context, *AddVipUserRequest) (*AddVipUserResponse, error)
 	RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error)
+	TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1372,6 +1383,9 @@ func (UnimplementedJungleTVServer) AddVipUser(context.Context, *AddVipUserReques
 }
 func (UnimplementedJungleTVServer) RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveVipUser not implemented")
+}
+func (UnimplementedJungleTVServer) TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TriggerClientReload not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -2886,6 +2900,24 @@ func _JungleTV_RemoveVipUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_TriggerClientReload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TriggerClientReloadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).TriggerClientReload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/TriggerClientReload",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).TriggerClientReload(ctx, req.(*TriggerClientReloadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3188,6 +3220,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveVipUser",
 			Handler:    _JungleTV_RemoveVipUser_Handler,
+		},
+		{
+			MethodName: "TriggerClientReload",
+			Handler:    _JungleTV_TriggerClientReload_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

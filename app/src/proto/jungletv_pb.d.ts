@@ -5746,6 +5746,38 @@ export namespace RemoveVipUserResponse {
   }
 }
 
+export class TriggerClientReloadRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TriggerClientReloadRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TriggerClientReloadRequest): TriggerClientReloadRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TriggerClientReloadRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TriggerClientReloadRequest;
+  static deserializeBinaryFromReader(message: TriggerClientReloadRequest, reader: jspb.BinaryReader): TriggerClientReloadRequest;
+}
+
+export namespace TriggerClientReloadRequest {
+  export type AsObject = {
+  }
+}
+
+export class TriggerClientReloadResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TriggerClientReloadResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TriggerClientReloadResponse): TriggerClientReloadResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TriggerClientReloadResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TriggerClientReloadResponse;
+  static deserializeBinaryFromReader(message: TriggerClientReloadResponse, reader: jspb.BinaryReader): TriggerClientReloadResponse;
+}
+
+export namespace TriggerClientReloadResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

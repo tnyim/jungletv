@@ -120,6 +120,9 @@ type grpcServer struct {
 
 	vipUsers      map[string]vipUserAppearance
 	vipUsersMutex sync.RWMutex
+
+	clientReloadTriggered *event.NoArgEvent
+	versionHashChanged    *event.NoArgEvent
 }
 
 // Options contains the required options to start the server
@@ -152,7 +155,7 @@ type Options struct {
 	TenorAPIKey string
 
 	WebsiteURL  string
-	VersionHash string
+	VersionHash *string
 }
 
 // NewServer returns a new JungleTVServer
@@ -221,6 +224,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AdjustPointsBalance", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AddVipUser", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveVipUser", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/TriggerClientReload", auth.AdminPermissionLevel)
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
@@ -284,6 +288,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		announcementsUpdated: event.New[int](),
 
 		vipUsers: make(map[string]vipUserAppearance),
+
+		clientReloadTriggered: event.NewNoArg(),
+		versionHashChanged:    event.NewNoArg(),
 	}
 	s.userSerializer = s.serializeUserForAPI
 

@@ -230,11 +230,22 @@
             alert("An error occurred: " + e);
         }
     }
+
+    async function triggerClientReload() {
+        if (confirm("Are you sure? This will reload the page for all connected users.")) {
+            try {
+                await apiClient.triggerClientReload();
+                alert("Client reload triggered");
+            } catch (e) {
+                alert("An error occurred: " + e);
+            }
+        }
+    }
 </script>
 
 <div class="flex-grow min-h-full overflow-x-hidden">
     {#if !globalThis.PRODUCTION_BUILD}
-        <div class="px-2 py-2 mb-10">
+        <div class="px-2 py-2 mb-6">
             <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
             <div class="grid grid-cols-6 gap-6">
                 <input class="col-span-3" type="text" placeholder="ticket ID" bind:value={ticketID} />
@@ -266,10 +277,10 @@
         <summary class="px-2 font-semibold text-lg">Queue</summary>
         <Queue mode="moderation" />
     </details>
-    <div class="mt-10">
+    <div class="mt-6">
         <StatusOverview />
     </div>
-    <div class="mt-10">
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Queue flow control</p>
         <p class="px-2 text-sm">Press all green buttons to revert to default settings</p>
         <div class="px-2 grid grid-cols-3 gap-6">
@@ -402,7 +413,10 @@
             </div>
             <div>
                 <p class="px-2 font-semibold text-md mt-4">VIP users</p>
-                <p class="px-2 text-sm mt-2">VIP users can enqueue while enqueuing is limited to staff, and can appear as a role they don't normally have.</p>
+                <p class="px-2 text-sm mt-2">
+                    VIP users can enqueue while enqueuing is limited to staff, and can appear as a role they don't
+                    normally have.
+                </p>
                 <div class="px-2 grid grid-cols-3 gap-6">
                     <button
                         type="submit"
@@ -422,20 +436,22 @@
                 </div>
             </div>
         </div>
-        <p class="px-2 py-2 text-lg">
+    </div>
+    <div class="mt-6">
+        <p class="px-2 text-lg">
             <a href="/moderate/media/disallowed" use:link>Manage disallowed media</a>
         </p>
     </div>
-    <div class="mt-10">
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">User bans and verification</p>
-        <p class="px-2 py-2 text-lg">
+        <p class="px-2 text-lg">
             <a href="/moderate/bans" use:link>Manage user bans</a>
         </p>
-        <p class="px-2 py-2 text-lg">
+        <p class="px-2 text-lg">
             <a href="/moderate/verifiedusers" use:link>Manage verified users</a>
         </p>
     </div>
-    <div>
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Documents</p>
         <p class="px-2">
             <a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> |
@@ -443,7 +459,7 @@
             <a use:link href="/moderate/documents/announcements">Edit Announcements</a>
         </p>
     </div>
-    <div class="mt-10">
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Raffles</p>
         <div class="px-2 grid grid-cols-3 gap-6">
             <button
@@ -469,7 +485,7 @@
             </button>
         </div>
     </div>
-    <div class="mt-10">
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Points</p>
         <div class="px-2 grid grid-cols-3 gap-6">
             <button
@@ -483,7 +499,21 @@
             <div />
         </div>
     </div>
-    <div class="mt-10">
+    <div class="mt-6">
+        <p class="px-2 font-semibold text-lg">Technical</p>
+        <div class="px-2 grid grid-cols-3 gap-6">
+            <button
+                type="submit"
+                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                on:click={() => triggerClientReload()}
+            >
+                Trigger client reload
+            </button>
+            <div />
+            <div />
+        </div>
+    </div>
+    <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Chat</p>
         <div class="px-2 mb-10 grid grid-cols-3 gap-6">
             <input class="col-span-2" type="text" placeholder="Banano address" bind:value={chatHistoryAddress} />

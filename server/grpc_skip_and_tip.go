@@ -17,6 +17,9 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer statusUpdatedU()
 
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	defer versionHashChangedU()
+
 	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersCommunitySkipping, user != nil && !user.IsUnknown())
 	defer unregister()
 
@@ -56,6 +59,10 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
+		case <-onVersionHashChanged:
+			return nil
+		case <-ctx.Done():
+			return nil
 		}
 	}
 }
