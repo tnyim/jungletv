@@ -183,6 +183,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ChatGifSearch", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ConvertBananoToPoints", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/StartOrExtendSubscription", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/IncreaseOrReduceSkipThreshold", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)

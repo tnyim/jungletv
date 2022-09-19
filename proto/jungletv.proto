@@ -47,6 +47,7 @@ service JungleTV {
     rpc ConvertBananoToPoints (ConvertBananoToPointsRequest) returns (stream ConvertBananoToPointsStatus) {}
     rpc StartOrExtendSubscription (StartOrExtendSubscriptionRequest) returns (StartOrExtendSubscriptionResponse) {}
     rpc SoundCloudTrackDetails (SoundCloudTrackDetailsRequest) returns (SoundCloudTrackDetailsResponse) {}
+    rpc IncreaseOrReduceSkipThreshold (IncreaseOrReduceSkipThresholdRequest) returns (IncreaseOrReduceSkipThresholdResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -329,8 +330,9 @@ message SkipAndTipStatus {
     string skip_address = 2;
     string skip_balance = 3;
     string skip_threshold = 4;
-    string rain_address = 5;
-    string rain_balance = 6;
+    bool skip_threshold_reducible = 5;
+    string rain_address = 6;
+    string rain_balance = 7;
 }
 
 enum UserRole {
@@ -1206,6 +1208,8 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO = 7;
     POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING = 8;
     POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION = 9;
+    POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION = 10;
+    POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE = 11;
 }
 
 message ChatGifSearchRequest {
@@ -1284,3 +1288,9 @@ message RemoveVipUserResponse {}
 message TriggerClientReloadRequest {}
 
 message TriggerClientReloadResponse {}
+
+message IncreaseOrReduceSkipThresholdRequest {
+    bool increase = 1;
+}
+
+message IncreaseOrReduceSkipThresholdResponse {}

@@ -31,6 +31,10 @@
                 return "Queue entry reordering";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION:
                 return "Subscription to JungleTV Nice";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION:
+                return "Crowdfunded skipping target reduction";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE:
+                return "Crowdfunded skipping target increase";
             default:
                 return "Unknown";
         }

@@ -1108,6 +1108,9 @@ export class SkipAndTipStatus extends jspb.Message {
   getSkipThreshold(): string;
   setSkipThreshold(value: string): void;
 
+  getSkipThresholdReducible(): boolean;
+  setSkipThresholdReducible(value: boolean): void;
+
   getRainAddress(): string;
   setRainAddress(value: string): void;
 
@@ -1130,6 +1133,7 @@ export namespace SkipAndTipStatus {
     skipAddress: string,
     skipBalance: string,
     skipThreshold: string,
+    skipThresholdReducible: boolean,
     rainAddress: string,
     rainBalance: string,
   }
@@ -5778,6 +5782,42 @@ export namespace TriggerClientReloadResponse {
   }
 }
 
+export class IncreaseOrReduceSkipThresholdRequest extends jspb.Message {
+  getIncrease(): boolean;
+  setIncrease(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IncreaseOrReduceSkipThresholdRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: IncreaseOrReduceSkipThresholdRequest): IncreaseOrReduceSkipThresholdRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IncreaseOrReduceSkipThresholdRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IncreaseOrReduceSkipThresholdRequest;
+  static deserializeBinaryFromReader(message: IncreaseOrReduceSkipThresholdRequest, reader: jspb.BinaryReader): IncreaseOrReduceSkipThresholdRequest;
+}
+
+export namespace IncreaseOrReduceSkipThresholdRequest {
+  export type AsObject = {
+    increase: boolean,
+  }
+}
+
+export class IncreaseOrReduceSkipThresholdResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IncreaseOrReduceSkipThresholdResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: IncreaseOrReduceSkipThresholdResponse): IncreaseOrReduceSkipThresholdResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IncreaseOrReduceSkipThresholdResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IncreaseOrReduceSkipThresholdResponse;
+  static deserializeBinaryFromReader(message: IncreaseOrReduceSkipThresholdResponse, reader: jspb.BinaryReader): IncreaseOrReduceSkipThresholdResponse;
+}
+
+export namespace IncreaseOrReduceSkipThresholdResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -5910,6 +5950,8 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_CONVERSION_FROM_BANANO: 7;
   POINTS_TRANSACTION_TYPE_QUEUE_ENTRY_REORDERING: 8;
   POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION: 9;
+  POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION: 10;
+  POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE: 11;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;

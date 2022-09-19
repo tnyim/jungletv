@@ -34,6 +34,9 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.CrowdfundedTransactionReceived().Subscribe(event.ExactlyOnceGuarantee)
 	defer crowdfundedTransactionReceivedU()
 
+	skipThresholdReductionMilestoneReachedC, skipThresholdReductionMilestoneReachedU := s.skipManager.SkipThresholdReductionMilestoneReached().Subscribe(event.ExactlyOnceGuarantee)
+	defer skipThresholdReductionMilestoneReachedU()
+
 	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.ExactlyOnceGuarantee)
 	defer announcementsUpdatedU()
 
@@ -136,6 +139,12 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 
 			_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 				"_Spectators paid **%s BAN** to skip the previous queue entry!_", banStr))
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		case milestone := <-skipThresholdReductionMilestoneReachedC:
+			_, err := s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+				"_Community skip target reduced to **%.0f%%** of the original!_", milestone*100.0))
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}

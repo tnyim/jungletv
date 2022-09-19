@@ -35,10 +35,17 @@ type Manager struct {
 	mediaQueue              *mediaqueue.MediaQueue
 	pricer                  *pricer.Pricer
 
-	accountMovementLock        sync.Mutex
-	cachedSkipBalance          payment.Amount
-	cachedRainBalance          payment.Amount
-	currentSkipThreshold       payment.Amount
+	accountMovementLock sync.Mutex
+	cachedSkipBalance   payment.Amount
+	cachedRainBalance   payment.Amount
+
+	skipThresholdMutex     sync.RWMutex
+	originalSkipThreshold  payment.Amount
+	currentSkipThreshold   payment.Amount
+	minSkipThreshold       payment.Amount
+	skipThresholdChangedBy payment.Amount
+	skipThresholdReducible bool
+
 	rainedByRequester          payment.Amount
 	currentMediaID             *string
 	currentMediaRequester      *string
@@ -46,9 +53,10 @@ type Manager struct {
 	startupNoSkipPeriodOver    bool
 	mediaStartNoSkipPeriodOver bool
 
-	statusUpdated                  *event.Event[SkipStatusUpdatedEventArgs]
-	crowdfundedSkip                *event.Event[payment.Amount]
-	crowdfundedTransactionReceived *event.Event[*types.CrowdfundedTransaction]
+	statusUpdated                          *event.Event[SkipStatusUpdatedEventArgs]
+	skipThresholdReductionMilestoneReached *event.Event[float64]
+	crowdfundedSkip                        *event.Event[payment.Amount]
+	crowdfundedTransactionReceived         *event.Event[*types.CrowdfundedTransaction]
 
 	recentCrowdfundedSkips *cache.Cache[string, struct{}]
 }
@@ -63,22 +71,26 @@ func New(log *log.Logger,
 	pricer *pricer.Pricer,
 ) *Manager {
 	return &Manager{
-		log:                            log,
-		rpc:                            rpc,
-		skipAccount:                    skipAccount,
-		rainAccount:                    rainAccount,
-		collectorAccountAddress:        collectorAccountAddress,
-		mediaQueue:                     mediaQueue,
-		pricer:                         pricer,
-		statusUpdated:                  event.New[SkipStatusUpdatedEventArgs](),
-		crowdfundedSkip:                event.New[payment.Amount](),
-		cachedSkipBalance:              payment.NewAmount(),
-		cachedRainBalance:              payment.NewAmount(),
-		currentSkipThreshold:           payment.NewAmount(),
-		rainedByRequester:              payment.NewAmount(),
-		skippingEnabled:                true,
-		crowdfundedTransactionReceived: event.New[*types.CrowdfundedTransaction](),
-		recentCrowdfundedSkips:         cache.New[string, struct{}](30*time.Minute, 15*time.Minute),
+		log:                                    log,
+		rpc:                                    rpc,
+		skipAccount:                            skipAccount,
+		rainAccount:                            rainAccount,
+		collectorAccountAddress:                collectorAccountAddress,
+		mediaQueue:                             mediaQueue,
+		pricer:                                 pricer,
+		statusUpdated:                          event.New[SkipStatusUpdatedEventArgs](),
+		skipThresholdReductionMilestoneReached: event.New[float64](),
+		crowdfundedSkip:                        event.New[payment.Amount](),
+		cachedSkipBalance:                      payment.NewAmount(),
+		cachedRainBalance:                      payment.NewAmount(),
+		originalSkipThreshold:                  payment.NewAmount(),
+		currentSkipThreshold:                   payment.NewAmount(),
+		minSkipThreshold:                       payment.NewAmount(),
+		skipThresholdChangedBy:                 payment.NewAmount(),
+		rainedByRequester:                      payment.NewAmount(),
+		skippingEnabled:                        true,
+		crowdfundedTransactionReceived:         event.New[*types.CrowdfundedTransaction](),
+		recentCrowdfundedSkips:                 cache.New[string, struct{}](30*time.Minute, 15*time.Minute),
 	}
 }
 
@@ -89,7 +101,7 @@ func (s *Manager) Worker(ctx context.Context) error {
 	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.SkippingAllowedUpdated().Subscribe(event.AtLeastOnceGuarantee)
 	defer skippingAllowedUpdatedU()
 
-	s.UpdateSkipThreshold()
+	s.UpdateSkipThreshold(false)
 
 	startupNoSkipTimer := time.NewTimer(30 * time.Second)
 	defer startupNoSkipTimer.Stop()
@@ -120,18 +132,18 @@ func (s *Manager) Worker(ctx context.Context) error {
 					return stacktrace.Propagate(err, "")
 				}
 			}
-			s.UpdateSkipThreshold()
+			s.UpdateSkipThreshold(true)
 		case <-onSkippingAllowedUpdated:
-			s.UpdateSkipThreshold()
+			s.UpdateSkipThreshold(false)
 		case <-mediaStartTimer.C:
 			s.mediaStartNoSkipPeriodOver = true
-			s.UpdateSkipThreshold()
+			s.UpdateSkipThreshold(false)
 		case <-mediaEndTimer.C:
-			s.UpdateSkipThreshold()
+			s.UpdateSkipThreshold(false)
 		case <-startupNoSkipTimer.C:
 			if !s.startupNoSkipPeriodOver {
 				s.startupNoSkipPeriodOver = true
-				s.UpdateSkipThreshold()
+				s.UpdateSkipThreshold(false)
 			}
 		case <-ctx.Done():
 			return nil
@@ -235,6 +247,8 @@ func (s *Manager) checkBalances(ctx context.Context) error {
 	if skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_ALLOWED && skipStatus.SkipStatus != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
 		return nil
 	}
+	s.skipThresholdMutex.RLock()
+	defer s.skipThresholdMutex.RUnlock()
 	if s.cachedSkipBalance.Cmp(s.currentSkipThreshold.Int) >= 0 {
 		s.crowdfundedSkip.Notify(s.cachedSkipBalance, true)
 		// currentMediaID should never be nil at this point, but it doesn't hurt to check
@@ -365,18 +379,22 @@ func (s *Manager) receiveAndRegisterPendings(ctxCtx context.Context, account *wa
 
 // SkipAccountStatus returns the status of the skip account
 type SkipAccountStatus struct {
-	SkipStatus proto.SkipStatus
-	Address    string
-	Balance    payment.Amount
-	Threshold  payment.Amount
+	SkipStatus         proto.SkipStatus
+	Address            string
+	Balance            payment.Amount
+	Threshold          payment.Amount
+	ThresholdReducible bool
 }
 
 func (s *Manager) SkipAccountStatus() *SkipAccountStatus {
+	s.skipThresholdMutex.RLock()
+	defer s.skipThresholdMutex.RUnlock()
 	return &SkipAccountStatus{
-		SkipStatus: s.computeSkipStatus(),
-		Address:    s.skipAccount.Address(),
-		Balance:    s.cachedSkipBalance,
-		Threshold:  s.currentSkipThreshold,
+		SkipStatus:         s.computeSkipStatus(),
+		Address:            s.skipAccount.Address(),
+		Balance:            s.cachedSkipBalance,
+		Threshold:          s.currentSkipThreshold,
+		ThresholdReducible: s.skipThresholdReducible,
 	}
 }
 
@@ -393,14 +411,43 @@ func (s *Manager) RainAccountStatus() *RainAccountStatus {
 	}
 }
 
-func (s *Manager) UpdateSkipThreshold() {
+func (s *Manager) UpdateSkipThreshold(resetChange bool) {
+	defer func() {
+		// start by deferring this since SkipAccountStatus must be called outside of the lock
+		s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
+	}()
+
+	s.skipThresholdMutex.Lock()
+	defer s.skipThresholdMutex.Unlock()
+
+	if resetChange {
+		s.skipThresholdChangedBy = payment.NewAmount()
+	}
+
 	status := s.computeSkipStatus()
+
 	if status != proto.SkipStatus_SKIP_STATUS_ALLOWED && status != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
 		s.currentSkipThreshold = payment.NewAmount(big.NewInt(1).Exp(big.NewInt(2), big.NewInt(128), big.NewInt(0)))
-	} else {
-		s.currentSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing(len(s.recentCrowdfundedSkips.Items()))
+		return
 	}
-	s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
+
+	s.originalSkipThreshold = s.pricer.ComputeCrowdfundedSkipPricing(len(s.recentCrowdfundedSkips.Items()))
+
+	minPrice := big.NewInt(0).Div(s.originalSkipThreshold.Int, big.NewInt(10))
+	minPrice.Div(minPrice, pricer.PriceRoundingFactor)
+	minPrice.Mul(minPrice, pricer.PriceRoundingFactor)
+
+	finalPrice := big.NewInt(0).Add(s.originalSkipThreshold.Int, s.skipThresholdChangedBy.Int)
+	finalPrice.Div(finalPrice, pricer.PriceRoundingFactor)
+	finalPrice.Mul(finalPrice, pricer.PriceRoundingFactor)
+	if finalPrice.Cmp(minPrice) < 0 {
+		// this can happen if the community skip multiplier is altered after threshold reductions had already happened
+		finalPrice.Set(minPrice)
+	}
+
+	s.currentSkipThreshold = payment.NewAmount(finalPrice)
+	s.minSkipThreshold = payment.NewAmount(minPrice)
+	s.skipThresholdReducible = finalPrice.Cmp(minPrice) > 0
 }
 
 func (s *Manager) CrowdfundedSkippingEnabled() bool {
@@ -409,5 +456,61 @@ func (s *Manager) CrowdfundedSkippingEnabled() bool {
 
 func (s *Manager) SetCrowdfundedSkippingEnabled(enabled bool) {
 	s.skippingEnabled = enabled
-	s.UpdateSkipThreshold()
+	s.UpdateSkipThreshold(false)
+}
+
+func (s *Manager) ChangeSkipThreshold(desiredChange payment.Amount) payment.Amount {
+	change := payment.NewAmount(desiredChange.Int) // create copy
+	change.Div(change.Int, pricer.PriceRoundingFactor)
+	change.Mul(change.Int, pricer.PriceRoundingFactor)
+
+	changed := false
+	defer func() {
+		// start by deferring this since SkipAccountStatus must be called outside of the lock
+		if changed {
+			s.statusUpdated.Notify(SkipStatusUpdatedEventArgs{s.SkipAccountStatus(), s.RainAccountStatus()}, false)
+		}
+	}()
+
+	s.skipThresholdMutex.Lock()
+	defer s.skipThresholdMutex.Unlock()
+
+	status := s.computeSkipStatus()
+
+	if status != proto.SkipStatus_SKIP_STATUS_ALLOWED && status != proto.SkipStatus_SKIP_STATUS_END_OF_MEDIA_PERIOD {
+		return payment.NewAmount()
+	}
+
+	prevThreshold := big.NewInt(0).Set(s.currentSkipThreshold.Int)
+	priceAfterChange := big.NewInt(0).Add(prevThreshold, change.Int)
+	diff := priceAfterChange.Cmp(s.minSkipThreshold.Int)
+	if diff < 0 {
+		change = payment.NewAmount(big.NewInt(0).Neg(big.NewInt(0).Sub(s.currentSkipThreshold.Int, s.minSkipThreshold.Int)))
+	}
+	s.skipThresholdReducible = diff > 0
+
+	if change.Cmp(big.NewInt(0)) == 0 {
+		return payment.NewAmount()
+	}
+
+	s.skipThresholdChangedBy.Add(s.skipThresholdChangedBy.Int, change.Int)
+	s.currentSkipThreshold.Add(prevThreshold, change.Int)
+	changed = true
+
+	// check if we need to send any notifications
+	oneQuarterOfOriginal := big.NewInt(0).Div(s.originalSkipThreshold.Int, big.NewInt(4))
+	halfOfOriginal := big.NewInt(0).Div(s.originalSkipThreshold.Int, big.NewInt(2))
+	threeQuartersOfOriginal := big.NewInt(0).Mul(oneQuarterOfOriginal, big.NewInt(3))
+
+	if prevThreshold.Cmp(oneQuarterOfOriginal) > 0 && s.currentSkipThreshold.Cmp(oneQuarterOfOriginal) <= 0 {
+		// threshold is now reduced to 25% of the original
+		s.skipThresholdReductionMilestoneReached.Notify(0.25, false)
+	} else if prevThreshold.Cmp(halfOfOriginal) > 0 && s.currentSkipThreshold.Cmp(halfOfOriginal) <= 0 {
+		// threshold is now reduced to 50% of the original
+		s.skipThresholdReductionMilestoneReached.Notify(0.5, false)
+	} else if prevThreshold.Cmp(threeQuartersOfOriginal) > 0 && s.currentSkipThreshold.Cmp(threeQuartersOfOriginal) <= 0 {
+		// threshold is now reduced to 75% of the original
+		s.skipThresholdReductionMilestoneReached.Notify(0.75, false)
+	}
+	return change
 }

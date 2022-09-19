@@ -57,6 +57,7 @@ type JungleTVClient interface {
 	ConvertBananoToPoints(ctx context.Context, in *ConvertBananoToPointsRequest, opts ...grpc.CallOption) (JungleTV_ConvertBananoToPointsClient, error)
 	StartOrExtendSubscription(ctx context.Context, in *StartOrExtendSubscriptionRequest, opts ...grpc.CallOption) (*StartOrExtendSubscriptionResponse, error)
 	SoundCloudTrackDetails(ctx context.Context, in *SoundCloudTrackDetailsRequest, opts ...grpc.CallOption) (*SoundCloudTrackDetailsResponse, error)
+	IncreaseOrReduceSkipThreshold(ctx context.Context, in *IncreaseOrReduceSkipThresholdRequest, opts ...grpc.CallOption) (*IncreaseOrReduceSkipThresholdResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -624,6 +625,15 @@ func (c *jungleTVClient) SoundCloudTrackDetails(ctx context.Context, in *SoundCl
 	return out, nil
 }
 
+func (c *jungleTVClient) IncreaseOrReduceSkipThreshold(ctx context.Context, in *IncreaseOrReduceSkipThresholdRequest, opts ...grpc.CallOption) (*IncreaseOrReduceSkipThresholdResponse, error) {
+	out := new(IncreaseOrReduceSkipThresholdResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/IncreaseOrReduceSkipThreshold", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -1086,6 +1096,7 @@ type JungleTVServer interface {
 	ConvertBananoToPoints(*ConvertBananoToPointsRequest, JungleTV_ConvertBananoToPointsServer) error
 	StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error)
 	SoundCloudTrackDetails(context.Context, *SoundCloudTrackDetailsRequest) (*SoundCloudTrackDetailsResponse, error)
+	IncreaseOrReduceSkipThreshold(context.Context, *IncreaseOrReduceSkipThresholdRequest) (*IncreaseOrReduceSkipThresholdResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1254,6 +1265,9 @@ func (UnimplementedJungleTVServer) StartOrExtendSubscription(context.Context, *S
 }
 func (UnimplementedJungleTVServer) SoundCloudTrackDetails(context.Context, *SoundCloudTrackDetailsRequest) (*SoundCloudTrackDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SoundCloudTrackDetails not implemented")
+}
+func (UnimplementedJungleTVServer) IncreaseOrReduceSkipThreshold(context.Context, *IncreaseOrReduceSkipThresholdRequest) (*IncreaseOrReduceSkipThresholdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IncreaseOrReduceSkipThreshold not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -2119,6 +2133,24 @@ func _JungleTV_SoundCloudTrackDetails_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).SoundCloudTrackDetails(ctx, req.(*SoundCloudTrackDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_IncreaseOrReduceSkipThreshold_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncreaseOrReduceSkipThresholdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).IncreaseOrReduceSkipThreshold(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/IncreaseOrReduceSkipThreshold",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).IncreaseOrReduceSkipThreshold(ctx, req.(*IncreaseOrReduceSkipThresholdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3052,6 +3084,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SoundCloudTrackDetails",
 			Handler:    _JungleTV_SoundCloudTrackDetails_Handler,
+		},
+		{
+			MethodName: "IncreaseOrReduceSkipThreshold",
+			Handler:    _JungleTV_IncreaseOrReduceSkipThreshold_Handler,
 		},
 		{
 			MethodName: "ForciblyEnqueueTicket",

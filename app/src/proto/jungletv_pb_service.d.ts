@@ -355,6 +355,15 @@ type JungleTVSoundCloudTrackDetails = {
   readonly responseType: typeof jungletv_pb.SoundCloudTrackDetailsResponse;
 };
 
+type JungleTVIncreaseOrReduceSkipThreshold = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.IncreaseOrReduceSkipThresholdRequest;
+  readonly responseType: typeof jungletv_pb.IncreaseOrReduceSkipThresholdResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -792,6 +801,7 @@ export class JungleTV {
   static readonly ConvertBananoToPoints: JungleTVConvertBananoToPoints;
   static readonly StartOrExtendSubscription: JungleTVStartOrExtendSubscription;
   static readonly SoundCloudTrackDetails: JungleTVSoundCloudTrackDetails;
+  static readonly IncreaseOrReduceSkipThreshold: JungleTVIncreaseOrReduceSkipThreshold;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1164,6 +1174,15 @@ export class JungleTVClient {
   soundCloudTrackDetails(
     requestMessage: jungletv_pb.SoundCloudTrackDetailsRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SoundCloudTrackDetailsResponse|null) => void
+  ): UnaryResponse;
+  increaseOrReduceSkipThreshold(
+    requestMessage: jungletv_pb.IncreaseOrReduceSkipThresholdRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.IncreaseOrReduceSkipThresholdResponse|null) => void
+  ): UnaryResponse;
+  increaseOrReduceSkipThreshold(
+    requestMessage: jungletv_pb.IncreaseOrReduceSkipThresholdRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.IncreaseOrReduceSkipThresholdResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

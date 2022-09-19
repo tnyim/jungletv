@@ -74,7 +74,7 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	}
 
 	if lastTransaction != nil {
-		err = lastTransaction.IncreaseValue(ctx, value)
+		err = lastTransaction.AdjustValue(ctx, value)
 		if err != nil {
 			return 0, stacktrace.Propagate(err, "")
 		}
@@ -148,6 +148,8 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeConversionFromBanano:        pointsTxDirectionIncrease,
 	types.PointsTxTypeQueueEntryReordering:        pointsTxDirectionDecrease,
 	types.PointsTxTypeMonthlySubscription:         pointsTxDirectionDecrease,
+	types.PointsTxTypeSkipThresholdReduction:      pointsTxDirectionDecrease,
+	types.PointsTxTypeSkipThresholdIncrease:       pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -155,6 +157,8 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 var pointsTxTypeCanCollapse = map[types.PointsTxType]bool{
 	types.PointsTxTypeActivityChallengeReward: true,
 	types.PointsTxTypeChatActivityReward:      true,
+	types.PointsTxTypeSkipThresholdReduction:  true,
+	types.PointsTxTypeSkipThresholdIncrease:   true,
 }
 
 var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{

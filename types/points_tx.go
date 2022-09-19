@@ -77,12 +77,8 @@ func (obj *PointsTx) Insert(node sqalx.Node) error {
 	return Insert(node, obj)
 }
 
-// IncreaseValue increases the value of the PointsTx by the specified amount. The amount must be positive.
-func (obj *PointsTx) IncreaseValue(node sqalx.Node, value int) error {
-	if value < 0 {
-		return stacktrace.NewError("transaction values can only be updated to a larger value")
-	}
-
+// AdjustValue adjusts the value of the PointsTx by the specified amount.
+func (obj *PointsTx) AdjustValue(node sqalx.Node, value int) error {
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -117,4 +113,6 @@ const (
 	PointsTxTypeConversionFromBanano        PointsTxType = 7
 	PointsTxTypeQueueEntryReordering        PointsTxType = 8
 	PointsTxTypeMonthlySubscription         PointsTxType = 9
+	PointsTxTypeSkipThresholdReduction      PointsTxType = 10
+	PointsTxTypeSkipThresholdIncrease       PointsTxType = 11
 )

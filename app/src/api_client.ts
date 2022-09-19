@@ -11,7 +11,7 @@ import {
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForcedTicketEnqueueTypeMap,
     ForciblyEnqueueTicketRequest,
-    ForciblyEnqueueTicketResponse, GetDocumentRequest, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
+    ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, ModerationStatusOverview,
     MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PaginationParameters, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
@@ -202,6 +202,12 @@ class APIClient {
         let request = new SoundCloudTrackDetailsRequest();
         request.setTrackUrl(url);
         return this.unaryRPC<SoundCloudTrackDetailsRequest, SoundCloudTrackDetailsResponse>(JungleTV.SoundCloudTrackDetails, request);
+    }
+
+    async increaseOrReduceSkipThreshold(increase: boolean): Promise<IncreaseOrReduceSkipThresholdResponse> {
+        let request = new IncreaseOrReduceSkipThresholdRequest();
+        request.setIncrease(increase);
+        return this.unaryRPC<IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse>(JungleTV.IncreaseOrReduceSkipThreshold, request);
     }
 
     consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
