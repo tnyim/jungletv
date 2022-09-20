@@ -188,8 +188,7 @@
                     </div>
                 {/if}
                 <p class="mb-2">
-                    If you think this content should be skipped, contribute to the pool by sending to the following
-                    address:
+                    To contribute towards skipping the currently playing content, use the following address:
                 </p>
                 <AddressBox
                     address={skipAndTipStatus.getSkipAddress()}
