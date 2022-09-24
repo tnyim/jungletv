@@ -280,7 +280,7 @@ func (e *Manager) UserHasEnoughPointsToEnqueueConcealedEntry(ctxCtx context.Cont
 		return false, stacktrace.Propagate(err, "")
 	}
 
-	return balance.Balance > cost, nil
+	return balance.Balance >= cost, nil
 }
 
 func (e *Manager) cleanupTicket(ticket EnqueueTicket) {
