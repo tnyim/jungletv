@@ -395,14 +395,13 @@
                     />
                 </div>
                 <div class="ml-3 text-sm">
-                    <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300">
+                    <label for="unskippable" class="font-semibold text-gray-700 dark:text-gray-300">
                         Make {mediaKind} unskippable
                     </label>
                     <p class="text-gray-500">
                         Prevent this {mediaKind} from being skipped even if users pay enough to do so.<br />
-                        <span class="font-semibold">
-                            This will increase the price to enqueue this {mediaKind} by 6.9 times.
-                        </span>
+                        This will increase the price to enqueue this {mediaKind} by
+                        <span class="font-semibold">6.9 times</span>.
                     </p>
                 </div>
             </div>
@@ -419,16 +418,19 @@
                     />
                 </div>
                 <div class="ml-3 text-sm">
-                    <label for="concealed" class="font-medium text-gray-700 dark:text-gray-300">
+                    <label for="concealed" class="font-semibold text-gray-700 dark:text-gray-300">
                         Hide {mediaKind} information while it is in the queue
                     </label>
                     <p class="text-gray-500">
                         Prevent spoilers by only revealing this {mediaKind} when it begins playing. Only the {mediaKind}
                         duration will be visible to other users.<br />
+
+                        This will cost
                         <span class="font-semibold">
-                            This will cost {concealedCost}
-                            <PointsIcon /> and increase the price to enqueue this {mediaKind} by 50%.
+                            {concealedCost}
+                            <PointsIcon />
                         </span>
+                        and increase the price to enqueue this {mediaKind} <span class="font-semibold">by 50%</span>.
                     </p>
                 </div>
             </div>
@@ -446,7 +448,7 @@
                 </div>
                 <div class="ml-3 text-sm w-full">
                     {#if videoIsBroadcast}
-                        <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
+                        <label for="videorange" class="font-semibold text-gray-700 dark:text-gray-300">
                             Select for how long the live broadcast should play
                         </label>
                         <p class="text-gray-500">
@@ -454,7 +456,7 @@
                             hours in the last 4 hours. Prices will be relative to the length that plays.
                         </p>
                     {:else}
-                        <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
+                        <label for="videorange" class="font-semibold text-gray-700 dark:text-gray-300">
                             Select a time range to play
                         </label>
                         <p class="text-gray-500">
