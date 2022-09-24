@@ -65,12 +65,23 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				title := escape.MarkdownCharacters(entry.MediaInfo().Title())
 				switch t {
 				case "enqueue":
-					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-						"_%s just enqueued_ %s", name, title))
+					if entry.Concealed() {
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just enqueued something_", name))
+					} else {
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just enqueued_ %s", name, title))
+					}
 				case "play_after_next":
-					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-						"_%s just set_ %s _to play after the current queue entry_",
-						name, title))
+					if entry.Concealed() {
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just set something to play after the current queue entry_",
+							name))
+					} else {
+						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+							"_%s just set_ %s _to play after the current queue entry_",
+							name, title))
+					}
 				case "play_now":
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 						"_%s just skipped the previous queue entry!_", name))
@@ -102,8 +113,13 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			if args.Up {
 				direction = "up"
 			}
-			_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-				"_%s just moved_ %s _%s in the queue_", name, title, direction))
+			if args.Entry.Concealed() {
+				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_%s just moved something %s in the queue_", name, direction))
+			} else {
+				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_%s just moved_ %s _%s in the queue_", name, title, direction))
+			}
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
