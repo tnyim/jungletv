@@ -62,6 +62,9 @@
             #emoteUpsellOverlay .link:hover {
                 text-decoration: underline;
             }
+            button.emoji img {
+                --emoji-padding: 0.25rem;
+            }
         `;
         emojiPicker.shadowRoot.appendChild(style);
         emojiPicker.customEmoji = emojiDatabase.customEmoji;
