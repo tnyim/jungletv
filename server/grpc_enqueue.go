@@ -57,6 +57,20 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	}
 	defer ctx.Commit() // read-only tx (for now)
 
+	if r.Concealed {
+		if user == nil || user.IsUnknown() {
+			return produceEnqueueMediaFailureResponse("Anonymous users can not enqueue entries with hidden media information")
+		}
+		// preliminary check for sufficient points balance
+		enoughPoints, err := s.enqueueManager.UserHasEnoughPointsToEnqueueConcealedEntry(ctx, user)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		if !enoughPoints {
+			return produceEnqueueMediaFailureResponse("Insufficient points to enqueue with hidden media information")
+		}
+	}
+
 	var provider media.Provider
 
 	for _, p := range s.mediaProviders {
@@ -96,7 +110,7 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		}
 	}
 
-	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable,
+	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable, r.Concealed,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY)
@@ -205,9 +219,6 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 
 		if err := stream.Send(response); err != nil {
 			return stacktrace.Propagate(err, "")
-		}
-		if ticket.Status() == proto.EnqueueMediaTicketStatus_EXPIRED {
-			return nil
 		}
 	}
 }

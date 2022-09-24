@@ -46,7 +46,7 @@ func (m *Manager) CreateOrRecoverBananoConversionFlow(user auth.User) (*BananoCo
 }
 
 func (m *Manager) createBananoConversionFlow(user auth.User) (*BananoConversionFlow, error) {
-	paymentAddress, paymentReceivedEvent, err := m.paymentAccountPool.ReceivePayment()
+	paymentReceiver, err := m.paymentAccountPool.ReceivePayment()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -54,14 +54,14 @@ func (m *Manager) createBananoConversionFlow(user auth.User) (*BananoConversionF
 	flow := &BananoConversionFlow{
 		createdOrRecoveredAt: time.Now(),
 		user:                 user,
-		paymentAddress:       paymentAddress,
+		paymentAddress:       paymentReceiver.Address(),
 		clientReconnected:    event.NewNoArg(),
 		expired:              event.NewNoArg(),
 		destroyed:            event.NewNoArg(),
 		converted:            event.New[BananoConvertedEventArgs](),
 		sessionBananoTotal:   payment.NewAmount(),
 	}
-	go flow.worker(m.workerContext, paymentReceivedEvent, m.convertBanano, func() {
+	go flow.worker(m.workerContext, paymentReceiver.PaymentReceived(), m.convertBanano, func() {
 		m.bananoConversionFlowsLock.Lock()
 		defer m.bananoConversionFlowsLock.Unlock()
 		delete(m.bananoConversionFlows, flow.user.Address())

@@ -152,9 +152,10 @@ class APIClient {
         setCookie("auth-token", token, expiry, "Strict");
     }
 
-    async enqueueYouTubeVideo(id: string, unskippable: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
+        request.setConcealed(concealed);
         let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(id);
         if (typeof startOffset !== 'undefined') {
@@ -167,9 +168,10 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueSoundCloudTrack(url: string, unskippable: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
+        request.setConcealed(concealed);
         let scData = new EnqueueSoundCloudTrackData();
         scData.setPermalink(url);
         if (typeof startOffset !== 'undefined') {
@@ -182,9 +184,10 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueDocument(id: string, title: string, unskippable: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
+    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
+        request.setConcealed(concealed);
         let docData = new EnqueueDocumentData();
         docData.setDocumentId(id);
         docData.setTitle(title);

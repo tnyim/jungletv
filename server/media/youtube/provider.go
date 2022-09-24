@@ -127,8 +127,8 @@ func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable bool,
-	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed,
+	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
@@ -211,6 +211,7 @@ func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)
 	request.SetUnskippable(unskippable)
+	request.SetConcealed(concealed)
 
 	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims != nil {

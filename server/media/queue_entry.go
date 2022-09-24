@@ -17,6 +17,7 @@ type CommonQueueEntry struct {
 	queueID string
 
 	unskippable bool
+	concealed   bool
 
 	requestedBy auth.User
 	requestCost payment.Amount
@@ -134,6 +135,15 @@ func (e *CommonQueueEntry) SetUnskippable(unskippable bool) {
 	e.unskippable = unskippable
 }
 
+// Concealed implements the QueueEntry interface
+func (e *CommonQueueEntry) Concealed() bool {
+	return e.concealed
+}
+
+func (e *CommonQueueEntry) SetConcealed(concealed bool) {
+	e.concealed = concealed
+}
+
 // WasMovedBy implements the QueueEntry interface
 func (e *CommonQueueEntry) WasMovedBy(user auth.User) bool {
 	if user.IsUnknown() {
@@ -177,4 +187,13 @@ func (e *CommonQueueEntry) BaseProducePlayedMedia(mediaType types.MediaType, med
 	}
 
 	return playedMedia, nil
+}
+
+func (e *CommonQueueEntry) FillMediaQueueEntryFields(requestedBy auth.User, requestCost payment.Amount, unskippable, concealed bool, queueID string) {
+	e.SetRequestedBy(requestedBy)
+	e.SetRequestCost(requestCost)
+	e.SetUnskippable(unskippable)
+	e.SetConcealed(concealed)
+	e.SetQueueID(queueID)
+	e.SetRequestedAt(time.Now())
 }

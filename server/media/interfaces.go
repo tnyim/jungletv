@@ -21,6 +21,7 @@ type QueueEntry interface {
 	RequestCost() payment.Amount
 	RequestedAt() time.Time
 	Unskippable() bool
+	Concealed() bool
 	MediaInfo() Info
 	ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint
 	ProducePlayedMedia() (*types.PlayedMedia, error)
@@ -44,7 +45,7 @@ type Info interface {
 	MediaID() (types.MediaType, string)
 	Offset() time.Duration
 	Length() time.Duration
-	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) QueueEntry
+	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, concealed bool, queueID string) QueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 	SerializeForAPIQueue(ctx context.Context) proto.IsQueueEntry_MediaInfo
 }
@@ -66,8 +67,8 @@ type Provider interface {
 	SetMediaQueue(mediaQueue MediaQueueStub)
 	CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool
 	BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (InitialInfo, EnqueueRequestCreationResult, error)
-	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable bool,
-		allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
+	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable, concealed,
+		allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
 	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, error)
 

@@ -302,6 +302,9 @@ export class EnqueueMediaRequest extends jspb.Message {
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
 
+  getConcealed(): boolean;
+  setConcealed(value: boolean): void;
+
   hasStubData(): boolean;
   clearStubData(): void;
   getStubData(): EnqueueStubData | undefined;
@@ -336,6 +339,7 @@ export class EnqueueMediaRequest extends jspb.Message {
 export namespace EnqueueMediaRequest {
   export type AsObject = {
     unskippable: boolean,
+    concealed: boolean,
     stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: EnqueueSoundCloudTrackData.AsObject,
@@ -344,10 +348,10 @@ export namespace EnqueueMediaRequest {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 2,
-    YOUTUBE_VIDEO_DATA = 3,
-    SOUNDCLOUD_TRACK_DATA = 4,
-    DOCUMENT_DATA = 5,
+    STUB_DATA = 3,
+    YOUTUBE_VIDEO_DATA = 4,
+    SOUNDCLOUD_TRACK_DATA = 5,
+    DOCUMENT_DATA = 6,
   }
 }
 
@@ -433,6 +437,9 @@ export class EnqueueMediaTicket extends jspb.Message {
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
 
+  getConcealed(): boolean;
+  setConcealed(value: boolean): void;
+
   getCurrentlyPlayingIsUnskippable(): boolean;
   setCurrentlyPlayingIsUnskippable(value: boolean): void;
 
@@ -477,6 +484,7 @@ export namespace EnqueueMediaTicket {
     playNowPrice: string,
     expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     unskippable: boolean,
+    concealed: boolean,
     currentlyPlayingIsUnskippable: boolean,
     mediaLength?: google_protobuf_duration_pb.Duration.AsObject,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
@@ -486,9 +494,9 @@ export namespace EnqueueMediaTicket {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 11,
-    SOUNDCLOUD_TRACK_DATA = 12,
-    DOCUMENT_DATA = 13,
+    YOUTUBE_VIDEO_DATA = 12,
+    SOUNDCLOUD_TRACK_DATA = 13,
+    DOCUMENT_DATA = 14,
   }
 }
 
@@ -993,6 +1001,22 @@ export namespace QueueDocumentData {
   }
 }
 
+export class QueueConcealedData extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueueConcealedData.AsObject;
+  static toObject(includeInstance: boolean, msg: QueueConcealedData): QueueConcealedData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: QueueConcealedData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueueConcealedData;
+  static deserializeBinaryFromReader(message: QueueConcealedData, reader: jspb.BinaryReader): QueueConcealedData;
+}
+
+export namespace QueueConcealedData {
+  export type AsObject = {
+  }
+}
+
 export class QueueEntry extends jspb.Message {
   getId(): string;
   setId(value: string): void;
@@ -1023,6 +1047,9 @@ export class QueueEntry extends jspb.Message {
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
 
+  getConcealed(): boolean;
+  setConcealed(value: boolean): void;
+
   getCanMoveUp(): boolean;
   setCanMoveUp(value: boolean): void;
 
@@ -1044,6 +1071,11 @@ export class QueueEntry extends jspb.Message {
   getDocumentData(): QueueDocumentData | undefined;
   setDocumentData(value?: QueueDocumentData): void;
 
+  hasConcealedData(): boolean;
+  clearConcealedData(): void;
+  getConcealedData(): QueueConcealedData | undefined;
+  setConcealedData(value?: QueueConcealedData): void;
+
   getMediaInfoCase(): QueueEntry.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueueEntry.AsObject;
@@ -1064,18 +1096,21 @@ export namespace QueueEntry {
     length?: google_protobuf_duration_pb.Duration.AsObject,
     offset?: google_protobuf_duration_pb.Duration.AsObject,
     unskippable: boolean,
+    concealed: boolean,
     canMoveUp: boolean,
     canMoveDown: boolean,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
+    concealedData?: QueueConcealedData.AsObject,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 10,
-    SOUNDCLOUD_TRACK_DATA = 11,
-    DOCUMENT_DATA = 12,
+    YOUTUBE_VIDEO_DATA = 11,
+    SOUNDCLOUD_TRACK_DATA = 12,
+    DOCUMENT_DATA = 13,
+    CONCEALED_DATA = 14,
   }
 }
 
@@ -5822,6 +5857,7 @@ export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
   EXPIRED: 2;
+  FAILED_INSUFFICIENT_POINTS: 3;
 }
 
 export const EnqueueMediaTicketStatus: EnqueueMediaTicketStatusMap;
@@ -5952,6 +5988,7 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION: 9;
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION: 10;
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE: 11;
+  POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING: 12;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;

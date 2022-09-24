@@ -150,6 +150,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeMonthlySubscription:         pointsTxDirectionDecrease,
 	types.PointsTxTypeSkipThresholdReduction:      pointsTxDirectionDecrease,
 	types.PointsTxTypeSkipThresholdIncrease:       pointsTxDirectionDecrease,
+	types.PointsTxTypeConcealedEntryEnqueuing:     pointsTxDirectionDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -167,4 +168,5 @@ var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
 	types.PointsTxTypeMediaEnqueuedRewardReversal: {"media"},
 	types.PointsTxTypeConversionFromBanano:        {"tx_hash"},
 	types.PointsTxTypeQueueEntryReordering:        {"media", "direction"},
+	types.PointsTxTypeConcealedEntryEnqueuing:     {"media"},
 }

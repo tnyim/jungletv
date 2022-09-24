@@ -58,6 +58,8 @@
         ticket = t;
         if (t.getStatus() == EnqueueMediaTicketStatus.EXPIRED) {
             dispatch("ticketExpired");
+        } else if (t.getStatus() == EnqueueMediaTicketStatus.FAILED_INSUFFICIENT_POINTS) {
+            dispatch("ticketFailed");
         } else if (t.getStatus() == EnqueueMediaTicketStatus.PAID) {
             dispatch("ticketPaid");
         }

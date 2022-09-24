@@ -115,4 +115,5 @@ const (
 	PointsTxTypeMonthlySubscription         PointsTxType = 9
 	PointsTxTypeSkipThresholdReduction      PointsTxType = 10
 	PointsTxTypeSkipThresholdIncrease       PointsTxType = 11
+	PointsTxTypeConcealedEntryEnqueuing     PointsTxType = 12
 )

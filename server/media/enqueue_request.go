@@ -6,6 +6,7 @@ import "github.com/tnyim/jungletv/server/auth"
 type EnqueueRequest interface {
 	RequestedBy() auth.User
 	Unskippable() bool
+	Concealed() bool
 	MediaInfo() Info
 }
 

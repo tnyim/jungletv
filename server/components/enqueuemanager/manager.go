@@ -2,6 +2,7 @@ package enqueuemanager
 
 import (
 	"context"
+	"errors"
 	"log"
 	"sync"
 	"time"
@@ -14,11 +15,14 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/rewards"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/stores/moderation"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
+	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -33,6 +37,7 @@ type Manager struct {
 	pricer                             *pricer.Pricer
 	paymentAccountPool                 *payment.PaymentAccountPool
 	rewardsHandler                     *rewards.Handler
+	pointsManager                      *pointsmanager.Manager
 	log                                *log.Logger
 	moderationStore                    moderation.Store
 	modLogWebhook                      api.WebhookClient
@@ -53,6 +58,7 @@ type EnqueueTicket interface {
 	SerializeForAPI() *proto.EnqueueMediaTicket
 	RequestPricing() pricer.EnqueuePricing
 	SetPaid() error
+	SetFailedDueToInsufficientPoints()
 	Status() proto.EnqueueMediaTicketStatus
 	StatusChanged() *event.NoArgEvent
 	ForceEnqueuing(proto.ForcedTicketEnqueueType)
@@ -68,6 +74,7 @@ func New(
 	pricer *pricer.Pricer,
 	paymentAccountPool *payment.PaymentAccountPool,
 	rewardsHandler *rewards.Handler,
+	pointsManager *pointsmanager.Manager,
 	moderationStore moderation.Store,
 	modLogWebhook api.WebhookClient) (*Manager, error) {
 	return &Manager{
@@ -78,6 +85,7 @@ func New(
 		pricer:                  pricer,
 		paymentAccountPool:      paymentAccountPool,
 		rewardsHandler:          rewardsHandler,
+		pointsManager:           pointsManager,
 		requests:                make(map[string]EnqueueTicket),
 		moderationStore:         moderationStore,
 		modLogWebhook:           modLogWebhook,
@@ -94,28 +102,33 @@ func (e *Manager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
 }
 
 func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
-	paymentAddress, paymentReceivedEvent, err := e.paymentAccountPool.ReceivePayment()
+	paymentReceiver, err := e.paymentAccountPool.ReceivePayment()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	t := &ticket{
-		id:             uuid.NewV4().String(),
-		createdAt:      time.Now(),
-		requestedBy:    request.RequestedBy(),
-		mediaInfo:      request.MediaInfo(),
-		unskippable:    request.Unskippable(),
-		pricing:        e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable()),
-		paymentAddress: paymentAddress,
-		statusChanged:  event.NewNoArg(),
+	if request.Concealed() && (request.RequestedBy() == nil || request.RequestedBy().IsUnknown()) {
+		return nil, stacktrace.NewError("anonymous users can not enqueue concealed entries")
 	}
-	go t.worker(e.workerContext, e, paymentReceivedEvent)
+
+	t := &ticket{
+		id:              uuid.NewV4().String(),
+		createdAt:       time.Now(),
+		requestedBy:     request.RequestedBy(),
+		mediaInfo:       request.MediaInfo(),
+		unskippable:     request.Unskippable(),
+		concealed:       request.Concealed(),
+		pricing:         e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable(), request.Concealed()),
+		paymentReceiver: paymentReceiver,
+		statusChanged:   event.NewNoArg(),
+	}
+	go t.worker(e.workerContext, e)
 
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
 	e.requests[t.ID()] = t
 	numActive := len(e.requests)
-	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.paymentAddress)
+	e.log.Printf("Registered ticket %s with payment account %s", t.id, t.PaymentAddress())
 	go e.statsClient.Gauge("active_enqueue_tickets", numActive)
 	return t, nil
 }
@@ -133,7 +146,7 @@ func (e *Manager) GetTicket(id string) EnqueueTicket {
 	return nil
 }
 
-func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket EnqueueTicket) error {
+func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket *ticket) error {
 	if ticket.Status() == proto.EnqueueMediaTicketStatus_PAID {
 		return nil
 	}
@@ -163,13 +176,32 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 
 		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
 			e.log.Printf("Ticket %s not being enqueued due to banned requester", ticket.ID())
-			// TODO auto-revert all transactions that came from the banned address
-			return nil
+			// revert all transactions that came from the banned address
+			err = ticket.paymentReceiver.Revert(requestedByStr)
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
+	if ticket.Concealed() {
+		err := e.deductConcealedTicketPoints(ctx, ticket)
+		if err != nil {
+			if !errors.Is(err, types.ErrInsufficientPointsBalance) {
+				return stacktrace.Propagate(err, "")
+			}
+
+			e.log.Printf("Ticket %s not being enqueued due to insufficient points balance to enqueue concealed entry", ticket.ID())
+			// this ticket can not be enqueued because the user does not have sufficient points for a concealed queue entry
+			ticket.SetFailedDueToInsufficientPoints()
+			// refund the paid amount
+			err = ticket.paymentReceiver.Revert(requestedByStr)
+			return stacktrace.Propagate(err, "")
 		}
 	}
 
 	mi := ticket.MediaInfo()
-	playFn(mi.ProduceMediaQueueEntry(requestedBy, balance, ticket.Unskippable() || e.newEntriesAlwaysUnskippableForFree, ticket.ID()))
+	playFn(mi.ProduceMediaQueueEntry(requestedBy, balance,
+		ticket.Unskippable() || e.newEntriesAlwaysUnskippableForFree,
+		ticket.Concealed(), ticket.ID()))
 
 	err := ticket.SetPaid()
 	if err != nil {
@@ -189,6 +221,68 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 	return nil
 }
 
+func (e *Manager) deductConcealedTicketPoints(ctxCtx context.Context, ticket EnqueueTicket) error {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Rollback()
+
+	requestedBy := ticket.RequestedBy()
+	cost, err := e.pointsCostOfConcealedEntry(ctx, requestedBy)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	_, err = e.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeConcealedEntryEnqueuing, -cost, pointsmanager.TxExtraField{
+		Key:   "media",
+		Value: ticket.ID(),
+	})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (e *Manager) pointsCostOfConcealedEntry(ctxCtx context.Context, user auth.User) (int, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	cost := 690
+	subscribed, err := e.pointsManager.IsUserCurrentlySubscribed(ctx, user)
+	if err != nil {
+		return 0, stacktrace.Propagate(err, "")
+	}
+	if subscribed {
+		cost = 404
+	}
+	return cost, nil
+}
+
+func (e *Manager) UserHasEnoughPointsToEnqueueConcealedEntry(ctxCtx context.Context, user auth.User) (bool, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	balance, err := types.GetPointsBalanceForAddress(ctx, user.Address())
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	cost, err := e.pointsCostOfConcealedEntry(ctx, user)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	return balance.Balance > cost, nil
+}
+
 func (e *Manager) cleanupTicket(ticket EnqueueTicket) {
 	e.requestsLock.Lock()
 	defer e.requestsLock.Unlock()
@@ -200,20 +294,26 @@ func (e *Manager) cleanupTicket(ticket EnqueueTicket) {
 }
 
 type ticket struct {
-	id             string
-	paid           bool
-	unskippable    bool
-	requestedBy    auth.User
-	createdAt      time.Time
-	mediaInfo      media.Info
-	paymentAddress string
-	pricing        pricer.EnqueuePricing
-	statusChanged  *event.NoArgEvent
-	forceEnqueuing *proto.ForcedTicketEnqueueType
+	id                       string
+	paid                     bool
+	failedInsufficientPoints bool
+	unskippable              bool
+	concealed                bool
+	requestedBy              auth.User
+	createdAt                time.Time
+	mediaInfo                media.Info
+	paymentReceiver          payment.PaymentReceiver
+	pricing                  pricer.EnqueuePricing
+	statusChanged            *event.NoArgEvent
+	forceEnqueuing           *proto.ForcedTicketEnqueueType
 }
 
 func (t *ticket) Unskippable() bool {
 	return t.unskippable
+}
+
+func (t *ticket) Concealed() bool {
+	return t.concealed
 }
 
 func (t *ticket) MediaInfo() media.Info {
@@ -233,19 +333,20 @@ func (t *ticket) RequestedBy() auth.User {
 }
 
 func (t *ticket) PaymentAddress() string {
-	return t.paymentAddress
+	return t.paymentReceiver.Address()
 }
 
 func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 	serialized := &proto.EnqueueMediaTicket{
 		Id:             t.id,
 		Status:         t.Status(),
-		PaymentAddress: t.paymentAddress,
+		PaymentAddress: t.PaymentAddress(),
 		EnqueuePrice:   t.pricing.EnqueuePrice.SerializeForAPI(),
 		PlayNextPrice:  t.pricing.PlayNextPrice.SerializeForAPI(),
 		PlayNowPrice:   t.pricing.PlayNowPrice.SerializeForAPI(),
 		Expiration:     timestamppb.New(t.CreatedAt().Add(TicketExpiration)),
 		Unskippable:    t.unskippable,
+		Concealed:      t.concealed,
 	}
 	t.mediaInfo.FillAPITicketMediaInfo(serialized)
 	return serialized
@@ -259,13 +360,25 @@ func (t *ticket) SetPaid() error {
 	if t.paid {
 		return stacktrace.NewError("ticket already paid")
 	}
+	if t.failedInsufficientPoints {
+		return stacktrace.NewError("ticket failed due to insufficient points")
+	}
 	t.paid = true
 	t.statusChanged.Notify(true)
 	return nil
 }
 
+func (t *ticket) SetFailedDueToInsufficientPoints() {
+	if !t.failedInsufficientPoints {
+		t.failedInsufficientPoints = true
+		t.statusChanged.Notify(true)
+	}
+}
+
 func (t *ticket) Status() proto.EnqueueMediaTicketStatus {
 	switch {
+	case t.failedInsufficientPoints:
+		return proto.EnqueueMediaTicketStatus_FAILED_INSUFFICIENT_POINTS
 	case t.paid:
 		return proto.EnqueueMediaTicketStatus_PAID
 	case time.Now().After(t.CreatedAt().Add(TicketExpiration)):
@@ -290,7 +403,7 @@ func (t *ticket) EnqueuingForced() (bool, proto.ForcedTicketEnqueueType) {
 	return false, 0
 }
 
-func (t *ticket) worker(ctx context.Context, e *Manager, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs]) {
+func (t *ticket) worker(ctx context.Context, e *Manager) {
 	defer e.cleanupTicket(t)
 
 	expirationTimer := time.NewTimer(TicketExpiration)
@@ -302,7 +415,7 @@ func (t *ticket) worker(ctx context.Context, e *Manager, paymentReceivedEvent *e
 	checkForcedEnqueuingTicker := time.NewTicker(5 * time.Second)
 	defer checkForcedEnqueuingTicker.Stop()
 
-	onPaymentReceived, onPaymentReceivedUnsub := paymentReceivedEvent.Subscribe(event.ExactlyOnceGuarantee)
+	onPaymentReceived, onPaymentReceivedUnsub := t.paymentReceiver.PaymentReceived().Subscribe(event.ExactlyOnceGuarantee)
 	defer onPaymentReceivedUnsub()
 
 	onStatusChanged, onStatusChangedUnsub := t.statusChanged.Subscribe(event.AtLeastOnceGuarantee)
@@ -317,7 +430,7 @@ func (t *ticket) worker(ctx context.Context, e *Manager, paymentReceivedEvent *e
 		case <-actualExpirationTimer.C:
 			return
 		case <-onStatusChanged:
-			if t.paid {
+			if t.paid || t.failedInsufficientPoints {
 				return
 			}
 		case <-ctx.Done():

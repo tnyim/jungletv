@@ -25,7 +25,7 @@
     function onTicketPaid() {
         step = 2;
     }
-    function onTicketExpired() {
+    function onTicketFailed() {
         step = 3;
     }
     function onConnectionLost() {
@@ -66,7 +66,8 @@
     <EnqueuePayment
         on:userCanceled={onUserCanceled}
         on:ticketPaid={onTicketPaid}
-        on:ticketExpired={onTicketExpired}
+        on:ticketExpired={onTicketFailed}
+        on:ticketFailed={onTicketFailed}
         on:connectionLost={onConnectionLost}
         bind:ticket
         {mediaKind}

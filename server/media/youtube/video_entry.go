@@ -24,12 +24,8 @@ type queueEntryYouTubeVideo struct {
 	thumbnailURL  string
 }
 
-func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, queueID string) media.QueueEntry {
-	e.SetRequestedBy(requestedBy)
-	e.SetRequestCost(requestCost)
-	e.SetUnskippable(unskippable)
-	e.SetQueueID(queueID)
-	e.SetRequestedAt(time.Now())
+func (e *queueEntryYouTubeVideo) ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable, concealed bool, queueID string) media.QueueEntry {
+	e.FillMediaQueueEntryFields(requestedBy, requestCost, unskippable, concealed, queueID)
 	return e
 }
 
@@ -64,6 +60,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 	RequestCost   *big.Int
 	RequestedAt   time.Time
 	Unskippable   bool
+	Concealed     bool
 	MovedBy       []string
 }
 
@@ -82,6 +79,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 		RequestCost:   e.RequestCost().Int,
 		RequestedAt:   e.RequestedAt(),
 		Unskippable:   e.Unskippable(),
+		Concealed:     e.Concealed(),
 		MovedBy:       e.MovedBy(),
 	})
 	if err != nil {
@@ -109,6 +107,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	e.SetRequestCost(payment.NewAmount(t.RequestCost))
 	e.SetRequestedAt(t.RequestedAt)
 	e.SetUnskippable(t.Unskippable)
+	e.SetConcealed(t.Concealed)
 	for _, m := range t.MovedBy {
 		e.SetAsMovedBy(auth.NewAddressOnlyUser(m))
 	}

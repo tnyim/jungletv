@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import type { QueueEntry } from "./proto/jungletv_pb";
+    import QueueEntryHeaderConcealed from "./QueueEntryHeaderConcealed.svelte";
     import QueueEntryHeaderDocument from "./QueueEntryHeaderDocument.svelte";
     import QueueEntryHeaderSoundCloud from "./QueueEntryHeaderSoundCloud.svelte";
     import QueueEntryHeaderYouTube from "./QueueEntryHeaderYouTube.svelte";
@@ -40,6 +41,8 @@
     <QueueEntryHeaderSoundCloud {entry} {isPlaying} {mode} />
 {:else if entry.hasDocumentData()}
     <QueueEntryHeaderDocument {entry} {isPlaying} {mode} />
+{:else if entry.hasConcealedData()}
+    <QueueEntryHeaderConcealed {entry} {isPlaying} {mode} />
 {:else}
     <p style="height: 90px">Unknown queue entry type</p>
 {/if}

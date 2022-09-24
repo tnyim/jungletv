@@ -1,19 +1,21 @@
 <script lang="ts">
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { Duration } from "luxon";
-    import { createEventDispatcher,onDestroy,onMount,tick } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
-    import { link,useLocation } from "svelte-navigator";
+    import { link, useLocation } from "svelte-navigator";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { apiClient } from "./api_client";
     import ErrorMessage from "./ErrorMessage.svelte";
     import MediaRangeFloat from "./MediaRangeFloat.svelte";
+    import PointsIcon from "./PointsIcon.svelte";
     import { EnqueueMediaResponse } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
-    import type { MediaSelectionKind,MediaSelectionParseResult } from "./utils";
+    import { currentSubscription } from "./stores";
+    import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
     import { parseURLForMediaSelection } from "./utils";
     import Wizard from "./Wizard.svelte";
-    import YouTube,{ PlayerState } from "./YouTube.svelte";
+    import YouTube, { PlayerState } from "./YouTube.svelte";
 
     const dispatch = createEventDispatcher();
     const location = useLocation();
@@ -45,7 +47,10 @@
         mediaRangeValuesFilled = false;
     }
     let unskippable: boolean = false;
+    let concealed: boolean = false;
     let failureReason: string = "";
+
+    $: concealedCost = typeof $currentSubscription !== "undefined" && $currentSubscription != null ? 404 : 690;
 
     async function handleEnter(event: KeyboardEvent) {
         if (event.key === "Enter") {
@@ -109,11 +114,18 @@
             }
 
             if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, startOffset, endOffset);
+                reqPromise = apiClient.enqueueYouTubeVideo(
+                    parseResult.videoID,
+                    unskippable,
+                    concealed,
+                    startOffset,
+                    endOffset
+                );
             } else if (parseResult.type == "sc_track") {
                 reqPromise = apiClient.enqueueSoundCloudTrack(
                     parseResult.trackURL,
                     unskippable,
+                    concealed,
                     startOffset,
                     endOffset
                 );
@@ -122,20 +134,22 @@
                     parseResult.documentID,
                     parseResult.title,
                     unskippable,
+                    concealed,
                     endOffset,
                     parseResult.enqueueType
                 );
             }
         } else {
             if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable);
+                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, concealed);
             } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable);
+                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable, concealed);
             } else if (parseResult.type == "document") {
                 reqPromise = apiClient.enqueueDocument(
                     parseResult.documentID,
                     parseResult.title,
                     unskippable,
+                    concealed,
                     undefined,
                     parseResult.enqueueType
                 );
@@ -382,12 +396,38 @@
                 </div>
                 <div class="ml-3 text-sm">
                     <label for="unskippable" class="font-medium text-gray-700 dark:text-gray-300">
-                        Make {mediaKind} unskippable</label
-                    >
+                        Make {mediaKind} unskippable
+                    </label>
                     <p class="text-gray-500">
                         Prevent this {mediaKind} from being skipped even if users pay enough to do so.<br />
                         <span class="font-semibold">
                             This will increase the price to enqueue this {mediaKind} by 6.9 times.
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 space-y-4">
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input
+                        id="concealed"
+                        name="concealed"
+                        type="checkbox"
+                        bind:checked={concealed}
+                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                    />
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="concealed" class="font-medium text-gray-700 dark:text-gray-300">
+                        Hide {mediaKind} information while it is in the queue
+                    </label>
+                    <p class="text-gray-500">
+                        Prevent spoilers by only revealing this {mediaKind} when it begins playing. Only the {mediaKind}
+                        duration will be visible to other users.<br />
+                        <span class="font-semibold">
+                            This will cost {concealedCost}
+                            <PointsIcon /> and increase the price to enqueue this {mediaKind} by 50%.
                         </span>
                     </p>
                 </div>
@@ -407,16 +447,16 @@
                 <div class="ml-3 text-sm w-full">
                     {#if videoIsBroadcast}
                         <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
-                            Select for how long the live broadcast should play</label
-                        >
+                            Select for how long the live broadcast should play
+                        </label>
                         <p class="text-gray-500">
                             Broadcasts can play for up to {maxRangeLength / 60} minutes at a time and up to a total of 2
                             hours in the last 4 hours. Prices will be relative to the length that plays.
                         </p>
                     {:else}
                         <label for="videorange" class="font-medium text-gray-700 dark:text-gray-300">
-                            Select a time range to play</label
-                        >
+                            Select a time range to play
+                        </label>
                         <p class="text-gray-500">
                             Enqueue just part of a longer {mediaKind}. Prices will be relative to the length that plays.
                             {#if mediaLengthInSeconds > maxRangeLength}

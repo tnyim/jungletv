@@ -85,8 +85,8 @@ func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext,
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable bool,
-	allowUnpopular bool, skipLengthChecks bool, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
+func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed,
+	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	preInfo, ok := genericInfo.(*initialInfo)
 	if !ok {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("unexpected type")
@@ -106,6 +106,7 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 	request.SetLength(duration)
 	request.SetOffset(0)
 	request.SetUnskippable(unskippable)
+	request.SetConcealed(concealed)
 
 	userClaims := authinterceptor.UserClaimsFromContext(ctx)
 	if userClaims != nil {

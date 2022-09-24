@@ -392,7 +392,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.pricer.SetEligibleSpectatorsEstimator(s.rewardsHandler)
 
 	s.enqueueManager, err = enqueuemanager.New(ctx, s.log, s.statsClient, s.mediaQueue, s.pricer,
-		s.paymentAccountPool, s.rewardsHandler, s.moderationStore, s.modLogWebhook)
+		s.paymentAccountPool, s.rewardsHandler, s.pointsManager, s.moderationStore, s.modLogWebhook)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -485,7 +485,7 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.NewError("enqueue request for video %s creation failed due to video characteristics", videoID)
 	}
 
-	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].ContinueEnqueueRequest(ctx, preInfo, false, false, false, false)
+	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].ContinueEnqueueRequest(ctx, preInfo, false, false, false, false, false)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

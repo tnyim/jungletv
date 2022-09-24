@@ -85,7 +85,7 @@ type EnqueuePricing struct {
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
-func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable bool) EnqueuePricing {
+func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable, concealed bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.3))
 	// UnskippableFactor is 19 if unskippable, else 0
@@ -123,6 +123,11 @@ func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable 
 		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(69))
 	}
 
+	if concealed {
+		pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(10))
+		pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(15))
+	}
+
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, big.NewInt(100))
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, big.NewInt(int64(p.finalPricesMultiplier)))
 
@@ -148,7 +153,7 @@ func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable 
 }
 
 func (p *Pricer) ComputeCrowdfundedSkipPricing(recentCrowdfundedSkips int) payment.Amount {
-	pricing := p.ComputeEnqueuePricing(5*time.Minute, false)
+	pricing := p.ComputeEnqueuePricing(5*time.Minute, false, false)
 	v := big.NewInt(0).Mul(
 		pricing.PlayNowPrice.Int,
 		big.NewInt(int64(p.crowdfundedSkipMultiplier)),

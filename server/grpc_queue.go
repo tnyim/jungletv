@@ -7,6 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/stats"
@@ -23,6 +24,8 @@ import (
 func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.JungleTV_MonitorQueueServer) error {
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
+
+	isAdmin := user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
 
 	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersQueue, user != nil && !user.IsUnknown())
 	defer unregister()
@@ -49,11 +52,18 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 				Length:      durationpb.New(entry.MediaInfo().Length()),
 				Offset:      durationpb.New(entry.MediaInfo().Offset()),
 				Unskippable: entry.Unskippable(),
+				Concealed:   entry.Concealed() && i > 0,
 				RequestCost: entry.RequestCost().SerializeForAPI(),
 				RequestedAt: timestamppb.New(entry.RequestedAt()),
-				MediaInfo:   entry.MediaInfo().SerializeForAPIQueue(ctx),
 				CanMoveUp:   s.mediaQueue.CanMoveEntryByIndex(i, user, true),
 				CanMoveDown: s.mediaQueue.CanMoveEntryByIndex(i, user, false),
+			}
+			requestedBy := entry.RequestedBy()
+			if i == 0 || !entry.Concealed() || isAdmin ||
+				(!user.IsUnknown() && !entry.RequestedBy().IsUnknown() && requestedBy.Address() == user.Address()) {
+				queue.Entries[i].MediaInfo = entry.MediaInfo().SerializeForAPIQueue(ctx)
+			} else {
+				queue.Entries[i].MediaInfo = &proto.QueueEntry_ConcealedData{}
 			}
 			if !entry.RequestedBy().IsUnknown() {
 				queue.Entries[i].RequestedBy = s.userSerializer(ctx, entry.RequestedBy())

@@ -488,5 +488,28 @@
 			height: 1em;
 			width: 1em;
 		}
+
+		.thumbnail-concealed-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			text-shadow: 0 0 5px #8B5CF6;
+		}
+		.thumbnail-length-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+		}
+		.thumbnail-concealed-queue-entry {
+			width: 120px;
+			height: 90px;
+			background-image: url("/assets/concealed.webp");
+			background-repeat: no-repeat;
+			background-attachment: scroll;
+		}
 	}
 </style>

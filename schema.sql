@@ -274,7 +274,8 @@ INSERT INTO "points_tx_type" VALUES
     (8, 'queue_entry_reordering'),
     (9, 'monthly_subscription'),
     (10, 'skip_threshold_reduction'),
-    (11, 'skip_threshold_increase');
+    (11, 'skip_threshold_increase'),
+    (12, 'concealed_entry_enqueuing');
 
 CREATE TABLE IF NOT EXISTS "points_tx" (
     id BIGINT PRIMARY KEY,

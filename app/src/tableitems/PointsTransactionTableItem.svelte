@@ -35,6 +35,8 @@
                 return "Crowdfunded skipping target reduction";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE:
                 return "Crowdfunded skipping target increase";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING:
+                return "Enqueuing with hidden media information";
             default:
                 return "Unknown";
         }

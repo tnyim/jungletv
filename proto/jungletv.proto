@@ -152,11 +152,12 @@ message EnqueueStubData {}
 
 message EnqueueMediaRequest {
     bool unskippable = 1;
+    bool concealed = 2;
     oneof media_info {
-        EnqueueStubData stub_data = 2;
-        EnqueueYouTubeVideoData youtube_video_data = 3;
-        EnqueueSoundCloudTrackData soundcloud_track_data = 4;
-        EnqueueDocumentData document_data = 5;
+        EnqueueStubData stub_data = 3;
+        EnqueueYouTubeVideoData youtube_video_data = 4;
+        EnqueueSoundCloudTrackData soundcloud_track_data = 5;
+        EnqueueDocumentData document_data = 6;
     }
 }
 
@@ -175,6 +176,7 @@ enum EnqueueMediaTicketStatus {
     ACTIVE = 0;
     PAID = 1;
     EXPIRED = 2;
+    FAILED_INSUFFICIENT_POINTS = 3;
 }
 
 message EnqueueMediaTicket {
@@ -186,12 +188,13 @@ message EnqueueMediaTicket {
     string play_now_price = 6;
     google.protobuf.Timestamp expiration = 7;
     bool unskippable = 8;
-    bool currently_playing_is_unskippable = 9;
-    google.protobuf.Duration media_length = 10;
+    bool concealed = 9;
+    bool currently_playing_is_unskippable = 10;
+    google.protobuf.Duration media_length = 11;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 11;
-        QueueSoundCloudTrackData soundcloud_track_data = 12;
-        QueueDocumentData document_data = 13;
+        QueueYouTubeVideoData youtube_video_data = 12;
+        QueueSoundCloudTrackData soundcloud_track_data = 13;
+        QueueDocumentData document_data = 14;
     }
 }
 
@@ -296,6 +299,8 @@ message QueueDocumentData {
     string title = 2;
 }
 
+message QueueConcealedData {}
+
 message QueueEntry {
     string id = 1;
     User requested_by = 2;
@@ -304,12 +309,14 @@ message QueueEntry {
     google.protobuf.Duration length = 5;
     google.protobuf.Duration offset = 6;
     bool unskippable = 7;
-    bool can_move_up = 8;
-    bool can_move_down = 9;
+    bool concealed = 8;
+    bool can_move_up = 9;
+    bool can_move_down = 10;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 10;
-        QueueSoundCloudTrackData soundcloud_track_data = 11;
-        QueueDocumentData document_data = 12;
+        QueueYouTubeVideoData youtube_video_data = 11;
+        QueueSoundCloudTrackData soundcloud_track_data = 12;
+        QueueDocumentData document_data = 13;
+        QueueConcealedData concealed_data = 14;
     }
 }
 
@@ -1210,6 +1217,7 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION = 9;
     POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION = 10;
     POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE = 11;
+    POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING = 12;
 }
 
 message ChatGifSearchRequest {

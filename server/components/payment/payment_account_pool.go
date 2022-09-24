@@ -108,13 +108,20 @@ func (p *PaymentAccountPool) ReturnAccount(account *wallet.Account) {
 	p.availableAccounts[account] = struct{}{}
 }
 
-type monitoredAccount struct {
-	account                 *wallet.Account
-	onPaymentReceived       *event.Event[PaymentReceivedEventArgs]
-	onUnsubscribedUnsubFn   func()
-	seenPendings            map[string]struct{}
-	receivableBalance       Amount // this is the balance excluding dust. it is updated as we detect new receivables
-	incrementedWaitingGroup bool
+// PaymentReceiver represents a payment flow (one monitored account)
+type PaymentReceiver interface {
+	Address() string
+	PaymentReceived() *event.Event[PaymentReceivedEventArgs]
+
+	// Revert should be called when one wants to return anything that was received
+	// Does not terminate the payment flow (to do so, completely unsubscribe from PaymentReceived)
+	Revert(refundAddress string) error
+
+	// abort is meant to be used when the event returned from ReceivePayment is never subscribed to, but the
+	// caller still wants to free the account from the list of accounts monitored by the PaymentAccountPool
+	// If the event is subscribed to, then the PaymentAccountPool will automatically stop monitoring it once its subscriber
+	// count goes to zero
+	abort()
 }
 
 // PaymentReceivedEventArgs contains the data associated with the event that is fired when a payment is received
@@ -125,13 +132,14 @@ type PaymentReceivedEventArgs struct {
 	BlockHash string
 }
 
-func (p *PaymentAccountPool) ReceivePayment() (string, *event.Event[PaymentReceivedEventArgs], error) {
+func (p *PaymentAccountPool) ReceivePayment() (PaymentReceiver, error) {
 	account, err := p.RequestAccount()
 	if err != nil {
-		return "", nil, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	m := &monitoredAccount{
+		p:                 p,
 		account:           account,
 		onPaymentReceived: event.New[PaymentReceivedEventArgs](),
 		receivableBalance: NewAmount(),
@@ -140,7 +148,7 @@ func (p *PaymentAccountPool) ReceivePayment() (string, *event.Event[PaymentRecei
 
 	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.ExactlyOnceGuarantee, func(subscriberCount int) {
 		if subscriberCount == 0 {
-			p.AbortReceivePayment(account.Address()) // will call onUnsubscribedUnsubFn for us
+			m.abort() // will call onUnsubscribedUnsubFn for us
 		}
 	})
 
@@ -148,23 +156,7 @@ func (p *PaymentAccountPool) ReceivePayment() (string, *event.Event[PaymentRecei
 	defer p.monitoredAccountsLock.Unlock()
 
 	p.monitoredAccounts[account.Address()] = m
-	return m.account.Address(), m.onPaymentReceived, nil
-}
-
-// AbortReceivePayment is meant to be used when the event returned from ReceivePayment is never subscribed to, but the
-// caller still wants to free the account from the list of accounts monitored by the PaymentAccountPool
-// If the event is subscribed to, then the PaymentAccountPool will automatically stop monitoring it once its subscriber
-// count goes to zero
-func (p *PaymentAccountPool) AbortReceivePayment(accountAddress string) {
-	p.monitoredAccountsLock.Lock()
-	defer p.monitoredAccountsLock.Unlock()
-
-	if m, ok := p.monitoredAccounts[accountAddress]; ok {
-		delete(p.monitoredAccounts, accountAddress)
-		m.onPaymentReceived.Close()
-		m.onUnsubscribedUnsubFn()
-		go p.freePreviouslyMonitoredAccount(m)
-	}
+	return m, nil
 }
 
 func (p *PaymentAccountPool) Worker(ctx context.Context, interval time.Duration) error {
@@ -207,51 +199,10 @@ func (p *PaymentAccountPool) processPayments(ctx context.Context) error {
 	}
 
 	for _, m := range monitoredAccountsCopy {
-		err := p.processPaymentForMonitoredAccount(ctx, m)
+		err := m.processPaymentsToAccount(ctx)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
-	}
-
-	return nil
-}
-
-func (p *PaymentAccountPool) processPaymentForMonitoredAccount(ctx context.Context, m *monitoredAccount) error {
-	// note: both the RPC.Balance and RPC.AccountsPending calls return only confirmed blocks
-	// so the RPC.Balance call done after RPC.AccountsPending should account for all pending receives that we'll
-	// actually be able to receive
-	allPendings, err := p.wallet.RPC.AccountsPending([]string{m.account.Address()}, -1,
-		&rpc.RawAmount{Int: *p.dustThreshold.Int})
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-
-	if len(allPendings) == 0 {
-		return nil
-	}
-
-	pendings, ok := allPendings[m.account.Address()]
-	if !ok {
-		return stacktrace.NewError("account not present in pendings response")
-	}
-
-	for hash, pending := range pendings {
-		_, alreadySeen := m.seenPendings[hash]
-		if alreadySeen {
-			continue
-		}
-		m.seenPendings[hash] = struct{}{}
-		m.receivableBalance.Add(m.receivableBalance.Int, &pending.Amount.Int)
-		if !m.incrementedWaitingGroup {
-			p.collectorAccountPendingBalanceWaitGroup.Add(1)
-			m.incrementedWaitingGroup = true
-		}
-		m.onPaymentReceived.Notify(PaymentReceivedEventArgs{
-			Amount:    Amount{&pending.Amount.Int},
-			From:      pending.Source,
-			Balance:   m.receivableBalance,
-			BlockHash: hash,
-		}, true)
 	}
 
 	return nil
