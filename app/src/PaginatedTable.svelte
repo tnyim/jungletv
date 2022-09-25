@@ -24,10 +24,6 @@
 
   let paginationParams = new PaginationParameters();
 
-  onMount(async () => {
-    await changePage(0);
-  });
-
   let updateDataCallback = async () => {
     await changePage(cur_page);
     if (last_page_items == 0 && cur_page > 0) {
@@ -81,16 +77,15 @@
   }
 
   $: {
+    search_query = search_query;
+    cur_page = -1;
+  }
+
+  $: {
     if (cur_page < 0) {
       cur_page = 0;
     }
     changePage(cur_page);
-  }
-
-  $: {
-    search_query = search_query;
-    cur_page = 0;
-    changePage(0);
   }
 
   let commitSearchQueryTimeout: number;
