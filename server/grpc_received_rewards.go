@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
@@ -9,6 +10,8 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -26,6 +29,17 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 
 	var receivedRewards []*types.ReceivedReward
 	var total uint64
+
+	if !s.rewardHistoryMutex.TryLockTimeout(userClaims.RewardAddress, 1*time.Second) {
+		return nil, status.Error(codes.ResourceExhausted, "concurrent request in progress")
+	}
+	defer s.rewardHistoryMutex.Unlock(userClaims.RewardAddress)
+
+	select {
+	case <-ctx.Done():
+		return nil, status.Error(codes.DeadlineExceeded, "context cancelled early")
+	default:
+	}
 
 	receivedRewards, total, err = types.GetReceivedRewardsForAddress(ctx, userClaims.RewardAddress, readPaginationParameters(r))
 	if err != nil {

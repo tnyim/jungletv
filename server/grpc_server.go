@@ -51,6 +51,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/simplelogger"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"github.com/vburenin/nsync"
 	"google.golang.org/api/option"
 	youtubeapi "google.golang.org/api/youtube/v3"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -123,6 +124,8 @@ type grpcServer struct {
 
 	clientReloadTriggered *event.NoArgEvent
 	versionHashChanged    *event.NoArgEvent
+
+	rewardHistoryMutex *nsync.NamedMutex
 }
 
 // Options contains the required options to start the server
@@ -292,6 +295,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 		clientReloadTriggered: event.NewNoArg(),
 		versionHashChanged:    event.NewNoArg(),
+
+		rewardHistoryMutex: nsync.NewNamedMutex(),
 	}
 	s.userSerializer = s.serializeUserForAPI
 
