@@ -112,6 +112,39 @@ CREATE TABLE IF NOT EXISTS "received_reward" (
 CREATE INDEX index_rewards_address_on_received_reward ON received_reward USING HASH (rewards_address);
 CREATE INDEX index_received_at_on_received_reward ON received_reward USING BTREE (received_at);
 
+CREATE TABLE IF NOT EXISTS "received_reward_count_per_rewards_address" (
+    rewards_address VARCHAR(64) PRIMARY KEY,
+    count BIGINT
+);
+
+CREATE OR REPLACE FUNCTION update_received_reward_count() RETURNS TRIGGER AS $update_received_reward_count_trigger$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+            UPDATE received_reward_count_per_rewards_address
+                SET count = count - 1
+                WHERE rewards_address = OLD.rewards_address;
+        ELSIF (TG_OP = 'UPDATE') THEN
+            -- just for the sake of consistency since this won't happen in normal use
+            UPDATE received_reward_count_per_rewards_address
+                SET count = count - 1
+                WHERE rewards_address = OLD.rewards_address;
+            UPDATE received_reward_count_per_rewards_address
+                SET count = count + 1
+                WHERE rewards_address = NEW.rewards_address;
+        ELSIF (TG_OP = 'INSERT') THEN
+            INSERT INTO received_reward_count_per_rewards_address (rewards_address, count)
+                SELECT NEW.rewards_address, 1
+                ON CONFLICT (rewards_address)
+                    DO UPDATE SET count = received_reward_count_per_rewards_address.count + 1;
+        END IF;
+        RETURN NULL; -- result is ignored since this is an AFTER trigger
+    END;
+$update_received_reward_count_trigger$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_received_reward_count_trigger
+AFTER INSERT OR UPDATE OR DELETE ON received_reward
+    FOR EACH ROW EXECUTE FUNCTION update_received_reward_count();
+
 CREATE TABLE IF NOT EXISTS "reward_balance" (
     rewards_address VARCHAR(64) PRIMARY KEY,
     balance NUMERIC(39, 0) NOT NULL,

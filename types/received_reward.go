@@ -20,7 +20,7 @@ type ReceivedReward struct {
 }
 
 // getReceivedRewardWithSelect returns a slice with all received rewards that match the conditions in sbuilder
-func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*ReceivedReward, uint64, error) {
+func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder, forRewardsAddress string) ([]*ReceivedReward, uint64, error) {
 	tx, err := node.Beginx()
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
@@ -32,12 +32,20 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
 
-	// let's get the total count with a separate query, as it's much more performant than using the window function on large tables
+	if forRewardsAddress != "" {
+		// let's get the total count from an entirely separate table that is updated with triggers, as it's even more performant than COUNT(*)
+		sbuilder = sdb.Select("count").
+			From("received_reward_count_per_rewards_address").
+			Where(sq.Eq{"received_reward_count_per_rewards_address.rewards_address": forRewardsAddress})
+	} else {
+		// let's get the total count with a separate query, as it's much more performant than using the window function on large tables
+		// this is the "not as performant but more flexible" approach (since this supports any conditions that may be present in sbuilder)
 
-	// bit of a dirty hack
-	sbuilder = builder.Delete(sbuilder, "Columns").(sq.SelectBuilder)
-	sbuilder = builder.Delete(sbuilder, "OrderByParts").(sq.SelectBuilder)
-	sbuilder = sbuilder.Column("COUNT(*)").From("received_reward").RemoveLimit().RemoveOffset()
+		// bit of a dirty hack
+		sbuilder = builder.Delete(sbuilder, "Columns").(sq.SelectBuilder)
+		sbuilder = builder.Delete(sbuilder, "OrderByParts").(sq.SelectBuilder)
+		sbuilder = sbuilder.Column("COUNT(*)").From("received_reward").RemoveLimit().RemoveOffset()
+	}
 
 	logger.Println(sbuilder.ToSql())
 	totalCount := uint64(0)
@@ -55,7 +63,7 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 		Where(sq.Eq{"received_reward.rewards_address": address}).
 		OrderBy("received_reward.received_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return getReceivedRewardWithSelect(node, s)
+	return getReceivedRewardWithSelect(node, s, address)
 }
 
 // InsertReceivedRewards inserts the passed received rewards in the database
