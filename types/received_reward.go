@@ -1,6 +1,8 @@
 package types
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -51,6 +53,9 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder, for
 	totalCount := uint64(0)
 	err = sbuilder.RunWith(tx).QueryRow().Scan(&totalCount)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return values, 0, nil
+		}
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
 

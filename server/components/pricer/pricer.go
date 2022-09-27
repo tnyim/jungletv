@@ -36,7 +36,7 @@ func New(log *log.Logger,
 		statsRegistry:             statsRegistry,
 		minimumPricesMultiplier:   25,
 		finalPricesMultiplier:     100,
-		crowdfundedSkipMultiplier: 120, // this means crowdfunded skipping will be 1.2x as expensive as normal individual skipping
+		crowdfundedSkipMultiplier: 150, // this means crowdfunded skipping will be 1.5x as expensive as normal individual skipping
 	}
 }
 
