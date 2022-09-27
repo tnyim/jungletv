@@ -54,7 +54,7 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *PaginationParams) ([]*ReceivedReward, uint64, error) {
 	// we have a custom implementation for this use case, because this table is quite big and
 	// 1) we need to fetch the per-address total count from a separate table
-	// 2) we need to ensure that, on the query that actually fetches the data, offset + limit < total count (obtained in step 1)
+	// 2) we need to ensure that, on the query that actually fetches the data, offset + limit <= total count (obtained in step 1)
 	// otherwise we mislead the postgres planner/executor into thinking it should have found more entries than it actually did,
 	// for addresses with few received rewards
 
@@ -83,7 +83,7 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 		Where(sq.Eq{"received_reward.rewards_address": address}).
 		OrderBy("received_reward.received_at DESC")
 
-	// now we must apply the pagination parameters while ensuring that offset+limit<totalCount,
+	// now we must apply the pagination parameters while ensuring that offset+limit<=totalCount,
 	// otherwise the query will take 30+ seconds instead of less than 1
 	if pagParams != nil {
 		limit := pagParams.Limit
