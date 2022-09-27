@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS "received_reward" (
 );
 CREATE INDEX index_rewards_address_on_received_reward ON received_reward USING HASH (rewards_address);
 CREATE INDEX index_received_at_on_received_reward ON received_reward USING BTREE (received_at);
+CREATE INDEX index_rewards_address_and_received_at_on_received_reward ON received_reward USING BTREE (rewards_address, received_at);
 
 CREATE TABLE IF NOT EXISTS "received_reward_count_per_rewards_address" (
     rewards_address VARCHAR(64) PRIMARY KEY,
