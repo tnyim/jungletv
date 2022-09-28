@@ -96,7 +96,7 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 		sbuilder = sbuilder.Offset(pagParams.Offset).Limit(limit)
 	}
 
-	values, err := GetWithSelect[*ReceivedReward](node, sbuilder)
+	values, err := GetWithSelect[*ReceivedReward](tx, sbuilder)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
