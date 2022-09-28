@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS "withdrawal" (
 );
 CREATE INDEX index_rewards_address_on_withdrawal ON withdrawal USING HASH (rewards_address);
 CREATE INDEX index_started_at_on_withdrawal ON withdrawal USING BTREE (started_at);
+CREATE INDEX index_rewards_address_and_started_at_on_withdrawal ON withdrawal USING BTREE (rewards_address, started_at);
 
 CREATE TABLE IF NOT EXISTS "crowdfunded_transaction_type" (
     transaction_type VARCHAR(10) PRIMARY KEY
