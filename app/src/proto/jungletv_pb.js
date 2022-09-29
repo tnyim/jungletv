@@ -32610,14 +32610,15 @@ proto.jungletv.Spectator.toObject = function(includeInstance, msg) {
     numConnections: jspb.Message.getFieldWithDefault(msg, 2, 0),
     numSpectatorsWithSameRemoteAddress: jspb.Message.getFieldWithDefault(msg, 3, 0),
     watchingSince: (f = msg.getWatchingSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    remoteAddressCanReceiveRewards: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
-    legitimate: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
+    remoteAddressHasGoodReputation: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
+    remoteAddressBannedFromRewards: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
+    legitimate: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
     notLegitimateSince: (f = msg.getNotLegitimateSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     stoppedWatchingAt: (f = msg.getStoppedWatchingAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     activityChallenge: (f = msg.getActivityChallenge()) && proto.jungletv.ActivityChallenge.toObject(includeInstance, f),
-    clientIntegrityChecksSkipped: jspb.Message.getBooleanFieldWithDefault(msg, 10, false),
-    ipAddressReputationChecksSkipped: jspb.Message.getBooleanFieldWithDefault(msg, 11, false),
-    hardChallengeFrequencyReduced: jspb.Message.getBooleanFieldWithDefault(msg, 12, false)
+    clientIntegrityChecksSkipped: jspb.Message.getBooleanFieldWithDefault(msg, 11, false),
+    ipAddressReputationChecksSkipped: jspb.Message.getBooleanFieldWithDefault(msg, 12, false),
+    hardChallengeFrequencyReduced: jspb.Message.getBooleanFieldWithDefault(msg, 13, false)
   };
 
   if (includeInstance) {
@@ -32673,36 +32674,40 @@ proto.jungletv.Spectator.deserializeBinaryFromReader = function(msg, reader) {
       break;
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setRemoteAddressCanReceiveRewards(value);
+      msg.setRemoteAddressHasGoodReputation(value);
       break;
     case 6:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setLegitimate(value);
+      msg.setRemoteAddressBannedFromRewards(value);
       break;
     case 7:
-      var value = new google_protobuf_timestamp_pb.Timestamp;
-      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setNotLegitimateSince(value);
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setLegitimate(value);
       break;
     case 8:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setStoppedWatchingAt(value);
+      msg.setNotLegitimateSince(value);
       break;
     case 9:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setStoppedWatchingAt(value);
+      break;
+    case 10:
       var value = new proto.jungletv.ActivityChallenge;
       reader.readMessage(value,proto.jungletv.ActivityChallenge.deserializeBinaryFromReader);
       msg.setActivityChallenge(value);
       break;
-    case 10:
+    case 11:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setClientIntegrityChecksSkipped(value);
       break;
-    case 11:
+    case 12:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setIpAddressReputationChecksSkipped(value);
       break;
-    case 12:
+    case 13:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setHardChallengeFrequencyReduced(value);
       break;
@@ -32764,29 +32769,28 @@ proto.jungletv.Spectator.serializeBinaryToWriter = function(message, writer) {
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getRemoteAddressCanReceiveRewards();
+  f = message.getRemoteAddressHasGoodReputation();
   if (f) {
     writer.writeBool(
       5,
       f
     );
   }
-  f = message.getLegitimate();
+  f = message.getRemoteAddressBannedFromRewards();
   if (f) {
     writer.writeBool(
       6,
       f
     );
   }
-  f = message.getNotLegitimateSince();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getLegitimate();
+  if (f) {
+    writer.writeBool(
       7,
-      f,
-      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+      f
     );
   }
-  f = message.getStoppedWatchingAt();
+  f = message.getNotLegitimateSince();
   if (f != null) {
     writer.writeMessage(
       8,
@@ -32794,10 +32798,18 @@ proto.jungletv.Spectator.serializeBinaryToWriter = function(message, writer) {
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getActivityChallenge();
+  f = message.getStoppedWatchingAt();
   if (f != null) {
     writer.writeMessage(
       9,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getActivityChallenge();
+  if (f != null) {
+    writer.writeMessage(
+      10,
       f,
       proto.jungletv.ActivityChallenge.serializeBinaryToWriter
     );
@@ -32805,21 +32817,21 @@ proto.jungletv.Spectator.serializeBinaryToWriter = function(message, writer) {
   f = message.getClientIntegrityChecksSkipped();
   if (f) {
     writer.writeBool(
-      10,
+      11,
       f
     );
   }
   f = message.getIpAddressReputationChecksSkipped();
   if (f) {
     writer.writeBool(
-      11,
+      12,
       f
     );
   }
   f = message.getHardChallengeFrequencyReduced();
   if (f) {
     writer.writeBool(
-      12,
+      13,
       f
     );
   }
@@ -32918,10 +32930,10 @@ proto.jungletv.Spectator.prototype.hasWatchingSince = function() {
 
 
 /**
- * optional bool remote_address_can_receive_rewards = 5;
+ * optional bool remote_address_has_good_reputation = 5;
  * @return {boolean}
  */
-proto.jungletv.Spectator.prototype.getRemoteAddressCanReceiveRewards = function() {
+proto.jungletv.Spectator.prototype.getRemoteAddressHasGoodReputation = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
 };
 
@@ -32930,16 +32942,16 @@ proto.jungletv.Spectator.prototype.getRemoteAddressCanReceiveRewards = function(
  * @param {boolean} value
  * @return {!proto.jungletv.Spectator} returns this
  */
-proto.jungletv.Spectator.prototype.setRemoteAddressCanReceiveRewards = function(value) {
+proto.jungletv.Spectator.prototype.setRemoteAddressHasGoodReputation = function(value) {
   return jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
 /**
- * optional bool legitimate = 6;
+ * optional bool remote_address_banned_from_rewards = 6;
  * @return {boolean}
  */
-proto.jungletv.Spectator.prototype.getLegitimate = function() {
+proto.jungletv.Spectator.prototype.getRemoteAddressBannedFromRewards = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 6, false));
 };
 
@@ -32948,18 +32960,36 @@ proto.jungletv.Spectator.prototype.getLegitimate = function() {
  * @param {boolean} value
  * @return {!proto.jungletv.Spectator} returns this
  */
-proto.jungletv.Spectator.prototype.setLegitimate = function(value) {
+proto.jungletv.Spectator.prototype.setRemoteAddressBannedFromRewards = function(value) {
   return jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 
 /**
- * optional google.protobuf.Timestamp not_legitimate_since = 7;
+ * optional bool legitimate = 7;
+ * @return {boolean}
+ */
+proto.jungletv.Spectator.prototype.getLegitimate = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 7, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.Spectator} returns this
+ */
+proto.jungletv.Spectator.prototype.setLegitimate = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 7, value);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp not_legitimate_since = 8;
  * @return {?proto.google.protobuf.Timestamp}
  */
 proto.jungletv.Spectator.prototype.getNotLegitimateSince = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 7));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 8));
 };
 
 
@@ -32968,7 +32998,7 @@ proto.jungletv.Spectator.prototype.getNotLegitimateSince = function() {
  * @return {!proto.jungletv.Spectator} returns this
 */
 proto.jungletv.Spectator.prototype.setNotLegitimateSince = function(value) {
-  return jspb.Message.setWrapperField(this, 7, value);
+  return jspb.Message.setWrapperField(this, 8, value);
 };
 
 
@@ -32986,17 +33016,17 @@ proto.jungletv.Spectator.prototype.clearNotLegitimateSince = function() {
  * @return {boolean}
  */
 proto.jungletv.Spectator.prototype.hasNotLegitimateSince = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
 /**
- * optional google.protobuf.Timestamp stopped_watching_at = 8;
+ * optional google.protobuf.Timestamp stopped_watching_at = 9;
  * @return {?proto.google.protobuf.Timestamp}
  */
 proto.jungletv.Spectator.prototype.getStoppedWatchingAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 8));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 9));
 };
 
 
@@ -33005,7 +33035,7 @@ proto.jungletv.Spectator.prototype.getStoppedWatchingAt = function() {
  * @return {!proto.jungletv.Spectator} returns this
 */
 proto.jungletv.Spectator.prototype.setStoppedWatchingAt = function(value) {
-  return jspb.Message.setWrapperField(this, 8, value);
+  return jspb.Message.setWrapperField(this, 9, value);
 };
 
 
@@ -33023,17 +33053,17 @@ proto.jungletv.Spectator.prototype.clearStoppedWatchingAt = function() {
  * @return {boolean}
  */
 proto.jungletv.Spectator.prototype.hasStoppedWatchingAt = function() {
-  return jspb.Message.getField(this, 8) != null;
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
 /**
- * optional ActivityChallenge activity_challenge = 9;
+ * optional ActivityChallenge activity_challenge = 10;
  * @return {?proto.jungletv.ActivityChallenge}
  */
 proto.jungletv.Spectator.prototype.getActivityChallenge = function() {
   return /** @type{?proto.jungletv.ActivityChallenge} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.ActivityChallenge, 9));
+    jspb.Message.getWrapperField(this, proto.jungletv.ActivityChallenge, 10));
 };
 
 
@@ -33042,7 +33072,7 @@ proto.jungletv.Spectator.prototype.getActivityChallenge = function() {
  * @return {!proto.jungletv.Spectator} returns this
 */
 proto.jungletv.Spectator.prototype.setActivityChallenge = function(value) {
-  return jspb.Message.setWrapperField(this, 9, value);
+  return jspb.Message.setWrapperField(this, 10, value);
 };
 
 
@@ -33060,33 +33090,15 @@ proto.jungletv.Spectator.prototype.clearActivityChallenge = function() {
  * @return {boolean}
  */
 proto.jungletv.Spectator.prototype.hasActivityChallenge = function() {
-  return jspb.Message.getField(this, 9) != null;
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
 /**
- * optional bool client_integrity_checks_skipped = 10;
+ * optional bool client_integrity_checks_skipped = 11;
  * @return {boolean}
  */
 proto.jungletv.Spectator.prototype.getClientIntegrityChecksSkipped = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 10, false));
-};
-
-
-/**
- * @param {boolean} value
- * @return {!proto.jungletv.Spectator} returns this
- */
-proto.jungletv.Spectator.prototype.setClientIntegrityChecksSkipped = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 10, value);
-};
-
-
-/**
- * optional bool ip_address_reputation_checks_skipped = 11;
- * @return {boolean}
- */
-proto.jungletv.Spectator.prototype.getIpAddressReputationChecksSkipped = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 11, false));
 };
 
@@ -33095,16 +33107,16 @@ proto.jungletv.Spectator.prototype.getIpAddressReputationChecksSkipped = functio
  * @param {boolean} value
  * @return {!proto.jungletv.Spectator} returns this
  */
-proto.jungletv.Spectator.prototype.setIpAddressReputationChecksSkipped = function(value) {
+proto.jungletv.Spectator.prototype.setClientIntegrityChecksSkipped = function(value) {
   return jspb.Message.setProto3BooleanField(this, 11, value);
 };
 
 
 /**
- * optional bool hard_challenge_frequency_reduced = 12;
+ * optional bool ip_address_reputation_checks_skipped = 12;
  * @return {boolean}
  */
-proto.jungletv.Spectator.prototype.getHardChallengeFrequencyReduced = function() {
+proto.jungletv.Spectator.prototype.getIpAddressReputationChecksSkipped = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 12, false));
 };
 
@@ -33113,8 +33125,26 @@ proto.jungletv.Spectator.prototype.getHardChallengeFrequencyReduced = function()
  * @param {boolean} value
  * @return {!proto.jungletv.Spectator} returns this
  */
-proto.jungletv.Spectator.prototype.setHardChallengeFrequencyReduced = function(value) {
+proto.jungletv.Spectator.prototype.setIpAddressReputationChecksSkipped = function(value) {
   return jspb.Message.setProto3BooleanField(this, 12, value);
+};
+
+
+/**
+ * optional bool hard_challenge_frequency_reduced = 13;
+ * @return {boolean}
+ */
+proto.jungletv.Spectator.prototype.getHardChallengeFrequencyReduced = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 13, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.Spectator} returns this
+ */
+proto.jungletv.Spectator.prototype.setHardChallengeFrequencyReduced = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 13, value);
 };
 
 

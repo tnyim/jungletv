@@ -4031,8 +4031,11 @@ export class Spectator extends jspb.Message {
   getWatchingSince(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setWatchingSince(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  getRemoteAddressCanReceiveRewards(): boolean;
-  setRemoteAddressCanReceiveRewards(value: boolean): void;
+  getRemoteAddressHasGoodReputation(): boolean;
+  setRemoteAddressHasGoodReputation(value: boolean): void;
+
+  getRemoteAddressBannedFromRewards(): boolean;
+  setRemoteAddressBannedFromRewards(value: boolean): void;
 
   getLegitimate(): boolean;
   setLegitimate(value: boolean): void;
@@ -4077,7 +4080,8 @@ export namespace Spectator {
     numConnections: number,
     numSpectatorsWithSameRemoteAddress: number,
     watchingSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    remoteAddressCanReceiveRewards: boolean,
+    remoteAddressHasGoodReputation: boolean,
+    remoteAddressBannedFromRewards: boolean,
     legitimate: boolean,
     notLegitimateSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     stoppedWatchingAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,

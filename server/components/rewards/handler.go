@@ -79,7 +79,7 @@ type Spectator interface {
 	OnActivityChallenge() *event.Event[*ActivityChallenge]
 	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
-	RemoteAddressCanReceiveRewards(*ipreputation.Checker) bool
+	CurrentRemoteAddress() string
 	CountOtherConnectedSpectatorsOnSameRemoteAddress(*Handler) int
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
@@ -149,8 +149,8 @@ func (s *spectator) Legitimate() (bool, time.Time) {
 	return s.legitimate, s.stoppedBeingLegitimate
 }
 
-func (s *spectator) RemoteAddressCanReceiveRewards(checker *ipreputation.Checker) bool {
-	return checker.CanReceiveRewards(s.remoteAddress)
+func (s *spectator) CurrentRemoteAddress() string {
+	return s.remoteAddress
 }
 
 func (s *spectator) CountOtherConnectedSpectatorsOnSameRemoteAddress(r *Handler) int {

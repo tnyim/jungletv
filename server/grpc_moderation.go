@@ -450,13 +450,18 @@ func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRe
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	remoteAddressBanned, err := s.moderationStore.LoadRemoteAddressBannedFromRewards(ctx, spectator.CurrentRemoteAddress())
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 
 	ps := &proto.Spectator{
 		RewardsAddress:                     r.RewardsAddress,
 		NumConnections:                     uint32(spectator.ConnectionCount()),
 		NumSpectatorsWithSameRemoteAddress: uint32(spectator.CountOtherConnectedSpectatorsOnSameRemoteAddress(s.rewardsHandler)),
 		WatchingSince:                      timestamppb.New(spectator.WatchingSince()),
-		RemoteAddressCanReceiveRewards:     spectator.RemoteAddressCanReceiveRewards(s.ipReputationChecker),
+		RemoteAddressHasGoodReputation:     s.ipReputationChecker.CanReceiveRewards(spectator.CurrentRemoteAddress()),
+		RemoteAddressBannedFromRewards:     remoteAddressBanned,
 		Legitimate:                         legitimate,
 		ClientIntegrityChecksSkipped:       clientIntegrityChecksSkipped,
 		IpAddressReputationChecksSkipped:   ipRepChecksSkipped,

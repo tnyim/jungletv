@@ -58,8 +58,9 @@
             Number of spectators with same IP address: {spectator.getNumSpectatorsWithSameRemoteAddress()}
         </p>
         <p>Watching since: {formatTimestamp(spectator.getWatchingSince())}</p>
-        <p>Using VPN: {spectator.getRemoteAddressCanReceiveRewards() ? "no" : "yes"}</p>
+        <p>Using VPN: {spectator.getRemoteAddressHasGoodReputation() ? "no" : "yes"}</p>
         <p>VPN allowed: {spectator.getIpAddressReputationChecksSkipped() ? "yes" : "no"}</p>
+        <p>IP banned from rewards: {spectator.getRemoteAddressBannedFromRewards() ? "yes" : "no"}</p>
         {#if spectator.getLegitimate()}
             <p>Failed captcha: no</p>
         {:else}
