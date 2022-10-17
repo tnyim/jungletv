@@ -142,7 +142,7 @@ func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 				}
 				if order.Status == nanswapclient.OrderStatusCompleted {
 					senderCurrency = extraCurrencyData.Currency
-					senderAmount = currencyDecimalToItsRawAmount(order.FromAmount, senderCurrency)
+					senderAmount = currencyDecimalToItsRawAmount(order.AmountFrom, senderCurrency)
 					from = order.SenderAddress
 				}
 			}

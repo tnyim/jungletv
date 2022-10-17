@@ -174,7 +174,7 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 
 	var playFn func(media.QueueEntry)
 	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 ||
-		(mcpd != nil && mcpd.ExpectedAmounts[0].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[0].Int) >= 0) ||
+		(mcpd != nil && mcpd.ExpectedAmounts[2].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[2].Int) >= 0) ||
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
 		playFn = e.mediaQueue.PlayNow
 	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 ||
@@ -182,7 +182,7 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
 		playFn = e.mediaQueue.PlayAfterNext
 	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 ||
-		(mcpd != nil && mcpd.ExpectedAmounts[2].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[2].Int) >= 0) ||
+		(mcpd != nil && mcpd.ExpectedAmounts[0].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[0].Int) >= 0) ||
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
 		playFn = e.mediaQueue.Enqueue
 	} else {
@@ -476,6 +476,8 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 	defer onStatusChangedUnsub()
 
 	lastSeenBalance := payment.NewAmount()
+	lastSeenSenderAmount := payment.NewAmount()
+	var lastSeenSenderCurrency nanswapclient.Ticker
 	for {
 		var err error
 		select {
@@ -504,9 +506,11 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 				t.requestedBy = auth.NewAddressOnlyUser(paymentArgs.From)
 			}
 			lastSeenBalance = paymentArgs.Balance
+			lastSeenSenderAmount = paymentArgs.SenderAmount
+			lastSeenSenderCurrency = paymentArgs.SenderCurrency
 			err = e.tryEnqueuingTicket(ctx, paymentArgs.Balance, paymentArgs.SenderAmount, paymentArgs.SenderCurrency, t)
 		case <-checkForcedEnqueuingTicker.C:
-			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, lastSeenBalance, nanswapclient.TickerBanano, t)
+			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, lastSeenSenderAmount, lastSeenSenderCurrency, t)
 		}
 		if err != nil {
 			e.log.Println(stacktrace.Propagate(err, "failed to enqueue ticket %s, now terminating ticket worker", t.id))

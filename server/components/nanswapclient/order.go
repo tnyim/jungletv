@@ -32,8 +32,8 @@ type GetOrderResponse struct {
 	To                 Ticker          `json:"to"`
 	ExpectedAmountFrom decimal.Decimal `json:"expectedAmountFrom"`
 	ExpectedAmountTo   decimal.Decimal `json:"expectedAmountTo"`
-	FromAmount         decimal.Decimal `json:"fromAmount"`
-	ToAmount           decimal.Decimal `json:"toAmount"`
+	AmountFrom         decimal.Decimal `json:"amountFrom"`
+	AmountTo           decimal.Decimal `json:"amountTo"`
 	PayinAddress       string          `json:"payinAddress"`
 	PayoutAddress      string          `json:"payoutAddress"`
 	SenderAddress      string          `json:"senderAddress"`
