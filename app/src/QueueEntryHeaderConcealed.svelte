@@ -69,7 +69,7 @@
             Added by JungleTV (no reward)
         {/if}
         {#if mode == "moderation"}
-            | Request cost: {apiClient.formatBANPrice(entry.getRequestCost())} BAN |
+            | Request cost: {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN |
             <span class="text-blue-600 hover:underline cursor-pointer" on:click={() => dispatch("remove", entry)}
                 >Remove</span
             >

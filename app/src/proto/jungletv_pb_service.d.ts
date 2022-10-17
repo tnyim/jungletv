@@ -760,6 +760,15 @@ type JungleTVTriggerClientReload = {
   readonly responseType: typeof jungletv_pb.TriggerClientReloadResponse;
 };
 
+type JungleTVSetMulticurrencyPaymentsEnabled = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetMulticurrencyPaymentsEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetMulticurrencyPaymentsEnabledResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -846,6 +855,7 @@ export class JungleTV {
   static readonly AddVipUser: JungleTVAddVipUser;
   static readonly RemoveVipUser: JungleTVRemoveVipUser;
   static readonly TriggerClientReload: JungleTVTriggerClientReload;
+  static readonly SetMulticurrencyPaymentsEnabled: JungleTVSetMulticurrencyPaymentsEnabled;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1571,6 +1581,15 @@ export class JungleTVClient {
   triggerClientReload(
     requestMessage: jungletv_pb.TriggerClientReloadRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.TriggerClientReloadResponse|null) => void
+  ): UnaryResponse;
+  setMulticurrencyPaymentsEnabled(
+    requestMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse|null) => void
+  ): UnaryResponse;
+  setMulticurrencyPaymentsEnabled(
+    requestMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse|null) => void
   ): UnaryResponse;
 }
 

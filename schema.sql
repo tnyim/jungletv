@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "played_media" (
     ended_at TIMESTAMP WITH TIME ZONE,
     media_offset INTERVAL NOT NULL,
     media_length INTERVAL NOT NULL,
-    requested_by VARCHAR(64) NOT NULL,
+    requested_by VARCHAR(65) NOT NULL, -- must support XNO addresses
     request_cost NUMERIC(39, 0) NOT NULL,
     unskippable BOOLEAN NOT NULL,
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),

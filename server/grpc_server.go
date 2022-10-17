@@ -29,6 +29,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/nanswapclient"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
@@ -159,6 +160,8 @@ type Options struct {
 
 	WebsiteURL  string
 	VersionHash *string
+
+	NanswapAPIKey string
 }
 
 // NewServer returns a new JungleTVServer
@@ -229,6 +232,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AddVipUser", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveVipUser", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/TriggerClientReload", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetMulticurrencyPaymentsEnabled", auth.AdminPermissionLevel)
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
@@ -371,8 +375,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 	s.skipManager = skipmanager.New(s.log, s.wallet.RPC, s.skipAccount, s.rainAccount, s.collectorAccount.Address(), s.mediaQueue, s.pricer)
 
+	nanswapClient := nanswapclient.New("https://api.nanswap.com/v1", options.NanswapAPIKey)
+
 	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
-		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address())
+		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address(), nanswapClient)
 
 	s.pointsManager = pointsmanager.New(ctx, s.snowflakeNode, s.paymentAccountPool)
 

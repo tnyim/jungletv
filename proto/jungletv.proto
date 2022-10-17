@@ -94,6 +94,7 @@ service JungleTV {
     rpc AddVipUser(AddVipUserRequest) returns (AddVipUserResponse) {}
     rpc RemoveVipUser(RemoveVipUserRequest) returns (RemoveVipUserResponse) {}
     rpc TriggerClientReload(TriggerClientReloadRequest) returns (TriggerClientReloadResponse) {}
+    rpc SetMulticurrencyPaymentsEnabled(SetMulticurrencyPaymentsEnabledRequest) returns (SetMulticurrencyPaymentsEnabledResponse) {}
 }
 
 message PaginationParameters {
@@ -191,11 +192,21 @@ message EnqueueMediaTicket {
     bool concealed = 9;
     bool currently_playing_is_unskippable = 10;
     google.protobuf.Duration media_length = 11;
+    repeated ExtraCurrencyPaymentData extra_currency_payment_data = 12;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 12;
-        QueueSoundCloudTrackData soundcloud_track_data = 13;
-        QueueDocumentData document_data = 14;
+        QueueYouTubeVideoData youtube_video_data = 13;
+        QueueSoundCloudTrackData soundcloud_track_data = 14;
+        QueueDocumentData document_data = 15;
     }
+}
+
+message ExtraCurrencyPaymentData {
+    string currency_ticker = 1;
+    string swap_order_id = 2;
+    string payment_address = 3;
+    string enqueue_price = 4;
+    string play_next_price = 5;
+    string play_now_price = 6;
 }
 
 message MonitorTicketRequest {
@@ -1303,3 +1314,9 @@ message IncreaseOrReduceSkipThresholdRequest {
 }
 
 message IncreaseOrReduceSkipThresholdResponse {}
+
+message SetMulticurrencyPaymentsEnabledRequest {
+    bool enabled = 1;
+}
+
+message SetMulticurrencyPaymentsEnabledResponse {}

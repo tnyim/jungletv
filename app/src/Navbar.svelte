@@ -123,7 +123,7 @@
                             <div class="flex flex-col">
                                 <div>
                                     <span class="hidden xl:inline">Rewarding</span>
-                                    <span class="font-mono">{rAddress.substr(0, 16)}</span>
+                                    <span class="font-mono">{rAddress.substring(0, 16)}</span>
                                 </div>
                                 <div>
                                     Balance:

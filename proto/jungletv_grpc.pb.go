@@ -103,6 +103,7 @@ type JungleTVClient interface {
 	AddVipUser(ctx context.Context, in *AddVipUserRequest, opts ...grpc.CallOption) (*AddVipUserResponse, error)
 	RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error)
 	TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error)
+	SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1053,6 +1054,15 @@ func (c *jungleTVClient) TriggerClientReload(ctx context.Context, in *TriggerCli
 	return out, nil
 }
 
+func (c *jungleTVClient) SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error) {
+	out := new(SetMulticurrencyPaymentsEnabledResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetMulticurrencyPaymentsEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1142,6 +1152,7 @@ type JungleTVServer interface {
 	AddVipUser(context.Context, *AddVipUserRequest) (*AddVipUserResponse, error)
 	RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error)
 	TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error)
+	SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1400,6 +1411,9 @@ func (UnimplementedJungleTVServer) RemoveVipUser(context.Context, *RemoveVipUser
 }
 func (UnimplementedJungleTVServer) TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TriggerClientReload not implemented")
+}
+func (UnimplementedJungleTVServer) SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMulticurrencyPaymentsEnabled not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -2950,6 +2964,24 @@ func _JungleTV_TriggerClientReload_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetMulticurrencyPaymentsEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMulticurrencyPaymentsEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetMulticurrencyPaymentsEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetMulticurrencyPaymentsEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetMulticurrencyPaymentsEnabled(ctx, req.(*SetMulticurrencyPaymentsEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3260,6 +3292,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TriggerClientReload",
 			Handler:    _JungleTV_TriggerClientReload_Handler,
+		},
+		{
+			MethodName: "SetMulticurrencyPaymentsEnabled",
+			Handler:    _JungleTV_SetMulticurrencyPaymentsEnabled_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -1,5 +1,7 @@
 package auth
 
+import "strings"
+
 type addressOnlyUser struct {
 	address         string
 	permissionLevel PermissionLevel
@@ -34,6 +36,10 @@ func (u *addressOnlyUser) PermissionLevel() PermissionLevel {
 
 func (u *addressOnlyUser) IsUnknown() bool {
 	return u == nil || u.address == ""
+}
+
+func (u *addressOnlyUser) IsFromAlienChain() bool {
+	return !strings.HasPrefix(u.address, "ban_")
 }
 
 func (u *addressOnlyUser) SetNickname(s *string) {

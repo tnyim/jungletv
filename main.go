@@ -294,6 +294,11 @@ func main() {
 		mainLog.Fatalln("Tenor API key not present in keybox")
 	}
 
+	nanswapAPIKey, present := secrets.Get("nanswapAPIkey")
+	if !present {
+		mainLog.Println("Nanswap API key not present in keybox, multicurrency functions will not work properly")
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
 		auth.UserPermissionLevel:  180 * 24 * time.Hour,
 		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
@@ -335,6 +340,7 @@ func main() {
 		WebsiteURL:               websiteURL,
 		VersionHash:              &versionHash,
 		OAuthManager:             oauthManager,
+		NanswapAPIKey:            nanswapAPIKey,
 	}
 
 	apiServer, err := server.NewServer(ctx, options)

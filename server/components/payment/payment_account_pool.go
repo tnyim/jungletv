@@ -12,6 +12,7 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/nanswapclient"
 	"github.com/tnyim/jungletv/utils/event"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -27,13 +28,15 @@ type PaymentAccountPool struct {
 	modLogWebhook                           api.WebhookClient
 	dustThreshold                           Amount
 	collectorAccountAddress                 string
+	nanswapClient                           *nanswapclient.Client
+	enableMulticurrencyPayments             bool
 
 	monitoredAccounts     map[string]*monitoredAccount
 	monitoredAccountsLock sync.RWMutex
 }
 
 func New(log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet, repAddress string, modLogWebhook api.WebhookClient,
-	dustThreshold Amount, collectorAccountAddress string) *PaymentAccountPool {
+	dustThreshold Amount, collectorAccountAddress string, nanswapClient *nanswapclient.Client) *PaymentAccountPool {
 	return &PaymentAccountPool{
 		log:                                     log,
 		statsClient:                             statsClient,
@@ -45,7 +48,13 @@ func New(log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet, repAddre
 		collectorAccountAddress:                 collectorAccountAddress,
 		collectorAccountPendingBalanceWaitGroup: new(sync.WaitGroup),
 		monitoredAccounts:                       make(map[string]*monitoredAccount),
+		nanswapClient:                           nanswapClient,
+		enableMulticurrencyPayments:             true,
 	}
+}
+
+func (p *PaymentAccountPool) SetMulticurrencyPaymentsEnabled(enabled bool) {
+	p.enableMulticurrencyPayments = enabled
 }
 
 func (p *PaymentAccountPool) RequestAccount() (*wallet.Account, error) {
@@ -111,7 +120,9 @@ func (p *PaymentAccountPool) ReturnAccount(account *wallet.Account) {
 // PaymentReceiver represents a payment flow (one monitored account)
 type PaymentReceiver interface {
 	Address() string
+	MulticurrencyPaymentData() []MulticurrencyPaymentData
 	PaymentReceived() *event.Event[PaymentReceivedEventArgs]
+	MulticurrencyPaymentDataAvailable() *event.Event[[]MulticurrencyPaymentData]
 
 	// Revert should be called when one wants to return anything that was received
 	// Does not terminate the payment flow (to do so, completely unsubscribe from PaymentReceived)
@@ -126,24 +137,31 @@ type PaymentReceiver interface {
 
 // PaymentReceivedEventArgs contains the data associated with the event that is fired when a payment is received
 type PaymentReceivedEventArgs struct {
-	Amount    Amount
-	From      string
-	Balance   Amount
-	BlockHash string
+	Amount         Amount
+	SenderAmount   Amount // the amount as "seen" by the sender in SenderCurrency units, before swap/conversion
+	SenderCurrency nanswapclient.Ticker
+	From           string
+	Balance        Amount
+	BlockHash      string
 }
 
 func (p *PaymentAccountPool) ReceivePayment() (PaymentReceiver, error) {
+	return p.receivePaymentImpl()
+}
+
+func (p *PaymentAccountPool) receivePaymentImpl() (*monitoredAccount, error) {
 	account, err := p.RequestAccount()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	m := &monitoredAccount{
-		p:                 p,
-		account:           account,
-		onPaymentReceived: event.New[PaymentReceivedEventArgs](),
-		receivableBalance: NewAmount(),
-		seenPendings:      make(map[string]struct{}),
+		p:                                   p,
+		account:                             account,
+		onPaymentReceived:                   event.New[PaymentReceivedEventArgs](),
+		onMulticurrencyPaymentDataAvailable: event.New[[]MulticurrencyPaymentData](),
+		receivableBalance:                   NewAmount(),
+		seenPendings:                        make(map[string]struct{}),
 	}
 
 	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.ExactlyOnceGuarantee, func(subscriberCount int) {

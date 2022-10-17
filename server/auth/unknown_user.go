@@ -26,5 +26,9 @@ func (u *unknownUser) IsUnknown() bool {
 	return true
 }
 
+func (u *unknownUser) IsFromAlienChain() bool {
+	return true
+}
+
 func (u *unknownUser) SetNickname(s *string) {
 }

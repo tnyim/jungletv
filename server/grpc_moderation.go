@@ -654,3 +654,28 @@ func (s *grpcServer) AdjustPointsBalance(ctxCtx context.Context, r *proto.Adjust
 
 	return &proto.AdjustPointsBalanceResponse{}, nil
 }
+
+func (s *grpcServer) SetMulticurrencyPaymentsEnabled(ctx context.Context, r *proto.SetMulticurrencyPaymentsEnabledRequest) (*proto.SetMulticurrencyPaymentsEnabledResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	s.paymentAccountPool.SetMulticurrencyPaymentsEnabled(r.Enabled)
+
+	if s.modLogWebhook != nil {
+		action := "disabled"
+		if r.Enabled {
+			action = "enabled"
+		}
+		_, err := s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) %s multicurrency payments",
+				user.Address()[:14], user.Username, action))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.SetMulticurrencyPaymentsEnabledResponse{}, nil
+}

@@ -32,9 +32,11 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	}()
 	r.log.Printf("Rewarding users for \"%s\"", media.MediaInfo().Title())
 
+	requestedByValidUser := media.RequestedBy() != nil && !media.RequestedBy().IsUnknown() && !media.RequestedBy().IsFromAlienChain()
+
 	mediaCostBudget := media.RequestCost()
 	var requestedBy *string
-	if media.RequestedBy() != nil && !media.RequestedBy().IsUnknown() {
+	if requestedByValidUser {
 		address := media.RequestedBy().Address()
 		requestedBy = &address
 	}
@@ -53,7 +55,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 
 	requesterReward := payment.NewAmount()
 	requesterSpectator, requesterIsSpectator := r.spectatorsByRewardAddress[media.RequestedBy().Address()]
-	if !media.RequestedBy().IsUnknown() && requesterIsSpectator && rainBudget.Cmp(big.NewInt(0)) > 0 {
+	if requestedByValidUser && requesterIsSpectator && rainBudget.Cmp(big.NewInt(0)) > 0 {
 		banned, err := r.moderationStore.LoadPaymentAddressBannedFromRewards(ctx, requesterSpectator.user.Address())
 		if err != nil {
 			return stacktrace.Propagate(err, "")
@@ -91,7 +93,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	}
 
 	if len(eligible) == 0 {
-		if !media.RequestedBy().IsUnknown() && media.RequestCost().Cmp(big.NewInt(0)) > 0 {
+		if requestedByValidUser && media.RequestCost().Cmp(big.NewInt(0)) > 0 {
 			// reimburse who added to queue
 			go r.reimburseRequester(ctx, media.RequestedBy().Address(), mediaCostBudget)
 		}

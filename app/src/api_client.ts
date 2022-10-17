@@ -21,7 +21,7 @@ import {
     RewardHistoryResponse, RewardInfoRequest,
     RewardInfoResponse, SendChatMessageRequest, SendChatMessageResponse, SetChatNicknameRequest, SetChatNicknameResponse, SetChatSettingsRequest,
     SetChatSettingsResponse, SetCrowdfundedSkippingEnabledRequest, SetCrowdfundedSkippingEnabledResponse, SetMediaEnqueuingEnabledRequest, SetMediaEnqueuingEnabledResponse, SetMinimumPricesMultiplierRequest,
-    SetMinimumPricesMultiplierResponse, SetNewQueueEntriesAlwaysUnskippableRequest, SetNewQueueEntriesAlwaysUnskippableResponse, SetOwnQueueEntryRemovalAllowedRequest, SetOwnQueueEntryRemovalAllowedResponse, SetPricesMultiplierRequest, SetPricesMultiplierResponse, SetProfileBiographyRequest, SetProfileBiographyResponse, SetProfileFeaturedMediaRequest,
+    SetMinimumPricesMultiplierResponse, SetMulticurrencyPaymentsEnabledRequest, SetMulticurrencyPaymentsEnabledResponse, SetNewQueueEntriesAlwaysUnskippableRequest, SetNewQueueEntriesAlwaysUnskippableResponse, SetOwnQueueEntryRemovalAllowedRequest, SetOwnQueueEntryRemovalAllowedResponse, SetPricesMultiplierRequest, SetPricesMultiplierResponse, SetProfileBiographyRequest, SetProfileBiographyResponse, SetProfileFeaturedMediaRequest,
     SetProfileFeaturedMediaResponse, SetQueueEntryReorderingAllowedRequest, SetQueueEntryReorderingAllowedResponse, SetQueueInsertCursorRequest,
     SetQueueInsertCursorResponse, SetSkippingEnabledRequest, SetSkippingEnabledResponse, SetSkipPriceMultiplierRequest,
     SetSkipPriceMultiplierResponse, SetUserChatNicknameRequest,
@@ -582,9 +582,15 @@ class APIClient {
         return this.unaryRPC<RedrawRaffleRequest, RedrawRaffleResponse>(JungleTV.RedrawRaffle, request);
     }
 
-    async triggerAnnouncementsNotification(): Promise<TriggerAnnouncementsNotificationRequest> {
+    async triggerAnnouncementsNotification(): Promise<TriggerAnnouncementsNotificationResponse> {
         return this.unaryRPC<TriggerAnnouncementsNotificationRequest, TriggerAnnouncementsNotificationResponse>(
             JungleTV.TriggerAnnouncementsNotification, new TriggerAnnouncementsNotificationRequest());
+    }
+
+    async setMulticurrencyPaymentsEnabled(enabled: boolean): Promise<SetMulticurrencyPaymentsEnabledResponse> {
+        let request = new SetMulticurrencyPaymentsEnabledRequest();
+        request.setEnabled(enabled);
+        return this.unaryRPC<SetMulticurrencyPaymentsEnabledRequest, SetMulticurrencyPaymentsEnabledResponse>(JungleTV.SetMulticurrencyPaymentsEnabled, request);
     }
 
     async spectatorInfo(rewardsAddress: string): Promise<Spectator> {
@@ -765,52 +771,56 @@ class APIClient {
     }
 
     formatBANPrice(raw: string): string {
-        return parseFloat(this.getBananoPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"))) + "";
+        return this.getAmountPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"), 29, 2);
+    }
+
+    formatPrice(raw: string, currency: "BAN" | "XNO"): string {
+        let p: {
+            [currency: string]: [string, number, number];
+        } = {
+            "BAN": ["ban_", 29, 2],
+            "XNO": ["nano_", 30, 6],
+        };
+        return this.getAmountPartsAsDecimal(this.getAmountPartsFromRaw(raw, p[currency][0]), p[currency][1], p[currency][2]);
     }
 
     formatBANPriceFixed(raw: string): string {
-        return parseFloat(this.getBananoPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"))).toFixed(2) + "";
+        return this.getAmountPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"), 29, 2, true).match(/[0-9]+\.[0-9]{2}/)[0];
     }
 
-    /**
-   * converts amount from bananoParts to decimal.
-   * @param {BananoParts} bananoParts the banano parts to describe.
-   * @return {string} returns the decimal amount of bananos.
-   */
-    private getBananoPartsAsDecimal = (bananoParts) => {
-        let bananoDecimal = '';
-        const banano = bananoParts[bananoParts.majorName];
-        if (banano !== undefined) {
-            bananoDecimal += banano;
+    private getAmountPartsAsDecimal = (parts: any, currencyDecimalPlaces: number, centPlaces: number, forceIncludeCents: boolean = false) => {
+        let nanoDecimal = '';
+        const nano = parts[parts.majorName];
+        if (nano !== undefined) {
+            nanoDecimal += nano;
         } else {
-            bananoDecimal += '0';
+            nanoDecimal += '0';
         }
 
-        const banoshi = bananoParts[bananoParts.minorName];
-        if ((banoshi !== undefined) || (bananoParts.raw !== undefined)) {
-            bananoDecimal += '.';
+        const nanoshi = parts[parts.minorName];
+        const includeCents = forceIncludeCents || (nanoshi !== undefined && nanoshi !== "0")
+        if (includeCents || (parts.raw !== undefined && parts.raw !== "0")) {
+            nanoDecimal += '.';
         }
 
-        if (banoshi !== undefined) {
-            if (banoshi.length == 1) {
-                bananoDecimal += '0';
+        if (includeCents) {
+            nanoDecimal += '0'.repeat(centPlaces - nanoshi.length);
+            nanoDecimal += nanoshi;
+        }
+
+        if (parts.raw !== undefined && parts.raw !== "0") {
+            if (nanoDecimal.endsWith(".")) {
+                nanoDecimal += '0'.repeat(centPlaces);
             }
-            bananoDecimal += banoshi;
-        }
-
-        if (bananoParts.raw !== undefined) {
-            if (banoshi === undefined) {
-                bananoDecimal += '00';
-            }
-            const count = 27 - bananoParts.raw.length;
+            const count = (currencyDecimalPlaces - centPlaces) - parts.raw.length;
             if (count < 0) {
-                throw Error(`too many numbers in bananoParts.raw '${bananoParts.raw}', remove ${-count} of them.`);
+                throw Error(`too many numbers in parts.raw '${parts.raw}', remove ${-count} of them.`);
             }
-            bananoDecimal += '0'.repeat(count);
-            bananoDecimal += bananoParts.raw;
+            nanoDecimal += '0'.repeat(count);
+            nanoDecimal += parts.raw;
         }
 
-        return bananoDecimal;
+        return nanoDecimal;
     };
 
 

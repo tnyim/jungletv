@@ -481,7 +481,7 @@ func (r *Handler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) 
 		}
 	}
 
-	if amountToReimburse.Cmp(big.NewInt(0)) > 0 {
+	if amountToReimburse.Cmp(big.NewInt(0)) > 0 && !removed.RequestedBy().IsFromAlienChain() {
 		go r.reimburseRequester(ctx, removed.RequestedBy().Address(), amountToReimburse)
 	}
 	return nil
@@ -514,7 +514,7 @@ func (r *Handler) markAddressAsMentionedInChat(ctx context.Context, address stri
 
 func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
 	requestedBy := m.RequestedBy()
-	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() {
+	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() {
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())

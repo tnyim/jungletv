@@ -241,6 +241,13 @@
             }
         }
     }
+
+    async function setMulticurrencyPaymentsEnabled() {
+        await apiClient.setMulticurrencyPaymentsEnabled(true);
+    }
+    async function setMulticurrencyPaymentsDisabled() {
+        await apiClient.setMulticurrencyPaymentsEnabled(false);
+    }
 </script>
 
 <div class="flex-grow min-h-full overflow-x-hidden">
@@ -509,8 +516,20 @@
             >
                 Trigger client reload
             </button>
-            <div />
-            <div />
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                on:click={setMulticurrencyPaymentsEnabled}
+            >
+                Enable multicurrency payments
+            </button>
+            <button
+                type="submit"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                on:click={setMulticurrencyPaymentsDisabled}
+            >
+                Disable multicurrency payments
+            </button>
         </div>
     </div>
     <div class="mt-6">

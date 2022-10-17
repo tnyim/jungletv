@@ -175,7 +175,7 @@ func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, be
 	s := sdb.Select().
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
-		Where(sq.NotEq{"requested_by": ""}).
+		Where(sq.Like{"requested_by": "ban_%"}). // exclude entries without requester and with requesters from alien chains
 		OrderBy("played_media.started_at")
 
 	values, err := GetWithSelect[*PlayedMediaRaffleEntry](node, s)
@@ -194,7 +194,7 @@ func CountMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before
 		From("played_media").
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
-		Where(sq.NotEq{"requested_by": ""})
+		Where(sq.Like{"requested_by": "ban_%"}) // exclude entries without requester and with requesters from alien chains
 
 	var count int
 	err = s.RunWith(tx).QueryRow().Scan(&count)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math/big"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/nanswapclient"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
@@ -102,7 +104,15 @@ func (e *Manager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
 }
 
 func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
-	paymentReceiver, err := e.paymentAccountPool.ReceivePayment()
+	pricing := e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable(), request.Concealed())
+
+	amounts := []payment.Amount{
+		pricing.EnqueuePrice,
+		pricing.PlayNextPrice,
+		pricing.PlayNowPrice,
+	}
+
+	paymentReceiver, err := e.paymentAccountPool.ReceiveMulticurrencyPayment(ctx, amounts, []nanswapclient.Ticker{nanswapclient.TickerNano}, TicketExpiration)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -118,7 +128,7 @@ func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequ
 		mediaInfo:       request.MediaInfo(),
 		unskippable:     request.Unskippable(),
 		concealed:       request.Concealed(),
-		pricing:         e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable(), request.Concealed()),
+		pricing:         pricing,
 		paymentReceiver: paymentReceiver,
 		statusChanged:   event.NewNoArg(),
 	}
@@ -146,19 +156,34 @@ func (e *Manager) GetTicket(id string) EnqueueTicket {
 	return nil
 }
 
-func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, ticket *ticket) error {
+func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount, senderAmount payment.Amount, senderCurrency nanswapclient.Ticker, ticket *ticket) error {
 	if ticket.Status() == proto.EnqueueMediaTicketStatus_PAID {
 		return nil
 	}
 	pricing := ticket.RequestPricing()
 	forceEnqueuing, forcedEnqueuingType := ticket.EnqueuingForced()
 
+	var mcpd *payment.MulticurrencyPaymentData
+
+	for _, data := range ticket.paymentReceiver.MulticurrencyPaymentData() {
+		if data.Currency == senderCurrency && len(data.ExpectedAmounts) >= 3 {
+			mcpd = &data
+			break
+		}
+	}
+
 	var playFn func(media.QueueEntry)
-	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
+	if balance.Cmp(pricing.PlayNowPrice.Int) >= 0 ||
+		(mcpd != nil && mcpd.ExpectedAmounts[0].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[0].Int) >= 0) ||
+		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
 		playFn = e.mediaQueue.PlayNow
-	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
+	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 ||
+		(mcpd != nil && mcpd.ExpectedAmounts[1].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[1].Int) >= 0) ||
+		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
 		playFn = e.mediaQueue.PlayAfterNext
-	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 || (forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
+	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 ||
+		(mcpd != nil && mcpd.ExpectedAmounts[2].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[2].Int) >= 0) ||
+		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
 		playFn = e.mediaQueue.Enqueue
 	} else {
 		// yet to receive enough money
@@ -176,6 +201,10 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 
 		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {
 			e.log.Printf("Ticket %s not being enqueued due to banned requester", ticket.ID())
+			if requestedBy.IsFromAlienChain() {
+				// can't revert to alien chain
+				return nil
+			}
 			// revert all transactions that came from the banned address
 			err = ticket.paymentReceiver.Revert(requestedByStr)
 			return stacktrace.Propagate(err, "")
@@ -192,6 +221,11 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 			e.log.Printf("Ticket %s not being enqueued due to insufficient points balance to enqueue concealed entry", ticket.ID())
 			// this ticket can not be enqueued because the user does not have sufficient points for a concealed queue entry
 			ticket.SetFailedDueToInsufficientPoints()
+			if requestedBy.IsFromAlienChain() {
+				// can't revert to alien chain
+				// this shouldn't happen since anonymous users can't request concealed entries. still, it's good practice to handle this
+				return nil
+			}
 			// refund the paid amount
 			err = ticket.paymentReceiver.Revert(requestedByStr)
 			return stacktrace.Propagate(err, "")
@@ -348,6 +382,23 @@ func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 		Unskippable:    t.unskippable,
 		Concealed:      t.concealed,
 	}
+	multicurrencyPaymentData := t.paymentReceiver.MulticurrencyPaymentData()
+	for _, data := range multicurrencyPaymentData {
+		protoData := &proto.ExtraCurrencyPaymentData{
+			CurrencyTicker: string(data.Currency),
+			SwapOrderId:    string(data.OrderID),
+			PaymentAddress: string(data.PaymentAddress),
+		}
+
+		fields := []*string{&protoData.EnqueuePrice, &protoData.PlayNextPrice, &protoData.PlayNowPrice}
+		for i := 0; i < len(fields) && i < len(data.ExpectedAmounts); i++ {
+			if data.ExpectedAmounts[i].Cmp(big.NewInt(0)) > 0 {
+				*fields[i] = data.ExpectedAmounts[i].SerializeForAPI()
+			}
+		}
+
+		serialized.ExtraCurrencyPaymentData = append(serialized.ExtraCurrencyPaymentData, protoData)
+	}
 	t.mediaInfo.FillAPITicketMediaInfo(serialized)
 	return serialized
 }
@@ -418,6 +469,9 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 	onPaymentReceived, onPaymentReceivedUnsub := t.paymentReceiver.PaymentReceived().Subscribe(event.ExactlyOnceGuarantee)
 	defer onPaymentReceivedUnsub()
 
+	onMulticurrencyPaymentDataAvailable, onMulticurrencyPaymentDataAvailableUnsub := t.paymentReceiver.MulticurrencyPaymentDataAvailable().Subscribe(event.ExactlyOnceGuarantee)
+	defer onMulticurrencyPaymentDataAvailableUnsub()
+
 	onStatusChanged, onStatusChangedUnsub := t.statusChanged.Subscribe(event.AtLeastOnceGuarantee)
 	defer onStatusChangedUnsub()
 
@@ -427,6 +481,16 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 		select {
 		case <-expirationTimer.C:
 			t.statusChanged.Notify(false)
+		case data := <-onMulticurrencyPaymentDataAvailable:
+			t.statusChanged.Notify(false)
+			for _, cData := range data {
+				e.log.Printf("Ticket %s (p.a. %s) has Nanswap order ID %s for currency %s with payment address %s",
+					t.ID(),
+					t.PaymentAddress(),
+					cData.OrderID,
+					cData.Currency,
+					cData.PaymentAddress)
+			}
 		case <-actualExpirationTimer.C:
 			return
 		case <-onStatusChanged:
@@ -440,9 +504,9 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 				t.requestedBy = auth.NewAddressOnlyUser(paymentArgs.From)
 			}
 			lastSeenBalance = paymentArgs.Balance
-			err = e.tryEnqueuingTicket(ctx, paymentArgs.Balance, t)
+			err = e.tryEnqueuingTicket(ctx, paymentArgs.Balance, paymentArgs.SenderAmount, paymentArgs.SenderCurrency, t)
 		case <-checkForcedEnqueuingTicker.C:
-			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, t)
+			err = e.tryEnqueuingTicket(ctx, lastSeenBalance, lastSeenBalance, nanswapclient.TickerBanano, t)
 		}
 		if err != nil {
 			e.log.Println(stacktrace.Propagate(err, "failed to enqueue ticket %s, now terminating ticket worker", t.id))

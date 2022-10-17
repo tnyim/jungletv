@@ -17,6 +17,7 @@ type User interface {
 	Nickname() *string
 	PermissionLevel() PermissionLevel
 	IsUnknown() bool
+	IsFromAlienChain() bool
 	SetNickname(*string)
 }
 
@@ -65,6 +66,10 @@ func (u *UserClaims) SerializeForAPI() *proto.User {
 		pu.Nickname = &u.TheNickname
 	}
 	return pu
+}
+
+func (u *UserClaims) IsFromAlienChain() bool {
+	return false
 }
 
 func (u *UserClaims) IsUnknown() bool {

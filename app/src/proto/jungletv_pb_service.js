@@ -766,6 +766,15 @@ JungleTV.TriggerClientReload = {
   responseType: jungletv_pb.TriggerClientReloadResponse
 };
 
+JungleTV.SetMulticurrencyPaymentsEnabled = {
+  methodName: "SetMulticurrencyPaymentsEnabled",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
+  responseType: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -3415,6 +3424,37 @@ JungleTVClient.prototype.triggerClientReload = function triggerClientReload(requ
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.TriggerClientReload, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setMulticurrencyPaymentsEnabled = function setMulticurrencyPaymentsEnabled(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetMulticurrencyPaymentsEnabled, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

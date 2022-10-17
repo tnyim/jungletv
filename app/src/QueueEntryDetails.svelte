@@ -158,7 +158,7 @@
                 </span>
             </div>
             <QrCode
-                value={"ban:" + requestedBy.getAddress()}
+                value={(requestedBy.getAddress().startsWith("nano_") ? "nano:" : "ban:") + requestedBy.getAddress()}
                 size="80"
                 padding="0"
                 background={$darkMode ? "#000000" : "#e5e7eb"}

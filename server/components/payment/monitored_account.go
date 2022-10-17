@@ -9,23 +9,38 @@ import (
 	"github.com/hectorchu/gonano/rpc"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/nanswapclient"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
 // monitoredAccount implements PaymentReceiver
 type monitoredAccount struct {
-	mu                      sync.RWMutex // mainly protects receivableBalance, as it is changed on both Revert and processPaymentsToAccount
-	p                       *PaymentAccountPool
-	account                 *wallet.Account
-	onPaymentReceived       *event.Event[PaymentReceivedEventArgs]
-	onUnsubscribedUnsubFn   func()
-	seenPendings            map[string]struct{}
-	receivableBalance       Amount // this is the balance excluding dust. it is updated as we detect new receivables
-	incrementedWaitingGroup bool
+	mu                                  sync.RWMutex // mainly protects receivableBalance, as it is changed on both Revert and processPaymentsToAccount
+	p                                   *PaymentAccountPool
+	account                             *wallet.Account
+	onPaymentReceived                   *event.Event[PaymentReceivedEventArgs]
+	onMulticurrencyPaymentDataAvailable *event.Event[[]MulticurrencyPaymentData]
+	onUnsubscribedUnsubFn               func()
+	seenPendings                        map[string]struct{}
+	receivableBalance                   Amount // this is the balance excluding dust. it is updated as we detect new receivables
+	incrementedWaitingGroup             bool
+	multicurrencyPaymentData            []MulticurrencyPaymentData
 }
 
 func (m *monitoredAccount) Address() string {
 	return m.account.Address()
+}
+
+func (m *monitoredAccount) MulticurrencyPaymentData() []MulticurrencyPaymentData {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	d := make([]MulticurrencyPaymentData, len(m.multicurrencyPaymentData))
+	copy(d, m.multicurrencyPaymentData)
+	return d
+}
+
+func (m *monitoredAccount) MulticurrencyPaymentDataAvailable() *event.Event[[]MulticurrencyPaymentData] {
+	return m.onMulticurrencyPaymentDataAvailable
 }
 
 func (m *monitoredAccount) PaymentReceived() *event.Event[PaymentReceivedEventArgs] {
@@ -109,13 +124,94 @@ func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 			m.p.collectorAccountPendingBalanceWaitGroup.Add(1)
 			m.incrementedWaitingGroup = true
 		}
+
+		senderAmount := Amount{&pending.Amount.Int}
+		senderCurrency := nanswapclient.TickerBanano
+		from := pending.Source
+		if pending.Source == "ban_3zz761jb16zowd148jb6xpxszgpnk3fw35wnhfatuzah89uruginfdrw8sk7" {
+			// source is Nanswap, attempt to fill alien chain info accurately
+			for _, extraCurrencyData := range m.multicurrencyPaymentData {
+				order, err := m.p.nanswapClient.GetOrder(ctx, extraCurrencyData.OrderID)
+				if err != nil {
+					m.p.log.Printf("failed to get order after receiving payment from Nanswap in account %s, order ID %s: %v",
+						m.Address(),
+						extraCurrencyData.OrderID,
+						stacktrace.Propagate(err, ""),
+					)
+					continue
+				}
+				if order.Status == nanswapclient.OrderStatusCompleted {
+					senderCurrency = extraCurrencyData.Currency
+					senderAmount = currencyDecimalToItsRawAmount(order.FromAmount, senderCurrency)
+					from = order.SenderAddress
+				}
+			}
+		}
+
 		m.onPaymentReceived.Notify(PaymentReceivedEventArgs{
-			Amount:    Amount{&pending.Amount.Int},
-			From:      pending.Source,
-			Balance:   m.receivableBalance,
-			BlockHash: hash,
+			Amount:         Amount{&pending.Amount.Int},
+			SenderAmount:   senderAmount,
+			SenderCurrency: senderCurrency,
+			From:           from,
+			Balance:        m.receivableBalance,
+			BlockHash:      hash,
 		}, true)
 	}
 
 	return nil
+}
+
+func (m *monitoredAccount) setupMulticurrencySwap(ctx context.Context, expectedAmounts []Amount, extraCurrencies []nanswapclient.Ticker, swapTimeout time.Duration) {
+	resultMap := make(map[nanswapclient.Ticker][]Amount)
+	currencyOrders := make(map[nanswapclient.Ticker]nanswapclient.CreateOrderResponse)
+
+	paymentData := []MulticurrencyPaymentData{}
+
+	for _, expectedAmount := range expectedAmounts {
+		bananoDecimalAmount := rawToBananoDecimal(expectedAmount)
+		for _, currency := range extraCurrencies {
+
+			estimation, err := m.p.nanswapClient.GetEstimateReverse(ctx, currency, homeCurrency, bananoDecimalAmount)
+			if err != nil {
+				resultMap[currency] = append(resultMap[currency], NewAmount(big.NewInt(-1)))
+				continue
+			}
+
+			amount := currencyDecimalToItsRawAmount(estimation.AmountFrom, currency)
+			amount.Div(amount.Int, roundingFactor[currency])
+			amount.Add(amount.Int, big.NewInt(1)) // increase price slightly / dumb round up (helps adding tolerance for slippage)
+			amount.Mul(amount.Int, roundingFactor[currency])
+
+			resultMap[currency] = append(resultMap[currency], amount)
+
+			// create only one order per currency. NanSwap will attempt to fulfill orders regardless of sent amount
+			if _, hasOrder := currencyOrders[currency]; hasOrder {
+				continue
+			}
+			currencyOrders[currency], err = m.p.nanswapClient.CreateOrder(ctx, currency, homeCurrency, estimation.AmountFrom, m.Address(), swapTimeout)
+			if err != nil {
+				delete(currencyOrders, currency)
+				continue
+			}
+		}
+	}
+
+	for currency, order := range currencyOrders {
+		paymentData = append(paymentData, MulticurrencyPaymentData{
+			Currency:        currency,
+			PaymentAddress:  order.PayinAddress,
+			ExpectedAmounts: resultMap[currency],
+			OrderID:         order.ID,
+		})
+	}
+
+	if len(paymentData) == 0 {
+		return
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.multicurrencyPaymentData = paymentData
+
+	m.onMulticurrencyPaymentDataAvailable.Notify(paymentData, true)
 }

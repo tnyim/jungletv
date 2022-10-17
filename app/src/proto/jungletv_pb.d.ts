@@ -448,6 +448,11 @@ export class EnqueueMediaTicket extends jspb.Message {
   getMediaLength(): google_protobuf_duration_pb.Duration | undefined;
   setMediaLength(value?: google_protobuf_duration_pb.Duration): void;
 
+  clearExtraCurrencyPaymentDataList(): void;
+  getExtraCurrencyPaymentDataList(): Array<ExtraCurrencyPaymentData>;
+  setExtraCurrencyPaymentDataList(value: Array<ExtraCurrencyPaymentData>): void;
+  addExtraCurrencyPaymentData(value?: ExtraCurrencyPaymentData, index?: number): ExtraCurrencyPaymentData;
+
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
@@ -487,6 +492,7 @@ export namespace EnqueueMediaTicket {
     concealed: boolean,
     currentlyPlayingIsUnskippable: boolean,
     mediaLength?: google_protobuf_duration_pb.Duration.AsObject,
+    extraCurrencyPaymentDataList: Array<ExtraCurrencyPaymentData.AsObject>,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
@@ -494,9 +500,49 @@ export namespace EnqueueMediaTicket {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 12,
-    SOUNDCLOUD_TRACK_DATA = 13,
-    DOCUMENT_DATA = 14,
+    YOUTUBE_VIDEO_DATA = 13,
+    SOUNDCLOUD_TRACK_DATA = 14,
+    DOCUMENT_DATA = 15,
+  }
+}
+
+export class ExtraCurrencyPaymentData extends jspb.Message {
+  getCurrencyTicker(): string;
+  setCurrencyTicker(value: string): void;
+
+  getSwapOrderId(): string;
+  setSwapOrderId(value: string): void;
+
+  getPaymentAddress(): string;
+  setPaymentAddress(value: string): void;
+
+  getEnqueuePrice(): string;
+  setEnqueuePrice(value: string): void;
+
+  getPlayNextPrice(): string;
+  setPlayNextPrice(value: string): void;
+
+  getPlayNowPrice(): string;
+  setPlayNowPrice(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExtraCurrencyPaymentData.AsObject;
+  static toObject(includeInstance: boolean, msg: ExtraCurrencyPaymentData): ExtraCurrencyPaymentData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExtraCurrencyPaymentData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExtraCurrencyPaymentData;
+  static deserializeBinaryFromReader(message: ExtraCurrencyPaymentData, reader: jspb.BinaryReader): ExtraCurrencyPaymentData;
+}
+
+export namespace ExtraCurrencyPaymentData {
+  export type AsObject = {
+    currencyTicker: string,
+    swapOrderId: string,
+    paymentAddress: string,
+    enqueuePrice: string,
+    playNextPrice: string,
+    playNowPrice: string,
   }
 }
 
@@ -5853,6 +5899,42 @@ export class IncreaseOrReduceSkipThresholdResponse extends jspb.Message {
 }
 
 export namespace IncreaseOrReduceSkipThresholdResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetMulticurrencyPaymentsEnabledRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetMulticurrencyPaymentsEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMulticurrencyPaymentsEnabledRequest): SetMulticurrencyPaymentsEnabledRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetMulticurrencyPaymentsEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMulticurrencyPaymentsEnabledRequest;
+  static deserializeBinaryFromReader(message: SetMulticurrencyPaymentsEnabledRequest, reader: jspb.BinaryReader): SetMulticurrencyPaymentsEnabledRequest;
+}
+
+export namespace SetMulticurrencyPaymentsEnabledRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetMulticurrencyPaymentsEnabledResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetMulticurrencyPaymentsEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetMulticurrencyPaymentsEnabledResponse): SetMulticurrencyPaymentsEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetMulticurrencyPaymentsEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetMulticurrencyPaymentsEnabledResponse;
+  static deserializeBinaryFromReader(message: SetMulticurrencyPaymentsEnabledResponse, reader: jspb.BinaryReader): SetMulticurrencyPaymentsEnabledResponse;
+}
+
+export namespace SetMulticurrencyPaymentsEnabledResponse {
   export type AsObject = {
   }
 }

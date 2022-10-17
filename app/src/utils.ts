@@ -394,6 +394,9 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
 var windowHostOrigin = (new URL(window.origin)).host;
 
 export const buildMonKeyURL = function (address: string): string {
+    if(address.startsWith("nano_")) {
+        return `https://natricon.com/api/v1/nano?address=${address}&svc=${windowHostOrigin}&utm_source=${windowHostOrigin}`;
+    }
     return `https://monkey.banano.cc/api/v1/monkey/${address}?svc=${windowHostOrigin}&utm_source=${windowHostOrigin}`;
 }
 

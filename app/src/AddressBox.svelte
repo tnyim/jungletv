@@ -14,22 +14,43 @@
     export let qrCodeForeground = "";
 
     let uri = "";
-    let bananoVaultURI = "";
+    let webWalletURI = "";
     let copySuccess = false;
     let copySuccessTimeout: number;
 
+    let uriPrefix: string;
+    let qrPrefix: string;
+    let currency: "BAN" | "XNO";
+    let webWalletName: string;
+    let webWalletHost: string;
+    $: if (address.startsWith("ban_")) {
+        uriPrefix = "banano";
+        qrPrefix = "ban";
+        currency = "BAN";
+        webWalletName = "BananoVault";
+        webWalletHost = "vault.banano.cc";
+    } else if (address.startsWith("nano_")) {
+        uriPrefix = "nano";
+        qrPrefix = "nano";
+        currency = "XNO";
+        webWalletName = "Nault";
+        webWalletHost = "nault.cc";
+    }
+
     $: {
         if (isRepresentativeChange) {
-            uri = `bananorep:${address}`;
+            uri = `${uriPrefix}rep:${address}`;
         } else {
-            uri = `banano:${address}`;
+            uri = `${uriPrefix}:${address}`;
             if (paymentAmount != "") {
                 uri += "?amount=" + paymentAmount;
             }
-            bananoVaultURI =
-                "https://vault.banano.cc/send?to=" +
+            webWalletURI =
+                "https://" +
+                webWalletHost +
+                "/send?to=" +
                 address +
-                (paymentAmount != "" ? "&amount=" + apiClient.formatBANPrice(paymentAmount) : "");
+                (paymentAmount != "" ? "&amount=" + apiClient.formatPrice(paymentAmount, currency) : "");
         }
     }
 
@@ -95,11 +116,12 @@
         <i class="fas {copySuccess ? 'fa-check' : 'fa-copy'}" />
     </button>
 </div>
+<slot />
 {#if showQR}
     <div class="mt-4 flex justify-center">
         {#key qrCodeBackground + qrCodeForeground}
             <QrCode
-                value={"ban:" + address + (paymentAmount != "" ? "?amount=" + paymentAmount : "")}
+                value={qrPrefix + ":" + address + (paymentAmount != "" ? "?amount=" + paymentAmount : "")}
                 size="150"
                 background={qrCodeBackground != "" ? qrCodeBackground : "#FFFFFF"}
                 color={qrCodeForeground != "" ? qrCodeForeground : "#000000"}
@@ -110,7 +132,7 @@
 {#if showBananoVaultLink}
     <div class="mt-4 flex justify-center">
         <p>
-            Send <a target="_blank" rel="noopener" href={bananoVaultURI}>from BananoVault</a> •
+            Send <a target="_blank" rel="noopener" href={webWalletURI}>from {webWalletName}</a> •
             <a href={uri}>from installed wallet</a>
         </p>
     </div>

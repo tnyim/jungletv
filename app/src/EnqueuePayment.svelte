@@ -7,6 +7,7 @@
     import { apiClient } from "./api_client";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
+    import SidebarTabButton from "./SidebarTabButton.svelte";
     import { darkMode } from "./stores";
     import type { MediaSelectionKind } from "./utils";
     import WarningMessage from "./WarningMessage.svelte";
@@ -20,7 +21,55 @@
     let monitorTicketRequest: Request;
     let ticketTimeRemainingFormatted = "";
     let updateTicketTimeRemainingInterval: number;
+    let selectedPriceOption: "enqueue" | "next" | "skip" = "enqueue";
     let selectedPrice = "";
+
+    interface PaymentInfo {
+        getEnqueuePrice(): string;
+        getPlayNextPrice(): string;
+        getPlayNowPrice(): string;
+        getPaymentAddress(): string;
+    }
+    let paymentInfo: PaymentInfo;
+
+    let selectedCurrency: "BAN" | "XNO" = "BAN";
+
+    $: {
+        if (typeof ticket !== "undefined") {
+            switch (selectedCurrency) {
+                case "BAN":
+                    paymentInfo = ticket;
+                    break;
+                case "XNO":
+                    let found = false;
+                    for (let d of ticket.getExtraCurrencyPaymentDataList()) {
+                        if (d.getCurrencyTicker() == selectedCurrency) {
+                            paymentInfo = d;
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        paymentInfo = undefined;
+                    }
+                    break;
+            }
+        }
+    }
+    $: {
+        if (typeof paymentInfo !== "undefined") {
+            switch (selectedPriceOption) {
+                case "enqueue":
+                    selectedPrice = paymentInfo.getEnqueuePrice();
+                    break;
+                case "next":
+                    selectedPrice = paymentInfo.getPlayNextPrice();
+                    break;
+                case "skip":
+                    selectedPrice = paymentInfo.getPlayNowPrice();
+                    break;
+            }
+        }
+    }
 
     onMount(() => {
         selectedPrice = ticket.getEnqueuePrice();
@@ -69,8 +118,8 @@
         dispatch("userCanceled");
     }
 
-    function updateSelectedPrice(price: string) {
-        selectedPrice = price;
+    function updateSelectedPrice(priceOption: typeof selectedPriceOption) {
+        selectedPriceOption = priceOption;
     }
 </script>
 
@@ -92,99 +141,169 @@
     </div>
     <!-- if the ticket is paid/expired it'll be missing some fields this component needs -->
     <div slot="main-content">
-        {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE}
-            <EnqueueTicketPreview {ticket} />
-            <p class="mt-8">
-                The {mediaKind} will be added to the queue once at least
-                <span class="font-bold">{apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN</span> is sent to the following
-                address:
-            </p>
-            <div class="mt-1 mb-4">
+        <EnqueueTicketPreview {ticket} />
+        <div class="flex flex-row flex-wrap justify-center mt-4">
+            <div class="text-lg py-1 px-1.5">Pay with</div>
+            <SidebarTabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedCurrency == "BAN"}
+                on:click={() => (selectedCurrency = "BAN")}
+            >
+                <img src="/assets/3rdparty/banano-icon.svg" alt="Banano" class="h-4 inline align-baseline" />
+                Banano
+            </SidebarTabButton>
+            <SidebarTabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedCurrency == "XNO"}
+                on:click={() => (selectedCurrency = "XNO")}
+            >
+                <img src="/assets/3rdparty/nano-icon.svg" alt="Nano" class="h-4 inline align-baseline" />
+                Nano
+            </SidebarTabButton>
+        </div>
+        {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE && typeof paymentInfo !== "undefined"}
+            <div class="text-center text-xs" style="min-height: 16px">
+                {#if selectedCurrency !== "BAN"}
+                    Conversion to Banano powered by <a
+                        href="https://nanswap.com/?r=83940629260"
+                        target="_blank"
+                        rel="noopener">Nanswap</a
+                    >
+                {/if}
+            </div>
+            <div class="flex justify-center">
+                <table>
+                    <tbody>
+                        {#if paymentInfo.getEnqueuePrice() != ""}
+                            <tr>
+                                <td class="text-right p-2">
+                                    Minimum send of
+                                    <span class="font-bold"
+                                        >{apiClient.formatPrice(
+                                            paymentInfo.getEnqueuePrice(),
+                                            selectedCurrency
+                                        )}&nbsp;{selectedCurrency}</span
+                                    >
+                                </td>
+                                <td class="p-2">to add the {mediaKind} to the end of the queue</td>
+                            </tr>
+                        {/if}
+                        {#if paymentInfo.getPlayNextPrice() != ""}
+                            <tr>
+                                <td class="text-right p-2">
+                                    Send at least
+                                    <span class="font-bold"
+                                        >{apiClient.formatPrice(
+                                            paymentInfo.getPlayNextPrice(),
+                                            selectedCurrency
+                                        )}&nbsp;{selectedCurrency}</span
+                                    >
+                                </td>
+                                <td class="p-2">to place the {mediaKind} right after the current entry</td>
+                            </tr>
+                        {/if}
+                        {#if paymentInfo.getPlayNowPrice() != ""}
+                            <tr>
+                                <td
+                                    class="text-right p-2 {ticket.getCurrentlyPlayingIsUnskippable()
+                                        ? 'line-through'
+                                        : ''}"
+                                >
+                                    Send at least
+                                    <span class="font-bold"
+                                        >{apiClient.formatPrice(
+                                            paymentInfo.getPlayNowPrice(),
+                                            selectedCurrency
+                                        )}&nbsp;{selectedCurrency}</span
+                                    >
+                                </td>
+                                <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? 'line-through' : ''}"
+                                    >to skip the current content and play immediately</td
+                                >
+                            </tr>
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+            <div class="my-4">
                 <AddressBox
-                    address={ticket.getPaymentAddress()}
+                    address={paymentInfo.getPaymentAddress()}
                     allowQR={false}
                     showQR={true}
                     showBananoVaultLink={true}
                     paymentAmount={selectedPrice}
                     qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
                     qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
-                />
+                >
+                    <div class="justify-center flex flex-row space-x-4 mt-4">
+                        {#if paymentInfo.getEnqueuePrice() != ""}
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="enqueueoption"
+                                    checked={selectedPriceOption == "enqueue"}
+                                    on:change={() => updateSelectedPrice("enqueue")}
+                                />
+                                <label for="enqueueoption" class="font-semibold">
+                                    {apiClient.formatPrice(paymentInfo.getEnqueuePrice(), selectedCurrency)}
+                                    {selectedCurrency}
+                                </label>
+                            </div>
+                        {/if}
+                        {#if paymentInfo.getPlayNextPrice() != ""}
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="playnextoption"
+                                    checked={selectedPriceOption == "next"}
+                                    on:change={() => updateSelectedPrice("next")}
+                                />
+                                <label for="playnextoption" class="font-semibold">
+                                    {apiClient.formatPrice(paymentInfo.getPlayNextPrice(), selectedCurrency)}
+                                    {selectedCurrency}
+                                </label>
+                            </div>
+                        {/if}
+                        {#if paymentInfo.getPlayNowPrice() != ""}
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="skipoption"
+                                    checked={selectedPriceOption == "skip"}
+                                    on:change={() => updateSelectedPrice("skip")}
+                                />
+                                <label for="skipoption" class="font-semibold">
+                                    {apiClient.formatPrice(paymentInfo.getPlayNowPrice(), selectedCurrency)}
+                                    {selectedCurrency}
+                                </label>
+                            </div>
+                        {/if}
+                    </div>
+                </AddressBox>
             </div>
-            {#if ticket.getUnskippable()}
-                <div class="flex justify-center text-yellow-800 dark:text-yellow-400">
-                    <strong
-                        >Prices have been heavily increased as you wish for this {mediaKind} to be unskippable.</strong
-                    >
-                </div>
-            {/if}
-            <div class="flex justify-center">
-                <table>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <input
-                                    type="radio"
-                                    checked={selectedPrice == ticket.getEnqueuePrice()}
-                                    on:change={() => updateSelectedPrice(ticket.getEnqueuePrice())}
-                                />
-                            </td>
-                            <td class="text-right font-bold p-2">
-                                Send {apiClient.formatBANPrice(ticket.getEnqueuePrice())} BAN
-                            </td>
-                            <td class="p-2">to add the {mediaKind} to the end of the queue</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input
-                                    type="radio"
-                                    checked={selectedPrice == ticket.getPlayNextPrice()}
-                                    on:change={() => updateSelectedPrice(ticket.getPlayNextPrice())}
-                                />
-                            </td>
-                            <td class="text-right font-bold p-2">
-                                Send {apiClient.formatBANPrice(ticket.getPlayNextPrice())} BAN
-                            </td>
-                            <td class="p-2">to play the {mediaKind} right after the current entry</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <input
-                                    type="radio"
-                                    checked={selectedPrice == ticket.getPlayNowPrice()}
-                                    on:change={() => updateSelectedPrice(ticket.getPlayNowPrice())}
-                                />
-                            </td>
-                            <td
-                                class="text-right font-bold p-2 {ticket.getCurrentlyPlayingIsUnskippable()
-                                    ? 'line-through'
-                                    : ''}"
-                            >
-                                Send {apiClient.formatBANPrice(ticket.getPlayNowPrice())} BAN
-                            </td>
-                            <td class="p-2 {ticket.getCurrentlyPlayingIsUnskippable() ? 'line-through' : ''}"
-                                >to skip the current content and play immediately</td
-                            >
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            {#if ticket.getCurrentlyPlayingIsUnskippable()}
-                <div class="mt-3">
-                    <WarningMessage>
-                        The currently playing content is unskippable; even if you pay the price to play immediately, it
-                        will still be enqueued to play after the current one.
-                    </WarningMessage>
-                </div>
-            {/if}
-            <p class="mt-2">
-                Sending more BAN will increase the rewards for viewers when {mediaKind == "video"
-                    ? "watching"
-                    : "listening to"} this {mediaKind}.
-            </p>
-            <p class="mt-2">
-                This price and address will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
-            </p>
+        {:else if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE && typeof paymentInfo === "undefined"}
+            <p class="text-center p-2 my-4">Payment with this currency currently unavailable.</p>
         {/if}
+        {#if ticket.getUnskippable()}
+            <div class="flex justify-center text-yellow-800 dark:text-yellow-400">
+                <strong>Prices have been heavily increased as you wish for this {mediaKind} to be unskippable.</strong>
+            </div>
+        {/if}
+        {#if ticket.getCurrentlyPlayingIsUnskippable()}
+            <div class="mt-3">
+                <WarningMessage>
+                    The currently playing content is unskippable; even if you pay the price to play immediately, it will
+                    still be enqueued to play after the current one.
+                </WarningMessage>
+            </div>
+        {/if}
+        <p class="mt-2">
+            The amount sent will be distributed among those {mediaKind == "video" ? "watching" : "listening"} when this
+            {mediaKind} plays.
+        </p>
+        <p class="mt-2">
+            The prices and payment address are valid for <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
+        </p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <button
