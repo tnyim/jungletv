@@ -109,6 +109,48 @@
             </p>
         {/await}
     </div>
+    <div slot="extra_1">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+            <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="col-span-3">
+                        <p class="text-lg">
+                            New to <img
+                                src="/assets/3rdparty/banano-icon.svg"
+                                alt="Banano"
+                                class="h-4 inline align-baseline"
+                            /> Banano?
+                        </p>
+                        <p class="text-sm">
+                            <a href="https://banano.cc" target="_blank" rel="noopener">Banano</a> is a feeless, near-instant,
+                            environment-friendly digital currency that's ripe for memes; it is not meant to be a financial
+                            investment.
+                        </p>
+                        <p class="text-sm">
+                            It is the perfect match for a playful community like what we have on JungleTV! We can
+                            introduce you to Banano with no need to spend any money.
+                        </p>
+                        <p class="text-sm mt-4">
+                            To start, you should get a Banano address. Use, for example,
+                            <a href="https://kalium.banano.cc/" target="_blank" rel="noopener">Kalium</a> (for Android
+                            and iOS) or
+                            <a href="https://thebananostand.com/" target="_blank" rel="noopener">The Banano Stand</a>, a
+                            wallet you can use on your browser without installing anything.
+                        </p>
+                        <p class="text-sm">
+                            Then, you should prepare your account by claiming some free Banano from
+                            <a href="https://nanswap.com/banano-faucet?r=83940629260" target="_blank" rel="noopener"
+                                >NanSwap</a
+                            >
+                            or
+                            <a href="https://monkeytalks.cc/" target="_blank" rel="noopener">MonkeyTalks</a>. Finally,
+                            just paste your address here and follow the instructions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <button
             type="button"
