@@ -130,6 +130,7 @@ func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 		from := pending.Source
 		if pending.Source == "ban_3zz761jb16zowd148jb6xpxszgpnk3fw35wnhfatuzah89uruginfdrw8sk7" {
 			// source is Nanswap, attempt to fill alien chain info accurately
+			foundOrder := false
 			for _, extraCurrencyData := range m.multicurrencyPaymentData {
 				order, err := m.p.nanswapClient.GetOrder(ctx, extraCurrencyData.OrderID)
 				if err != nil {
@@ -144,7 +145,19 @@ func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 					senderCurrency = extraCurrencyData.Currency
 					senderAmount = currencyDecimalToItsRawAmount(order.AmountFrom, senderCurrency)
 					from = order.SenderAddress
+					foundOrder = true
+
+					m.p.log.Printf("received payment from Nanswap in account %s, order ID %s, %v %s -> %v %s",
+						m.Address(),
+						extraCurrencyData.OrderID,
+						order.AmountFrom, order.From,
+						order.AmountTo, order.To,
+					)
+					break
 				}
+			}
+			if !foundOrder {
+				m.p.log.Printf("received payment from Nanswap in account %s but could not find a matching completed order", m.Address())
 			}
 		}
 
