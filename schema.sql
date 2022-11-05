@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS "played_media" (
     unskippable BOOLEAN NOT NULL,
     media_type VARCHAR(10) NOT NULL REFERENCES media_type (media_type),
     media_id VARCHAR(36) NOT NULL,
-    media_info JSONB NOT NULL,
+    media_info JSONB NOT NULL
 );
 CREATE INDEX index_requested_by_on_played_media ON played_media USING BTREE (requested_by);
 CREATE INDEX index_started_at_on_played_media ON played_media USING BTREE (started_at);
