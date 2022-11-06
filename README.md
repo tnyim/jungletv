@@ -21,6 +21,8 @@ JungleTV is a non-profit hobby project operated by [gbl08ma](https://twitter.com
 # :heavy_plus_sign: Contribute
 Feel free to take a look at the source code, report issues, or to maybe even make some contributions of your own!
 
+If you want to run JungleTV locally, or want to integrate JungleTV into your application, see the [developer documentation](/docs/dev.md).
+
 # :moneybag: Donations
 If you would like to help support the development and operation of JungleTV, consider donating some potassium to the address below:
 
