@@ -200,9 +200,13 @@
                         <p class="text-sm">Participate in the community and earn points to spend in JungleTV.</p>
                         {#if typeof $currentSubscription !== "undefined" && $currentSubscription != null}
                             <p class="text-sm">
-                                Your <span class="font-semibold text-green-500 dark:text-green-300">
+                                Your <a
+                                    href="/points#nice"
+                                    use:link
+                                    class="font-semibold text-green-500 dark:text-green-300"
+                                >
                                     JungleTV Nice
-                                </span>
+                                </a>
                                 membership gets you awesome perks{#if currentSubAboutToExpire}
                                     <span class="font-semibold text-red-600 dark:text-red-400">
                                         &nbsp;and is about to expire</span
@@ -210,9 +214,13 @@
                             </p>
                         {:else}
                             <p class="text-sm">
-                                Upgrade to <span class="font-semibold text-green-500 dark:text-green-300">
+                                Upgrade to <a
+                                    href="/points#nice"
+                                    use:link
+                                    class="font-semibold text-green-500 dark:text-green-300"
+                                >
                                     JungleTV Nice
-                                </span> to get awesome perks!
+                                </a> to get awesome perks!
                             </p>
                         {/if}
                     </div>
