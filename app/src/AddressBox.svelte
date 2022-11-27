@@ -25,13 +25,13 @@
     let webWalletHost: string;
     $: if (address.startsWith("ban_")) {
         uriPrefix = "banano";
-        qrPrefix = "ban";
+        qrPrefix = isRepresentativeChange ? "banrep" : "ban";
         currency = "BAN";
         webWalletName = "BananoVault";
         webWalletHost = "vault.banano.cc";
     } else if (address.startsWith("nano_")) {
         uriPrefix = "nano";
-        qrPrefix = "nano";
+        qrPrefix = isRepresentativeChange ? "nanorep" : "nano";
         currency = "XNO";
         webWalletName = "Nault";
         webWalletHost = "nault.cc";
