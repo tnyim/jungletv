@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dyson/certman"
 	"github.com/gbl08ma/keybox"
 	"github.com/gbl08ma/sqalx"
 	"github.com/gbl08ma/ssoclient"
@@ -359,7 +361,7 @@ func main() {
 		listenAddr = ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr, options)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr, certFile, keyFile, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -415,7 +417,7 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr string, options server.Options) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
 	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
 	versionInterceptor := version.New(&versionHash)
 
@@ -462,9 +464,22 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		router.ServeHTTP(resp, req)
 	}
 
+	cm, err := certman.New(certFile, keyFile)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	cm.Logger(webLog)
+	err = cm.Watch()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	return &http.Server{
 		Addr:    listenAddr,
 		Handler: http.HandlerFunc(handler),
+		TLSConfig: &tls.Config{
+			GetCertificate: cm.GetCertificate,
+		},
 	}, nil
 }
 
