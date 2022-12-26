@@ -85,7 +85,7 @@ func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext,
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed,
+func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	preInfo, ok := genericInfo.(*initialInfo)
 	if !ok {
@@ -109,7 +109,7 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 	request.SetConcealed(concealed)
 
 	userClaims := authinterceptor.UserClaimsFromContext(ctx)
-	if userClaims != nil {
+	if userClaims != nil && !anonymous {
 		request.SetRequestedBy(userClaims)
 	}
 

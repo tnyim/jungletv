@@ -112,7 +112,7 @@ func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed,
+func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
@@ -183,7 +183,7 @@ func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	request.SetConcealed(concealed)
 
 	userClaims := authinterceptor.UserClaimsFromContext(ctx)
-	if userClaims != nil {
+	if userClaims != nil && !anonymous {
 		request.SetRequestedBy(userClaims)
 	}
 

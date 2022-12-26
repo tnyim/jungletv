@@ -331,7 +331,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.enqueueRequestLongTermRateLimiter, err = memorystore.New(&memorystore.Config{
-		Tokens:   60,
+		Tokens:   100,
 		Interval: time.Hour,
 	})
 	if err != nil {
@@ -496,7 +496,7 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.NewError("enqueue request for video %s creation failed due to video characteristics", videoID)
 	}
 
-	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].ContinueEnqueueRequest(ctx, preInfo, false, false, false, false, false)
+	request, result, err := s.mediaProviders[types.MediaTypeYouTubeVideo].ContinueEnqueueRequest(ctx, preInfo, false, false, false, false, false, false)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -505,7 +505,7 @@ func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error
 		return stacktrace.NewError("enqueue request for video %s creation failed", videoID)
 	}
 
-	ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
+	ticket, err := s.enqueueManager.RegisterRequest(ctx, request, true)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

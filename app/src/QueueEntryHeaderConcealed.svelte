@@ -66,7 +66,7 @@
                 style="font-size: 0.70rem;">{getReadableUserString(entry.getRequestedBy())}</span
             >
         {:else}
-            Added by JungleTV (no reward)
+            Added by JungleTV {#if apiClient.isPriceZero(entry.getRequestCost())}(no reward){/if}
         {/if}
         {#if mode == "moderation"}
             | Request cost: {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN |

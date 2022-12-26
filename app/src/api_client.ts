@@ -152,10 +152,11 @@ class APIClient {
         setCookie("auth-token", token, expiry, "Strict");
     }
 
-    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
+        request.setAnonymous(anonymous);
         let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(id);
         if (typeof startOffset !== 'undefined') {
@@ -168,10 +169,11 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
+        request.setAnonymous(anonymous);
         let scData = new EnqueueSoundCloudTrackData();
         scData.setPermalink(url);
         if (typeof startOffset !== 'undefined') {
@@ -184,10 +186,11 @@ class APIClient {
         return this.unaryRPC<EnqueueMediaRequest, EnqueueMediaResponse>(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
+    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
+        request.setAnonymous(anonymous);
         let docData = new EnqueueDocumentData();
         docData.setDocumentId(id);
         docData.setTitle(title);
@@ -786,6 +789,10 @@ class APIClient {
 
     formatBANPriceFixed(raw: string): string {
         return this.getAmountPartsAsDecimal(this.getAmountPartsFromRaw(raw, "ban_"), 29, 2, true).match(/[0-9]+\.[0-9]{2}/)[0];
+    }
+
+    isPriceZero(raw: string): boolean {
+        return /^0*$/.test(raw);
     }
 
     private getAmountPartsAsDecimal = (parts: any, currencyDecimalPlaces: number, centPlaces: number, forceIncludeCents: boolean = false) => {

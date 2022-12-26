@@ -305,6 +305,9 @@ export class EnqueueMediaRequest extends jspb.Message {
   getConcealed(): boolean;
   setConcealed(value: boolean): void;
 
+  getAnonymous(): boolean;
+  setAnonymous(value: boolean): void;
+
   hasStubData(): boolean;
   clearStubData(): void;
   getStubData(): EnqueueStubData | undefined;
@@ -340,6 +343,7 @@ export namespace EnqueueMediaRequest {
   export type AsObject = {
     unskippable: boolean,
     concealed: boolean,
+    anonymous: boolean,
     stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: EnqueueSoundCloudTrackData.AsObject,
@@ -348,10 +352,10 @@ export namespace EnqueueMediaRequest {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 3,
-    YOUTUBE_VIDEO_DATA = 4,
-    SOUNDCLOUD_TRACK_DATA = 5,
-    DOCUMENT_DATA = 6,
+    STUB_DATA = 4,
+    YOUTUBE_VIDEO_DATA = 5,
+    SOUNDCLOUD_TRACK_DATA = 6,
+    DOCUMENT_DATA = 7,
   }
 }
 

@@ -169,9 +169,12 @@
         <p>
             Added to the queue {formatEnqueuedAt(entry)}.
         </p>
-        <p class="mt-2">
-            This video was automatically enqueued by JungleTV. Since nobody paid for this video, it will pay no rewards.
-        </p>
+        {#if apiClient.isPriceZero(entry.getRequestCost())}
+            <p class="mt-2">
+                This video was automatically enqueued by JungleTV. Since nobody paid for this video, it will pay no
+                rewards.
+            </p>
+        {/if}
     {/if}
     <div class="grid grid-cols-6 gap-2 place-items-center">
         {#if isChatModerator}

@@ -154,11 +154,12 @@ message EnqueueStubData {}
 message EnqueueMediaRequest {
     bool unskippable = 1;
     bool concealed = 2;
+    bool anonymous = 3;
     oneof media_info {
-        EnqueueStubData stub_data = 3;
-        EnqueueYouTubeVideoData youtube_video_data = 4;
-        EnqueueSoundCloudTrackData soundcloud_track_data = 5;
-        EnqueueDocumentData document_data = 6;
+        EnqueueStubData stub_data = 4;
+        EnqueueYouTubeVideoData youtube_video_data = 5;
+        EnqueueSoundCloudTrackData soundcloud_track_data = 6;
+        EnqueueDocumentData document_data = 7;
     }
 }
 

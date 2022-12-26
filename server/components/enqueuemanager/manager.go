@@ -103,7 +103,7 @@ func (e *Manager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
 	e.newEntriesAlwaysUnskippableForFree = enabled
 }
 
-func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest) (EnqueueTicket, error) {
+func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest, forceAnonymous bool) (EnqueueTicket, error) {
 	pricing := e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable(), request.Concealed())
 
 	amounts := []payment.Amount{
@@ -117,7 +117,7 @@ func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequ
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	if request.Concealed() && (request.RequestedBy() == nil || request.RequestedBy().IsUnknown()) {
+	if request.Concealed() && !forceAnonymous && (request.RequestedBy() == nil || request.RequestedBy().IsUnknown()) {
 		return nil, stacktrace.NewError("anonymous users can not enqueue concealed entries")
 	}
 
@@ -128,6 +128,7 @@ func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequ
 		mediaInfo:       request.MediaInfo(),
 		unskippable:     request.Unskippable(),
 		concealed:       request.Concealed(),
+		forceAnonymous:  forceAnonymous,
 		pricing:         pricing,
 		paymentReceiver: paymentReceiver,
 		statusChanged:   event.NewNoArg(),
@@ -211,7 +212,7 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 		}
 	}
 
-	if ticket.Concealed() {
+	if ticket.Concealed() && !ticket.forceAnonymous {
 		err := e.deductConcealedTicketPoints(ctx, ticket)
 		if err != nil {
 			if !errors.Is(err, types.ErrInsufficientPointsBalance) {
@@ -333,6 +334,7 @@ type ticket struct {
 	failedInsufficientPoints bool
 	unskippable              bool
 	concealed                bool
+	forceAnonymous           bool
 	requestedBy              auth.User
 	createdAt                time.Time
 	mediaInfo                media.Info
@@ -502,7 +504,7 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 		case <-ctx.Done():
 			return
 		case paymentArgs := <-onPaymentReceived:
-			if t.requestedBy == nil || t.requestedBy.IsUnknown() {
+			if (t.requestedBy == nil || t.requestedBy.IsUnknown()) && !t.forceAnonymous {
 				t.requestedBy = auth.NewAddressOnlyUser(paymentArgs.From)
 			}
 			lastSeenBalance = paymentArgs.Balance

@@ -9,9 +9,9 @@
     import ErrorMessage from "./ErrorMessage.svelte";
     import MediaRangeFloat from "./MediaRangeFloat.svelte";
     import PointsIcon from "./PointsIcon.svelte";
-    import { EnqueueMediaResponse } from "./proto/jungletv_pb";
+    import { EnqueueMediaResponse, PermissionLevel } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
-    import { currentSubscription } from "./stores";
+    import { currentSubscription, permissionLevel } from "./stores";
     import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
     import { parseURLForMediaSelection } from "./utils";
     import Wizard from "./Wizard.svelte";
@@ -48,6 +48,7 @@
     }
     let unskippable: boolean = false;
     let concealed: boolean = false;
+    let anonymous: boolean = false;
     let failureReason: string = "";
 
     $: concealedCost = typeof $currentSubscription !== "undefined" && $currentSubscription != null ? 404 : 690;
@@ -118,6 +119,7 @@
                     parseResult.videoID,
                     unskippable,
                     concealed,
+                    anonymous,
                     startOffset,
                     endOffset
                 );
@@ -126,6 +128,7 @@
                     parseResult.trackURL,
                     unskippable,
                     concealed,
+                    anonymous,
                     startOffset,
                     endOffset
                 );
@@ -135,21 +138,23 @@
                     parseResult.title,
                     unskippable,
                     concealed,
+                    anonymous,
                     endOffset,
                     parseResult.enqueueType
                 );
             }
         } else {
             if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, concealed);
+                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, concealed, anonymous);
             } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable, concealed);
+                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable, concealed, anonymous);
             } else if (parseResult.type == "document") {
                 reqPromise = apiClient.enqueueDocument(
                     parseResult.documentID,
                     parseResult.title,
                     unskippable,
                     concealed,
+                    anonymous,
                     undefined,
                     parseResult.enqueueType
                 );
@@ -435,6 +440,29 @@
                 </div>
             </div>
         </div>
+        {#if $permissionLevel == PermissionLevel.ADMIN}
+            <div class="mt-4 space-y-4">
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input
+                            id="anonymous"
+                            name="anonymous"
+                            type="checkbox"
+                            bind:checked={anonymous}
+                            class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                        />
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="anonymous" class="font-semibold text-gray-700 dark:text-gray-300">
+                            Enqueue anonymously
+                        </label>
+                        <p class="text-gray-500">
+                            Staff-only option that will make this entry appear as enqueued by JungleTV.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {/if}
         <div class="mt-4 space-y-4">
             <div class="flex items-start">
                 <div class="flex items-center h-5">

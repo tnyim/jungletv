@@ -67,7 +67,7 @@ type Provider interface {
 	SetMediaQueue(mediaQueue MediaQueueStub)
 	CanHandleRequestType(mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) bool
 	BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (InitialInfo, EnqueueRequestCreationResult, error)
-	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable, concealed,
+	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable, concealed, anonymous,
 		allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
 	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, error)

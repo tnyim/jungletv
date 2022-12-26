@@ -36,6 +36,9 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	if !isAdmin && s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY {
 		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue media")
 	}
+	if !isAdmin && r.Anonymous {
+		return produceEnqueueMediaFailureResponse("Only JungleTV staff members can enqueue media anonymously")
+	}
 
 	if s.allowMediaEnqueuing != proto.AllowedMediaEnqueuingType_STAFF_ONLY {
 		_, _, _, ok, err := s.enqueueRequestLongTermRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
@@ -57,7 +60,7 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 	}
 	defer ctx.Commit() // read-only tx (for now)
 
-	if r.Concealed {
+	if r.Concealed && !r.Anonymous {
 		if user == nil || user.IsUnknown() {
 			return produceEnqueueMediaFailureResponse("Anonymous users can not enqueue entries with hidden media information")
 		}
@@ -110,7 +113,7 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		}
 	}
 
-	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable, r.Concealed,
+	request, result, err := provider.ContinueEnqueueRequest(ctx, preInfo, r.Unskippable, r.Concealed, r.Anonymous,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY,
 		s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY)
@@ -121,7 +124,7 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 		return produceEnqueueRequestCreationFailedResponse(result)
 	}
 
-	ticket, err := s.enqueueManager.RegisterRequest(ctx, request)
+	ticket, err := s.enqueueManager.RegisterRequest(ctx, request, r.Anonymous)
 	if err != nil {
 		if strings.Contains(err.Error(), "failed to check balance for account") {
 			return produceEnqueueMediaFailureResponse("The JungleTV payment subsystem is unavailable")

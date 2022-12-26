@@ -107,6 +107,8 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	timeoutTimer := time.NewTimer(5 * time.Second)
+	defer timeoutTimer.Stop()
 	badRepresentative := false
 	if !cachedGoodRepResult {
 		select {
@@ -117,7 +119,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 			if !badRepresentative {
 				s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, struct{}{})
 			}
-		case <-time.After(5 * time.Second):
+		case <-timeoutTimer.C:
 			break
 		}
 	}
