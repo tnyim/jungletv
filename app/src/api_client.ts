@@ -268,10 +268,10 @@ class APIClient {
         return this.unaryRPC<RewardInfoRequest, RewardInfoResponse>(JungleTV.RewardInfo, new RewardInfoRequest());
     }
 
-    async submitActivityChallenge(challenge: string, captchaResponse: string, trusted: boolean): Promise<SubmitActivityChallengeResponse> {
+    async submitActivityChallenge(challenge: string, challengeResponses: string[], trusted: boolean): Promise<SubmitActivityChallengeResponse> {
         let request = new SubmitActivityChallengeRequest();
         request.setChallenge(challenge);
-        request.setCaptchaResponse(captchaResponse);
+        request.setResponsesList(challengeResponses);
         request.setTrusted(trusted);
         request.setClientVersion(this.getClientVersion());
         return this.unaryRPC<SubmitActivityChallengeRequest, SubmitActivityChallengeResponse>(JungleTV.SubmitActivityChallenge, request);

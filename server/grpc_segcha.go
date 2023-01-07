@@ -9,6 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
+	"github.com/tnyim/jungletv/server/components/rewards"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,7 +31,7 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 		return nil, status.Errorf(codes.ResourceExhausted, "rate limit reached")
 	}
 
-	if !s.rewardsHandler.SpectatorHasActivityChallenge(user.Address(), "segcha") {
+	if !s.rewardsHandler.SpectatorHasActivityChallenge(user.Address(), rewards.ActivityChallengeTypeSegcha) {
 		return nil, status.Error(codes.FailedPrecondition, "no challenge active")
 	}
 
@@ -75,7 +76,7 @@ func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.Produc
 	}, nil
 }
 
-func (s *grpcServer) segchaResponseValid(ctx context.Context, segchaResponse string) (bool, error) {
+func (s *grpcServer) segchaResponseValid(ctx context.Context, _ *rewards.ActivityChallenge, segchaResponse string) (bool, error) {
 	parts := strings.Split(segchaResponse, ",")
 
 	correctAnswers, present := s.captchaAnswers.Get(parts[0])
@@ -100,4 +101,15 @@ func (s *grpcServer) segchaResponseValid(ctx context.Context, segchaResponse str
 	}
 
 	return gotRight >= len(correctAnswers)-segchaWrongAnswersTolerance, nil
+}
+
+func (s *grpcServer) turnstileResponseValid(ctx context.Context, challenge *rewards.ActivityChallenge, challengeResponse string) (bool, error) {
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
+
+	response, err := s.turnstileClient.Verify(challengeResponse, remoteAddress)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	return response.Success && response.CData == challenge.ID, nil
 }

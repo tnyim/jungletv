@@ -158,7 +158,7 @@ func (s *grpcServer) produceMediaConsumptionCheckpoint(ctx context.Context, need
 }
 
 func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.SubmitActivityChallengeRequest) (*proto.SubmitActivityChallengeResponse, error) {
-	skippedClientIntegrityChecks, err := s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.CaptchaResponse, r.Trusted, r.ClientVersion)
+	skippedClientIntegrityChecks, err := s.rewardsHandler.SolveActivityChallenge(ctx, r.Challenge, r.Responses, r.Trusted, r.ClientVersion)
 	return &proto.SubmitActivityChallengeResponse{
 		SkippedClientIntegrityChecks: skippedClientIntegrityChecks,
 	}, stacktrace.Propagate(err, "")

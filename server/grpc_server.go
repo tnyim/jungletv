@@ -38,6 +38,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/components/staffactivitymanager"
 	"github.com/tnyim/jungletv/server/components/stats"
+	"github.com/tnyim/jungletv/server/components/turnstileclient"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
@@ -88,6 +89,7 @@ type grpcServer struct {
 	captchaChallengesQueue chan *segcha.Challenge
 	captchaGenerationMutex sync.Mutex
 	segchaClient           segchaproto.SegchaClient
+	turnstileClient        *turnstileclient.Turnstile
 
 	allowMediaEnqueuing      proto.AllowedMediaEnqueuingType
 	autoEnqueueVideos        bool
@@ -162,6 +164,8 @@ type Options struct {
 	VersionHash *string
 
 	NanswapAPIKey string
+
+	TurnstileSecretKey string
 }
 
 // NewServer returns a new JungleTVServer
@@ -289,6 +293,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		captchaFontPath:        options.CaptchaFontPath,
 		captchaChallengesQueue: make(chan *segcha.Challenge, segchaPremadeQueueSize),
 		segchaClient:           options.SegchaClient,
+		turnstileClient:        turnstileclient.New(options.TurnstileSecretKey, 10*time.Second),
 
 		mediaProviders:     mediaProviders,
 		soundCloudProvider: soundCloudProvider.(*soundcloud.TrackProvider),
@@ -392,10 +397,15 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 	s.withdrawalHandler = withdrawalhandler.New(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 
+	challengeCheckers := map[rewards.ActivityChallengeType]rewards.ChallengeCheckFunction{
+		rewards.ActivityChallengeTypeSegcha:    s.segchaResponseValid,
+		rewards.ActivityChallengeTypeTurnstile: s.turnstileResponseValid,
+	}
+
 	s.rewardsHandler, err = rewards.NewHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
 		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
-		s.staffActivityManager, s.segchaResponseValid, options.VersionHash)
+		s.staffActivityManager, challengeCheckers, options.VersionHash)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

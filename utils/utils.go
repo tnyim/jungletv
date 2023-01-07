@@ -62,3 +62,12 @@ func ReplaceAllStringSubmatchFuncExcludingInside(re, excludeInside *regexp.Regex
 	result += ReplaceAllStringSubmatchFunc(re, str[lastIndex:], repl)
 	return result
 }
+
+// CastStringLikeSlice converts between slices of string-like types
+func CastStringLikeSlice[T ~string, V ~string](in []T) []V {
+	result := make([]V, len(in))
+	for i, t := range in {
+		result[i] = V(t)
+	}
+	return result
+}

@@ -852,7 +852,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.jungletv.ActivityChallenge = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.jungletv.ActivityChallenge.repeatedFields_, null);
 };
 goog.inherits(proto.jungletv.ActivityChallenge, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -1209,7 +1209,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.jungletv.SubmitActivityChallengeRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.jungletv.SubmitActivityChallengeRequest.repeatedFields_, null);
 };
 goog.inherits(proto.jungletv.SubmitActivityChallengeRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -10943,6 +10943,13 @@ proto.jungletv.MediaConsumptionCheckpoint.prototype.hasMediaTitle = function() {
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.jungletv.ActivityChallenge.repeatedFields_ = [2];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -10975,7 +10982,7 @@ proto.jungletv.ActivityChallenge.prototype.toObject = function(opt_includeInstan
 proto.jungletv.ActivityChallenge.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    type: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    typesList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
     challengedAt: (f = msg.getChallengedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
@@ -11019,7 +11026,7 @@ proto.jungletv.ActivityChallenge.deserializeBinaryFromReader = function(msg, rea
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setType(value);
+      msg.addTypes(value);
       break;
     case 3:
       var value = new google_protobuf_timestamp_pb.Timestamp;
@@ -11062,9 +11069,9 @@ proto.jungletv.ActivityChallenge.serializeBinaryToWriter = function(message, wri
       f
     );
   }
-  f = message.getType();
+  f = message.getTypesList();
   if (f.length > 0) {
-    writer.writeString(
+    writer.writeRepeatedString(
       2,
       f
     );
@@ -11099,20 +11106,39 @@ proto.jungletv.ActivityChallenge.prototype.setId = function(value) {
 
 
 /**
- * optional string type = 2;
- * @return {string}
+ * repeated string types = 2;
+ * @return {!Array<string>}
  */
-proto.jungletv.ActivityChallenge.prototype.getType = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.jungletv.ActivityChallenge.prototype.getTypesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.jungletv.ActivityChallenge} returns this
+ */
+proto.jungletv.ActivityChallenge.prototype.setTypesList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
 };
 
 
 /**
  * @param {string} value
+ * @param {number=} opt_index
  * @return {!proto.jungletv.ActivityChallenge} returns this
  */
-proto.jungletv.ActivityChallenge.prototype.setType = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.jungletv.ActivityChallenge.prototype.addTypes = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.jungletv.ActivityChallenge} returns this
+ */
+proto.jungletv.ActivityChallenge.prototype.clearTypesList = function() {
+  return this.setTypesList([]);
 };
 
 
@@ -14667,6 +14693,13 @@ proto.jungletv.ForciblyEnqueueTicketResponse.serializeBinaryToWriter = function(
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.jungletv.SubmitActivityChallengeRequest.repeatedFields_ = [2];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -14699,7 +14732,7 @@ proto.jungletv.SubmitActivityChallengeRequest.prototype.toObject = function(opt_
 proto.jungletv.SubmitActivityChallengeRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     challenge: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    captchaResponse: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    responsesList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
     trusted: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
     clientVersion: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
@@ -14744,7 +14777,7 @@ proto.jungletv.SubmitActivityChallengeRequest.deserializeBinaryFromReader = func
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setCaptchaResponse(value);
+      msg.addResponses(value);
       break;
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -14790,9 +14823,9 @@ proto.jungletv.SubmitActivityChallengeRequest.serializeBinaryToWriter = function
       f
     );
   }
-  f = message.getCaptchaResponse();
+  f = message.getResponsesList();
   if (f.length > 0) {
-    writer.writeString(
+    writer.writeRepeatedString(
       2,
       f
     );
@@ -14833,20 +14866,39 @@ proto.jungletv.SubmitActivityChallengeRequest.prototype.setChallenge = function(
 
 
 /**
- * optional string captcha_response = 2;
- * @return {string}
+ * repeated string responses = 2;
+ * @return {!Array<string>}
  */
-proto.jungletv.SubmitActivityChallengeRequest.prototype.getCaptchaResponse = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.jungletv.SubmitActivityChallengeRequest.prototype.getResponsesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.jungletv.SubmitActivityChallengeRequest} returns this
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.setResponsesList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
 };
 
 
 /**
  * @param {string} value
+ * @param {number=} opt_index
  * @return {!proto.jungletv.SubmitActivityChallengeRequest} returns this
  */
-proto.jungletv.SubmitActivityChallengeRequest.prototype.setCaptchaResponse = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.jungletv.SubmitActivityChallengeRequest.prototype.addResponses = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.jungletv.SubmitActivityChallengeRequest} returns this
+ */
+proto.jungletv.SubmitActivityChallengeRequest.prototype.clearResponsesList = function() {
+  return this.setResponsesList([]);
 };
 
 

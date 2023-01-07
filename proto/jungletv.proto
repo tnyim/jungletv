@@ -275,7 +275,7 @@ message MediaConsumptionCheckpoint {
 
 message ActivityChallenge {
     string id = 1;
-    string type = 2;
+    repeated string types = 2;
     google.protobuf.Timestamp challenged_at = 3;
 }
 
@@ -408,7 +408,7 @@ message ForciblyEnqueueTicketResponse {}
 
 message SubmitActivityChallengeRequest {
     string challenge = 1;
-    string captcha_response = 2;
+    repeated string responses = 2;
     bool trusted = 3;
     string client_version = 4;
 }

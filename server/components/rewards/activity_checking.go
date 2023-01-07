@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -12,8 +13,10 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/exp/slices"
 )
 
 func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Handler) {
@@ -97,7 +100,7 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 		spectator.activityChallenge = &ActivityChallenge{
 			ID:           uuid.NewV4().String(),
 			ChallengedAt: time.Now(),
-			Type:         "moderating",
+			Types:        []ActivityChallengeType{ActivityChallengeTypeModerating},
 			Tolerance:    2 * time.Minute,
 		}
 		r.staffActivityManager.MarkAsActivityChallenged(ctx, spectator.user, spectator.activityChallenge.Tolerance)
@@ -105,7 +108,7 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 		spectator.activityChallenge = &ActivityChallenge{
 			ID:           uuid.NewV4().String(),
 			ChallengedAt: time.Now(),
-			Type:         "button",
+			Types:        []ActivityChallengeType{ActivityChallengeTypeButton},
 			Tolerance:    1 * time.Minute,
 		}
 		hardChallengeInterval := 1 * time.Hour
@@ -117,8 +120,11 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 		}
 
 		if time.Since(spectator.lastHardChallengeSolvedAt) > hardChallengeInterval {
-			spectator.activityChallenge.Type = "segcha"
+			spectator.activityChallenge.Types = append(spectator.activityChallenge.Types, ActivityChallengeTypeSegcha)
 			spectator.activityChallenge.Tolerance = 2 * time.Minute
+		}
+		if spectator.lastHardChallengeSolvedAt.IsZero() {
+			spectator.activityChallenge.Types = append(spectator.activityChallenge.Types, ActivityChallengeTypeTurnstile)
 		}
 	}
 	if hadChallenge || spectator.noToleranceOnNextChallenge {
@@ -130,10 +136,9 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge, true)
 }
 
-func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, captchaResponse string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
+func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge string, checkResponses []string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
 	var spectator *spectator
 	var timeUntilChallengeResponse time.Duration
-	var captchaValid bool
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
@@ -153,36 +158,55 @@ func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, capt
 	now := time.Now()
 	timeUntilChallengeResponse = now.Sub(spectator.activityChallenge.ChallengedAt)
 
-	newLegitimate := trusted && clientVersion == *r.versionHash
+	legitimateAsOfThisChallenge := trusted && clientVersion == *r.versionHash
 	skipsIntegrityChecks, err := r.moderationStore.LoadPaymentAddressSkipsClientIntegrityChecks(ctxCtx, spectator.user.Address())
 	if err != nil {
 		r.log.Println(stacktrace.Propagate(err, ""))
 	} else if skipsIntegrityChecks {
-		newLegitimate = true
+		legitimateAsOfThisChallenge = true
 	}
-	var checkFn captchaResponseCheckFn
-	switch spectator.activityChallenge.Type {
-	case "segcha":
-		checkFn = r.segchaCheckFn
+	type checkData struct {
+		checkFn  ChallengeCheckFunction
+		response string
 	}
-	if checkFn != nil {
-		captchaValid, err = checkFn(ctxCtx, captchaResponse)
-		if err != nil {
-			r.log.Println("Error verifying captcha:", err)
+	var checks []checkData
+	cursor := 0
+	for _, challengeType := range spectator.activityChallenge.Types {
+		checkFn, ok := r.challengeCheckers[challengeType]
+		if !ok {
+			// this challenge type does not need/cannot be checked
+			continue
 		}
-		newLegitimate = newLegitimate && err == nil && captchaValid
-		if !captchaValid && err == nil {
-			// if not valid, do everything except mark the spectator as legitimate.
-			// this way, they'll stop receiving rewards until the next challenge
-			r.log.Println("Activity challenge captcha verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeResponse)
-		} else if captchaValid {
-			spectator.lastHardChallengeSolvedAt = now
+		data := checkData{
+			checkFn: checkFn,
 		}
+		if cursor < len(checkResponses) {
+			data.response = checkResponses[cursor]
+		}
+		cursor++
+		checks = append(checks, data)
 	}
 
-	if newLegitimate {
+	captchaValid := true
+	for _, checkData := range checks {
+		thisValid, err := checkData.checkFn(ctxCtx, spectator.activityChallenge, checkData.response)
+		if err != nil {
+			r.log.Println("Error verifying activity challenge:", err)
+		}
+		captchaValid = captchaValid && thisValid && err == nil
+	}
+	legitimateAsOfThisChallenge = legitimateAsOfThisChallenge && captchaValid
+	if !captchaValid && err == nil {
+		// if not valid, do everything except mark the spectator as legitimate.
+		// this way, they'll stop receiving rewards until the next challenge
+		r.log.Println("Activity challenge verification for spectator", spectator.user.Address(), spectator.remoteAddress, "failed after", timeUntilChallengeResponse)
+	} else if captchaValid && len(checks) > 0 {
+		spectator.lastHardChallengeSolvedAt = now
+	}
+
+	if legitimateAsOfThisChallenge {
 		r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress,
-			"solved", spectator.activityChallenge.Type,
+			"solved", strings.Join(utils.CastStringLikeSlice[ActivityChallengeType, string](spectator.activityChallenge.Types), ", "),
 			"activity challenge after", timeUntilChallengeResponse)
 		if !spectator.legitimate && now.Sub(spectator.stoppedBeingLegitimate) > time.Duration(spectator.legitimacyFailures)*time.Hour {
 			// give spectator another chance
@@ -190,7 +214,7 @@ func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, capt
 			spectator.stoppedBeingLegitimate = time.Time{}
 			r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "given another legitimacy chance")
 		}
-	} else if spectator.legitimate && !newLegitimate {
+	} else if spectator.legitimate && !legitimateAsOfThisChallenge {
 		spectator.legitimate = false
 		spectator.legitimacyFailures++
 		spectator.stoppedBeingLegitimate = now
@@ -209,39 +233,43 @@ func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge, capt
 	delete(r.spectatorByActivityChallenge, challenge)
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
-	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctxCtx, spectator.user)
+	err = r.awardPointsForCompletedChallenge(ctxCtx, spectator.user)
+	return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+}
+
+func (r *Handler) awardPointsForCompletedChallenge(ctxCtx context.Context, user auth.User) error {
+	subscribed, err := r.pointsManager.IsUserCurrentlySubscribed(ctxCtx, user)
 	if err != nil {
-		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 	reward := 10
 	if subscribed {
 		reward = 22
 	}
 
-	minSpanForReward, err := r.minDurationBetweenActivityChallengePointsReward(ctxCtx, spectator.user)
+	minSpanForReward, err := r.minDurationBetweenActivityChallengePointsReward(ctxCtx, user)
 	if err != nil {
-		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
-	lastActivityChallengeReward, err := types.GetLatestPointsTxOfTypeForAddress(ctx, types.PointsTxTypeActivityChallengeReward, spectator.user.Address())
+	lastActivityChallengeReward, err := types.GetLatestPointsTxOfTypeForAddress(ctx, types.PointsTxTypeActivityChallengeReward, user.Address())
 	if err != nil && !errors.Is(err, types.ErrPointsTxNotFound) {
-		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	if errors.Is(err, types.ErrPointsTxNotFound) || lastActivityChallengeReward == nil || time.Since(lastActivityChallengeReward.UpdatedAt) > minSpanForReward {
-		_, err = r.pointsManager.CreateTransaction(ctx, spectator.user, types.PointsTxTypeActivityChallengeReward, reward)
+		_, err = r.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeActivityChallengeReward, reward)
 		if err != nil {
-			return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+			return stacktrace.Propagate(err, "")
 		}
 	}
-
-	return skipsIntegrityChecks, stacktrace.Propagate(ctx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 func (r *Handler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
@@ -294,7 +322,7 @@ func (r *Handler) MarkAddressAsNotLegitimate(ctx context.Context, address string
 	r.log.Println("Spectator", spectator.user.Address(), spectator.remoteAddress, "marked as not legitimate")
 }
 
-func (r *Handler) SpectatorHasActivityChallenge(address string, challengeType string) bool {
+func (r *Handler) SpectatorHasActivityChallenge(address string, challengeType ActivityChallengeType) bool {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
@@ -302,7 +330,7 @@ func (r *Handler) SpectatorHasActivityChallenge(address string, challengeType st
 	if !present || spectator.activityChallenge == nil {
 		return false
 	}
-	return spectator.activityChallenge.Type == challengeType
+	return slices.Contains(spectator.activityChallenge.Types, challengeType)
 }
 
 func (r *Handler) ResetAddressLegitimacyStatus(ctx context.Context, address string) error {

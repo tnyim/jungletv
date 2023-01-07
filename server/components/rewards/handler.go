@@ -32,11 +32,13 @@ import (
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
+	"golang.org/x/exp/maps"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
 
-type captchaResponseCheckFn func(context.Context, string) (bool, error)
+// ChallengeCheckFunction checks activity challenge response correctness
+type ChallengeCheckFunction func(context.Context, *ActivityChallenge, string) (bool, error)
 
 // Handler handles reward distribution among spectators
 type Handler struct {
@@ -54,7 +56,7 @@ type Handler struct {
 	moderationStore       moderation.Store
 	staffActivityManager  *staffactivitymanager.Manager
 	eligibleMovingAverage *movingaverage.MovingAverage
-	segchaCheckFn         captchaResponseCheckFn
+	challengeCheckers     map[ActivityChallengeType]ChallengeCheckFunction
 	versionHash           *string
 	pointsManager         *pointsmanager.Manager
 
@@ -110,17 +112,31 @@ type spectator struct {
 	noToleranceOnNextChallenge bool
 }
 
+// ActivityChallengeType is a type of activity challenge
+type ActivityChallengeType string
+
+var (
+	// ActivityChallengeTypeButton is a button activity challenge
+	ActivityChallengeTypeButton ActivityChallengeType = "button"
+	// ActivityChallengeTypeSegcha is a segcha activity challenge
+	ActivityChallengeTypeSegcha ActivityChallengeType = "segcha"
+	// ActivityChallengeTypeTurnstile is a Cloudflare Turnstile activity challenge
+	ActivityChallengeTypeTurnstile ActivityChallengeType = "turnstile"
+	// ActivityChallengeTypeModerating is a moderation activity challenge
+	ActivityChallengeTypeModerating ActivityChallengeType = "moderating"
+)
+
 type ActivityChallenge struct {
 	ChallengedAt time.Time
 	ID           string
-	Type         string
+	Types        []ActivityChallengeType
 	Tolerance    time.Duration
 }
 
 func (a *ActivityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	return &proto.ActivityChallenge{
 		Id:           a.ID,
-		Type:         a.Type,
+		Types:        utils.CastStringLikeSlice[ActivityChallengeType, string](a.Types),
 		ChallengedAt: timestamppb.New(a.ChallengedAt),
 	}
 }
@@ -187,7 +203,7 @@ func NewHandler(log *log.Logger,
 	paymentAccountPool *payment.PaymentAccountPool,
 	moderationStore moderation.Store,
 	staffActivityManager *staffactivitymanager.Manager,
-	segchaCheckFn captchaResponseCheckFn,
+	challengeCheckers map[ActivityChallengeType]ChallengeCheckFunction,
 	versionHash *string) (*Handler, error) {
 	return &Handler{
 		log:                   log,
@@ -203,7 +219,7 @@ func NewHandler(log *log.Logger,
 		staffActivityManager:  staffActivityManager,
 		moderationStore:       moderationStore,
 		eligibleMovingAverage: movingaverage.New(3),
-		segchaCheckFn:         segchaCheckFn,
+		challengeCheckers:     maps.Clone(challengeCheckers),
 		pointsManager:         pointsManager,
 
 		rewardsDistributed: event.New[RewardsDistributedEventArgs](),

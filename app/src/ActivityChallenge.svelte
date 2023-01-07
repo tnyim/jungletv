@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
+    import ActivityChallengeModal from "./ActivityChallengeModal.svelte";
     import { apiClient } from "./api_client";
     import PostSegchaNiceUpsellingPrompt from "./PostSegchaNiceUpsellingPrompt.svelte";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
-    import Segcha from "./Segcha.svelte";
     import { activityChallengesDone, currentSubscription, modal, subscriptionUpsoldAfterSegcha } from "./stores";
     import { checkShadowRootIntegrity } from "./utils";
 
@@ -15,9 +15,13 @@
     let top = 0;
     let container: HTMLElement;
 
-    async function submitChallenge(captchaResponse: string) {
+    async function submitChallenge(challengeResponses: string[]) {
         try {
-            let result = await apiClient.submitActivityChallenge(activityChallenge.getId(), captchaResponse, trusted);
+            let result = await apiClient.submitActivityChallenge(
+                activityChallenge.getId(),
+                challengeResponses,
+                trusted
+            );
             if (!trusted && !result.getSkippedClientIntegrityChecks()) {
                 alert(
                     "Client integrity checks failed. " +
@@ -27,13 +31,13 @@
                 );
             }
         } catch {
-            if (activityChallenge?.getType() == "moderating") {
+            if (activityChallenge?.getTypesList().includes("moderating")) {
                 // the challenge had already expired and the user marked as not moderating
                 await apiClient.markAsActivelyModerating();
                 activityChallenge = null;
                 return;
             }
-            if (captchaResponse != "") {
+            if (challengeResponses.length > 0) {
                 alert(
                     "An error occurred when submitting the captcha solution. The page will now reload so you can retry."
                 );
@@ -55,10 +59,13 @@
             !document.hidden &&
             checkShadowRootIntegrity(container, activityChallenge.getId()) &&
             (sig == "functiongethidden(){[nativecode]}" || sig == "functionhidden(){[nativecode]}");
-        if (activityChallenge.getType() == "segcha") {
-            await executeSegcha();
+        if (
+            activityChallenge.getTypesList().includes("segcha") ||
+            activityChallenge.getTypesList().includes("turnstile")
+        ) {
+            await executeInteractiveChallenge();
         } else {
-            await submitChallenge("");
+            await submitChallenge([]);
         }
     }
 
@@ -66,12 +73,19 @@
         top = (0.25 + Math.random() / 2) * 100;
     });
 
-    async function executeSegcha() {
+    async function executeInteractiveChallenge() {
         try {
-            let challenge = await apiClient.produceSegchaChallenge();
+            let segchaChallenge = undefined;
+            if (activityChallenge.getTypesList().indexOf("segcha") >= 0) {
+                segchaChallenge = await apiClient.produceSegchaChallenge();
+            }
             modal.set({
-                component: Segcha,
-                props: { challenge: challenge, successCallback: onSegchaComplete },
+                component: ActivityChallengeModal,
+                props: {
+                    activityChallenge: activityChallenge,
+                    segchaChallenge: segchaChallenge,
+                    successCallback: onActivityChallengeModalComplete,
+                },
                 options: {
                     closeButton: false,
                     closeOnEsc: false,
@@ -84,7 +98,7 @@
         }
     }
 
-    async function onSegchaComplete(answer: string) {
+    async function onActivityChallengeModalComplete(answers: string[]) {
         let currentlySubscribed = typeof $currentSubscription !== "undefined" && $currentSubscription != null;
         modal.set(null);
         if (!currentlySubscribed && !$subscriptionUpsoldAfterSegcha) {
@@ -101,7 +115,7 @@
                 },
             });
         }
-        await submitChallenge(answer);
+        await submitChallenge(answers);
     }
 
     async function dismissStillModeratingChallenge() {
@@ -118,7 +132,7 @@
 >
     <div class="flex flex-row space-x-2">
         <div>
-            {#if activityChallenge?.getType() == "moderating"}
+            {#if activityChallenge?.getTypesList().includes("moderating")}
                 <h3>Are you still moderating?</h3>
                 <button
                     class="text-xs text-blue-600 dark:text-blue-400 w-40"
@@ -150,7 +164,7 @@
         >
             {#if clicked}
                 Awaiting captcha...
-            {:else if activityChallenge?.getType() == "moderating"}
+            {:else if activityChallenge?.getTypesList().includes("moderating")}
                 Still moderating
             {:else if $activityChallengesDone > 1}
                 Still watching

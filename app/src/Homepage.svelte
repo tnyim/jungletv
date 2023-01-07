@@ -56,7 +56,7 @@
         checkShowCaptcha();
         if (
             (document.hidden || document.fullscreenElement != null) &&
-            c.getType() != "moderating" &&
+            !c.getTypesList().includes("moderating") &&
             $playerVolume > 0
         ) {
             ttsAudioAlert("Hey, are you still listening to Jungle TV?");

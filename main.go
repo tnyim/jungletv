@@ -301,6 +301,11 @@ func main() {
 		mainLog.Println("Nanswap API key not present in keybox, multicurrency functions will not work properly")
 	}
 
+	turnstileSecretKey, present := secrets.Get("turnstileSecretKey")
+	if !present {
+		mainLog.Fatalln("Cloudflare Turnstile Secret key not present in keybox")
+	}
+
 	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
 		auth.UserPermissionLevel:  180 * 24 * time.Hour,
 		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
@@ -343,6 +348,7 @@ func main() {
 		VersionHash:              &versionHash,
 		OAuthManager:             oauthManager,
 		NanswapAPIKey:            nanswapAPIKey,
+		TurnstileSecretKey:       turnstileSecretKey,
 	}
 
 	apiServer, err := server.NewServer(ctx, options)
@@ -457,7 +463,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		resp.Header().Set("X-Frame-Options", "deny")
 		resp.Header().Set("X-Content-Type-Options", "nosniff")
 		// remember to edit the CSP in index.template too
-		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com; frame-src https://youtube.com https://www.youtube.com https://w.soundcloud.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
+		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
 		resp.Header().Set("Referrer-Policy", "strict-origin")
 		resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
 		resp.Header().Set("Strict-Transport-Security", "max-age=31536000")

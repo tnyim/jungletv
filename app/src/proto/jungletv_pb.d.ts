@@ -867,8 +867,10 @@ export class ActivityChallenge extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
-  getType(): string;
-  setType(value: string): void;
+  clearTypesList(): void;
+  getTypesList(): Array<string>;
+  setTypesList(value: Array<string>): void;
+  addTypes(value: string, index?: number): string;
 
   hasChallengedAt(): boolean;
   clearChallengedAt(): void;
@@ -888,7 +890,7 @@ export class ActivityChallenge extends jspb.Message {
 export namespace ActivityChallenge {
   export type AsObject = {
     id: string,
-    type: string,
+    typesList: Array<string>,
     challengedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
@@ -1400,8 +1402,10 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
   getChallenge(): string;
   setChallenge(value: string): void;
 
-  getCaptchaResponse(): string;
-  setCaptchaResponse(value: string): void;
+  clearResponsesList(): void;
+  getResponsesList(): Array<string>;
+  setResponsesList(value: Array<string>): void;
+  addResponses(value: string, index?: number): string;
 
   getTrusted(): boolean;
   setTrusted(value: boolean): void;
@@ -1422,7 +1426,7 @@ export class SubmitActivityChallengeRequest extends jspb.Message {
 export namespace SubmitActivityChallengeRequest {
   export type AsObject = {
     challenge: string,
-    captchaResponse: string,
+    responsesList: Array<string>,
     trusted: boolean,
     clientVersion: string,
   }

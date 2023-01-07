@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"github.com/vburenin/nsync"
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -215,9 +216,7 @@ func (q *MediaQueue) PlayingSince() time.Time {
 func (q *MediaQueue) Entries() []media.QueueEntry {
 	q.queueMutex.RLock()
 	defer q.queueMutex.RUnlock()
-	queueCopy := make([]media.QueueEntry, len(q.queue))
-	copy(queueCopy, q.queue)
-	return queueCopy
+	return slices.Clone(q.queue)
 }
 
 func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
