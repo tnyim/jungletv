@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -53,6 +54,9 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		nickname = user.Nickname()
 		if nickname == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
 			nickname = fetchedUser.Nickname()
+		}
+		if nickname != nil && strings.TrimSpace(*nickname) == "" {
+			nickname = nil
 		}
 	}
 
