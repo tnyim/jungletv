@@ -78,6 +78,7 @@ type JungleTVClient interface {
 	AddDisallowedMediaCollection(ctx context.Context, in *AddDisallowedMediaCollectionRequest, opts ...grpc.CallOption) (*AddDisallowedMediaCollectionResponse, error)
 	RemoveDisallowedMediaCollection(ctx context.Context, in *RemoveDisallowedMediaCollectionRequest, opts ...grpc.CallOption) (*RemoveDisallowedMediaCollectionResponse, error)
 	UpdateDocument(ctx context.Context, in *Document, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
+	Documents(ctx context.Context, in *DocumentsRequest, opts ...grpc.CallOption) (*DocumentsResponse, error)
 	SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(ctx context.Context, in *SetPricesMultiplierRequest, opts ...grpc.CallOption) (*SetPricesMultiplierResponse, error)
 	SetMinimumPricesMultiplier(ctx context.Context, in *SetMinimumPricesMultiplierRequest, opts ...grpc.CallOption) (*SetMinimumPricesMultiplierResponse, error)
@@ -806,6 +807,15 @@ func (c *jungleTVClient) UpdateDocument(ctx context.Context, in *Document, opts 
 	return out, nil
 }
 
+func (c *jungleTVClient) Documents(ctx context.Context, in *DocumentsRequest, opts ...grpc.CallOption) (*DocumentsResponse, error) {
+	out := new(DocumentsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Documents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) SetUserChatNickname(ctx context.Context, in *SetUserChatNicknameRequest, opts ...grpc.CallOption) (*SetUserChatNicknameResponse, error) {
 	out := new(SetUserChatNicknameResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetUserChatNickname", in, out, opts...)
@@ -1127,6 +1137,7 @@ type JungleTVServer interface {
 	AddDisallowedMediaCollection(context.Context, *AddDisallowedMediaCollectionRequest) (*AddDisallowedMediaCollectionResponse, error)
 	RemoveDisallowedMediaCollection(context.Context, *RemoveDisallowedMediaCollectionRequest) (*RemoveDisallowedMediaCollectionResponse, error)
 	UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error)
+	Documents(context.Context, *DocumentsRequest) (*DocumentsResponse, error)
 	SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error)
 	SetPricesMultiplier(context.Context, *SetPricesMultiplierRequest) (*SetPricesMultiplierResponse, error)
 	SetMinimumPricesMultiplier(context.Context, *SetMinimumPricesMultiplierRequest) (*SetMinimumPricesMultiplierResponse, error)
@@ -1336,6 +1347,9 @@ func (UnimplementedJungleTVServer) RemoveDisallowedMediaCollection(context.Conte
 }
 func (UnimplementedJungleTVServer) UpdateDocument(context.Context, *Document) (*UpdateDocumentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocument not implemented")
+}
+func (UnimplementedJungleTVServer) Documents(context.Context, *DocumentsRequest) (*DocumentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Documents not implemented")
 }
 func (UnimplementedJungleTVServer) SetUserChatNickname(context.Context, *SetUserChatNicknameRequest) (*SetUserChatNicknameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserChatNickname not implemented")
@@ -2511,6 +2525,24 @@ func _JungleTV_UpdateDocument_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_Documents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DocumentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).Documents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/Documents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).Documents(ctx, req.(*DocumentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_SetUserChatNickname_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetUserChatNicknameRequest)
 	if err := dec(in); err != nil {
@@ -3196,6 +3228,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDocument",
 			Handler:    _JungleTV_UpdateDocument_Handler,
+		},
+		{
+			MethodName: "Documents",
+			Handler:    _JungleTV_Documents_Handler,
 		},
 		{
 			MethodName: "SetUserChatNickname",

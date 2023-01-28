@@ -461,6 +461,7 @@
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Documents</p>
         <p class="px-2">
+            <a use:link href="/moderate/documents">List Documents</a> |
             <a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> |
             <a use:link href="/moderate/documents/faq">Edit FAQ</a> |
             <a use:link href="/moderate/documents/announcements">Edit Announcements</a>

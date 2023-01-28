@@ -6,7 +6,7 @@ import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
     BanUserResponse, BlockedUsersRequest, BlockedUsersResponse, BlockUserRequest, BlockUserResponse, ChatGifSearchRequest,
-    ChatGifSearchResponse, ChatMessage, ChatUpdate, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, EnqueueDocumentData, EnqueueMediaRequest,
+    ChatGifSearchResponse, ChatMessage, ChatUpdate, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
     EnqueueMediaResponse,
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForcedTicketEnqueueTypeMap,
@@ -315,6 +315,13 @@ class APIClient {
         let request = new GetDocumentRequest();
         request.setId(id);
         return this.unaryRPC<GetDocumentRequest, Document>(JungleTV.GetDocument, request);
+    }
+
+    async documents(searchQuery: string, pagParams: PaginationParameters): Promise<DocumentsResponse> {
+        let request = new DocumentsRequest();
+        request.setSearchQuery(searchQuery);
+        request.setPaginationParams(pagParams);
+        return this.unaryRPC<DocumentsRequest, DocumentsResponse>(JungleTV.Documents, request);
     }
 
     async updateDocument(document: Document): Promise<UpdateDocumentResponse> {

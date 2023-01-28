@@ -16,6 +16,48 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func (s *grpcServer) Documents(ctxCtx context.Context, r *proto.DocumentsRequest) (*proto.DocumentsResponse, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	searchQuery := ""
+	if len(r.SearchQuery) >= 3 {
+		searchQuery = r.SearchQuery
+	}
+
+	documents, total, err := types.GetDocuments(ctx, searchQuery, readPaginationParameters(r))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.DocumentsResponse{
+		Documents: convertDocumentHeaders(ctx, documents, s.userSerializer),
+		Offset:    readOffset(r),
+		Total:     total,
+	}, nil
+}
+
+func convertDocumentHeaders(ctx context.Context, orig []*types.Document, userSerializer auth.APIUserSerializer) []*proto.DocumentHeader {
+	protoEntries := make([]*proto.DocumentHeader, len(orig))
+	for i, entry := range orig {
+		protoEntries[i] = convertDocumentHeader(ctx, entry, userSerializer)
+	}
+	return protoEntries
+}
+
+func convertDocumentHeader(ctx context.Context, orig *types.Document, userSerializer auth.APIUserSerializer) *proto.DocumentHeader {
+	return &proto.DocumentHeader{
+		Id:        orig.ID,
+		Format:    orig.Format,
+		UpdatedAt: timestamppb.New(orig.UpdatedAt),
+		UpdatedBy: userSerializer(ctx, auth.NewAddressOnlyUser(orig.UpdatedBy)),
+		Public:    orig.Public,
+	}
+}
+
 func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentRequest) (*proto.Document, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {

@@ -3026,6 +3026,102 @@ export namespace UpdateDocumentResponse {
   }
 }
 
+export class DocumentsRequest extends jspb.Message {
+  hasPaginationParams(): boolean;
+  clearPaginationParams(): void;
+  getPaginationParams(): PaginationParameters | undefined;
+  setPaginationParams(value?: PaginationParameters): void;
+
+  getSearchQuery(): string;
+  setSearchQuery(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DocumentsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DocumentsRequest): DocumentsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DocumentsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DocumentsRequest;
+  static deserializeBinaryFromReader(message: DocumentsRequest, reader: jspb.BinaryReader): DocumentsRequest;
+}
+
+export namespace DocumentsRequest {
+  export type AsObject = {
+    paginationParams?: PaginationParameters.AsObject,
+    searchQuery: string,
+  }
+}
+
+export class DocumentHeader extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getFormat(): string;
+  setFormat(value: string): void;
+
+  hasUpdatedAt(): boolean;
+  clearUpdatedAt(): void;
+  getUpdatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setUpdatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasUpdatedBy(): boolean;
+  clearUpdatedBy(): void;
+  getUpdatedBy(): User | undefined;
+  setUpdatedBy(value?: User): void;
+
+  getPublic(): boolean;
+  setPublic(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DocumentHeader.AsObject;
+  static toObject(includeInstance: boolean, msg: DocumentHeader): DocumentHeader.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DocumentHeader, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DocumentHeader;
+  static deserializeBinaryFromReader(message: DocumentHeader, reader: jspb.BinaryReader): DocumentHeader;
+}
+
+export namespace DocumentHeader {
+  export type AsObject = {
+    id: string,
+    format: string,
+    updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    updatedBy?: User.AsObject,
+    pb_public: boolean,
+  }
+}
+
+export class DocumentsResponse extends jspb.Message {
+  clearDocumentsList(): void;
+  getDocumentsList(): Array<DocumentHeader>;
+  setDocumentsList(value: Array<DocumentHeader>): void;
+  addDocuments(value?: DocumentHeader, index?: number): DocumentHeader;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  getTotal(): number;
+  setTotal(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DocumentsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DocumentsResponse): DocumentsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DocumentsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DocumentsResponse;
+  static deserializeBinaryFromReader(message: DocumentsResponse, reader: jspb.BinaryReader): DocumentsResponse;
+}
+
+export namespace DocumentsResponse {
+  export type AsObject = {
+    documentsList: Array<DocumentHeader.AsObject>,
+    offset: number,
+    total: number,
+  }
+}
+
 export class SetChatNicknameRequest extends jspb.Message {
   getNickname(): string;
   setNickname(value: string): void;

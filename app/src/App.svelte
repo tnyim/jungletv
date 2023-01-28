@@ -13,6 +13,7 @@
 	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
+	import Documents from "./moderation/Documents.svelte";
 	import EditDocument from "./moderation/EditDocument.svelte";
 	import UserBans from "./moderation/UserBans.svelte";
 	import UserChatHistory from "./moderation/UserChatHistory.svelte";
@@ -287,6 +288,13 @@
 						<a href="/admin/signin">Sign in</a>
 					{/if}
 				</Route>
+				<Route path="/moderate/documents" let:params>
+					{#if isAdmin}
+						<Documents />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
 				<Route path="/moderate/documents/:documentID" let:params>
 					{#if isAdmin}
 						<EditDocument documentID={params.documentID} />
@@ -495,7 +503,7 @@
 			left: 0;
 			height: 100%;
 			width: 100%;
-			text-shadow: 0 0 5px #8B5CF6;
+			text-shadow: 0 0 5px #8b5cf6;
 		}
 		.thumbnail-length-overlay {
 			position: absolute;

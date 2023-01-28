@@ -18,6 +18,22 @@ type Document struct {
 	Content   string
 }
 
+func GetDocuments(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*Document, uint64, error) {
+	s := sdb.Select().
+		Where(subQueryEq(
+			"document.updated_at",
+			sq.Select("MAX(d.updated_at)").From("document d").Where("d.id = document.id"),
+		)).
+		OrderBy("document.id ASC")
+	if filter != "" {
+		s = s.Where(
+			sq.Expr("UPPER(document.id) LIKE '%' || UPPER(?) || '%'", filter),
+		)
+	}
+	s = applyPaginationParameters(s, pagParams)
+	return GetWithSelectAndCount[*Document](node, s)
+}
+
 // GetDocumentsWithIDs returns the latest version of the documents with the specified IDs
 func GetDocumentsWithIDs(node sqalx.Node, ids []string) (map[string]*Document, error) {
 	s := sdb.Select().

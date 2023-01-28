@@ -541,6 +541,15 @@ JungleTV.UpdateDocument = {
   responseType: jungletv_pb.UpdateDocumentResponse
 };
 
+JungleTV.Documents = {
+  methodName: "Documents",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.DocumentsRequest,
+  responseType: jungletv_pb.DocumentsResponse
+};
+
 JungleTV.SetUserChatNickname = {
   methodName: "SetUserChatNickname",
   service: JungleTV,
@@ -2641,6 +2650,37 @@ JungleTVClient.prototype.updateDocument = function updateDocument(requestMessage
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.UpdateDocument, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.documents = function documents(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.Documents, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

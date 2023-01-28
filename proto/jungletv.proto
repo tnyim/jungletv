@@ -69,6 +69,7 @@ service JungleTV {
     rpc AddDisallowedMediaCollection(AddDisallowedMediaCollectionRequest) returns (AddDisallowedMediaCollectionResponse) {}
     rpc RemoveDisallowedMediaCollection(RemoveDisallowedMediaCollectionRequest) returns (RemoveDisallowedMediaCollectionResponse) {}
     rpc UpdateDocument(Document) returns (UpdateDocumentResponse) {}
+    rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
     rpc SetUserChatNickname(SetUserChatNicknameRequest) returns (SetUserChatNicknameResponse) {}
     rpc SetPricesMultiplier(SetPricesMultiplierRequest) returns (SetPricesMultiplierResponse) {}
     rpc SetMinimumPricesMultiplier(SetMinimumPricesMultiplierRequest) returns (SetMinimumPricesMultiplierResponse) {}
@@ -750,6 +751,25 @@ message Document {
 }
 
 message UpdateDocumentResponse {}
+
+message DocumentsRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+message DocumentHeader {
+    string id = 1;
+    string format = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    User updated_by = 4;
+    bool public = 5;
+}
+
+message DocumentsResponse {
+    repeated DocumentHeader documents = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
 
 message SetChatNicknameRequest {
     string nickname = 1;
