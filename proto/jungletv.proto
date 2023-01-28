@@ -670,7 +670,7 @@ enum DisallowedMediaType {
 
 message DisallowedMedia {
     string id = 1;
-    string disallowed_by = 2;
+    User disallowed_by = 2;
     google.protobuf.Timestamp disallowed_at = 3;
     DisallowedMediaType media_type = 4;
     string media_id = 5;
@@ -711,7 +711,7 @@ enum DisallowedMediaCollectionType {
 
 message DisallowedMediaCollection {
     string id = 1;
-    string disallowed_by = 2;
+    User disallowed_by = 2;
     google.protobuf.Timestamp disallowed_at = 3;
     DisallowedMediaCollectionType collection_type = 4;
     string collection_id = 5;

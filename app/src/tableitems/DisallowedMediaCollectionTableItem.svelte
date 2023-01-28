@@ -2,6 +2,7 @@
     import { DateTime } from "luxon";
     import { apiClient } from "../api_client";
     import { DisallowedMediaCollection, DisallowedMediaCollectionType } from "../proto/jungletv_pb";
+    import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let collection: DisallowedMediaCollection;
     export let updateDataCallback: () => void;
@@ -38,9 +39,9 @@
         {collection.getCollectionTitle()}
     </td>
     <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white font-mono"
+        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {collection.getDisallowedBy().substr(0, 14)}
+        <UserCellRepresentation user={collection.getDisallowedBy()} />
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"

@@ -23261,7 +23261,7 @@ proto.jungletv.DisallowedMedia.prototype.toObject = function(opt_includeInstance
 proto.jungletv.DisallowedMedia.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    disallowedBy: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    disallowedBy: (f = msg.getDisallowedBy()) && proto.jungletv.User.toObject(includeInstance, f),
     disallowedAt: (f = msg.getDisallowedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     mediaType: jspb.Message.getFieldWithDefault(msg, 4, 0),
     mediaId: jspb.Message.getFieldWithDefault(msg, 5, ""),
@@ -23307,7 +23307,8 @@ proto.jungletv.DisallowedMedia.deserializeBinaryFromReader = function(msg, reade
       msg.setId(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new proto.jungletv.User;
+      reader.readMessage(value,proto.jungletv.User.deserializeBinaryFromReader);
       msg.setDisallowedBy(value);
       break;
     case 3:
@@ -23364,10 +23365,11 @@ proto.jungletv.DisallowedMedia.serializeBinaryToWriter = function(message, write
     );
   }
   f = message.getDisallowedBy();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      proto.jungletv.User.serializeBinaryToWriter
     );
   }
   f = message.getDisallowedAt();
@@ -23421,20 +23423,39 @@ proto.jungletv.DisallowedMedia.prototype.setId = function(value) {
 
 
 /**
- * optional string disallowed_by = 2;
- * @return {string}
+ * optional User disallowed_by = 2;
+ * @return {?proto.jungletv.User}
  */
 proto.jungletv.DisallowedMedia.prototype.getDisallowedBy = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type{?proto.jungletv.User} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.User, 2));
 };
 
 
 /**
- * @param {string} value
+ * @param {?proto.jungletv.User|undefined} value
+ * @return {!proto.jungletv.DisallowedMedia} returns this
+*/
+proto.jungletv.DisallowedMedia.prototype.setDisallowedBy = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
  * @return {!proto.jungletv.DisallowedMedia} returns this
  */
-proto.jungletv.DisallowedMedia.prototype.setDisallowedBy = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.jungletv.DisallowedMedia.prototype.clearDisallowedBy = function() {
+  return this.setDisallowedBy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.DisallowedMedia.prototype.hasDisallowedBy = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -24475,7 +24496,7 @@ proto.jungletv.DisallowedMediaCollection.prototype.toObject = function(opt_inclu
 proto.jungletv.DisallowedMediaCollection.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    disallowedBy: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    disallowedBy: (f = msg.getDisallowedBy()) && proto.jungletv.User.toObject(includeInstance, f),
     disallowedAt: (f = msg.getDisallowedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     collectionType: jspb.Message.getFieldWithDefault(msg, 4, 0),
     collectionId: jspb.Message.getFieldWithDefault(msg, 5, ""),
@@ -24521,7 +24542,8 @@ proto.jungletv.DisallowedMediaCollection.deserializeBinaryFromReader = function(
       msg.setId(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new proto.jungletv.User;
+      reader.readMessage(value,proto.jungletv.User.deserializeBinaryFromReader);
       msg.setDisallowedBy(value);
       break;
     case 3:
@@ -24578,10 +24600,11 @@ proto.jungletv.DisallowedMediaCollection.serializeBinaryToWriter = function(mess
     );
   }
   f = message.getDisallowedBy();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      proto.jungletv.User.serializeBinaryToWriter
     );
   }
   f = message.getDisallowedAt();
@@ -24635,20 +24658,39 @@ proto.jungletv.DisallowedMediaCollection.prototype.setId = function(value) {
 
 
 /**
- * optional string disallowed_by = 2;
- * @return {string}
+ * optional User disallowed_by = 2;
+ * @return {?proto.jungletv.User}
  */
 proto.jungletv.DisallowedMediaCollection.prototype.getDisallowedBy = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type{?proto.jungletv.User} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.User, 2));
 };
 
 
 /**
- * @param {string} value
+ * @param {?proto.jungletv.User|undefined} value
+ * @return {!proto.jungletv.DisallowedMediaCollection} returns this
+*/
+proto.jungletv.DisallowedMediaCollection.prototype.setDisallowedBy = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
  * @return {!proto.jungletv.DisallowedMediaCollection} returns this
  */
-proto.jungletv.DisallowedMediaCollection.prototype.setDisallowedBy = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.jungletv.DisallowedMediaCollection.prototype.clearDisallowedBy = function() {
+  return this.setDisallowedBy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.DisallowedMediaCollection.prototype.hasDisallowedBy = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

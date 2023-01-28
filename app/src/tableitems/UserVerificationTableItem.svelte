@@ -3,6 +3,7 @@
     import { openUserProfile } from "../profile_utils";
     import type { UserVerification } from "../proto/jungletv_pb";
     import { buildMonKeyURL } from "../utils";
+    import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let verification: UserVerification;
 
@@ -40,9 +41,9 @@
         {formatDate(verification.getCreatedAt().toDate())}
     </td>
     <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white font-mono"
+        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"
     >
-        {verification.getVerifiedBy().getAddress().substr(0, 14)}
+        <UserCellRepresentation user={verification.getVerifiedBy()} />
     </td>
 </tr>
 <tr>

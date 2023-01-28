@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
@@ -37,24 +38,24 @@ func (s *grpcServer) DisallowedMedia(ctxCtx context.Context, r *proto.Disallowed
 	}
 
 	return &proto.DisallowedMediaResponse{
-		DisallowedMedia: convertDisallowedMedia(disallowedMedia),
+		DisallowedMedia: convertDisallowedMedia(ctx, disallowedMedia, s.userSerializer),
 		Offset:          readOffset(r),
 		Total:           total,
 	}, nil
 }
 
-func convertDisallowedMedia(orig []*types.DisallowedMedia) []*proto.DisallowedMedia {
+func convertDisallowedMedia(ctx context.Context, orig []*types.DisallowedMedia, userSerializer auth.APIUserSerializer) []*proto.DisallowedMedia {
 	protoEntries := make([]*proto.DisallowedMedia, len(orig))
 	for i, entry := range orig {
-		protoEntries[i] = convertDisallowedMediaEntry(entry)
+		protoEntries[i] = convertDisallowedMediaEntry(ctx, entry, userSerializer)
 	}
 	return protoEntries
 }
 
-func convertDisallowedMediaEntry(orig *types.DisallowedMedia) *proto.DisallowedMedia {
+func convertDisallowedMediaEntry(ctx context.Context, orig *types.DisallowedMedia, userSerializer auth.APIUserSerializer) *proto.DisallowedMedia {
 	m := &proto.DisallowedMedia{
 		Id:           orig.ID,
-		DisallowedBy: orig.DisallowedBy,
+		DisallowedBy: userSerializer(ctx, auth.NewAddressOnlyUser(orig.DisallowedBy)),
 		DisallowedAt: timestamppb.New(orig.DisallowedAt),
 		MediaId:      orig.MediaID,
 		MediaTitle:   orig.MediaTitle,

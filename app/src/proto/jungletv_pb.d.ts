@@ -2632,8 +2632,10 @@ export class DisallowedMedia extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
-  getDisallowedBy(): string;
-  setDisallowedBy(value: string): void;
+  hasDisallowedBy(): boolean;
+  clearDisallowedBy(): void;
+  getDisallowedBy(): User | undefined;
+  setDisallowedBy(value?: User): void;
 
   hasDisallowedAt(): boolean;
   clearDisallowedAt(): void;
@@ -2662,7 +2664,7 @@ export class DisallowedMedia extends jspb.Message {
 export namespace DisallowedMedia {
   export type AsObject = {
     id: string,
-    disallowedBy: string,
+    disallowedBy?: User.AsObject,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     mediaType: DisallowedMediaTypeMap[keyof DisallowedMediaTypeMap],
     mediaId: string,
@@ -2808,8 +2810,10 @@ export class DisallowedMediaCollection extends jspb.Message {
   getId(): string;
   setId(value: string): void;
 
-  getDisallowedBy(): string;
-  setDisallowedBy(value: string): void;
+  hasDisallowedBy(): boolean;
+  clearDisallowedBy(): void;
+  getDisallowedBy(): User | undefined;
+  setDisallowedBy(value?: User): void;
 
   hasDisallowedAt(): boolean;
   clearDisallowedAt(): void;
@@ -2838,7 +2842,7 @@ export class DisallowedMediaCollection extends jspb.Message {
 export namespace DisallowedMediaCollection {
   export type AsObject = {
     id: string,
-    disallowedBy: string,
+    disallowedBy?: User.AsObject,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     collectionType: DisallowedMediaCollectionTypeMap[keyof DisallowedMediaCollectionTypeMap],
     collectionId: string,

@@ -3,6 +3,7 @@
     import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
     import { buildMonKeyURL } from "../utils";
+    import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let ban: UserBan;
 
@@ -49,9 +50,9 @@
         {/if}
     </td>
     <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white font-mono"
+        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"
     >
-        {ban.getBannedBy().getAddress().substr(0, 14)}
+        <UserCellRepresentation user={ban.getBannedBy()} />
     </td>
 </tr>
 <tr>
