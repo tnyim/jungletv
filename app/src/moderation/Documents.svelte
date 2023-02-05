@@ -2,7 +2,8 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import type { DocumentHeader, PaginationParameters } from "../proto/jungletv_pb";
+    import type { PaginationParameters } from "../proto/common_pb";
+    import type { DocumentHeader } from "../proto/jungletv_pb";
     import DocumentTableItem from "../tableitems/DocumentTableItem.svelte";
 
     export let searchQuery = "";

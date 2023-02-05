@@ -1,6 +1,7 @@
-import { ChatMessage, UserRole } from "./proto/jungletv_pb";
-import { getReadableUserString } from "./utils";
 import { Database } from 'emoji-picker-element';
+import { UserRole } from "./proto/common_pb";
+import type { ChatMessage } from "./proto/jungletv_pb";
+import { getReadableUserString } from "./utils";
 
 export const emojiDatabase = new Database();
 

@@ -48,10 +48,16 @@ type tableNameSpecifier interface {
 	tableName() string
 }
 
-type extraDataHandler interface {
+type extraDataQuerier interface {
 	queryExtra(sqalx.Node) error
+}
+type extraDataUpdater interface {
 	// updateExtra is called twice: once, before updating the main type, and again, after updating it (this helps dealing with foreign keys/row dependencies)
 	updateExtra(node sqalx.Node, preSelf bool) error
+}
+type extraDataDeleter interface {
+	// deleteExtra is called twice: once, before deleting the main type, and again, after deleting it (this helps dealing with foreign keys/row dependencies)
+	deleteExtra(node sqalx.Node, preSelf bool) error
 }
 
 type customDBType interface {
@@ -209,9 +215,9 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 
 	rows.Close()
 
-	if _, hasExtra := (any)(t).(extraDataHandler); hasExtra {
+	if _, hasExtra := (any)(t).(extraDataQuerier); hasExtra {
 		for i := range values {
-			v := (any)(values[i]).(extraDataHandler)
+			v := (any)(values[i]).(extraDataQuerier)
 			err = v.queryExtra(tx)
 			if err != nil {
 				return values, globalCount, stacktrace.Propagate(err, "")
@@ -262,10 +268,10 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	rows := [][]interface{}{}
 	fields := []structDBfield{}
 	tableName := ""
-	_, hasExtra := (any)(t[0]).(extraDataHandler)
+	_, hasExtra := (any)(t[0]).(extraDataUpdater)
 	for rowIdx, ti := range t {
 		if hasExtra {
-			err = (any)(ti).(extraDataHandler).updateExtra(tx, true)
+			err = (any)(ti).(extraDataUpdater).updateExtra(tx, true)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -332,7 +338,7 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	// call updateExtra again, this time with preSelf == false
 	if hasExtra {
 		for _, ti := range t {
-			err = (any)(ti).(extraDataHandler).updateExtra(tx, false)
+			err = (any)(ti).(extraDataUpdater).updateExtra(tx, false)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -368,13 +374,16 @@ func Delete[T any](node sqalx.Node, t ...T) error {
 }
 
 // MustDelete deletes values t from the database.
-// MustDelete is like Delete but returns an error when no rows were deleted
+// MustDelete is like Delete but returns an error when no rows were deleted even though a non-zero argument count was passed
 func MustDelete[T any](node sqalx.Node, t ...T) error {
 	return stacktrace.Propagate(deleteValues(node, true, t), "")
 }
 
 // delete deletes values t from the database
 func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) error {
+	if len(t) == 0 {
+		return nil
+	}
 	tx, err := node.Beginx()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -384,7 +393,14 @@ func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) err
 	or := sq.Or{}
 
 	tableName := ""
+	_, hasExtra := (any)(t[0]).(extraDataDeleter)
 	for _, ti := range t {
+		if hasExtra {
+			err = (any)(ti).(extraDataDeleter).deleteExtra(tx, true)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
 		var fields []structDBfield
 		fields, tableName = getStructInfo(ti)
 		deleteEqs := make(map[string]interface{})
@@ -406,6 +422,17 @@ func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) err
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
+
+	// call deleteExtra again, this time with preSelf == false
+	if hasExtra {
+		for _, ti := range t {
+			err = (any)(ti).(extraDataDeleter).deleteExtra(tx, false)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
+	}
+
 	if errorOnNothingDeleted {
 		rowsAffected, err := result.RowsAffected()
 		if err != nil {

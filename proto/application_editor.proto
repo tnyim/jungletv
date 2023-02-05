@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+option go_package = "github.com/tnyim/jungletv/proto";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+package jungletv;
+
+message ApplicationsRequest {
+    PaginationParameters pagination_params = 1;
+    string search_query = 2;
+}
+
+message ApplicationsResponse {
+    repeated Application applications = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message GetApplicationRequest {
+    string id = 1;
+}
+
+message Application {
+    string id = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    User updated_by = 3;
+    string edit_message = 4;
+    bool allow_launching = 5;
+    bool allow_file_editing = 6;
+    bool autorun = 7;
+    uint32 runtime_version = 8;
+}
+
+message UpdateApplicationResponse {}
+
+message CloneApplicationRequest {
+    string id = 1;
+    string destination_id = 2;
+}
+
+message CloneApplicationResponse {}
+
+message DeleteApplicationRequest {
+    string id = 1;
+}
+
+message DeleteApplicationResponse {}
+
+message ApplicationFilesRequest {
+    string application_id = 1;
+    PaginationParameters pagination_params = 2;
+    string search_query = 3;
+}
+
+message ApplicationFilesResponse {
+    repeated ApplicationFile files = 1;
+    uint64 offset = 2;
+    uint64 total = 3;
+}
+
+message ApplicationFile {
+    string application_id = 1;
+    string name = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    User updated_by = 4;
+    string edit_message = 5;
+    bool public = 6;
+    string type = 7;
+    optional bytes content = 8;
+}
+
+message GetApplicationFileRequest {
+    string application_id = 1;
+    string name = 2;
+}
+
+message UpdateApplicationFileResponse {}
+
+message CloneApplicationFileRequest {
+    string application_id = 1;
+    string name = 2;
+    string destination_application_id = 3;
+    string destination_name = 4;
+}
+
+message CloneApplicationFileResponse {}
+
+message DeleteApplicationFileRequest {
+    string application_id = 1;
+    string name = 2;
+}
+
+message DeleteApplicationFileResponse {}

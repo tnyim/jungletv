@@ -6,14 +6,8 @@
     import ErrorMessage from "./ErrorMessage.svelte";
     import PaginatedTable from "./PaginatedTable.svelte";
     import { openUserProfile } from "./profile_utils";
-    import type {
-        Connection,
-        PaginationParameters,
-        PointsInfoResponse,
-        ReceivedReward,
-        ServiceInfo,
-        Withdrawal,
-    } from "./proto/jungletv_pb";
+    import type { PaginationParameters } from "./proto/common_pb";
+    import type { Connection, PointsInfoResponse, ReceivedReward, ServiceInfo, Withdrawal } from "./proto/jungletv_pb";
 
     import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
     import SuccessMessage from "./SuccessMessage.svelte";

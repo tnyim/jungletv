@@ -25,6 +25,8 @@ import (
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/appeditor"
+	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
@@ -113,6 +115,9 @@ type grpcServer struct {
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
+
+	appEditor *appeditor.AppEditor
+	appRunner *apprunner.AppRunner
 
 	soundCloudProvider *soundcloud.TrackProvider
 	mediaProviders     map[types.MediaType]media.Provider
@@ -239,6 +244,17 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetMulticurrencyPaymentsEnabled", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Documents", auth.AdminPermissionLevel)
 
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Applications", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/GetApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CloneApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/DeleteApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ApplicationFiles", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/GetApplicationFile", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateApplicationFile", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CloneApplicationFile", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/DeleteApplicationFile", auth.AdminPermissionLevel)
+
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error creating YouTube client")
@@ -287,6 +303,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		nicknameCache:             usercache.NewInMemory(),
 		websiteURL:                options.WebsiteURL,
 
+		appRunner: apprunner.New(ctx, options.Log),
+
 		oauthManager: options.OAuthManager,
 
 		captchaAnswers:         cache.New[string, []int](1*time.Hour, 5*time.Minute),
@@ -308,6 +326,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 		rewardHistoryMutex: nsync.NewNamedMutex(),
 	}
+	s.appEditor = appeditor.New(s.log, s.appRunner)
 	s.userSerializer = s.serializeUserForAPI
 
 	s.snowflakeNode, err = snowflake.NewNode(1)

@@ -3,7 +3,8 @@
     import { apiClient } from "../api_client";
     import ErrorMessage from "../ErrorMessage.svelte";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import type { PaginationParameters, UserVerification } from "../proto/jungletv_pb";
+    import type { PaginationParameters } from "../proto/common_pb";
+    import type { UserVerification } from "../proto/jungletv_pb";
     import SuccessMessage from "../SuccessMessage.svelte";
     import UserVerificationTableItem from "../tableitems/UserVerificationTableItem.svelte";
 

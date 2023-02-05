@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -27,14 +28,20 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			protoUsers[i] = s.userSerializer(stream.Context(), users[i])
 		}
 
-		s.vipUsersMutex.RLock()
-		defer s.vipUsersMutex.RUnlock()
-		protoVipUsers := make([]*proto.User, len(s.vipUsers))
-		i := 0
-		for userAddress := range s.vipUsers {
-			protoVipUsers[i] = s.userSerializer(stream.Context(), auth.NewAddressOnlyUser(userAddress))
-			i++
-		}
+		var protoVipUsers []*proto.User
+		func() {
+			s.vipUsersMutex.RLock()
+			defer s.vipUsersMutex.RUnlock()
+			protoVipUsers := make([]*proto.User, len(s.vipUsers))
+			i := 0
+			for userAddress := range s.vipUsers {
+				protoVipUsers[i] = s.userSerializer(stream.Context(), auth.NewAddressOnlyUser(userAddress))
+				i++
+			}
+		}()
+		sort.Slice(protoVipUsers, func(i, j int) bool {
+			return protoVipUsers[i].Address < *protoVipUsers[j].Nickname
+		})
 
 		overview := &proto.ModerationStatusOverview{
 			AllowedMediaEnqueuing:               s.allowMediaEnqueuing,

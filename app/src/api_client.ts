@@ -3,6 +3,7 @@ import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
+import type { PaginationParameters } from "./proto/common_pb";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
     BanUserResponse, BlockedUsersRequest, BlockedUsersResponse, BlockUserRequest, BlockUserResponse, ChatGifSearchRequest,
@@ -13,7 +14,7 @@ import {
     ForciblyEnqueueTicketRequest,
     ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, ModerationStatusOverview,
-    MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PaginationParameters, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
+    MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
     RemoveConnectionResponse, RemoveDisallowedMediaCollectionRequest,
     RemoveDisallowedMediaCollectionResponse, RemoveDisallowedMediaRequest, RemoveDisallowedMediaResponse, RemoveOwnQueueEntryRequest, RemoveOwnQueueEntryResponse, RemoveQueueEntryRequest,

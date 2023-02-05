@@ -2,6 +2,7 @@
 // file: jungletv.proto
 
 import * as jungletv_pb from "./jungletv_pb";
+import * as application_editor_pb from "./application_editor_pb";
 import {grpc} from "@improbable-eng/grpc-web";
 
 type JungleTVSignIn = {
@@ -778,6 +779,96 @@ type JungleTVSetMulticurrencyPaymentsEnabled = {
   readonly responseType: typeof jungletv_pb.SetMulticurrencyPaymentsEnabledResponse;
 };
 
+type JungleTVApplications = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.ApplicationsRequest;
+  readonly responseType: typeof application_editor_pb.ApplicationsResponse;
+};
+
+type JungleTVGetApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.GetApplicationRequest;
+  readonly responseType: typeof application_editor_pb.Application;
+};
+
+type JungleTVUpdateApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.Application;
+  readonly responseType: typeof application_editor_pb.UpdateApplicationResponse;
+};
+
+type JungleTVCloneApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.CloneApplicationRequest;
+  readonly responseType: typeof application_editor_pb.CloneApplicationResponse;
+};
+
+type JungleTVDeleteApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.DeleteApplicationRequest;
+  readonly responseType: typeof application_editor_pb.DeleteApplicationResponse;
+};
+
+type JungleTVApplicationFiles = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.ApplicationFilesRequest;
+  readonly responseType: typeof application_editor_pb.ApplicationFilesResponse;
+};
+
+type JungleTVGetApplicationFile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.GetApplicationFileRequest;
+  readonly responseType: typeof application_editor_pb.ApplicationFile;
+};
+
+type JungleTVUpdateApplicationFile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.ApplicationFile;
+  readonly responseType: typeof application_editor_pb.UpdateApplicationFileResponse;
+};
+
+type JungleTVCloneApplicationFile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.CloneApplicationFileRequest;
+  readonly responseType: typeof application_editor_pb.CloneApplicationFileResponse;
+};
+
+type JungleTVDeleteApplicationFile = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.DeleteApplicationFileRequest;
+  readonly responseType: typeof application_editor_pb.DeleteApplicationFileResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -866,6 +957,16 @@ export class JungleTV {
   static readonly RemoveVipUser: JungleTVRemoveVipUser;
   static readonly TriggerClientReload: JungleTVTriggerClientReload;
   static readonly SetMulticurrencyPaymentsEnabled: JungleTVSetMulticurrencyPaymentsEnabled;
+  static readonly Applications: JungleTVApplications;
+  static readonly GetApplication: JungleTVGetApplication;
+  static readonly UpdateApplication: JungleTVUpdateApplication;
+  static readonly CloneApplication: JungleTVCloneApplication;
+  static readonly DeleteApplication: JungleTVDeleteApplication;
+  static readonly ApplicationFiles: JungleTVApplicationFiles;
+  static readonly GetApplicationFile: JungleTVGetApplicationFile;
+  static readonly UpdateApplicationFile: JungleTVUpdateApplicationFile;
+  static readonly CloneApplicationFile: JungleTVCloneApplicationFile;
+  static readonly DeleteApplicationFile: JungleTVDeleteApplicationFile;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1609,6 +1710,96 @@ export class JungleTVClient {
   setMulticurrencyPaymentsEnabled(
     requestMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse|null) => void
+  ): UnaryResponse;
+  applications(
+    requestMessage: application_editor_pb.ApplicationsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationsResponse|null) => void
+  ): UnaryResponse;
+  applications(
+    requestMessage: application_editor_pb.ApplicationsRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationsResponse|null) => void
+  ): UnaryResponse;
+  getApplication(
+    requestMessage: application_editor_pb.GetApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.Application|null) => void
+  ): UnaryResponse;
+  getApplication(
+    requestMessage: application_editor_pb.GetApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.Application|null) => void
+  ): UnaryResponse;
+  updateApplication(
+    requestMessage: application_editor_pb.Application,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.UpdateApplicationResponse|null) => void
+  ): UnaryResponse;
+  updateApplication(
+    requestMessage: application_editor_pb.Application,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.UpdateApplicationResponse|null) => void
+  ): UnaryResponse;
+  cloneApplication(
+    requestMessage: application_editor_pb.CloneApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CloneApplicationResponse|null) => void
+  ): UnaryResponse;
+  cloneApplication(
+    requestMessage: application_editor_pb.CloneApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CloneApplicationResponse|null) => void
+  ): UnaryResponse;
+  deleteApplication(
+    requestMessage: application_editor_pb.DeleteApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.DeleteApplicationResponse|null) => void
+  ): UnaryResponse;
+  deleteApplication(
+    requestMessage: application_editor_pb.DeleteApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.DeleteApplicationResponse|null) => void
+  ): UnaryResponse;
+  applicationFiles(
+    requestMessage: application_editor_pb.ApplicationFilesRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationFilesResponse|null) => void
+  ): UnaryResponse;
+  applicationFiles(
+    requestMessage: application_editor_pb.ApplicationFilesRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationFilesResponse|null) => void
+  ): UnaryResponse;
+  getApplicationFile(
+    requestMessage: application_editor_pb.GetApplicationFileRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationFile|null) => void
+  ): UnaryResponse;
+  getApplicationFile(
+    requestMessage: application_editor_pb.GetApplicationFileRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationFile|null) => void
+  ): UnaryResponse;
+  updateApplicationFile(
+    requestMessage: application_editor_pb.ApplicationFile,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.UpdateApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  updateApplicationFile(
+    requestMessage: application_editor_pb.ApplicationFile,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.UpdateApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  cloneApplicationFile(
+    requestMessage: application_editor_pb.CloneApplicationFileRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CloneApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  cloneApplicationFile(
+    requestMessage: application_editor_pb.CloneApplicationFileRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CloneApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  deleteApplicationFile(
+    requestMessage: application_editor_pb.DeleteApplicationFileRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.DeleteApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  deleteApplicationFile(
+    requestMessage: application_editor_pb.DeleteApplicationFileRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.DeleteApplicationFileResponse|null) => void
   ): UnaryResponse;
 }
 

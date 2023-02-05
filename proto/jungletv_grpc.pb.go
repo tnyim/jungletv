@@ -105,6 +105,17 @@ type JungleTVClient interface {
 	RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error)
 	TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error)
+	// application editor endpoints
+	Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error)
+	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	UpdateApplication(ctx context.Context, in *Application, opts ...grpc.CallOption) (*UpdateApplicationResponse, error)
+	CloneApplication(ctx context.Context, in *CloneApplicationRequest, opts ...grpc.CallOption) (*CloneApplicationResponse, error)
+	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationResponse, error)
+	ApplicationFiles(ctx context.Context, in *ApplicationFilesRequest, opts ...grpc.CallOption) (*ApplicationFilesResponse, error)
+	GetApplicationFile(ctx context.Context, in *GetApplicationFileRequest, opts ...grpc.CallOption) (*ApplicationFile, error)
+	UpdateApplicationFile(ctx context.Context, in *ApplicationFile, opts ...grpc.CallOption) (*UpdateApplicationFileResponse, error)
+	CloneApplicationFile(ctx context.Context, in *CloneApplicationFileRequest, opts ...grpc.CallOption) (*CloneApplicationFileResponse, error)
+	DeleteApplicationFile(ctx context.Context, in *DeleteApplicationFileRequest, opts ...grpc.CallOption) (*DeleteApplicationFileResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1073,6 +1084,96 @@ func (c *jungleTVClient) SetMulticurrencyPaymentsEnabled(ctx context.Context, in
 	return out, nil
 }
 
+func (c *jungleTVClient) Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error) {
+	out := new(ApplicationsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Applications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/GetApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UpdateApplication(ctx context.Context, in *Application, opts ...grpc.CallOption) (*UpdateApplicationResponse, error) {
+	out := new(UpdateApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UpdateApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) CloneApplication(ctx context.Context, in *CloneApplicationRequest, opts ...grpc.CallOption) (*CloneApplicationResponse, error) {
+	out := new(CloneApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CloneApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationResponse, error) {
+	out := new(DeleteApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/DeleteApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ApplicationFiles(ctx context.Context, in *ApplicationFilesRequest, opts ...grpc.CallOption) (*ApplicationFilesResponse, error) {
+	out := new(ApplicationFilesResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ApplicationFiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) GetApplicationFile(ctx context.Context, in *GetApplicationFileRequest, opts ...grpc.CallOption) (*ApplicationFile, error) {
+	out := new(ApplicationFile)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/GetApplicationFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) UpdateApplicationFile(ctx context.Context, in *ApplicationFile, opts ...grpc.CallOption) (*UpdateApplicationFileResponse, error) {
+	out := new(UpdateApplicationFileResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/UpdateApplicationFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) CloneApplicationFile(ctx context.Context, in *CloneApplicationFileRequest, opts ...grpc.CallOption) (*CloneApplicationFileResponse, error) {
+	out := new(CloneApplicationFileResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CloneApplicationFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) DeleteApplicationFile(ctx context.Context, in *DeleteApplicationFileRequest, opts ...grpc.CallOption) (*DeleteApplicationFileResponse, error) {
+	out := new(DeleteApplicationFileResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/DeleteApplicationFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1164,6 +1265,17 @@ type JungleTVServer interface {
 	RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error)
 	TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error)
+	// application editor endpoints
+	Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error)
+	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
+	UpdateApplication(context.Context, *Application) (*UpdateApplicationResponse, error)
+	CloneApplication(context.Context, *CloneApplicationRequest) (*CloneApplicationResponse, error)
+	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error)
+	ApplicationFiles(context.Context, *ApplicationFilesRequest) (*ApplicationFilesResponse, error)
+	GetApplicationFile(context.Context, *GetApplicationFileRequest) (*ApplicationFile, error)
+	UpdateApplicationFile(context.Context, *ApplicationFile) (*UpdateApplicationFileResponse, error)
+	CloneApplicationFile(context.Context, *CloneApplicationFileRequest) (*CloneApplicationFileResponse, error)
+	DeleteApplicationFile(context.Context, *DeleteApplicationFileRequest) (*DeleteApplicationFileResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1428,6 +1540,36 @@ func (UnimplementedJungleTVServer) TriggerClientReload(context.Context, *Trigger
 }
 func (UnimplementedJungleTVServer) SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetMulticurrencyPaymentsEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Applications not implemented")
+}
+func (UnimplementedJungleTVServer) GetApplication(context.Context, *GetApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
+}
+func (UnimplementedJungleTVServer) UpdateApplication(context.Context, *Application) (*UpdateApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplication not implemented")
+}
+func (UnimplementedJungleTVServer) CloneApplication(context.Context, *CloneApplicationRequest) (*CloneApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloneApplication not implemented")
+}
+func (UnimplementedJungleTVServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
+}
+func (UnimplementedJungleTVServer) ApplicationFiles(context.Context, *ApplicationFilesRequest) (*ApplicationFilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplicationFiles not implemented")
+}
+func (UnimplementedJungleTVServer) GetApplicationFile(context.Context, *GetApplicationFileRequest) (*ApplicationFile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApplicationFile not implemented")
+}
+func (UnimplementedJungleTVServer) UpdateApplicationFile(context.Context, *ApplicationFile) (*UpdateApplicationFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplicationFile not implemented")
+}
+func (UnimplementedJungleTVServer) CloneApplicationFile(context.Context, *CloneApplicationFileRequest) (*CloneApplicationFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloneApplicationFile not implemented")
+}
+func (UnimplementedJungleTVServer) DeleteApplicationFile(context.Context, *DeleteApplicationFileRequest) (*DeleteApplicationFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplicationFile not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3014,6 +3156,186 @@ func _JungleTV_SetMulticurrencyPaymentsEnabled_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_Applications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplicationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).Applications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/Applications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).Applications(ctx, req.(*ApplicationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).GetApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/GetApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).GetApplication(ctx, req.(*GetApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UpdateApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Application)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UpdateApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UpdateApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UpdateApplication(ctx, req.(*Application))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_CloneApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloneApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).CloneApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/CloneApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).CloneApplication(ctx, req.(*CloneApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_DeleteApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).DeleteApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/DeleteApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).DeleteApplication(ctx, req.(*DeleteApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ApplicationFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplicationFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ApplicationFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ApplicationFiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ApplicationFiles(ctx, req.(*ApplicationFilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_GetApplicationFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).GetApplicationFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/GetApplicationFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).GetApplicationFile(ctx, req.(*GetApplicationFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_UpdateApplicationFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplicationFile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).UpdateApplicationFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/UpdateApplicationFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).UpdateApplicationFile(ctx, req.(*ApplicationFile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_CloneApplicationFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloneApplicationFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).CloneApplicationFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/CloneApplicationFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).CloneApplicationFile(ctx, req.(*CloneApplicationFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_DeleteApplicationFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).DeleteApplicationFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/DeleteApplicationFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).DeleteApplicationFile(ctx, req.(*DeleteApplicationFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3332,6 +3654,46 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMulticurrencyPaymentsEnabled",
 			Handler:    _JungleTV_SetMulticurrencyPaymentsEnabled_Handler,
+		},
+		{
+			MethodName: "Applications",
+			Handler:    _JungleTV_Applications_Handler,
+		},
+		{
+			MethodName: "GetApplication",
+			Handler:    _JungleTV_GetApplication_Handler,
+		},
+		{
+			MethodName: "UpdateApplication",
+			Handler:    _JungleTV_UpdateApplication_Handler,
+		},
+		{
+			MethodName: "CloneApplication",
+			Handler:    _JungleTV_CloneApplication_Handler,
+		},
+		{
+			MethodName: "DeleteApplication",
+			Handler:    _JungleTV_DeleteApplication_Handler,
+		},
+		{
+			MethodName: "ApplicationFiles",
+			Handler:    _JungleTV_ApplicationFiles_Handler,
+		},
+		{
+			MethodName: "GetApplicationFile",
+			Handler:    _JungleTV_GetApplicationFile_Handler,
+		},
+		{
+			MethodName: "UpdateApplicationFile",
+			Handler:    _JungleTV_UpdateApplicationFile_Handler,
+		},
+		{
+			MethodName: "CloneApplicationFile",
+			Handler:    _JungleTV_CloneApplicationFile_Handler,
+		},
+		{
+			MethodName: "DeleteApplicationFile",
+			Handler:    _JungleTV_DeleteApplicationFile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

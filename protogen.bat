@@ -7,4 +7,4 @@ protoc ^
   --go-grpc_opt=paths=source_relative ^
   --go-grpc_out=.\proto ^
   --ts_out=service=grpc-web:.\app\src\proto ^
-  .\proto\jungletv.proto
+  .\proto\*.proto

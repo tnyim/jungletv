@@ -4,6 +4,8 @@ option go_package = "github.com/tnyim/jungletv/proto";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+import "common.proto";
+import "application_editor.proto";
 
 package jungletv;
 
@@ -96,11 +98,18 @@ service JungleTV {
     rpc RemoveVipUser(RemoveVipUserRequest) returns (RemoveVipUserResponse) {}
     rpc TriggerClientReload(TriggerClientReloadRequest) returns (TriggerClientReloadResponse) {}
     rpc SetMulticurrencyPaymentsEnabled(SetMulticurrencyPaymentsEnabledRequest) returns (SetMulticurrencyPaymentsEnabledResponse) {}
-}
 
-message PaginationParameters {
-    uint64 offset = 1;
-    uint64 limit = 2;
+    // application editor endpoints
+    rpc Applications(ApplicationsRequest) returns (ApplicationsResponse) {}
+    rpc GetApplication(GetApplicationRequest) returns (Application) {}
+    rpc UpdateApplication(Application) returns (UpdateApplicationResponse) {}
+    rpc CloneApplication(CloneApplicationRequest) returns (CloneApplicationResponse) {}
+    rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse) {}
+    rpc ApplicationFiles(ApplicationFilesRequest) returns (ApplicationFilesResponse) {}
+    rpc GetApplicationFile(GetApplicationFileRequest) returns (ApplicationFile) {}
+    rpc UpdateApplicationFile(ApplicationFile) returns (UpdateApplicationFileResponse) {}
+    rpc CloneApplicationFile(CloneApplicationFileRequest) returns (CloneApplicationFileResponse) {}
+    rpc DeleteApplicationFile(DeleteApplicationFileRequest) returns (DeleteApplicationFileResponse) {}
 }
 
 message SignInRequest {
@@ -353,28 +362,6 @@ message SkipAndTipStatus {
     bool skip_threshold_reducible = 5;
     string rain_address = 6;
     string rain_balance = 7;
-}
-
-enum UserRole {
-    MODERATOR = 0;
-    TIER_1_REQUESTER = 1;
-    TIER_2_REQUESTER = 2;
-    TIER_3_REQUESTER = 3;
-    CURRENT_ENTRY_REQUESTER = 4;
-    VIP = 5;
-}
-
-enum UserStatus {
-    USER_STATUS_OFFLINE = 0;
-    USER_STATUS_WATCHING = 1;
-    USER_STATUS_AWAY = 2;
-}
-
-message User {
-    string address = 1;
-    repeated UserRole roles = 2;
-    optional string nickname = 3;
-    UserStatus status = 4;
 }
 
 message RewardInfoRequest {}

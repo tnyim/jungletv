@@ -1,16 +1,16 @@
 <script lang="ts">
     import { useFocus } from "svelte-navigator";
-    import Leaderboard from "./Leaderboard.svelte";
     import { apiClient } from "./api_client";
+    import Leaderboard from "./Leaderboard.svelte";
+    import PaginatedTable from "./PaginatedTable.svelte";
+    import type { PaginationParameters } from "./proto/common_pb";
     import {
-        LeaderboardPeriod,
         Leaderboard as LeaderboardPB,
+        LeaderboardPeriod,
         LeaderboardPeriodMap,
-        PaginationParameters,
         RaffleDrawing,
     } from "./proto/jungletv_pb";
     import SidebarTabButton from "./SidebarTabButton.svelte";
-    import PaginatedTable from "./PaginatedTable.svelte";
     import RaffleDrawingTableItem from "./tableitems/RaffleDrawingTableItem.svelte";
     const registerFocus = useFocus();
 

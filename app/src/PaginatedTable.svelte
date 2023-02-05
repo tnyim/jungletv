@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { PaginationParameters } from "./proto/jungletv_pb";
+  import { PaginationParameters } from "./proto/common_pb";
 
   export let per_page = 10;
   export let cur_page = 0;

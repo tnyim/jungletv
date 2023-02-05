@@ -1,7 +1,8 @@
 <script lang="ts">
     import { apiClient } from "../api_client";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import type { DisallowedMediaCollection, PaginationParameters } from "../proto/jungletv_pb";
+    import type { PaginationParameters } from "../proto/common_pb";
+    import type { DisallowedMediaCollection } from "../proto/jungletv_pb";
     import DisallowedMediaCollectionTableItem from "../tableitems/DisallowedMediaCollectionTableItem.svelte";
 
     export let searchQuery = "";

@@ -4,30 +4,8 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
-
-export class PaginationParameters extends jspb.Message {
-  getOffset(): number;
-  setOffset(value: number): void;
-
-  getLimit(): number;
-  setLimit(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): PaginationParameters.AsObject;
-  static toObject(includeInstance: boolean, msg: PaginationParameters): PaginationParameters.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: PaginationParameters, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): PaginationParameters;
-  static deserializeBinaryFromReader(message: PaginationParameters, reader: jspb.BinaryReader): PaginationParameters;
-}
-
-export namespace PaginationParameters {
-  export type AsObject = {
-    offset: number,
-    limit: number,
-  }
-}
+import * as common_pb from "./common_pb";
+import * as application_editor_pb from "./application_editor_pb";
 
 export class SignInRequest extends jspb.Message {
   getRewardsAddress(): string;
@@ -764,8 +742,8 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
 
   hasRequestedBy(): boolean;
   clearRequestedBy(): void;
-  getRequestedBy(): User | undefined;
-  setRequestedBy(value?: User): void;
+  getRequestedBy(): common_pb.User | undefined;
+  setRequestedBy(value?: common_pb.User): void;
 
   getRequestCost(): string;
   setRequestCost(value: string): void;
@@ -839,7 +817,7 @@ export namespace MediaConsumptionCheckpoint {
     mediaPresent: boolean,
     currentPosition?: google_protobuf_duration_pb.Duration.AsObject,
     liveBroadcast: boolean,
-    requestedBy?: User.AsObject,
+    requestedBy?: common_pb.User.AsObject,
     requestCost: string,
     currentlyWatching: number,
     reward: string,
@@ -1075,8 +1053,8 @@ export class QueueEntry extends jspb.Message {
 
   hasRequestedBy(): boolean;
   clearRequestedBy(): void;
-  getRequestedBy(): User | undefined;
-  setRequestedBy(value?: User): void;
+  getRequestedBy(): common_pb.User | undefined;
+  setRequestedBy(value?: common_pb.User): void;
 
   getRequestCost(): string;
   setRequestCost(value: string): void;
@@ -1142,7 +1120,7 @@ export class QueueEntry extends jspb.Message {
 export namespace QueueEntry {
   export type AsObject = {
     id: string,
-    requestedBy?: User.AsObject,
+    requestedBy?: common_pb.User.AsObject,
     requestCost: string,
     requestedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     length?: google_protobuf_duration_pb.Duration.AsObject,
@@ -1223,42 +1201,6 @@ export namespace SkipAndTipStatus {
     skipThresholdReducible: boolean,
     rainAddress: string,
     rainBalance: string,
-  }
-}
-
-export class User extends jspb.Message {
-  getAddress(): string;
-  setAddress(value: string): void;
-
-  clearRolesList(): void;
-  getRolesList(): Array<UserRoleMap[keyof UserRoleMap]>;
-  setRolesList(value: Array<UserRoleMap[keyof UserRoleMap]>): void;
-  addRoles(value: UserRoleMap[keyof UserRoleMap], index?: number): UserRoleMap[keyof UserRoleMap];
-
-  hasNickname(): boolean;
-  clearNickname(): void;
-  getNickname(): string;
-  setNickname(value: string): void;
-
-  getStatus(): UserStatusMap[keyof UserStatusMap];
-  setStatus(value: UserStatusMap[keyof UserStatusMap]): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): User.AsObject;
-  static toObject(includeInstance: boolean, msg: User): User.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: User, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): User;
-  static deserializeBinaryFromReader(message: User, reader: jspb.BinaryReader): User;
-}
-
-export namespace User {
-  export type AsObject = {
-    address: string,
-    rolesList: Array<UserRoleMap[keyof UserRoleMap]>,
-    nickname: string,
-    status: UserStatusMap[keyof UserStatusMap],
   }
 }
 
@@ -1699,8 +1641,8 @@ export namespace ChatMessageTenorGifAttachment {
 export class UserChatMessage extends jspb.Message {
   hasAuthor(): boolean;
   clearAuthor(): void;
-  getAuthor(): User | undefined;
-  setAuthor(value?: User): void;
+  getAuthor(): common_pb.User | undefined;
+  setAuthor(value?: common_pb.User): void;
 
   getContent(): string;
   setContent(value: string): void;
@@ -1717,7 +1659,7 @@ export class UserChatMessage extends jspb.Message {
 
 export namespace UserChatMessage {
   export type AsObject = {
-    author?: User.AsObject,
+    author?: common_pb.User.AsObject,
     content: string,
   }
 }
@@ -2191,8 +2133,8 @@ export class UserBan extends jspb.Message {
 
   hasBannedBy(): boolean;
   clearBannedBy(): void;
-  getBannedBy(): User | undefined;
-  setBannedBy(value?: User): void;
+  getBannedBy(): common_pb.User | undefined;
+  setBannedBy(value?: common_pb.User): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserBan.AsObject;
@@ -2216,15 +2158,15 @@ export namespace UserBan {
     rewardsBanned: boolean,
     reason: string,
     unbanReason: string,
-    bannedBy?: User.AsObject,
+    bannedBy?: common_pb.User.AsObject,
   }
 }
 
 export class UserBansRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -2244,7 +2186,7 @@ export class UserBansRequest extends jspb.Message {
 
 export namespace UserBansRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
     activeOnly: boolean,
   }
@@ -2402,8 +2344,8 @@ export class UserVerification extends jspb.Message {
 
   hasVerifiedBy(): boolean;
   clearVerifiedBy(): void;
-  getVerifiedBy(): User | undefined;
-  setVerifiedBy(value?: User): void;
+  getVerifiedBy(): common_pb.User | undefined;
+  setVerifiedBy(value?: common_pb.User): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserVerification.AsObject;
@@ -2424,15 +2366,15 @@ export namespace UserVerification {
     skipIpAddressReputationChecks: boolean,
     reduceHardChallengeFrequency: boolean,
     reason: string,
-    verifiedBy?: User.AsObject,
+    verifiedBy?: common_pb.User.AsObject,
   }
 }
 
 export class UserVerificationsRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -2449,7 +2391,7 @@ export class UserVerificationsRequest extends jspb.Message {
 
 export namespace UserVerificationsRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
@@ -2605,8 +2547,8 @@ export namespace UserPermissionLevelResponse {
 export class DisallowedMediaRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -2623,7 +2565,7 @@ export class DisallowedMediaRequest extends jspb.Message {
 
 export namespace DisallowedMediaRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
@@ -2634,8 +2576,8 @@ export class DisallowedMedia extends jspb.Message {
 
   hasDisallowedBy(): boolean;
   clearDisallowedBy(): void;
-  getDisallowedBy(): User | undefined;
-  setDisallowedBy(value?: User): void;
+  getDisallowedBy(): common_pb.User | undefined;
+  setDisallowedBy(value?: common_pb.User): void;
 
   hasDisallowedAt(): boolean;
   clearDisallowedAt(): void;
@@ -2664,7 +2606,7 @@ export class DisallowedMedia extends jspb.Message {
 export namespace DisallowedMedia {
   export type AsObject = {
     id: string,
-    disallowedBy?: User.AsObject,
+    disallowedBy?: common_pb.User.AsObject,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     mediaType: DisallowedMediaTypeMap[keyof DisallowedMediaTypeMap],
     mediaId: string,
@@ -2783,8 +2725,8 @@ export namespace RemoveDisallowedMediaResponse {
 export class DisallowedMediaCollectionsRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -2801,7 +2743,7 @@ export class DisallowedMediaCollectionsRequest extends jspb.Message {
 
 export namespace DisallowedMediaCollectionsRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
@@ -2812,8 +2754,8 @@ export class DisallowedMediaCollection extends jspb.Message {
 
   hasDisallowedBy(): boolean;
   clearDisallowedBy(): void;
-  getDisallowedBy(): User | undefined;
-  setDisallowedBy(value?: User): void;
+  getDisallowedBy(): common_pb.User | undefined;
+  setDisallowedBy(value?: common_pb.User): void;
 
   hasDisallowedAt(): boolean;
   clearDisallowedAt(): void;
@@ -2842,7 +2784,7 @@ export class DisallowedMediaCollection extends jspb.Message {
 export namespace DisallowedMediaCollection {
   export type AsObject = {
     id: string,
-    disallowedBy?: User.AsObject,
+    disallowedBy?: common_pb.User.AsObject,
     disallowedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     collectionType: DisallowedMediaCollectionTypeMap[keyof DisallowedMediaCollectionTypeMap],
     collectionId: string,
@@ -3033,8 +2975,8 @@ export namespace UpdateDocumentResponse {
 export class DocumentsRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -3051,7 +2993,7 @@ export class DocumentsRequest extends jspb.Message {
 
 export namespace DocumentsRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
@@ -3070,8 +3012,8 @@ export class DocumentHeader extends jspb.Message {
 
   hasUpdatedBy(): boolean;
   clearUpdatedBy(): void;
-  getUpdatedBy(): User | undefined;
-  setUpdatedBy(value?: User): void;
+  getUpdatedBy(): common_pb.User | undefined;
+  setUpdatedBy(value?: common_pb.User): void;
 
   getPublic(): boolean;
   setPublic(value: boolean): void;
@@ -3091,7 +3033,7 @@ export namespace DocumentHeader {
     id: string,
     format: string,
     updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    updatedBy?: User.AsObject,
+    updatedBy?: common_pb.User.AsObject,
     pb_public: boolean,
   }
 }
@@ -3451,8 +3393,8 @@ export namespace LeaderboardValue {
 export class RewardHistoryRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RewardHistoryRequest.AsObject;
@@ -3466,7 +3408,7 @@ export class RewardHistoryRequest extends jspb.Message {
 
 export namespace RewardHistoryRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
   }
 }
 
@@ -3567,8 +3509,8 @@ export namespace RewardHistoryResponse {
 export class WithdrawalHistoryRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WithdrawalHistoryRequest.AsObject;
@@ -3582,7 +3524,7 @@ export class WithdrawalHistoryRequest extends jspb.Message {
 
 export namespace WithdrawalHistoryRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
   }
 }
 
@@ -4026,8 +3968,8 @@ export class RaffleDrawing extends jspb.Message {
 
   hasWinner(): boolean;
   clearWinner(): void;
-  getWinner(): User | undefined;
-  setWinner(value?: User): void;
+  getWinner(): common_pb.User | undefined;
+  setWinner(value?: common_pb.User): void;
 
   hasPrizeTxHash(): boolean;
   clearPrizeTxHash(): void;
@@ -4059,7 +4001,7 @@ export namespace RaffleDrawing {
     status: RaffleDrawingStatusMap[keyof RaffleDrawingStatusMap],
     reason: string,
     winningTicketNumber: number,
-    winner?: User.AsObject,
+    winner?: common_pb.User.AsObject,
     prizeTxHash: string,
     entriesUrl: string,
     infoUrl: string,
@@ -4069,8 +4011,8 @@ export namespace RaffleDrawing {
 export class RaffleDrawingsRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RaffleDrawingsRequest.AsObject;
@@ -4084,7 +4026,7 @@ export class RaffleDrawingsRequest extends jspb.Message {
 
 export namespace RaffleDrawingsRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
   }
 }
 
@@ -4329,17 +4271,17 @@ export class ModerationStatusOverview extends jspb.Message {
   setMinimumPricesMultiplier(value: number): void;
 
   clearActivelyModeratingList(): void;
-  getActivelyModeratingList(): Array<User>;
-  setActivelyModeratingList(value: Array<User>): void;
-  addActivelyModerating(value?: User, index?: number): User;
+  getActivelyModeratingList(): Array<common_pb.User>;
+  setActivelyModeratingList(value: Array<common_pb.User>): void;
+  addActivelyModerating(value?: common_pb.User, index?: number): common_pb.User;
 
   getAllowEntryReordering(): boolean;
   setAllowEntryReordering(value: boolean): void;
 
   clearVipUsersList(): void;
-  getVipUsersList(): Array<User>;
-  setVipUsersList(value: Array<User>): void;
-  addVipUsers(value?: User, index?: number): User;
+  getVipUsersList(): Array<common_pb.User>;
+  setVipUsersList(value: Array<common_pb.User>): void;
+  addVipUsers(value?: common_pb.User, index?: number): common_pb.User;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModerationStatusOverview.AsObject;
@@ -4362,9 +4304,9 @@ export namespace ModerationStatusOverview {
     allSkippingEnabled: boolean,
     queueInsertCursor: string,
     minimumPricesMultiplier: number,
-    activelyModeratingList: Array<User.AsObject>,
+    activelyModeratingList: Array<common_pb.User.AsObject>,
     allowEntryReordering: boolean,
-    vipUsersList: Array<User.AsObject>,
+    vipUsersList: Array<common_pb.User.AsObject>,
   }
 }
 
@@ -4783,8 +4725,8 @@ export namespace UserProfileRequest {
 export class UserProfileResponse extends jspb.Message {
   hasUser(): boolean;
   clearUser(): void;
-  getUser(): User | undefined;
-  setUser(value?: User): void;
+  getUser(): common_pb.User | undefined;
+  setUser(value?: common_pb.User): void;
 
   clearRecentlyPlayedRequestsList(): void;
   getRecentlyPlayedRequestsList(): Array<PlayedMedia>;
@@ -4827,7 +4769,7 @@ export class UserProfileResponse extends jspb.Message {
 
 export namespace UserProfileResponse {
   export type AsObject = {
-    user?: User.AsObject,
+    user?: common_pb.User.AsObject,
     recentlyPlayedRequestsList: Array<PlayedMedia.AsObject>,
     biography: string,
     currentSubscription?: SubscriptionDetails.AsObject,
@@ -4938,8 +4880,8 @@ export class PlayedMedia extends jspb.Message {
 
   hasRequestedBy(): boolean;
   clearRequestedBy(): void;
-  getRequestedBy(): User | undefined;
-  setRequestedBy(value?: User): void;
+  getRequestedBy(): common_pb.User | undefined;
+  setRequestedBy(value?: common_pb.User): void;
 
   getRequestCost(): string;
   setRequestCost(value: string): void;
@@ -5001,7 +4943,7 @@ export class PlayedMedia extends jspb.Message {
 export namespace PlayedMedia {
   export type AsObject = {
     id: string,
-    requestedBy?: User.AsObject,
+    requestedBy?: common_pb.User.AsObject,
     requestCost: string,
     enqueuedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
@@ -5135,8 +5077,8 @@ export namespace ClearUserProfileResponse {
 export class PlayedMediaHistoryRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   getSearchQuery(): string;
   setSearchQuery(value: string): void;
@@ -5153,7 +5095,7 @@ export class PlayedMediaHistoryRequest extends jspb.Message {
 
 export namespace PlayedMediaHistoryRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
     searchQuery: string,
   }
 }
@@ -5278,8 +5220,8 @@ export namespace UnblockUserResponse {
 export class BlockedUsersRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BlockedUsersRequest.AsObject;
@@ -5293,7 +5235,7 @@ export class BlockedUsersRequest extends jspb.Message {
 
 export namespace BlockedUsersRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
   }
 }
 
@@ -5303,13 +5245,13 @@ export class BlockedUser extends jspb.Message {
 
   hasBlockedUser(): boolean;
   clearBlockedUser(): void;
-  getBlockedUser(): User | undefined;
-  setBlockedUser(value?: User): void;
+  getBlockedUser(): common_pb.User | undefined;
+  setBlockedUser(value?: common_pb.User): void;
 
   hasBlockedBy(): boolean;
   clearBlockedBy(): void;
-  getBlockedBy(): User | undefined;
-  setBlockedBy(value?: User): void;
+  getBlockedBy(): common_pb.User | undefined;
+  setBlockedBy(value?: common_pb.User): void;
 
   hasCreatedAt(): boolean;
   clearCreatedAt(): void;
@@ -5329,8 +5271,8 @@ export class BlockedUser extends jspb.Message {
 export namespace BlockedUser {
   export type AsObject = {
     id: string,
-    blockedUser?: User.AsObject,
-    blockedBy?: User.AsObject,
+    blockedUser?: common_pb.User.AsObject,
+    blockedBy?: common_pb.User.AsObject,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
@@ -5502,8 +5444,8 @@ export namespace SubscriptionDetails {
 export class PointsTransactionsRequest extends jspb.Message {
   hasPaginationParams(): boolean;
   clearPaginationParams(): void;
-  getPaginationParams(): PaginationParameters | undefined;
-  setPaginationParams(value?: PaginationParameters): void;
+  getPaginationParams(): common_pb.PaginationParameters | undefined;
+  setPaginationParams(value?: common_pb.PaginationParameters): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PointsTransactionsRequest.AsObject;
@@ -5517,7 +5459,7 @@ export class PointsTransactionsRequest extends jspb.Message {
 
 export namespace PointsTransactionsRequest {
   export type AsObject = {
-    paginationParams?: PaginationParameters.AsObject,
+    paginationParams?: common_pb.PaginationParameters.AsObject,
   }
 }
 
@@ -6075,25 +6017,6 @@ export interface SkipStatusMap {
 }
 
 export const SkipStatus: SkipStatusMap;
-
-export interface UserRoleMap {
-  MODERATOR: 0;
-  TIER_1_REQUESTER: 1;
-  TIER_2_REQUESTER: 2;
-  TIER_3_REQUESTER: 3;
-  CURRENT_ENTRY_REQUESTER: 4;
-  VIP: 5;
-}
-
-export const UserRole: UserRoleMap;
-
-export interface UserStatusMap {
-  USER_STATUS_OFFLINE: 0;
-  USER_STATUS_WATCHING: 1;
-  USER_STATUS_AWAY: 2;
-}
-
-export const UserStatus: UserStatusMap;
 
 export interface ForcedTicketEnqueueTypeMap {
   ENQUEUE: 0;

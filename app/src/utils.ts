@@ -7,7 +7,8 @@ import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
-import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails, User } from "./proto/jungletv_pb";
+import type { User } from "./proto/common_pb";
+import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails } from "./proto/jungletv_pb";
 import { permissionLevel, playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
@@ -394,7 +395,7 @@ export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension 
 var windowHostOrigin = (new URL(window.origin)).host;
 
 export const buildMonKeyURL = function (address: string): string {
-    if(address.startsWith("nano_")) {
+    if (address.startsWith("nano_")) {
         return `https://natricon.com/api/v1/nano?address=${address}&svc=${windowHostOrigin}&utm_source=${windowHostOrigin}`;
     }
     return `https://monkey.banano.cc/api/v1/monkey/${address}?svc=${windowHostOrigin}&utm_source=${windowHostOrigin}`;

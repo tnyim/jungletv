@@ -1,7 +1,8 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
-    import type { BlockedUser, PaginationParameters } from "./proto/jungletv_pb";
     import PaginatedTable from "./PaginatedTable.svelte";
+    import type { PaginationParameters } from "./proto/common_pb";
+    import type { BlockedUser } from "./proto/jungletv_pb";
     import BlockedUserTableItem from "./tableitems/BlockedUserTableItem.svelte";
 
     let cur_page = 0;

@@ -1,6 +1,7 @@
 <script lang="ts">
     import PaginatedTable from "./PaginatedTable.svelte";
-    import type { Leaderboard, LeaderboardRow, PaginationParameters } from "./proto/jungletv_pb";
+    import type { PaginationParameters } from "./proto/common_pb";
+    import type { Leaderboard, LeaderboardRow } from "./proto/jungletv_pb";
     import LeaderboardTableItem from "./tableitems/LeaderboardTableItem.svelte";
 
     export let leaderboard: Leaderboard;

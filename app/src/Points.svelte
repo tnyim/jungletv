@@ -1,16 +1,12 @@
 <script lang="ts">
     import { DateTime } from "luxon";
     import { Moon } from "svelte-loading-spinners";
-    import { navigate, link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import PaginatedTable from "./PaginatedTable.svelte";
     import PointsIcon from "./PointsIcon.svelte";
-    import type {
-        PaginationParameters,
-        PointsInfoResponse,
-        PointsTransaction,
-        SubscriptionDetails,
-    } from "./proto/jungletv_pb";
+    import type { PaginationParameters } from "./proto/common_pb";
+    import type { PointsInfoResponse, PointsTransaction, SubscriptionDetails } from "./proto/jungletv_pb";
     import { currentSubscription, darkMode } from "./stores";
     import PointsTransactionTableItem from "./tableitems/PointsTransactionTableItem.svelte";
     import Wizard from "./Wizard.svelte";

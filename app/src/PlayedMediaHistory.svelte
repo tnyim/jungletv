@@ -1,7 +1,8 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     import PaginatedTable from "./PaginatedTable.svelte";
-    import type { PaginationParameters, PlayedMedia } from "./proto/jungletv_pb";
+    import type { PaginationParameters } from "./proto/common_pb";
+    import type { PlayedMedia } from "./proto/jungletv_pb";
     import PlayHistoryTableItem from "./tableitems/PlayHistoryTableItem.svelte";
 
     export let searchQuery = "";
@@ -31,7 +32,7 @@
         text-xs uppercase whitespace-nowrap text-left"
         >
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Start Time</th>
-            <th></th>
+            <th />
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Title</th>
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Length</th>
             <th class="px-2 sm:px-6 align-middle py-3 font-semibold">Requested By</th>
