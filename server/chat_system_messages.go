@@ -96,9 +96,14 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 			name = escape.MarkdownCharacters(name)
-			title := escape.MarkdownCharacters(entry.MediaInfo().Title())
-			_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-				"_%s just removed their own queue entry_ %s", name, title))
+			if entry.Concealed() {
+				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_%s just removed one of their own queue entries_", name))
+			} else {
+				title := escape.MarkdownCharacters(entry.MediaInfo().Title())
+				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+					"_%s just removed their own queue entry_ %s", name, title))
+			}
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
