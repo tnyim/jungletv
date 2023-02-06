@@ -30,7 +30,7 @@
     "svelte-toggle": "^3.0.0",
     "svelte-turnstile": "^0.3.1",
     "tailwindcss": "^2.2.16",
-    "typescript": "^4.3.5"
+    "typescript": "^4.9.5"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.2",
