@@ -12,6 +12,7 @@
 	import Homepage from "./Homepage.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
+	import Applications from "./moderation/Applications.svelte";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import Documents from "./moderation/Documents.svelte";
 	import EditDocument from "./moderation/EditDocument.svelte";
@@ -284,6 +285,13 @@
 				<Route path="/moderate/verifiedusers" let:params>
 					{#if isAdmin}
 						<UserVerifications />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/applications" let:params>
+					{#if isAdmin}
+						<Applications />
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}

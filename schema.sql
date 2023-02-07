@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS "application_file";
+DROP TABLE IF EXISTS "application";
 DROP TABLE IF EXISTS "as_number_reputation";
 DROP TABLE IF EXISTS "subscription";
 DROP TABLE IF EXISTS "points_balance";
@@ -342,4 +344,29 @@ CREATE TABLE IF NOT EXISTS "as_number_reputation" (
     is_proxy BOOLEAN NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "application" (
+    id VARCHAR(36) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_by VARCHAR(64) NOT NULL,
+    edit_message TEXT NOT NULL,
+    allow_launching BOOLEAN NOT NULL,
+    allow_file_editing BOOLEAN NOT NULL,
+    autorun BOOLEAN NOT NULL,
+    runtime_version INTEGER NOT NULL,
+    PRIMARY KEY (id, updated_at)
+);
+
+CREATE TABLE IF NOT EXISTS "application_file" (
+    application_id VARCHAR(36) NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_by VARCHAR(64) NOT NULL,
+    edit_message TEXT NOT NULL,
+    deleted BOOLEAN NOT NULL,
+    public BOOLEAN NOT NULL,
+    "type" VARCHAR(64) NOT NULL,
+    content BYTEA NOT NULL,
+    PRIMARY KEY (application_id, "name", updated_at)
 );

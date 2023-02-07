@@ -1,6 +1,7 @@
 package types
 
 import (
+	"database/sql/driver"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -10,6 +11,24 @@ import (
 
 // ApplicationVersion represents the version of an application
 type ApplicationVersion time.Time
+
+// Scan implements the sql.Scanner interface.
+func (d *ApplicationVersion) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	b, ok := value.(time.Time)
+	if !ok {
+		return stacktrace.NewError("Scan: Invalid val type for scanning")
+	}
+	*d = ApplicationVersion(b)
+	return nil
+}
+
+// Value implements the driver.Valuer interface.
+func (d ApplicationVersion) Value() (driver.Value, error) {
+	return time.Time(d), nil
+}
 
 // Application represents an application
 type Application struct {
