@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { DateTime } from "luxon";
+    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { Application } from "../proto/application_editor_pb";
+    import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let application: Application;
@@ -23,13 +24,6 @@
         properties = p.join(", ");
     }
 
-    function formatDate(date: Date): string {
-        return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
-            .toLocal()
-            .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
-    }
-
     async function deleteApplication() {
         if (
             prompt(
@@ -44,6 +38,20 @@
             } catch (e) {
                 alert("An error occurred: " + e);
             }
+        }
+    }
+
+    async function cloneApplication() {
+        let id = prompt("Enter the ID for the new application:");
+        if (id === null) {
+            return;
+        }
+
+        try {
+            await apiClient.cloneApplication(application.getId(), id);
+            updateDataCallback();
+        } catch (e) {
+            alert("An error occurred when duplicating the application: " + e);
         }
     }
 </script>
@@ -67,7 +75,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {formatDate(application.getUpdatedAt().toDate())}
+        {formatDateForModeration(application.getUpdatedAt().toDate())}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
@@ -77,7 +85,14 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        <a href={"/moderate/applications/" + application.getId()}>Edit</a><br />
+        <a href={"/moderate/applications/" + application.getId()} use:link>Edit</a><br />
+        <span
+            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            tabindex="0"
+            on:click={cloneApplication}
+        >
+            Duplicate
+        </span><br />
         <span
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
             tabindex="0"

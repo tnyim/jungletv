@@ -35,6 +35,10 @@ type ApplicationFileMetadata struct {
 	Type          string
 }
 
+func (obj *ApplicationFileMetadata) tableName() string {
+	return "application_file"
+}
+
 type ApplicationFileLike interface {
 	*ApplicationFile | *ApplicationFileMetadata
 }
@@ -48,7 +52,8 @@ func GetApplicationFilesForApplication[T ApplicationFileLike](node sqalx.Node, a
 			"application_file.updated_at",
 			sq.Select("MAX(a.updated_at)").
 				From("application_file a").
-				Where("a.id = application_file.id"),
+				Where("a.application_id = application_file.application_id").
+				Where("a.name = application_file.name"),
 		)).
 		OrderBy("application_file.name")
 	if filter != "" {
@@ -69,7 +74,8 @@ func GetApplicationFilesForApplicationAtVersion[T ApplicationFileLike](node sqal
 			"application_file.updated_at",
 			sq.Select("MAX(a.updated_at)").
 				From("application_file a").
-				Where("a.id = application_file.id").
+				Where("a.application_id = application_file.application_id").
+				Where("a.name = application_file.name").
 				Where(sq.LtOrEq{"a.updated_at": version}),
 		)).
 		OrderBy("application_file.name")
@@ -91,7 +97,8 @@ func GetApplicationFilesWithNamesForApplicationAtVersion(node sqalx.Node, applic
 			"application_file.updated_at",
 			sq.Select("MAX(a.updated_at)").
 				From("application_file a").
-				Where("a.id = application_file.id").
+				Where("a.application_id = application_file.application_id").
+				Where("a.name = application_file.name").
 				Where(sq.LtOrEq{"a.updated_at": version}),
 		)).
 		Where(sq.Eq{"application_file.name": names})
@@ -116,7 +123,8 @@ func GetApplicationFilesWithNamesForApplication(node sqalx.Node, applicationID s
 			"application_file.updated_at",
 			sq.Select("MAX(a.updated_at)").
 				From("application_file a").
-				Where("a.id = application_file.id"),
+				Where("a.application_id = application_file.application_id").
+				Where("a.name = application_file.name"),
 		)).
 		Where(sq.Eq{"application_file.name": names})
 	items, err := GetWithSelect[*ApplicationFile](node, s)

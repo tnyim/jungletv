@@ -1,18 +1,10 @@
 <script lang="ts">
-    import { DateTime } from "luxon";
     import { openUserProfile } from "../profile_utils";
     import type { UserVerification } from "../proto/jungletv_pb";
-    import { buildMonKeyURL } from "../utils";
+    import { buildMonKeyURL, formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let verification: UserVerification;
-
-    function formatDate(date: Date): string {
-        return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
-            .toLocal()
-            .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
-    }
 
     function formatScope(): string {
         let places = [];
@@ -38,7 +30,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"
     >
-        {formatDate(verification.getCreatedAt().toDate())}
+        {formatDateForModeration(verification.getCreatedAt().toDate())}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"

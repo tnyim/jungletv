@@ -2,17 +2,10 @@
     import { DateTime } from "luxon";
     import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
-    import { buildMonKeyURL } from "../utils";
+    import { buildMonKeyURL, formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let ban: UserBan;
-
-    function formatDate(date: Date): string {
-        return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
-            .toLocal()
-            .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
-    }
 
     function formatScope(): string {
         let places = [];
@@ -38,13 +31,13 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"
     >
-        {formatDate(ban.getBannedAt().toDate())}
+        {formatDateForModeration(ban.getBannedAt().toDate())}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pt-4 pb-1 text-gray-700 dark:text-white"
     >
         {#if ban.hasBannedUntil()}
-            {formatDate(ban.getBannedUntil().toDate())}
+            {formatDateForModeration(ban.getBannedUntil().toDate())}
         {:else}
             Indefinitely
         {/if}

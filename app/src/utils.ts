@@ -724,3 +724,10 @@ export const isSubscriptionAboutToExpire = function (subscription: SubscriptionD
     return subscription != null &&
         DateTime.fromJSDate(subscription.getSubscribedUntil().toDate()).diffNow().as("days") < 7;
 }
+
+export const formatDateForModeration = function (date: Date): string {
+    return DateTime.fromJSDate(date)
+        .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+        .toLocal()
+        .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
+}

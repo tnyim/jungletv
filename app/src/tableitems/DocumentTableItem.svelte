@@ -1,17 +1,10 @@
 <script lang="ts">
-    import { DateTime } from "luxon";
     import { navigate } from "svelte-navigator";
     import type { DocumentHeader } from "../proto/jungletv_pb";
+    import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let document: DocumentHeader;
-
-    function formatDate(date: Date): string {
-        return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
-            .toLocal()
-            .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
-    }
 </script>
 
 <tr>
@@ -28,7 +21,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {formatDate(document.getUpdatedAt().toDate())}
+        {formatDateForModeration(document.getUpdatedAt().toDate())}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"

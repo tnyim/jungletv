@@ -2,17 +2,11 @@
     import { DateTime } from "luxon";
     import { apiClient } from "../api_client";
     import { DisallowedMediaCollection, DisallowedMediaCollectionType } from "../proto/jungletv_pb";
+    import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let collection: DisallowedMediaCollection;
     export let updateDataCallback: () => void;
-
-    function formatDate(date: Date): string {
-        return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
-            .toLocal()
-            .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
-    }
 
     async function remove() {
         await apiClient.removeDisallowedMediaCollection(collection.getId());
@@ -46,7 +40,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {formatDate(collection.getDisallowedAt().toDate())}
+        {formatDateForModeration(collection.getDisallowedAt().toDate())}
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"

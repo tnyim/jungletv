@@ -182,7 +182,7 @@ func (*AppEditor) CloneApplicationFile(ctxCtx context.Context, applicationID, fi
 		return stacktrace.Propagate(err, "")
 	}
 	_, ok = destFiles[destinationFileName]
-	if !ok {
+	if ok {
 		return stacktrace.NewError("destination file already exists")
 	}
 
