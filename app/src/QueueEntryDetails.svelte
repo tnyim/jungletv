@@ -1,20 +1,21 @@
 <script lang="ts">
-    import { apiClient } from "./api_client";
+    import { DateTime, Duration, DurationUnit } from "luxon";
+    import { createEventDispatcher } from "svelte";
     import QrCode from "svelte-qrcode";
+    import { slide } from "svelte/transition";
+    import { apiClient } from "./api_client";
+    import { modalAlert } from "./modal/modal";
+    import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
+    import { openUserProfile } from "./profile_utils";
+    import type { User } from "./proto/common_pb";
     import {
         PermissionLevel,
         QueueEntry,
         QueueEntryMovementDirection,
         QueueEntryMovementDirectionMap,
-        User,
     } from "./proto/jungletv_pb";
     import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
-    import { DateTime, Duration, DurationUnit } from "luxon";
-    import { slide } from "svelte/transition";
     import { buildMonKeyURL, copyToClipboard } from "./utils";
-    import { createEventDispatcher } from "svelte";
-    import { openUserProfile } from "./profile_utils";
-    import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -90,8 +91,9 @@
             await apiClient.removeOwnQueueEntry(entry.getId());
         } catch (ex) {
             if (ex.includes("rate limit reached")) {
-                alert(
-                    "Queue entry not removed because you have removed too many of your own queue entries recently. This is a safeguard to prevent certain kinds of abuse."
+                await modalAlert(
+                    "Queue entry not removed because you have removed too many of your own queue entries recently. This is a safeguard to prevent certain kinds of abuse.",
+                    "Failed to remove queue entry"
                 );
             }
         }

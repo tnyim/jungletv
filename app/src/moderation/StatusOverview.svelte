@@ -2,6 +2,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
+    import { modalAlert } from "../modal/modal";
     import { AllowedMediaEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
     import { rewardAddress } from "../stores";
 
@@ -40,12 +41,12 @@
 
     async function markAsActivelyModerating() {
         await apiClient.markAsActivelyModerating();
-        alert("You are now marked as actively moderating.");
+        await modalAlert("You are now marked as actively moderating.");
     }
 
     async function stopActivelyModerating() {
         await apiClient.stopActivelyModerating();
-        alert("You are no longer marked as actively moderating.");
+        await modalAlert("You are no longer marked as actively moderating.");
     }
 </script>
 

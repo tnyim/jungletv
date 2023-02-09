@@ -1,6 +1,7 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
+    import { modalAlert, modalPrompt } from "../modal/modal";
     import type { Application } from "../proto/application_editor_pb";
     import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
@@ -26,23 +27,28 @@
 
     async function deleteApplication() {
         if (
-            prompt(
+            (await modalPrompt(
                 "Are you sure? This will permanently delete all current and past versions of the application.\nTo proceed, type the application ID '" +
                     application.getId() +
-                    "':"
-            ) == application.getId()
+                    "':",
+                `Delete application ${application.getId()}`,
+                "",
+                "",
+                "Delete",
+                "Cancel"
+            )) == application.getId()
         ) {
             try {
                 await apiClient.deleteApplication(application.getId());
                 updateDataCallback();
             } catch (e) {
-                alert("An error occurred: " + e);
+                await modalAlert("An error occurred: " + e);
             }
         }
     }
 
     async function cloneApplication() {
-        let id = prompt("Enter the ID for the new application:");
+        let id = await modalPrompt("Enter the ID for the new application:", `Clone application ${application.getId()}`);
         if (id === null) {
             return;
         }
@@ -51,7 +57,7 @@
             await apiClient.cloneApplication(application.getId(), id);
             updateDataCallback();
         } catch (e) {
-            alert("An error occurred when duplicating the application: " + e);
+            await modalAlert("An error occurred when duplicating the application: " + e);
         }
     }
 </script>

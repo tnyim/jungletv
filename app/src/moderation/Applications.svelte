@@ -1,6 +1,7 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
+    import { modalAlert, modalPrompt } from "../modal/modal";
     import PaginatedTable from "../PaginatedTable.svelte";
     import { Application } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
@@ -23,14 +24,21 @@
     }
 
     async function create() {
-        let id = prompt("Enter application ID:");
+        let id = await modalPrompt(
+            "Enter the ID for the new application:",
+            "Create application",
+            "",
+            "",
+            "Create",
+            "Cancel"
+        );
         if (id === null) {
             return;
         }
 
         try {
             await apiClient.getApplication(id);
-            alert("An application with the same ID already exists");
+            await modalAlert("An application with the same ID already exists");
             return;
         } catch {}
 
@@ -41,7 +49,7 @@
             await apiClient.updateApplication(application);
             cur_page = -1;
         } catch (e) {
-            alert("An error occurred when creating the application: " + e);
+            await modalAlert("An error occurred when creating the application: " + e);
         }
     }
 </script>
@@ -92,7 +100,7 @@
         </svelte:fragment>
 
         <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
-            <ApplicationTableItem application={item} {updateDataCallback}  />
+            <ApplicationTableItem application={item} {updateDataCallback} />
         </tbody>
     </PaginatedTable>
 </div>

@@ -5,6 +5,7 @@
 	import { afterUpdate, onMount } from "svelte";
 	import { globalHistory, Route, Router } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
+	import type { Context } from "svelte-simple-modal/types/Modal.svelte";
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
 	import Document from "./Document.svelte";
@@ -12,7 +13,7 @@
 	import Homepage from "./Homepage.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
-    import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
+	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
 	import Applications from "./moderation/Applications.svelte";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import Documents from "./moderation/Documents.svelte";
@@ -36,10 +37,12 @@
 		badRepresentative,
 		collapseGifs,
 		convertEmoticons,
+		currentModal,
 		currentSubscription,
 		darkMode,
 		featureFlags,
 		modal,
+		ModalData,
 		permissionLevel,
 		playerVolume,
 		rewardAddress,
@@ -126,6 +129,42 @@
 
 	let modalOpen: any;
 	let modalClose: any;
+	let modalReadyToOpen = false;
+	function modalSetContext<T>(key: any, context: T): T {
+		modalOpen = (context as Context).open;
+		modalClose = (context as Context).close;
+		modalReadyToOpen = true;
+		return context;
+	}
+
+	let deferredModalOpeningQueue: ModalData[] = [];
+	modal.subscribe((p) => {
+		if (p == null || p == undefined) {
+			if (modalClose !== undefined) {
+				modalClose();
+			}
+		} else {
+			deferredModalOpeningQueue = [...deferredModalOpeningQueue, p];
+		}
+	});
+
+	function onModalClosed() {
+		modalReadyToOpen = true;
+	}
+
+	$: {
+		if (modalReadyToOpen) {
+			if (deferredModalOpeningQueue.length > 0) {
+				modalReadyToOpen = false;
+				let p = deferredModalOpeningQueue.pop();
+				modalOpen(p.component, p.props, p.options, p.callbacks);
+				currentModal.set(p);
+			} else {
+				currentModal.set(null);
+			}
+		}
+	}
+
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
 	let hashToJumpTo = "";
@@ -170,20 +209,6 @@
 	let fullSizePlayerContainerWidth: number = 0;
 	let fullSizePlayerContainerHeight: number = 0;
 
-	function modalSetContext(key: string, props: any) {
-		modalOpen = props.open;
-		modalClose = props.close;
-	}
-	modal.subscribe((p) => {
-		if (p == null || p == undefined) {
-			if (modalClose !== undefined) {
-				modalClose();
-			}
-		} else {
-			modalOpen(p.component, p.props, p.options, p.callbacks);
-		}
-	});
-
 	let popoutTab: SidebarTab;
 	function transformPopoutProps(props: {}): {} {
 		let newProps = Object.assign({}, props);
@@ -213,7 +238,7 @@
 </script>
 
 <div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
-	<Modal setContext={modalSetContext} styleWindowWrap={{ margin: "1rem" }} />
+	<Modal setContext={modalSetContext} styleWindowWrap={{ margin: "1rem" }} on:closed={onModalClosed} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
 		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
 			<svelte:component this={popoutTab.component} {...transformPopoutProps(popoutTab.props)} />

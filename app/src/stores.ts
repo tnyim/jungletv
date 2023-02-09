@@ -1,4 +1,5 @@
 import type { CustomEmoji } from 'emoji-picker-element/shared';
+import type { Callbacks, Component, Options } from 'svelte-simple-modal/types/Modal.svelte';
 import { writable } from 'svelte/store';
 import { ActivityChallenge, ChatGifSearchResult, PermissionLevel, PermissionLevelMap, SubscriptionDetails } from './proto/jungletv_pb';
 
@@ -58,14 +59,16 @@ export const chatMessageDraftSelectionJSON = writable("");
 export const activityChallengesDone = writable(0);
 export const subscriptionUpsoldAfterSegcha = writable(false);
 
-type modalInfo = {
-    component: any,
-    props?: any,
-    options?: any,
-    callbacks?: any,
+export type ModalData = {
+    component: Component,
+    props?: Record<string, any>,
+    options?: Partial<Options>,
+    callbacks?: Partial<Callbacks>,
 };
 
-export const modal = writable(null as modalInfo);
+export const modal = writable(null as ModalData);
+// always use modal to open/close modals, use currentModal to see what is the currently visible modal
+export const currentModal = writable(null as ModalData);
 
 type featureFlags = {
     version: number,

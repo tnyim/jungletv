@@ -5,7 +5,7 @@
     import { navigate } from "svelte-navigator";
 
     import { apiClient } from "./api_client";
-    import { modal } from "./stores";
+    import { modalAlert } from "./modal/modal";
 
     const dispatch = createEventDispatcher();
 
@@ -14,19 +14,19 @@
     async function resetSpectatorStatus() {
         try {
             await apiClient.resetSpectatorStatus(userAddress);
-            alert("Spectator status reset successfully");
+            await modalAlert("Spectator status reset successfully");
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
         }
     }
 
     async function clearProfile() {
         try {
             await apiClient.clearUserProfile(userAddress);
-            alert("User profile cleared successfully");
+            await modalAlert("User profile cleared successfully");
             dispatch("cleared");
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
         }
     }
 

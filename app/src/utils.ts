@@ -7,6 +7,7 @@ import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
+import { modalAlert, modalPrompt } from "./modal/modal";
 import type { User } from "./proto/common_pb";
 import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails } from "./proto/jungletv_pb";
 import { permissionLevel, playerVolume } from "./stores";
@@ -28,25 +29,25 @@ export const getReadableUserString = function (user: User): string {
 
 export const editNicknameForUser = async function (user: User) {
     let address = user.getAddress();
-    let nickname = prompt("Enter new nickname, leave empty to remove nickname");
+    let nickname = await modalPrompt("Enter new nickname, leave empty to remove nickname", "Edit user nickname");
     if (nickname != "") {
         if ([...nickname].length < 3) {
-            alert("The nickname must be at least 3 characters long.");
+            await modalAlert("The nickname must be at least 3 characters long.");
             return;
         } else if ([...nickname].length > 16) {
-            alert("The nickname must be at most 16 characters long.");
+            await modalAlert("The nickname must be at most 16 characters long.");
             return;
         }
     }
     try {
         await apiClient.setUserChatNickname(address, nickname);
         if (nickname != "") {
-            alert("Nickname set successfully");
+            await modalAlert("Nickname set successfully");
         } else {
-            alert("Nickname removed successfully");
+            await modalAlert("Nickname removed successfully");
         }
     } catch (e) {
-        alert("Error editing nickname: " + e);
+        await modalAlert("Error editing nickname: " + e);
     }
 }
 

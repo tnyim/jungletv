@@ -2,6 +2,7 @@
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
+    import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import StatusOverview from "./moderation/StatusOverview.svelte";
     import {
         AllowedMediaEnqueuingType,
@@ -46,147 +47,159 @@
     }
 
     async function setPricesMultiplier() {
-        let multiplierStr = prompt(
-            "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 1, default is 100."
+        let multiplierStr = await modalPrompt(
+            "Enter the multiplier (think of it as a percentage of the original prices). Minimum is 1, default is 100.",
+            "Prices multiplier"
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
-            alert("Invalid multiplier");
+            await modalAlert("Invalid multiplier");
             return;
         }
         try {
             await apiClient.setPricesMultiplier(multiplier);
-            alert("Prices multiplier set successfully");
+            await modalAlert("Prices multiplier set successfully");
         } catch (e) {
-            alert("An error occurred when setting the prices multiplier: " + e);
+            await modalAlert("An error occurred when setting the prices multiplier: " + e);
         }
     }
 
     async function setMinimumPricesMultiplier() {
-        let multiplierStr = prompt(
-            "Enter the multiplier (25 means a target of 0.025 BAN minimum per eligible spectator). Minimum is 20, default is 25."
+        let multiplierStr = await modalPrompt(
+            "Enter the multiplier (25 means a target of 0.025 BAN minimum per eligible spectator). Minimum is 20, default is 25.",
+            "Minimum prices multiplier"
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
-            alert("Invalid multiplier");
+            await modalAlert("Invalid multiplier");
             return;
         }
         try {
             await apiClient.setMinimumPricesMultiplier(multiplier);
-            alert("Minimum prices multiplier set successfully");
+            await modalAlert("Minimum prices multiplier set successfully");
         } catch (e) {
-            alert("An error occurred when setting the minimum prices multiplier: " + e);
+            await modalAlert("An error occurred when setting the minimum prices multiplier: " + e);
         }
     }
 
     async function setSkipPriceMultiplier() {
-        let multiplierStr = prompt(
-            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single entry with the "Play now" option).\nMinimum is 1, default is 150.'
+        let multiplierStr = await modalPrompt(
+            'Enter the multiplier (think of it as a percentage of the cheapest possible price to enqueue a single entry with the "Play now" option).\nMinimum is 1, default is 150.',
+            "Skip price multiplier"
         );
         let multiplier = parseInt(multiplierStr);
         if (Object.is(NaN, multiplier)) {
-            alert("Invalid multiplier");
+            await modalAlert("Invalid multiplier");
             return;
         }
         try {
             await apiClient.setSkipPriceMultiplier(multiplier);
-            alert("Skip price multiplier set successfully");
+            await modalAlert("Skip price multiplier set successfully");
         } catch (e) {
-            alert("An error occurred when setting the skip price multiplier: " + e);
+            await modalAlert("An error occurred when setting the skip price multiplier: " + e);
         }
     }
 
     async function confirmRaffleWinner() {
-        let raffleID = prompt("Confirming the winner. Enter the raffle ID, or press cancel:");
+        let raffleID = await modalPrompt("Enter the raffle ID, or press cancel:", "Confirm raffle winner");
         if (raffleID === null) {
             return;
         }
         try {
             await apiClient.confirmRaffleWinner(raffleID);
-            alert("Raffle winner confirmed successfully");
+            await modalAlert("Raffle winner confirmed successfully");
         } catch (e) {
-            alert("An error occurred when confirming the raffle winner: " + e);
+            await modalAlert("An error occurred when confirming the raffle winner: " + e);
         }
     }
 
     async function redrawRaffle() {
-        let raffleID = prompt("Redrawing a raffle. Enter the raffle ID, or press cancel:");
+        let raffleID = await modalPrompt("Enter the raffle ID, or press cancel:", "Redraw raffle");
         if (raffleID === null) {
             return;
         }
-        let reason = prompt("Enter the reason for redrawing the raffle (this is public):");
+        let reason = await modalPrompt("Enter the reason for redrawing the raffle (this is public):", "Redraw raffle");
         if (reason === null) {
             return;
         }
         try {
             await apiClient.redrawRaffle(raffleID, reason);
-            alert("Raffle redrawn successfully");
+            await modalAlert("Raffle redrawn successfully");
         } catch (e) {
-            alert("An error occurred when redrawing the raffle: " + e);
+            await modalAlert("An error occurred when redrawing the raffle: " + e);
         }
     }
 
     async function completeRaffle() {
-        let raffleID = prompt("Completing a raffle. Enter the raffle ID, or press cancel:");
+        let raffleID = await modalPrompt("Enter the raffle ID, or press cancel:", "Complete raffle");
         if (raffleID === null) {
             return;
         }
-        let tx = prompt("Enter the hash of the send block for the raffle prize:");
+        let tx = await modalPrompt("Enter the hash of the send block for the raffle prize:", "Complete raffle");
         if (tx === null) {
             return;
         }
         try {
             await apiClient.completeRaffle(raffleID, tx);
-            alert("Raffle completed successfully");
+            await modalAlert("Raffle completed successfully");
         } catch (e) {
-            alert("An error occurred when completing the raffle: " + e);
+            await modalAlert("An error occurred when completing the raffle: " + e);
         }
     }
 
     async function adjustPointsBalance() {
-        let rewardsAddress = prompt(
-            "Enter the rewards address for which to adjust the points balance, or press cancel:"
+        let rewardsAddress = await modalPrompt(
+            "Enter the rewards address for which to adjust the points balance, or press cancel:",
+            "Adjust points balance"
         );
         if (rewardsAddress === null) {
             return;
         }
-        let valueStr = prompt("Enter the integer value (positive or negative) for the adjustment, or press cancel:");
+        let valueStr = await modalPrompt(
+            "Enter the integer value (positive or negative) for the adjustment, or press cancel:",
+            "Adjust points balance"
+        );
         if (valueStr === null) {
             return;
         }
         let value = parseInt(valueStr);
         if (isNaN(value)) {
-            alert("Invalid value");
+            await modalAlert("Invalid value");
             return;
         }
-        let reason = prompt(
-            `Adjusting points balance of ${rewardsAddress} by ${value} points.` + "\n\nEnter a reason, or press cancel:"
+        let reason = await modalPrompt(
+            `Adjusting points balance of ${rewardsAddress} by ${value} points.` + "\n\nEnter a reason, or press cancel:",
+            "Adjust points balance"
         );
         if (reason === null) {
             return;
         }
         try {
             await apiClient.adjustPointsBalance(rewardsAddress, value, reason);
-            alert("Balance adjustment successful");
+            await modalAlert("Balance adjustment successful");
         } catch (e) {
-            alert("An error occurred when adjusting the points balance: " + e);
+            await modalAlert("An error occurred when adjusting the points balance: " + e);
         }
     }
 
     async function addVipUser() {
-        let rewardsAddress = prompt("Enter the rewards address to make VIP, or press cancel:");
+        let rewardsAddress = await modalPrompt(
+            "Enter the rewards address to make VIP, or press cancel:",
+            "Add VIP user"
+        );
         if (rewardsAddress === null) {
             return;
         }
-        let valueStr = prompt(
-            "Enter the appearance for the VIP, or press cancel:\n\n0: appear as a normal user\n1: appear as a moderator\n2: appear as a VIP\n3: appear as a VIP moderator"
+        let valueStr = await modalPrompt(
+            "Enter the appearance for the VIP, or press cancel:\n\n0: appear as a normal user\n1: appear as a moderator\n2: appear as a VIP\n3: appear as a VIP moderator",
+            "Add VIP user"
         );
         if (valueStr === null) {
             return;
         }
         let value = parseInt(valueStr);
         if (isNaN(value)) {
-            alert("Invalid value");
+            await modalAlert("Invalid value");
             return;
         }
 
@@ -206,38 +219,46 @@
                 appearance = VipUserAppearance.VIP_USER_APPEARANCE_VIP_MODERATOR;
                 break;
             default:
-                alert("Invalid value");
+                await modalAlert("Invalid value");
                 return;
         }
 
         try {
             await apiClient.addVipUser(rewardsAddress, appearance);
-            alert("User successfully made VIP");
+            await modalAlert("User successfully made VIP");
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
         }
     }
 
     async function removeVipUser() {
-        let rewardsAddress = prompt("Enter the rewards address to make non-VIP, or press cancel:");
+        let rewardsAddress = await modalPrompt(
+            "Enter the rewards address to make non-VIP, or press cancel:",
+            "Remove VIP user"
+        );
         if (rewardsAddress === null) {
             return;
         }
         try {
             await apiClient.removeVipUser(rewardsAddress);
-            alert("User successfully made VIP");
+            await modalAlert("User successfully made VIP");
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
         }
     }
 
     async function triggerClientReload() {
-        if (confirm("Are you sure? This will reload the page for all connected users.")) {
+        if (
+            await modalConfirm(
+                "Are you sure? This will reload the page for all connected users.",
+                "Trigger client reload?"
+            )
+        ) {
             try {
                 await apiClient.triggerClientReload();
-                alert("Client reload triggered");
+                await modalAlert("Client reload triggered");
             } catch (e) {
-                alert("An error occurred: " + e);
+                await modalAlert("An error occurred: " + e);
             }
         }
     }

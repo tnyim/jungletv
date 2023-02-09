@@ -1,6 +1,5 @@
 <script lang="ts">
     import { acceptCompletion, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
-    import { basicSetup } from "codemirror";
     import { defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { foldKeymap } from "@codemirror/language";
@@ -9,11 +8,13 @@
     import { Compartment, EditorState, Extension } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
     import { Emoji, Strikethrough } from "@lezer/markdown";
+    import { basicSetup } from "codemirror";
     import { onDestroy } from "svelte";
     import watchMedia from "svelte-media";
     import { link } from "svelte-navigator";
     import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
+    import { modalAlert } from "../modal/modal";
     import { Document } from "../proto/jungletv_pb";
     import { darkMode } from "../stores";
     import { codeMirrorHighlightStyle, parseCompleteMarkdown } from "../utils";
@@ -41,13 +42,13 @@
         document.setContent(content);
         document.setFormat("markdown");
         await apiClient.updateDocument(document);
-        alert("Document updated");
+        await modalAlert("Document updated");
         editing = true;
     }
 
     async function triggerAnnouncementsNotification() {
         await apiClient.triggerAnnouncementsNotification();
-        alert("Announcements notification triggered");
+        await modalAlert("Announcements notification triggered");
     }
 
     let editorContainer: HTMLElement;
