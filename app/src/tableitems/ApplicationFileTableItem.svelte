@@ -65,17 +65,18 @@
 
     function getIconForType(t: string): string {
         if (t.startsWith("image/")) {
-            return "fas fa-file-audio";
+            return "fas fa-file-image";
         }
         if (t.startsWith("video/")) {
             return "fas fa-file-video";
         }
         if (t.startsWith("audio/")) {
-            return "fas fa-file-image";
+            return "fas fa-file-audio";
         }
         switch (t) {
             case "text/csv":
                 return "fas fa-file-csv";
+            case "text/plain":
             case "application/json":
                 return "fas fa-file-alt";
             case "text/javascript":
@@ -103,11 +104,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {file.getEditMessage()}
-    </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+        <span class="font-semibold">{file.getEditMessage()}</span><br />
         {formatDateForModeration(file.getUpdatedAt().toDate())}
     </td>
     <td
@@ -118,7 +115,9 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {#if application.getAllowFileEditing()}
+        {#if (application.getAllowFileEditing() && file
+                .getType()
+                .startsWith("text/")) || file.getType() == "application/json"}
             <a href={"/moderate/applications/" + application.getId() + "/files/" + file.getName()}>Edit</a><br />
         {/if}
         <span

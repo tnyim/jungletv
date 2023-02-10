@@ -15,7 +15,7 @@
 
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
     {#if title != ""}
-        <p class="text-xl font-semibold mb-4">{title}</p>
+        <p class="text-xl font-semibold mb-4 whitespace-pre-line">{title}</p>
     {/if}
     <p>
         {message}

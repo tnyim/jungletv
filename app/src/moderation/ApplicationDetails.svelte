@@ -1,8 +1,9 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
+    import { modalAlert, modalPrompt } from "../modal/modal";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import type { Application, ApplicationFile } from "../proto/application_editor_pb";
+    import { Application, ApplicationFile } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationFileTableItem from "../tableitems/ApplicationFileTableItem.svelte";
 
@@ -34,6 +35,40 @@
             prevSearchQuery = searchQuery;
         }
     }
+
+    let fileInput: HTMLInputElement;
+    let uploadFiles: FileList;
+
+    async function uploadFile() {
+        let name = await modalPrompt(
+            "Enter the name for the new file:\nNote: if you specify the name of an existing file, it will be updated.",
+            "Upload file",
+            "",
+            uploadFiles[0].name
+        );
+        if (name === null) {
+            return;
+        }
+        let type = await modalPrompt("Enter the MIME type for the new file:", "Upload file", "", uploadFiles[0].type);
+        if (type === null) {
+            return;
+        }
+        let message = await modalPrompt("Enter an edit message:", "Upload file", "", `Upload ${name}`);
+        let file = new ApplicationFile();
+        file.setApplicationId(application.getId());
+        file.setName(name);
+        file.setType(type);
+        file.setContent(new Uint8Array(await uploadFiles[0].arrayBuffer()));
+        file.setEditMessage(message);
+        try {
+            await apiClient.updateApplicationFile(file);
+            cur_page = -1;
+            fileInput.value = "";
+            uploadFiles = undefined;
+        } catch (e) {
+            await modalAlert("An error occurred when uploading the file: " + e);
+        }
+    }
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
@@ -48,8 +83,19 @@
     </p>
 
     {#if typeof application !== "undefined"}
-        <p class="font-semibold text-lg">Application <span class="font-mono">{application.getId()}</span></p>
-
+        <p class="font-semibold text-xl mb-4">Application <span class="font-mono">{application.getId()}</span></p>
+        <p>
+            <input type="file" bind:files={uploadFiles} bind:this={fileInput} />
+            <button
+                on:click={uploadFile}
+                disabled={!(uploadFiles && uploadFiles[0])}
+                class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
+                    bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
+                    text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
+            >
+                Upload file
+            </button>
+        </p>
         <div class="h-6" />
         <PaginatedTable
             title={"Files"}
@@ -71,7 +117,6 @@
                     <th class="pl-4 sm:pl-6 align-middle py-3 font-semibold" />
                     <th class="pr-4 sm:pr-6 pl-2 align-middle py-3 font-semibold">Name</th>
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
-                    <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Public</th>
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />

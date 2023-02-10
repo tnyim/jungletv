@@ -16,9 +16,7 @@
 
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
     <p class="text-xl font-semibold mb-4">{title}</p>
-    <p>
-        {question}
-    </p>
+    <p class="whitespace-pre-line">{question}</p>
 </div>
 <div
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
