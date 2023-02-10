@@ -469,3 +469,174 @@ export namespace DeleteApplicationFileResponse {
   }
 }
 
+export class LaunchApplicationRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LaunchApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: LaunchApplicationRequest): LaunchApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LaunchApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LaunchApplicationRequest;
+  static deserializeBinaryFromReader(message: LaunchApplicationRequest, reader: jspb.BinaryReader): LaunchApplicationRequest;
+}
+
+export namespace LaunchApplicationRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class LaunchApplicationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LaunchApplicationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: LaunchApplicationResponse): LaunchApplicationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LaunchApplicationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LaunchApplicationResponse;
+  static deserializeBinaryFromReader(message: LaunchApplicationResponse, reader: jspb.BinaryReader): LaunchApplicationResponse;
+}
+
+export namespace LaunchApplicationResponse {
+  export type AsObject = {
+  }
+}
+
+export class StopApplicationRequest extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StopApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: StopApplicationRequest): StopApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StopApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StopApplicationRequest;
+  static deserializeBinaryFromReader(message: StopApplicationRequest, reader: jspb.BinaryReader): StopApplicationRequest;
+}
+
+export namespace StopApplicationRequest {
+  export type AsObject = {
+    id: string,
+  }
+}
+
+export class StopApplicationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StopApplicationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: StopApplicationResponse): StopApplicationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StopApplicationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StopApplicationResponse;
+  static deserializeBinaryFromReader(message: StopApplicationResponse, reader: jspb.BinaryReader): StopApplicationResponse;
+}
+
+export namespace StopApplicationResponse {
+  export type AsObject = {
+  }
+}
+
+export class ApplicationLogRequest extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  clearLevelsList(): void;
+  getLevelsList(): Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>;
+  setLevelsList(value: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>): void;
+  addLevels(value: ApplicationLogLevelMap[keyof ApplicationLogLevelMap], index?: number): ApplicationLogLevelMap[keyof ApplicationLogLevelMap];
+
+  hasOffset(): boolean;
+  clearOffset(): void;
+  getOffset(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setOffset(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getLimit(): number;
+  setLimit(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApplicationLogRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationLogRequest): ApplicationLogRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApplicationLogRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationLogRequest;
+  static deserializeBinaryFromReader(message: ApplicationLogRequest, reader: jspb.BinaryReader): ApplicationLogRequest;
+}
+
+export namespace ApplicationLogRequest {
+  export type AsObject = {
+    applicationId: string,
+    levelsList: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>,
+    offset?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    limit: number,
+  }
+}
+
+export class ApplicationLogEntry extends jspb.Message {
+  hasCreatedAt(): boolean;
+  clearCreatedAt(): void;
+  getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getLevel(): ApplicationLogLevelMap[keyof ApplicationLogLevelMap];
+  setLevel(value: ApplicationLogLevelMap[keyof ApplicationLogLevelMap]): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApplicationLogEntry.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationLogEntry): ApplicationLogEntry.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApplicationLogEntry, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationLogEntry;
+  static deserializeBinaryFromReader(message: ApplicationLogEntry, reader: jspb.BinaryReader): ApplicationLogEntry;
+}
+
+export namespace ApplicationLogEntry {
+  export type AsObject = {
+    createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    level: ApplicationLogLevelMap[keyof ApplicationLogLevelMap],
+    message: string,
+  }
+}
+
+export class ApplicationLogResponse extends jspb.Message {
+  clearEntriesList(): void;
+  getEntriesList(): Array<ApplicationLogEntry>;
+  setEntriesList(value: Array<ApplicationLogEntry>): void;
+  addEntries(value?: ApplicationLogEntry, index?: number): ApplicationLogEntry;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApplicationLogResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationLogResponse): ApplicationLogResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApplicationLogResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationLogResponse;
+  static deserializeBinaryFromReader(message: ApplicationLogResponse, reader: jspb.BinaryReader): ApplicationLogResponse;
+}
+
+export namespace ApplicationLogResponse {
+  export type AsObject = {
+    entriesList: Array<ApplicationLogEntry.AsObject>,
+  }
+}
+
+export interface ApplicationLogLevelMap {
+  UNKNOWN_APPLICATION_LOG_LEVEL: 0;
+  APPLICATION_LOG_LEVEL_JS_LOG: 1;
+  APPLICATION_LOG_LEVEL_JS_WARN: 2;
+  APPLICATION_LOG_LEVEL_JS_ERROR: 3;
+  APPLICATION_LOG_LEVEL_RUNTIME_LOG: 4;
+  APPLICATION_LOG_LEVEL_RUNTIME_ERROR: 5;
+}
+
+export const ApplicationLogLevel: ApplicationLogLevelMap;
+

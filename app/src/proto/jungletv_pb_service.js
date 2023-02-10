@@ -875,6 +875,33 @@ JungleTV.DeleteApplicationFile = {
   responseType: application_editor_pb.DeleteApplicationFileResponse
 };
 
+JungleTV.LaunchApplication = {
+  methodName: "LaunchApplication",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.LaunchApplicationRequest,
+  responseType: application_editor_pb.LaunchApplicationResponse
+};
+
+JungleTV.StopApplication = {
+  methodName: "StopApplication",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.StopApplicationRequest,
+  responseType: application_editor_pb.StopApplicationResponse
+};
+
+JungleTV.ApplicationLog = {
+  methodName: "ApplicationLog",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.ApplicationLogRequest,
+  responseType: application_editor_pb.ApplicationLogResponse
+};
+
 exports.JungleTV = JungleTV;
 
 function JungleTVClient(serviceHost, options) {
@@ -3896,6 +3923,99 @@ JungleTVClient.prototype.deleteApplicationFile = function deleteApplicationFile(
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.DeleteApplicationFile, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.launchApplication = function launchApplication(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.LaunchApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.stopApplication = function stopApplication(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.StopApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.applicationLog = function applicationLog(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ApplicationLog, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

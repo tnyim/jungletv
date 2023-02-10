@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -28,11 +29,15 @@ var ErrApplicationNotFound = errors.New("application not found")
 // ErrApplicationNotEnabled is returned when the specified application is not allowed to launch
 var ErrApplicationNotEnabled = errors.New("application not enabled")
 
+// ErrApplicationLogNotFound is returned when the log for the specified application, or the specified application, was not found
+var ErrApplicationLogNotFound = errors.New("application log not found")
+
 // AppRunner launches applications and manages their lifecycle
 type AppRunner struct {
 	workerContext context.Context
 	log           *log.Logger
 	instances     map[string]*appInstance
+	recentLogs    *cache.Cache[string, ApplicationLog]
 	instancesLock sync.RWMutex
 }
 
@@ -42,6 +47,8 @@ func New(
 	log *log.Logger) *AppRunner {
 	return &AppRunner{
 		workerContext: workerContext,
+		instances:     make(map[string]*appInstance),
+		recentLogs:    cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
 		log:           log,
 	}
 }
@@ -81,16 +88,17 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 	if time.Time(specificVersion).IsZero() {
 		specificVersion = application.UpdatedAt
 	}
-	instance, err := newAppInstance(ctx, r, application.ID, specificVersion)
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
 
 	r.instancesLock.Lock()
 	defer r.instancesLock.Unlock()
 
 	if _, ok := r.instances[applicationID]; ok {
 		return stacktrace.NewError("an instance of this application is already running")
+	}
+
+	instance, err := newAppInstance(ctx, r, application.ID, specificVersion)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
 	}
 	r.instances[applicationID] = instance
 
@@ -115,6 +123,8 @@ func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) e
 	}
 
 	delete(r.instances, applicationID)
+
+	r.recentLogs.SetDefault(applicationID, instance.appLogger)
 	return nil
 }
 
@@ -158,4 +168,21 @@ func (r *AppRunner) IsRunning(applicationID string) (bool, types.ApplicationVers
 	}
 
 	return instance.Running()
+}
+
+// ApplicationLog returns the log for a running or recently stopped application
+func (r *AppRunner) ApplicationLog(applicationID string) (ApplicationLog, error) {
+	r.instancesLock.RLock()
+	defer r.instancesLock.RUnlock()
+
+	instance, ok := r.instances[applicationID]
+	if ok {
+		return instance.appLogger, nil
+	}
+
+	l, ok := r.recentLogs.Get(applicationID)
+	if ok {
+		return l, nil
+	}
+	return nil, stacktrace.Propagate(ErrApplicationLogNotFound, "")
 }

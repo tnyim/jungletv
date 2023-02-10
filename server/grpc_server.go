@@ -254,6 +254,9 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateApplicationFile", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CloneApplicationFile", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/DeleteApplicationFile", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/LaunchApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/StopApplication", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ApplicationLog", auth.AdminPermissionLevel)
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {

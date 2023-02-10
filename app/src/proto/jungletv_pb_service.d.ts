@@ -869,6 +869,33 @@ type JungleTVDeleteApplicationFile = {
   readonly responseType: typeof application_editor_pb.DeleteApplicationFileResponse;
 };
 
+type JungleTVLaunchApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.LaunchApplicationRequest;
+  readonly responseType: typeof application_editor_pb.LaunchApplicationResponse;
+};
+
+type JungleTVStopApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.StopApplicationRequest;
+  readonly responseType: typeof application_editor_pb.StopApplicationResponse;
+};
+
+type JungleTVApplicationLog = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.ApplicationLogRequest;
+  readonly responseType: typeof application_editor_pb.ApplicationLogResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -967,6 +994,9 @@ export class JungleTV {
   static readonly UpdateApplicationFile: JungleTVUpdateApplicationFile;
   static readonly CloneApplicationFile: JungleTVCloneApplicationFile;
   static readonly DeleteApplicationFile: JungleTVDeleteApplicationFile;
+  static readonly LaunchApplication: JungleTVLaunchApplication;
+  static readonly StopApplication: JungleTVStopApplication;
+  static readonly ApplicationLog: JungleTVApplicationLog;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1800,6 +1830,33 @@ export class JungleTVClient {
   deleteApplicationFile(
     requestMessage: application_editor_pb.DeleteApplicationFileRequest,
     callback: (error: ServiceError|null, responseMessage: application_editor_pb.DeleteApplicationFileResponse|null) => void
+  ): UnaryResponse;
+  launchApplication(
+    requestMessage: application_editor_pb.LaunchApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.LaunchApplicationResponse|null) => void
+  ): UnaryResponse;
+  launchApplication(
+    requestMessage: application_editor_pb.LaunchApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.LaunchApplicationResponse|null) => void
+  ): UnaryResponse;
+  stopApplication(
+    requestMessage: application_editor_pb.StopApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.StopApplicationResponse|null) => void
+  ): UnaryResponse;
+  stopApplication(
+    requestMessage: application_editor_pb.StopApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.StopApplicationResponse|null) => void
+  ): UnaryResponse;
+  applicationLog(
+    requestMessage: application_editor_pb.ApplicationLogRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationLogResponse|null) => void
+  ): UnaryResponse;
+  applicationLog(
+    requestMessage: application_editor_pb.ApplicationLogRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationLogResponse|null) => void
   ): UnaryResponse;
 }
 

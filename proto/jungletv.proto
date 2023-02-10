@@ -110,6 +110,9 @@ service JungleTV {
     rpc UpdateApplicationFile(ApplicationFile) returns (UpdateApplicationFileResponse) {}
     rpc CloneApplicationFile(CloneApplicationFileRequest) returns (CloneApplicationFileResponse) {}
     rpc DeleteApplicationFile(DeleteApplicationFileRequest) returns (DeleteApplicationFileResponse) {}
+    rpc LaunchApplication(LaunchApplicationRequest) returns (LaunchApplicationResponse) {}
+    rpc StopApplication(StopApplicationRequest) returns (StopApplicationResponse) {}
+    rpc ApplicationLog(ApplicationLogRequest) returns (ApplicationLogResponse) {}
 }
 
 message SignInRequest {

@@ -24,7 +24,7 @@ type appInstance struct {
 	startedOrStoppedAt time.Time
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
-	consolePrinter     *consolePrinter
+	appLogger          *appLogger
 	ctx                context.Context
 }
 
@@ -38,36 +38,16 @@ func newAppInstance(ctx context.Context, r *AppRunner, applicationID string, app
 		applicationID:      applicationID,
 		applicationVersion: applicationVersion,
 		runner:             r,
-		consolePrinter:     newPrinter(),
+		appLogger:          NewAppLogger(),
 		ctx:                ctx,
 	}
 
-	mainSource, err := instance.getMainFileSource()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
 	registry := require.NewRegistry(require.WithLoader(instance.sourceLoader))
-	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.consolePrinter))
+	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
 
 	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(registry))
 
-	err = runOnLoop(instance.loop, func(vm *goja.Runtime) error {
-		err := vm.GlobalObject().Set("process", process{
-			Title:    applicationID,
-			Platform: "jungletv",
-			Version:  fmt.Sprint(RuntimeVersion),
-		})
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-
-		_, err = vm.RunString(mainSource)
-		return stacktrace.Propagate(err, "")
-	})
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
+	instance.appLogger.RuntimeLog("application instance created")
 
 	return instance, nil
 }
@@ -103,7 +83,43 @@ func (a *appInstance) Start() error {
 	a.loop.Start()
 	a.started = true
 	a.startedOrStoppedAt = time.Now()
+	a.appLogger.RuntimeLog("application instance started")
 
+	mainSource, err := a.getMainFileSource()
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	a.runOnLoopAndLogError(a.setupEnvironment)
+
+	a.runOnLoopAndLogError(func(vm *goja.Runtime) error {
+		_, err = vm.RunString(mainSource)
+		return stacktrace.Propagate(err, "")
+	})
+
+	return nil
+}
+
+func (a *appInstance) runOnLoopAndLogError(f func(vm *goja.Runtime) error) {
+	errCh := make(chan error)
+	a.loop.RunOnLoop(func(vm *goja.Runtime) {
+		errCh <- f(vm)
+	})
+	err := <-errCh
+	if err != nil {
+		a.appLogger.RuntimeError(err)
+	}
+}
+
+func (a *appInstance) setupEnvironment(vm *goja.Runtime) error {
+	err := vm.GlobalObject().Set("process", process{
+		Title:    a.applicationID,
+		Platform: "jungletv",
+		Version:  fmt.Sprint(RuntimeVersion),
+	})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
 	return nil
 }
 
@@ -141,6 +157,7 @@ func (a *appInstance) Stop(force, blocking bool) error {
 	}
 	a.started = false
 	a.startedOrStoppedAt = time.Now()
+	a.appLogger.RuntimeLog("application instance stopped")
 	return nil
 }
 

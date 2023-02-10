@@ -21,6 +21,64 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ApplicationLogLevel int32
+
+const (
+	ApplicationLogLevel_UNKNOWN_APPLICATION_LOG_LEVEL       ApplicationLogLevel = 0
+	ApplicationLogLevel_APPLICATION_LOG_LEVEL_JS_LOG        ApplicationLogLevel = 1
+	ApplicationLogLevel_APPLICATION_LOG_LEVEL_JS_WARN       ApplicationLogLevel = 2
+	ApplicationLogLevel_APPLICATION_LOG_LEVEL_JS_ERROR      ApplicationLogLevel = 3
+	ApplicationLogLevel_APPLICATION_LOG_LEVEL_RUNTIME_LOG   ApplicationLogLevel = 4
+	ApplicationLogLevel_APPLICATION_LOG_LEVEL_RUNTIME_ERROR ApplicationLogLevel = 5
+)
+
+// Enum value maps for ApplicationLogLevel.
+var (
+	ApplicationLogLevel_name = map[int32]string{
+		0: "UNKNOWN_APPLICATION_LOG_LEVEL",
+		1: "APPLICATION_LOG_LEVEL_JS_LOG",
+		2: "APPLICATION_LOG_LEVEL_JS_WARN",
+		3: "APPLICATION_LOG_LEVEL_JS_ERROR",
+		4: "APPLICATION_LOG_LEVEL_RUNTIME_LOG",
+		5: "APPLICATION_LOG_LEVEL_RUNTIME_ERROR",
+	}
+	ApplicationLogLevel_value = map[string]int32{
+		"UNKNOWN_APPLICATION_LOG_LEVEL":       0,
+		"APPLICATION_LOG_LEVEL_JS_LOG":        1,
+		"APPLICATION_LOG_LEVEL_JS_WARN":       2,
+		"APPLICATION_LOG_LEVEL_JS_ERROR":      3,
+		"APPLICATION_LOG_LEVEL_RUNTIME_LOG":   4,
+		"APPLICATION_LOG_LEVEL_RUNTIME_ERROR": 5,
+	}
+)
+
+func (x ApplicationLogLevel) Enum() *ApplicationLogLevel {
+	p := new(ApplicationLogLevel)
+	*p = x
+	return p
+}
+
+func (x ApplicationLogLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ApplicationLogLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_application_editor_proto_enumTypes[0].Descriptor()
+}
+
+func (ApplicationLogLevel) Type() protoreflect.EnumType {
+	return &file_application_editor_proto_enumTypes[0]
+}
+
+func (x ApplicationLogLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ApplicationLogLevel.Descriptor instead.
+func (ApplicationLogLevel) EnumDescriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{0}
+}
+
 type ApplicationsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1029,6 +1087,357 @@ func (*DeleteApplicationFileResponse) Descriptor() ([]byte, []int) {
 	return file_application_editor_proto_rawDescGZIP(), []int{17}
 }
 
+type LaunchApplicationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *LaunchApplicationRequest) Reset() {
+	*x = LaunchApplicationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LaunchApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LaunchApplicationRequest) ProtoMessage() {}
+
+func (x *LaunchApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LaunchApplicationRequest.ProtoReflect.Descriptor instead.
+func (*LaunchApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *LaunchApplicationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type LaunchApplicationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *LaunchApplicationResponse) Reset() {
+	*x = LaunchApplicationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LaunchApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LaunchApplicationResponse) ProtoMessage() {}
+
+func (x *LaunchApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LaunchApplicationResponse.ProtoReflect.Descriptor instead.
+func (*LaunchApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{19}
+}
+
+type StopApplicationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *StopApplicationRequest) Reset() {
+	*x = StopApplicationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StopApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StopApplicationRequest) ProtoMessage() {}
+
+func (x *StopApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StopApplicationRequest.ProtoReflect.Descriptor instead.
+func (*StopApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *StopApplicationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type StopApplicationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *StopApplicationResponse) Reset() {
+	*x = StopApplicationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StopApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StopApplicationResponse) ProtoMessage() {}
+
+func (x *StopApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StopApplicationResponse.ProtoReflect.Descriptor instead.
+func (*StopApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{21}
+}
+
+type ApplicationLogRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId string                 `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	Levels        []ApplicationLogLevel  `protobuf:"varint,2,rep,packed,name=levels,proto3,enum=jungletv.ApplicationLogLevel" json:"levels,omitempty"`
+	Offset        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=offset,proto3,oneof" json:"offset,omitempty"`
+	Limit         uint32                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+}
+
+func (x *ApplicationLogRequest) Reset() {
+	*x = ApplicationLogRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationLogRequest) ProtoMessage() {}
+
+func (x *ApplicationLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationLogRequest.ProtoReflect.Descriptor instead.
+func (*ApplicationLogRequest) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ApplicationLogRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *ApplicationLogRequest) GetLevels() []ApplicationLogLevel {
+	if x != nil {
+		return x.Levels
+	}
+	return nil
+}
+
+func (x *ApplicationLogRequest) GetOffset() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Offset
+	}
+	return nil
+}
+
+func (x *ApplicationLogRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ApplicationLogEntry struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Level     ApplicationLogLevel    `protobuf:"varint,2,opt,name=level,proto3,enum=jungletv.ApplicationLogLevel" json:"level,omitempty"`
+	Message   string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (x *ApplicationLogEntry) Reset() {
+	*x = ApplicationLogEntry{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationLogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationLogEntry) ProtoMessage() {}
+
+func (x *ApplicationLogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationLogEntry.ProtoReflect.Descriptor instead.
+func (*ApplicationLogEntry) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ApplicationLogEntry) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ApplicationLogEntry) GetLevel() ApplicationLogLevel {
+	if x != nil {
+		return x.Level
+	}
+	return ApplicationLogLevel_UNKNOWN_APPLICATION_LOG_LEVEL
+}
+
+func (x *ApplicationLogEntry) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ApplicationLogResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Entries []*ApplicationLogEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+}
+
+func (x *ApplicationLogResponse) Reset() {
+	*x = ApplicationLogResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationLogResponse) ProtoMessage() {}
+
+func (x *ApplicationLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationLogResponse.ProtoReflect.Descriptor instead.
+func (*ApplicationLogResponse) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ApplicationLogResponse) GetEntries() []*ApplicationLogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
 var File_application_editor_proto protoreflect.FileDescriptor
 
 var file_application_editor_proto_rawDesc = []byte{
@@ -1157,10 +1566,62 @@ var file_application_editor_proto_rawDesc = []byte{
 	0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x1f, 0x0a, 0x1d, 0x44, 0x65, 0x6c,
 	0x65, 0x74, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69,
-	0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a,
-	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x0a, 0x18, 0x4c, 0x61,
+	0x75, 0x6e, 0x63, 0x68, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x1b, 0x0a, 0x19, 0x4c, 0x61, 0x75, 0x6e, 0x63, 0x68,
+	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x28, 0x0a, 0x16, 0x53, 0x74, 0x6f, 0x70, 0x41, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a,
+	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x19, 0x0a,
+	0x17, 0x53, 0x74, 0x6f, 0x70, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0xcf, 0x01, 0x0a, 0x15, 0x41, 0x70, 0x70,
+	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x61, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x35, 0x0a, 0x06, 0x6c, 0x65, 0x76,
+	0x65, 0x6c, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0e, 0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
+	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x4c, 0x6f, 0x67, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x06, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x73,
+	0x12, 0x37, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x48, 0x00, 0x52, 0x06,
+	0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x88, 0x01, 0x01, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d,
+	0x69, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x42,
+	0x09, 0x0a, 0x07, 0x5f, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x22, 0x9f, 0x01, 0x0a, 0x13, 0x41,
+	0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
+	0x6d, 0x70, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x33, 0x0a,
+	0x05, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1d, 0x2e, 0x6a,
+	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x05, 0x6c, 0x65, 0x76,
+	0x65, 0x6c, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x51, 0x0a, 0x16,
+	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69, 0x65,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65,
+	0x74, 0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f,
+	0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x2a,
+	0xf1, 0x01, 0x0a, 0x13, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c,
+	0x6f, 0x67, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x21, 0x0a, 0x1d, 0x55, 0x4e, 0x4b, 0x4e, 0x4f,
+	0x57, 0x4e, 0x5f, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c,
+	0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x10, 0x00, 0x12, 0x20, 0x0a, 0x1c, 0x41, 0x50,
+	0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45,
+	0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x01, 0x12, 0x21, 0x0a, 0x1d,
+	0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f,
+	0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x57, 0x41, 0x52, 0x4e, 0x10, 0x02, 0x12,
+	0x22, 0x0a, 0x1e, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c,
+	0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x45, 0x52, 0x52, 0x4f,
+	0x52, 0x10, 0x03, 0x12, 0x25, 0x0a, 0x21, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49,
+	0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x52, 0x55, 0x4e,
+	0x54, 0x49, 0x4d, 0x45, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x04, 0x12, 0x27, 0x0a, 0x23, 0x41, 0x50,
+	0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45,
+	0x56, 0x45, 0x4c, 0x5f, 0x52, 0x55, 0x4e, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x45, 0x52, 0x52, 0x4f,
+	0x52, 0x10, 0x05, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1175,44 +1636,58 @@ func file_application_editor_proto_rawDescGZIP() []byte {
 	return file_application_editor_proto_rawDescData
 }
 
-var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_application_editor_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_application_editor_proto_goTypes = []interface{}{
-	(*ApplicationsRequest)(nil),           // 0: jungletv.ApplicationsRequest
-	(*ApplicationsResponse)(nil),          // 1: jungletv.ApplicationsResponse
-	(*GetApplicationRequest)(nil),         // 2: jungletv.GetApplicationRequest
-	(*Application)(nil),                   // 3: jungletv.Application
-	(*UpdateApplicationResponse)(nil),     // 4: jungletv.UpdateApplicationResponse
-	(*CloneApplicationRequest)(nil),       // 5: jungletv.CloneApplicationRequest
-	(*CloneApplicationResponse)(nil),      // 6: jungletv.CloneApplicationResponse
-	(*DeleteApplicationRequest)(nil),      // 7: jungletv.DeleteApplicationRequest
-	(*DeleteApplicationResponse)(nil),     // 8: jungletv.DeleteApplicationResponse
-	(*ApplicationFilesRequest)(nil),       // 9: jungletv.ApplicationFilesRequest
-	(*ApplicationFilesResponse)(nil),      // 10: jungletv.ApplicationFilesResponse
-	(*ApplicationFile)(nil),               // 11: jungletv.ApplicationFile
-	(*GetApplicationFileRequest)(nil),     // 12: jungletv.GetApplicationFileRequest
-	(*UpdateApplicationFileResponse)(nil), // 13: jungletv.UpdateApplicationFileResponse
-	(*CloneApplicationFileRequest)(nil),   // 14: jungletv.CloneApplicationFileRequest
-	(*CloneApplicationFileResponse)(nil),  // 15: jungletv.CloneApplicationFileResponse
-	(*DeleteApplicationFileRequest)(nil),  // 16: jungletv.DeleteApplicationFileRequest
-	(*DeleteApplicationFileResponse)(nil), // 17: jungletv.DeleteApplicationFileResponse
-	(*PaginationParameters)(nil),          // 18: jungletv.PaginationParameters
-	(*timestamppb.Timestamp)(nil),         // 19: google.protobuf.Timestamp
-	(*User)(nil),                          // 20: jungletv.User
+	(ApplicationLogLevel)(0),              // 0: jungletv.ApplicationLogLevel
+	(*ApplicationsRequest)(nil),           // 1: jungletv.ApplicationsRequest
+	(*ApplicationsResponse)(nil),          // 2: jungletv.ApplicationsResponse
+	(*GetApplicationRequest)(nil),         // 3: jungletv.GetApplicationRequest
+	(*Application)(nil),                   // 4: jungletv.Application
+	(*UpdateApplicationResponse)(nil),     // 5: jungletv.UpdateApplicationResponse
+	(*CloneApplicationRequest)(nil),       // 6: jungletv.CloneApplicationRequest
+	(*CloneApplicationResponse)(nil),      // 7: jungletv.CloneApplicationResponse
+	(*DeleteApplicationRequest)(nil),      // 8: jungletv.DeleteApplicationRequest
+	(*DeleteApplicationResponse)(nil),     // 9: jungletv.DeleteApplicationResponse
+	(*ApplicationFilesRequest)(nil),       // 10: jungletv.ApplicationFilesRequest
+	(*ApplicationFilesResponse)(nil),      // 11: jungletv.ApplicationFilesResponse
+	(*ApplicationFile)(nil),               // 12: jungletv.ApplicationFile
+	(*GetApplicationFileRequest)(nil),     // 13: jungletv.GetApplicationFileRequest
+	(*UpdateApplicationFileResponse)(nil), // 14: jungletv.UpdateApplicationFileResponse
+	(*CloneApplicationFileRequest)(nil),   // 15: jungletv.CloneApplicationFileRequest
+	(*CloneApplicationFileResponse)(nil),  // 16: jungletv.CloneApplicationFileResponse
+	(*DeleteApplicationFileRequest)(nil),  // 17: jungletv.DeleteApplicationFileRequest
+	(*DeleteApplicationFileResponse)(nil), // 18: jungletv.DeleteApplicationFileResponse
+	(*LaunchApplicationRequest)(nil),      // 19: jungletv.LaunchApplicationRequest
+	(*LaunchApplicationResponse)(nil),     // 20: jungletv.LaunchApplicationResponse
+	(*StopApplicationRequest)(nil),        // 21: jungletv.StopApplicationRequest
+	(*StopApplicationResponse)(nil),       // 22: jungletv.StopApplicationResponse
+	(*ApplicationLogRequest)(nil),         // 23: jungletv.ApplicationLogRequest
+	(*ApplicationLogEntry)(nil),           // 24: jungletv.ApplicationLogEntry
+	(*ApplicationLogResponse)(nil),        // 25: jungletv.ApplicationLogResponse
+	(*PaginationParameters)(nil),          // 26: jungletv.PaginationParameters
+	(*timestamppb.Timestamp)(nil),         // 27: google.protobuf.Timestamp
+	(*User)(nil),                          // 28: jungletv.User
 }
 var file_application_editor_proto_depIdxs = []int32{
-	18, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	3,  // 1: jungletv.ApplicationsResponse.applications:type_name -> jungletv.Application
-	19, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
-	20, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
-	18, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	11, // 5: jungletv.ApplicationFilesResponse.files:type_name -> jungletv.ApplicationFile
-	19, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
-	20, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	26, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	4,  // 1: jungletv.ApplicationsResponse.applications:type_name -> jungletv.Application
+	27, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
+	26, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	12, // 5: jungletv.ApplicationFilesResponse.files:type_name -> jungletv.ApplicationFile
+	27, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
+	0,  // 8: jungletv.ApplicationLogRequest.levels:type_name -> jungletv.ApplicationLogLevel
+	27, // 9: jungletv.ApplicationLogRequest.offset:type_name -> google.protobuf.Timestamp
+	27, // 10: jungletv.ApplicationLogEntry.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 11: jungletv.ApplicationLogEntry.level:type_name -> jungletv.ApplicationLogLevel
+	24, // 12: jungletv.ApplicationLogResponse.entries:type_name -> jungletv.ApplicationLogEntry
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_application_editor_proto_init() }
@@ -1438,20 +1913,106 @@ func file_application_editor_proto_init() {
 				return nil
 			}
 		}
+		file_application_editor_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LaunchApplicationRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LaunchApplicationResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StopApplicationRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StopApplicationResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationLogRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationLogEntry); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationLogResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_application_editor_proto_msgTypes[11].OneofWrappers = []interface{}{}
+	file_application_editor_proto_msgTypes[22].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_application_editor_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   18,
+			NumEnums:      1,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_application_editor_proto_goTypes,
 		DependencyIndexes: file_application_editor_proto_depIdxs,
+		EnumInfos:         file_application_editor_proto_enumTypes,
 		MessageInfos:      file_application_editor_proto_msgTypes,
 	}.Build()
 	File_application_editor_proto = out.File

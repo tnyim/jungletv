@@ -116,6 +116,9 @@ type JungleTVClient interface {
 	UpdateApplicationFile(ctx context.Context, in *ApplicationFile, opts ...grpc.CallOption) (*UpdateApplicationFileResponse, error)
 	CloneApplicationFile(ctx context.Context, in *CloneApplicationFileRequest, opts ...grpc.CallOption) (*CloneApplicationFileResponse, error)
 	DeleteApplicationFile(ctx context.Context, in *DeleteApplicationFileRequest, opts ...grpc.CallOption) (*DeleteApplicationFileResponse, error)
+	LaunchApplication(ctx context.Context, in *LaunchApplicationRequest, opts ...grpc.CallOption) (*LaunchApplicationResponse, error)
+	StopApplication(ctx context.Context, in *StopApplicationRequest, opts ...grpc.CallOption) (*StopApplicationResponse, error)
+	ApplicationLog(ctx context.Context, in *ApplicationLogRequest, opts ...grpc.CallOption) (*ApplicationLogResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1174,6 +1177,33 @@ func (c *jungleTVClient) DeleteApplicationFile(ctx context.Context, in *DeleteAp
 	return out, nil
 }
 
+func (c *jungleTVClient) LaunchApplication(ctx context.Context, in *LaunchApplicationRequest, opts ...grpc.CallOption) (*LaunchApplicationResponse, error) {
+	out := new(LaunchApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/LaunchApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) StopApplication(ctx context.Context, in *StopApplicationRequest, opts ...grpc.CallOption) (*StopApplicationResponse, error) {
+	out := new(StopApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/StopApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ApplicationLog(ctx context.Context, in *ApplicationLogRequest, opts ...grpc.CallOption) (*ApplicationLogResponse, error) {
+	out := new(ApplicationLogResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ApplicationLog", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1276,6 +1306,9 @@ type JungleTVServer interface {
 	UpdateApplicationFile(context.Context, *ApplicationFile) (*UpdateApplicationFileResponse, error)
 	CloneApplicationFile(context.Context, *CloneApplicationFileRequest) (*CloneApplicationFileResponse, error)
 	DeleteApplicationFile(context.Context, *DeleteApplicationFileRequest) (*DeleteApplicationFileResponse, error)
+	LaunchApplication(context.Context, *LaunchApplicationRequest) (*LaunchApplicationResponse, error)
+	StopApplication(context.Context, *StopApplicationRequest) (*StopApplicationResponse, error)
+	ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1570,6 +1603,15 @@ func (UnimplementedJungleTVServer) CloneApplicationFile(context.Context, *CloneA
 }
 func (UnimplementedJungleTVServer) DeleteApplicationFile(context.Context, *DeleteApplicationFileRequest) (*DeleteApplicationFileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplicationFile not implemented")
+}
+func (UnimplementedJungleTVServer) LaunchApplication(context.Context, *LaunchApplicationRequest) (*LaunchApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LaunchApplication not implemented")
+}
+func (UnimplementedJungleTVServer) StopApplication(context.Context, *StopApplicationRequest) (*StopApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopApplication not implemented")
+}
+func (UnimplementedJungleTVServer) ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplicationLog not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3336,6 +3378,60 @@ func _JungleTV_DeleteApplicationFile_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_LaunchApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LaunchApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).LaunchApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/LaunchApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).LaunchApplication(ctx, req.(*LaunchApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_StopApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).StopApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/StopApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).StopApplication(ctx, req.(*StopApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ApplicationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplicationLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ApplicationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ApplicationLog",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ApplicationLog(ctx, req.(*ApplicationLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3694,6 +3790,18 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteApplicationFile",
 			Handler:    _JungleTV_DeleteApplicationFile_Handler,
+		},
+		{
+			MethodName: "LaunchApplication",
+			Handler:    _JungleTV_LaunchApplication_Handler,
+		},
+		{
+			MethodName: "StopApplication",
+			Handler:    _JungleTV_StopApplication_Handler,
+		},
+		{
+			MethodName: "ApplicationLog",
+			Handler:    _JungleTV_ApplicationLog_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
