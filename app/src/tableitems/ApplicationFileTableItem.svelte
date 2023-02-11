@@ -80,6 +80,8 @@
             case "application/json":
                 return "fas fa-file-alt";
             case "text/javascript":
+            case "application/javascript":
+            case "application/x-javascript":
                 return "fas fa-file-code";
             default:
                 return "fas fa-file";

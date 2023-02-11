@@ -14,6 +14,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/exp/slices"
 )
 
 type appInstance struct {
@@ -67,7 +68,7 @@ func (a *appInstance) getMainFileSource() (string, error) {
 	if !ok {
 		return "", stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found")
 	}
-	if file.Type != ServerScriptMIMEType {
+	if !slices.Contains(validServerScriptMIMETypes, file.Type) {
 		return "", stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
 	}
 	return string(file.Content), nil
@@ -80,19 +81,21 @@ func (a *appInstance) Start() error {
 	if a.started {
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyStarted, "")
 	}
-	a.loop.Start()
-	a.started = true
-	a.startedOrStoppedAt = time.Now()
-	a.appLogger.RuntimeLog("application instance started")
 
 	mainSource, err := a.getMainFileSource()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	a.runOnLoopAndLogError(a.setupEnvironment)
+	a.loop.Start()
+	a.started = true
+	a.startedOrStoppedAt = time.Now()
 
-	a.runOnLoopAndLogError(func(vm *goja.Runtime) error {
+	a.runOnLoopAsync(a.setupEnvironment)
+
+	a.appLogger.RuntimeLog("application instance started")
+
+	a.runOnLoopAsync(func(vm *goja.Runtime) error {
 		_, err = vm.RunString(mainSource)
 		return stacktrace.Propagate(err, "")
 	})
@@ -100,22 +103,20 @@ func (a *appInstance) Start() error {
 	return nil
 }
 
-func (a *appInstance) runOnLoopAndLogError(f func(vm *goja.Runtime) error) {
-	errCh := make(chan error)
+func (a *appInstance) runOnLoopAsync(f func(vm *goja.Runtime) error) {
 	a.loop.RunOnLoop(func(vm *goja.Runtime) {
-		errCh <- f(vm)
+		err := f(vm)
+		if err != nil {
+			a.appLogger.RuntimeError(err)
+		}
 	})
-	err := <-errCh
-	if err != nil {
-		a.appLogger.RuntimeError(err)
-	}
 }
 
 func (a *appInstance) setupEnvironment(vm *goja.Runtime) error {
-	err := vm.GlobalObject().Set("process", process{
-		Title:    a.applicationID,
-		Platform: "jungletv",
-		Version:  fmt.Sprint(RuntimeVersion),
+	err := vm.GlobalObject().Set("process", map[string]string{
+		"title":    a.applicationID,
+		"platform": "jungletv",
+		"version":  fmt.Sprint(RuntimeVersion),
 	})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -124,12 +125,6 @@ func (a *appInstance) setupEnvironment(vm *goja.Runtime) error {
 }
 
 var appInstanceInterruptValue = struct{}{}
-
-type process struct {
-	Title    string `json:"title"`
-	Platform string `json:"platform"`
-	Version  string `json:"version"`
-}
 
 // Stop stops the application instance, returning an error if it is already stopped
 func (a *appInstance) Stop(force, blocking bool) error {
@@ -182,7 +177,7 @@ func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
 	if !ok {
 		return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found"))
 	}
-	if file.Type != ServerScriptMIMEType {
+	if !slices.Contains(validServerScriptMIMETypes, file.Type) {
 		return nil, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "source file has wrong type")
 	}
 

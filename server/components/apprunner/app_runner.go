@@ -24,6 +24,8 @@ const MainFileName = "main.js"
 // ServerScriptMIMEType is the content type of the application scripts executed by the server
 const ServerScriptMIMEType = "text/javascript"
 
+var validServerScriptMIMETypes = []string{ServerScriptMIMEType, "application/javascript", "application/x-javascript"}
+
 // ErrApplicationNotFound is returned when the specified application was not found
 var ErrApplicationNotFound = errors.New("application not found")
 
