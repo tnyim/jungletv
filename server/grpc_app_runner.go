@@ -10,6 +10,8 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/utils"
+	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -95,6 +97,40 @@ func (s *grpcServer) ApplicationLog(ctx context.Context, r *proto.ApplicationLog
 	return &proto.ApplicationLogResponse{
 		Entries: protoEntries,
 	}, nil
+}
+
+func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest, stream proto.JungleTV_ConsumeApplicationLogServer) error {
+	appLog, err := s.appRunner.ApplicationLog(r.ApplicationId)
+	if err != nil {
+		if errors.Is(err, apprunner.ErrApplicationLogNotFound) {
+			return status.Error(codes.NotFound, "application log not found")
+		}
+		return stacktrace.Propagate(err, "")
+	}
+
+	onLogEntryAdded, logEntryAddedU := appLog.LogEntryAdded().Subscribe(event.ExactlyOnceGuarantee)
+	defer logEntryAddedU()
+
+	levels, err := convertApplicationLogLevelsFromProto(r.Levels)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	levelsSet := utils.SliceToSet(levels)
+
+	for {
+		var err error
+		select {
+		case entry := <-onLogEntryAdded:
+			if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
+				err = stream.Send(convertApplicationLogEntry(entry))
+			}
+		case <-stream.Context().Done():
+			return nil
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to send chat update")
+		}
+	}
 }
 
 func convertApplicationLogLevelsFromProto(orig []proto.ApplicationLogLevel) ([]apprunner.ApplicationLogLevel, error) {

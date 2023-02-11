@@ -71,3 +71,12 @@ func CastStringLikeSlice[T ~string, V ~string](in []T) []V {
 	}
 	return result
 }
+
+// SliceToSet returns a map-based set with the elements of the specified slice
+func SliceToSet[T comparable](s []T) map[T]struct{} {
+	set := make(map[T]struct{})
+	for _, item := range s {
+		set[item] = struct{}{}
+	}
+	return set
+}

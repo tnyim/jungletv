@@ -131,3 +131,8 @@ message ApplicationLogEntry {
 message ApplicationLogResponse {
     repeated ApplicationLogEntry entries = 1;
 }
+
+message ConsumeApplicationLogRequest {
+    string application_id = 1;
+    repeated ApplicationLogLevel levels = 2;
+}

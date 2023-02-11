@@ -896,6 +896,15 @@ type JungleTVApplicationLog = {
   readonly responseType: typeof application_editor_pb.ApplicationLogResponse;
 };
 
+type JungleTVConsumeApplicationLog = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof application_editor_pb.ConsumeApplicationLogRequest;
+  readonly responseType: typeof application_editor_pb.ApplicationLogEntry;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -997,6 +1006,7 @@ export class JungleTV {
   static readonly LaunchApplication: JungleTVLaunchApplication;
   static readonly StopApplication: JungleTVStopApplication;
   static readonly ApplicationLog: JungleTVApplicationLog;
+  static readonly ConsumeApplicationLog: JungleTVConsumeApplicationLog;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1858,5 +1868,6 @@ export class JungleTVClient {
     requestMessage: application_editor_pb.ApplicationLogRequest,
     callback: (error: ServiceError|null, responseMessage: application_editor_pb.ApplicationLogResponse|null) => void
   ): UnaryResponse;
+  consumeApplicationLog(requestMessage: application_editor_pb.ConsumeApplicationLogRequest, metadata?: grpc.Metadata): ResponseStream<application_editor_pb.ApplicationLogEntry>;
 }
 

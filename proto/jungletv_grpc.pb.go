@@ -119,6 +119,7 @@ type JungleTVClient interface {
 	LaunchApplication(ctx context.Context, in *LaunchApplicationRequest, opts ...grpc.CallOption) (*LaunchApplicationResponse, error)
 	StopApplication(ctx context.Context, in *StopApplicationRequest, opts ...grpc.CallOption) (*StopApplicationResponse, error)
 	ApplicationLog(ctx context.Context, in *ApplicationLogRequest, opts ...grpc.CallOption) (*ApplicationLogResponse, error)
+	ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error)
 }
 
 type jungleTVClient struct {
@@ -1204,6 +1205,38 @@ func (c *jungleTVClient) ApplicationLog(ctx context.Context, in *ApplicationLogR
 	return out, nil
 }
 
+func (c *jungleTVClient) ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[8], "/jungletv.JungleTV/ConsumeApplicationLog", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVConsumeApplicationLogClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_ConsumeApplicationLogClient interface {
+	Recv() (*ApplicationLogEntry, error)
+	grpc.ClientStream
+}
+
+type jungleTVConsumeApplicationLogClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVConsumeApplicationLogClient) Recv() (*ApplicationLogEntry, error) {
+	m := new(ApplicationLogEntry)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1309,6 +1342,7 @@ type JungleTVServer interface {
 	LaunchApplication(context.Context, *LaunchApplicationRequest) (*LaunchApplicationResponse, error)
 	StopApplication(context.Context, *StopApplicationRequest) (*StopApplicationResponse, error)
 	ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error)
+	ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1612,6 +1646,9 @@ func (UnimplementedJungleTVServer) StopApplication(context.Context, *StopApplica
 }
 func (UnimplementedJungleTVServer) ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplicationLog not implemented")
+}
+func (UnimplementedJungleTVServer) ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error {
+	return status.Errorf(codes.Unimplemented, "method ConsumeApplicationLog not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3432,6 +3469,27 @@ func _JungleTV_ApplicationLog_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ConsumeApplicationLog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConsumeApplicationLogRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).ConsumeApplicationLog(m, &jungleTVConsumeApplicationLogServer{stream})
+}
+
+type JungleTV_ConsumeApplicationLogServer interface {
+	Send(*ApplicationLogEntry) error
+	grpc.ServerStream
+}
+
+type jungleTVConsumeApplicationLogServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVConsumeApplicationLogServer) Send(m *ApplicationLogEntry) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3843,6 +3901,11 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "MonitorModerationStatus",
 			Handler:       _JungleTV_MonitorModerationStatus_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ConsumeApplicationLog",
+			Handler:       _JungleTV_ConsumeApplicationLog_Handler,
 			ServerStreams: true,
 		},
 	},

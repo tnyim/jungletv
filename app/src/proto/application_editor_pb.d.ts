@@ -629,6 +629,32 @@ export namespace ApplicationLogResponse {
   }
 }
 
+export class ConsumeApplicationLogRequest extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  clearLevelsList(): void;
+  getLevelsList(): Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>;
+  setLevelsList(value: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>): void;
+  addLevels(value: ApplicationLogLevelMap[keyof ApplicationLogLevelMap], index?: number): ApplicationLogLevelMap[keyof ApplicationLogLevelMap];
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsumeApplicationLogRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsumeApplicationLogRequest): ConsumeApplicationLogRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsumeApplicationLogRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsumeApplicationLogRequest;
+  static deserializeBinaryFromReader(message: ConsumeApplicationLogRequest, reader: jspb.BinaryReader): ConsumeApplicationLogRequest;
+}
+
+export namespace ConsumeApplicationLogRequest {
+  export type AsObject = {
+    applicationId: string,
+    levelsList: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>,
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

@@ -113,6 +113,7 @@ service JungleTV {
     rpc LaunchApplication(LaunchApplicationRequest) returns (LaunchApplicationResponse) {}
     rpc StopApplication(StopApplicationRequest) returns (StopApplicationResponse) {}
     rpc ApplicationLog(ApplicationLogRequest) returns (ApplicationLogResponse) {}
+    rpc ConsumeApplicationLog(ConsumeApplicationLogRequest) returns (stream ApplicationLogEntry) {}
 }
 
 message SignInRequest {
