@@ -3,12 +3,23 @@
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
     import PaginatedTable from "../PaginatedTable.svelte";
-    import { Application } from "../proto/application_editor_pb";
+    import { Application, RunningApplication } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
+    import RunningApplications from "./RunningApplications.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
+    let runningApplications: RunningApplication[] = [];
+    let runningApplicationsSet: { [id: string]: boolean} = {};
+
+    $: {
+        let s = {};
+        for (let application of runningApplications) {
+            s[application.getApplicationId()] = true;
+        }
+        runningApplicationsSet = s;
+    }
 
     let cur_page = 0;
     async function getPage(pagParams: PaginationParameters): Promise<[Application[], number]> {
@@ -73,6 +84,8 @@
         </button>
     </p>
 
+    <RunningApplications bind:runningApplications />
+
     <PaginatedTable
         title={"Applications"}
         column_count={6}
@@ -92,7 +105,6 @@
             >
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Application ID</th>
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Properties</th>
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
@@ -100,7 +112,11 @@
         </svelte:fragment>
 
         <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
-            <ApplicationTableItem application={item} {updateDataCallback} />
+            <ApplicationTableItem
+                application={item}
+                launched={runningApplicationsSet[item.getId()]}
+                {updateDataCallback}
+            />
         </tbody>
     </PaginatedTable>
 </div>

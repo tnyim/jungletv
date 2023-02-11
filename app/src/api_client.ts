@@ -5,7 +5,7 @@ import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/ser
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
-import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntry, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
+import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
@@ -857,12 +857,21 @@ class APIClient {
         return this.unaryRPC(JungleTV.ApplicationLog, request);
     }
 
-    consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, onUpdate: (update: ApplicationLogEntry) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
         let request = new ConsumeApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
         return this.serverStreamingRPC(
             JungleTV.ConsumeApplicationLog,
+            request,
+            onUpdate,
+            onEnd);
+    }
+
+    monitorRunningApplications(onUpdate: (update: RunningApplications) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        let request = new MonitorRunningApplicationsRequest();
+        return this.serverStreamingRPC(
+            JungleTV.MonitorRunningApplications,
             request,
             onUpdate,
             onEnd);

@@ -197,6 +197,8 @@ github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7/go.mod h1:hn7BA
 github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d/go.mod h1:DngW8aVqWbuLRMHItjPUyqdj+HWPvnQe8V8y1nDpIbM=
 github.com/dop251/goja_nodejs v0.0.0-20230121151440-041f29a15066 h1:Xfx4AWxqtJBs2SiZlkIbELiMdKnxAwihZKKY09qe9/A=
 github.com/dop251/goja_nodejs v0.0.0-20230121151440-041f29a15066/go.mod h1:0tlktQL7yHfYEtjcRGi/eiOkbDR5XF7gyFFvbC5//E0=
+github.com/dop251/goja_nodejs v0.0.0-20230207183254-2229640ea097 h1:WsLyDk8yHsVT1puf/32883ZxEb6Pgqd19AlQH9mxVK0=
+github.com/dop251/goja_nodejs v0.0.0-20230207183254-2229640ea097/go.mod h1:0tlktQL7yHfYEtjcRGi/eiOkbDR5XF7gyFFvbC5//E0=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dyson/certman v0.3.0 h1:S7WCUim5faT/OiBhiY3u5cMaiC9MNKiA+8PJDXLaIYQ=
 github.com/dyson/certman v0.3.0/go.mod h1:RMWlyA9op6D9SxOBRRX3sxnParehv9gf52WWUJPd1JA=

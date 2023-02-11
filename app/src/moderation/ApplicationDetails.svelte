@@ -21,6 +21,9 @@
 
     async function fetchApplication(id: string) {
         application = await apiClient.getApplication(id);
+        allowEditing = application.getAllowFileEditing();
+        allowLaunching = application.getAllowLaunching();
+        autorun = application.getAutorun();
     }
 
     let cur_page = 0;
@@ -35,6 +38,10 @@
             prevSearchQuery = searchQuery;
         }
     }
+
+    let allowEditing = false;
+    let allowLaunching = false;
+    let autorun = false;
 
     let fileInput: HTMLInputElement;
     let uploadFiles: FileList;
@@ -69,6 +76,27 @@
             await modalAlert("An error occurred when uploading the file: " + e);
         }
     }
+
+    async function updateProperties() {
+        application.setAllowFileEditing(allowEditing);
+        application.setAllowLaunching(allowLaunching);
+        application.setAutorun(autorun);
+
+        let message = await modalPrompt("Enter an edit message:", "Update application properties");
+        if (message === null) {
+            return;
+        }
+        application.setEditMessage(message);
+        try {
+            await apiClient.updateApplication(application);
+            await fetchApplication(application.getId());
+            cur_page = -1;
+            fileInput.value = "";
+            uploadFiles = undefined;
+        } catch (e) {
+            await modalAlert("An error occurred when updating the application: " + e);
+        }
+    }
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
@@ -84,6 +112,49 @@
 
     {#if typeof application !== "undefined"}
         <p class="font-semibold text-xl mb-4">Application <span class="font-mono">{application.getId()}</span></p>
+        <div class="mb-4">
+            <p>
+                <input
+                    id="allowEditing"
+                    name="allowEditing"
+                    type="checkbox"
+                    bind:checked={allowEditing}
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                />
+                <label for="allowEditing" class="font-medium text-gray-700 dark:text-gray-300">Allow editing</label>
+            </p>
+            <p>
+                <input
+                    id="allowLaunching"
+                    name="allowLaunching"
+                    type="checkbox"
+                    bind:checked={allowLaunching}
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                />
+                <label for="allowLaunching" class="font-medium text-gray-700 dark:text-gray-300">Allow launching</label>
+            </p>
+            <p>
+                <input
+                    id="autorun"
+                    name="autorun"
+                    type="checkbox"
+                    bind:checked={autorun}
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                />
+                <label for="autorun" class="font-medium text-gray-700 dark:text-gray-300">Run on server start-up</label>
+            </p>
+            <p>
+                <button
+                    on:click={updateProperties}
+                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
+                    bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
+                    text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
+                >
+                    Update properties
+                </button>
+            </p>
+        </div>
+        <p class="font-semibold text-lg">Files</p>
         <p>
             <input type="file" bind:files={uploadFiles} bind:this={fileInput} />
             <button

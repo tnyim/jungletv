@@ -655,6 +655,106 @@ export namespace ConsumeApplicationLogRequest {
   }
 }
 
+export class ApplicationLogEntryContainer extends jspb.Message {
+  getIsHeartbeat(): boolean;
+  setIsHeartbeat(value: boolean): void;
+
+  hasEntry(): boolean;
+  clearEntry(): void;
+  getEntry(): ApplicationLogEntry | undefined;
+  setEntry(value?: ApplicationLogEntry): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApplicationLogEntryContainer.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationLogEntryContainer): ApplicationLogEntryContainer.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApplicationLogEntryContainer, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationLogEntryContainer;
+  static deserializeBinaryFromReader(message: ApplicationLogEntryContainer, reader: jspb.BinaryReader): ApplicationLogEntryContainer;
+}
+
+export namespace ApplicationLogEntryContainer {
+  export type AsObject = {
+    isHeartbeat: boolean,
+    entry?: ApplicationLogEntry.AsObject,
+  }
+}
+
+export class MonitorRunningApplicationsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MonitorRunningApplicationsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorRunningApplicationsRequest): MonitorRunningApplicationsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MonitorRunningApplicationsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorRunningApplicationsRequest;
+  static deserializeBinaryFromReader(message: MonitorRunningApplicationsRequest, reader: jspb.BinaryReader): MonitorRunningApplicationsRequest;
+}
+
+export namespace MonitorRunningApplicationsRequest {
+  export type AsObject = {
+  }
+}
+
+export class RunningApplication extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  hasApplicationVersion(): boolean;
+  clearApplicationVersion(): void;
+  getApplicationVersion(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setApplicationVersion(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasStartedAt(): boolean;
+  clearStartedAt(): void;
+  getStartedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setStartedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RunningApplication.AsObject;
+  static toObject(includeInstance: boolean, msg: RunningApplication): RunningApplication.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RunningApplication, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RunningApplication;
+  static deserializeBinaryFromReader(message: RunningApplication, reader: jspb.BinaryReader): RunningApplication;
+}
+
+export namespace RunningApplication {
+  export type AsObject = {
+    applicationId: string,
+    applicationVersion?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class RunningApplications extends jspb.Message {
+  getIsHeartbeat(): boolean;
+  setIsHeartbeat(value: boolean): void;
+
+  clearRunningApplicationsList(): void;
+  getRunningApplicationsList(): Array<RunningApplication>;
+  setRunningApplicationsList(value: Array<RunningApplication>): void;
+  addRunningApplications(value?: RunningApplication, index?: number): RunningApplication;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RunningApplications.AsObject;
+  static toObject(includeInstance: boolean, msg: RunningApplications): RunningApplications.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RunningApplications, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RunningApplications;
+  static deserializeBinaryFromReader(message: RunningApplications, reader: jspb.BinaryReader): RunningApplications;
+}
+
+export namespace RunningApplications {
+  export type AsObject = {
+    isHeartbeat: boolean,
+    runningApplicationsList: Array<RunningApplication.AsObject>,
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

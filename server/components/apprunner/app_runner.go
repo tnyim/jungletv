@@ -11,6 +11,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
@@ -34,11 +35,14 @@ var ErrApplicationLogNotFound = errors.New("application log not found")
 
 // AppRunner launches applications and manages their lifecycle
 type AppRunner struct {
-	workerContext context.Context
-	log           *log.Logger
-	instances     map[string]*appInstance
-	recentLogs    *cache.Cache[string, ApplicationLog]
-	instancesLock sync.RWMutex
+	workerContext                context.Context
+	log                          *log.Logger
+	instances                    map[string]*appInstance
+	recentLogs                   *cache.Cache[string, ApplicationLog]
+	instancesLock                sync.RWMutex
+	onRunningApplicationsUpdated *event.Event[[]RunningApplication]
+	onApplicationLaunched        *event.Event[RunningApplication]
+	onApplicationStopped         *event.Event[RunningApplication]
 }
 
 // New returns a new initialized AppRunner
@@ -46,11 +50,29 @@ func New(
 	workerContext context.Context,
 	log *log.Logger) *AppRunner {
 	return &AppRunner{
-		workerContext: workerContext,
-		instances:     make(map[string]*appInstance),
-		recentLogs:    cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
-		log:           log,
+		workerContext:                workerContext,
+		instances:                    make(map[string]*appInstance),
+		recentLogs:                   cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
+		log:                          log,
+		onRunningApplicationsUpdated: event.New[[]RunningApplication](),
+		onApplicationLaunched:        event.New[RunningApplication](),
+		onApplicationStopped:         event.New[RunningApplication](),
 	}
+}
+
+// RunningApplicationsUpdated is the event that is fired when the list of running applications changes
+func (r *AppRunner) RunningApplicationsUpdated() *event.Event[[]RunningApplication] {
+	return r.onRunningApplicationsUpdated
+}
+
+// ApplicationLaunched is the event that is fired when an application is launched
+func (r *AppRunner) ApplicationLaunched() *event.Event[RunningApplication] {
+	return r.onApplicationLaunched
+}
+
+// ApplicationStopped is the event that is fired when an application is launched
+func (r *AppRunner) ApplicationStopped() *event.Event[RunningApplication] {
+	return r.onApplicationStopped
 }
 
 // LaunchApplication launches the most recent version of the specified application
@@ -76,7 +98,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	application, ok := applications[MainFileName]
+	application, ok := applications[applicationID]
 	if !ok {
 		return stacktrace.Propagate(ErrApplicationNotFound, "")
 	}
@@ -104,6 +126,13 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 
 	err = instance.Start()
 
+	_, _, startedAt := instance.Running()
+	r.onApplicationLaunched.Notify(RunningApplication{
+		ApplicationID:      instance.applicationID,
+		ApplicationVersion: instance.applicationVersion,
+		StartedAt:          startedAt,
+	}, false)
+	r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
 	return stacktrace.Propagate(err, "")
 }
 
@@ -117,7 +146,9 @@ func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) e
 		return stacktrace.NewError("application not running")
 	}
 
-	err := instance.Stop(false, false)
+	_, _, startedAt := instance.Running()
+
+	err := instance.Stop(false, true)
 	if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyStopped) {
 		return stacktrace.Propagate(err, "")
 	}
@@ -125,6 +156,12 @@ func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) e
 	delete(r.instances, applicationID)
 
 	r.recentLogs.SetDefault(applicationID, instance.appLogger)
+	r.onApplicationStopped.Notify(RunningApplication{
+		ApplicationID:      instance.applicationID,
+		ApplicationVersion: instance.applicationVersion,
+		StartedAt:          startedAt,
+	}, false)
+	r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
 	return nil
 }
 
@@ -140,7 +177,11 @@ func (r *AppRunner) RunningApplications() []RunningApplication {
 	r.instancesLock.RLock()
 	defer r.instancesLock.RUnlock()
 
-	a := make([]RunningApplication, len(r.instances))
+	return r.runningApplicationsNoLock()
+}
+
+func (r *AppRunner) runningApplicationsNoLock() []RunningApplication {
+	a := []RunningApplication{}
 	for _, instance := range r.instances {
 		running, version, startedAt := instance.Running()
 		if running {

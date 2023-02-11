@@ -117,18 +117,28 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 	}
 	levelsSet := utils.SliceToSet(levels)
 
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
+
 	for {
 		var err error
 		select {
 		case entry := <-onLogEntryAdded:
 			if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
-				err = stream.Send(convertApplicationLogEntry(entry))
+				err = stream.Send(&proto.ApplicationLogEntryContainer{
+					IsHeartbeat: false,
+					Entry:       convertApplicationLogEntry(entry),
+				})
 			}
+		case <-heartbeat.C:
+			err = stream.Send(&proto.ApplicationLogEntryContainer{
+				IsHeartbeat: true,
+			})
 		case <-stream.Context().Done():
 			return nil
 		}
 		if err != nil {
-			return stacktrace.Propagate(err, "failed to send chat update")
+			return stacktrace.Propagate(err, "failed to send log update")
 		}
 	}
 }
@@ -187,5 +197,55 @@ func convertApplicationLogEntry(orig apprunner.ApplicationLogEntry) *proto.Appli
 		CreatedAt: timestamppb.New(orig.CreatedAt()),
 		Level:     convertApplicationLogLevel(orig.LogLevel()),
 		Message:   orig.Message(),
+	}
+}
+
+func (s *grpcServer) MonitorRunningApplications(_ *proto.MonitorRunningApplicationsRequest, stream proto.JungleTV_MonitorRunningApplicationsServer) error {
+	onRunningApplicationsUpdated, runningApplicationsUpdatedU := s.appRunner.RunningApplicationsUpdated().Subscribe(event.AtLeastOnceGuarantee)
+	defer runningApplicationsUpdatedU()
+
+	runningApplications := s.appRunner.RunningApplications()
+
+	send := func(apps []apprunner.RunningApplication) error {
+		return stacktrace.Propagate(stream.Send(&proto.RunningApplications{
+			RunningApplications: convertRunningApplications(apps),
+		}), "")
+	}
+	send(runningApplications)
+
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
+
+	for {
+		var err error
+		select {
+		case runningApplications := <-onRunningApplicationsUpdated:
+			err = send(runningApplications)
+		case <-heartbeat.C:
+			err = stream.Send(&proto.RunningApplications{
+				IsHeartbeat: true,
+			})
+		case <-stream.Context().Done():
+			return nil
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to send running applications update")
+		}
+	}
+}
+
+func convertRunningApplications(orig []apprunner.RunningApplication) []*proto.RunningApplication {
+	entries := make([]*proto.RunningApplication, len(orig))
+	for i, entry := range orig {
+		entries[i] = convertRunningApplication(entry)
+	}
+	return entries
+}
+
+func convertRunningApplication(orig apprunner.RunningApplication) *proto.RunningApplication {
+	return &proto.RunningApplication{
+		ApplicationId:      orig.ApplicationID,
+		ApplicationVersion: timestamppb.New(time.Time(orig.ApplicationVersion)),
+		StartedAt:          timestamppb.New(orig.StartedAt),
 	}
 }

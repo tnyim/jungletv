@@ -14,7 +14,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/dop251/goja v0.0.0-20230203172422-5460598cfa32
-	github.com/dop251/goja_nodejs v0.0.0-20230121151440-041f29a15066
+	github.com/dop251/goja_nodejs v0.0.0-20230207183254-2229640ea097
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87

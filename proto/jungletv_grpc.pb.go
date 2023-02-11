@@ -120,6 +120,7 @@ type JungleTVClient interface {
 	StopApplication(ctx context.Context, in *StopApplicationRequest, opts ...grpc.CallOption) (*StopApplicationResponse, error)
 	ApplicationLog(ctx context.Context, in *ApplicationLogRequest, opts ...grpc.CallOption) (*ApplicationLogResponse, error)
 	ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error)
+	MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error)
 }
 
 type jungleTVClient struct {
@@ -1221,7 +1222,7 @@ func (c *jungleTVClient) ConsumeApplicationLog(ctx context.Context, in *ConsumeA
 }
 
 type JungleTV_ConsumeApplicationLogClient interface {
-	Recv() (*ApplicationLogEntry, error)
+	Recv() (*ApplicationLogEntryContainer, error)
 	grpc.ClientStream
 }
 
@@ -1229,8 +1230,40 @@ type jungleTVConsumeApplicationLogClient struct {
 	grpc.ClientStream
 }
 
-func (x *jungleTVConsumeApplicationLogClient) Recv() (*ApplicationLogEntry, error) {
-	m := new(ApplicationLogEntry)
+func (x *jungleTVConsumeApplicationLogClient) Recv() (*ApplicationLogEntryContainer, error) {
+	m := new(ApplicationLogEntryContainer)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *jungleTVClient) MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[9], "/jungletv.JungleTV/MonitorRunningApplications", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVMonitorRunningApplicationsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_MonitorRunningApplicationsClient interface {
+	Recv() (*RunningApplications, error)
+	grpc.ClientStream
+}
+
+type jungleTVMonitorRunningApplicationsClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVMonitorRunningApplicationsClient) Recv() (*RunningApplications, error) {
+	m := new(RunningApplications)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -1343,6 +1376,7 @@ type JungleTVServer interface {
 	StopApplication(context.Context, *StopApplicationRequest) (*StopApplicationResponse, error)
 	ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error)
 	ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error
+	MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1649,6 +1683,9 @@ func (UnimplementedJungleTVServer) ApplicationLog(context.Context, *ApplicationL
 }
 func (UnimplementedJungleTVServer) ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error {
 	return status.Errorf(codes.Unimplemented, "method ConsumeApplicationLog not implemented")
+}
+func (UnimplementedJungleTVServer) MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error {
+	return status.Errorf(codes.Unimplemented, "method MonitorRunningApplications not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3478,7 +3515,7 @@ func _JungleTV_ConsumeApplicationLog_Handler(srv interface{}, stream grpc.Server
 }
 
 type JungleTV_ConsumeApplicationLogServer interface {
-	Send(*ApplicationLogEntry) error
+	Send(*ApplicationLogEntryContainer) error
 	grpc.ServerStream
 }
 
@@ -3486,7 +3523,28 @@ type jungleTVConsumeApplicationLogServer struct {
 	grpc.ServerStream
 }
 
-func (x *jungleTVConsumeApplicationLogServer) Send(m *ApplicationLogEntry) error {
+func (x *jungleTVConsumeApplicationLogServer) Send(m *ApplicationLogEntryContainer) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_MonitorRunningApplications_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MonitorRunningApplicationsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).MonitorRunningApplications(m, &jungleTVMonitorRunningApplicationsServer{stream})
+}
+
+type JungleTV_MonitorRunningApplicationsServer interface {
+	Send(*RunningApplications) error
+	grpc.ServerStream
+}
+
+type jungleTVMonitorRunningApplicationsServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVMonitorRunningApplicationsServer) Send(m *RunningApplications) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -3906,6 +3964,11 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ConsumeApplicationLog",
 			Handler:       _JungleTV_ConsumeApplicationLog_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "MonitorRunningApplications",
+			Handler:       _JungleTV_MonitorRunningApplications_Handler,
 			ServerStreams: true,
 		},
 	},

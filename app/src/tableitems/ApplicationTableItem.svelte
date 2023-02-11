@@ -7,6 +7,7 @@
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let application: Application;
+    export let launched: boolean;
     export let updateDataCallback: () => void;
 
     let properties = "";
@@ -60,6 +61,24 @@
             await modalAlert("An error occurred when duplicating the application: " + e);
         }
     }
+
+    async function launchApplication() {
+        try {
+            await apiClient.launchApplication(application.getId());
+            updateDataCallback();
+        } catch (e) {
+            await modalAlert("An error occurred when launching the application: " + e);
+        }
+    }
+
+    async function stopApplication() {
+        try {
+            await apiClient.stopApplication(application.getId());
+            updateDataCallback();
+        } catch (e) {
+            await modalAlert("An error occurred when stopping the application: " + e);
+        }
+    }
 </script>
 
 <tr>
@@ -76,11 +95,7 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {application.getEditMessage()}
-    </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+        <span class="font-semibold">{application.getEditMessage()}</span><br />
         {formatDateForModeration(application.getUpdatedAt().toDate())}
     </td>
     <td
@@ -106,8 +121,23 @@
         >
             Delete
         </span>
-        {#if application.getAllowLaunching()}
-            <br /><a href={"#"}>Launch</a>
+        {#if application.getAllowLaunching() && !launched}
+            <br /><span
+                class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                tabindex="0"
+                on:click={launchApplication}
+            >
+                Launch
+            </span>
+        {/if}
+        {#if launched}
+            <br /><span
+                class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                tabindex="0"
+                on:click={stopApplication}
+            >
+                Stop
+            </span>
         {/if}
     </td>
 </tr>

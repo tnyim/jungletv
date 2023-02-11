@@ -908,7 +908,16 @@ JungleTV.ConsumeApplicationLog = {
   requestStream: false,
   responseStream: true,
   requestType: application_editor_pb.ConsumeApplicationLogRequest,
-  responseType: application_editor_pb.ApplicationLogEntry
+  responseType: application_editor_pb.ApplicationLogEntryContainer
+};
+
+JungleTV.MonitorRunningApplications = {
+  methodName: "MonitorRunningApplications",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: true,
+  requestType: application_editor_pb.MonitorRunningApplicationsRequest,
+  responseType: application_editor_pb.RunningApplications
 };
 
 exports.JungleTV = JungleTV;
@@ -4058,6 +4067,45 @@ JungleTVClient.prototype.consumeApplicationLog = function consumeApplicationLog(
     status: []
   };
   var client = grpc.invoke(JungleTV.ConsumeApplicationLog, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onMessage: function (responseMessage) {
+      listeners.data.forEach(function (handler) {
+        handler(responseMessage);
+      });
+    },
+    onEnd: function (status, statusMessage, trailers) {
+      listeners.status.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners.end.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners = null;
+    }
+  });
+  return {
+    on: function (type, handler) {
+      listeners[type].push(handler);
+      return this;
+    },
+    cancel: function () {
+      listeners = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.monitorRunningApplications = function monitorRunningApplications(requestMessage, metadata) {
+  var listeners = {
+    data: [],
+    end: [],
+    status: []
+  };
+  var client = grpc.invoke(JungleTV.MonitorRunningApplications, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -1493,6 +1493,217 @@ func (x *ConsumeApplicationLogRequest) GetLevels() []ApplicationLogLevel {
 	return nil
 }
 
+type ApplicationLogEntryContainer struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	IsHeartbeat bool                 `protobuf:"varint,1,opt,name=is_heartbeat,json=isHeartbeat,proto3" json:"is_heartbeat,omitempty"`
+	Entry       *ApplicationLogEntry `protobuf:"bytes,2,opt,name=entry,proto3,oneof" json:"entry,omitempty"`
+}
+
+func (x *ApplicationLogEntryContainer) Reset() {
+	*x = ApplicationLogEntryContainer{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationLogEntryContainer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationLogEntryContainer) ProtoMessage() {}
+
+func (x *ApplicationLogEntryContainer) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationLogEntryContainer.ProtoReflect.Descriptor instead.
+func (*ApplicationLogEntryContainer) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ApplicationLogEntryContainer) GetIsHeartbeat() bool {
+	if x != nil {
+		return x.IsHeartbeat
+	}
+	return false
+}
+
+func (x *ApplicationLogEntryContainer) GetEntry() *ApplicationLogEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+type MonitorRunningApplicationsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *MonitorRunningApplicationsRequest) Reset() {
+	*x = MonitorRunningApplicationsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MonitorRunningApplicationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MonitorRunningApplicationsRequest) ProtoMessage() {}
+
+func (x *MonitorRunningApplicationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MonitorRunningApplicationsRequest.ProtoReflect.Descriptor instead.
+func (*MonitorRunningApplicationsRequest) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{27}
+}
+
+type RunningApplication struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId      string                 `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	ApplicationVersion *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=application_version,json=applicationVersion,proto3" json:"application_version,omitempty"`
+	StartedAt          *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+}
+
+func (x *RunningApplication) Reset() {
+	*x = RunningApplication{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[28]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RunningApplication) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunningApplication) ProtoMessage() {}
+
+func (x *RunningApplication) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[28]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunningApplication.ProtoReflect.Descriptor instead.
+func (*RunningApplication) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RunningApplication) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *RunningApplication) GetApplicationVersion() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ApplicationVersion
+	}
+	return nil
+}
+
+func (x *RunningApplication) GetStartedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartedAt
+	}
+	return nil
+}
+
+type RunningApplications struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	IsHeartbeat         bool                  `protobuf:"varint,1,opt,name=is_heartbeat,json=isHeartbeat,proto3" json:"is_heartbeat,omitempty"`
+	RunningApplications []*RunningApplication `protobuf:"bytes,2,rep,name=running_applications,json=runningApplications,proto3" json:"running_applications,omitempty"`
+}
+
+func (x *RunningApplications) Reset() {
+	*x = RunningApplications{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[29]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RunningApplications) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunningApplications) ProtoMessage() {}
+
+func (x *RunningApplications) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[29]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunningApplications.ProtoReflect.Descriptor instead.
+func (*RunningApplications) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RunningApplications) GetIsHeartbeat() bool {
+	if x != nil {
+		return x.IsHeartbeat
+	}
+	return false
+}
+
+func (x *RunningApplications) GetRunningApplications() []*RunningApplication {
+	if x != nil {
+		return x.RunningApplications
+	}
+	return nil
+}
+
 var File_application_editor_proto protoreflect.FileDescriptor
 
 var file_application_editor_proto_rawDesc = []byte{
@@ -1666,25 +1877,57 @@ var file_application_editor_proto_rawDesc = []byte{
 	0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x35, 0x0a, 0x06, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x73,
 	0x18, 0x02, 0x20, 0x03, 0x28, 0x0e, 0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
 	0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67,
-	0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x06, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x73, 0x2a, 0xf1, 0x01,
-	0x0a, 0x13, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67,
-	0x4c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x21, 0x0a, 0x1d, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e,
-	0x5f, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47,
-	0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x10, 0x00, 0x12, 0x20, 0x0a, 0x1c, 0x41, 0x50, 0x50, 0x4c,
-	0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45,
-	0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x01, 0x12, 0x21, 0x0a, 0x1d, 0x41, 0x50,
-	0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45,
-	0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x57, 0x41, 0x52, 0x4e, 0x10, 0x02, 0x12, 0x22, 0x0a,
-	0x1e, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47,
-	0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10,
-	0x03, 0x12, 0x25, 0x0a, 0x21, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e,
-	0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x52, 0x55, 0x4e, 0x54, 0x49,
-	0x4d, 0x45, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x04, 0x12, 0x27, 0x0a, 0x23, 0x41, 0x50, 0x50, 0x4c,
-	0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45,
-	0x4c, 0x5f, 0x52, 0x55, 0x4e, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10,
-	0x05, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x06, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x73, 0x22, 0x85, 0x01,
+	0x0a, 0x1c, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x43, 0x6f, 0x6e, 0x74, 0x61, 0x69, 0x6e, 0x65, 0x72, 0x12, 0x21,
+	0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x68, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x73, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61,
+	0x74, 0x12, 0x38, 0x0a, 0x05, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x48,
+	0x00, 0x52, 0x05, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x88, 0x01, 0x01, 0x42, 0x08, 0x0a, 0x06, 0x5f,
+	0x65, 0x6e, 0x74, 0x72, 0x79, 0x22, 0x23, 0x0a, 0x21, 0x4d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72,
+	0x52, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xc3, 0x01, 0x0a, 0x12, 0x52,
+	0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x61, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x4b, 0x0a, 0x13, 0x61, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x52, 0x12, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x56, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x39, 0x0a, 0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x65, 0x64,
+	0x5f, 0x61, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65,
+	0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x65, 0x64, 0x41, 0x74,
+	0x22, 0x89, 0x01, 0x0a, 0x13, 0x52, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x68,
+	0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b,
+	0x69, 0x73, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x12, 0x4f, 0x0a, 0x14, 0x72,
+	0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x5f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
+	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x52, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x13, 0x72, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67,
+	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2a, 0xf1, 0x01, 0x0a,
+	0x13, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x4c,
+	0x65, 0x76, 0x65, 0x6c, 0x12, 0x21, 0x0a, 0x1d, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x5f,
+	0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f,
+	0x4c, 0x45, 0x56, 0x45, 0x4c, 0x10, 0x00, 0x12, 0x20, 0x0a, 0x1c, 0x41, 0x50, 0x50, 0x4c, 0x49,
+	0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c,
+	0x5f, 0x4a, 0x53, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x01, 0x12, 0x21, 0x0a, 0x1d, 0x41, 0x50, 0x50,
+	0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56,
+	0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x57, 0x41, 0x52, 0x4e, 0x10, 0x02, 0x12, 0x22, 0x0a, 0x1e,
+	0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f,
+	0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x4a, 0x53, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x03,
+	0x12, 0x25, 0x0a, 0x21, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f,
+	0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c, 0x5f, 0x52, 0x55, 0x4e, 0x54, 0x49, 0x4d,
+	0x45, 0x5f, 0x4c, 0x4f, 0x47, 0x10, 0x04, 0x12, 0x27, 0x0a, 0x23, 0x41, 0x50, 0x50, 0x4c, 0x49,
+	0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45, 0x56, 0x45, 0x4c,
+	0x5f, 0x52, 0x55, 0x4e, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x05,
+	0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74,
+	0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1700,59 +1943,67 @@ func file_application_editor_proto_rawDescGZIP() []byte {
 }
 
 var file_application_editor_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_application_editor_proto_goTypes = []interface{}{
-	(ApplicationLogLevel)(0),              // 0: jungletv.ApplicationLogLevel
-	(*ApplicationsRequest)(nil),           // 1: jungletv.ApplicationsRequest
-	(*ApplicationsResponse)(nil),          // 2: jungletv.ApplicationsResponse
-	(*GetApplicationRequest)(nil),         // 3: jungletv.GetApplicationRequest
-	(*Application)(nil),                   // 4: jungletv.Application
-	(*UpdateApplicationResponse)(nil),     // 5: jungletv.UpdateApplicationResponse
-	(*CloneApplicationRequest)(nil),       // 6: jungletv.CloneApplicationRequest
-	(*CloneApplicationResponse)(nil),      // 7: jungletv.CloneApplicationResponse
-	(*DeleteApplicationRequest)(nil),      // 8: jungletv.DeleteApplicationRequest
-	(*DeleteApplicationResponse)(nil),     // 9: jungletv.DeleteApplicationResponse
-	(*ApplicationFilesRequest)(nil),       // 10: jungletv.ApplicationFilesRequest
-	(*ApplicationFilesResponse)(nil),      // 11: jungletv.ApplicationFilesResponse
-	(*ApplicationFile)(nil),               // 12: jungletv.ApplicationFile
-	(*GetApplicationFileRequest)(nil),     // 13: jungletv.GetApplicationFileRequest
-	(*UpdateApplicationFileResponse)(nil), // 14: jungletv.UpdateApplicationFileResponse
-	(*CloneApplicationFileRequest)(nil),   // 15: jungletv.CloneApplicationFileRequest
-	(*CloneApplicationFileResponse)(nil),  // 16: jungletv.CloneApplicationFileResponse
-	(*DeleteApplicationFileRequest)(nil),  // 17: jungletv.DeleteApplicationFileRequest
-	(*DeleteApplicationFileResponse)(nil), // 18: jungletv.DeleteApplicationFileResponse
-	(*LaunchApplicationRequest)(nil),      // 19: jungletv.LaunchApplicationRequest
-	(*LaunchApplicationResponse)(nil),     // 20: jungletv.LaunchApplicationResponse
-	(*StopApplicationRequest)(nil),        // 21: jungletv.StopApplicationRequest
-	(*StopApplicationResponse)(nil),       // 22: jungletv.StopApplicationResponse
-	(*ApplicationLogRequest)(nil),         // 23: jungletv.ApplicationLogRequest
-	(*ApplicationLogEntry)(nil),           // 24: jungletv.ApplicationLogEntry
-	(*ApplicationLogResponse)(nil),        // 25: jungletv.ApplicationLogResponse
-	(*ConsumeApplicationLogRequest)(nil),  // 26: jungletv.ConsumeApplicationLogRequest
-	(*PaginationParameters)(nil),          // 27: jungletv.PaginationParameters
-	(*timestamppb.Timestamp)(nil),         // 28: google.protobuf.Timestamp
-	(*User)(nil),                          // 29: jungletv.User
+	(ApplicationLogLevel)(0),                  // 0: jungletv.ApplicationLogLevel
+	(*ApplicationsRequest)(nil),               // 1: jungletv.ApplicationsRequest
+	(*ApplicationsResponse)(nil),              // 2: jungletv.ApplicationsResponse
+	(*GetApplicationRequest)(nil),             // 3: jungletv.GetApplicationRequest
+	(*Application)(nil),                       // 4: jungletv.Application
+	(*UpdateApplicationResponse)(nil),         // 5: jungletv.UpdateApplicationResponse
+	(*CloneApplicationRequest)(nil),           // 6: jungletv.CloneApplicationRequest
+	(*CloneApplicationResponse)(nil),          // 7: jungletv.CloneApplicationResponse
+	(*DeleteApplicationRequest)(nil),          // 8: jungletv.DeleteApplicationRequest
+	(*DeleteApplicationResponse)(nil),         // 9: jungletv.DeleteApplicationResponse
+	(*ApplicationFilesRequest)(nil),           // 10: jungletv.ApplicationFilesRequest
+	(*ApplicationFilesResponse)(nil),          // 11: jungletv.ApplicationFilesResponse
+	(*ApplicationFile)(nil),                   // 12: jungletv.ApplicationFile
+	(*GetApplicationFileRequest)(nil),         // 13: jungletv.GetApplicationFileRequest
+	(*UpdateApplicationFileResponse)(nil),     // 14: jungletv.UpdateApplicationFileResponse
+	(*CloneApplicationFileRequest)(nil),       // 15: jungletv.CloneApplicationFileRequest
+	(*CloneApplicationFileResponse)(nil),      // 16: jungletv.CloneApplicationFileResponse
+	(*DeleteApplicationFileRequest)(nil),      // 17: jungletv.DeleteApplicationFileRequest
+	(*DeleteApplicationFileResponse)(nil),     // 18: jungletv.DeleteApplicationFileResponse
+	(*LaunchApplicationRequest)(nil),          // 19: jungletv.LaunchApplicationRequest
+	(*LaunchApplicationResponse)(nil),         // 20: jungletv.LaunchApplicationResponse
+	(*StopApplicationRequest)(nil),            // 21: jungletv.StopApplicationRequest
+	(*StopApplicationResponse)(nil),           // 22: jungletv.StopApplicationResponse
+	(*ApplicationLogRequest)(nil),             // 23: jungletv.ApplicationLogRequest
+	(*ApplicationLogEntry)(nil),               // 24: jungletv.ApplicationLogEntry
+	(*ApplicationLogResponse)(nil),            // 25: jungletv.ApplicationLogResponse
+	(*ConsumeApplicationLogRequest)(nil),      // 26: jungletv.ConsumeApplicationLogRequest
+	(*ApplicationLogEntryContainer)(nil),      // 27: jungletv.ApplicationLogEntryContainer
+	(*MonitorRunningApplicationsRequest)(nil), // 28: jungletv.MonitorRunningApplicationsRequest
+	(*RunningApplication)(nil),                // 29: jungletv.RunningApplication
+	(*RunningApplications)(nil),               // 30: jungletv.RunningApplications
+	(*PaginationParameters)(nil),              // 31: jungletv.PaginationParameters
+	(*timestamppb.Timestamp)(nil),             // 32: google.protobuf.Timestamp
+	(*User)(nil),                              // 33: jungletv.User
 }
 var file_application_editor_proto_depIdxs = []int32{
-	27, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	31, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
 	4,  // 1: jungletv.ApplicationsResponse.applications:type_name -> jungletv.Application
-	28, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
-	29, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
-	27, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	32, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
+	33, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
+	31, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
 	12, // 5: jungletv.ApplicationFilesResponse.files:type_name -> jungletv.ApplicationFile
-	28, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
-	29, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
+	32, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
+	33, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
 	0,  // 8: jungletv.ApplicationLogRequest.levels:type_name -> jungletv.ApplicationLogLevel
-	28, // 9: jungletv.ApplicationLogRequest.offset:type_name -> google.protobuf.Timestamp
-	28, // 10: jungletv.ApplicationLogEntry.created_at:type_name -> google.protobuf.Timestamp
+	32, // 9: jungletv.ApplicationLogRequest.offset:type_name -> google.protobuf.Timestamp
+	32, // 10: jungletv.ApplicationLogEntry.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 11: jungletv.ApplicationLogEntry.level:type_name -> jungletv.ApplicationLogLevel
 	24, // 12: jungletv.ApplicationLogResponse.entries:type_name -> jungletv.ApplicationLogEntry
 	0,  // 13: jungletv.ConsumeApplicationLogRequest.levels:type_name -> jungletv.ApplicationLogLevel
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	24, // 14: jungletv.ApplicationLogEntryContainer.entry:type_name -> jungletv.ApplicationLogEntry
+	32, // 15: jungletv.RunningApplication.application_version:type_name -> google.protobuf.Timestamp
+	32, // 16: jungletv.RunningApplication.started_at:type_name -> google.protobuf.Timestamp
+	29, // 17: jungletv.RunningApplications.running_applications:type_name -> jungletv.RunningApplication
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_application_editor_proto_init() }
@@ -2074,16 +2325,65 @@ func file_application_editor_proto_init() {
 				return nil
 			}
 		}
+		file_application_editor_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationLogEntryContainer); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MonitorRunningApplicationsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RunningApplication); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RunningApplications); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_application_editor_proto_msgTypes[11].OneofWrappers = []interface{}{}
 	file_application_editor_proto_msgTypes[22].OneofWrappers = []interface{}{}
+	file_application_editor_proto_msgTypes[26].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_application_editor_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   26,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
