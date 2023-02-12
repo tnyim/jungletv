@@ -34,6 +34,9 @@ var ErrApplicationInstanceAlreadyStopped = errors.New("application instance alre
 var ErrApplicationFileNotFound = errors.New("application file not found")
 var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application file")
 
+// ErrApplicationInstanceNotRunning is returned when the specified application is not running
+var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
+
 func newAppInstance(ctx context.Context, r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion) (*appInstance, error) {
 	instance := &appInstance{
 		applicationID:      applicationID,
@@ -182,4 +185,30 @@ func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
 	}
 
 	return file.Content, nil
+}
+
+func (a *appInstance) EvaluateExpression(expression string) (bool, string, time.Duration, error) {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	if !a.started {
+		return false, "", 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+	}
+
+	resultChan := make(chan goja.Value)
+	errChan := make(chan error)
+	var executionTime time.Duration
+	a.loop.RunOnLoop(func(vm *goja.Runtime) {
+		start := time.Now()
+		result, err := vm.RunString(expression)
+		executionTime = time.Since(start)
+		resultChan <- result
+		errChan <- err
+	})
+
+	result, err := <-resultChan, <-errChan
+	if err != nil {
+		return false, err.Error(), executionTime, nil
+	}
+	return true, result.String(), executionTime, nil
 }

@@ -13,6 +13,7 @@
 	import Homepage from "./Homepage.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
+	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
 	import Applications from "./moderation/Applications.svelte";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
@@ -325,6 +326,13 @@
 				<Route path="/moderate/applications/:applicationID" let:params>
 					{#if isAdmin}
 						<ApplicationDetails applicationID={params.applicationID} />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/applications/:applicationID/console" let:params>
+					{#if isAdmin}
+						<ApplicationConsole applicationID={params.applicationID} />
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}

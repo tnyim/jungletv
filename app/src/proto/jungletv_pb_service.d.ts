@@ -914,6 +914,15 @@ type JungleTVMonitorRunningApplications = {
   readonly responseType: typeof application_editor_pb.RunningApplications;
 };
 
+type JungleTVEvaluateExpressionOnApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.EvaluateExpressionOnApplicationRequest;
+  readonly responseType: typeof application_editor_pb.EvaluateExpressionOnApplicationResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -1017,6 +1026,7 @@ export class JungleTV {
   static readonly ApplicationLog: JungleTVApplicationLog;
   static readonly ConsumeApplicationLog: JungleTVConsumeApplicationLog;
   static readonly MonitorRunningApplications: JungleTVMonitorRunningApplications;
+  static readonly EvaluateExpressionOnApplication: JungleTVEvaluateExpressionOnApplication;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1880,5 +1890,14 @@ export class JungleTVClient {
   ): UnaryResponse;
   consumeApplicationLog(requestMessage: application_editor_pb.ConsumeApplicationLogRequest, metadata?: grpc.Metadata): ResponseStream<application_editor_pb.ApplicationLogEntryContainer>;
   monitorRunningApplications(requestMessage: application_editor_pb.MonitorRunningApplicationsRequest, metadata?: grpc.Metadata): ResponseStream<application_editor_pb.RunningApplications>;
+  evaluateExpressionOnApplication(
+    requestMessage: application_editor_pb.EvaluateExpressionOnApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.EvaluateExpressionOnApplicationResponse|null) => void
+  ): UnaryResponse;
+  evaluateExpressionOnApplication(
+    requestMessage: application_editor_pb.EvaluateExpressionOnApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.EvaluateExpressionOnApplicationResponse|null) => void
+  ): UnaryResponse;
 }
 

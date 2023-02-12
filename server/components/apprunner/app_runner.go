@@ -32,6 +32,9 @@ var ErrApplicationNotFound = errors.New("application not found")
 // ErrApplicationNotEnabled is returned when the specified application is not allowed to launch
 var ErrApplicationNotEnabled = errors.New("application not enabled")
 
+// ErrApplicationNotInstantiated is returned when the specified application is not instantiated
+var ErrApplicationNotInstantiated = errors.New("application not instantiated")
+
 // ErrApplicationLogNotFound is returned when the log for the specified application, or the specified application, was not found
 var ErrApplicationLogNotFound = errors.New("application log not found")
 
@@ -117,7 +120,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 	defer r.instancesLock.Unlock()
 
 	if _, ok := r.instances[applicationID]; ok {
-		return stacktrace.NewError("an instance of this application is already running")
+		return stacktrace.NewError("an instance of this application already exists")
 	}
 
 	instance, err := newAppInstance(ctx, r, application.ID, specificVersion)
@@ -145,7 +148,7 @@ func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) e
 
 	instance, ok := r.instances[applicationID]
 	if !ok {
-		return stacktrace.NewError("application not running")
+		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
 
 	_, _, startedAt := instance.Running()
@@ -228,4 +231,23 @@ func (r *AppRunner) ApplicationLog(applicationID string) (ApplicationLog, error)
 		return l, nil
 	}
 	return nil, stacktrace.Propagate(ErrApplicationLogNotFound, "")
+}
+
+func (r *AppRunner) EvaluateExpressionOnApplication(applicationID, expression string) (bool, string, time.Duration, error) {
+	var instance *appInstance
+	var ok bool
+	func() {
+		// make sure to release lock ASAP since expression execution can take a significant amount of time
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
+		instance, ok = r.instances[applicationID]
+	}()
+	if !ok {
+		return false, "", 0, stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	}
+	successful, result, executionTime, err := instance.EvaluateExpression(expression)
+	if err != nil {
+		return false, "", 0, stacktrace.Propagate(err, "")
+	}
+	return successful, result, executionTime, nil
 }

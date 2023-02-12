@@ -3,6 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as common_pb from "./common_pb";
 
 export class ApplicationsRequest extends jspb.Message {
@@ -552,8 +553,8 @@ export class ApplicationLogRequest extends jspb.Message {
 
   hasOffset(): boolean;
   clearOffset(): void;
-  getOffset(): google_protobuf_timestamp_pb.Timestamp | undefined;
-  setOffset(value?: google_protobuf_timestamp_pb.Timestamp): void;
+  getOffset(): string;
+  setOffset(value: string): void;
 
   getLimit(): number;
   setLimit(value: number): void;
@@ -572,12 +573,15 @@ export namespace ApplicationLogRequest {
   export type AsObject = {
     applicationId: string,
     levelsList: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>,
-    offset?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    offset: string,
     limit: number,
   }
 }
 
 export class ApplicationLogEntry extends jspb.Message {
+  getCursor(): string;
+  setCursor(value: string): void;
+
   hasCreatedAt(): boolean;
   clearCreatedAt(): void;
   getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
@@ -601,6 +605,7 @@ export class ApplicationLogEntry extends jspb.Message {
 
 export namespace ApplicationLogEntry {
   export type AsObject = {
+    cursor: string,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     level: ApplicationLogLevelMap[keyof ApplicationLogLevelMap],
     message: string,
@@ -612,6 +617,9 @@ export class ApplicationLogResponse extends jspb.Message {
   getEntriesList(): Array<ApplicationLogEntry>;
   setEntriesList(value: Array<ApplicationLogEntry>): void;
   addEntries(value?: ApplicationLogEntry, index?: number): ApplicationLogEntry;
+
+  getHasMore(): boolean;
+  setHasMore(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApplicationLogResponse.AsObject;
@@ -626,6 +634,7 @@ export class ApplicationLogResponse extends jspb.Message {
 export namespace ApplicationLogResponse {
   export type AsObject = {
     entriesList: Array<ApplicationLogEntry.AsObject>,
+    hasMore: boolean,
   }
 }
 
@@ -752,6 +761,60 @@ export namespace RunningApplications {
   export type AsObject = {
     isHeartbeat: boolean,
     runningApplicationsList: Array<RunningApplication.AsObject>,
+  }
+}
+
+export class EvaluateExpressionOnApplicationRequest extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getExpression(): string;
+  setExpression(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EvaluateExpressionOnApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: EvaluateExpressionOnApplicationRequest): EvaluateExpressionOnApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EvaluateExpressionOnApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvaluateExpressionOnApplicationRequest;
+  static deserializeBinaryFromReader(message: EvaluateExpressionOnApplicationRequest, reader: jspb.BinaryReader): EvaluateExpressionOnApplicationRequest;
+}
+
+export namespace EvaluateExpressionOnApplicationRequest {
+  export type AsObject = {
+    applicationId: string,
+    expression: string,
+  }
+}
+
+export class EvaluateExpressionOnApplicationResponse extends jspb.Message {
+  getSuccessful(): boolean;
+  setSuccessful(value: boolean): void;
+
+  getResult(): string;
+  setResult(value: string): void;
+
+  hasExecutionTime(): boolean;
+  clearExecutionTime(): void;
+  getExecutionTime(): google_protobuf_duration_pb.Duration | undefined;
+  setExecutionTime(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EvaluateExpressionOnApplicationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: EvaluateExpressionOnApplicationResponse): EvaluateExpressionOnApplicationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EvaluateExpressionOnApplicationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvaluateExpressionOnApplicationResponse;
+  static deserializeBinaryFromReader(message: EvaluateExpressionOnApplicationResponse, reader: jspb.BinaryReader): EvaluateExpressionOnApplicationResponse;
+}
+
+export namespace EvaluateExpressionOnApplicationResponse {
+  export type AsObject = {
+    successful: boolean,
+    result: string,
+    executionTime?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 

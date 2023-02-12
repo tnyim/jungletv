@@ -115,6 +115,7 @@ service JungleTV {
     rpc ApplicationLog(ApplicationLogRequest) returns (ApplicationLogResponse) {}
     rpc ConsumeApplicationLog(ConsumeApplicationLogRequest) returns (stream ApplicationLogEntryContainer) {}
     rpc MonitorRunningApplications(MonitorRunningApplicationsRequest) returns (stream RunningApplications) {}
+    rpc EvaluateExpressionOnApplication(EvaluateExpressionOnApplicationRequest) returns (EvaluateExpressionOnApplicationResponse) {}
 }
 
 message SignInRequest {

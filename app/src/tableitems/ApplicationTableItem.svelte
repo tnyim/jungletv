@@ -138,6 +138,8 @@
             >
                 Stop
             </span>
+            <br />
+            <a href={"/moderate/applications/" + application.getId() + "/console"} use:link>Console</a>
         {/if}
     </td>
 </tr>

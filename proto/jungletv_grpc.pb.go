@@ -121,6 +121,7 @@ type JungleTVClient interface {
 	ApplicationLog(ctx context.Context, in *ApplicationLogRequest, opts ...grpc.CallOption) (*ApplicationLogResponse, error)
 	ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error)
 	MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error)
+	EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1270,6 +1271,15 @@ func (x *jungleTVMonitorRunningApplicationsClient) Recv() (*RunningApplications,
 	return m, nil
 }
 
+func (c *jungleTVClient) EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error) {
+	out := new(EvaluateExpressionOnApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/EvaluateExpressionOnApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1377,6 +1387,7 @@ type JungleTVServer interface {
 	ApplicationLog(context.Context, *ApplicationLogRequest) (*ApplicationLogResponse, error)
 	ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error
 	MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error
+	EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1686,6 +1697,9 @@ func (UnimplementedJungleTVServer) ConsumeApplicationLog(*ConsumeApplicationLogR
 }
 func (UnimplementedJungleTVServer) MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorRunningApplications not implemented")
+}
+func (UnimplementedJungleTVServer) EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EvaluateExpressionOnApplication not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3548,6 +3562,24 @@ func (x *jungleTVMonitorRunningApplicationsServer) Send(m *RunningApplications) 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _JungleTV_EvaluateExpressionOnApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EvaluateExpressionOnApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).EvaluateExpressionOnApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/EvaluateExpressionOnApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).EvaluateExpressionOnApplication(ctx, req.(*EvaluateExpressionOnApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3918,6 +3950,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ApplicationLog",
 			Handler:    _JungleTV_ApplicationLog_Handler,
+		},
+		{
+			MethodName: "EvaluateExpressionOnApplication",
+			Handler:    _JungleTV_EvaluateExpressionOnApplication_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

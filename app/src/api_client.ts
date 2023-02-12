@@ -3,9 +3,8 @@ import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/service";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
-import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
-import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
+import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
@@ -848,11 +847,13 @@ class APIClient {
         return this.unaryRPC(JungleTV.StopApplication, request);
     }
 
-    async applicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, offset: Timestamp, limit: number): Promise<ApplicationLogResponse> {
+    async applicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, offset?: string, limit: number = 50): Promise<ApplicationLogResponse> {
         let request = new ApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
-        request.setOffset(offset);
+        if (typeof (offset) !== "undefined") {
+            request.setOffset(offset);
+        }
         request.setLimit(limit);
         return this.unaryRPC(JungleTV.ApplicationLog, request);
     }
@@ -875,6 +876,13 @@ class APIClient {
             request,
             onUpdate,
             onEnd);
+    }
+
+    async evaluateExpressionOnApplication(applicationID: string, expression: string): Promise<EvaluateExpressionOnApplicationResponse> {
+        let request = new EvaluateExpressionOnApplicationRequest();
+        request.setApplicationId(applicationID);
+        request.setExpression(expression);
+        return this.unaryRPC(JungleTV.EvaluateExpressionOnApplication, request);
     }
 
     convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {

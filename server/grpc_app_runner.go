@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner"
@@ -14,6 +16,7 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -80,9 +83,9 @@ func (s *grpcServer) ApplicationLog(ctx context.Context, r *proto.ApplicationLog
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	offset := time.Now().Add(1 * time.Hour)
+	offset := snowflake.ParseInt64(math.MaxInt64)
 	if r.Offset != nil {
-		offset = r.Offset.AsTime()
+		offset = snowflake.ParseInt64(*r.Offset) - 1
 	}
 
 	levels, err := convertApplicationLogLevelsFromProto(r.Levels)
@@ -90,12 +93,13 @@ func (s *grpcServer) ApplicationLog(ctx context.Context, r *proto.ApplicationLog
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	entries := appLog.LogEntries(offset, int(r.Limit), levels)
+	entries, hasMore := appLog.LogEntries(offset, int(r.Limit), levels)
 
 	protoEntries := convertApplicationLogEntries(entries)
 
 	return &proto.ApplicationLogResponse{
 		Entries: protoEntries,
+		HasMore: hasMore,
 	}, nil
 }
 
@@ -194,6 +198,7 @@ func convertApplicationLogEntries(orig []apprunner.ApplicationLogEntry) []*proto
 
 func convertApplicationLogEntry(orig apprunner.ApplicationLogEntry) *proto.ApplicationLogEntry {
 	return &proto.ApplicationLogEntry{
+		Cursor:    orig.Cursor().Int64(),
 		CreatedAt: timestamppb.New(orig.CreatedAt()),
 		Level:     convertApplicationLogLevel(orig.LogLevel()),
 		Message:   orig.Message(),
@@ -248,4 +253,17 @@ func convertRunningApplication(orig apprunner.RunningApplication) *proto.Running
 		ApplicationVersion: timestamppb.New(time.Time(orig.ApplicationVersion)),
 		StartedAt:          timestamppb.New(orig.StartedAt),
 	}
+}
+
+func (s *grpcServer) EvaluateExpressionOnApplication(ctx context.Context, r *proto.EvaluateExpressionOnApplicationRequest) (*proto.EvaluateExpressionOnApplicationResponse, error) {
+	successful, result, executionTime, err := s.appRunner.EvaluateExpressionOnApplication(r.ApplicationId, r.Expression)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.EvaluateExpressionOnApplicationResponse{
+		Successful:    successful,
+		Result:        result,
+		ExecutionTime: durationpb.New(executionTime),
+	}, nil
 }

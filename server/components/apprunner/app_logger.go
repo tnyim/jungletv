@@ -1,9 +1,11 @@
 package apprunner
 
 import (
+	"math/rand"
 	"sync"
 	"time"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/google/btree"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
@@ -11,21 +13,27 @@ import (
 
 // ApplicationLog represents the log of a single application
 type ApplicationLog interface {
-	LogEntries(beforeOrAt time.Time, maxCount int, levels []ApplicationLogLevel) []ApplicationLogEntry
+	LogEntries(offset snowflake.ID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool)
 	LogEntryAdded() *event.Event[ApplicationLogEntry]
 }
 
 // ApplicationLogEntry represents an entry in the log of an application
 type ApplicationLogEntry interface {
+	Cursor() snowflake.ID
 	CreatedAt() time.Time
 	Message() string
 	LogLevel() ApplicationLogLevel
 }
 
 type appLogEntry struct {
+	sortKey   snowflake.ID
 	createdAt time.Time
 	message   string
 	level     ApplicationLogLevel
+}
+
+func (e appLogEntry) Cursor() snowflake.ID {
+	return e.sortKey
 }
 
 func (e appLogEntry) CreatedAt() time.Time {
@@ -52,83 +60,78 @@ const (
 )
 
 type appLogger struct {
-	entries      *btree.BTreeG[appLogEntry]
-	mu           sync.RWMutex
-	onEntryAdded *event.Event[ApplicationLogEntry]
+	entries       *btree.BTreeG[appLogEntry]
+	mu            sync.RWMutex
+	onEntryAdded  *event.Event[ApplicationLogEntry]
+	snowflakeNode *snowflake.Node
 }
 
 func NewAppLogger() *appLogger {
+	node, _ := snowflake.NewNode(rand.Int63n(1000))
 	return &appLogger{
 		entries: btree.NewG(32, func(a, b appLogEntry) bool {
-			return a.createdAt.Before(b.createdAt)
+			return a.sortKey.Int64() < b.sortKey.Int64()
 		}),
-		onEntryAdded: event.New[ApplicationLogEntry](),
+		onEntryAdded:  event.New[ApplicationLogEntry](),
+		snowflakeNode: node,
 	}
 }
 
-func (p *appLogger) LogEntries(beforeOrAt time.Time, maxCount int, levels []ApplicationLogLevel) []ApplicationLogEntry {
+func (p *appLogger) LogEntries(offset snowflake.ID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	entries := []ApplicationLogEntry{}
 	levelsSet := utils.SliceToSet(levels)
-	p.entries.DescendLessOrEqual(appLogEntry{createdAt: beforeOrAt}, func(entry appLogEntry) bool {
+	cursor := appLogEntry{
+		sortKey: offset,
+	}
+	p.entries.DescendLessOrEqual(cursor, func(entry appLogEntry) bool {
 		if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
 			entries = append(entries, entry)
 		}
-		return len(entries) < maxCount
+		return len(entries) <= maxCount
 	})
-
-	return entries
+	hasMore := len(entries) > maxCount
+	if hasMore {
+		entries = entries[:maxCount]
+	}
+	return entries, hasMore
 }
 
 func (p *appLogger) LogEntryAdded() *event.Event[ApplicationLogEntry] {
 	return p.onEntryAdded
 }
 
-func (p *appLogger) addLogEntry(entry appLogEntry) {
+func (p *appLogger) addLogEntry(message string, logLevel ApplicationLogLevel) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	entry := appLogEntry{
+		sortKey:   p.snowflakeNode.Generate(),
+		createdAt: time.Now(),
+		message:   message,
+		level:     logLevel,
+	}
 	p.entries.ReplaceOrInsert(entry)
 	p.onEntryAdded.Notify(entry, false)
 }
 
 func (p *appLogger) Log(s string) {
-	p.addLogEntry(appLogEntry{
-		createdAt: time.Now(),
-		message:   s,
-		level:     ApplicationLogLevelJSLog,
-	})
+	p.addLogEntry(s, ApplicationLogLevelJSLog)
 }
 
 func (p *appLogger) Warn(s string) {
-	p.addLogEntry(appLogEntry{
-		createdAt: time.Now(),
-		message:   s,
-		level:     ApplicationLogLevelJSWarn,
-	})
+	p.addLogEntry(s, ApplicationLogLevelJSWarn)
 }
 
 func (p *appLogger) Error(s string) {
-	p.addLogEntry(appLogEntry{
-		createdAt: time.Now(),
-		message:   s,
-		level:     ApplicationLogLevelJSError,
-	})
+	p.addLogEntry(s, ApplicationLogLevelJSError)
 }
 
 func (p *appLogger) RuntimeLog(s string) {
-	p.addLogEntry(appLogEntry{
-		createdAt: time.Now(),
-		message:   s,
-		level:     ApplicationLogLevelRuntimeLog,
-	})
+	p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
 }
 
 func (p *appLogger) RuntimeError(err error) {
-	p.addLogEntry(appLogEntry{
-		createdAt: time.Now(),
-		message:   err.Error(),
-		level:     ApplicationLogLevelRuntimeError,
-	})
+	p.addLogEntry(err.Error(), ApplicationLogLevelRuntimeError)
 }
