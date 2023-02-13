@@ -1,55 +1,74 @@
 <script lang="ts">
     import { acceptCompletion, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
     import { defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
-    import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+    import { javascript } from "@codemirror/lang-javascript";
     import { foldKeymap } from "@codemirror/language";
     import { lintKeymap } from "@codemirror/lint";
     import { searchKeymap } from "@codemirror/search";
     import { Compartment, EditorState } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
-    import { Emoji, Strikethrough } from "@lezer/markdown";
     import { basicSetup } from "codemirror";
     import { onDestroy } from "svelte";
     import watchMedia from "svelte-media";
     import { link } from "svelte-navigator";
     import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
-    import { modalAlert } from "../modal/modal";
-    import { Document } from "../proto/jungletv_pb";
+    import { modalAlert, modalPrompt } from "../modal/modal";
+    import { ApplicationFile } from "../proto/application_editor_pb";
     import { darkMode } from "../stores";
-    import { parseCompleteMarkdown } from "../utils";
+    import ApplicationConsole from "./ApplicationConsole.svelte";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
-    export let documentID = "";
+    export let applicationID;
+    export let fileName;
     let content = "";
     let editing = false;
+    let fileType: string;
 
-    async function fetchDocument(): Promise<Document> {
+    async function fetchFile(): Promise<ApplicationFile> {
         try {
-            let response = await apiClient.getDocument(documentID);
-            content = response.getContent();
+            let response = await apiClient.getApplicationFile(applicationID, fileName);
+            content = new TextDecoder().decode(response.getContent_asU8());
+            fileType = response.getType();
             editing = true;
             return response;
         } catch {
             content = "";
             editing = false;
-            return new Document();
+            if (fileName.endsWith(".js")) {
+                fileType = "text/javascript";
+            } else if (fileName.endsWith(".json")) {
+                fileType = "application/json";
+            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                fileType = "text/html";
+            } else {
+                fileType = "text/plain";
+            }
+            return new ApplicationFile();
         }
     }
 
     async function save() {
-        let document = new Document();
-        document.setId(documentID);
-        document.setContent(content);
-        document.setFormat("markdown");
-        await apiClient.updateDocument(document);
-        await modalAlert("Document updated");
+        let file = new ApplicationFile();
+        file.setApplicationId(applicationID);
+        file.setName(fileName);
+        file.setContent(new TextEncoder().encode(content));
+        let message = await modalPrompt("Enter an edit message:", `${editing ? "Update" : "Create"} ${fileName}`, "", `${editing ? "Update" : "Create"} ${fileName}`);
+        if (message === null) {
+            return;
+        }
+        file.setEditMessage(message);
+        if (!editing) {
+            let t = await modalPrompt("Enter a file type:", `Create ${fileName}`, "", fileType);
+            if (t === null) {
+                return;
+            }
+            fileType = t;
+        }
+        file.setType(fileType);
+        await apiClient.updateApplicationFile(file);
+        await modalAlert("File updated");
         editing = true;
-    }
-
-    async function triggerAnnouncementsNotification() {
-        await apiClient.triggerAnnouncementsNotification();
-        await modalAlert("Announcements notification triggered");
     }
 
     let editorContainer: HTMLElement;
@@ -104,10 +123,7 @@
                             },
                         },
                     ]),
-                    markdown({
-                        extensions: [Strikethrough, Emoji],
-                        base: markdownLanguage,
-                    }),
+                    javascript(),
                     EditorView.lineWrapping,
                     themeCompartment.of(editorTheme($darkMode)),
                 ],
@@ -145,7 +161,7 @@
     let leftPaneSize = "50%";
     let rightPaneSize = "50%";
 
-    function toggleEditorPreview() {
+    function toggleConsole() {
         if (leftPaneSize == "0%") {
             leftPaneSize = "100%";
             rightPaneSize = "0%";
@@ -173,22 +189,24 @@
     <div class="flex flex-row flex-wrap space-x-2">
         <a
             use:link
-            href="/moderate"
+            href="/moderate/applications/{applicationID}"
             class="block justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
         >
             <i class="fas fa-arrow-left" />
         </a>
         <h1 class="text-lg block pt-1">
-            <span class="hidden md:inline">{editing ? "Editing" : "Creating"} document</span>
-            <span class="font-mono">{documentID}</span>
+            <span class="hidden md:inline">{editing ? "Editing" : "Creating"} file</span>
+            <span class="font-mono">{fileName}</span>
+            on
+            <span class="font-mono">{applicationID}</span>
         </h1>
         <div class="flex-grow" />
         <button
             type="submit"
             class="block lg:hidden justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            on:click={toggleEditorPreview}
+            on:click={toggleConsole}
         >
-            Toggle preview
+            Toggle console
         </button>
         <div class="flex-grow" />
         <button
@@ -198,25 +216,16 @@
         >
             Save
         </button>
-        {#if documentID == "announcements"}
-            <button
-                type="submit"
-                class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                on:click={triggerAnnouncementsNotification}
-            >
-                Trigger new announcement notification
-            </button>
-        {/if}
     </div>
 
     <div class="overflow-hidden h-full">
-        {#await fetchDocument()}
-            <p>Loading document...</p>
+        {#await fetchFile()}
+            <p>Loading file...</p>
         {:then}
             <HSplitPane {leftPaneSize} {rightPaneSize}>
                 <div slot="left" class="h-full max-h-full relative" bind:this={editorContainer} />
-                <div slot="right" class="h-full max-h-full px-6 pb-6 overflow-auto markdown-document">
-                    {@html parseCompleteMarkdown(content)}
+                <div slot="right" class="h-full max-h-full overflow-auto">
+                    <ApplicationConsole {applicationID} />
                 </div>
             </HSplitPane>
         {/await}

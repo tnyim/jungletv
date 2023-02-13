@@ -1,6 +1,8 @@
 <script lang="ts">
+    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
+    import { mimeTypeIsEditable } from "../moderation/codeEditor";
     import type { Application, ApplicationFile } from "../proto/application_editor_pb";
     import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
@@ -117,10 +119,10 @@
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        {#if (application.getAllowFileEditing() && file
-                .getType()
-                .startsWith("text/")) || file.getType() == "application/json"}
-            <a href={"/moderate/applications/" + application.getId() + "/files/" + file.getName()}>Edit</a><br />
+        {#if application.getAllowFileEditing() && mimeTypeIsEditable(file.getType())}
+            <a href={"/moderate/applications/" + application.getId() + "/files/" + file.getName()} use:link>
+                Edit
+            </a><br />
         {/if}
         <span
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"

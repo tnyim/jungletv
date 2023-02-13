@@ -15,6 +15,7 @@
 	import Moderate from "./Moderate.svelte";
 	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
+	import ApplicationFileEditor from "./moderation/ApplicationFileEditor.svelte";
 	import Applications from "./moderation/Applications.svelte";
 	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
 	import Documents from "./moderation/Documents.svelte";
@@ -326,6 +327,13 @@
 				<Route path="/moderate/applications/:applicationID" let:params>
 					{#if isAdmin}
 						<ApplicationDetails applicationID={params.applicationID} />
+					{:else}
+						<a href="/admin/signin">Sign in</a>
+					{/if}
+				</Route>
+				<Route path="/moderate/applications/:applicationID/files/:fileName" let:params>
+					{#if isAdmin}
+						<ApplicationFileEditor applicationID={params.applicationID} fileName={params.fileName} />
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}
