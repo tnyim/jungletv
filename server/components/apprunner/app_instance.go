@@ -221,7 +221,7 @@ func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	file, ok := files[MainFileName]
+	file, ok := files[filename]
 	if !ok {
 		return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found"))
 	}
