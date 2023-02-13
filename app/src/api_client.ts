@@ -96,8 +96,19 @@ class APIClient {
     }
 
     async unaryRPC<TRequest extends ProtobufMessage, TResponse extends ProtobufMessage>(operation: MethodDefinition<TRequest, TResponse>, request: TRequest): Promise<TResponse> {
-        return new Promise<TResponse>((resolve, reject) => {
-            grpc.invoke(operation, {
+        return this.unaryRPCWithCancel(operation, request)[0];
+    }
+
+    unaryRPCWithCancel<TRequest extends ProtobufMessage, TResponse extends ProtobufMessage>(operation: MethodDefinition<TRequest, TResponse>, request: TRequest): [Promise<TResponse>, () => void] {
+        let r: Request;
+        let rej: (reason?: any) => void;
+        let cancel = function () {
+            if (typeof r !== "undefined") r.close();
+            if (typeof rej !== "undefined") rej();
+        }
+        return [new Promise<TResponse>((resolve, reject) => {
+            rej = reject;
+            r = grpc.invoke(operation, {
                 request: request,
                 host: this.host,
                 metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
@@ -112,7 +123,7 @@ class APIClient {
                     }
                 }
             });
-        });
+        }), cancel];
     }
 
     serverStreamingRPC<TRequest extends ProtobufMessage, TResponseItem extends ProtobufMessage>(

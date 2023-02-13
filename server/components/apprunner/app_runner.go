@@ -153,7 +153,7 @@ func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) e
 
 	_, _, startedAt := instance.Running()
 
-	err := instance.Stop(false, true)
+	err := instance.Stop(true, 10*time.Second, true)
 	if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyStopped) {
 		return stacktrace.Propagate(err, "")
 	}
@@ -233,7 +233,7 @@ func (r *AppRunner) ApplicationLog(applicationID string) (ApplicationLog, error)
 	return nil, stacktrace.Propagate(ErrApplicationLogNotFound, "")
 }
 
-func (r *AppRunner) EvaluateExpressionOnApplication(applicationID, expression string) (bool, string, time.Duration, error) {
+func (r *AppRunner) EvaluateExpressionOnApplication(ctx context.Context, applicationID, expression string) (bool, string, time.Duration, error) {
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -245,7 +245,7 @@ func (r *AppRunner) EvaluateExpressionOnApplication(applicationID, expression st
 	if !ok {
 		return false, "", 0, stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
-	successful, result, executionTime, err := instance.EvaluateExpression(expression)
+	successful, result, executionTime, err := instance.EvaluateExpression(ctx, expression)
 	if err != nil {
 		return false, "", 0, stacktrace.Propagate(err, "")
 	}

@@ -256,7 +256,7 @@ func convertRunningApplication(orig apprunner.RunningApplication) *proto.Running
 }
 
 func (s *grpcServer) EvaluateExpressionOnApplication(ctx context.Context, r *proto.EvaluateExpressionOnApplicationRequest) (*proto.EvaluateExpressionOnApplicationResponse, error) {
-	successful, result, executionTime, err := s.appRunner.EvaluateExpressionOnApplication(r.ApplicationId, r.Expression)
+	successful, result, executionTime, err := s.appRunner.EvaluateExpressionOnApplication(ctx, r.ApplicationId, r.Expression)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

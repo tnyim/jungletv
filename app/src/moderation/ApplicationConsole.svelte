@@ -9,19 +9,28 @@
         ApplicationLogEntry,
         ApplicationLogEntryContainer,
         ApplicationLogLevel,
+        EvaluateExpressionOnApplicationRequest,
         EvaluateExpressionOnApplicationResponse,
     } from "../proto/application_editor_pb";
+    import { JungleTV } from "../proto/jungletv_pb_service";
 
     export let applicationID: string;
     let logLevels = [];
 
     type consoleEntry = {
+        highlighted?: boolean;
         logEntry?: ApplicationLogEntry;
         userInput?: {
             expression: string;
             sentAt: Date;
+            cancel?: () => void;
+            canceled: boolean;
+            resultEntry?: consoleEntry;
         };
-        result?: EvaluateExpressionOnApplicationResponse;
+        result?: {
+            response: EvaluateExpressionOnApplicationResponse;
+            inputEntry: consoleEntry;
+        };
     };
     let consoleEntries: consoleEntry[] = [];
 
@@ -103,10 +112,44 @@
     // REPL code:
     let userInput = "";
     async function evaluateExpression(expression: string) {
+        let inputEntry: consoleEntry;
+        let cleanup = function (canceled: boolean) {
+            if (inputEntry?.userInput) {
+                inputEntry.userInput.canceled = canceled;
+                inputEntry.userInput.cancel = undefined;
+                consoleEntries = consoleEntries;
+            }
+        };
         try {
-            let result = await apiClient.evaluateExpressionOnApplication(applicationID, expression);
-            consoleEntries = [...consoleEntries, { result }];
+            let request = new EvaluateExpressionOnApplicationRequest();
+            request.setApplicationId(applicationID);
+            request.setExpression(expression);
+            let p = apiClient.unaryRPCWithCancel(JungleTV.EvaluateExpressionOnApplication, request);
+            let promise = p[0];
+            let cancel = p[1];
+            inputEntry = {
+                userInput: {
+                    expression: expression,
+                    sentAt: new Date(),
+                    canceled: false,
+                    cancel: cancel,
+                },
+            };
+            consoleEntries = [...consoleEntries, inputEntry];
+            let response = await promise.catch(() => cleanup(true));
+            if (typeof response !== "undefined") {
+                let resultEntry = {
+                    result: {
+                        response: response,
+                        inputEntry: inputEntry,
+                    },
+                };
+                consoleEntries = [...consoleEntries, resultEntry];
+                inputEntry.userInput.resultEntry = resultEntry;
+                cleanup(false);
+            }
         } catch (e) {
+            cleanup(true);
             await modalAlert("An error occurred: " + e);
         }
     }
@@ -114,15 +157,6 @@
         if (event.key === "Enter" && !event.shiftKey && !event.ctrlKey && !event.altKey) {
             event.preventDefault();
             let expression = userInput;
-            consoleEntries = [
-                ...consoleEntries,
-                {
-                    userInput: {
-                        expression: expression,
-                        sentAt: new Date(),
-                    },
-                },
-            ];
             userInput = "";
             await evaluateExpression(expression);
             return false;
@@ -134,7 +168,7 @@
 
     function classesForEntry(entry: consoleEntry): string {
         if (
-            (entry.result && !entry.result.getSuccessful()) ||
+            (entry.result && !entry.result.response.getSuccessful()) ||
             (entry.logEntry &&
                 (entry.logEntry.getLevel() == ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_ERROR ||
                     entry.logEntry.getLevel() == ApplicationLogLevel.APPLICATION_LOG_LEVEL_RUNTIME_ERROR))
@@ -149,7 +183,7 @@
 
     function iconForEntry(entry: consoleEntry): string {
         if (
-            (entry.result && !entry.result.getSuccessful()) ||
+            (entry.result && !entry.result.response.getSuccessful()) ||
             (entry.logEntry && entry.logEntry.getLevel() == ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_ERROR)
         ) {
             return "fas fa-exclamation-circle";
@@ -188,6 +222,32 @@
                 fractionalSecondDigits: 3,
             });
     }
+
+    function onEntryMouseEnter(entry: consoleEntry) {
+        if (entry?.userInput?.resultEntry) {
+            entry.highlighted = true;
+            entry.userInput.resultEntry.highlighted = true;
+            consoleEntries = consoleEntries;
+        }
+        if (entry?.result) {
+            entry.highlighted = true;
+            entry.result.inputEntry.highlighted = true;
+            consoleEntries = consoleEntries;
+        }
+    }
+
+    function onEntryMouseLeave(entry: consoleEntry) {
+        if (entry?.userInput?.resultEntry) {
+            entry.highlighted = false;
+            entry.userInput.resultEntry.highlighted = false;
+            consoleEntries = consoleEntries;
+        }
+        if (entry?.result) {
+            entry.highlighted = false;
+            entry.result.inputEntry.highlighted = false;
+            consoleEntries = consoleEntries;
+        }
+    }
 </script>
 
 <div class="flex flex-col h-full relative w-full">
@@ -207,7 +267,9 @@
             <div
                 class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-center {classesForEntry(
                     entry
-                )}"
+                )} {entry.highlighted ? 'bg-gray-200 dark:bg-gray-800' : ''}"
+                on:mouseenter={() => onEntryMouseEnter(entry)}
+                on:mouseleave={() => onEntryMouseLeave(entry)}
             >
                 <div class="w-5 text-right mr-2 self-start">
                     <i class={iconForEntry(entry)} />
@@ -215,9 +277,9 @@
                 <div class="flex-grow font-mono">
                     {#if entry.result}
                         <span
-                            class="whitespace-pre-wrap {entry.result.getSuccessful()
+                            class="whitespace-pre-wrap {entry.result.response.getSuccessful()
                                 ? 'text-green-700 dark:text-green-300'
-                                : ''}">{entry.result.getResult()}</span
+                                : ''}">{entry.result.response.getResult()}</span
                         >
                     {:else if entry.logEntry}
                         <span class="whitespace-pre-wrap">{entry.logEntry.getMessage()}</span>
@@ -228,11 +290,23 @@
 
                 <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">
                     {#if entry.result}
-                        {formatExecutionTime(entry.result.getExecutionTime())}
+                        {formatExecutionTime(entry.result.response.getExecutionTime())}
                     {:else if entry.logEntry}
                         {formatLogEntryTime(entry.logEntry.getCreatedAt().toDate())}
                     {:else if entry.userInput}
                         {formatLogEntryTime(entry.userInput.sentAt)}
+                        {#if entry.userInput.cancel}
+                            <span
+                                class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                                tabindex="0"
+                                on:click={entry.userInput.cancel}
+                            >
+                                Abort
+                            </span>
+                        {/if}
+                        {#if entry.userInput.canceled}
+                            Canceled
+                        {/if}
                     {/if}
                 </div>
             </div>
