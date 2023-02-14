@@ -85,11 +85,11 @@
     <div class="flex-grow" />
     <div class="text-sm">
         You can change your nickname on
-        <span
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-            tabindex="0"
             on:click={() => openUserProfile($rewardAddress)}
-            on:keydown={(ev) => ev.key == "Enter" && openUserProfile($rewardAddress)}>your profile</span
+            on:keydown={(ev) => ev.key == "Enter" && openUserProfile($rewardAddress)}>your profile</button
         >.
     </div>
 </div>

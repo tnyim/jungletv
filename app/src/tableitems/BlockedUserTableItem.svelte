@@ -40,12 +40,8 @@
     <td
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
-        <span
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
-            on:click={unblockUser}
-        >
+        <button class="text-blue-600 dark:text-blue-400 hover:underline" type="button" on:click={unblockUser}>
             Unblock
-        </span>
+        </button>
     </td>
 </tr>

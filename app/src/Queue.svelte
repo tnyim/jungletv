@@ -276,8 +276,9 @@
                 </div>
             {/if}
             {#if visible}
-                <div
-                    class="px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm
+                <button
+                    type="button"
+                    class="px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm text-left
                         transition-colors ease-in-out duration-1000
                         {highlightedEntryID == entry.getId() ? 'bg-yellow-100 dark:bg-yellow-800' : ''}
                         hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
@@ -293,7 +294,7 @@
                         on:disallow={() => removeEntry(entry, true)}
                         on:jumpTo={() => jumpToEntry(entry)}
                     />
-                </div>
+                </button>
             {:else}
                 <div style="height: 98px" />
             {/if}

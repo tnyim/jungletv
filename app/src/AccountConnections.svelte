@@ -39,7 +39,7 @@
     const commonButtonClasses =
         "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
         "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150 cursor-pointer";
+        "ease-linear transition-all duration-150";
 </script>
 
 <p class="text-lg font-semibold text-gray-800 dark:text-white">Account connections</p>
@@ -51,12 +51,13 @@
         </p>
         <div class="flex flex-row mt-3">
             {#each servicesWhichCanBeConnected as serviceInfo}
-                <div
+                <button
+                    type="button"
                     on:click={() => connectToService(serviceInfo)}
                     class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-black dark:text-white bg-gray-300 dark:bg-gray-800 hover:bg-gray-400 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:shadow-lg ease-linear transition-all duration-150 cursor-pointer"
                 >
                     <AccountConnectionIcon service={serviceInfo.getService()} />
-                </div>
+                </button>
             {/each}
         </div>
     </div>
@@ -69,9 +70,13 @@
                 <p class="font-semibold">{connection.getName()}</p>
                 <p class="text-sm"><AccountConnectionServiceName service={connection.getService()} /></p>
             </div>
-            <div class="{commonButtonClasses} self-center" on:click={() => removeConnection(connection)}>
+            <button
+                type="button"
+                class="{commonButtonClasses} self-center"
+                on:click={() => removeConnection(connection)}
+            >
                 <i class="fas fa-trash" />
-            </div>
+            </button>
         </div>
     </div>
 {/each}

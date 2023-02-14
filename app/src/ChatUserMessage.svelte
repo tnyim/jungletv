@@ -70,10 +70,10 @@
             <span class="italic">Message from blocked user</span>
         </p>
     {:else}
-        <p
+        <button
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden cursor-pointer whitespace-nowrap
+                : 'mt-1'} h-5 overflow-hidden whitespace-nowrap
                 {getBackgroundColorForMessage(highlighted)}"
             on:click={() => dispatch("highlight", message.getReference())}
         >
@@ -82,7 +82,7 @@
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
             {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent(), false)[0]}
-        </p>
+        </button>
     {/if}
 {/if}
 <div
@@ -99,14 +99,20 @@
     }}
 >
     {#if mode == "moderation"}
-        <i class="fas fa-trash cursor-pointer" on:click={() => removeChatMessage()} />
-        <i class="fas fa-history cursor-pointer ml-1" on:click={() => dispatch("history")} />
-        <i class="fas fa-edit cursor-pointer" on:click={() => dispatch("changeNickname")} />
+        <button type="button" class="inline cursor-pointer" on:click={() => removeChatMessage()}>
+            <i class="fas fa-trash " />
+        </button>
+        <button type="button" class="inline cursor-pointer  ml-1" on:click={() => dispatch("history")}>
+            <i class="fas fa-history" />
+        </button>
+        <button type="button" class="inline cursor-pointer ml-1" on:click={() => dispatch("changeNickname")}>
+            <i class="fas fa-edit" />
+        </button>
     {/if}
-    <div class={emotesOnly ? "" : "overflow-hidden"}>
-        <span
-            class={emotesOnly ? "align-middle" : ""}
-            tabindex="0"
+    <div class="{emotesOnly ? '' : 'overflow-hidden'} inline">
+        <button
+            type="button"
+            class="inline {emotesOnly ? 'align-middle' : ''}"
             on:keydown={(ev) => {
                 if (ev.key == "Enter") {
                     dispatch("showDetails", message);
@@ -133,11 +139,12 @@
                     <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
                 {/if}
             </VisibilityGuard>
-            <span
-                class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} cursor-pointer"
+            <button
+                type="button"
+                class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} inline cursor-pointer"
                 title="Click to reply"
                 data-rewards-address={message.getUserMessage().getAuthor().getAddress()}
-                on:click={() => dispatch("reply")}>{getReadableMessageAuthor(message)}</span
+                on:click|stopPropagation={(e) => dispatch("reply")}>{getReadableMessageAuthor(message)}</button
             >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR) && message
                     .getUserMessage()
                     .getAuthor()
@@ -163,7 +170,7 @@
                     class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
                     title="Requester of currently playing content"
                 />{/if}:
-        </span>
+        </button>
         <span class={emotesOnly ? "text-2xl align-middle" : ""}>{@html renderedMessage}</span>
         {#each message.getAttachmentsList() as attachment}
             {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}
@@ -178,17 +185,16 @@
                     {:else}
                         <i class="fas fa-photo-video" />
                         {attachment.getTenorGif().getTitle()} -
-                        <span
-                            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-                            tabindex="0"
+                        <button
+                            type="button"
+                            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline inline"
                             on:click={() => {
                                 gifExplicitlyCollapsed = false;
                                 gifExpanded = true;
                             }}
-                            on:keydown={(ev) => ev.key == "Enter" && (gifExpanded = true)}
                         >
                             Show
-                        </span>
+                        </button>
                     {/if}
                 </div>
             {/if}

@@ -84,12 +84,13 @@
 </script>
 
 <div class="flex justify-center">
-    <div
-        class="bg-white dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none text-sm border border-gray-300 p-2 overflow-auto hide-scrollbar"
+    <button
+        type="button"
+        class="cursor-text bg-white dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-shrink block shadow-sm rounded-md rounded-r-none text-sm border border-gray-300 p-2 overflow-auto hide-scrollbar"
         on:click={selectAddress}
     >
         {address}
-    </div>
+    </button>
     {#if allowQR}
         <button
             class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-950 text-gray-500 text-sm"
@@ -133,7 +134,7 @@
     <div class="mt-4 flex justify-center">
         <p>
             Send <a target="_blank" rel="noopener" href={webWalletURI}>from {webWalletName}</a> •
-            <a href={uri}>from installed wallet</a>
+            <a href={uri} rel="noopener">from installed wallet</a>
         </p>
     </div>
 {/if}

@@ -17,16 +17,18 @@
         <span class="{getClassForMessageAuthor(replyingToMessage, allowExpensiveCSSAnimations)} h-5"
             >{getReadableMessageAuthor(replyingToMessage)}</span
         >
-        <span
-            class="cursor-pointer text-gray-600 dark:text-gray-400 hover:underline float-right"
+        <button
+            type="button"
+            class=" text-gray-600 dark:text-gray-400 hover:underline float-right"
             on:click={() => copyToClipboard(replyingToMessage.getUserMessage().getAuthor().getAddress())}
-            >Copy address</span
+            >Copy address</button
         >
         <div class="text-gray-600 dark:text-gray-400 overflow-hidden h-5">
             <slot name="message-content" />
         </div>
     </div>
     <button
+        type="button"
         title="Stop replying"
         class="text-purple-700 dark:text-purple-500 min-h-full w-8 p-2 shadow-md
             bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700

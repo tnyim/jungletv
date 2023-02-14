@@ -840,8 +840,10 @@
             Before participating in chat, make sure to read the
             <a use:link href="/guidelines" class="dark:text-blue-600">community guidelines</a>.
             <br />
-            <a class="font-semibold float-right dark:text-blue-600" href={"#"} on:click={dismissGuidelinesWarning}
-                >I read the guidelines and will respect them</a
+            <button
+                type="button"
+                class="font-semibold float-right dark:text-blue-600"
+                on:click={dismissGuidelinesWarning}>I read the guidelines and will respect them</button
             >
         </WarningMessage>
     </div>
@@ -849,13 +851,13 @@
 {#if hasBlockedMessages}
     <div class="px-2 py-1 text-xs">
         Some messages were hidden.
-        <span
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-            tabindex="0"
             on:click={openBlockedUserManagement}
         >
             Manage blocked users
-        </span>
+        </button>
     </div>
 {/if}
 {#if replyingToMessage !== undefined}
@@ -901,14 +903,13 @@
                     </div>
                     <div><a use:link href="/points" class="text-sm">More information</a></div>
                     <div>
-                        <span
-                            class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-                            tabindex="0"
+                        <button
+                            class="text-blue-600 dark:text-blue-400 hover:underline"
+                            type="button"
                             on:click={removeTenorGifAttachment}
-                            on:keydown={(ev) => ev.key == "Enter" && removeTenorGifAttachment()}
                         >
                             Remove
-                        </span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -917,9 +918,10 @@
     <ChatComposeAreaAttachmentButton on:click={toggleMediaPicker} />
 
     <button
+        type="submit"
         title="Send message"
         class="{!canSend ? 'text-gray-400 dark:text-gray-600' : 'text-purple-700 dark:text-purple-500'}
-        min-h-full w-8 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+        min-h-full w-8 p-2 shadow-md bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-200 ease-linear transition-all duration-150"
         on:click={sendMessageFromEvent}
     >
         <i class="fas fa-paper-plane" />

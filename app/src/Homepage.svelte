@@ -98,13 +98,14 @@
             <Sidebar on:collapseSidebar={() => (sidebarExpanded = false)} />
         </div>
     {:else}
-        <div
+        <button
+            type="button"
             transition:scale|local={{ duration: sidebarOpenCloseAnimDuration, start: 8, opacity: 1 }}
             class="hidden right-0 fixed top-16 shadow-xl opacity-50 hover:bg-gray-700 hover:opacity-75 text-white w-10 h-10 z-40 cursor-pointer text-xl text-center md:flex flex-row place-content-center items-center ease-linear transition-all duration-150"
             on:click={() => (sidebarExpanded = true)}
         >
             <i class="fas fa-th-list" />
-        </div>
+        </button>
     {/if}
 </div>
 

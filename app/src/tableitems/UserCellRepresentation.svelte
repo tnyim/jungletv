@@ -16,7 +16,7 @@
     }
 </script>
 
-<span on:click={openProfile} class="cursor-pointer">
+<button on:click={openProfile}>
     <VisibilityGuard divClass="inline" let:visible>
         {#if visible}
             <img
@@ -35,4 +35,4 @@
     {:else}
         <span class="mr-4 text-xs font-mono">{user.getAddress().substring(0, 14)}</span>
     {/if}
-</span>
+</button>

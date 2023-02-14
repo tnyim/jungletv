@@ -348,24 +348,24 @@
         <ApplicationConsoleLogToggle bind:checked={showJSWarnings} id="showJSWarnings" label="JS Warnings" />
         <ApplicationConsoleLogToggle bind:checked={showJSLogs} id="showJSLogs" label="JS Logs" />
         <div class="flex-grow" />
-        <div
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
             on:click={clearConsole}
         >
             Clear
-        </div>
+        </button>
     </div>
     <div class="flex-grow overflow-y-auto relative flex flex-col" bind:this={consoleContainer}>
         {#if historicalLogCursor && historicalLogHasMore}
             <div class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-center">
-                <span
+                <button
+                    type="button"
                     class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                    tabindex="0"
                     on:click={() => fetchHistoricalLog(25)}
                 >
                     Load more...
-                </span>
+                </button>
             </div>
         {/if}
         {#each consoleEntries as entry}

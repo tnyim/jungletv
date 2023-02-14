@@ -111,7 +111,7 @@
     const commonButtonClasses =
         "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
         "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150 cursor-pointer";
+        "ease-linear transition-all duration-150";
 
     function moveQueueEntry(direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]) {
         modal.set({
@@ -180,20 +180,26 @@
     {/if}
     <div class="grid grid-cols-6 gap-2 place-items-center">
         {#if isChatModerator}
-            <div
+            <button
+                type="button"
                 class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'} "
                 on:click={() => dispatch("remove")}
             >
                 <i class="fas fa-trash" /> Remove
-            </div>
+            </button>
             {#if requestedBy !== undefined}
-                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("disallow")}>
+                <button type="button" class="{commonButtonClasses} col-span-2" on:click={() => dispatch("disallow")}>
                     <i class="fas fa-ban" /> Disallow
-                </div>
-                <div class="{commonButtonClasses} col-span-2" on:click={() => dispatch("changeNickname")}>
+                </button>
+                <button
+                    type="button"
+                    class="{commonButtonClasses} col-span-2"
+                    on:click={() => dispatch("changeNickname")}
+                >
                     <i class="fas fa-edit" /> Nickname
-                </div>
-                <div
+                </button>
+                <button
+                    type="button"
                     class="{commonButtonClasses} col-span-2"
                     on:click={() =>
                         window.open(
@@ -213,49 +219,56 @@
                     {:else if entry.hasSoundcloudTrackData()}
                         <i class="fab fa-soundcloud" /> <span class="text-xs">SoundCloud</span>
                     {/if}
-                </div>
-                <div class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
+                </button>
+                <button type="button" class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
                     <i class="fas fa-search-dollar" /> Explorer
-                </div>
+                </button>
             {/if}
             {#if entryIndex > 0}
-                <div
+                <button
+                    type="button"
                     class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'}"
                     on:click={setCursor}
                 >
                     <i class="fas fa-i-cursor" /> Set cursor
-                </div>
+                </button>
             {/if}
         {/if}
         {#if requestedBy !== undefined}
-            <div class="{commonButtonClasses} col-span-3" on:click={copyAddress}>
+            <button type="button" class="{commonButtonClasses} col-span-3" on:click={copyAddress}>
                 <i class="fas fa-copy" />
                 {copied ? "Copied!" : "Copy address"}
-            </div>
-            <div class="{commonButtonClasses} col-span-3" on:click={() => openUserProfile(requestedBy.getAddress())}>
+            </button>
+            <button
+                type="button"
+                class="{commonButtonClasses} col-span-3"
+                on:click={() => openUserProfile(requestedBy.getAddress())}
+            >
                 <i class="fas fa-id-card" /> Profile
-            </div>
+            </button>
             {#if requestedBy.getAddress() === $rewardAddress && !isChatModerator && removalOfOwnEntriesAllowed}
-                <div class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
+                <button type="button" class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
                     <i class="fas fa-trash" /> Remove
-                </div>
+                </button>
             {/if}
         {/if}
         {#if entry.getCanMoveUp()}
-            <div
+            <button
+                type="button"
                 class="{commonButtonClasses} col-span-3"
                 on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_UP)}
             >
                 <i class="fas fa-arrow-circle-up" /> Move up
-            </div>
+            </button>
         {/if}
         {#if entry.getCanMoveDown()}
-            <div
+            <button
+                type="button"
                 class="{commonButtonClasses} col-span-3"
                 on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN)}
             >
                 <i class="fas fa-arrow-circle-down" /> Move down
-            </div>
+            </button>
         {/if}
     </div>
 </div>

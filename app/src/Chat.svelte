@@ -545,13 +545,14 @@
                     {#if chatSystemMessageGroupInfo[idx].isGroupHeader && chatSystemMessageGroupInfo[idx].groupID != currentlyExpandedSystemMessageGroup}
                         <ChatSeparator>
                             {chatSystemMessageGroupInfo[idx].groupSize} events collapsed.
-                            <span
+                            <button
+                                type="button"
                                 class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                                 on:click={() =>
                                     (currentlyExpandedSystemMessageGroup = chatSystemMessageGroupInfo[idx].groupID)}
                             >
                                 Expand
-                            </span>
+                            </button>
                         </ChatSeparator>
                     {/if}
                     {#if chatSystemMessageGroupInfo[idx].expand || chatSystemMessageGroupInfo[idx].groupID == currentlyExpandedSystemMessageGroup}
@@ -564,12 +565,13 @@
                     {/if}
                     {#if chatSystemMessageGroupInfo[idx].isGroupFooter && chatSystemMessageGroupInfo[idx].groupID == currentlyExpandedSystemMessageGroup}
                         <ChatSeparator>
-                            <span
+                            <button
+                                type="button"
                                 class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
                                 on:click={() => (currentlyExpandedSystemMessageGroup = "")}
                             >
                                 Collapse {chatSystemMessageGroupInfo[idx].groupSize} events
-                            </span>
+                            </button>
                         </ChatSeparator>
                     {/if}
                 {/if}

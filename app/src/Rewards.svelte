@@ -121,7 +121,7 @@
         {:then}
             <p class="text-lg font-semibold">Currently rewarding:</p>
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
-            <div class="mt-2 mb-6">
+            <div class="mt-2 mb-6 flex flex-row gap-4  sm:gap-6">
                 <a
                     use:link
                     href="/rewards/address"
@@ -129,12 +129,13 @@
                 >
                     Change address
                 </a>
-                <span
+                <button
+                    type="button"
                     on:click={() => openUserProfile($rewardAddress)}
-                    class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
+                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
                 >
                     View profile
-                </span>
+                </button>
             </div>
             {#if pendingWithdrawal}
                 <div class="mt-3">
@@ -239,12 +240,13 @@
                         >
                             Get points with Banano
                         </a>
-                        <span
-                            on:click={() => navigate("/points")}
-                            class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
+                        <a
+                            use:link
+                            href="/points"
+                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
                         >
                             Learn more
-                        </span>
+                        </a>
                     </div>
                 </div>
             </div>
