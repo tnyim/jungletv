@@ -20,6 +20,7 @@ require (
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
 	github.com/gbl08ma/sqalx v0.5.3
 	github.com/gbl08ma/ssoclient v0.0.0-20180119211306-11586264f66c
+	github.com/google/btree v1.1.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
@@ -68,7 +69,6 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/btree v1.1.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.5.1 // indirect

@@ -2,7 +2,7 @@
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import type { Duration as ProtoDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { DateTime, Duration } from "luxon";
-    import { onDestroy, onMount } from "svelte";
+    import { afterUpdate, onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
     import { modalAlert } from "../modal/modal";
     import {
@@ -13,9 +13,9 @@
         EvaluateExpressionOnApplicationResponse,
     } from "../proto/application_editor_pb";
     import { JungleTV } from "../proto/jungletv_pb_service";
+    import ApplicationConsoleLogToggle from "../uielements/ApplicationConsoleLogToggle.svelte";
 
     export let applicationID: string;
-    let logLevels = [];
 
     type consoleEntry = {
         highlighted?: boolean;
@@ -34,12 +34,79 @@
     };
     let consoleEntries: consoleEntry[] = [];
 
+    let consoleContainer: HTMLElement;
+    let bottomDetectionDiv: HTMLDivElement;
+    let bottomVisible = true;
+    onMount(() => {
+        const observer = new IntersectionObserver((entries) => {
+            bottomVisible = entries.some((e) => e.isIntersecting);
+        });
+        observer.observe(bottomDetectionDiv);
+
+        scrollToBottom();
+        return () => observer.unobserve(bottomDetectionDiv);
+    });
+
     // application log monitoring:
     let consumeApplicationLogRequest: Request;
     let consumeApplicationLogTimeoutHandle: number = null;
 
     let historicalLogCursor: string;
     let historicalLogHasMore = false;
+
+    let showRuntimeErrors = true,
+        showRuntimeLogs = true,
+        showJSErrors = true,
+        showJSWarnings = true,
+        showJSLogs = true;
+    let logLevels = [];
+
+    async function setLogLevels(
+        showRuntimeErrors: boolean,
+        showRuntimeLogs: boolean,
+        showJSErrors: boolean,
+        showJSWarnings: boolean,
+        showJSLogs: boolean
+    ) {
+        let levels = [];
+        if (showRuntimeErrors) {
+            levels.push(ApplicationLogLevel.APPLICATION_LOG_LEVEL_RUNTIME_ERROR);
+        }
+        if (showRuntimeLogs) {
+            levels.push(ApplicationLogLevel.APPLICATION_LOG_LEVEL_RUNTIME_LOG);
+        }
+        if (showJSErrors) {
+            levels.push(ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_ERROR);
+        }
+        if (showJSWarnings) {
+            levels.push(ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_WARN);
+        }
+        if (showJSLogs) {
+            levels.push(ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_LOG);
+        }
+        logLevels = levels;
+
+        consoleEntries = consoleEntries.filter((entry) => !entry.logEntry);
+
+        historicalLogCursor = undefined;
+        if (logLevels.length > 0) {
+            await fetchHistoricalLog(25);
+            // force resubscription with new log levels
+            consumeApplicationLogTimeout();
+        } else {
+            if (consumeApplicationLogRequest !== undefined) {
+                consumeApplicationLogRequest.close();
+                consumeApplicationLogRequest = undefined;
+            }
+            if (consumeApplicationLogTimeoutHandle != null) {
+                clearTimeout(consumeApplicationLogTimeoutHandle);
+                consumeApplicationLogTimeoutHandle = null;
+            }
+        }
+        scrollToBottom();
+    }
+
+    $: setLogLevels(showRuntimeErrors, showRuntimeLogs, showJSErrors, showJSWarnings, showJSLogs);
 
     async function fetchHistoricalLog(numEntries: number) {
         historicalLogHasMore = false;
@@ -62,16 +129,10 @@
         ];
     }
 
-    onMount(async () => {
-        consumeApplicationLog();
-        try {
-            fetchHistoricalLog(15);
-        } catch (e) {}
-    });
     function consumeApplicationLog() {
         consumeApplicationLogRequest = apiClient.consumeApplicationLog(
             applicationID,
-            [],
+            logLevels,
             handleNewLogMessage,
             (code, msg) => {
                 setTimeout(consumeApplicationLog, 5000);
@@ -94,19 +155,46 @@
         consumeApplicationLog();
     }
 
+    let hadConsoleUpdateAndBottomWasVisible = false;
     function handleNewLogMessage(entryContainer: ApplicationLogEntryContainer) {
         if (consumeApplicationLogTimeoutHandle != null) {
             clearTimeout(consumeApplicationLogTimeoutHandle);
         }
         consumeApplicationLogTimeoutHandle = setTimeout(consumeApplicationLogTimeout, 20000);
         if (!entryContainer.getIsHeartbeat()) {
+            let bottomWasVisible = bottomVisible;
             consoleEntries = [
                 ...consoleEntries,
                 {
                     logEntry: entryContainer.getEntry(),
                 },
             ];
+            if (bottomWasVisible) {
+                hadConsoleUpdateAndBottomWasVisible = true;
+            } else {
+                hadConsoleUpdateAndBottomWasVisible = false;
+            }
         }
+    }
+
+    afterUpdate(() => {
+        if (hadConsoleUpdateAndBottomWasVisible) {
+            scrollToBottom();
+            hadConsoleUpdateAndBottomWasVisible = false;
+        }
+    });
+
+    function clearConsole() {
+        consoleEntries = [];
+        historicalLogCursor = undefined;
+        historicalLogHasMore = false;
+    }
+
+    function scrollToBottom() {
+        consoleContainer.scrollTo({
+            top: consoleContainer.scrollHeight,
+            behavior: "auto",
+        });
     }
 
     // REPL code:
@@ -136,6 +224,7 @@
                 },
             };
             consoleEntries = [...consoleEntries, inputEntry];
+            scrollToBottom();
             let response = await promise.catch(() => cleanup(true));
             if (typeof response !== "undefined") {
                 let resultEntry = {
@@ -146,6 +235,7 @@
                 };
                 consoleEntries = [...consoleEntries, resultEntry];
                 inputEntry.userInput.resultEntry = resultEntry;
+                scrollToBottom();
                 cleanup(false);
             }
         } catch (e) {
@@ -251,7 +341,22 @@
 </script>
 
 <div class="flex flex-col h-full relative w-full">
-    <div class="flex-grow overflow-y-auto relative flex flex-col">
+    <div class="flex flex-row gap-4 px-2">
+        <ApplicationConsoleLogToggle bind:checked={showRuntimeErrors} id="showRuntimeErrors" label="Runtime Errors" />
+        <ApplicationConsoleLogToggle bind:checked={showRuntimeLogs} id="showRuntimeLogs" label="Runtime Logs" />
+        <ApplicationConsoleLogToggle bind:checked={showJSErrors} id="showJSErrors" label="JS Errors" />
+        <ApplicationConsoleLogToggle bind:checked={showJSWarnings} id="showJSWarnings" label="JS Warnings" />
+        <ApplicationConsoleLogToggle bind:checked={showJSLogs} id="showJSLogs" label="JS Logs" />
+        <div class="flex-grow" />
+        <div
+            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            tabindex="0"
+            on:click={clearConsole}
+        >
+            Clear
+        </div>
+    </div>
+    <div class="flex-grow overflow-y-auto relative flex flex-col" bind:this={consoleContainer}>
         {#if historicalLogCursor && historicalLogHasMore}
             <div class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-center">
                 <span
@@ -311,7 +416,7 @@
                 </div>
             </div>
         {/each}
-        <div class="py-1 px-2 flex flex-row">
+        <div class="py-1 px-2 flex flex-row" bind:this={bottomDetectionDiv}>
             <div class="w-5 text-right text-blue-500 mr-2 self-start">
                 <i class="fas fa-chevron-right" />
             </div>
