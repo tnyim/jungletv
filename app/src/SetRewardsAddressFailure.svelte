@@ -1,8 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { navigate } from "svelte-navigator";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import Wizard from "./Wizard.svelte";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 

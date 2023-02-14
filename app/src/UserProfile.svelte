@@ -3,20 +3,13 @@
 
     import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
-    import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
     import Document from "./Document.svelte";
-    import {
-        PermissionLevel,
-        PlayedMedia,
-        UserProfileResponse,
-        UserRole,
-        UserRoleMap,
-        UserStatus,
-        UserStatusMap,
-    } from "./proto/jungletv_pb";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
+    import { UserRole, UserRoleMap, UserStatus, UserStatusMap } from "./proto/common_pb";
+    import { PermissionLevel, PlayedMedia, UserProfileResponse } from "./proto/jungletv_pb";
     import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import TabButton from "./uielements/TabButton.svelte";
     import UserModerationInfo from "./UserModerationInfo.svelte";
     import UserProfileFeaturedMediaSoundCloud from "./UserProfileFeaturedMediaSoundCloud.svelte";
     import UserProfileFeaturedMediaYouTube from "./UserProfileFeaturedMediaYouTube.svelte";
@@ -267,7 +260,7 @@
 <div class="flex flex-col justify-center bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-b-lg">
     <div class="flex flex-row px-2 py-0.5 overflow-x-auto disable-scrollbars">
         {#if hasFeaturedMedia}
-            <SidebarTabButton
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedTab == "featuredMedia"}
                 on:click={() => (selectedTab = "featuredMedia")}
@@ -279,48 +272,48 @@
                         on:click|stopPropagation={clearFeaturedMedia}
                     />
                 {/if}
-            </SidebarTabButton>
+            </TabButton>
         {/if}
         {#if biography != "" || isSelf}
-            <SidebarTabButton
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedTab == "info"}
                 on:click={() => (selectedTab = "info")}
             >
                 User info
-            </SidebarTabButton>
+            </TabButton>
         {/if}
-        <SidebarTabButton
+        <TabButton
             bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
             selected={selectedTab == "tip"}
             on:click={() => (selectedTab = "tip")}
         >
             Tip user
-        </SidebarTabButton>
+        </TabButton>
         {#if recentRequests.length > 0}
-            <SidebarTabButton
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedTab == "recents"}
                 on:click={() => (selectedTab = "recents")}
             >
                 Last requests
-            </SidebarTabButton>
+            </TabButton>
         {/if}
-        <SidebarTabButton
+        <TabButton
             bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
             selected={selectedTab == "stats"}
             on:click={() => (selectedTab = "stats")}
         >
             Stats
-        </SidebarTabButton>
+        </TabButton>
         {#if $permissionLevel == PermissionLevel.ADMIN}
-            <SidebarTabButton
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedTab == "moderation"}
                 on:click={() => (selectedTab = "moderation")}
             >
                 Moderation
-            </SidebarTabButton>
+            </TabButton>
         {/if}
     </div>
     <div class="h-80 overflow-y-auto">

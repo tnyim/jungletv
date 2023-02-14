@@ -2,16 +2,16 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
-    import PaginatedTable from "../PaginatedTable.svelte";
     import { Application, RunningApplication } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
+    import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import RunningApplications from "./RunningApplications.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
     let runningApplications: RunningApplication[] = [];
-    let runningApplicationsSet: { [id: string]: boolean} = {};
+    let runningApplicationsSet: { [id: string]: boolean } = {};
 
     $: {
         let s = {};

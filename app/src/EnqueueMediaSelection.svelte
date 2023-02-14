@@ -6,15 +6,15 @@
     import { link, useLocation } from "svelte-navigator";
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import MediaRangeFloat from "./MediaRangeFloat.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
     import { EnqueueMediaResponse, PermissionLevel } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
     import { currentSubscription, permissionLevel } from "./stores";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import MediaRangeFloat from "./uielements/MediaRangeFloat.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
     import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
     import { parseURLForMediaSelection } from "./utils";
-    import Wizard from "./Wizard.svelte";
     import YouTube, { PlayerState } from "./YouTube.svelte";
 
     const dispatch = createEventDispatcher();

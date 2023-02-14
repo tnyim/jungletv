@@ -1,5 +1,5 @@
 <script lang="ts">
-    import PaginatedTable from "./PaginatedTable.svelte";
+    import PaginatedTable from "./uielements/PaginatedTable.svelte";
     import type { PaginationParameters } from "./proto/common_pb";
     import type { Leaderboard, LeaderboardRow } from "./proto/jungletv_pb";
     import LeaderboardTableItem from "./tableitems/LeaderboardTableItem.svelte";

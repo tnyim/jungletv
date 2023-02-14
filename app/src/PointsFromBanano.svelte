@@ -4,14 +4,14 @@
     import { onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link, navigate } from "svelte-navigator";
-    import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
     import type { ConvertBananoToPointsStatus } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
-    import WarningMessage from "./WarningMessage.svelte";
-    import Wizard from "./Wizard.svelte";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     let status: ConvertBananoToPointsStatus;
     let timedOut = false;

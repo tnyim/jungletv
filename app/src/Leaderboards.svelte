@@ -2,7 +2,7 @@
     import { useFocus } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Leaderboard from "./Leaderboard.svelte";
-    import PaginatedTable from "./PaginatedTable.svelte";
+    import PaginatedTable from "./uielements/PaginatedTable.svelte";
     import type { PaginationParameters } from "./proto/common_pb";
     import {
         Leaderboard as LeaderboardPB,
@@ -10,7 +10,7 @@
         LeaderboardPeriodMap,
         RaffleDrawing,
     } from "./proto/jungletv_pb";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
+    import TabButton from "./uielements/TabButton.svelte";
     import RaffleDrawingTableItem from "./tableitems/RaffleDrawingTableItem.svelte";
     const registerFocus = useFocus();
 
@@ -46,30 +46,30 @@
     <span use:registerFocus class="hidden" />
     <h1 class="text-2xl">Leaderboards</h1>
     <div class="flex flex-row flex-wrap">
-        <SidebarTabButton
+        <TabButton
             selected={selectedPeriod == LeaderboardPeriod.LAST_24_HOURS}
             on:click={() => (selectedPeriod = LeaderboardPeriod.LAST_24_HOURS)}
         >
             Last 24 hours
-        </SidebarTabButton>
-        <SidebarTabButton
+        </TabButton>
+        <TabButton
             selected={selectedPeriod == LeaderboardPeriod.LAST_7_DAYS}
             on:click={() => (selectedPeriod = LeaderboardPeriod.LAST_7_DAYS)}
         >
             Last 7 days
-        </SidebarTabButton>
-        <SidebarTabButton
+        </TabButton>
+        <TabButton
             selected={selectedPeriod == LeaderboardPeriod.LAST_30_DAYS}
             on:click={() => (selectedPeriod = LeaderboardPeriod.LAST_30_DAYS)}
         >
             Last 30 days
-        </SidebarTabButton>
-        <SidebarTabButton
+        </TabButton>
+        <TabButton
             selected={selectedPeriod == "raffle-drawings"}
             on:click={() => (selectedPeriod = "raffle-drawings")}
         >
             Weekly 2000 BAN Raffle
-        </SidebarTabButton>
+        </TabButton>
     </div>
     {#if !loaded}
         <p>Loading...</p>

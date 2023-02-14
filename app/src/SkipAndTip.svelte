@@ -3,12 +3,12 @@
     import { onDestroy, onMount } from "svelte";
     import { link } from "svelte-navigator";
     import { fade } from "svelte/transition";
-    import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
     import { SkipAndTipStatus, SkipStatus } from "./proto/jungletv_pb";
     import { currentSubscription, darkMode, rewardAddress } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
 
     export let mode = "sidebar";
 

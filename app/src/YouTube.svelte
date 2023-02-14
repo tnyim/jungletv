@@ -15,8 +15,7 @@
 </script>
 
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import YoutubePlayer from "youtube-player";
     import type { Options, YouTubePlayer } from "youtube-player/dist/types";
 
@@ -55,11 +54,7 @@
         // even if you have set autoplay to 1 whereas the cueVideoById function
         // never starts autoplaying
         if (player && videoId) {
-            if (
-                options &&
-                options.playerVars &&
-                options.playerVars.autoplay === 1
-            ) {
+            if (options && options.playerVars && options.playerVars.autoplay === 1) {
                 player.loadVideoById(videoId);
             } else {
                 player.cueVideoById(videoId);

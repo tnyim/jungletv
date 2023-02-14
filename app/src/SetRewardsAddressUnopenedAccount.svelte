@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { Moon } from "svelte-loading-spinners";
-    import Wizard from "./Wizard.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 

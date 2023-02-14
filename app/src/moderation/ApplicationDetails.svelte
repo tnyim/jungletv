@@ -2,10 +2,10 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
-    import PaginatedTable from "../PaginatedTable.svelte";
     import { Application, ApplicationFile } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationFileTableItem from "../tableitems/ApplicationFileTableItem.svelte";
+    import PaginatedTable from "../uielements/PaginatedTable.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";

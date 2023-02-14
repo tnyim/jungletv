@@ -2,10 +2,10 @@
     import { DateTime } from "luxon";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
-    import AddressBox from "./AddressBox.svelte";
     import type { SignInVerification } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
-    import Wizard from "./Wizard.svelte";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 

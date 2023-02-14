@@ -1,7 +1,7 @@
 <script lang="ts">
     import { link, useFocus } from "svelte-navigator";
-    import AddressBox from "./AddressBox.svelte";
     import { darkMode } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
     const registerFocus = useFocus();
 
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";

@@ -53,7 +53,8 @@
         file.setApplicationId(applicationID);
         file.setName(fileName);
         file.setContent(new TextEncoder().encode(content));
-        let message = await modalPrompt("Enter an edit message:", `${editing ? "Update" : "Create"} ${fileName}`, "", `${editing ? "Update" : "Create"} ${fileName}`);
+        let message = `${editing ? "Update" : "Create"} ${fileName}`;
+        message = await modalPrompt("Enter an edit message:", message, "", message);
         if (message === null) {
             return;
         }

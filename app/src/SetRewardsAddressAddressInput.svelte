@@ -1,10 +1,10 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
     import { badRepresentative, rewardAddress, rewardBalance } from "./stores";
-    import SuccessMessage from "./SuccessMessage.svelte";
-    import Wizard from "./Wizard.svelte";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import SuccessMessage from "./uielements/SuccessMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 

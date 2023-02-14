@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PaginationParameters } from "./proto/common_pb";
+  import { PaginationParameters } from "../proto/common_pb";
 
   export let per_page = 10;
   export let cur_page = 0;

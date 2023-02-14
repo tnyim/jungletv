@@ -3,8 +3,8 @@
     import { navigate } from "svelte-navigator";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
+    import Wizard from "./uielements/Wizard.svelte";
     import type { MediaSelectionKind } from "./utils";
-    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 

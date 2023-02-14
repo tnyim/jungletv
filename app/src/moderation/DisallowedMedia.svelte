@@ -1,9 +1,9 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
-    import ErrorMessage from "../ErrorMessage.svelte";
     import type { AddDisallowedMediaCollectionResponse, AddDisallowedMediaResponse } from "../proto/jungletv_pb";
-    import SuccessMessage from "../SuccessMessage.svelte";
+    import ErrorMessage from "../uielements/ErrorMessage.svelte";
+    import SuccessMessage from "../uielements/SuccessMessage.svelte";
     import { parseURLForMediaSelection } from "../utils";
     import DisallowedMediaCollectionsTable from "./DisallowedMediaCollectionsTable.svelte";
     import DisallowedMediaEntryTable from "./DisallowedMediaEntryTable.svelte";

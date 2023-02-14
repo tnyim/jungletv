@@ -2,10 +2,10 @@
     import { createEventDispatcher } from "svelte";
     import { navigate } from "svelte-navigator";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
-    import ErrorMessage from "./ErrorMessage.svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
-    import type { MediaSelectionKind, parseURLForMediaSelection } from "./utils";
-    import Wizard from "./Wizard.svelte";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
+    import type { MediaSelectionKind } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -42,7 +42,7 @@
                     and check the queue to see if your {mediaKind} was enqueued.
                 {:else if ticket.getStatus() == EnqueueMediaTicketStatus.FAILED_INSUFFICIENT_POINTS}
                     Enqueuing failed because you don't have sufficient points to enqueue an entry with hidden media
-                    information.<br/>
+                    information.<br />
                     Your payment should have been refunded.
                 {:else}
                     Payment not received in time. If you did not make a payment yet, please try again.<br />

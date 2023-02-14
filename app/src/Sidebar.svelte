@@ -2,10 +2,10 @@
     import { createEventDispatcher, onDestroy } from "svelte";
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
     import { fly } from "svelte/transition";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
     import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
     import type { SidebarTab } from "./tabStores";
     import { defaultSidebarTabIDs, sidebarTabs } from "./tabStores";
+    import TabButton from "./uielements/TabButton.svelte";
     import { openPopout } from "./utils";
 
     const dispatch = createEventDispatcher();
@@ -172,7 +172,7 @@
             bind:offsetWidth={blW}
         >
             {#each tabs as tab}
-                <SidebarTabButton
+                <TabButton
                     selected={selectedTabID == tab.id}
                     on:mousedown={(e) => onTabButtonMouseDown(tab.id, e)}
                     on:click={() => sidebarMode.update((_) => tab.id)}
@@ -189,7 +189,7 @@
                             on:click|stopPropagation={() => closeTab(tab)}
                         />
                     {/if}
-                </SidebarTabButton>
+                </TabButton>
             {/each}
         </div>
         {#if $playerConnected}

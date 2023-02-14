@@ -2,12 +2,12 @@
     import { Duration } from "google-protobuf/google/protobuf/duration_pb";
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
-    import ErrorMessage from "../ErrorMessage.svelte";
-    import PaginatedTable from "../PaginatedTable.svelte";
     import type { PaginationParameters } from "../proto/common_pb";
     import type { UserBan } from "../proto/jungletv_pb";
-    import SuccessMessage from "../SuccessMessage.svelte";
     import UserBanTableItem from "../tableitems/UserBanTableItem.svelte";
+    import ErrorMessage from "../uielements/ErrorMessage.svelte";
+    import PaginatedTable from "../uielements/PaginatedTable.svelte";
+    import SuccessMessage from "../uielements/SuccessMessage.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";

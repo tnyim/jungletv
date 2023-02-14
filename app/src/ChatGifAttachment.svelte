@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import type { ChatMessageTenorGifAttachment } from "./proto/jungletv_pb";
-    import VisibilityGuard from "./VisibilityGuard.svelte";
+    import VisibilityGuard from "./uielements/VisibilityGuard.svelte";
 
     export let attachment: ChatMessageTenorGifAttachment;
 
@@ -21,7 +21,6 @@
         {#if visible}
             <!-- svelte-ignore a11y-media-has-caption -->
             <video
-                alt={attachment.getTitle()}
                 title={attachment.getTitle()}
                 width={attachment.getWidth()}
                 height={attachment.getHeight()}
@@ -34,6 +33,7 @@
                 on:load
                 on:click={() => window.open("https://tenor.com/view/" + attachment.getId(), "", "noopener")}
             >
+                <p>{attachment.getTitle()}</p>
                 <source src={attachment.getVideoUrl()} type="video/webm" />
                 <source src={attachment.getVideoFallbackUrl()} type="video/mp4" />
             </video>

@@ -3,7 +3,8 @@
     import QrCode from "svelte-qrcode";
     import { fade } from "svelte/transition";
     import { openUserProfile } from "./profile_utils";
-    import { ChatMessage, PermissionLevel, UserRole } from "./proto/jungletv_pb";
+    import { UserRole } from "./proto/common_pb";
+    import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import { darkMode, permissionLevel } from "./stores";
     import { buildMonKeyURL, copyToClipboard } from "./utils";
 

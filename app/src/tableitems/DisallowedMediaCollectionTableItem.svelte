@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { DateTime } from "luxon";
     import { apiClient } from "../api_client";
     import { DisallowedMediaCollection, DisallowedMediaCollectionType } from "../proto/jungletv_pb";
     import { formatDateForModeration } from "../utils";

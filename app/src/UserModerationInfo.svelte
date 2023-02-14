@@ -1,11 +1,10 @@
 <script lang="ts">
-    import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-    import { DateTime } from "luxon";
     import { createEventDispatcher } from "svelte";
     import { navigate } from "svelte-navigator";
 
     import { apiClient } from "./api_client";
     import { modalAlert } from "./modal/modal";
+    import { formatDateForModeration } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -28,10 +27,6 @@
         } catch (e) {
             await modalAlert("An error occurred: " + e);
         }
-    }
-
-    function formatTimestamp(ts: Timestamp): string {
-        return DateTime.fromJSDate(ts.toDate()).toLocal().toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
     }
 
     function chatHistory() {
@@ -57,23 +52,23 @@
         <p>
             Number of spectators with same IP address: {spectator.getNumSpectatorsWithSameRemoteAddress()}
         </p>
-        <p>Watching since: {formatTimestamp(spectator.getWatchingSince())}</p>
+        <p>Watching since: {formatDateForModeration(spectator.getWatchingSince().toDate())}</p>
         <p>Using VPN: {spectator.getRemoteAddressHasGoodReputation() ? "no" : "yes"}</p>
         <p>VPN allowed: {spectator.getIpAddressReputationChecksSkipped() ? "yes" : "no"}</p>
         <p>IP banned from rewards: {spectator.getRemoteAddressBannedFromRewards() ? "yes" : "no"}</p>
         {#if spectator.getLegitimate()}
             <p>Failed captcha: no</p>
         {:else}
-            <p>Failed captcha: yes, at {formatTimestamp(spectator.getNotLegitimateSince())}</p>
+            <p>Failed captcha: yes, at {formatDateForModeration(spectator.getNotLegitimateSince().toDate())}</p>
         {/if}
         <p>Reduced captcha frequency: {spectator.getHardChallengeFrequencyReduced() ? "yes" : "no"}</p>
         {#if spectator.hasStoppedWatchingAt()}
-            <p>Stopped watching at: {formatTimestamp(spectator.getStoppedWatchingAt())}</p>
+            <p>Stopped watching at: {formatDateForModeration(spectator.getStoppedWatchingAt().toDate())}</p>
         {/if}
         {#if spectator.hasActivityChallenge()}
             <p>
                 Has pending activity challenge since:
-                {formatTimestamp(spectator.getActivityChallenge().getChallengedAt())}
+                {formatDateForModeration(spectator.getActivityChallenge().getChallengedAt().toDate())}
             </p>
         {/if}
         <p>Client integrity checks skipped: {spectator.getClientIntegrityChecksSkipped() ? "yes" : "no"}</p>

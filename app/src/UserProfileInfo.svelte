@@ -1,8 +1,8 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
     // @ts-ignore no type info available
-    import { autoresize } from "svelte-textarea-autoresize";
     import { onDestroy } from "svelte";
+    import { autoresize } from "svelte-textarea-autoresize";
 
     export let biography: string;
     export let isSelf: boolean;

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
     import UserStatsForPeriod from "./UserStatsForPeriod.svelte";
-    import WarningMessage from "./WarningMessage.svelte";
 
     export let userAddress: string;
     export let userIsStaff: boolean;

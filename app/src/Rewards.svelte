@@ -3,19 +3,19 @@
     import { link, navigate } from "svelte-navigator";
     import AccountConnections from "./AccountConnections.svelte";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PaginatedTable from "./PaginatedTable.svelte";
     import { openUserProfile } from "./profile_utils";
     import type { PaginationParameters } from "./proto/common_pb";
     import type { Connection, PointsInfoResponse, ReceivedReward, ServiceInfo, Withdrawal } from "./proto/jungletv_pb";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import PaginatedTable from "./uielements/PaginatedTable.svelte";
 
     import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
-    import SuccessMessage from "./SuccessMessage.svelte";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
+    import SuccessMessage from "./uielements/SuccessMessage.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
     import { isSubscriptionAboutToExpire } from "./utils";
-    import WarningMessage from "./WarningMessage.svelte";
-    import Wizard from "./Wizard.svelte";
 
     let pendingWithdrawal = false;
     let withdrawalPositionInQueue = 0;

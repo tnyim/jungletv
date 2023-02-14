@@ -2,7 +2,6 @@
     import { onDestroy, onMount } from "svelte";
     import { Turnstile } from "svelte-turnstile";
     import type { ActivityChallenge, ProduceSegchaChallengeResponse } from "./proto/jungletv_pb";
-    import { darkMode } from "./stores";
 
     export let activityChallenge: ActivityChallenge;
     export let segchaChallenge: ProduceSegchaChallengeResponse;

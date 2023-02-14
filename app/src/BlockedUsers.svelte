@@ -1,6 +1,6 @@
 <script lang="ts">
     import { apiClient } from "./api_client";
-    import PaginatedTable from "./PaginatedTable.svelte";
+    import PaginatedTable from "./uielements/PaginatedTable.svelte";
     import type { PaginationParameters } from "./proto/common_pb";
     import type { BlockedUser } from "./proto/jungletv_pb";
     import BlockedUserTableItem from "./tableitems/BlockedUserTableItem.svelte";

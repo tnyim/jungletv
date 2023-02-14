@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { DateTime } from "luxon";
     import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
     import { buildMonKeyURL, formatDateForModeration } from "../utils";

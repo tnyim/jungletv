@@ -3,13 +3,13 @@
     import { Moon } from "svelte-loading-spinners";
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import PaginatedTable from "./PaginatedTable.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
     import type { PaginationParameters } from "./proto/common_pb";
     import type { PointsInfoResponse, PointsTransaction, SubscriptionDetails } from "./proto/jungletv_pb";
     import { currentSubscription, darkMode } from "./stores";
     import PointsTransactionTableItem from "./tableitems/PointsTransactionTableItem.svelte";
-    import Wizard from "./Wizard.svelte";
+    import PaginatedTable from "./uielements/PaginatedTable.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     let pointsInfo: PointsInfoResponse;
     const subscriptionCost = 6900;

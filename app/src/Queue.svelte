@@ -8,10 +8,10 @@
     import { AddDisallowedMediaResponse, PermissionLevel, Queue, QueueEntry } from "./proto/jungletv_pb";
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
-    import { permissionLevel, rewardAddress } from "./stores";
-    import { editNicknameForUser } from "./utils";
-    import VirtualList from "./VirtualList.svelte";
     import QueueTop from "./QueueTop.svelte";
+    import { permissionLevel, rewardAddress } from "./stores";
+    import VirtualList from "./uielements/VirtualList.svelte";
+    import { editNicknameForUser } from "./utils";
 
     export let mode = "sidebar";
 

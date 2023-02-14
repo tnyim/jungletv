@@ -1,10 +1,10 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
-    import PaginatedTable from "../PaginatedTable.svelte";
     import type { PaginationParameters } from "../proto/common_pb";
     import type { DocumentHeader } from "../proto/jungletv_pb";
     import DocumentTableItem from "../tableitems/DocumentTableItem.svelte";
+    import PaginatedTable from "../uielements/PaginatedTable.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";

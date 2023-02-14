@@ -5,11 +5,12 @@
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
 
     import { getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
+    import { UserRole } from "./proto/common_pb";
 
-    import { ChatMessage, ChatMessageAttachment, UserRole } from "./proto/jungletv_pb";
+    import { ChatMessage, ChatMessageAttachment } from "./proto/jungletv_pb";
     import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
+    import VisibilityGuard from "./uielements/VisibilityGuard.svelte";
     import { buildMonKeyURL, parseUserMessageMarkdown } from "./utils";
-    import VisibilityGuard from "./VisibilityGuard.svelte";
 
     export let message: ChatMessage;
     export let additionalPadding: boolean;

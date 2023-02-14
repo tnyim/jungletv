@@ -1,12 +1,11 @@
 <script lang="ts">
-    import type { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-    import { DateTime } from "luxon";
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import ChatGifAttachment from "../ChatGifAttachment.svelte";
     import { openUserProfile } from "../profile_utils";
     import { ChatMessage, ChatMessageAttachment } from "../proto/jungletv_pb";
+    import { formatDateForModeration } from "../utils";
 
     const dispatch = createEventDispatcher();
 
@@ -16,13 +15,6 @@
     async function fetchChatHistory(): Promise<ChatMessage[]> {
         let response = await apiClient.userChatMessages(address, 250);
         return response.getMessagesList();
-    }
-
-    function formatMessageTime(message: ChatMessage): string {
-        return formatTimestamp(message.getCreatedAt());
-    }
-    function formatTimestamp(ts: Timestamp): string {
-        return DateTime.fromJSDate(ts.toDate()).toLocal().toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
     }
 </script>
 
@@ -81,7 +73,7 @@
                     </span>
                     <br />
                 {/if}
-                <span class="font-mono text-xs">{formatMessageTime(message)}:</span>
+                <span class="font-mono text-xs">{formatDateForModeration(message.getCreatedAt().toDate())}:</span>
                 {message.getUserMessage().getContent()}
                 {#each message.getAttachmentsList() as attachment}
                     {#if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.TENOR_GIF}

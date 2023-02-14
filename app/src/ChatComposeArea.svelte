@@ -31,9 +31,7 @@
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
     import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
-    import ErrorMessage from "./ErrorMessage.svelte";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel, PointsInfoResponse } from "./proto/jungletv_pb";
     import {
         autoCloseMediaPickerOnInsert,
@@ -48,6 +46,9 @@
         modal,
         permissionLevel,
     } from "./stores";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
     import {
         codeMirrorHighlightStyle,
         emoteURLFromID,
@@ -55,7 +56,6 @@
         parseUserMessageMarkdown,
         setNickname,
     } from "./utils";
-    import WarningMessage from "./WarningMessage.svelte";
 
     export let allowExpensiveCSSAnimations: boolean;
     export let replyingToMessage: ChatMessage;

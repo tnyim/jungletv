@@ -3,15 +3,15 @@
     import { DateTime } from "luxon";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
-    import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
     import { darkMode } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import TabButton from "./uielements/TabButton.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
     import type { MediaSelectionKind } from "./utils";
-    import WarningMessage from "./WarningMessage.svelte";
-    import Wizard from "./Wizard.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -144,22 +144,22 @@
         <EnqueueTicketPreview {ticket} />
         <div class="flex flex-row flex-wrap justify-center mt-4">
             <div class="text-lg py-1 px-1.5">Pay with</div>
-            <SidebarTabButton
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedCurrency == "BAN"}
                 on:click={() => (selectedCurrency = "BAN")}
             >
                 <img src="/assets/3rdparty/banano-icon.svg" alt="Banano" class="h-4 inline align-baseline" />
                 Banano
-            </SidebarTabButton>
-            <SidebarTabButton
+            </TabButton>
+            <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedCurrency == "XNO"}
                 on:click={() => (selectedCurrency = "XNO")}
             >
                 <img src="/assets/3rdparty/nano-icon.svg" alt="Nano" class="h-4 inline align-baseline" />
                 Nano
-            </SidebarTabButton>
+            </TabButton>
         </div>
         {#if ticket.getStatus() == EnqueueMediaTicketStatus.ACTIVE && typeof paymentInfo !== "undefined"}
             <div class="text-center text-xs" style="min-height: 16px">

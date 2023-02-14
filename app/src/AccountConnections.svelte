@@ -1,5 +1,5 @@
 <script lang="ts">
-import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher } from "svelte";
 
     import AccountConnectionIcon from "./AccountConnectionIcon.svelte";
     import AccountConnectionServiceName from "./AccountConnectionServiceName.svelte";

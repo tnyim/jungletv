@@ -14,7 +14,6 @@
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, ChatUpdateEvent } from "./proto/jungletv_pb";
-    import SidebarTabButton from "./SidebarTabButton.svelte";
     import {
         blockedUsers,
         chatEmote,
@@ -24,6 +23,7 @@
         unreadChatMention,
     } from "./stores";
     import type { SidebarTab } from "./tabStores";
+    import TabButton from "./uielements/TabButton.svelte";
     import { editNicknameForUser } from "./utils";
 
     type systemMessageGroupInfo = {
@@ -584,9 +584,9 @@
     {#if autoscrollStatus == "scrolled-up-new-message"}
         <div class="flex flex-row border-t border-gray-200 dark:border-gray-500">
             <div class="px-2 py-1 flex-grow">New {hasNewMentions ? "replies" : "messages"} below</div>
-            <SidebarTabButton selected={false} on:click={() => scrollToBottom()}>
+            <TabButton selected={false} on:click={() => scrollToBottom()}>
                 Jump down <i class="fas fa-caret-down" />
-            </SidebarTabButton>
+            </TabButton>
         </div>
     {/if}
     <div class="border-t border-gray-300 shadow-md flex flex-col">

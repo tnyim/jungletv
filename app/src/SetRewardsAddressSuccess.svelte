@@ -2,10 +2,10 @@
     import { onDestroy } from "svelte";
 
     import { navigate } from "svelte-navigator";
-    import AddressBox from "./AddressBox.svelte";
     import { apiClient } from "./api_client";
-    import { badRepresentative, rewardAddress, rewardBalance, darkMode } from "./stores";
-    import Wizard from "./Wizard.svelte";
+    import { badRepresentative, darkMode, rewardAddress, rewardBalance } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import Wizard from "./uielements/Wizard.svelte";
 
     export let rewardsAddress: string;
 

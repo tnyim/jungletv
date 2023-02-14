@@ -2,16 +2,15 @@
     import { navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
 
-    import SetRewardsAddressFailure from "./SetRewardsAddressFailure.svelte";
-    import SetRewardsAddressAddressInput from "./SetRewardsAddressAddressInput.svelte";
-    import SetRewardsAddressVerification from "./SetRewardsAddressVerification.svelte";
-    import SetRewardsAddressSuccess from "./SetRewardsAddressSuccess.svelte";
-    import SetRewardsAddressUnopenedAccount from "./SetRewardsAddressUnopenedAccount.svelte";
-    import { rewardAddress } from "./stores";
-    import { setCookie } from "./cookie_utils";
-    import type { SignInProgress, SignInVerification } from "./proto/jungletv_pb";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { onDestroy } from "svelte";
+    import type { SignInProgress, SignInVerification } from "./proto/jungletv_pb";
+    import SetRewardsAddressAddressInput from "./SetRewardsAddressAddressInput.svelte";
+    import SetRewardsAddressFailure from "./SetRewardsAddressFailure.svelte";
+    import SetRewardsAddressSuccess from "./SetRewardsAddressSuccess.svelte";
+    import SetRewardsAddressUnopenedAccount from "./SetRewardsAddressUnopenedAccount.svelte";
+    import SetRewardsAddressVerification from "./SetRewardsAddressVerification.svelte";
+    import { rewardAddress } from "./stores";
 
     let step = 0;
     let rewardsAddress = "";

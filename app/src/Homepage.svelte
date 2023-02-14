@@ -49,7 +49,7 @@
         if (c == null) {
             hasChallenge = false;
             showCaptcha = false;
-            activityChallengesDone.update(n => n+1);
+            activityChallengesDone.update((n) => n + 1);
             return;
         }
         hasChallenge = true;

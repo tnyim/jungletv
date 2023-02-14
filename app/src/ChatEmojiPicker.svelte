@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Picker } from "emoji-picker-element/svelte";
-    import { afterUpdate, onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
     import { emojiDatabase } from "./chat_utils";
     import { chatEmotesAsCustomEmoji, currentSubscription, darkMode } from "./stores";

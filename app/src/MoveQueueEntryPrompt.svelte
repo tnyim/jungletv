@@ -2,11 +2,16 @@
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import ErrorMessage from "./ErrorMessage.svelte";
-    import PointsIcon from "./PointsIcon.svelte";
-    import { PointsInfoResponse, QueueEntry, QueueEntryMovementDirection, QueueEntryMovementDirectionMap } from "./proto/jungletv_pb";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import {
+        PointsInfoResponse,
+        QueueEntry,
+        QueueEntryMovementDirection,
+        QueueEntryMovementDirectionMap,
+    } from "./proto/jungletv_pb";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { currentSubscription, darkMode, modal } from "./stores";
+    import ErrorMessage from "./uielements/ErrorMessage.svelte";
 
     export let direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap];
     export let entry: QueueEntry;
