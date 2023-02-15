@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	"github.com/tnyim/jungletv/server/components/raffle"
 )
@@ -15,9 +16,10 @@ type HTTPServer struct {
 	websiteURL      string
 	raffleSecretKey *ecdsa.PrivateKey
 	oauthManager    *oauth.Manager
+	appRunner       *apprunner.AppRunner
 }
 
-func New(log *log.Logger, oauthManager *oauth.Manager, websiteURL, raffleSecretKey string) (map[string]func(w http.ResponseWriter, r *http.Request), error) {
+func New(log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string) (map[string]func(w http.ResponseWriter, r *http.Request), error) {
 	key, err := raffle.DecodeSecretKey(raffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -27,12 +29,14 @@ func New(log *log.Logger, oauthManager *oauth.Manager, websiteURL, raffleSecretK
 		websiteURL:      websiteURL,
 		raffleSecretKey: key,
 		oauthManager:    oauthManager,
+		appRunner:       appRunner,
 	}
 	return map[string]func(w http.ResponseWriter, r *http.Request){
 		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets": s.wrapHTTPHandler(s.RaffleTickets),
 		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/":        s.wrapHTTPHandler(s.RaffleInfo),
-		"/oauth/callback":               s.wrapHTTPHandler(s.OAuthCallback),
-		"/oauth/monkeyconnect/callback": s.wrapHTTPHandler(s.OAuthCallback),
+		"/oauth/callback":                  s.wrapHTTPHandler(s.OAuthCallback),
+		"/oauth/monkeyconnect/callback":    s.wrapHTTPHandler(s.OAuthCallback),
+		"/applications/{app}/files/{file}": s.wrapHTTPHandler(s.ApplicationFile),
 	}, nil
 }
 

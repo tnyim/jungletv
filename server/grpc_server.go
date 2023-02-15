@@ -160,6 +160,8 @@ type Options struct {
 	CaptchaImageDB  *segcha.ImageDatabase
 	CaptchaFontPath string
 
+	AppRunner *apprunner.AppRunner
+
 	AutoEnqueueVideoListFile string
 	QueueFile                string
 
@@ -309,7 +311,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		nicknameCache:             usercache.NewInMemory(),
 		websiteURL:                options.WebsiteURL,
 
-		appRunner: apprunner.New(ctx, options.Log),
+		appRunner: options.AppRunner,
 
 		oauthManager: options.OAuthManager,
 

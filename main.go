@@ -39,6 +39,7 @@ import (
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
@@ -349,6 +350,7 @@ func main() {
 		OAuthManager:             oauthManager,
 		NanswapAPIKey:            nanswapAPIKey,
 		TurnstileSecretKey:       turnstileSecretKey,
+		AppRunner:                apprunner.New(ctx, apiLog),
 	}
 
 	apiServer, err := server.NewServer(ctx, options)
@@ -434,7 +436,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
-	httpServerRoutes, err := httpserver.New(webLog, options.OAuthManager, options.WebsiteURL, options.RaffleSecretKey)
+	httpServerRoutes, err := httpserver.New(webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
