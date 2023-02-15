@@ -81,19 +81,19 @@ func (r *AppRunner) ApplicationStopped() *event.Event[RunningApplication] {
 }
 
 // LaunchApplication launches the most recent version of the specified application
-func (r *AppRunner) LaunchApplicationAtVersion(ctxCtx context.Context, applicationID string, applicationVersion types.ApplicationVersion) error {
-	err := r.launchApplication(ctxCtx, applicationID, applicationVersion)
+func (r *AppRunner) LaunchApplicationAtVersion(applicationID string, applicationVersion types.ApplicationVersion) error {
+	err := r.launchApplication(applicationID, applicationVersion)
 	return stacktrace.Propagate(err, "")
 }
 
 // LaunchApplication launches the most recent version of the specified application
-func (r *AppRunner) LaunchApplication(ctxCtx context.Context, applicationID string) error {
-	err := r.launchApplication(ctxCtx, applicationID, types.ApplicationVersion{})
+func (r *AppRunner) LaunchApplication(applicationID string) error {
+	err := r.launchApplication(applicationID, types.ApplicationVersion{})
 	return stacktrace.Propagate(err, "")
 }
 
-func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID string, specificVersion types.ApplicationVersion) error {
-	ctx, err := transaction.Begin(ctxCtx)
+func (r *AppRunner) launchApplication(applicationID string, specificVersion types.ApplicationVersion) error {
+	ctx, err := transaction.Begin(r.workerContext)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -123,13 +123,13 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		return stacktrace.NewError("an instance of this application already exists")
 	}
 
-	instance, err := newAppInstance(ctx, r, application.ID, specificVersion)
+	instance, err := newAppInstance(r, application.ID, specificVersion)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	r.instances[applicationID] = instance
 
-	err = instance.Start()
+	err = instance.Start(ctx)
 
 	_, _, startedAt := instance.Running()
 	r.onApplicationLaunched.Notify(RunningApplication{
@@ -142,7 +142,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 }
 
 // StopApplication stops the specified application
-func (r *AppRunner) StopApplication(ctx context.Context, applicationID string) error {
+func (r *AppRunner) StopApplication(applicationID string) error {
 	r.instancesLock.Lock()
 	defer r.instancesLock.Unlock()
 

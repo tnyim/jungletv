@@ -22,12 +22,16 @@ type appInstance struct {
 	applicationVersion types.ApplicationVersion
 	mu                 sync.RWMutex
 	started            bool
+	startedOnce        bool
 	startedOrStoppedAt time.Time
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
 	appLogger          *appLogger
-	ctx                context.Context
-	interruptChan      chan any
+	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
+	ctx              context.Context
+	ctxCancel        func()
+	vmInterrupt      func(v any)
+	vmClearInterrupt func()
 }
 
 var ErrApplicationInstanceAlreadyStarted = errors.New("application instance already started")
@@ -38,14 +42,12 @@ var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application
 // ErrApplicationInstanceNotRunning is returned when the specified application is not running
 var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
 
-func newAppInstance(ctx context.Context, r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion) (*appInstance, error) {
+func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion) (*appInstance, error) {
 	instance := &appInstance{
 		applicationID:      applicationID,
 		applicationVersion: applicationVersion,
 		runner:             r,
 		appLogger:          NewAppLogger(),
-		ctx:                ctx,
-		interruptChan:      make(chan any),
 	}
 
 	registry := require.NewRegistry(require.WithLoader(instance.sourceLoader))
@@ -80,12 +82,14 @@ func (a *appInstance) getMainFileSource() (string, error) {
 }
 
 // Start starts the application instance, returning an error if it is already started
-func (a *appInstance) Start() error {
+func (a *appInstance) Start(ctx context.Context) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.started {
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyStarted, "")
 	}
+
+	a.ctx, a.ctxCancel = context.WithCancel(ctx)
 
 	mainSource, err := a.getMainFileSource()
 	if err != nil {
@@ -96,12 +100,25 @@ func (a *appInstance) Start() error {
 	a.started = true
 	a.startedOrStoppedAt = time.Now()
 
-	a.runOnLoopLogError(a.setupEnvironment)
+	if !a.startedOnce {
+		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
+		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
+		// scheduled by JS functions in a JS setTimeout call.
+		// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
+		// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
+		a.loop.RunOnLoop(func(r *goja.Runtime) {
+			a.vmInterrupt = r.Interrupt
+			a.vmClearInterrupt = r.ClearInterrupt
+		})
 
-	a.runOnLoopLogError(func(vm *goja.Runtime) error {
-		_, err = vm.RunScript(MainFileName, mainSource)
-		return stacktrace.Propagate(err, "")
-	})
+		a.runOnLoopLogError(a.setupEnvironment)
+
+		a.runOnLoopLogError(func(vm *goja.Runtime) error {
+			_, err = vm.RunScript(MainFileName, mainSource)
+			return stacktrace.Propagate(err, "")
+		})
+		a.startedOnce = true
+	}
 
 	return nil
 }
@@ -123,11 +140,9 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		go func() {
 			select {
 			case <-ctx.Done():
+				a.appLogger.RuntimeLog("interrupting application due to cancelled context")
 				vm.Interrupt(appInstanceInterruptValue)
 				a.appLogger.RuntimeLog("application interrupted due to cancelled context")
-			case reason := <-a.interruptChan:
-				vm.Interrupt(reason)
-				a.appLogger.RuntimeLog("application interrupted")
 			case <-ranChan:
 			}
 			waitGroup.Done()
@@ -177,10 +192,8 @@ func (a *appInstance) Stop(force bool, after time.Duration, waitUntilStopped boo
 		if force {
 			interruptTimer = time.AfterFunc(after, func() {
 				a.appLogger.RuntimeLog("interrupting application instance")
-				select {
-				case a.interruptChan <- appInstanceInterruptValue:
-				default:
-				}
+				a.vmInterrupt(appInstanceInterruptValue)
+				a.appLogger.RuntimeLog("application interrupted")
 			})
 		}
 
@@ -188,8 +201,11 @@ func (a *appInstance) Stop(force bool, after time.Duration, waitUntilStopped boo
 		if force {
 			interruptTimer.Stop()
 		}
+		a.ctxCancel()
+		a.ctx, a.ctxCancel = nil, nil
 		a.started = false
 		a.startedOrStoppedAt = time.Now()
+		a.vmClearInterrupt()
 		plural := "s"
 		if jobs == 1 {
 			plural = ""

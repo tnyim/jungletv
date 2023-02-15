@@ -27,7 +27,7 @@ func (s *grpcServer) LaunchApplication(ctx context.Context, r *proto.LaunchAppli
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.appRunner.LaunchApplication(ctx, r.Id)
+	err := s.appRunner.LaunchApplication(r.Id)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -54,7 +54,7 @@ func (s *grpcServer) StopApplication(ctx context.Context, r *proto.StopApplicati
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.appRunner.StopApplication(ctx, r.Id)
+	err := s.appRunner.StopApplication(r.Id)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
