@@ -13,6 +13,16 @@ export const getModalResult = async function <ResponseType>(mi: ModalData): Prom
     return new Promise<ModalResult<ResponseType>>((resolve, _) => {
         let unsubscriber: Unsubscriber;
         let opened = false;
+        if (typeof mi.options === "undefined") {
+            mi.options = {
+                closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+                styleContent: {
+                    padding: "0",
+                },
+            };
+        }
         let resultCallback = function (r: ResponseType) {
             unsubscriber();
             opened = false;
@@ -52,14 +62,6 @@ export const modalAlert = async function (message: string, title: string = "", b
             title,
             buttonLabel,
         },
-        options: {
-            closeButton: true,
-            closeOnEsc: true,
-            closeOnOuterClick: true,
-            styleContent: {
-                padding: "0",
-            },
-        },
     });
 }
 
@@ -71,14 +73,6 @@ export const modalConfirm = async function (question: string, title: string, pos
             title,
             positiveAnswerLabel,
             negativeAnswerLabel,
-        },
-        options: {
-            closeButton: true,
-            closeOnEsc: true,
-            closeOnOuterClick: true,
-            styleContent: {
-                padding: "0",
-            },
         },
     });
     return result.result == "response" && result.response;
@@ -99,14 +93,6 @@ export const modalPrompt = async function (question: string,
             value: initialValue,
             positiveAnswerLabel,
             negativeAnswerLabel,
-        },
-        options: {
-            closeButton: true,
-            closeOnEsc: true,
-            closeOnOuterClick: true,
-            styleContent: {
-                padding: "0",
-            },
         },
     });
     if (result.result == "response" && result.response[1]) {

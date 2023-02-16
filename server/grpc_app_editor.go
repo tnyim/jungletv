@@ -225,6 +225,8 @@ func (s *grpcServer) UpdateApplicationFile(ctx context.Context, r *proto.Applica
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
+	r.GetContent()
+
 	err := s.appEditor.UpdateApplicationFile(ctx, r.ApplicationId, r.Name, moderator, r.Type, r.Public, r.Content, r.EditMessage)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")

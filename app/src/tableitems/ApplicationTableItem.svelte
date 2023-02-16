@@ -107,37 +107,37 @@
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
     >
         <a href={"/moderate/applications/" + application.getId()} use:link>Edit</a><br />
-        <span
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
             on:click={cloneApplication}
         >
             Duplicate
-        </span><br />
-        <span
+        </button><br />
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
             on:click={deleteApplication}
         >
             Delete
-        </span>
+        </button>
         {#if application.getAllowLaunching() && !launched}
-            <br /><span
+            <br /><button
+                type="button"
                 class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                tabindex="0"
                 on:click={launchApplication}
             >
                 Launch
-            </span>
+            </button>
         {/if}
         {#if launched}
-            <br /><span
+            <br /><button
+                type="button"
                 class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                tabindex="0"
                 on:click={stopApplication}
             >
                 Stop
-            </span>
+            </button>
             <br />
             <a href={"/moderate/applications/" + application.getId() + "/console"} use:link>Console</a>
         {/if}

@@ -123,6 +123,17 @@ func (*AppEditor) UpdateApplicationFile(ctxCtx context.Context, applicationID st
 		Content:       content,
 	}
 
+	if content == nil {
+		files, err := types.GetApplicationFilesWithNamesForApplication(ctx, applicationID, []string{fileName})
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		oldFile, ok := files[fileName]
+		if ok {
+			file.Content = oldFile.Content
+		}
+	}
+
 	err = file.Update(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")

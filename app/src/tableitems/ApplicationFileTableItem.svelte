@@ -1,7 +1,8 @@
 <script lang="ts">
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
-    import { modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
+    import { getModalResult, modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
+    import ApplicationFileDetails from "../moderation/ApplicationFileDetails.svelte";
     import { mimeTypeIsEditable } from "../moderation/codeEditor";
     import type { Application, ApplicationFile } from "../proto/application_editor_pb";
     import { formatDateForModeration } from "../utils";
@@ -65,6 +66,33 @@
         }
     }
 
+    async function updateFileProperties() {
+        let result = await getModalResult<ApplicationFile>({
+            component: ApplicationFileDetails,
+            props: {
+                file,
+            },
+        });
+        if (result.result != "response") {
+            return;
+        }
+        let updatedFile = result.response;
+
+        let message = `Update ${updatedFile.getName()} properties`;
+        message = await modalPrompt("Enter an edit message:", message, "", message);
+        if (message === null) {
+            return;
+        }
+        updatedFile.setEditMessage(message);
+
+        try {
+            await apiClient.updateApplicationFile(updatedFile);
+            updateDataCallback();
+        } catch (e) {
+            await modalAlert("An error occurred when updating the file: " + e);
+        }
+    }
+
     function getIconForType(t: string): string {
         if (t.startsWith("image/")) {
             return "fas fa-file-image";
@@ -124,26 +152,33 @@
                 Edit
             </a><br />
         {/if}
-        <span
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
             on:click={cloneFileSameApp}
         >
             Duplicate
-        </span><br />
-        <span
+        </button><br />
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
             on:click={cloneFileOtherApp}
         >
             Duplicate to another
-        </span><br />
-        <span
+        </button><br />
+        <button
+            type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            tabindex="0"
+            on:click={updateFileProperties}
+        >
+            Details
+        </button><br />
+        <button
+            type="button"
+            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
             on:click={deleteFile}
         >
             Delete
-        </span>
+        </button>
     </td>
 </tr>
