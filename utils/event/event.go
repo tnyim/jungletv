@@ -3,6 +3,7 @@ package event
 import (
 	"sync"
 
+	"github.com/smallnest/chanx"
 	"github.com/tnyim/jungletv/utils/fastcollection"
 )
 
@@ -10,7 +11,7 @@ import (
 type Event[T any] struct {
 	mu                   sync.RWMutex
 	nonBlockingSubs      fastcollection.FastCollection[chan T]
-	blockingSubs         fastcollection.FastCollection[chan T]
+	blockingSubs         fastcollection.FastCollection[*chanx.UnboundedChan[T]]
 	closed               bool
 	pendingNotifications []T
 	onUnsubscribed       *Event[int]
@@ -30,6 +31,7 @@ const (
 
 	// ExactlyOnceGuarantee: subscribers will be notified exactly as many times as the event is fired,
 	// even if those notifications happen when they are not waiting on the channel.
+	// The order of the events is preserved.
 	ExactlyOnceGuarantee
 )
 
@@ -44,17 +46,20 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	defer e.mu.Unlock()
 
 	var subID int
-	var subChan chan T
+	var retChan <-chan T
 	switch guaranteeType {
 	case AtMostOnceGuarantee:
-		subChan = make(chan T)
+		subChan := make(chan T)
 		subID = e.nonBlockingSubs.Insert(subChan)
+		retChan = subChan
 	case AtLeastOnceGuarantee:
-		subChan = make(chan T, 1)
+		subChan := make(chan T, 1)
 		subID = e.nonBlockingSubs.Insert(subChan)
+		retChan = subChan
 	case ExactlyOnceGuarantee:
-		subChan = make(chan T)
+		subChan := chanx.NewUnboundedChan[T](1)
 		subID = e.blockingSubs.Insert(subChan)
+		retChan = subChan.Out
 	default:
 		panic("invalid guarantee type")
 	}
@@ -66,7 +71,7 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 		}
 		e.pendingNotifications = nil
 	}
-	return subChan, func() { e.unsubscribe(subID, guaranteeType, &unsubscribed) }
+	return retChan, func() { e.unsubscribe(subID, guaranteeType, &unsubscribed) }
 }
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
@@ -74,10 +79,10 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func(arg T)) func() {
 	ch, unsub := e.Subscribe(guaranteeType)
 	go func() {
+		defer unsub()
 		for {
 			param, ok := <-ch
 			if !ok {
-				unsub()
 				return
 			}
 			cbFunction(param)
@@ -97,19 +102,19 @@ func (e *Event[T]) unsubscribe(subID int, guaranteeType GuaranteeType, unsubscri
 	}
 	*unsubscribed = true
 
-	var subChan chan T
 	switch guaranteeType {
 	case AtMostOnceGuarantee:
 		fallthrough
 	case AtLeastOnceGuarantee:
-		subChan = e.nonBlockingSubs.Delete(subID)
+		subChan := e.nonBlockingSubs.Delete(subID)
+		close(subChan)
 	case ExactlyOnceGuarantee:
-		subChan = e.blockingSubs.Delete(subID)
+		subChan := e.blockingSubs.Delete(subID)
+		close(subChan.In) // this is important, to destroy the internal goroutine of the UnboundedChan
 	default:
 		panic("invalid guarantee type")
 	}
 
-	close(subChan)
 	if e.onUnsubscribed != nil {
 		e.onUnsubscribed.Notify(e.len(), false)
 	}
@@ -156,13 +161,7 @@ func (e *Event[T]) notifyNowWithinMutex(param T) {
 	}
 	for _, entry := range e.blockingSubs.UnsafeBackingArray {
 		if entry.NextDeleteIdx < 0 {
-			go func(sch chan T) {
-				defer func() {
-					recover() // we don't care if we panic on sending to closed channels
-					// (the point of us closing these channels is so goroutines like this one don't live forever)
-				}()
-				sch <- param
-			}(entry.Content)
+			entry.Content.In <- param
 		}
 	}
 }
@@ -181,7 +180,7 @@ func (e *Event[T]) Close() {
 		}
 		for _, entry := range e.blockingSubs.UnsafeBackingArray {
 			if entry.NextDeleteIdx == -2 {
-				close(entry.Content)
+				close(entry.Content.In)
 			}
 		}
 	}

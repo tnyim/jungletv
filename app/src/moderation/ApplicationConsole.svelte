@@ -370,13 +370,13 @@
         {/if}
         {#each consoleEntries as entry}
             <div
-                class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-center {classesForEntry(
+                class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-start {classesForEntry(
                     entry
                 )} {entry.highlighted ? 'bg-gray-200 dark:bg-gray-800' : ''}"
                 on:mouseenter={() => onEntryMouseEnter(entry)}
                 on:mouseleave={() => onEntryMouseLeave(entry)}
             >
-                <div class="w-5 text-right mr-2 self-start">
+                <div class="w-5 text-right mr-2">
                     <i class={iconForEntry(entry)} />
                 </div>
                 <div class="flex-grow font-mono">
@@ -393,7 +393,7 @@
                     {/if}
                 </div>
 
-                <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                <div class="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
                     {#if entry.result}
                         {formatExecutionTime(entry.result.response.getExecutionTime())}
                     {:else if entry.logEntry}
@@ -401,13 +401,13 @@
                     {:else if entry.userInput}
                         {formatLogEntryTime(entry.userInput.sentAt)}
                         {#if entry.userInput.cancel}
-                            <span
+                            <button
+                                type="button"
                                 class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                                tabindex="0"
                                 on:click={entry.userInput.cancel}
                             >
                                 Abort
-                            </span>
+                            </button>
                         {/if}
                         {#if entry.userInput.canceled}
                             Canceled

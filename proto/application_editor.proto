@@ -119,12 +119,12 @@ enum ApplicationLogLevel {
 message ApplicationLogRequest {
     string application_id = 1;
     repeated ApplicationLogLevel levels = 2;
-    optional int64 offset = 3 [jstype = JS_STRING];
+    optional string offset = 3;
     uint32 limit = 4;
 }
 
 message ApplicationLogEntry {
-    int64 cursor = 1 [jstype = JS_STRING];
+    string cursor = 1;
     google.protobuf.Timestamp created_at = 2;
     ApplicationLogLevel level = 3;
     string message = 4;

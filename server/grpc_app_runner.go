@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
-	"github.com/bwmarrin/snowflake"
+	"github.com/oklog/ulid/v2"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner"
@@ -83,9 +82,14 @@ func (s *grpcServer) ApplicationLog(ctx context.Context, r *proto.ApplicationLog
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	offset := snowflake.ParseInt64(math.MaxInt64)
+	offset := ulid.Make()
 	if r.Offset != nil {
-		offset = snowflake.ParseInt64(*r.Offset) - 1
+		offset, err = ulid.Parse(*r.Offset)
+	} else {
+		err = offset.SetTime(ulid.MaxTime())
+	}
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	levels, err := convertApplicationLogLevelsFromProto(r.Levels)
@@ -198,7 +202,7 @@ func convertApplicationLogEntries(orig []apprunner.ApplicationLogEntry) []*proto
 
 func convertApplicationLogEntry(orig apprunner.ApplicationLogEntry) *proto.ApplicationLogEntry {
 	return &proto.ApplicationLogEntry{
-		Cursor:    orig.Cursor().Int64(),
+		Cursor:    orig.Cursor().String(),
 		CreatedAt: timestamppb.New(orig.CreatedAt()),
 		Level:     convertApplicationLogLevel(orig.LogLevel()),
 		Message:   orig.Message(),

@@ -33,12 +33,14 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.10.6
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rickb777/date v1.20.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sethvargo/go-limiter v0.7.2
 	github.com/shopspring/decimal v1.3.1
+	github.com/smallnest/chanx v1.1.0
 	github.com/stretchr/testify v1.8.0
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765

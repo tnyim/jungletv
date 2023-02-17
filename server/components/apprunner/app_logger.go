@@ -7,37 +7,37 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/btree"
+	"github.com/oklog/ulid/v2"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
 // ApplicationLog represents the log of a single application
 type ApplicationLog interface {
-	LogEntries(offset snowflake.ID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool)
+	LogEntries(offset ulid.ULID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool)
 	LogEntryAdded() *event.Event[ApplicationLogEntry]
 }
 
 // ApplicationLogEntry represents an entry in the log of an application
 type ApplicationLogEntry interface {
-	Cursor() snowflake.ID
+	Cursor() ulid.ULID
 	CreatedAt() time.Time
 	Message() string
 	LogLevel() ApplicationLogLevel
 }
 
 type appLogEntry struct {
-	sortKey   snowflake.ID
-	createdAt time.Time
-	message   string
-	level     ApplicationLogLevel
+	sortKey ulid.ULID
+	message string
+	level   ApplicationLogLevel
 }
 
-func (e appLogEntry) Cursor() snowflake.ID {
+func (e appLogEntry) Cursor() ulid.ULID {
 	return e.sortKey
 }
 
 func (e appLogEntry) CreatedAt() time.Time {
-	return e.createdAt
+	return ulid.Time(e.sortKey.Time())
 }
 
 func (e appLogEntry) Message() string {
@@ -70,14 +70,14 @@ func NewAppLogger() *appLogger {
 	node, _ := snowflake.NewNode(rand.Int63n(1000))
 	return &appLogger{
 		entries: btree.NewG(32, func(a, b appLogEntry) bool {
-			return a.sortKey.Int64() < b.sortKey.Int64()
+			return a.sortKey.Compare(b.sortKey) < 0
 		}),
 		onEntryAdded:  event.New[ApplicationLogEntry](),
 		snowflakeNode: node,
 	}
 }
 
-func (p *appLogger) LogEntries(offset snowflake.ID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool) {
+func (p *appLogger) LogEntries(offset ulid.ULID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -87,6 +87,9 @@ func (p *appLogger) LogEntries(offset snowflake.ID, maxCount int, levels []Appli
 		sortKey: offset,
 	}
 	p.entries.DescendLessOrEqual(cursor, func(entry appLogEntry) bool {
+		if entry.sortKey.Compare(offset) == 0 {
+			return true
+		}
 		if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
 			entries = append(entries, entry)
 		}
@@ -107,10 +110,9 @@ func (p *appLogger) addLogEntry(message string, logLevel ApplicationLogLevel) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	entry := appLogEntry{
-		sortKey:   p.snowflakeNode.Generate(),
-		createdAt: time.Now(),
-		message:   message,
-		level:     logLevel,
+		sortKey: ulid.Make(),
+		message: message,
+		level:   logLevel,
 	}
 	p.entries.ReplaceOrInsert(entry)
 	p.onEntryAdded.Notify(entry, false)

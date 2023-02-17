@@ -4433,7 +4433,7 @@ proto.jungletv.ApplicationLogRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     applicationId: jspb.Message.getFieldWithDefault(msg, 1, ""),
     levelsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    offset: jspb.Message.getFieldWithDefault(msg, 3, "0"),
+    offset: jspb.Message.getFieldWithDefault(msg, 3, ""),
     limit: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
@@ -4482,7 +4482,7 @@ proto.jungletv.ApplicationLogRequest.deserializeBinaryFromReader = function(msg,
       }
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readInt64String());
+      var value = /** @type {string} */ (reader.readString());
       msg.setOffset(value);
       break;
     case 4:
@@ -4534,7 +4534,7 @@ proto.jungletv.ApplicationLogRequest.serializeBinaryToWriter = function(message,
   }
   f = /** @type {string} */ (jspb.Message.getField(message, 3));
   if (f != null) {
-    writer.writeInt64String(
+    writer.writeString(
       3,
       f
     );
@@ -4605,11 +4605,11 @@ proto.jungletv.ApplicationLogRequest.prototype.clearLevelsList = function() {
 
 
 /**
- * optional int64 offset = 3;
+ * optional string offset = 3;
  * @return {string}
  */
 proto.jungletv.ApplicationLogRequest.prototype.getOffset = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, "0"));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
@@ -4690,7 +4690,7 @@ proto.jungletv.ApplicationLogEntry.prototype.toObject = function(opt_includeInst
  */
 proto.jungletv.ApplicationLogEntry.toObject = function(includeInstance, msg) {
   var f, obj = {
-    cursor: jspb.Message.getFieldWithDefault(msg, 1, "0"),
+    cursor: jspb.Message.getFieldWithDefault(msg, 1, ""),
     createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     level: jspb.Message.getFieldWithDefault(msg, 3, 0),
     message: jspb.Message.getFieldWithDefault(msg, 4, "")
@@ -4731,7 +4731,7 @@ proto.jungletv.ApplicationLogEntry.deserializeBinaryFromReader = function(msg, r
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readInt64String());
+      var value = /** @type {string} */ (reader.readString());
       msg.setCursor(value);
       break;
     case 2:
@@ -4777,8 +4777,8 @@ proto.jungletv.ApplicationLogEntry.prototype.serializeBinary = function() {
 proto.jungletv.ApplicationLogEntry.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getCursor();
-  if (parseInt(f, 10) !== 0) {
-    writer.writeInt64String(
+  if (f.length > 0) {
+    writer.writeString(
       1,
       f
     );
@@ -4809,11 +4809,11 @@ proto.jungletv.ApplicationLogEntry.serializeBinaryToWriter = function(message, w
 
 
 /**
- * optional int64 cursor = 1;
+ * optional string cursor = 1;
  * @return {string}
  */
 proto.jungletv.ApplicationLogEntry.prototype.getCursor = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, "0"));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
@@ -4822,7 +4822,7 @@ proto.jungletv.ApplicationLogEntry.prototype.getCursor = function() {
  * @return {!proto.jungletv.ApplicationLogEntry} returns this
  */
 proto.jungletv.ApplicationLogEntry.prototype.setCursor = function(value) {
-  return jspb.Message.setProto3StringIntField(this, 1, value);
+  return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 

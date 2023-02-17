@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dop251/goja"
@@ -13,6 +14,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/exp/slices"
 )
@@ -21,9 +23,12 @@ type appInstance struct {
 	applicationID      string
 	applicationVersion types.ApplicationVersion
 	mu                 sync.RWMutex
-	started            bool
+	running            bool
 	startedOnce        bool
+	terminated         bool
 	startedOrStoppedAt time.Time
+	onPaused           *event.NoArgEvent
+	onTerminated       *event.NoArgEvent
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
 	appLogger          *appLogger
@@ -34,8 +39,9 @@ type appInstance struct {
 	vmClearInterrupt func()
 }
 
-var ErrApplicationInstanceAlreadyStarted = errors.New("application instance already started")
-var ErrApplicationInstanceAlreadyStopped = errors.New("application instance already stopped")
+var ErrApplicationInstanceAlreadyRunning = errors.New("application instance already running")
+var ErrApplicationInstanceAlreadyPaused = errors.New("application instance already paused")
+var ErrApplicationInstanceTerminated = errors.New("application instance terminated")
 var ErrApplicationFileNotFound = errors.New("application file not found")
 var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application file")
 
@@ -46,6 +52,8 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance := &appInstance{
 		applicationID:      applicationID,
 		applicationVersion: applicationVersion,
+		onPaused:           event.NewNoArg(),
+		onTerminated:       event.NewNoArg(),
 		runner:             r,
 		appLogger:          NewAppLogger(),
 	}
@@ -58,6 +66,16 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.appLogger.RuntimeLog("application instance created")
 
 	return instance, nil
+}
+
+// Terminated returns the event that is fired when the application instance is terminated
+func (a *appInstance) Terminated() *event.NoArgEvent {
+	return a.onTerminated
+}
+
+// Paused returns the event that is fired when the application instance is paused. Fired before Terminated
+func (a *appInstance) Paused() *event.NoArgEvent {
+	return a.onPaused
 }
 
 func (a *appInstance) getMainFileSource() (string, error) {
@@ -81,12 +99,15 @@ func (a *appInstance) getMainFileSource() (string, error) {
 	return string(file.Content), nil
 }
 
-// Start starts the application instance, returning an error if it is already started
-func (a *appInstance) Start(ctx context.Context) error {
+// StartOrResume starts or resumes the application instance, returning an error if it is already running
+func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.started {
-		return stacktrace.Propagate(ErrApplicationInstanceAlreadyStarted, "")
+	if a.terminated {
+		return stacktrace.Propagate(ErrApplicationInstanceTerminated, "")
+	}
+	if a.running {
+		return stacktrace.Propagate(ErrApplicationInstanceAlreadyRunning, "")
 	}
 
 	a.ctx, a.ctxCancel = context.WithCancel(ctx)
@@ -97,7 +118,7 @@ func (a *appInstance) Start(ctx context.Context) error {
 	}
 
 	a.loop.Start()
-	a.started = true
+	a.running = true
 	a.startedOrStoppedAt = time.Now()
 
 	if !a.startedOnce {
@@ -140,9 +161,9 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		go func() {
 			select {
 			case <-ctx.Done():
-				a.appLogger.RuntimeLog("interrupting application due to cancelled context")
+				a.appLogger.RuntimeLog("interrupting execution due to cancelled context")
 				vm.Interrupt(appInstanceInterruptValue)
-				a.appLogger.RuntimeLog("application interrupted due to cancelled context")
+				a.appLogger.RuntimeLog("execution interrupted due to cancelled context")
 			case <-ranChan:
 			}
 			waitGroup.Done()
@@ -172,58 +193,96 @@ func (a *appInstance) setupEnvironment(vm *goja.Runtime) error {
 
 var appInstanceInterruptValue = struct{}{}
 
-// Stop stops the application instance.
-// If waitUntilStopped is true and the application is already stopped, ErrApplicationInstanceAlreadyStopped will be returned
-func (a *appInstance) Stop(force bool, after time.Duration, waitUntilStopped bool) error {
-	stop := func() error {
+// Pause pauses the application instance.
+// If waitUntilStopped is true and the application is already paused, ErrApplicationInstanceAlreadyPaused will be returned
+func (a *appInstance) Pause(force bool, after time.Duration, waitUntilStopped bool) error {
+	p := func() error {
 		a.mu.Lock()
 		defer a.mu.Unlock()
-		if !a.started {
-			return stacktrace.Propagate(ErrApplicationInstanceAlreadyStopped, "")
-		}
-
-		if force {
-			a.appLogger.RuntimeLog(fmt.Sprintf("stopping application instance, interrupting after %s", after.String()))
-		} else {
-			a.appLogger.RuntimeLog("stopping application instance")
-		}
-
-		var interruptTimer *time.Timer
-		if force {
-			interruptTimer = time.AfterFunc(after, func() {
-				a.appLogger.RuntimeLog("interrupting application instance")
-				a.vmInterrupt(appInstanceInterruptValue)
-				a.appLogger.RuntimeLog("application interrupted")
-			})
-		}
-
-		jobs := a.loop.Stop()
-		if force {
-			interruptTimer.Stop()
-		}
-		a.ctxCancel()
-		a.ctx, a.ctxCancel = nil, nil
-		a.started = false
-		a.startedOrStoppedAt = time.Now()
-		a.vmClearInterrupt()
-		plural := "s"
-		if jobs == 1 {
-			plural = ""
-		}
-		a.appLogger.RuntimeLog(fmt.Sprintf("application instance stopped with %d job%s remaining", jobs, plural))
-		return nil
+		return stacktrace.Propagate(a.pause(force, after, false), "")
 	}
 	if waitUntilStopped {
-		return stacktrace.Propagate(stop(), "")
+		return stacktrace.Propagate(p(), "")
 	}
-	go stop()
+	go p()
+	return nil
+}
+
+// Terminate permanently stops the application instance and signals for it to be destroyed.
+// If waitUntilTerminated is true and the application is already terminated, ErrApplicationInstanceTerminated will be returned
+func (a *appInstance) Terminate(force bool, after time.Duration, waitUntilTerminated bool) error {
+	t := func() error {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+
+		if a.terminated {
+			return stacktrace.Propagate(ErrApplicationInstanceTerminated, "")
+		}
+		err := a.pause(force, after, true)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		a.terminated = true
+		a.onTerminated.Notify(true)
+
+		return nil
+	}
+	if waitUntilTerminated {
+		return stacktrace.Propagate(t(), "")
+	}
+	go t()
+	return nil
+}
+
+// pause must run within write mutex
+func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) error {
+	if !a.running {
+		return stacktrace.Propagate(ErrApplicationInstanceAlreadyPaused, "")
+	}
+
+	verbPresent, verbPast := "pausing", "paused"
+	if toTerminate {
+		verbPresent, verbPast = "terminating", "terminated"
+	}
+
+	if force {
+		a.appLogger.RuntimeLog(fmt.Sprintf("%s application instance, interrupting after %s", verbPresent, after.String()))
+	} else {
+		a.appLogger.RuntimeLog(fmt.Sprintf("%s application instance", verbPresent))
+	}
+
+	var interruptTimer *time.Timer
+	if force {
+		interruptTimer = time.AfterFunc(after, func() {
+			a.appLogger.RuntimeLog(fmt.Sprintf("interrupting execution after waiting %s", after.String()))
+			a.vmInterrupt(appInstanceInterruptValue)
+			a.appLogger.RuntimeLog("execution interrupted")
+		})
+	}
+
+	jobs := a.loop.Stop()
+	if force {
+		interruptTimer.Stop()
+	}
+	a.ctxCancel()
+	a.ctx, a.ctxCancel = nil, nil
+	a.running = false
+	a.startedOrStoppedAt = time.Now()
+	a.vmClearInterrupt()
+	plural := "s"
+	if jobs == 1 {
+		plural = ""
+	}
+	a.appLogger.RuntimeLog(fmt.Sprintf("application instance %s with %d job%s remaining", verbPast, jobs, plural))
+	a.onPaused.Notify(false)
 	return nil
 }
 
 func (a *appInstance) Running() (bool, types.ApplicationVersion, time.Time) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-	return a.started, a.applicationVersion, a.startedOrStoppedAt
+	return a.running, a.applicationVersion, a.startedOrStoppedAt
 }
 
 func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
@@ -250,19 +309,24 @@ func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
 
 func (a *appInstance) EvaluateExpression(ctx context.Context, expression string) (bool, string, time.Duration, error) {
 	a.mu.RLock()
+	running := a.running
+	// we release the lock here because there's no guarantee the function passed to runOnLoopWithInterruption
+	// will ever execute (the event loop could be stuck in an infinite loop)
+	// we also can't hold the lock until this function finishes executing, for the same reason
+	// (if we keep holding the lock, Pause/Terminate will get stuck waiting for it)
+	a.mu.RUnlock()
 
-	if !a.started {
+	if !running {
 		return false, "", 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
 	resultChan := make(chan goja.Value)
 	errChan := make(chan error)
 	var executionTime time.Duration
+	couldHavePaused := &atomic.Int32{}
+	couldHavePaused.Store(1)
 	a.runOnLoopWithInterruption(ctx, func(vm *goja.Runtime) {
-		// ensure a call to Stop() doesn't get blocked waiting for the expression to finish executing
-		// by unlocking the mutex as soon as we know we've actually been scheduled
-		// (i.e. there's no way for the eventloop to be paused now without us getting an outcome out of RunString anyway)
-		a.mu.RUnlock()
+		couldHavePaused.Store(0)
 		start := time.Now()
 		result, err := vm.RunString(expression)
 		executionTime = time.Since(start)
@@ -270,9 +334,25 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		errChan <- err
 	})
 
-	result, err := <-resultChan, <-errChan
-	if err != nil {
-		return false, err.Error(), executionTime, nil
+	onPaused, pausedU := a.Paused().Subscribe(event.AtLeastOnceGuarantee)
+	defer pausedU()
+
+	for {
+		select {
+		case result := <-resultChan:
+			err := <-errChan
+			if err != nil {
+				return false, err.Error(), executionTime, nil
+			}
+			return true, result.String(), executionTime, nil
+		case <-onPaused:
+			if couldHavePaused.Load() == 1 {
+				// application paused before our loop function could run / before our expression returned
+				return false, "", executionTime, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+			}
+			// otherwise: application paused but we are still going to get a result
+			// (even if it's an error due to the interrupt still being set)
+			// so wait for resultChan
+		}
 	}
-	return true, result.String(), executionTime, nil
 }

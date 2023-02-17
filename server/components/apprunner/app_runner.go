@@ -129,45 +129,75 @@ func (r *AppRunner) launchApplication(applicationID string, specificVersion type
 	}
 	r.instances[applicationID] = instance
 
-	err = instance.Start(ctx)
+	var startedAt time.Time
+	var terminatedUnsub func()
+	terminatedUnsub = instance.Terminated().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+		r.instancesLock.Lock()
+		defer r.instancesLock.Unlock()
 
-	_, _, startedAt := instance.Running()
+		delete(r.instances, applicationID)
+
+		r.recentLogs.SetDefault(applicationID, instance.appLogger)
+		r.onApplicationStopped.Notify(RunningApplication{
+			ApplicationID:      instance.applicationID,
+			ApplicationVersion: instance.applicationVersion,
+			StartedAt:          startedAt, // set below after the application starts
+		}, false)
+		r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
+
+		terminatedUnsub()
+	})
+
+	err = instance.StartOrResume(ctx)
+
+	_, _, startedAt = instance.Running()
+
 	r.onApplicationLaunched.Notify(RunningApplication{
 		ApplicationID:      instance.applicationID,
 		ApplicationVersion: instance.applicationVersion,
 		StartedAt:          startedAt,
-	}, false)
+	}, true)
 	r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
 	return stacktrace.Propagate(err, "")
 }
 
 // StopApplication stops the specified application
 func (r *AppRunner) StopApplication(applicationID string) error {
-	r.instancesLock.Lock()
-	defer r.instancesLock.Unlock()
+	stopped, stoppedU := r.onApplicationStopped.Subscribe(event.AtLeastOnceGuarantee)
+	defer stoppedU()
 
-	instance, ok := r.instances[applicationID]
-	if !ok {
-		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	stop := func() error {
+		r.instancesLock.Lock()
+		defer r.instancesLock.Unlock()
+
+		instance, ok := r.instances[applicationID]
+		if !ok {
+			return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+		}
+
+		err := instance.Terminate(true, 10*time.Second, true)
+		if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyPaused) {
+			return stacktrace.Propagate(err, "")
+		}
+		return nil
 	}
 
-	_, _, startedAt := instance.Running()
-
-	err := instance.Stop(true, 10*time.Second, true)
-	if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyStopped) {
+	err := stop()
+	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	delete(r.instances, applicationID)
-
-	r.recentLogs.SetDefault(applicationID, instance.appLogger)
-	r.onApplicationStopped.Notify(RunningApplication{
-		ApplicationID:      instance.applicationID,
-		ApplicationVersion: instance.applicationVersion,
-		StartedAt:          startedAt,
-	}, false)
-	r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
-	return nil
+	// block until the application is evicted from the instances list by the subscriber to the instance's Terminated event
+	// (see SubscribeUsingCallback call in launchApplication)
+	// there should be no risk of us blocking forever because we know that the application was terminated successfully,
+	// and the AtLeastOnceGuarantee on the event subscription ensures we'll be notified on the channel even if the
+	// application termination event is fired before we get to this point
+	for {
+		s := <-stopped
+		if s.ApplicationID == applicationID {
+			return nil
+		}
+	}
 }
 
 // RunningApplication contains information about a running application
