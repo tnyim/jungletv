@@ -13,6 +13,7 @@ import (
 	"github.com/dop251/goja_nodejs/eventloop"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -26,6 +27,7 @@ type appInstance struct {
 	running            bool
 	startedOnce        bool
 	terminated         bool
+	exitCode           int
 	startedOrStoppedAt time.Time
 	onPaused           *event.NoArgEvent
 	onTerminated       *event.NoArgEvent
@@ -60,6 +62,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 
 	registry := require.NewRegistry(require.WithLoader(instance.sourceLoader))
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
+	registry.RegisterNativeModule(process.ModuleName, process.BuildRequire(instance, instance))
 
 	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(registry))
 
@@ -130,13 +133,13 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
 			a.vmInterrupt = r.Interrupt
 			a.vmClearInterrupt = r.ClearInterrupt
+			process.Enable(r)
+			a.appLogger.RuntimeLog("application instance started")
 		})
-
-		a.runOnLoopLogError(a.setupEnvironment)
 
 		a.runOnLoopLogError(func(vm *goja.Runtime) error {
 			_, err = vm.RunScript(MainFileName, mainSource)
-			return stacktrace.Propagate(err, "")
+			return err // do not propagate, user code, there's no need to make the stack trace more confusing
 		})
 		a.startedOnce = true
 	}
@@ -175,20 +178,6 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		waitGroup.Wait()
 		vm.ClearInterrupt()
 	})
-}
-
-func (a *appInstance) setupEnvironment(vm *goja.Runtime) error {
-	err := vm.GlobalObject().Set("process", map[string]string{
-		"title":    a.applicationID,
-		"platform": "jungletv",
-		"version":  fmt.Sprint(RuntimeVersion),
-	})
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-
-	a.appLogger.RuntimeLog("application instance started")
-	return nil
 }
 
 var appInstanceInterruptValue = struct{}{}
@@ -274,7 +263,11 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	if jobs == 1 {
 		plural = ""
 	}
-	a.appLogger.RuntimeLog(fmt.Sprintf("application instance %s with %d job%s remaining", verbPast, jobs, plural))
+	exitCodeMsg := ""
+	if toTerminate {
+		exitCodeMsg = fmt.Sprintf(" and exit code %d", a.exitCode)
+	}
+	a.appLogger.RuntimeLog(fmt.Sprintf("application instance %s with %d job%s remaining%s", verbPast, jobs, plural, exitCodeMsg))
 	a.onPaused.Notify(false)
 	return nil
 }
@@ -355,4 +348,21 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 			// so wait for resultChan
 		}
 	}
+}
+
+func (a *appInstance) ApplicationID() string {
+	return a.applicationID
+}
+func (a *appInstance) ApplicationVersion() types.ApplicationVersion {
+	return a.applicationVersion
+}
+func (a *appInstance) RuntimeVersion() int {
+	return RuntimeVersion
+}
+func (a *appInstance) AbortProcess() {
+	_ = a.Terminate(true, 0, false)
+}
+func (a *appInstance) ExitProcess(exitCode int) {
+	a.exitCode = exitCode
+	_ = a.Terminate(true, 0, false)
 }
