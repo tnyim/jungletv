@@ -367,6 +367,17 @@
 	{:else}
 		<NoConnection on:retry={refreshOnLineStatus} />
 	{/if}
+	<!-- workaround to avoid the preprocessor deleting CSS selectors that are used by JavaScript functions that produce dynamic class lists -->
+	{#if false}
+		<span class="bg-gray-600 hover:bg-gray-700 focus:ring-gray-500" />
+		<span class="bg-red-600 hover:bg-red-700 focus:ring-red-500" />
+		<span class="bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500" />
+		<span class="bg-green-600 hover:bg-green-700 focus:ring-green-500" />
+		<span class="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500" />
+		<span class="bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500" />
+		<span class="bg-purple-600 hover:bg-purple-700 focus:ring-purple-500" />
+		<span class="bg-pink-600 hover:bg-pink-700 focus:ring-pink-500" />
+	{/if}
 </div>
 
 <style global lang="postcss">
