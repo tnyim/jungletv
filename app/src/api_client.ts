@@ -3,6 +3,7 @@ import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/service";
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
+import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
 import type { PaginationParameters } from "./proto/common_pb";
@@ -111,7 +112,7 @@ class APIClient {
             r = grpc.invoke(operation, {
                 request: request,
                 host: this.host,
-                metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
+                metadata: new grpc.Metadata({ "Authorization": this.getAuthToken() }),
                 onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
                 onMessage: (message: TResponse) => resolve(message),
                 onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
@@ -134,7 +135,7 @@ class APIClient {
         return grpc.invoke(operation, {
             request: request,
             host: this.host,
-            metadata: new grpc.Metadata({ "Authorization": getCookie("auth-token") }),
+            metadata: new grpc.Metadata({ "Authorization": this.getAuthToken() }),
             onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
             onMessage: onMessage,
             onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
@@ -162,7 +163,31 @@ class APIClient {
     }
 
     saveAuthToken(token: string, expiry: Date) {
-        setCookie("auth-token", token, expiry, "Strict");
+        setCookie("auth-token", token, expiry, "Strict", true);
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("authTokenExpiry", expiry.toUTCString());
+    }
+
+    private getAuthToken(): string {
+        let c = getCookie("auth-token");
+        let token = localStorage.getItem("authToken");
+        let tokenExpiryString = localStorage.getItem("authTokenExpiry");
+        if (c != "") {
+            if (token == null || tokenExpiryString == null) {
+                localStorage.setItem("authToken", c);
+                localStorage.setItem("authTokenExpiry", DateTime.now().plus({ hours: 7 * 24 }).toJSDate().toUTCString());
+            }
+            return c;
+        }
+        // cookie may have been magically cleared (bad server response/CloudFlare magic?!), attempt to retrieve backup from local storage
+        if (token != null && tokenExpiryString != null) {
+            let tokenExpiry = new Date(tokenExpiryString);
+            if (tokenExpiry.getTime() > new Date().getTime()) {
+                setCookie("auth-token", token, tokenExpiry, "Strict", true);
+                return token;
+            }
+        }
+        return "";
     }
 
     async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {

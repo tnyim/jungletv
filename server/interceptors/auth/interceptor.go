@@ -155,7 +155,7 @@ func (interceptor *Interceptor) renewAuthToken(ctx context.Context, claims *auth
 
 	err = grpc.SetHeader(ctx, metadata.New(map[string]string{
 		"X-Replacement-Authorization-Token":      token,
-		"X-Replacement-Authorization-Expiration": expiration.Format("2006-01-02T15:04:05.999Z07:00"),
+		"X-Replacement-Authorization-Expiration": expiration.UTC().Format("2006-01-02T15:04:05.999Z07:00"),
 	}))
 	return stacktrace.Propagate(err, "")
 }

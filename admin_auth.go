@@ -26,12 +26,13 @@ func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "auth-token",
-		Value:   adminToken,
-		Path:    "/",
-		MaxAge:  int(time.Until(expiration).Seconds()),
-		Expires: expiration,
-		Secure:  true,
+		Name:     "auth-token",
+		Value:    adminToken,
+		Path:     "/",
+		MaxAge:   int(time.Until(expiration).Seconds()),
+		Expires:  expiration,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)
 }
@@ -123,12 +124,13 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "auth-token",
-		Value:   adminToken,
-		Path:    "/",
-		MaxAge:  int(time.Until(expiration).Seconds()),
-		Expires: expiration,
-		Secure:  true,
+		Name:     "auth-token",
+		Value:    adminToken,
+		Path:     "/",
+		MaxAge:   int(time.Until(expiration).Seconds()),
+		Expires:  expiration,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	})
 	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)
 }
