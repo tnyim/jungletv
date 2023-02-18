@@ -17,6 +17,7 @@
     import { modalAlert } from "../modal/modal";
     import { Document } from "../proto/jungletv_pb";
     import { darkMode } from "../stores";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import { parseCompleteMarkdown } from "../utils";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
@@ -183,29 +184,15 @@
             <span class="font-mono">{documentID}</span>
         </h1>
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="block lg:hidden justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            on:click={toggleEditorPreview}
-        >
+        <ButtonButton color="gray" extraClasses="block lg:hidden" on:click={toggleEditorPreview}>
             Toggle preview
-        </button>
+        </ButtonButton>
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-            on:click={save}
-        >
-            Save
-        </button>
+        <ButtonButton type="submit" on:click={save} extraClasses="block">Save</ButtonButton>
         {#if documentID == "announcements"}
-            <button
-                type="submit"
-                class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                on:click={triggerAnnouncementsNotification}
-            >
+            <ButtonButton color="blue" extraClasses="block lg:hidden" on:click={triggerAnnouncementsNotification}>
                 Trigger new announcement notification
-            </button>
+            </ButtonButton>
         {/if}
     </div>
 

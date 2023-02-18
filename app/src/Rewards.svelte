@@ -12,6 +12,7 @@
     import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import SuccessMessage from "./uielements/SuccessMessage.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
@@ -129,13 +130,7 @@
                 >
                     Change address
                 </a>
-                <button
-                    type="button"
-                    on:click={() => openUserProfile($rewardAddress)}
-                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                >
-                    View profile
-                </button>
+                <ButtonButton on:click={() => openUserProfile($rewardAddress)}>View Profile</ButtonButton>
             </div>
             {#if pendingWithdrawal}
                 <div class="mt-3">
@@ -166,16 +161,13 @@
                             Please try again later.
                         </ErrorMessage>
                     {:else if parseFloat(apiClient.formatBANPrice($rewardBalance)) > 0}
-                        <button
+                        <ButtonButton
                             on:click={withdraw}
-                            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
-                        {withdrawClicked
-                                ? 'animate-pulse bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
-                                : 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'}
-                            text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
+                            extraClasses={withdrawClicked ? "animate-pulse" : ""}
+                            color={withdrawClicked ? "gray" : "yellow"}
                         >
                             Withdraw
-                        </button>
+                        </ButtonButton>
                     {/if}
                 </p>
             {/if}

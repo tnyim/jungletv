@@ -5,6 +5,7 @@
     import { Application, ApplicationFile } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationFileTableItem from "../tableitems/ApplicationFileTableItem.svelte";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
 
     export let searchQuery = "";
@@ -144,28 +145,19 @@
                 <label for="autorun" class="font-medium text-gray-700 dark:text-gray-300">Run on server start-up</label>
             </p>
             <p>
-                <button
-                    on:click={updateProperties}
-                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
-                    bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
-                    text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
-                >
-                    Update properties
-                </button>
+                <ButtonButton on:click={updateProperties}>Update properties</ButtonButton>
             </p>
         </div>
         <p class="font-semibold text-lg">Files</p>
         <p>
             <input type="file" bind:files={uploadFiles} bind:this={fileInput} />
-            <button
+            <ButtonButton
                 on:click={uploadFile}
                 disabled={!(uploadFiles && uploadFiles[0])}
-                class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
-                    bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
-                    text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
+                color={!(uploadFiles && uploadFiles[0]) ? "gray" : "yellow"}
             >
                 Upload file
-            </button>
+            </ButtonButton>
         </p>
         <div class="h-6" />
         <PaginatedTable

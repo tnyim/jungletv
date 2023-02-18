@@ -8,6 +8,7 @@
     import type { ConvertBananoToPointsStatus } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import PointsIcon from "./uielements/PointsIcon.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
@@ -142,12 +143,6 @@
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={() => navigate("/points")}
-        >
-            Return to points dashboard
-        </button>
+        <ButtonButton on:click={() => navigate("/points")}>Return to points dashboard</ButtonButton>
     </div>
 </Wizard>

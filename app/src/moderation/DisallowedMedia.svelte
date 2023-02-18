@@ -2,6 +2,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { AddDisallowedMediaCollectionResponse, AddDisallowedMediaResponse } from "../proto/jungletv_pb";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
     import { parseURLForMediaSelection } from "../utils";
@@ -89,27 +90,20 @@
         </a>
     </p>
     <p class="mt-6">Note: always enter a specific video or track URL even when disallowing a channel or user</p>
-    <div class="px-2 grid grid-rows-1 grid-cols-5 gap-6 max-w-screen-md mb-6">
+    <div class="px-2 grid grid-rows-1 grid-cols-5 gap-6 mb-6">
         <input
             class="col-span-3 dark:text-black"
             type="text"
             placeholder="URL of YouTube video or SoundCloud track to disallow"
             bind:value={disallowMediaURL}
         />
-        <button
-            type="submit"
-            class="col-span-1 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            on:click={disallowMedia}
-        >
+        <ButtonButton color="red" type="submit" on:click={disallowMedia} extraClasses="col-span-1">
             Disallow media
-        </button>
-        <button
-            type="submit"
-            class="col-span-1 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            on:click={disallowMediaCollection}
-        >
+        </ButtonButton>
+        <ButtonButton color="red" type="submit" on:click={disallowMediaCollection} extraClasses="col-span-1">
             Disallow channel/user
-        </button>
+        </ButtonButton>
+
         <div class="col-span-2 mt-3">
             {#if operationSuccessful}
                 <SuccessMessage>{lastOperationItemType} disallowed successfully</SuccessMessage>

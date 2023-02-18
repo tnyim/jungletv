@@ -3,6 +3,7 @@
     import { navigate } from "svelte-navigator";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import type { EnqueueMediaTicket } from "./proto/jungletv_pb";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import Wizard from "./uielements/Wizard.svelte";
     import type { MediaSelectionKind } from "./utils";
 
@@ -30,23 +31,11 @@
         <p class="mt-8">{mediaKind == "video" ? "Video" : "Track"} enqueued successfully! Thank you!</p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <button
-            type="button"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={enqueueAnother}
-        >
-            Enqueue another
-        </button>
+        <ButtonButton color="purple" on:click={enqueueAnother}>Enqueue another</ButtonButton>
         <span class="px-4 text-xs text-gray-400 flex-grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
-        <button
-            type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={closeEnqueue}
-        >
-            Close
-        </button>
+        <ButtonButton type="submit" on:click={closeEnqueue}>Close</ButtonButton>
     </div>
     <div slot="extra_1">
         <slot name="raffle-info" />

@@ -3,6 +3,7 @@
     import { navigate } from "svelte-navigator";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
     import type { MediaSelectionKind } from "./utils";
@@ -35,10 +36,8 @@
         <div class="mt-8">
             <ErrorMessage>
                 {#if connectionLost}
-                    Connection to the server lost. If you already paid, <strong
-                        class="cursor-pointer hover:underline"
-                        on:click={closeEnqueue}>Cancel</strong
-                    >
+                    Connection to the server lost. If you already paid,
+                    <button type="button" class="cursor-pointer hover:underline" on:click={closeEnqueue}>Cancel</button>
                     and check the queue to see if your {mediaKind} was enqueued.
                 {:else if ticket.getStatus() == EnqueueMediaTicketStatus.FAILED_INSUFFICIENT_POINTS}
                     Enqueuing failed because you don't have sufficient points to enqueue an entry with hidden media
@@ -53,23 +52,11 @@
         </div>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <button
-            type="button"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={closeEnqueue}
-        >
-            Cancel
-        </button>
+        <ButtonButton color="purple" on:click={closeEnqueue}>Cancel</ButtonButton>
         <span class="px-4 text-xs text-gray-400 flex-grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
-        <button
-            type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={enqueueAnother}
-        >
-            Try again
-        </button>
+        <ButtonButton type="submit" on:click={enqueueAnother}>Try again</ButtonButton>
     </div>
     <div slot="extra_1">
         <slot name="raffle-info" />

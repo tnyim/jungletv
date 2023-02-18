@@ -6,6 +6,7 @@
     import { apiClient } from "./api_client";
 
     import type { Connection, ServiceInfo } from "./proto/jungletv_pb";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     export let connections: Connection[];
     export let services: ServiceInfo[];
 
@@ -49,15 +50,14 @@
         <p class="text-xs">
             Connect these accounts to receive extra rewards, like NFTs. The terms of the external services apply.
         </p>
-        <div class="flex flex-row mt-3">
+        <div class="flex flex-row mt-3 gap-2">
             {#each servicesWhichCanBeConnected as serviceInfo}
-                <button
-                    type="button"
+                <ButtonButton
                     on:click={() => connectToService(serviceInfo)}
-                    class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-black dark:text-white bg-gray-300 dark:bg-gray-800 hover:bg-gray-400 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:shadow-lg ease-linear transition-all duration-150 cursor-pointer"
+                    colorClasses="bg-gray-300 dark:bg-gray-800 hover:bg-gray-400 dark:hover:bg-gray-700 focus:ring-gray-500"
                 >
                     <AccountConnectionIcon service={serviceInfo.getService()} />
-                </button>
+                </ButtonButton>
             {/each}
         </div>
     </div>

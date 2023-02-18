@@ -16,6 +16,7 @@
     import { modalAlert, modalPrompt } from "../modal/modal";
     import { ApplicationFile } from "../proto/application_editor_pb";
     import { darkMode } from "../stores";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import ApplicationConsole from "./ApplicationConsole.svelte";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
@@ -202,21 +203,9 @@
             <span class="font-mono">{applicationID}</span>
         </h1>
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="block lg:hidden justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            on:click={toggleConsole}
-        >
-            Toggle console
-        </button>
+        <ButtonButton color="gray" on:click={toggleConsole} extraClasses="block lg:hidden">Toggle console</ButtonButton>
         <div class="flex-grow" />
-        <button
-            type="submit"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-            on:click={save}
-        >
-            Save
-        </button>
+        <ButtonButton type="submit" on:click={save} extraClasses="block">Save</ButtonButton>
     </div>
 
     <div class="overflow-hidden h-full">

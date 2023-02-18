@@ -5,6 +5,7 @@
     import Grid from "./gifpicker/Grid.svelte";
     import type { ChatGifSearchResult } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
 
     let searchInput: HTMLInputElement;
     export let mediaPickerSearchValue = ""; // set from outside
@@ -103,12 +104,7 @@
             <Grid gifs={gifResults} columnSize={100} bind:resetPosition on:click />
             {#if nextCursor != ""}
                 <div class="flex flex-row justify-center py-2">
-                    <button
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-                        on:click={handleNext}
-                    >
-                        More...
-                    </button>
+                    <ButtonButton on:click={handleNext}>More...</ButtonButton>
                 </div>
             {/if}
         </div>

@@ -9,6 +9,7 @@
     import { PermissionLevel, PlayedMedia, UserProfileResponse } from "./proto/jungletv_pb";
     import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import TabButton from "./uielements/TabButton.svelte";
     import UserModerationInfo from "./UserModerationInfo.svelte";
     import UserProfileFeaturedMediaSoundCloud from "./UserProfileFeaturedMediaSoundCloud.svelte";
@@ -153,11 +154,14 @@
             {#if nickname != "" || isSelf}
                 {#if isSelf}
                     <div class="flex flex-row">
-                        <i
+                        <button
+                            type="button"
                             title="Edit nickname"
-                            class="fas fa-edit  text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500 self-center mr-2 cursor-pointer"
                             on:click={focusOnNicknameEditing}
-                        />
+                            class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500 self-center mr-2"
+                        >
+                            <i class="fas fa-edit" />
+                        </button>
                         <input
                             bind:this={nicknameInput}
                             class="text-lg font-semibold bg-transparent flex-grow"
@@ -179,11 +183,14 @@
             <span class="font-mono {nickname != '' ? 'text-base' : 'text-lg'}">
                 {userAddress.substring(0, 14)}
             </span>
-            <i
-                class="fas fa-copy cursor-pointer text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
+            <button
+                type="button"
                 title="Copy address"
                 on:click={copyAddress}
-            />
+                class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
+            >
+                <i class="fas fa-copy" />
+            </button>
             {#if copiedAddress}
                 <i class="fas fa-check" />
             {/if}
@@ -224,9 +231,10 @@
             {#if userProfile?.hasCurrentSubscription()}
                 <br />
                 <span class="text-sm">
-                    <span
+                    <button
+                        type="button"
                         class="text-green-600 dark:text-green-400 font-semibold hover:underline cursor-pointer"
-                        on:click={() => navigate("/points#nice")}>Nice</span
+                        on:click={() => navigate("/points#nice")}>Nice</button
                     >
                     subscriber since
                     {formatSubscriptionDate(userProfile.getCurrentSubscription().getSubscribedAt().toDate())}
@@ -236,22 +244,11 @@
         {#if !isSelf && $rewardAddress != ""}
             {#if $blockedUsers.has(userAddress)}
                 <div class="flex flex-col justify-center">
-                    <button
-                        type="button"
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-                        on:click={unblockUser}
-                    >
-                        Unblock
-                    </button>
+                    <ButtonButton color="purple" on:click={unblockUser}>Unblock</ButtonButton>
                 </div>
             {:else}
                 <div class="flex flex-col justify-center">
-                    <button
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hover:shadow ease-linear transition-all duration-150"
-                        on:click={blockUser}
-                    >
-                        Block
-                    </button>
+                    <ButtonButton color="red" on:click={blockUser}>Block</ButtonButton>
                 </div>
             {/if}
         {/if}

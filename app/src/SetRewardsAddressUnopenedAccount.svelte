@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { Moon } from "svelte-loading-spinners";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
@@ -35,20 +36,11 @@
         </div>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <button
-            type="button"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={cancel}
-        >
-            Cancel
-        </button>
+        <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
         <div class="flex-grow" />
-        <button
-            disabled
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
-        >
+        <ButtonButton disabled colorClasses="bg-gray-300">
             <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
             Awaiting account opening
-        </button>
+        </ButtonButton>
     </div>
 </Wizard>

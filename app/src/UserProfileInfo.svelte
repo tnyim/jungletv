@@ -30,11 +30,14 @@
 
 <div>
     {#if isSelf}
-        <i
+        <button
+            type="button"
             title="Edit biography"
-            class="fas fa-edit  text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500 self-center mr-2 cursor-pointer"
+            class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500 self-center mr-2"
             on:click={focusOnBiographyEditing}
-        />
+        >
+            <i class="fas fa-edit" />
+        </button>
     {/if}
     <span class="text-lg font-medium">About me</span>
 </div>

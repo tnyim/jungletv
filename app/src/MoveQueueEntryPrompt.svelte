@@ -2,7 +2,6 @@
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
-    import PointsIcon from "./uielements/PointsIcon.svelte";
     import {
         PointsInfoResponse,
         QueueEntry,
@@ -11,7 +10,9 @@
     } from "./proto/jungletv_pb";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { currentSubscription, darkMode, modal } from "./stores";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
 
     export let direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap];
     export let entry: QueueEntry;
@@ -83,19 +84,7 @@
 <div
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
 >
-    <button
-        type="button"
-        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-        on:click={() => modal.set(null)}
-    >
-        Cancel
-    </button>
+    <ButtonButton color="purple" on:click={() => modal.set(null)}>Cancel</ButtonButton>
     <div class="flex-grow" />
-    <button
-        type="submit"
-        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow ease-linear transition-all duration-150"
-        on:click={move}
-    >
-        Move {dirString}
-    </button>
+    <ButtonButton on:click={move}>Move {dirString}</ButtonButton>
 </div>

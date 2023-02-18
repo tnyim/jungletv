@@ -8,6 +8,7 @@
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import TabButton from "./uielements/TabButton.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
@@ -306,23 +307,14 @@
         </p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <button
-            type="button"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 hover:shadow ease-linear transition-all duration-150"
-            on:click={cancel}
-        >
-            Cancel
-        </button>
+        <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
         <span class="px-4 text-xs text-gray-400 flex-grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
-        <button
-            disabled
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-300 cursor-default"
-        >
+        <ButtonButton disabled colorClasses="bg-gray-300">
             <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
             Awaiting payment
-        </button>
+        </ButtonButton>
     </div>
     <div slot="extra_1">
         <slot name="raffle-info" />

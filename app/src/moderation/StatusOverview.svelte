@@ -5,6 +5,7 @@
     import { modalAlert } from "../modal/modal";
     import { AllowedMediaEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
     import { rewardAddress } from "../stores";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
 
     let statusOverview: ModerationStatusOverview;
     let monitorSettingsRequest: Request;
@@ -134,25 +135,13 @@
         {#if typeof statusOverview
             .getActivelyModeratingList()
             .find((e) => e.getAddress() == $rewardAddress) === "undefined"}
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium
-                    rounded-md text-white bg-blue-600 hover:bg-blue-700
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                on:click={markAsActivelyModerating}
-            >
+            <ButtonButton color="blue" on:click={markAsActivelyModerating}>
                 Mark yourself as actively moderating
-            </button>
+            </ButtonButton>
         {:else}
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium
-                    rounded-md text-white bg-red-600 hover:bg-red-700
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={stopActivelyModerating}
-            >
+            <ButtonButton color="red" on:click={stopActivelyModerating}>
                 Mark yourself as no longer moderating
-            </button>
+            </ButtonButton>
         {/if}
         <ul class="{statusOverview.getActivelyModeratingList().length > 0 ? 'list-disc list-inside' : ''} pt-2">
             {#each statusOverview.getActivelyModeratingList() as staffMember}

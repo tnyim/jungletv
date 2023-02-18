@@ -5,6 +5,7 @@
     import ChatGifAttachment from "../ChatGifAttachment.svelte";
     import { openUserProfile } from "../profile_utils";
     import { ChatMessage, ChatMessageAttachment } from "../proto/jungletv_pb";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import { formatDateForModeration } from "../utils";
 
     const dispatch = createEventDispatcher();
@@ -21,13 +22,7 @@
 <div class="{mode == 'sidebar' ? '' : 'm-6'} flex-grow container mx-auto max-w-screen-md p-2">
     {#if mode == "sidebar"}
         <p class="mb-6">
-            <a
-                href={"#"}
-                class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => dispatch("closeTab")}
-            >
-                Close tab
-            </a>
+            <ButtonButton on:click={() => dispatch("closeTab")}>Close tab</ButtonButton>
         </p>
     {:else}
         <a
@@ -40,12 +35,7 @@
     {/if}
 
     <p class="mt-6 mb-4">
-        <span
-            on:click={() => openUserProfile(address)}
-            class="cursor-pointer justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-        >
-            User profile
-        </span>
+        <ButtonButton on:click={() => openUserProfile(address)}>User profile</ButtonButton>
     </p>
 
     {#if mode != "sidebar"}

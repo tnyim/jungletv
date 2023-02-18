@@ -4,6 +4,7 @@
     import type { PaginationParameters } from "../proto/common_pb";
     import type { UserVerification } from "../proto/jungletv_pb";
     import UserVerificationTableItem from "../tableitems/UserVerificationTableItem.svelte";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
@@ -131,13 +132,9 @@
                     placeholder="Reason for verification"
                     bind:value={reason}
                 />
-                <button
-                    type="submit"
-                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    on:click={verifyUser}
-                >
+                <ButtonButton type="submit" color="green" extraClasses="col-span-3" on:click={verifyUser}>
                     Verify user
-                </button>
+                </ButtonButton>
                 <div class="col-span-3">
                     {#if verificationID != ""}
                         Take note of the following ID:<br />{verificationID}
@@ -163,13 +160,9 @@
                     placeholder="Reason for removing"
                     bind:value={removeVerificationReason}
                 />
-                <button
-                    type="submit"
-                    class="col-span-3 inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    on:click={removeVerification}
-                >
+                <ButtonButton type="submit" color="blue" extraClasses="col-span-3" on:click={removeVerification}>
                     Remove verification
-                </button>
+                </ButtonButton>
                 <div class="col-span-3">
                     {#if removeVerificationSuccessful}
                         <SuccessMessage>Verification removed successfully</SuccessMessage>

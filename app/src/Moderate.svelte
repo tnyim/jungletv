@@ -11,6 +11,7 @@
         VipUserAppearanceMap,
     } from "./proto/jungletv_pb";
     import Queue from "./Queue.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
 
     let ticketID = "";
     let chatHistoryAddress = "";
@@ -168,7 +169,8 @@
             return;
         }
         let reason = await modalPrompt(
-            `Adjusting points balance of ${rewardsAddress} by ${value} points.` + "\n\nEnter a reason, or press cancel:",
+            `Adjusting points balance of ${rewardsAddress} by ${value} points.` +
+                "\n\nEnter a reason, or press cancel:",
             "Adjust points balance"
         );
         if (reason === null) {
@@ -277,27 +279,9 @@
             <p class="font-semibold text-lg">Forcibly enqueue ticket</p>
             <div class="grid grid-cols-6 gap-6">
                 <input class="col-span-3" type="text" placeholder="ticket ID" bind:value={ticketID} />
-                <button
-                    type="submit"
-                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    on:click={enqueue}
-                >
-                    Enqueue
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    on:click={playNext}
-                >
-                    Play next
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    on:click={playNow}
-                >
-                    Play now
-                </button>
+                <ButtonButton type="submit" on:click={enqueue}>Enqueue</ButtonButton>
+                <ButtonButton type="submit" on:click={playNext}>Play next</ButtonButton>
+                <ButtonButton type="submit" on:click={playNow}>Play now</ButtonButton>
             </div>
         </div>
     {/if}
@@ -312,132 +296,52 @@
         <p class="px-2 font-semibold text-lg">Queue flow control</p>
         <p class="px-2 text-sm">Press all green buttons to revert to default settings</p>
         <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={setMediaEnqueuingEnabled}
-            >
-                Allow media enqueuing
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                on:click={setMediaEnqueuingStaffOnly}
-            >
-                Allow only staff to enqueue
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={setMediaEnqueuingDisabled}
-            >
-                Disable media enqueuing
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={setPricesMultiplier}
-            >
-                Set prices multiplier
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={setMinimumPricesMultiplier}
-            >
-                Set minimum prices multiplier
-            </button>
+            <ButtonButton color="green" on:click={setMediaEnqueuingEnabled}>Allow media enqueuing</ButtonButton>
+            <ButtonButton color="blue" on:click={setMediaEnqueuingStaffOnly}>Allow only staff to enqueue</ButtonButton>
+            <ButtonButton color="red" on:click={setMediaEnqueuingDisabled}>Disable media enqueuing</ButtonButton>
+            <ButtonButton on:click={setPricesMultiplier}>Set prices multiplier</ButtonButton>
+            <ButtonButton on:click={setMinimumPricesMultiplier}>Set minimum prices multiplier</ButtonButton>
             <div><!-- spacer --></div>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.setSkippingEnabled(true)}
-            >
+            <ButtonButton color="green" on:click={() => apiClient.setSkippingEnabled(true)}>
                 Enable skipping, in general
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={() => apiClient.setSkippingEnabled(false)}
-            >
+            </ButtonButton>
+            <ButtonButton color="red" on:click={() => apiClient.setSkippingEnabled(false)}>
                 Disable all forms of skipping
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.clearQueueInsertCursor()}
-            >
+            </ButtonButton>
+            <ButtonButton color="green" on:click={() => apiClient.clearQueueInsertCursor()}>
                 Clear queue insert cursor
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(true)}
-            >
+            </ButtonButton>
+            <ButtonButton color="red" on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(true)}>
                 Make new queue entries unskippable at no additional cost
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(false)}
-            >
+            </ButtonButton>
+            <ButtonButton color="green" on:click={() => apiClient.setNewQueueEntriesAlwaysUnskippable(false)}>
                 Stop making new queue entries unskippable
-            </button>
+            </ButtonButton>
             <div><!-- spacer --></div>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(false)}
-            >
+            <ButtonButton color="red" on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(false)}>
                 Disallow removal of own queue entries
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(true)}
-            >
+            </ButtonButton>
+            <ButtonButton color="green" on:click={() => apiClient.setOwnQueueEntryRemovalAllowed(true)}>
                 Allow removal of own queue entries
-            </button>
+            </ButtonButton>
             <div><!-- spacer --></div>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={() => apiClient.setQueueEntryReorderingAllowed(false)}
-            >
+            <ButtonButton color="red" on:click={() => apiClient.setQueueEntryReorderingAllowed(false)}>
                 Disallow reordering of queue entries
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={() => apiClient.setQueueEntryReorderingAllowed(true)}
-            >
+            </ButtonButton>
+            <ButtonButton color="green" on:click={() => apiClient.setQueueEntryReorderingAllowed(true)}>
                 Allow reordering of queue entries
-            </button>
+            </ButtonButton>
         </div>
         <div>
             <p class="px-2 font-semibold text-md mt-4">Crowdfunded skipping</p>
             <div class="px-2 grid grid-cols-3 gap-6">
-                <button
-                    type="submit"
-                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    on:click={setCrowdfundedSkippingEnabled}
-                >
+                <ButtonButton color="green" on:click={setCrowdfundedSkippingEnabled}>
                     Enable crowdfunded skipping
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    on:click={setCrowdfundedSkippingDisabled}
-                >
+                </ButtonButton>
+                <ButtonButton color="red" on:click={setCrowdfundedSkippingDisabled}>
                     Disable crowdfunded skipping
-                </button>
-                <button
-                    type="submit"
-                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    on:click={setSkipPriceMultiplier}
-                >
-                    Set skip price multiplier
-                </button>
+                </ButtonButton>
+                <ButtonButton on:click={setSkipPriceMultiplier}>Set skip price multiplier</ButtonButton>
             </div>
             <div>
                 <p class="px-2 font-semibold text-md mt-4">VIP users</p>
@@ -446,20 +350,8 @@
                     normally have.
                 </p>
                 <div class="px-2 grid grid-cols-3 gap-6">
-                    <button
-                        type="submit"
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                        on:click={addVipUser}
-                    >
-                        Add VIP user
-                    </button>
-                    <button
-                        type="submit"
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                        on:click={removeVipUser}
-                    >
-                        Remove VIP user
-                    </button>
+                    <ButtonButton on:click={addVipUser}>Add VIP user</ButtonButton>
+                    <ButtonButton on:click={removeVipUser}>Remove VIP user</ButtonButton>
                     <div />
                 </div>
             </div>
@@ -496,39 +388,15 @@
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Raffles</p>
         <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => confirmRaffleWinner()}
-            >
-                Confirm winner
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => redrawRaffle()}
-            >
-                Redraw raffle
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => completeRaffle()}
-            >
-                Complete raffle
-            </button>
+            <ButtonButton on:click={confirmRaffleWinner}>Confirm winner</ButtonButton>
+            <ButtonButton on:click={redrawRaffle}>Redraw raffle</ButtonButton>
+            <ButtonButton on:click={completeRaffle}>Complete raffle</ButtonButton>
         </div>
     </div>
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Points</p>
         <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => adjustPointsBalance()}
-            >
-                Adjust balance
-            </button>
+            <ButtonButton on:click={adjustPointsBalance}>Adjust balance</ButtonButton>
             <div />
             <div />
         </div>
@@ -536,63 +404,27 @@
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Technical</p>
         <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => triggerClientReload()}
-            >
-                Trigger client reload
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                on:click={setMulticurrencyPaymentsEnabled}
-            >
+            <ButtonButton on:click={triggerClientReload}>Trigger client reload</ButtonButton>
+            <ButtonButton color="green" on:click={setMulticurrencyPaymentsEnabled}>
                 Enable multicurrency payments
-            </button>
-            <button
-                type="submit"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                on:click={setMulticurrencyPaymentsDisabled}
-            >
+            </ButtonButton>
+            <ButtonButton color="red" on:click={setMulticurrencyPaymentsDisabled}>
                 Disable multicurrency payments
-            </button>
+            </ButtonButton>
         </div>
     </div>
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Chat</p>
         <div class="px-2 mb-10 grid grid-cols-3 gap-6">
             <input class="col-span-2" type="text" placeholder="Banano address" bind:value={chatHistoryAddress} />
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => navigate("/moderate/users/" + chatHistoryAddress + "/chathistory")}
+            <ButtonButton on:click={() => navigate("/moderate/users/" + chatHistoryAddress + "/chathistory")}
+                >See chat history</ButtonButton
             >
-                See chat history
-            </button>
         </div>
         <div class="px-2 grid grid-cols-3 gap-6">
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => setChatEnabled(true, false)}
-            >
-                Enable chat
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => setChatEnabled(true, true)}
-            >
-                Enable with slowmode
-            </button>
-            <button
-                type="submit"
-                class="inline-flex float-right justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                on:click={() => setChatEnabled(false, false)}
-            >
-                Disable chat
-            </button>
+            <ButtonButton color="green" on:click={() => setChatEnabled(true, false)}>Enable chat</ButtonButton>
+            <ButtonButton color="blue" on:click={() => setChatEnabled(true, true)}>Enable with slowmode</ButtonButton>
+            <ButtonButton color="red" on:click={() => setChatEnabled(false, false)}>Disable chat</ButtonButton>
         </div>
         <Chat mode="moderation" />
     </div>

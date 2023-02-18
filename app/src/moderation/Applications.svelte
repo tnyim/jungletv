@@ -5,6 +5,7 @@
     import { Application, RunningApplication } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import RunningApplications from "./RunningApplications.svelte";
 
@@ -74,14 +75,7 @@
         >
             Back to moderation dashboard
         </a>
-        <button
-            on:click={create}
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md hover:underline
-                bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
-                text-white focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg ease-linear transition-all duration-150"
-        >
-            Create application
-        </button>
+        <ButtonButton on:click={create}>Create application</ButtonButton>
     </p>
 
     <RunningApplications bind:runningApplications />
