@@ -6,7 +6,7 @@
     import { openUserProfile } from "../profile_utils";
     import { ChatMessage, ChatMessageAttachment } from "../proto/jungletv_pb";
     import ButtonButton from "../uielements/ButtonButton.svelte";
-    import { formatDateForModeration } from "../utils";
+    import { formatDateForModeration, hrefButtonStyleClasses } from "../utils";
 
     const dispatch = createEventDispatcher();
 
@@ -25,13 +25,7 @@
             <ButtonButton on:click={() => dispatch("closeTab")}>Close tab</ButtonButton>
         </p>
     {:else}
-        <a
-            use:link
-            href="/moderate"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-        >
-            Back to moderation dashboard
-        </a>
+        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
     {/if}
 
     <p class="mt-6 mb-4">

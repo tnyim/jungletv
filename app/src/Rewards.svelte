@@ -16,7 +16,7 @@
     import SuccessMessage from "./uielements/SuccessMessage.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
-    import { isSubscriptionAboutToExpire } from "./utils";
+    import { hrefButtonStyleClasses, isSubscriptionAboutToExpire } from "./utils";
 
     let pendingWithdrawal = false;
     let withdrawalPositionInQueue = 0;
@@ -123,13 +123,7 @@
             <p class="text-lg font-semibold">Currently rewarding:</p>
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
             <div class="mt-2 mb-6 flex flex-row gap-4  sm:gap-6">
-                <a
-                    use:link
-                    href="/rewards/address"
-                    class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                >
-                    Change address
-                </a>
+                <a use:link href="/rewards/address" class={hrefButtonStyleClasses()}>Change address</a>
                 <ButtonButton on:click={() => openUserProfile($rewardAddress)}>View Profile</ButtonButton>
             </div>
             {#if pendingWithdrawal}
@@ -225,20 +219,10 @@
                         points.
                     </div>
                     <div class="flex flex-row gap-4 sm:gap-6">
-                        <a
-                            use:link
-                            href="/points/frombanano"
-                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                        >
+                        <a use:link href="/points/frombanano" class={hrefButtonStyleClasses()}>
                             Get points with Banano
                         </a>
-                        <a
-                            use:link
-                            href="/points"
-                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:shadow-lg ease-linear transition-all duration-150"
-                        >
-                            Learn more
-                        </a>
+                        <a use:link href="/points" class={hrefButtonStyleClasses("green")}>Learn more</a>
                     </div>
                 </div>
             </div>

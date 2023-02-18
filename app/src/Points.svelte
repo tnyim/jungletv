@@ -7,9 +7,11 @@
     import type { PointsInfoResponse, PointsTransaction, SubscriptionDetails } from "./proto/jungletv_pb";
     import { currentSubscription, darkMode } from "./stores";
     import PointsTransactionTableItem from "./tableitems/PointsTransactionTableItem.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
     import PaginatedTable from "./uielements/PaginatedTable.svelte";
     import PointsIcon from "./uielements/PointsIcon.svelte";
     import Wizard from "./uielements/Wizard.svelte";
+    import { hrefButtonStyleClasses } from "./utils";
 
     let pointsInfo: PointsInfoResponse;
     const subscriptionCost = 6900;
@@ -122,11 +124,7 @@
                         Insufficient <PointsIcon />? Here's a shortcut.
                     </div>
                     <div>
-                        <a
-                            use:link
-                            href="/points/frombanano"
-                            class="hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150 whitespace-nowrap"
-                        >
+                        <a use:link href="/points/frombanano" class={hrefButtonStyleClasses()}>
                             Get points with Banano
                         </a>
                     </div>
@@ -157,21 +155,15 @@
                     {/if}
                     <div>
                         {#if !currentlySubscribed && hasEnoughPointsToSubscribe}
-                            <div
-                                on:click={() => subscribeOrExtendSubscription()}
-                                class="cursor-pointer justify-center text-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                            >
+                            <ButtonButton on:click={() => subscribeOrExtendSubscription()} extraClasses="flex-col">
                                 <div>Become a <span class="font-semibold">Nice</span> member</div>
                                 <div class="text-xs font-semibold">-{subscriptionCost} <PointsIcon /></div>
-                            </div>
+                            </ButtonButton>
                         {:else if canRenewSubscription && hasEnoughPointsToSubscribe}
-                            <div
-                                on:click={() => subscribeOrExtendSubscription()}
-                                class="cursor-pointer justify-center text-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg ease-linear transition-all duration-150"
-                            >
+                            <ButtonButton on:click={() => subscribeOrExtendSubscription()} extraClasses="flex-col">
                                 <div>Extend membership by one month</div>
                                 <div class="text-xs font-semibold">-{subscriptionCost} <PointsIcon /></div>
-                            </div>
+                            </ButtonButton>
                         {/if}
                     </div>
                 </div>

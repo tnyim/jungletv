@@ -5,7 +5,7 @@
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
-    import { parseURLForMediaSelection } from "../utils";
+    import { hrefButtonStyleClasses, parseURLForMediaSelection } from "../utils";
     import DisallowedMediaCollectionsTable from "./DisallowedMediaCollectionsTable.svelte";
     import DisallowedMediaEntryTable from "./DisallowedMediaEntryTable.svelte";
 
@@ -81,13 +81,7 @@
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
     <p class="mb-6">
-        <a
-            use:link
-            href="/moderate"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-        >
-            Back to moderation dashboard
-        </a>
+        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
     </p>
     <p class="mt-6">Note: always enter a specific video or track URL even when disallowing a channel or user</p>
     <div class="px-2 grid grid-rows-1 grid-cols-5 gap-6 mb-6">

@@ -7,6 +7,7 @@
     import ApplicationFileTableItem from "../tableitems/ApplicationFileTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
+    import { hrefButtonStyleClasses } from "../utils";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -102,13 +103,7 @@
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
     <p class="mb-6">
-        <a
-            use:link
-            href="/moderate/applications"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-        >
-            Back to application list
-        </a>
+        <a use:link href="/moderate/applications" class={hrefButtonStyleClasses()}>Back to application list</a>
     </p>
 
     {#if typeof application !== "undefined"}

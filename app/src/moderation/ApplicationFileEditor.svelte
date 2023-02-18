@@ -17,6 +17,7 @@
     import { ApplicationFile } from "../proto/application_editor_pb";
     import { darkMode } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
+    import { hrefButtonStyleClasses } from "../utils";
     import ApplicationConsole from "./ApplicationConsole.svelte";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
@@ -189,11 +190,7 @@
 
 <div class="flex-grow mx-auto editor-container flex flex-col">
     <div class="flex flex-row flex-wrap space-x-2">
-        <a
-            use:link
-            href="/moderate/applications/{applicationID}"
-            class="block justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-        >
+        <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
             <i class="fas fa-arrow-left" />
         </a>
         <h1 class="text-lg block pt-1">

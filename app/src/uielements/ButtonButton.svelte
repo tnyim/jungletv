@@ -1,8 +1,9 @@
 <script lang="ts">
     import type { HTMLButtonAttributes } from "svelte/elements";
+    import type { ButtonColor } from "../utils";
     export let type: HTMLButtonAttributes["type"] = "button";
     export let disabled: HTMLButtonAttributes["disabled"] = undefined;
-    export let color: "gray" | "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | "pink" = "yellow";
+    export let color: ButtonColor = "yellow";
     export let baseClasses =
         "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg";
     export let animationClasses = "ease-linear transition-all duration-150";

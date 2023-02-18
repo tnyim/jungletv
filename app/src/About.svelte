@@ -2,6 +2,7 @@
     import { link, useFocus } from "svelte-navigator";
     import { darkMode } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
+    import { hrefButtonStyleClasses } from "./utils";
     const registerFocus = useFocus();
 
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";
@@ -75,15 +76,6 @@
     </p>
     <hr class="mt-3" />
     <div class="my-5 flex justify-center">
-        <a
-            use:link
-            href="/"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md
-            text-white dark:text-white bg-yellow-600 hover:bg-yellow-700
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 hover:shadow-lg
-            ease-linear transition-all duration-150"
-        >
-            Watch JungleTV
-        </a>
+        <a use:link href="/" class={hrefButtonStyleClasses()}>Watch JungleTV</a>
     </div>
 </div>

@@ -732,3 +732,9 @@ export const formatDateForModeration = function (date: Date): string {
         .toLocal()
         .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
 }
+
+export type ButtonColor = "gray" | "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | "pink";
+
+export const hrefButtonStyleClasses = function (color: ButtonColor = "yellow", whitespaceNoWrap: boolean = true): string {
+    return `hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-${color}-600 hover:bg-${color}-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${color}-500 hover:shadow-lg ease-linear transition-all duration-150${whitespaceNoWrap ? " whitespace-nowrap" : ""}`;
+}

@@ -7,6 +7,7 @@
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
+    import { hrefButtonStyleClasses } from "../utils";
     import RunningApplications from "./RunningApplications.svelte";
 
     export let searchQuery = "";
@@ -68,13 +69,7 @@
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
     <p class="mb-6">
-        <a
-            use:link
-            href="/moderate"
-            class="justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-        >
-            Back to moderation dashboard
-        </a>
+        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
         <ButtonButton on:click={create}>Create application</ButtonButton>
     </p>
 
