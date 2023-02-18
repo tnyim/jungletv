@@ -73,7 +73,7 @@
         <button
             class="text-gray-600 dark:text-gray-400 text-xs {additionalPadding
                 ? 'mt-2'
-                : 'mt-1'} h-5 overflow-hidden whitespace-nowrap
+                : 'mt-1'} block w-full text-left h-5 overflow-hidden whitespace-nowrap
                 {getBackgroundColorForMessage(highlighted)}"
             on:click={() => dispatch("highlight", message.getReference())}
         >
