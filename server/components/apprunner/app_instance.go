@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/dop251/goja_nodejs/eventloop"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -33,6 +36,7 @@ type appInstance struct {
 	onTerminated       *event.NoArgEvent
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
+	registry           *require.Registry
 	appLogger          *appLogger
 	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
 	ctx              context.Context
@@ -60,11 +64,11 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		appLogger:          NewAppLogger(),
 	}
 
-	registry := require.NewRegistry(require.WithLoader(instance.sourceLoader))
-	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
-	registry.RegisterNativeModule(process.ModuleName, process.BuildRequire(instance, instance))
+	instance.registry = require.NewRegistry(require.WithLoader(instance.sourceLoader))
+	instance.registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
+	instance.registry.RegisterNativeModule(process.ModuleName, process.BuildRequire(instance, instance))
 
-	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(registry))
+	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(instance.registry))
 
 	instance.appLogger.RuntimeLog("application instance created")
 
@@ -125,6 +129,8 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.startedOrStoppedAt = time.Now()
 
 	if !a.startedOnce {
+		a.registry.RegisterNativeModule(keyvalue.ModuleName, keyvalue.BuildRequire(a.ctx, a.applicationID))
+
 		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
 		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
 		// scheduled by JS functions in a JS setTimeout call.
@@ -313,7 +319,7 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		return false, "", 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
-	resultChan := make(chan goja.Value)
+	resultChan := make(chan string)
 	errChan := make(chan error)
 	var executionTime time.Duration
 	couldHavePaused := &atomic.Int32{}
@@ -323,7 +329,15 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		start := time.Now()
 		result, err := vm.RunString(expression)
 		executionTime = time.Since(start)
-		resultChan <- result
+		resultString := ""
+		if result != nil {
+			resultString = result.String()
+			t := result.ExportType()
+			if t != nil && t.Kind() == reflect.String {
+				resultString = strconv.Quote(resultString)
+			}
+		}
+		resultChan <- resultString
 		errChan <- err
 	})
 
@@ -337,7 +351,7 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 			if err != nil {
 				return false, err.Error(), executionTime, nil
 			}
-			return true, result.String(), executionTime, nil
+			return true, result, executionTime, nil
 		case <-onPaused:
 			if couldHavePaused.Load() == 1 {
 				// application paused before our loop function could run / before our expression returned

@@ -1,0 +1,209 @@
+package keyvalue
+
+import (
+	"context"
+	"errors"
+
+	"github.com/dop251/goja"
+	"github.com/dop251/goja_nodejs/require"
+	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/transaction"
+)
+
+// ModuleName is the name by which this module can be require()d in a script
+const ModuleName = "jungletv:keyvalue"
+
+// BuildRequire builds a ModuleLoader for this module as associated with a specific application
+func BuildRequire(ctx context.Context, applicationID string) require.ModuleLoader {
+	return func(runtime *goja.Runtime, module *goja.Object) {
+		m := &keyValueModule{
+			runtime:       runtime,
+			ctx:           ctx,
+			applicationID: applicationID,
+		}
+		exports := module.Get("exports").(*goja.Object)
+		exports.Set("key", m.key)
+		exports.Set("getItem", m.getItem)
+		exports.Set("setItem", m.setItem)
+		exports.Set("removeItem", m.removeItem)
+		exports.Set("clear", m.clear)
+		exports.DefineAccessorProperty("length", m.runtime.ToValue(m.length), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}
+}
+
+// Enable adds the process object to the specified runtime
+func Enable(runtime *goja.Runtime) {
+	runtime.Set("keyvalue", require.Require(runtime, ModuleName))
+}
+
+type keyValueModule struct {
+	runtime       *goja.Runtime
+	ctx           context.Context // just to pass the sqalx node around...
+	applicationID string
+}
+
+func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
+	indexValue := call.Argument(0)
+	if goja.IsUndefined(indexValue) {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+	var index uint64
+	err := m.runtime.ExportTo(indexValue, &index)
+	if err != nil {
+		return m.runtime.NewTypeError("First argument to getItem must be an unsigned integer")
+	}
+
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Commit() // read-only tx
+
+	value, err := types.GetApplicationValueByIndex(ctx, m.applicationID, index)
+	if errors.Is(err, types.ErrApplicationValueNotFound) {
+		return goja.Null()
+	} else if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	return m.runtime.ToValue(value.Key)
+}
+
+func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
+	keyValue := call.Argument(0)
+	if goja.IsUndefined(keyValue) {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+	var key string
+	err := m.runtime.ExportTo(keyValue, &key)
+	if err != nil {
+		return m.runtime.NewTypeError("First argument to getItem must be a string")
+	}
+
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Commit() // read-only tx
+
+	value, err := types.GetApplicationValue(ctx, m.applicationID, key)
+	if errors.Is(err, types.ErrApplicationValueNotFound) {
+		return goja.Null()
+	} else if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	return m.runtime.ToValue(value.Value)
+}
+
+func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
+	keyValue := call.Argument(0)
+	if goja.IsUndefined(keyValue) {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+	valueValue := call.Argument(1)
+	if goja.IsUndefined(valueValue) {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+
+	var key, value string
+	err := m.runtime.ExportTo(keyValue, &key)
+	if err != nil {
+		return m.runtime.NewTypeError("First argument to setItem must be a string")
+	}
+	err = m.runtime.ExportTo(valueValue, &value)
+	if err != nil {
+		return m.runtime.NewTypeError("Second argument to setItem must be a string")
+	}
+
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Rollback()
+
+	v := &types.ApplicationValue{
+		ApplicationID: m.applicationID,
+		Key:           key,
+		Value:         value,
+	}
+
+	err = v.Update(ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	return goja.Undefined()
+}
+
+func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
+	keyValue := call.Argument(0)
+	if goja.IsUndefined(keyValue) {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+
+	var key string
+	err := m.runtime.ExportTo(keyValue, &key)
+	if err != nil {
+		return m.runtime.NewTypeError("First argument to setItem must be a string")
+	}
+
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Rollback()
+
+	v := &types.ApplicationValue{
+		ApplicationID: m.applicationID,
+		Key:           key,
+	}
+
+	err = v.Delete(ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	return goja.Undefined()
+}
+
+func (m *keyValueModule) clear(call goja.FunctionCall) goja.Value {
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Rollback()
+
+	err = types.ClearApplicationValuesForApplication(ctx, m.applicationID)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+
+	err = ctx.Commit()
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	return goja.Undefined()
+}
+
+func (m *keyValueModule) length() goja.Value {
+	ctx, err := transaction.Begin(m.ctx)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+	defer ctx.Commit() // read-only tx
+
+	count, err := types.CountApplicationValuesForApplication(ctx, m.applicationID)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+
+	return m.runtime.ToValue(count)
+}

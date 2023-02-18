@@ -92,12 +92,20 @@ func (obj *Application) deleteExtra(node sqalx.Node, preSelf bool) error {
 	if !preSelf {
 		return nil
 	}
+	// delete files
 	builder := sdb.Delete("application_file").Where(sq.Eq{"application_file.application_id": obj.ID})
 	logger.Println(builder.ToSql())
 	_, err := builder.RunWith(node).Exec()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
+
+	// delete values
+	err = ClearApplicationValuesForApplication(node, obj.ID)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	// delete all other versions of the application
 	builder = sdb.Delete("application").Where(sq.Eq{"application.id": obj.ID})
 	logger.Println(builder.ToSql())

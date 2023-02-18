@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS "application_value";
 DROP TABLE IF EXISTS "application_file";
 DROP TABLE IF EXISTS "application";
 DROP TABLE IF EXISTS "as_number_reputation";
@@ -369,4 +370,11 @@ CREATE TABLE IF NOT EXISTS "application_file" (
     "type" VARCHAR(64) NOT NULL,
     content BYTEA NOT NULL,
     PRIMARY KEY (application_id, "name", updated_at)
+);
+
+CREATE TABLE IF NOT EXISTS "application_value" (
+    application_id VARCHAR(36) NOT NULL,
+    "key" VARCHAR(2048) NOT NULL,
+    "value" TEXT NOT NULL,
+    PRIMARY KEY (application_id, "key")
 );
