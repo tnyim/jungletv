@@ -166,24 +166,25 @@ func (r *AppRunner) StopApplication(applicationID string) error {
 	stopped, stoppedU := r.onApplicationStopped.Subscribe(event.AtLeastOnceGuarantee)
 	defer stoppedU()
 
-	stop := func() error {
+	instance := func() *appInstance {
 		r.instancesLock.Lock()
 		defer r.instancesLock.Unlock()
 
 		instance, ok := r.instances[applicationID]
-		if !ok {
-			return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
-		}
-
-		err := instance.Terminate(true, 10*time.Second, true)
-		if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyPaused) {
-			return stacktrace.Propagate(err, "")
+		if ok {
+			return instance
 		}
 		return nil
+	}()
+	if instance == nil {
+		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
+	// releasing the lock up there means we might have concurrent Terminate requests,
+	// but it's fine because instance.Terminate locks on the instance lock so in such a situation
+	// this function will either return ErrApplicationNotInstantiated or ErrApplicationInstanceTerminated
 
-	err := stop()
-	if err != nil {
+	err := instance.Terminate(true, 10*time.Second, true)
+	if err != nil && !errors.Is(err, ErrApplicationInstanceAlreadyPaused) {
 		return stacktrace.Propagate(err, "")
 	}
 

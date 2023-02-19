@@ -65,7 +65,6 @@
     async function launchApplication() {
         try {
             await apiClient.launchApplication(application.getId());
-            updateDataCallback();
         } catch (e) {
             await modalAlert("An error occurred when launching the application: " + e);
         }
@@ -74,7 +73,6 @@
     async function stopApplication() {
         try {
             await apiClient.stopApplication(application.getId());
-            updateDataCallback();
         } catch (e) {
             await modalAlert("An error occurred when stopping the application: " + e);
         }

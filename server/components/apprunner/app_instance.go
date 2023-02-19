@@ -41,6 +41,7 @@ type appInstance struct {
 	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
 	ctx              context.Context
 	ctxCancel        func()
+	stopWatchdog     func()
 	vmInterrupt      func(v any)
 	vmClearInterrupt func()
 }
@@ -127,6 +128,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.loop.Start()
 	a.running = true
 	a.startedOrStoppedAt = time.Now()
+	a.stopWatchdog = a.startWatchdog(30 * time.Second)
 
 	if !a.startedOnce {
 		a.registry.RegisterNativeModule(keyvalue.ModuleName, keyvalue.BuildRequire(a.ctx, a.applicationID))
@@ -153,11 +155,38 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	return nil
 }
 
+func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) func() {
+	doneCh := make(chan struct{})
+	timer := time.NewTimer(tolerateEventLoopStuckFor)
+	interval := a.loop.SetInterval(func(_ *goja.Runtime) {
+		timer.Reset(tolerateEventLoopStuckFor)
+	}, tolerateEventLoopStuckFor/5)
+	go func() {
+		select {
+		case <-doneCh:
+			return
+		case <-timer.C:
+			a.appLogger.RuntimeError(fmt.Sprintf("application event loop stuck for at least %v, terminating", tolerateEventLoopStuckFor))
+			a.Terminate(true, 0*time.Second, false)
+			return
+		}
+	}()
+
+	return func() {
+		select {
+		case doneCh <- struct{}{}:
+		default:
+		}
+		timer.Stop()
+		a.loop.ClearInterval(interval)
+	}
+}
+
 func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 	a.runOnLoopWithInterruption(a.ctx, func(vm *goja.Runtime) {
 		err := f(vm)
 		if err != nil {
-			a.appLogger.RuntimeError(err)
+			a.appLogger.RuntimeError(err.Error())
 		}
 	})
 }
@@ -236,6 +265,9 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyPaused, "")
 	}
 
+	a.stopWatchdog()
+	a.stopWatchdog = nil
+
 	verbPresent, verbPast := "pausing", "paused"
 	if toTerminate {
 		verbPresent, verbPast = "terminating", "terminated"
@@ -249,15 +281,20 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 
 	var interruptTimer *time.Timer
 	if force {
-		interruptTimer = time.AfterFunc(after, func() {
+		interrupt := func() {
 			a.appLogger.RuntimeLog(fmt.Sprintf("interrupting execution after waiting %s", after.String()))
 			a.vmInterrupt(appInstanceInterruptValue)
 			a.appLogger.RuntimeLog("execution interrupted")
-		})
+		}
+		if after == 0 {
+			interrupt()
+		} else {
+			interruptTimer = time.AfterFunc(after, interrupt)
+		}
 	}
 
 	jobs := a.loop.Stop()
-	if force {
+	if interruptTimer != nil {
 		interruptTimer.Stop()
 	}
 	a.ctxCancel()

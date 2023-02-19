@@ -134,6 +134,6 @@ func (p *appLogger) RuntimeLog(s string) {
 	p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
 }
 
-func (p *appLogger) RuntimeError(err error) {
-	p.addLogEntry(err.Error(), ApplicationLogLevelRuntimeError)
+func (p *appLogger) RuntimeError(s string) {
+	p.addLogEntry(s, ApplicationLogLevelRuntimeError)
 }
