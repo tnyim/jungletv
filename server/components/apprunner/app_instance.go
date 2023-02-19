@@ -15,6 +15,8 @@ import (
 	"github.com/dop251/goja_nodejs/eventloop"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/types"
@@ -36,8 +38,8 @@ type appInstance struct {
 	onTerminated       *event.NoArgEvent
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
-	registry           *require.Registry
 	appLogger          *appLogger
+	modules            *modules.Collection
 	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
 	ctx              context.Context
 	ctxCancel        func()
@@ -55,21 +57,24 @@ var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application
 // ErrApplicationInstanceNotRunning is returned when the specified application is not running
 var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
 
-func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion) (*appInstance, error) {
+func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, d modules.Dependencies) (*appInstance, error) {
 	instance := &appInstance{
 		applicationID:      applicationID,
 		applicationVersion: applicationVersion,
 		onPaused:           event.NewNoArg(),
 		onTerminated:       event.NewNoArg(),
 		runner:             r,
+		modules:            &modules.Collection{},
 		appLogger:          NewAppLogger(),
 	}
 
-	instance.registry = require.NewRegistry(require.WithLoader(instance.sourceLoader))
-	instance.registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
-	instance.registry.RegisterNativeModule(process.ModuleName, process.BuildRequire(instance, instance))
+	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
+	instance.modules.RegisterNativeModule(process.New(instance, instance))
+	instance.modules.RegisterNativeModule(chat.New(d.ChatManager, instance.runOnLoopLogError))
 
-	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(instance.registry))
+	registry := instance.modules.BuildRegistry(instance.sourceLoader)
+	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
+	instance.loop = eventloop.NewEventLoop(eventloop.WithRegistry(registry))
 
 	instance.appLogger.RuntimeLog("application instance created")
 
@@ -130,9 +135,9 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.startedOrStoppedAt = time.Now()
 	a.stopWatchdog = a.startWatchdog(30 * time.Second)
 
-	if !a.startedOnce {
-		a.registry.RegisterNativeModule(keyvalue.ModuleName, keyvalue.BuildRequire(a.ctx, a.applicationID))
+	a.modules.ExecutionResumed(a.ctx)
 
+	if !a.startedOnce {
 		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
 		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
 		// scheduled by JS functions in a JS setTimeout call.
@@ -141,7 +146,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
 			a.vmInterrupt = r.Interrupt
 			a.vmClearInterrupt = r.ClearInterrupt
-			process.Enable(r)
+			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
 
@@ -193,6 +198,7 @@ func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 
 func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime)) {
 	a.loop.RunOnLoop(func(vm *goja.Runtime) {
+
 		ranChan := make(chan struct{}, 1)
 		waitGroup := sync.WaitGroup{}
 		waitGroup.Add(1)
@@ -207,7 +213,14 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 			waitGroup.Done()
 		}()
 
-		f(vm)
+		func() {
+			defer func() {
+				if x := recover(); x != nil {
+					a.appLogger.RuntimeError(fmt.Sprint("runtime panic occurred: ", x))
+				}
+			}()
+			f(vm)
+		}()
 
 		ranChan <- struct{}{}
 		waitGroup.Wait()
@@ -297,6 +310,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	if interruptTimer != nil {
 		interruptTimer.Stop()
 	}
+	a.modules.ExecutionPaused()
 	a.ctxCancel()
 	a.ctx, a.ctxCancel = nil, nil
 	a.running = false

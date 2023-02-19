@@ -27,6 +27,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/appeditor"
 	"github.com/tnyim/jungletv/server/components/apprunner"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
@@ -456,6 +457,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	s.raffleSecretKey = sk.ToECDSA()
+
+	s.appRunner.SetModuleDependencies(modules.Dependencies{
+		ChatManager: s.chat,
+	})
 
 	return s, nil
 }

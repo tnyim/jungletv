@@ -10,6 +10,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -48,6 +49,7 @@ type AppRunner struct {
 	onRunningApplicationsUpdated *event.Event[[]RunningApplication]
 	onApplicationLaunched        *event.Event[RunningApplication]
 	onApplicationStopped         *event.Event[RunningApplication]
+	moduleDependencies           modules.Dependencies
 }
 
 // New returns a new initialized AppRunner
@@ -63,6 +65,10 @@ func New(
 		onApplicationLaunched:        event.New[RunningApplication](),
 		onApplicationStopped:         event.New[RunningApplication](),
 	}
+}
+
+func (r *AppRunner) SetModuleDependencies(d modules.Dependencies) {
+	r.moduleDependencies = d
 }
 
 // RunningApplicationsUpdated is the event that is fired when the list of running applications changes
@@ -123,7 +129,7 @@ func (r *AppRunner) launchApplication(applicationID string, specificVersion type
 		return stacktrace.NewError("an instance of this application already exists")
 	}
 
-	instance, err := newAppInstance(r, application.ID, specificVersion)
+	instance, err := newAppInstance(r, application.ID, specificVersion, r.moduleDependencies)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

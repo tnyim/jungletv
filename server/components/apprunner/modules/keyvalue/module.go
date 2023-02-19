@@ -7,6 +7,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -14,14 +15,22 @@ import (
 // ModuleName is the name by which this module can be require()d in a script
 const ModuleName = "jungletv:keyvalue"
 
-// BuildRequire builds a ModuleLoader for this module as associated with a specific application
-func BuildRequire(ctx context.Context, applicationID string) require.ModuleLoader {
+type keyValueModule struct {
+	runtime       *goja.Runtime
+	ctx           context.Context // just to pass the sqalx node around...
+	applicationID string
+}
+
+// New returns a new keyvalue module
+func New(applicationID string) modules.NativeModule {
+	return &keyValueModule{
+		applicationID: applicationID,
+	}
+}
+
+func (m *keyValueModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
-		m := &keyValueModule{
-			runtime:       runtime,
-			ctx:           ctx,
-			applicationID: applicationID,
-		}
+		m.runtime = runtime
 		exports := module.Get("exports").(*goja.Object)
 		exports.Set("key", m.key)
 		exports.Set("getItem", m.getItem)
@@ -31,16 +40,17 @@ func BuildRequire(ctx context.Context, applicationID string) require.ModuleLoade
 		exports.DefineAccessorProperty("length", m.runtime.ToValue(m.length), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 	}
 }
-
-// Enable adds the process object to the specified runtime
-func Enable(runtime *goja.Runtime) {
-	runtime.Set("keyvalue", require.Require(runtime, ModuleName))
+func (m *keyValueModule) ModuleName() string {
+	return ModuleName
 }
-
-type keyValueModule struct {
-	runtime       *goja.Runtime
-	ctx           context.Context // just to pass the sqalx node around...
-	applicationID string
+func (m *keyValueModule) AutoRequire() (bool, string) {
+	return false, ""
+}
+func (m *keyValueModule) ExecutionResumed(ctx context.Context) {
+	m.ctx = ctx
+}
+func (m *keyValueModule) ExecutionPaused() {
+	m.ctx = nil
 }
 
 func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {

@@ -1,8 +1,11 @@
 package process
 
 import (
+	"context"
+
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/types"
 )
 
@@ -22,35 +25,41 @@ type ProcessLifecycleManager interface {
 	ExitProcess(exitCode int)
 }
 
-// BuildRequire builds a ModuleLoader for this module as associated with a specific process
-func BuildRequire(infoProvider ProcessInformationProvider, lifecycleManager ProcessLifecycleManager) require.ModuleLoader {
-	return func(runtime *goja.Runtime, module *goja.Object) {
-		m := &processModule{
-			runtime:          runtime,
-			infoProvider:     infoProvider,
-			lifecycleManager: lifecycleManager,
-		}
-		m.exports = module.Get("exports").(*goja.Object)
-		m.exports.Set("title", infoProvider.ApplicationID())
-		m.exports.Set("platform", "jungletv")
-		m.exports.Set("version", infoProvider.RuntimeVersion())
-		m.exports.Set("abort", m.abort)
-		m.exports.Set("exit", m.exit)
-		m.exports.Set("exitCode", int(0))
-	}
-}
-
-// Enable adds the process object to the specified runtime
-func Enable(runtime *goja.Runtime) {
-	runtime.Set("process", require.Require(runtime, ModuleName))
-}
-
 type processModule struct {
 	runtime          *goja.Runtime
 	exports          *goja.Object
 	infoProvider     ProcessInformationProvider
 	lifecycleManager ProcessLifecycleManager
 }
+
+// New returns a new process module
+func New(infoProvider ProcessInformationProvider, lifecycleManager ProcessLifecycleManager) modules.NativeModule {
+	return &processModule{
+		infoProvider:     infoProvider,
+		lifecycleManager: lifecycleManager,
+	}
+}
+
+func (m *processModule) ModuleLoader() require.ModuleLoader {
+	return func(runtime *goja.Runtime, module *goja.Object) {
+		m.runtime = runtime
+		m.exports = module.Get("exports").(*goja.Object)
+		m.exports.Set("title", m.infoProvider.ApplicationID())
+		m.exports.Set("platform", "jungletv")
+		m.exports.Set("version", m.infoProvider.RuntimeVersion())
+		m.exports.Set("abort", m.abort)
+		m.exports.Set("exit", m.exit)
+		m.exports.Set("exitCode", int(0))
+	}
+}
+func (m *processModule) ModuleName() string {
+	return ModuleName
+}
+func (m *processModule) AutoRequire() (bool, string) {
+	return true, "process"
+}
+func (m *processModule) ExecutionResumed(ctx context.Context) {}
+func (m *processModule) ExecutionPaused()                     {}
 
 func (m *processModule) abort(call goja.FunctionCall) goja.Value {
 	m.runtime.Interrupt("process aborted")
