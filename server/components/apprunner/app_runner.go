@@ -46,9 +46,9 @@ type AppRunner struct {
 	instances                    map[string]*appInstance
 	recentLogs                   *cache.Cache[string, ApplicationLog]
 	instancesLock                sync.RWMutex
-	onRunningApplicationsUpdated *event.Event[[]RunningApplication]
-	onApplicationLaunched        *event.Event[RunningApplication]
-	onApplicationStopped         *event.Event[RunningApplication]
+	onRunningApplicationsUpdated event.Event[[]RunningApplication]
+	onApplicationLaunched        event.Event[RunningApplication]
+	onApplicationStopped         event.Event[RunningApplication]
 	moduleDependencies           modules.Dependencies
 }
 
@@ -72,17 +72,17 @@ func (r *AppRunner) SetModuleDependencies(d modules.Dependencies) {
 }
 
 // RunningApplicationsUpdated is the event that is fired when the list of running applications changes
-func (r *AppRunner) RunningApplicationsUpdated() *event.Event[[]RunningApplication] {
+func (r *AppRunner) RunningApplicationsUpdated() event.Event[[]RunningApplication] {
 	return r.onRunningApplicationsUpdated
 }
 
 // ApplicationLaunched is the event that is fired when an application is launched
-func (r *AppRunner) ApplicationLaunched() *event.Event[RunningApplication] {
+func (r *AppRunner) ApplicationLaunched() event.Event[RunningApplication] {
 	return r.onApplicationLaunched
 }
 
 // ApplicationStopped is the event that is fired when an application is launched
-func (r *AppRunner) ApplicationStopped() *event.Event[RunningApplication] {
+func (r *AppRunner) ApplicationStopped() event.Event[RunningApplication] {
 	return r.onApplicationStopped
 }
 

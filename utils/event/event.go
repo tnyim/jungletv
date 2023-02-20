@@ -8,13 +8,35 @@ import (
 )
 
 // Event is an event including dispatching mechanism
-type Event[T any] struct {
+type Event[T any] interface {
+	// Subscribe returns a channel that will receive notification events.
+	// The returned function should be called when one wishes to unsubscribe
+	Subscribe(guaranteeType GuaranteeType) (<-chan T, func())
+
+	// SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
+	// The returned function should be called when one wishes to unsubscribe
+	SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func(arg T)) func()
+
+	// Notify notifies subscribers that the event has occurred.
+	// deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
+	// (subject to the GuaranteeType guarantees on the subscription side)
+	Notify(param T, deferNotification bool)
+
+	// Close notifies subscribers that no more events will be sent
+	Close()
+
+	// Unsubscribed returns an event that is notified with the current subscriber count whenever a subscriber unsubscribes
+	// from this event. This allows references to the event to be manually freed in code patterns that require it.
+	Unsubscribed() Event[int]
+}
+
+type event[T any] struct {
 	mu                   sync.RWMutex
 	nonBlockingSubs      fastcollection.FastCollection[chan T]
 	blockingSubs         fastcollection.FastCollection[*chanx.UnboundedChan[T]]
 	closed               bool
 	pendingNotifications []T
-	onUnsubscribed       *Event[int]
+	onUnsubscribed       Event[int]
 }
 
 // GuaranteeType defines what delivery guarantees event subscribers get
@@ -36,12 +58,12 @@ const (
 )
 
 // New returns a new Event
-func New[T any]() *Event[T] {
-	return &Event[T]{}
+func New[T any]() Event[T] {
+	return &event[T]{}
 }
 
 // Subscribe returns a channel that will receive notification events.
-func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
+func (e *event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -76,7 +98,7 @@ func (e *Event[T]) Subscribe(guaranteeType GuaranteeType) (<-chan T, func()) {
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
 // The returned function should be called when one wishes to unsubscribe
-func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func(arg T)) func() {
+func (e *event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func(arg T)) func() {
 	ch, unsub := e.Subscribe(guaranteeType)
 	go func() {
 		defer unsub()
@@ -93,7 +115,7 @@ func (e *Event[T]) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunctio
 
 // unsubscribe removes the provided channel from the list of subscriptions, i.e. the channel will no longer be notified.
 // It also closes the channel.
-func (e *Event[T]) unsubscribe(subID int, guaranteeType GuaranteeType, unsubscribed *bool) {
+func (e *event[T]) unsubscribe(subID int, guaranteeType GuaranteeType, unsubscribed *bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -120,14 +142,14 @@ func (e *Event[T]) unsubscribe(subID int, guaranteeType GuaranteeType, unsubscri
 	}
 }
 
-func (e *Event[T]) len() int {
+func (e *event[T]) len() int {
 	return e.nonBlockingSubs.Len() + e.blockingSubs.Len()
 }
 
 // Notify notifies subscribers that the event has occurred.
 // deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
 // (subject to the GuaranteeType guarantees on the subscription side)
-func (e *Event[T]) Notify(param T, deferNotification bool) {
+func (e *event[T]) Notify(param T, deferNotification bool) {
 	e.mu.RLock()
 
 	if e.closed {
@@ -151,7 +173,7 @@ func (e *Event[T]) Notify(param T, deferNotification bool) {
 	e.mu.RUnlock()
 }
 
-func (e *Event[T]) notifyNowWithinMutex(param T) {
+func (e *event[T]) notifyNowWithinMutex(param T) {
 	for _, entry := range e.nonBlockingSubs.UnsafeBackingArray {
 		// no need to check if the entry is valid as sends on a nil channel block (and since we're using the select with default case, they won't block)
 		select {
@@ -167,7 +189,7 @@ func (e *Event[T]) notifyNowWithinMutex(param T) {
 }
 
 // Close notifies subscribers that no more events will be sent
-func (e *Event[T]) Close() {
+func (e *event[T]) Close() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -188,7 +210,7 @@ func (e *Event[T]) Close() {
 
 // Unsubscribed returns an event that is notified with the current subscriber count whenever a subscriber unsubscribes
 // from this event. This allows references to the event to be manually freed in code patterns that require it.
-func (e *Event[T]) Unsubscribed() *Event[int] {
+func (e *event[T]) Unsubscribed() Event[int] {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 

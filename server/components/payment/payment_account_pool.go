@@ -121,8 +121,8 @@ func (p *PaymentAccountPool) ReturnAccount(account *wallet.Account) {
 type PaymentReceiver interface {
 	Address() string
 	MulticurrencyPaymentData() []MulticurrencyPaymentData
-	PaymentReceived() *event.Event[PaymentReceivedEventArgs]
-	MulticurrencyPaymentDataAvailable() *event.Event[[]MulticurrencyPaymentData]
+	PaymentReceived() event.Event[PaymentReceivedEventArgs]
+	MulticurrencyPaymentDataAvailable() event.Event[[]MulticurrencyPaymentData]
 
 	// Revert should be called when one wants to return anything that was received
 	// Does not terminate the payment flow (to do so, completely unsubscribe from PaymentReceived)

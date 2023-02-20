@@ -30,7 +30,7 @@ type QueueEntry interface {
 	Played() bool
 	Playing() bool
 	PlayedFor() time.Duration
-	DonePlaying() *event.NoArgEvent
+	DonePlaying() event.NoArgEvent
 
 	WasMovedBy(user auth.User) bool
 	SetAsMovedBy(user auth.User)

@@ -53,10 +53,10 @@ type Manager struct {
 	startupNoSkipPeriodOver    bool
 	mediaStartNoSkipPeriodOver bool
 
-	statusUpdated                          *event.Event[SkipStatusUpdatedEventArgs]
-	skipThresholdReductionMilestoneReached *event.Event[float64]
-	crowdfundedSkip                        *event.Event[payment.Amount]
-	crowdfundedTransactionReceived         *event.Event[*types.CrowdfundedTransaction]
+	statusUpdated                          event.Event[SkipStatusUpdatedEventArgs]
+	skipThresholdReductionMilestoneReached event.Event[float64]
+	crowdfundedSkip                        event.Event[payment.Amount]
+	crowdfundedTransactionReceived         event.Event[*types.CrowdfundedTransaction]
 
 	recentCrowdfundedSkips *cache.Cache[string, struct{}]
 }

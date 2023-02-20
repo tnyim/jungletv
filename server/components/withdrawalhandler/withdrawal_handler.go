@@ -30,7 +30,7 @@ type Handler struct {
 	completingPendingWithdrawals bool
 	rpcClient                    *rpc.Client
 
-	pendingWithdrawalCreated *event.Event[[]*types.PendingWithdrawal]
+	pendingWithdrawalCreated event.Event[[]*types.PendingWithdrawal]
 
 	highestSeenBlockCount uint64
 }
@@ -418,6 +418,6 @@ func (w *Handler) isNodeSynced() bool {
 }
 
 // PendingWithdrawalsCreated is the event that is fired when new pending withdrawals are created
-func (w *Handler) PendingWithdrawalsCreated() *event.Event[[]*types.PendingWithdrawal] {
+func (w *Handler) PendingWithdrawalsCreated() event.Event[[]*types.PendingWithdrawal] {
 	return w.pendingWithdrawalCreated
 }

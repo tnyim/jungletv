@@ -46,14 +46,14 @@ type Manager struct {
 	enabled        bool
 	slowmode       bool
 	disabledReason DisabledReason
-	chatEnabled    *event.NoArgEvent
-	chatDisabled   *event.Event[DisabledReason]
-	messageCreated *event.Event[MessageCreatedEventArgs]
-	messageDeleted *event.Event[snowflake.ID]
+	chatEnabled    event.NoArgEvent
+	chatDisabled   event.Event[DisabledReason]
+	messageCreated event.Event[MessageCreatedEventArgs]
+	messageDeleted event.Event[snowflake.ID]
 
-	userBlockedBy       *event.Keyed[string, string]
-	userUnblockedBy     *event.Keyed[string, string]
-	userChangedNickname *event.Keyed[string, string]
+	userBlockedBy       event.Keyed[string, string]
+	userUnblockedBy     event.Keyed[string, string]
+	userChangedNickname event.Keyed[string, string]
 }
 
 // New returns an initialized chat Manager

@@ -49,16 +49,16 @@ type MediaQueue struct {
 
 	ownEntryRemovalRateLimiter limiter.Store
 
-	queueUpdated           *event.NoArgEvent
-	skippingAllowedUpdated *event.NoArgEvent
-	mediaChanged           *event.Event[media.QueueEntry]
-	entryAdded             *event.Event[EntryAddedEventArg]
+	queueUpdated           event.NoArgEvent
+	skippingAllowedUpdated event.NoArgEvent
+	mediaChanged           event.Event[media.QueueEntry]
+	entryAdded             event.Event[EntryAddedEventArg]
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
-	deepEntryRemoved *event.Event[media.QueueEntry]
-	ownEntryRemoved  *event.Event[media.QueueEntry] // receives the removed entry as an argument
-	entryMoved       *event.Event[EntryMovedEventArg]
+	deepEntryRemoved event.Event[media.QueueEntry]
+	ownEntryRemoved  event.Event[media.QueueEntry] // receives the removed entry as an argument
+	entryMoved       event.Event[EntryMovedEventArg]
 }
 
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry

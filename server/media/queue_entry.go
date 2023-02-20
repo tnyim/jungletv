@@ -26,7 +26,7 @@ type CommonQueueEntry struct {
 	startedPlaying time.Time
 	stoppedPlaying time.Time
 	played         bool
-	donePlaying    *event.NoArgEvent
+	donePlaying    event.NoArgEvent
 
 	movedBy map[string]struct{}
 
@@ -95,7 +95,7 @@ func (e *CommonQueueEntry) PlayedFor() time.Duration {
 }
 
 // DonePlaying implements the QueueEntry interface
-func (e *CommonQueueEntry) DonePlaying() *event.NoArgEvent {
+func (e *CommonQueueEntry) DonePlaying() event.NoArgEvent {
 	return e.donePlaying
 }
 

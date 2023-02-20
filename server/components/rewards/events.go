@@ -21,6 +21,6 @@ type SpectatorRewardedEventArgs struct {
 }
 
 // RewardsDistributed is the event that is fired when rewards are distributed for a queue entry
-func (r *Handler) RewardsDistributed() *event.Event[RewardsDistributedEventArgs] {
+func (r *Handler) RewardsDistributed() event.Event[RewardsDistributedEventArgs] {
 	return r.rewardsDistributed
 }

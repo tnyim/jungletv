@@ -15,7 +15,7 @@ import (
 // ApplicationLog represents the log of a single application
 type ApplicationLog interface {
 	LogEntries(offset ulid.ULID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool)
-	LogEntryAdded() *event.Event[ApplicationLogEntry]
+	LogEntryAdded() event.Event[ApplicationLogEntry]
 }
 
 // ApplicationLogEntry represents an entry in the log of an application
@@ -62,7 +62,7 @@ const (
 type appLogger struct {
 	entries       *btree.BTreeG[appLogEntry]
 	mu            sync.RWMutex
-	onEntryAdded  *event.Event[ApplicationLogEntry]
+	onEntryAdded  event.Event[ApplicationLogEntry]
 	snowflakeNode *snowflake.Node
 }
 
@@ -102,7 +102,7 @@ func (p *appLogger) LogEntries(offset ulid.ULID, maxCount int, levels []Applicat
 	return entries, hasMore
 }
 
-func (p *appLogger) LogEntryAdded() *event.Event[ApplicationLogEntry] {
+func (p *appLogger) LogEntryAdded() event.Event[ApplicationLogEntry] {
 	return p.onEntryAdded
 }
 

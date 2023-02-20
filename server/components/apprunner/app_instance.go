@@ -34,8 +34,8 @@ type appInstance struct {
 	terminated         bool
 	exitCode           int
 	startedOrStoppedAt time.Time
-	onPaused           *event.NoArgEvent
-	onTerminated       *event.NoArgEvent
+	onPaused           event.NoArgEvent
+	onTerminated       event.NoArgEvent
 	runner             *AppRunner
 	loop               *eventloop.EventLoop
 	appLogger          *appLogger
@@ -82,12 +82,12 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 }
 
 // Terminated returns the event that is fired when the application instance is terminated
-func (a *appInstance) Terminated() *event.NoArgEvent {
+func (a *appInstance) Terminated() event.NoArgEvent {
 	return a.onTerminated
 }
 
 // Paused returns the event that is fired when the application instance is paused. Fired before Terminated
-func (a *appInstance) Paused() *event.NoArgEvent {
+func (a *appInstance) Paused() event.NoArgEvent {
 	return a.onPaused
 }
 

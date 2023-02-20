@@ -62,7 +62,7 @@ type EnqueueTicket interface {
 	SetPaid() error
 	SetFailedDueToInsufficientPoints()
 	Status() proto.EnqueueMediaTicketStatus
-	StatusChanged() *event.NoArgEvent
+	StatusChanged() event.NoArgEvent
 	ForceEnqueuing(proto.ForcedTicketEnqueueType)
 	EnqueuingForced() (bool, proto.ForcedTicketEnqueueType)
 }
@@ -340,7 +340,7 @@ type ticket struct {
 	mediaInfo                media.Info
 	paymentReceiver          payment.PaymentReceiver
 	pricing                  pricer.EnqueuePricing
-	statusChanged            *event.NoArgEvent
+	statusChanged            event.NoArgEvent
 	forceEnqueuing           *proto.ForcedTicketEnqueueType
 }
 
@@ -441,7 +441,7 @@ func (t *ticket) Status() proto.EnqueueMediaTicketStatus {
 	}
 }
 
-func (t *ticket) StatusChanged() *event.NoArgEvent {
+func (t *ticket) StatusChanged() event.NoArgEvent {
 	return t.statusChanged
 }
 

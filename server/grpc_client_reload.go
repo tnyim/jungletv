@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *grpcServer) ClientReloadTriggered() *event.NoArgEvent {
+func (s *grpcServer) ClientReloadTriggered() event.NoArgEvent {
 	return s.clientReloadTriggered
 }
 

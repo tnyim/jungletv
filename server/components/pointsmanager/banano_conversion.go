@@ -96,10 +96,10 @@ type BananoConversionFlow struct {
 	user                 auth.User
 	paymentAddress       string
 
-	clientReconnected *event.NoArgEvent
-	expired           *event.NoArgEvent
-	destroyed         *event.NoArgEvent
-	converted         *event.Event[BananoConvertedEventArgs]
+	clientReconnected event.NoArgEvent
+	expired           event.NoArgEvent
+	destroyed         event.NoArgEvent
+	converted         event.Event[BananoConvertedEventArgs]
 
 	sessionBananoTotal payment.Amount
 	sessionPointsTotal int
@@ -128,11 +128,11 @@ func (f *BananoConversionFlow) SessionPointsTotal() int {
 	return f.sessionPointsTotal
 }
 
-func (f *BananoConversionFlow) Expired() *event.NoArgEvent {
+func (f *BananoConversionFlow) Expired() event.NoArgEvent {
 	return f.expired
 }
 
-func (f *BananoConversionFlow) Destroyed() *event.NoArgEvent {
+func (f *BananoConversionFlow) Destroyed() event.NoArgEvent {
 	return f.destroyed
 }
 
@@ -142,13 +142,13 @@ func (f *BananoConversionFlow) Expiration() time.Time {
 	return f.createdOrRecoveredAt.Add(flowExpiry)
 }
 
-func (f *BananoConversionFlow) Converted() *event.Event[BananoConvertedEventArgs] {
+func (f *BananoConversionFlow) Converted() event.Event[BananoConvertedEventArgs] {
 	return f.converted
 }
 
 type convertPointsToBananoFunction func(ctx context.Context, user auth.User, pointsTotalSoFar int, paymentArgs payment.PaymentReceivedEventArgs) (int, error)
 
-func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent *event.Event[payment.PaymentReceivedEventArgs], convertPointsFn convertPointsToBananoFunction, cleanupFn func()) {
+func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent event.Event[payment.PaymentReceivedEventArgs], convertPointsFn convertPointsToBananoFunction, cleanupFn func()) {
 	defer cleanupFn()
 	defer f.destroyed.Notify(true)
 

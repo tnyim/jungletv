@@ -18,8 +18,8 @@ type monitoredAccount struct {
 	mu                                  sync.RWMutex // mainly protects receivableBalance, as it is changed on both Revert and processPaymentsToAccount
 	p                                   *PaymentAccountPool
 	account                             *wallet.Account
-	onPaymentReceived                   *event.Event[PaymentReceivedEventArgs]
-	onMulticurrencyPaymentDataAvailable *event.Event[[]MulticurrencyPaymentData]
+	onPaymentReceived                   event.Event[PaymentReceivedEventArgs]
+	onMulticurrencyPaymentDataAvailable event.Event[[]MulticurrencyPaymentData]
 	onUnsubscribedUnsubFn               func()
 	seenPendings                        map[string]struct{}
 	receivableBalance                   Amount // this is the balance excluding dust. it is updated as we detect new receivables
@@ -39,11 +39,11 @@ func (m *monitoredAccount) MulticurrencyPaymentData() []MulticurrencyPaymentData
 	return d
 }
 
-func (m *monitoredAccount) MulticurrencyPaymentDataAvailable() *event.Event[[]MulticurrencyPaymentData] {
+func (m *monitoredAccount) MulticurrencyPaymentDataAvailable() event.Event[[]MulticurrencyPaymentData] {
 	return m.onMulticurrencyPaymentDataAvailable
 }
 
-func (m *monitoredAccount) PaymentReceived() *event.Event[PaymentReceivedEventArgs] {
+func (m *monitoredAccount) PaymentReceived() event.Event[PaymentReceivedEventArgs] {
 	return m.onPaymentReceived
 }
 

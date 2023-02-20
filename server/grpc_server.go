@@ -126,13 +126,13 @@ type grpcServer struct {
 
 	raffleSecretKey *ecdsa.PrivateKey
 
-	announcementsUpdated *event.Event[int]
+	announcementsUpdated event.Event[int]
 
 	vipUsers      map[string]vipUserAppearance
 	vipUsersMutex sync.RWMutex
 
-	clientReloadTriggered *event.NoArgEvent
-	versionHashChanged    *event.NoArgEvent
+	clientReloadTriggered event.NoArgEvent
+	versionHashChanged    event.NoArgEvent
 
 	rewardHistoryMutex *nsync.NamedMutex
 }

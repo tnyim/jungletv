@@ -60,7 +60,7 @@ type Handler struct {
 	versionHash           *string
 	pointsManager         *pointsmanager.Manager
 
-	rewardsDistributed *event.Event[RewardsDistributedEventArgs]
+	rewardsDistributed event.Event[RewardsDistributedEventArgs]
 
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
@@ -75,10 +75,10 @@ type Handler struct {
 }
 
 type Spectator interface {
-	OnRewarded() *event.Event[SpectatorRewardedEventArgs]
-	OnWithdrew() *event.NoArgEvent
-	OnChatMentioned() *event.NoArgEvent
-	OnActivityChallenge() *event.Event[*ActivityChallenge]
+	OnRewarded() event.Event[SpectatorRewardedEventArgs]
+	OnWithdrew() event.NoArgEvent
+	OnChatMentioned() event.NoArgEvent
+	OnActivityChallenge() event.Event[*ActivityChallenge]
 	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
 	CurrentRemoteAddress() string
@@ -100,12 +100,12 @@ type spectator struct {
 	stoppedWatching            time.Time
 	activityCheckTimer         *time.Timer
 	nextActivityCheckTime      time.Time
-	onRewarded                 *event.Event[SpectatorRewardedEventArgs]
-	onWithdrew                 *event.NoArgEvent
-	onDisconnected             *event.NoArgEvent
-	onReconnected              *event.NoArgEvent
-	onChatMentioned            *event.NoArgEvent
-	onActivityChallenge        *event.Event[*ActivityChallenge]
+	onRewarded                 event.Event[SpectatorRewardedEventArgs]
+	onWithdrew                 event.NoArgEvent
+	onDisconnected             event.NoArgEvent
+	onReconnected              event.NoArgEvent
+	onChatMentioned            event.NoArgEvent
+	onActivityChallenge        event.Event[*ActivityChallenge]
 	activityChallenge          *ActivityChallenge
 	lastHardChallengeSolvedAt  time.Time
 	connectionCount            int
@@ -141,19 +141,19 @@ func (a *ActivityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 	}
 }
 
-func (s *spectator) OnRewarded() *event.Event[SpectatorRewardedEventArgs] {
+func (s *spectator) OnRewarded() event.Event[SpectatorRewardedEventArgs] {
 	return s.onRewarded
 }
 
-func (s *spectator) OnWithdrew() *event.NoArgEvent {
+func (s *spectator) OnWithdrew() event.NoArgEvent {
 	return s.onWithdrew
 }
 
-func (s *spectator) OnChatMentioned() *event.NoArgEvent {
+func (s *spectator) OnChatMentioned() event.NoArgEvent {
 	return s.onChatMentioned
 }
 
-func (s *spectator) OnActivityChallenge() *event.Event[*ActivityChallenge] {
+func (s *spectator) OnActivityChallenge() event.Event[*ActivityChallenge] {
 	return s.onActivityChallenge
 }
 
