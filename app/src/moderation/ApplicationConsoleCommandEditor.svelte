@@ -141,6 +141,9 @@
                                     return false;
                                 }
                                 let command = view.state.doc.toString();
+                                if (command.trim() == "") {
+                                    return true;
+                                }
                                 dispatch("command", command);
                                 commandHistory = [command, ...commandHistory];
                                 commandHistoryCursor = -1;
@@ -186,6 +189,18 @@
                     ]),
                     javascript(),
                     EditorView.lineWrapping,
+                    EditorView.theme({
+                        // force scrolling to not be left up to codemirror,
+                        // because we want the > at the top of the command prompt to move as we scroll
+                        ".cm-editor": {
+                            height: "auto",
+                        },
+                        ".cm-scroller": {
+                            overflow: "inherit",
+                            "padding-top": "1px",
+                            "padding-right": "0.5rem",
+                        },
+                    }),
                     themeCompartment.of(editorTheme($darkMode)),
                 ],
             }),
@@ -222,4 +237,4 @@
     $: updateEditorContents(currentCommand);
 </script>
 
-<div class="w-full text-base" style="padding-top: 1px" bind:this={editorContainer} />
+<div class="w-full text-base" bind:this={editorContainer} />

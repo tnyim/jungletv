@@ -171,7 +171,7 @@
 </script>
 
 <div class="flex-grow mx-auto editor-container flex flex-col">
-    <div class="flex flex-row flex-wrap space-x-2">
+    <div class="flex flex-row flex-wrap space-x-2 bg-gray-50 dark:bg-gray-950">
         <a use:link href="/moderate" class="block {hrefButtonStyleClasses()}}">
             <i class="fas fa-arrow-left" />
         </a>

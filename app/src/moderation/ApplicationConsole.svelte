@@ -338,10 +338,12 @@
     }
 </script>
 
-<div class="flex flex-col relative overflow-hidden {embedded ? 'max-h-full' : 'console-container'}">
-    <div
-        class="flex flex-row gap-4 py-1 px-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950"
-    >
+<div
+    class="flex flex-col relative overflow-hidden bg-gray-50 dark:bg-gray-950 {embedded
+        ? 'h-full'
+        : 'console-container'}"
+>
+    <div class="flex flex-row gap-4 py-1 px-2 border-b border-gray-200 dark:border-gray-800">
         <ApplicationConsoleLogToggle bind:checked={showRuntimeErrors} id="showRuntimeErrors" label="Runtime Errors" />
         <ApplicationConsoleLogToggle bind:checked={showRuntimeLogs} id="showRuntimeLogs" label="Runtime Logs" />
         <ApplicationConsoleLogToggle bind:checked={showJSErrors} id="showJSErrors" label="JS Errors" />
@@ -356,7 +358,7 @@
             Clear
         </button>
     </div>
-    <div class="flex-grow overflow-y-auto relative flex flex-col" bind:this={consoleContainer}>
+    <div class="bg-gray-100 dark:bg-gray-900 overflow-y-auto relative flex flex-col" bind:this={consoleContainer}>
         {#if historicalLogCursor && historicalLogHasMore}
             <div class="py-1 px-2 flex flex-row items-center border-b border-gray-200 dark:border-gray-800">
                 <button
@@ -419,7 +421,11 @@
         {/each}
         <div bind:this={bottomDetectionDiv} class="h-2 -mt-2" />
     </div>
-    <div class="px-2 flex flex-row border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+    <div
+        class="pl-2 flex-grow flex-shrink-0 flex flex-row overflow-y-auto border-t
+                border-gray-200 dark:border-gray-800"
+        style="max-height: 50%"
+    >
         <div class="py-1 w-5 text-right text-blue-500 mr-0.5 self-start">
             <i class="fas fa-chevron-right" />
         </div>

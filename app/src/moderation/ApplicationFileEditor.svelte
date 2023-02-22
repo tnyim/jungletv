@@ -26,12 +26,14 @@
     let content = "";
     let editing = false;
     let fileType: string;
+    let publicFile = false;
 
     async function fetchFile(): Promise<ApplicationFile> {
         try {
             let response = await apiClient.getApplicationFile(applicationID, fileName);
             content = new TextDecoder().decode(response.getContent_asU8());
             fileType = response.getType();
+            publicFile = response.getPublic();
             editing = true;
             return response;
         } catch {
@@ -189,12 +191,15 @@
 </script>
 
 <div class="flex-grow mx-auto editor-container flex flex-col">
-    <div class="flex flex-row flex-wrap space-x-2">
+    <div class="flex flex-row flex-wrap space-x-2 bg-gray-50 dark:bg-gray-950">
         <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
             <i class="fas fa-arrow-left" />
         </a>
         <h1 class="text-lg block pt-1">
-            <span class="hidden md:inline">{editing ? "Editing" : "Creating"} file</span>
+            <span class="hidden md:inline">
+                {editing ? "Editing" : "Creating"}
+                {#if publicFile}public{/if} file
+            </span>
             <span class="font-mono">{fileName}</span>
             on
             <span class="font-mono">{applicationID}</span>

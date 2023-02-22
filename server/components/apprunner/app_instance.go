@@ -2,10 +2,11 @@ package apprunner
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -146,6 +147,9 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
 			a.vmInterrupt = r.Interrupt
 			a.vmClearInterrupt = r.ClearInterrupt
+
+			_, err = r.RunScript("", runtimeBaseCode)
+
 			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
@@ -380,15 +384,7 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		start := time.Now()
 		result, err := vm.RunString(expression)
 		executionTime = time.Since(start)
-		resultString := ""
-		if result != nil {
-			resultString = result.String()
-			t := result.ExportType()
-			if t != nil && t.Kind() == reflect.String {
-				resultString = strconv.Quote(resultString)
-			}
-		}
-		resultChan <- resultString
+		resultChan <- resultString(vm, result, 0)
 		errChan <- err
 	})
 
@@ -415,6 +411,66 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 	}
 }
 
+var maxResultStringDepth = 1
+
+func resultString(vm *goja.Runtime, v goja.Value, depth int) string {
+	if v == nil {
+		return ""
+	}
+	t := v.ExportType()
+	if t == nil {
+		return v.String()
+	}
+	switch t.Kind() {
+	case reflect.String:
+		j, _ := json.Marshal(v.String())
+		return string(j)
+	case reflect.Slice:
+		if depth == maxResultStringDepth {
+			return "[...]"
+		}
+		var arr []goja.Value
+		err := vm.ExportTo(v, &arr)
+		if err != nil {
+			return "[...]"
+		}
+		results := []string{}
+		for i, e := range arr {
+			if i == 10 {
+				results = append(results, "...")
+				break
+			}
+			results = append(results, resultString(vm, e, depth+1))
+		}
+		return fmt.Sprintf("[%s]", strings.Join(results, ", "))
+	case reflect.Map:
+		if depth == maxResultStringDepth {
+			return "{...}"
+		}
+		obj := v.ToObject(vm)
+		keys := obj.Keys()
+		hadMore := len(keys) > 10
+		if hadMore {
+			keys = keys[:10]
+		}
+		results := []string{}
+		for _, key := range keys {
+			results = append(results, fmt.Sprintf("%s: %s", key, resultString(vm, obj.Get(key), depth+1)))
+		}
+		if hadMore {
+			results = append(results, "...")
+		}
+		return fmt.Sprintf("%s {%s}", obj.ClassName(), strings.Join(results, ", "))
+	case reflect.Func:
+		if depth == maxResultStringDepth {
+			return "function {...}"
+		}
+		// otherwise use the normal complete representation
+	}
+
+	return v.String()
+}
+
 func (a *appInstance) ApplicationID() string {
 	return a.applicationID
 }
@@ -431,3 +487,11 @@ func (a *appInstance) ExitProcess(exitCode int) {
 	a.exitCode = exitCode
 	_ = a.Terminate(true, 0, false)
 }
+
+const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.replace(
+        search instanceof RegExp ?
+            search :
+            new RegExp(search, 'g'), replacement);
+};`
