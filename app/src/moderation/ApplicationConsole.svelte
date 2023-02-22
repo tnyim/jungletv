@@ -14,8 +14,10 @@
     } from "../proto/application_editor_pb";
     import { JungleTV } from "../proto/jungletv_pb_service";
     import ApplicationConsoleLogToggle from "../uielements/ApplicationConsoleLogToggle.svelte";
+    import ApplicationConsoleCommandEditor from "./ApplicationConsoleCommandEditor.svelte";
 
     export let applicationID: string;
+    export let embedded = false;
 
     type consoleEntry = {
         highlighted?: boolean;
@@ -155,7 +157,7 @@
         consumeApplicationLog();
     }
 
-    let hadConsoleUpdateAndBottomWasVisible = false;
+    let scrollToBottomAfterUpdate = false;
     function handleNewLogMessage(entryContainer: ApplicationLogEntryContainer) {
         if (consumeApplicationLogTimeoutHandle != null) {
             clearTimeout(consumeApplicationLogTimeoutHandle);
@@ -170,17 +172,17 @@
                 },
             ];
             if (bottomWasVisible) {
-                hadConsoleUpdateAndBottomWasVisible = true;
+                scrollToBottomAfterUpdate = true;
             } else {
-                hadConsoleUpdateAndBottomWasVisible = false;
+                scrollToBottomAfterUpdate = false;
             }
         }
     }
 
     afterUpdate(() => {
-        if (hadConsoleUpdateAndBottomWasVisible) {
+        if (scrollToBottomAfterUpdate) {
             scrollToBottom();
-            hadConsoleUpdateAndBottomWasVisible = false;
+            scrollToBottomAfterUpdate = false;
         }
     });
 
@@ -198,7 +200,6 @@
     }
 
     // REPL code:
-    let userInput = "";
     async function evaluateExpression(expression: string) {
         let inputEntry: consoleEntry;
         let cleanup = function (canceled: boolean) {
@@ -223,8 +224,8 @@
                     cancel: cancel,
                 },
             };
+            scrollToBottomAfterUpdate = true;
             consoleEntries = [...consoleEntries, inputEntry];
-            scrollToBottom();
             let response = await promise.catch(() => cleanup(true));
             if (typeof response !== "undefined") {
                 let resultEntry = {
@@ -233,9 +234,9 @@
                         inputEntry: inputEntry,
                     },
                 };
+                scrollToBottomAfterUpdate = true;
                 consoleEntries = [...consoleEntries, resultEntry];
                 inputEntry.userInput.resultEntry = resultEntry;
-                scrollToBottom();
                 cleanup(false);
             }
         } catch (e) {
@@ -243,20 +244,14 @@
             await modalAlert("An error occurred: " + e);
         }
     }
-    async function handleEnter(event: KeyboardEvent) {
-        if (event.key === "Enter" && !event.shiftKey && !event.ctrlKey && !event.altKey) {
-            event.preventDefault();
-            let expression = userInput;
-            userInput = "";
-            await evaluateExpression(expression);
-            return false;
-        }
-        return true;
+
+    async function handleNewCommand(ev: CustomEvent<string>) {
+        await evaluateExpression(ev.detail);
     }
 
     // UI helpers
 
-    function classesForEntry(entry: consoleEntry): string {
+    function classesForEntry(entry: consoleEntry, highlight: boolean): string {
         if (
             (entry.result && !entry.result.response.getSuccessful()) ||
             (entry.logEntry &&
@@ -267,6 +262,9 @@
         }
         if (entry?.logEntry?.getLevel() == ApplicationLogLevel.APPLICATION_LOG_LEVEL_JS_WARN) {
             return "bg-yellow-300 dark:bg-yellow-900";
+        }
+        if (entry.highlighted) {
+            return "bg-gray-200 dark:bg-gray-800";
         }
         return "";
     }
@@ -288,7 +286,7 @@
             return "fas fa-exclamation-triangle";
         }
         if (entry.result) {
-            return "fas fa-arrow-left text-green-700 dark:text-green-300";
+            return "fas fa-arrow-left text-green-600 dark:text-green-300";
         }
         if (entry.userInput) {
             return "fas fa-chevron-right";
@@ -340,8 +338,10 @@
     }
 </script>
 
-<div class="flex flex-col h-full relative w-full">
-    <div class="flex flex-row gap-4 px-2">
+<div class="flex flex-col relative overflow-hidden {embedded ? 'max-h-full' : 'console-container'}">
+    <div
+        class="flex flex-row gap-4 py-1 px-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950"
+    >
         <ApplicationConsoleLogToggle bind:checked={showRuntimeErrors} id="showRuntimeErrors" label="Runtime Errors" />
         <ApplicationConsoleLogToggle bind:checked={showRuntimeLogs} id="showRuntimeLogs" label="Runtime Logs" />
         <ApplicationConsoleLogToggle bind:checked={showJSErrors} id="showJSErrors" label="JS Errors" />
@@ -358,7 +358,7 @@
     </div>
     <div class="flex-grow overflow-y-auto relative flex flex-col" bind:this={consoleContainer}>
         {#if historicalLogCursor && historicalLogHasMore}
-            <div class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-center">
+            <div class="py-1 px-2 flex flex-row items-center border-b border-gray-200 dark:border-gray-800">
                 <button
                     type="button"
                     class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
@@ -368,11 +368,12 @@
                 </button>
             </div>
         {/if}
-        {#each consoleEntries as entry}
+        {#each consoleEntries as entry, idx}
             <div
-                class="py-1 px-2 border-b border-gray-200 dark:border-gray-800 flex flex-row items-start {classesForEntry(
-                    entry
-                )} {entry.highlighted ? 'bg-gray-200 dark:bg-gray-800' : ''}"
+                class="py-1 px-2
+                {idx > 0 ? 'border-t border-gray-200 dark:border-gray-800' : ''}
+                flex flex-row items-start
+                {classesForEntry(entry, entry.highlighted)}"
                 on:mouseenter={() => onEntryMouseEnter(entry)}
                 on:mouseleave={() => onEntryMouseLeave(entry)}
             >
@@ -383,7 +384,7 @@
                     {#if entry.result}
                         <span
                             class="whitespace-pre-wrap {entry.result.response.getSuccessful()
-                                ? 'text-green-700 dark:text-green-300'
+                                ? 'text-green-600 dark:text-green-300'
                                 : ''}">{entry.result.response.getResult()}</span
                         >
                     {:else if entry.logEntry}
@@ -416,15 +417,19 @@
                 </div>
             </div>
         {/each}
-        <div class="py-1 px-2 flex flex-row" bind:this={bottomDetectionDiv}>
-            <div class="w-5 text-right text-blue-500 mr-2 self-start">
-                <i class="fas fa-chevron-right" />
-            </div>
-            <textarea
-                class="flex-grow font-mono bg-transparent outline-none resize-none"
-                bind:value={userInput}
-                on:keydown={handleEnter}
-            />
+        <div bind:this={bottomDetectionDiv} class="h-2 -mt-2" />
+    </div>
+    <div class="px-2 flex flex-row border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+        <div class="py-1 w-5 text-right text-blue-500 mr-0.5 self-start">
+            <i class="fas fa-chevron-right" />
         </div>
+        <ApplicationConsoleCommandEditor on:command={handleNewCommand} autoFocus={!embedded} />
     </div>
 </div>
+
+<style>
+    .console-container {
+        width: 100%;
+        max-height: calc(100vh - 4rem);
+    }
+</style>

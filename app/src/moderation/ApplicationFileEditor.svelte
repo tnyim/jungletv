@@ -212,7 +212,7 @@
             <HSplitPane {leftPaneSize} {rightPaneSize}>
                 <div slot="left" class="h-full max-h-full relative" bind:this={editorContainer} />
                 <div slot="right" class="h-full max-h-full overflow-auto">
-                    <ApplicationConsole {applicationID} />
+                    <ApplicationConsole {applicationID} embedded />
                 </div>
             </HSplitPane>
         {/await}
