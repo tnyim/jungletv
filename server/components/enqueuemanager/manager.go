@@ -468,13 +468,13 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 	checkForcedEnqueuingTicker := time.NewTicker(5 * time.Second)
 	defer checkForcedEnqueuingTicker.Stop()
 
-	onPaymentReceived, onPaymentReceivedUnsub := t.paymentReceiver.PaymentReceived().Subscribe(event.ExactlyOnceGuarantee)
+	onPaymentReceived, onPaymentReceivedUnsub := t.paymentReceiver.PaymentReceived().Subscribe(event.BufferAll)
 	defer onPaymentReceivedUnsub()
 
-	onMulticurrencyPaymentDataAvailable, onMulticurrencyPaymentDataAvailableUnsub := t.paymentReceiver.MulticurrencyPaymentDataAvailable().Subscribe(event.ExactlyOnceGuarantee)
+	onMulticurrencyPaymentDataAvailable, onMulticurrencyPaymentDataAvailableUnsub := t.paymentReceiver.MulticurrencyPaymentDataAvailable().Subscribe(event.BufferAll)
 	defer onMulticurrencyPaymentDataAvailableUnsub()
 
-	onStatusChanged, onStatusChangedUnsub := t.statusChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onStatusChanged, onStatusChangedUnsub := t.statusChanged.Subscribe(event.BufferFirst)
 	defer onStatusChangedUnsub()
 
 	lastSeenBalance := payment.NewAmount()

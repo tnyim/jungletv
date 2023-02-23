@@ -4,8 +4,8 @@ import "sync"
 
 // Keyed is a set of key-addressable events
 type Keyed[KeyType comparable, ArgType any] interface {
-	Subscribe(key KeyType, guaranteeType GuaranteeType) (<-chan ArgType, func())
-	SubscribeUsingCallback(key KeyType, guaranteeType GuaranteeType, cbFunction func(arg ArgType)) func()
+	Subscribe(key KeyType, guaranteeType BufferStrategy) (<-chan ArgType, func())
+	SubscribeUsingCallback(key KeyType, guaranteeType BufferStrategy, cbFunction func(arg ArgType)) func()
 	Notify(key KeyType, param ArgType, deferNotification bool)
 	Close(key KeyType)
 	Unsubscribed(key KeyType) Event[int]
@@ -35,7 +35,7 @@ func (k *keyed[KeyType, ArgType]) getOrCreateEvent(key KeyType) Event[ArgType] {
 
 	e := New[ArgType]().(*event[ArgType])
 	var unsubscribe func()
-	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(AtLeastOnceGuarantee, func(subscriberCount int) {
+	unsubscribe = e.Unsubscribed().SubscribeUsingCallback(BufferFirst, func(subscriberCount int) {
 		if subscriberCount == 0 {
 			k.mu.Lock()
 			defer k.mu.Unlock()
@@ -49,7 +49,7 @@ func (k *keyed[KeyType, ArgType]) getOrCreateEvent(key KeyType) Event[ArgType] {
 }
 
 // Subscribe returns a channel that will receive notification events for the specified key
-func (k *keyed[KeyType, ArgType]) Subscribe(key KeyType, guaranteeType GuaranteeType) (<-chan ArgType, func()) {
+func (k *keyed[KeyType, ArgType]) Subscribe(key KeyType, guaranteeType BufferStrategy) (<-chan ArgType, func()) {
 	// by locking and unlocking outside of the getOrCreateEvent function, we ensure that the subscription happens inside the lock
 	// and therefore we don't lose track of any Notify calls
 	k.mu.Lock()
@@ -66,7 +66,7 @@ func (k *keyed[KeyType, ArgType]) Subscribe(key KeyType, guaranteeType Guarantee
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
 // The returned function should be called when one wishes to unsubscribe
-func (k *keyed[KeyType, ArgType]) SubscribeUsingCallback(key KeyType, guaranteeType GuaranteeType, cbFunction func(arg ArgType)) func() {
+func (k *keyed[KeyType, ArgType]) SubscribeUsingCallback(key KeyType, guaranteeType BufferStrategy, cbFunction func(arg ArgType)) func() {
 	// by locking and unlocking outside of the getOrCreateEvent function, we ensure that the subscription happens inside the lock
 	// and therefore we don't lose track of any Notify calls
 	k.mu.Lock()

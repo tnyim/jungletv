@@ -117,13 +117,13 @@ func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest
 		}), "")
 	}
 
-	onConverted, onConvertedU := flow.Converted().Subscribe(event.AtLeastOnceGuarantee)
+	onConverted, onConvertedU := flow.Converted().Subscribe(event.BufferFirst)
 	defer onConvertedU()
 
-	onExpired, onExpiredU := flow.Expired().Subscribe(event.AtLeastOnceGuarantee)
+	onExpired, onExpiredU := flow.Expired().Subscribe(event.BufferFirst)
 	defer onExpiredU()
 
-	onDestroyed, onDestroyedU := flow.Destroyed().Subscribe(event.AtLeastOnceGuarantee)
+	onDestroyed, onDestroyedU := flow.Destroyed().Subscribe(event.BufferFirst)
 	defer onDestroyedU()
 
 	err = send()

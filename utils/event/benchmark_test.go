@@ -12,7 +12,7 @@ func BenchmarkSubscribeAtLeastOnce(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Subscribe(event.AtLeastOnceGuarantee)
+		e.Subscribe(event.BufferFirst)
 	}
 	b.StopTimer()
 }
@@ -22,7 +22,7 @@ func BenchmarkSubscribeAtLeastOnceAmortized(b *testing.B) {
 
 	unsubFns := []func(){}
 	for i := 0; i < b.N; i++ {
-		_, unsubFn := e.Subscribe(event.AtLeastOnceGuarantee)
+		_, unsubFn := e.Subscribe(event.BufferFirst)
 		unsubFns = append(unsubFns, unsubFn)
 	}
 
@@ -32,7 +32,7 @@ func BenchmarkSubscribeAtLeastOnceAmortized(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Subscribe(event.AtLeastOnceGuarantee)
+		e.Subscribe(event.BufferFirst)
 	}
 	b.StopTimer()
 }
@@ -43,7 +43,7 @@ func BenchmarkUnsubscribe(b *testing.B) {
 
 	unsubFns := []func(){}
 	for i := 0; i < b.N; i++ {
-		_, unsubFn := e.Subscribe(event.AtLeastOnceGuarantee)
+		_, unsubFn := e.Subscribe(event.BufferFirst)
 		unsubFns = append(unsubFns, unsubFn)
 	}
 
@@ -60,7 +60,7 @@ func BenchmarkUnsubscribeRandomWalk(b *testing.B) {
 
 	unsubFns := make(map[int]func())
 	for i := 0; i < b.N; i++ {
-		_, unsubFn := e.Subscribe(event.AtLeastOnceGuarantee)
+		_, unsubFn := e.Subscribe(event.BufferFirst)
 		unsubFns[i] = unsubFn
 	}
 
@@ -95,7 +95,7 @@ func BenchmarkSubscribeUnsubscribe(b *testing.B) {
 
 		for j := 0; j < numSubs; j++ {
 			b.StartTimer()
-			_, unsubFn := e.Subscribe(event.AtLeastOnceGuarantee)
+			_, unsubFn := e.Subscribe(event.BufferFirst)
 			b.StopTimer()
 			unsubFns = append(unsubFns, unsubFn)
 		}
@@ -121,7 +121,7 @@ func BenchmarkNotifyAtLeastOnce(b *testing.B) {
 
 	e := event.New[int]()
 	for i := 0; i < 20000; i++ {
-		e.Subscribe(event.AtLeastOnceGuarantee)
+		e.Subscribe(event.BufferFirst)
 	}
 
 	b.ResetTimer()

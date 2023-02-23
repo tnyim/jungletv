@@ -164,7 +164,7 @@ func (p *PaymentAccountPool) receivePaymentImpl() (*monitoredAccount, error) {
 		seenPendings:                        make(map[string]struct{}),
 	}
 
-	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.ExactlyOnceGuarantee, func(subscriberCount int) {
+	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(subscriberCount int) {
 		if subscriberCount == 0 {
 			m.abort() // will call onUnsubscribedUnsubFn for us
 		}

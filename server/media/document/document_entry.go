@@ -171,7 +171,7 @@ func (e *queueEntryDocument) liveUpdateWorker(ctx context.Context, documentID st
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	donePlaying, unsubscribe := e.DonePlaying().Subscribe(event.AtLeastOnceGuarantee)
+	donePlaying, unsubscribe := e.DonePlaying().Subscribe(event.BufferFirst)
 	defer unsubscribe()
 
 	childContext, cancelChildContext := context.WithCancel(ctx)

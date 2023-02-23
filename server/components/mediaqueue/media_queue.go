@@ -429,7 +429,7 @@ func (q *MediaQueue) canMoveEntryInMutex(i int, user auth.User, up bool) error {
 }
 
 func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
-	onQueueUpdated, queueUpdatedU := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	onQueueUpdated, queueUpdatedU := q.queueUpdated.Subscribe(event.BufferFirst)
 	defer queueUpdatedU()
 	var prevQueueEntry media.QueueEntry
 	for {
@@ -472,7 +472,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 				currentQueueEntry.Play()
 			}
 			ev := currentQueueEntry.DonePlaying()
-			onNextMedia, unsubscribe = ev.Subscribe(event.AtLeastOnceGuarantee)
+			onNextMedia, unsubscribe = ev.Subscribe(event.BufferFirst)
 			q.log.Printf("Current queue entry: \"%s\" with length %s", currentQueueEntry.MediaInfo().Title(), currentQueueEntry.MediaInfo().Length())
 		} else {
 			q.log.Println("No current queue entry")
@@ -537,7 +537,7 @@ func (q *MediaQueue) ProduceCheckpointForAPI(ctx context.Context, userSerializer
 }
 
 func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
-	c, queueUpdatedU := q.queueUpdated.Subscribe(event.AtLeastOnceGuarantee)
+	c, queueUpdatedU := q.queueUpdated.Subscribe(event.BufferFirst)
 	defer queueUpdatedU()
 
 	for {

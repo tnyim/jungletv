@@ -63,7 +63,7 @@ func (m *chatModule) AutoRequire() (bool, string) {
 }
 
 func adaptEvent[T any](m *chatModule, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) goja.Value) func() {
-	return ev.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(arg T) {
+	return ev.SubscribeUsingCallback(event.BufferFirst, func(arg T) {
 		m.mu.RLock()
 		defer m.mu.RUnlock()
 
@@ -77,7 +77,7 @@ func adaptEvent[T any](m *chatModule, ev event.Event[T], eventType string, trans
 }
 
 func adaptNoArgEvent(m *chatModule, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) goja.Value) func() {
-	return ev.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+	return ev.SubscribeUsingCallback(event.BufferFirst, func() {
 		m.mu.RLock()
 		defer m.mu.RUnlock()
 

@@ -50,7 +50,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 		// SubscribeUsingCallback returns a function that unsubscribes when called. That's the reason for the defers
 
-		defer spectator.OnRewarded().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(args rewards.SpectatorRewardedEventArgs) {
+		defer spectator.OnRewarded().SubscribeUsingCallback(event.BufferFirst, func(args rewards.SpectatorRewardedEventArgs) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			s := args.Reward.String()
 			cp.Reward = &s
@@ -62,7 +62,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
-		defer spectator.OnWithdrew().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+		defer spectator.OnWithdrew().SubscribeUsingCallback(event.BufferFirst, func() {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			s2 := "0"
 			cp.RewardBalance = &s2
@@ -73,7 +73,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		})()
 
 		initialActivityChallenge = spectator.CurrentActivityChallenge()
-		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(challenge *rewards.ActivityChallenge) {
+		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.BufferFirst, func(challenge *rewards.ActivityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			cp.ActivityChallenge = challenge.SerializeForAPI()
 			err := send(cp)
@@ -82,7 +82,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			}
 		})()
 
-		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.BufferFirst, func() {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			t := true
 			cp.HasChatMention = &t
@@ -95,7 +95,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
 	}
 
-	defer s.announcementsUpdated.SubscribeUsingCallback(event.AtLeastOnceGuarantee, func(counterValue int) {
+	defer s.announcementsUpdated.SubscribeUsingCallback(event.BufferFirst, func(counterValue int) {
 		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 		v := uint32(counterValue)
 		cp.LatestAnnouncement = &v
@@ -105,7 +105,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		}
 	})()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	statsCleanup, err := s.statsRegistry.RegisterSpectator(stream.Context())
@@ -118,7 +118,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	defer t.Stop()
 	// if we set this ticker to e.g. 10 seconds, it seems to be too long and CloudFlare or something drops connection :(
 
-	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
+	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.BufferFirst)
 	defer mediaChangedU()
 	sendTitle := false
 	lastTitleSend := time.Now()

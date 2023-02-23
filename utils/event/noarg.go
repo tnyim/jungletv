@@ -4,11 +4,11 @@ package event
 type NoArgEvent interface {
 	// Subscribe returns a channel that will receive notification events.
 	// The returned function should be called when one wishes to unsubscribe
-	Subscribe(guaranteeType GuaranteeType) (<-chan struct{}, func())
+	Subscribe(guaranteeType BufferStrategy) (<-chan struct{}, func())
 
 	// SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
 	// The returned function should be called when one wishes to unsubscribe
-	SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func()) func()
+	SubscribeUsingCallback(guaranteeType BufferStrategy, cbFunction func()) func()
 
 	// Notify notifies subscribers that the event has occurred.
 	// deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
@@ -37,7 +37,7 @@ func NewNoArg() NoArgEvent {
 
 // SubscribeUsingCallback is a convenience wrapper around the underlying event SubscribeUsingCallback
 // so that callback functions do not need to accept a useless empty parameter
-func (e *noArgEvent) SubscribeUsingCallback(guaranteeType GuaranteeType, cbFunction func()) func() {
+func (e *noArgEvent) SubscribeUsingCallback(guaranteeType BufferStrategy, cbFunction func()) func() {
 	cbFn := func(_ struct{}) {
 		cbFunction()
 	}

@@ -25,19 +25,19 @@ import (
 )
 
 func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.JungleTV_ConsumeChatServer) error {
-	onChatDisabled, chatDisabledU := s.chat.OnChatDisabled().Subscribe(event.AtLeastOnceGuarantee)
+	onChatDisabled, chatDisabledU := s.chat.OnChatDisabled().Subscribe(event.BufferFirst)
 	defer chatDisabledU()
 
-	onChatEnabled, chatEnabledU := s.chat.OnChatEnabled().Subscribe(event.AtLeastOnceGuarantee)
+	onChatEnabled, chatEnabledU := s.chat.OnChatEnabled().Subscribe(event.BufferFirst)
 	defer chatEnabledU()
 
-	onMessageCreated, messageCreatedU := s.chat.OnMessageCreated().Subscribe(event.AtLeastOnceGuarantee)
+	onMessageCreated, messageCreatedU := s.chat.OnMessageCreated().Subscribe(event.BufferFirst)
 	defer messageCreatedU()
 
-	onMessageDeleted, messageDeletedU := s.chat.OnMessageDeleted().Subscribe(event.AtLeastOnceGuarantee)
+	onMessageDeleted, messageDeletedU := s.chat.OnMessageDeleted().Subscribe(event.BufferFirst)
 	defer messageDeletedU()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	ctx := stream.Context()
@@ -48,15 +48,15 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onChangedOwnNickname := make(<-chan string)
 	if user != nil && !user.IsUnknown() {
 		var userBlockedU func()
-		onUserBlocked, userBlockedU = s.chat.OnUserBlockedBy().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		onUserBlocked, userBlockedU = s.chat.OnUserBlockedBy().Subscribe(user.Address(), event.BufferFirst)
 		defer userBlockedU()
 
 		var userUnblockedU func()
-		onUserUnblocked, userUnblockedU = s.chat.OnUserUnblockedBy().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		onUserUnblocked, userUnblockedU = s.chat.OnUserUnblockedBy().Subscribe(user.Address(), event.BufferFirst)
 		defer userUnblockedU()
 
 		var changedOwnNicknameU func()
-		onChangedOwnNickname, changedOwnNicknameU = s.chat.OnUserChangedNickname().Subscribe(user.Address(), event.AtLeastOnceGuarantee)
+		onChangedOwnNickname, changedOwnNicknameU = s.chat.OnUserChangedNickname().Subscribe(user.Address(), event.BufferFirst)
 		defer changedOwnNicknameU()
 	}
 

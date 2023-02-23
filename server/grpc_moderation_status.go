@@ -18,7 +18,7 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	send := func() error {

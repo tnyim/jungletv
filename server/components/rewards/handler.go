@@ -377,19 +377,19 @@ func (r *Handler) purgeOldDisconnectedSpectators() {
 }
 
 func (r *Handler) Worker(ctx context.Context) error {
-	onEntryAdded, entryAddedU := r.mediaQueue.EntryAdded().Subscribe(event.AtLeastOnceGuarantee)
+	onEntryAdded, entryAddedU := r.mediaQueue.EntryAdded().Subscribe(event.BufferFirst)
 	defer entryAddedU()
 
-	onMediaChanged, mediaChangedU := r.mediaQueue.MediaChanged().Subscribe(event.ExactlyOnceGuarantee)
+	onMediaChanged, mediaChangedU := r.mediaQueue.MediaChanged().Subscribe(event.BufferAll)
 	defer mediaChangedU()
 
-	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.DeepEntryRemoved().Subscribe(event.ExactlyOnceGuarantee)
+	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.DeepEntryRemoved().Subscribe(event.BufferAll)
 	defer deepEntryRemovedU()
 
-	onPendingWithdrawalsCreated, pendingWithdrawalsCreatedU := r.withdrawalHandler.PendingWithdrawalsCreated().Subscribe(event.AtLeastOnceGuarantee)
+	onPendingWithdrawalsCreated, pendingWithdrawalsCreatedU := r.withdrawalHandler.PendingWithdrawalsCreated().Subscribe(event.BufferFirst)
 	defer pendingWithdrawalsCreatedU()
 
-	onChatMessageCreated, onChatMessageCreatedU := r.chatManager.OnMessageCreated().Subscribe(event.AtLeastOnceGuarantee)
+	onChatMessageCreated, onChatMessageCreatedU := r.chatManager.OnMessageCreated().Subscribe(event.BufferFirst)
 	defer onChatMessageCreatedU()
 
 	// the rewards handler might be starting at a time when there are things already playing,

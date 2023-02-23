@@ -358,7 +358,7 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 
-	apiServer.ClientReloadTriggered().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+	apiServer.ClientReloadTriggered().SubscribeUsingCallback(event.BufferFirst, func() {
 		forcedClientReloads++
 		versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
 		apiServer.NotifyVersionHashChanged()

@@ -137,7 +137,7 @@ func (r *AppRunner) launchApplication(applicationID string, specificVersion type
 
 	var startedAt time.Time
 	var terminatedUnsub func()
-	terminatedUnsub = instance.Terminated().SubscribeUsingCallback(event.AtLeastOnceGuarantee, func() {
+	terminatedUnsub = instance.Terminated().SubscribeUsingCallback(event.BufferFirst, func() {
 		r.instancesLock.Lock()
 		defer r.instancesLock.Unlock()
 
@@ -169,7 +169,7 @@ func (r *AppRunner) launchApplication(applicationID string, specificVersion type
 
 // StopApplication stops the specified application
 func (r *AppRunner) StopApplication(applicationID string) error {
-	stopped, stoppedU := r.onApplicationStopped.Subscribe(event.AtLeastOnceGuarantee)
+	stopped, stoppedU := r.onApplicationStopped.Subscribe(event.BufferFirst)
 	defer stoppedU()
 
 	instance := func() *appInstance {

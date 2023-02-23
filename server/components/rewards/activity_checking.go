@@ -23,9 +23,9 @@ func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Han
 	// this function runs once per spectator
 	// it keeps running until all connections of the spectator disconnect
 	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)
-	disconnected, onDisconnectedU := spectator.onDisconnected.Subscribe(event.AtLeastOnceGuarantee)
+	disconnected, onDisconnectedU := spectator.onDisconnected.Subscribe(event.BufferFirst)
 	defer onDisconnectedU()
-	reconnected, onReconnectedU := spectator.onReconnected.Subscribe(event.AtLeastOnceGuarantee)
+	reconnected, onReconnectedU := spectator.onReconnected.Subscribe(event.BufferFirst)
 	defer onReconnectedU()
 	for {
 		select {

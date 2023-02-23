@@ -116,7 +116,7 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 		return stacktrace.Propagate(err, "")
 	}
 
-	onLogEntryAdded, logEntryAddedU := appLog.LogEntryAdded().Subscribe(event.ExactlyOnceGuarantee)
+	onLogEntryAdded, logEntryAddedU := appLog.LogEntryAdded().Subscribe(event.BufferAll)
 	defer logEntryAddedU()
 
 	levels, err := convertApplicationLogLevelsFromProto(r.Levels)
@@ -210,7 +210,7 @@ func convertApplicationLogEntry(orig apprunner.ApplicationLogEntry) *proto.Appli
 }
 
 func (s *grpcServer) MonitorRunningApplications(_ *proto.MonitorRunningApplicationsRequest, stream proto.JungleTV_MonitorRunningApplicationsServer) error {
-	onRunningApplicationsUpdated, runningApplicationsUpdatedU := s.appRunner.RunningApplicationsUpdated().Subscribe(event.AtLeastOnceGuarantee)
+	onRunningApplicationsUpdated, runningApplicationsUpdatedU := s.appRunner.RunningApplicationsUpdated().Subscribe(event.BufferFirst)
 	defer runningApplicationsUpdatedU()
 
 	runningApplications := s.appRunner.RunningApplications()

@@ -388,7 +388,7 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		errChan <- err
 	})
 
-	onPaused, pausedU := a.Paused().Subscribe(event.AtLeastOnceGuarantee)
+	onPaused, pausedU := a.Paused().Subscribe(event.BufferFirst)
 	defer pausedU()
 
 	for {

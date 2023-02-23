@@ -159,10 +159,10 @@ func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent 
 	actualExpirationTimer := time.NewTimer(flowExpiry + flowExpiryTolerance)
 	defer actualExpirationTimer.Stop()
 
-	onPaymentReceived, onPaymentReceivedUnsub := paymentReceivedEvent.Subscribe(event.ExactlyOnceGuarantee)
+	onPaymentReceived, onPaymentReceivedUnsub := paymentReceivedEvent.Subscribe(event.BufferAll)
 	defer onPaymentReceivedUnsub()
 
-	onClientReconnected, onClientReconnectedUnsub := f.clientReconnected.Subscribe(event.AtLeastOnceGuarantee)
+	onClientReconnected, onClientReconnectedUnsub := f.clientReconnected.Subscribe(event.BufferFirst)
 	defer onClientReconnectedUnsub()
 
 	for {

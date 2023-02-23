@@ -95,10 +95,10 @@ func New(log *log.Logger,
 }
 
 func (s *Manager) Worker(ctx context.Context) error {
-	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
+	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.BufferFirst)
 	defer mediaChangedU()
 
-	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.SkippingAllowedUpdated().Subscribe(event.AtLeastOnceGuarantee)
+	onSkippingAllowedUpdated, skippingAllowedUpdatedU := s.mediaQueue.SkippingAllowedUpdated().Subscribe(event.BufferFirst)
 	defer skippingAllowedUpdatedU()
 
 	s.UpdateSkipThreshold(false)

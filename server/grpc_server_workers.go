@@ -186,7 +186,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	}()
 
 	go func() {
-		mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.AtLeastOnceGuarantee)
+		mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.BufferFirst)
 		defer mediaChangedU()
 
 		wait := time.Duration(90+rand.Intn(180)) * time.Second

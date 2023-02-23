@@ -22,10 +22,10 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 	ctx := stream.Context()
 	user := authinterceptor.UserClaimsFromContext(ctx)
 
-	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.AtLeastOnceGuarantee)
+	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.BufferFirst)
 	defer statusUpdatedU()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.AtLeastOnceGuarantee)
+	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersCommunitySkipping, user != nil && !user.IsUnknown())

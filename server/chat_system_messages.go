@@ -13,31 +13,31 @@ import (
 )
 
 func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
-	mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.ExactlyOnceGuarantee)
+	mediaChangedC, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.BufferAll)
 	defer mediaChangedU()
 
-	entryAddedC, entryAddedU := s.mediaQueue.EntryAdded().Subscribe(event.ExactlyOnceGuarantee)
+	entryAddedC, entryAddedU := s.mediaQueue.EntryAdded().Subscribe(event.BufferAll)
 	defer entryAddedU()
 
-	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.OwnEntryRemoved().Subscribe(event.ExactlyOnceGuarantee)
+	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.OwnEntryRemoved().Subscribe(event.BufferAll)
 	defer ownEntryRemovedU()
 
-	entryMovedC, entryMovedU := s.mediaQueue.EntryMoved().Subscribe(event.ExactlyOnceGuarantee)
+	entryMovedC, entryMovedU := s.mediaQueue.EntryMoved().Subscribe(event.BufferAll)
 	defer entryMovedU()
 
-	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.RewardsDistributed().Subscribe(event.ExactlyOnceGuarantee)
+	rewardsDistributedC, rewardsDistributedU := s.rewardsHandler.RewardsDistributed().Subscribe(event.BufferAll)
 	defer rewardsDistributedU()
 
-	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.CrowdfundedSkip().Subscribe(event.ExactlyOnceGuarantee)
+	crowdfundedSkippedC, crowdfundedSkippedU := s.skipManager.CrowdfundedSkip().Subscribe(event.BufferAll)
 	defer crowdfundedSkippedU()
 
-	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.CrowdfundedTransactionReceived().Subscribe(event.ExactlyOnceGuarantee)
+	crowdfundedTransactionReceivedC, crowdfundedTransactionReceivedU := s.skipManager.CrowdfundedTransactionReceived().Subscribe(event.BufferAll)
 	defer crowdfundedTransactionReceivedU()
 
-	skipThresholdReductionMilestoneReachedC, skipThresholdReductionMilestoneReachedU := s.skipManager.SkipThresholdReductionMilestoneReached().Subscribe(event.ExactlyOnceGuarantee)
+	skipThresholdReductionMilestoneReachedC, skipThresholdReductionMilestoneReachedU := s.skipManager.SkipThresholdReductionMilestoneReached().Subscribe(event.BufferAll)
 	defer skipThresholdReductionMilestoneReachedU()
 
-	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.ExactlyOnceGuarantee)
+	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.BufferAll)
 	defer announcementsUpdatedU()
 
 	for {
