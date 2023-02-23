@@ -426,13 +426,17 @@ func resultString(vm *goja.Runtime, v goja.Value, depth int) string {
 		j, _ := json.Marshal(v.String())
 		return string(j)
 	case reflect.Slice:
-		if depth == maxResultStringDepth {
-			return "[...]"
-		}
 		var arr []goja.Value
 		err := vm.ExportTo(v, &arr)
 		if err != nil {
 			return "[...]"
+		}
+		if depth == maxResultStringDepth {
+			if len(arr) == 0 {
+				return "[]"
+			} else {
+				return "[...]"
+			}
 		}
 		results := []string{}
 		for i, e := range arr {

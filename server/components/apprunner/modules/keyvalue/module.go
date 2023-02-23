@@ -54,10 +54,10 @@ func (m *keyValueModule) ExecutionPaused() {
 }
 
 func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
-	indexValue := call.Argument(0)
-	if goja.IsUndefined(indexValue) {
+	if len(call.Arguments) < 1 {
 		return m.runtime.NewTypeError("Missing argument")
 	}
+	indexValue := call.Argument(0)
 	var index uint64
 	err := m.runtime.ExportTo(indexValue, &index)
 	if err != nil {
@@ -80,10 +80,10 @@ func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
 }
 
 func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
-	keyValue := call.Argument(0)
-	if goja.IsUndefined(keyValue) {
+	if len(call.Arguments) < 1 {
 		return m.runtime.NewTypeError("Missing argument")
 	}
+	keyValue := call.Argument(0)
 	var key string
 	err := m.runtime.ExportTo(keyValue, &key)
 	if err != nil {
@@ -109,14 +109,11 @@ func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
 }
 
 func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 2 {
+		return m.runtime.NewTypeError("Missing argument")
+	}
 	keyValue := call.Argument(0)
-	if goja.IsUndefined(keyValue) {
-		return m.runtime.NewTypeError("Missing argument")
-	}
 	valueValue := call.Argument(1)
-	if goja.IsUndefined(valueValue) {
-		return m.runtime.NewTypeError("Missing argument")
-	}
 
 	var key, value string
 	err := m.runtime.ExportTo(keyValue, &key)
@@ -156,10 +153,10 @@ func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 }
 
 func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
-	keyValue := call.Argument(0)
-	if goja.IsUndefined(keyValue) {
+	if len(call.Arguments) < 1 {
 		return m.runtime.NewTypeError("Missing argument")
 	}
+	keyValue := call.Argument(0)
 
 	var key string
 	err := m.runtime.ExportTo(keyValue, &key)

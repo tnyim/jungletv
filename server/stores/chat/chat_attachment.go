@@ -24,6 +24,7 @@ type MessageAttachmentStorageWithCost interface {
 type MessageAttachmentView interface {
 	SerializeForAPI(ctx context.Context) *proto.ChatMessageAttachment
 	SerializeForModLog(ctx context.Context) string
+	SerializeForJS(ctx context.Context) map[string]interface{}
 }
 
 // MessageAttachmentTenorGifStorage is the storage model for a Tenor GIF attachment. Implements MessageAttachmentStorage
@@ -75,4 +76,15 @@ func (a *MessageAttachmentTenorGifView) SerializeForAPI(context.Context) *proto.
 
 func (a *MessageAttachmentTenorGifView) SerializeForModLog(context.Context) string {
 	return fmt.Sprintf("https://tenor.com/view/%s", a.ID)
+}
+
+func (a *MessageAttachmentTenorGifView) SerializeForJS(context.Context) map[string]interface{} {
+	return map[string]interface{}{
+		"id":               a.ID,
+		"videoURL":         a.VideoURL,
+		"videoFallbackURL": a.VideoFallbackURL,
+		"title":            a.Title,
+		"width":            a.Width,
+		"height":           a.Height,
+	}
 }

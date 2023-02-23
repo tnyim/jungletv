@@ -49,3 +49,32 @@ func (m *Message) SerializeForAPI(ctx context.Context, userSerializer auth.APIUs
 	}
 	return msg
 }
+
+func (m *Message) SerializeForJS(ctx context.Context) map[string]interface{} {
+	result := map[string]interface{}{
+		"id":           m.ID.String(),
+		"createdAt":    m.CreatedAt,
+		"content":      m.Content,
+		"shadowbanned": m.Shadowbanned,
+	}
+
+	if m.Author != nil && !m.Author.IsUnknown() {
+		result["author"] = map[string]interface{}{
+			"address":          m.Author.Address(),
+			"isFromAlienChain": m.Author.IsFromAlienChain(),
+			"nickname":         m.Author.Nickname(),
+		}
+	}
+
+	if m.Reference != nil {
+		result["reference"] = m.Reference.SerializeForJS(ctx)
+	}
+
+	attachments := []map[string]interface{}{}
+	for _, a := range m.AttachmentsView {
+		attachments = append(attachments, a.SerializeForJS(ctx))
+	}
+	result["attachments"] = attachments
+
+	return result
+}
