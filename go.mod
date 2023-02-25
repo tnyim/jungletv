@@ -1,6 +1,6 @@
 module github.com/tnyim/jungletv
 
-go 1.18
+go 1.20
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.4
@@ -14,7 +14,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/dop251/goja v0.0.0-20230216180835-5937a312edda
-	github.com/dop251/goja_nodejs v0.0.0-20230207183254-2229640ea097
+	github.com/dop251/goja_nodejs v0.0.0-20230222172725-12ac04f8c000
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
@@ -44,7 +44,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
-	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 	golang.org/x/image v0.5.0
 	golang.org/x/oauth2 v0.5.0
 	golang.org/x/sync v0.1.0
@@ -66,7 +66,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/dlclark/regexp2 v1.8.0 // indirect
+	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
@@ -91,7 +91,7 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230216225411-c8e22ba71e44 // indirect
+	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
