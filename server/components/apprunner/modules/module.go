@@ -3,7 +3,6 @@ package modules
 import (
 	"context"
 
-	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 )
 
@@ -15,6 +14,3 @@ type NativeModule interface {
 	ExecutionResumed(context.Context)
 	ExecutionPaused()
 }
-
-// ScheduleFunction is a function that may be called to add tasks to an application's event loop
-type ScheduleFunction func(func(vm *goja.Runtime) error)

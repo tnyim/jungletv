@@ -18,11 +18,13 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/db"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
@@ -41,6 +43,12 @@ type appInstance struct {
 	loop               *eventloop.EventLoop
 	appLogger          *appLogger
 	modules            *modules.Collection
+
+	// promisesWithoutRejectionHandler are rejected promises with no handler,
+	// if there is something in this map at an end of an event loop then it will exit with an error.
+	// It's similar to what Deno and Node do.
+	promisesWithoutRejectionHandler map[*goja.Promise]struct{}
+
 	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
 	ctx              context.Context
 	ctxCancel        func()
@@ -60,18 +68,24 @@ var ErrApplicationInstanceNotRunning = errors.New("application instance not runn
 
 func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, d modules.Dependencies) (*appInstance, error) {
 	instance := &appInstance{
-		applicationID:      applicationID,
-		applicationVersion: applicationVersion,
-		onPaused:           event.NewNoArg(),
-		onTerminated:       event.NewNoArg(),
-		runner:             r,
-		modules:            &modules.Collection{},
-		appLogger:          NewAppLogger(),
+		applicationID:                   applicationID,
+		applicationVersion:              applicationVersion,
+		onPaused:                        event.NewNoArg(),
+		onTerminated:                    event.NewNoArg(),
+		runner:                          r,
+		modules:                         &modules.Collection{},
+		appLogger:                       NewAppLogger(),
+		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
+	}
+
+	scheduleFunctionNoError := func(f func(vm *goja.Runtime)) {
+		instance.runOnLoopWithInterruption(instance.ctx, f)
 	}
 
 	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
 	instance.modules.RegisterNativeModule(process.New(instance, instance))
-	instance.modules.RegisterNativeModule(chat.New(d.ChatManager, instance.runOnLoopLogError))
+	instance.modules.RegisterNativeModule(chat.New(d.ChatManager, instance.runOnLoopLogError, scheduleFunctionNoError))
+	instance.modules.RegisterNativeModule(db.New(scheduleFunctionNoError))
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
@@ -145,6 +159,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
 		// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
+			r.SetPromiseRejectionTracker(a.promiseRejectionTracker)
 			a.vmInterrupt = r.Interrupt
 			a.vmClearInterrupt = r.ClearInterrupt
 
@@ -167,9 +182,21 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) func() {
 	doneCh := make(chan struct{})
 	timer := time.NewTimer(tolerateEventLoopStuckFor)
-	interval := a.loop.SetInterval(func(_ *goja.Runtime) {
+	interval := a.loop.SetInterval(func(vm *goja.Runtime) {
 		timer.Reset(tolerateEventLoopStuckFor)
-	}, tolerateEventLoopStuckFor/5)
+		for promise := range a.promisesWithoutRejectionHandler {
+			value := promise.Result()
+			if !goja.IsUndefined(value) && !goja.IsNull(value) {
+				if obj := value.ToObject(vm); obj != nil {
+					if stack := obj.Get("stack"); stack != nil {
+						value = stack
+					}
+				}
+			}
+			a.appLogger.RuntimeError(fmt.Sprintf("Uncaught (in promise) %s", value))
+		}
+		maps.Clear(a.promisesWithoutRejectionHandler)
+	}, 1*time.Second)
 	go func() {
 		select {
 		case <-doneCh:
@@ -230,6 +257,18 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		waitGroup.Wait()
 		vm.ClearInterrupt()
 	})
+}
+
+func (a *appInstance) promiseRejectionTracker(promise *goja.Promise, operation goja.PromiseRejectionOperation) {
+	// See https://tc39.es/ecma262/#sec-host-promise-rejection-tracker for the semantics
+	// There is no need to synchronize accesses to this map because this function and the only function that reads it
+	// (the watchdog function) run inside the event loop
+	switch operation {
+	case goja.PromiseRejectionReject:
+		a.promisesWithoutRejectionHandler[promise] = struct{}{}
+	case goja.PromiseRejectionHandle:
+		delete(a.promisesWithoutRejectionHandler, promise)
+	}
 }
 
 var appInstanceInterruptValue = struct{}{}

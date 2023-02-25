@@ -10,8 +10,10 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/exp/slices"
 )
@@ -20,12 +22,14 @@ import (
 const ModuleName = "jungletv:chat"
 
 type chatModule struct {
-	runtime     *goja.Runtime
-	exports     *goja.Object
-	chatManager *chatmanager.Manager
-	schedule    modules.ScheduleFunction
-	this        struct{}
-	doneCh      chan struct{}
+	runtime        *goja.Runtime
+	exports        *goja.Object
+	chatManager    *chatmanager.Manager
+	schedule       gojautil.ScheduleFunction
+	runOnLoop      gojautil.ScheduleFunctionNoError
+	this           struct{}
+	doneCh         chan struct{}
+	dateSerializer func(time.Time) interface{}
 
 	executionContext context.Context
 	listeners        map[string][]eventListener
@@ -38,10 +42,11 @@ type eventListener struct {
 }
 
 // New returns a new chat module
-func New(chatManager *chatmanager.Manager, schedule modules.ScheduleFunction) modules.NativeModule {
+func New(chatManager *chatmanager.Manager, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
 	return &chatModule{
 		chatManager: chatManager,
 		schedule:    schedule,
+		runOnLoop:   runOnLoop,
 		doneCh:      make(chan struct{}),
 		listeners:   make(map[string][]eventListener),
 	}
@@ -50,6 +55,9 @@ func New(chatManager *chatmanager.Manager, schedule modules.ScheduleFunction) mo
 func (m *chatModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
+		m.dateSerializer = func(t time.Time) interface{} {
+			return gojautil.ToJSDate(runtime, t)
+		}
 		m.exports = module.Get("exports").(*goja.Object)
 		m.exports.Set("addEventListener", m.addEventListener)
 		m.exports.Set("removeEventListener", m.removeEventListener)
@@ -111,7 +119,7 @@ func (m *chatModule) ExecutionResumed(ctx context.Context) {
 		defer adaptEvent(m, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) goja.Value {
 			return vm.ToValue(map[string]interface{}{
 				"type":    "messagecreated",
-				"message": arg.Message.SerializeForJS(ctx),
+				"message": arg.Message.SerializeForJS(ctx, m.dateSerializer),
 			})
 		})()
 		defer adaptEvent(m, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) goja.Value {
@@ -194,7 +202,7 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.runtime.ToValue(message.SerializeForJS(m.executionContext))
+	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
 }
 
 func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
@@ -212,14 +220,18 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to getMessages must be a Date"))
 	}
 
-	messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
-	if err != nil {
-		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
-	}
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func() ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
+		messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
 
-	jsMessages := make([]map[string]interface{}, len(messages))
-	for i := range messages {
-		jsMessages[i] = messages[i].SerializeForJS(m.executionContext)
-	}
-	return m.runtime.ToValue(jsMessages)
+		return messages, func(_ *goja.Runtime, messages []*chat.Message) interface{} {
+			jsMessages := make([]map[string]interface{}, len(messages))
+			for i := range messages {
+				jsMessages[i] = messages[i].SerializeForJS(m.executionContext, m.dateSerializer)
+			}
+			return jsMessages
+		}
+	})
 }

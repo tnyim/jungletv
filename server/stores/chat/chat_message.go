@@ -50,7 +50,7 @@ func (m *Message) SerializeForAPI(ctx context.Context, userSerializer auth.APIUs
 	return msg
 }
 
-func (m *Message) SerializeForJS(ctx context.Context) map[string]interface{} {
+func (m *Message) SerializeForJS(ctx context.Context, dateSerializer func(time.Time) interface{}) map[string]interface{} {
 	result := map[string]interface{}{
 		"id":           m.ID.String(),
 		"createdAt":    m.CreatedAt,
@@ -67,7 +67,7 @@ func (m *Message) SerializeForJS(ctx context.Context) map[string]interface{} {
 	}
 
 	if m.Reference != nil {
-		result["reference"] = m.Reference.SerializeForJS(ctx)
+		result["reference"] = m.Reference.SerializeForJS(ctx, dateSerializer)
 	}
 
 	attachments := []map[string]interface{}{}
