@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dop251/goja"
@@ -53,6 +54,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("addEventListener", m.addEventListener)
 		m.exports.Set("removeEventListener", m.removeEventListener)
 		m.exports.Set("createSystemMessage", m.createSystemMessage)
+		m.exports.Set("getMessages", m.getMessages)
 	}
 }
 func (m *chatModule) ModuleName() string {
@@ -193,4 +195,31 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 	}
 
 	return m.runtime.ToValue(message.SerializeForJS(m.executionContext))
+}
+
+func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 2 {
+		return m.runtime.NewTypeError("Missing argument")
+	}
+
+	var since, until time.Time
+	err := m.runtime.ExportTo(call.Argument(0), &since)
+	if err != nil {
+		return m.runtime.NewTypeError(stacktrace.Propagate(err, ""))
+	}
+	err = m.runtime.ExportTo(call.Argument(1), &until)
+	if err != nil {
+		return m.runtime.NewTypeError(stacktrace.Propagate(err, ""))
+	}
+
+	messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
+	if err != nil {
+		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+	}
+
+	jsMessages := make([]map[string]interface{}, len(messages))
+	for i := range messages {
+		jsMessages[i] = messages[i].SerializeForJS(m.executionContext)
+	}
+	return m.runtime.ToValue(jsMessages)
 }

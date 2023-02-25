@@ -11,8 +11,8 @@ import (
 	"github.com/tnyim/jungletv/server/stores/chat"
 )
 
-func (c *Manager) LoadMessagesSince(ctx context.Context, includeShadowbanned auth.User, since time.Time) ([]*chat.Message, error) {
-	messages, err := c.store.LoadMessagesSince(ctx, includeShadowbanned, since)
+func (c *Manager) LoadMessagesBetween(ctx context.Context, includeShadowbanned auth.User, since, until time.Time) ([]*chat.Message, error) {
+	messages, err := c.store.LoadMessagesBetween(ctx, includeShadowbanned, since, until)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "could not load chat messages")
 	}

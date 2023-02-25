@@ -23,7 +23,7 @@ var ErrChatMessageNotFound = errors.New("chat message not found")
 type Store interface {
 	StoreMessage(context.Context, *Message) (*string, error)
 	DeleteMessage(context.Context, snowflake.ID) (*Message, error)
-	LoadMessagesSince(context.Context, auth.User, time.Time) ([]*Message, error)
+	LoadMessagesBetween(context.Context, auth.User, time.Time, time.Time) ([]*Message, error)
 	LoadNumLatestMessages(context.Context, auth.User, int) ([]*Message, error)
 	LoadNumLatestMessagesFromUser(context.Context, auth.User, int) ([]*Message, error)
 	LoadMessage(context.Context, snowflake.ID) (*Message, error)
@@ -180,7 +180,7 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 	}, stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeShadowbanned auth.User, since time.Time) ([]*Message, error) {
+func (s *ChatStoreDatabase) LoadMessagesBetween(ctxCtx context.Context, includeShadowbanned auth.User, since, until time.Time) ([]*Message, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -196,24 +196,32 @@ func (s *ChatStoreDatabase) LoadMessagesSince(ctxCtx context.Context, includeSha
 
 	err = ctx.Tx().SelectContext(ctx, &messages, `
 		SELECT
-			a.id AS id,
-			a.created_at AS created_at,
-			a.author AS author,
-			a.content AS content,
-			a.reference AS reference,
-			a.shadowbanned AS shadowbanned,
-			a.attachments AS attachments,
-			b.id AS reference_id,
-			b.created_at AS reference_created_at,
-			b.author AS reference_author,
-			b.content AS reference_content
+		a.id AS id,
+		a.created_at AS created_at,
+		a.author AS author,
+		a.content AS content,
+		a.reference AS reference,
+		a.shadowbanned AS shadowbanned,
+		a.attachments AS attachments,
+		b.id AS reference_id,
+		b.created_at AS reference_created_at,
+		b.author AS reference_author,
+		b.content AS reference_content,
+		u.address AS address,
+		u.permission_level AS permission_level,
+		u.nickname AS nickname,
+		v.nickname AS reference_nickname
 		FROM
 			chat_message a
 			LEFT JOIN chat_message b ON a.reference = b.id
 			LEFT JOIN chat_user u ON a.author = u.address
-		WHERE created_at > $1 AND (a.shadowbanned = false OR a.author = $2)
-		ORDER BY created_at ASC
-	`, since, author)
+			LEFT JOIN chat_user v ON b.author = v.address
+		WHERE
+			a.created_at > $1 AND
+			a.created_at < $2 AND
+			(a.shadowbanned = false OR a.author = $3)
+		ORDER BY a.created_at ASC
+	`, since, until, author)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrChatMessageNotFound
