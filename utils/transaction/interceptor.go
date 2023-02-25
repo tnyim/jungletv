@@ -21,10 +21,16 @@ func NewInterceptor(rootNode sqalx.Node) *Interceptor {
 }
 
 type sqalxNodeKey struct{}
+type sqalxBaseNodeKey struct{}
 
-// ContextWithSqalxNode returns a new context with the sqalx node set to the provided one
-func ContextWithSqalxNode(ctx context.Context, node sqalx.Node) context.Context {
-	return context.WithValue(ctx, sqalxNodeKey{}, node)
+// ContextWithBaseSqalxNode returns a new context with the sqalx node set to the provided one
+func ContextWithBaseSqalxNode(ctx context.Context, node sqalx.Node) context.Context {
+	if node.Tx() != nil {
+		panic("node already in transaction")
+	}
+	ctx = context.WithValue(ctx, sqalxNodeKey{}, node)
+	ctx = context.WithValue(ctx, sqalxBaseNodeKey{}, node)
+	return ctx
 }
 
 // Unary intercepts unary RPC requests
@@ -35,7 +41,7 @@ func (interceptor *Interceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		newCtx := ContextWithSqalxNode(ctx, interceptor.rootNode)
+		newCtx := ContextWithBaseSqalxNode(ctx, interceptor.rootNode)
 		return handler(newCtx, req)
 	}
 }
@@ -48,7 +54,7 @@ func (interceptor *Interceptor) Stream() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		newCtx := ContextWithSqalxNode(stream.Context(), interceptor.rootNode)
+		newCtx := ContextWithBaseSqalxNode(stream.Context(), interceptor.rootNode)
 		wrapped := wrappedstream.WrapServerStream(stream)
 		wrapped.WrappedContext = newCtx
 		return handler(srv, wrapped)

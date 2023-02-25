@@ -179,7 +179,8 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		terminatedUnsub()
 	})
 
-	err = instance.StartOrResume(ctx)
+	// this must not be the transaction context, this context will be used to derive the execution context for the duration of the application's execution
+	err = instance.StartOrResume(ctx.WithoutTx())
 
 	_, _, startedAt = instance.Running()
 

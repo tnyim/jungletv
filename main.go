@@ -106,7 +106,7 @@ func main() {
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
-	ctx = transaction.ContextWithSqalxNode(ctx, rootSqalxNode)
+	ctx = transaction.ContextWithBaseSqalxNode(ctx, rootSqalxNode)
 
 	if LogDBQueries {
 		types.SetLogger(dbLog)
@@ -514,7 +514,7 @@ func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.
 	for i := range extraRoutes {
 		route := extraRoutes[i]
 		router.HandleFunc(route.Path, func(rw http.ResponseWriter, r *http.Request) {
-			newCtx := transaction.ContextWithSqalxNode(r.Context(), rootSqalxNode)
+			newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
 			route.Handler(rw, r.WithContext(newCtx))
 		})
 	}

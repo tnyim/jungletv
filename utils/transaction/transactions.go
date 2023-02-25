@@ -26,8 +26,18 @@ func Begin(ctx context.Context) (*WrappingContext, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+
 	return &WrappingContext{
 		Context: context.WithValue(ctx, sqalxNodeKey{}, tx),
 		Node:    tx,
 	}, nil
+}
+
+// WithoutTx returns this context with a top-level sqalx node that is outside of any ongoing transaction
+func (ctx *WrappingContext) WithoutTx() context.Context {
+	n, ok := ctx.Value(sqalxBaseNodeKey{}).(sqalx.Node)
+	if !ok || n == nil {
+		panic("base sqalx node not present in context")
+	}
+	return context.WithValue(ctx, sqalxNodeKey{}, n)
 }
