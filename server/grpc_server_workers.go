@@ -16,6 +16,13 @@ import (
 func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	errChan := make(chan error)
 
+	go func() {
+		err := s.appRunner.LaunchAutorunApplications()
+		if err != nil {
+			errChan <- stacktrace.Propagate(err, "failed to launch autorun applications")
+		}
+	}()
+
 	go func(ctx context.Context) {
 		for {
 			s.log.Println("Payments processor starting/restarting")

@@ -88,18 +88,43 @@ func (r *AppRunner) ApplicationStopped() event.Event[RunningApplication] {
 
 // LaunchApplication launches the most recent version of the specified application
 func (r *AppRunner) LaunchApplicationAtVersion(applicationID string, applicationVersion types.ApplicationVersion) error {
-	err := r.launchApplication(applicationID, applicationVersion)
+	err := r.launchApplication(r.workerContext, applicationID, applicationVersion)
 	return stacktrace.Propagate(err, "")
 }
 
 // LaunchApplication launches the most recent version of the specified application
 func (r *AppRunner) LaunchApplication(applicationID string) error {
-	err := r.launchApplication(applicationID, types.ApplicationVersion{})
+	err := r.launchApplication(r.workerContext, applicationID, types.ApplicationVersion{})
 	return stacktrace.Propagate(err, "")
 }
 
-func (r *AppRunner) launchApplication(applicationID string, specificVersion types.ApplicationVersion) error {
+// LaunchAutorunApplications launches all the applications set to run on startup
+func (r *AppRunner) LaunchAutorunApplications() error {
 	ctx, err := transaction.Begin(r.workerContext)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	applications, _, err := types.GetApplications(ctx, "", nil)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	for _, application := range applications {
+		if application.AllowLaunching && application.Autorun {
+			err := r.launchApplication(ctx, application.ID, application.UpdatedAt)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID string, specificVersion types.ApplicationVersion) error {
+	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

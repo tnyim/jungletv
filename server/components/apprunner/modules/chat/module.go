@@ -205,11 +205,11 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 	var since, until time.Time
 	err := m.runtime.ExportTo(call.Argument(0), &since)
 	if err != nil {
-		panic(m.runtime.NewTypeError(stacktrace.Propagate(err, "")))
+		panic(m.runtime.NewTypeError("First argument to getMessages must be a Date"))
 	}
 	err = m.runtime.ExportTo(call.Argument(1), &until)
 	if err != nil {
-		panic(m.runtime.NewTypeError(stacktrace.Propagate(err, "")))
+		panic(m.runtime.NewTypeError("Second argument to getMessages must be a Date"))
 	}
 
 	messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
