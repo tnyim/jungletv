@@ -55,18 +55,18 @@ func (m *keyValueModule) ExecutionPaused() {
 
 func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	indexValue := call.Argument(0)
 	var index uint64
 	err := m.runtime.ExportTo(indexValue, &index)
 	if err != nil {
-		return m.runtime.NewTypeError("First argument to getItem must be an unsigned integer")
+		panic(m.runtime.NewTypeError("First argument to getItem must be an unsigned integer"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Commit() // read-only tx
 
@@ -74,28 +74,28 @@ func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
 	if errors.Is(err, types.ErrApplicationValueNotFound) {
 		return goja.Null()
 	} else if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	return m.runtime.ToValue(value.Key)
 }
 
 func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	keyValue := call.Argument(0)
 	var key string
 	err := m.runtime.ExportTo(keyValue, &key)
 	if err != nil {
-		return m.runtime.NewTypeError("First argument to getItem must be a string")
+		panic(m.runtime.NewTypeError("First argument to getItem must be a string"))
 	}
 	if len(key) > 2048 {
-		return m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters")
+		panic(m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Commit() // read-only tx
 
@@ -103,14 +103,14 @@ func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
 	if errors.Is(err, types.ErrApplicationValueNotFound) {
 		return goja.Null()
 	} else if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	return m.runtime.ToValue(value.Value)
 }
 
 func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	keyValue := call.Argument(0)
 	valueValue := call.Argument(1)
@@ -118,19 +118,19 @@ func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 	var key, value string
 	err := m.runtime.ExportTo(keyValue, &key)
 	if err != nil {
-		return m.runtime.NewTypeError("First argument to setItem must be a string")
+		panic(m.runtime.NewTypeError("First argument to setItem must be a string"))
 	}
 	err = m.runtime.ExportTo(valueValue, &value)
 	if err != nil {
-		return m.runtime.NewTypeError("Second argument to setItem must be a string")
+		panic(m.runtime.NewTypeError("Second argument to setItem must be a string"))
 	}
 	if len(key) > 2048 {
-		return m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters")
+		panic(m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Rollback()
 
@@ -142,34 +142,34 @@ func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 
 	err = v.Update(ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	err = ctx.Commit()
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	return goja.Undefined()
 }
 
 func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	keyValue := call.Argument(0)
 
 	var key string
 	err := m.runtime.ExportTo(keyValue, &key)
 	if err != nil {
-		return m.runtime.NewTypeError("First argument to setItem must be a string")
+		panic(m.runtime.NewTypeError("First argument to setItem must be a string"))
 	}
 	if len(key) > 2048 {
-		return m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters")
+		panic(m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Rollback()
 
@@ -180,12 +180,12 @@ func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
 
 	err = v.Delete(ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	err = ctx.Commit()
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	return goja.Undefined()
 }
@@ -193,18 +193,18 @@ func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
 func (m *keyValueModule) clear(call goja.FunctionCall) goja.Value {
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Rollback()
 
 	err = types.ClearApplicationValuesForApplication(ctx, m.applicationID)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	err = ctx.Commit()
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	return goja.Undefined()
 }
@@ -212,13 +212,13 @@ func (m *keyValueModule) clear(call goja.FunctionCall) goja.Value {
 func (m *keyValueModule) length() goja.Value {
 	ctx, err := transaction.Begin(m.ctx)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	defer ctx.Commit() // read-only tx
 
 	count, err := types.CountApplicationValuesForApplication(ctx, m.applicationID)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	return m.runtime.ToValue(count)

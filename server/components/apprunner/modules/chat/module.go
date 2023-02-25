@@ -132,20 +132,20 @@ func (m *chatModule) ExecutionPaused() {
 
 func (m *chatModule) addEventListener(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	eventValue := call.Argument(0)
 	listenerValue := call.Argument(1)
 
 	callback, ok := goja.AssertFunction(listenerValue)
 	if !ok {
-		return m.runtime.NewTypeError("Invalid callback specified as second argument")
+		panic(m.runtime.NewTypeError("Invalid callback specified as second argument"))
 	}
 
 	event := eventValue.String()
 
 	if !slices.Contains(knownEvents, event) {
-		return m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event))
+		panic(m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
 	}
 
 	m.mu.Lock()
@@ -160,7 +160,7 @@ func (m *chatModule) addEventListener(call goja.FunctionCall) goja.Value {
 
 func (m *chatModule) removeEventListener(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	eventValue := call.Argument(0)
 	listenerValue := call.Argument(1)
@@ -168,7 +168,7 @@ func (m *chatModule) removeEventListener(call goja.FunctionCall) goja.Value {
 	event := eventValue.String()
 
 	if !slices.Contains(knownEvents, event) {
-		return m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event))
+		panic(m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
 	}
 
 	m.mu.Lock()
@@ -185,13 +185,13 @@ func (m *chatModule) removeEventListener(call goja.FunctionCall) goja.Value {
 
 func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	contentValue := call.Argument(0)
 
 	message, err := m.chatManager.CreateSystemMessage(m.executionContext, contentValue.String())
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	return m.runtime.ToValue(message.SerializeForJS(m.executionContext))
@@ -199,22 +199,22 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 
 func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
-		return m.runtime.NewTypeError("Missing argument")
+		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
 	var since, until time.Time
 	err := m.runtime.ExportTo(call.Argument(0), &since)
 	if err != nil {
-		return m.runtime.NewTypeError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewTypeError(stacktrace.Propagate(err, "")))
 	}
 	err = m.runtime.ExportTo(call.Argument(1), &until)
 	if err != nil {
-		return m.runtime.NewTypeError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewTypeError(stacktrace.Propagate(err, "")))
 	}
 
 	messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
 	if err != nil {
-		return m.runtime.NewGoError(stacktrace.Propagate(err, ""))
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
 	jsMessages := make([]map[string]interface{}, len(messages))
