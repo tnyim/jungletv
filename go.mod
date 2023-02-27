@@ -13,8 +13,8 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20230216180835-5937a312edda
-	github.com/dop251/goja_nodejs v0.0.0-20230222172725-12ac04f8c000
+	github.com/dop251/goja v0.0.0-20230226152633-7c93113e17ac
+	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
@@ -77,7 +77,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/klauspost/compress v1.15.15 // indirect
+	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

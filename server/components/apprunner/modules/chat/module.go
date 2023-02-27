@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -14,8 +13,6 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/stores/chat"
-	"github.com/tnyim/jungletv/utils/event"
-	"golang.org/x/exp/slices"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -27,12 +24,10 @@ type chatModule struct {
 	chatManager    *chatmanager.Manager
 	schedule       gojautil.ScheduleFunction
 	runOnLoop      gojautil.ScheduleFunctionNoError
-	this           struct{}
-	doneCh         chan struct{}
 	dateSerializer func(time.Time) interface{}
+	eventAdapter   *gojautil.EventAdapter
 
 	executionContext context.Context
-	listeners        map[string][]eventListener
 	mu               sync.RWMutex
 }
 
@@ -47,22 +42,39 @@ func New(chatManager *chatmanager.Manager, schedule gojautil.ScheduleFunction, r
 		chatManager: chatManager,
 		schedule:    schedule,
 		runOnLoop:   runOnLoop,
-		doneCh:      make(chan struct{}),
-		listeners:   make(map[string][]eventListener),
 	}
 }
 
 func (m *chatModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
+		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.ToJSDate(runtime, t)
 		}
 		m.exports = module.Get("exports").(*goja.Object)
-		m.exports.Set("addEventListener", m.addEventListener)
-		m.exports.Set("removeEventListener", m.removeEventListener)
+		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
+		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 		m.exports.Set("createSystemMessage", m.createSystemMessage)
 		m.exports.Set("getMessages", m.getMessages)
+
+		gojautil.AdaptNoArgEvent(m.eventAdapter, m.chatManager.OnChatEnabled(), "chatenabled", nil)
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) map[string]interface{} {
+			return map[string]interface{}{
+				"reason": arg.SerializeForAPI(),
+			}
+		})
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) map[string]interface{} {
+			return map[string]interface{}{
+				"message": arg.Message.SerializeForJS(m.executionContext, m.dateSerializer),
+			}
+		})
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) map[string]interface{} {
+			return map[string]interface{}{
+				"messageID": arg.String(),
+			}
+		})
+		m.eventAdapter.StartOrResume()
 	}
 }
 func (m *chatModule) ModuleName() string {
@@ -72,123 +84,18 @@ func (m *chatModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func adaptEvent[T any](m *chatModule, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) goja.Value) func() {
-	return ev.SubscribeUsingCallback(event.BufferFirst, func(arg T) {
-		m.mu.RLock()
-		defer m.mu.RUnlock()
-
-		for _, listener := range m.listeners[eventType] {
-			m.schedule(func(vm *goja.Runtime) error {
-				_, err := listener.callable(vm.ToValue(m.this), transformArgFn(vm, arg))
-				return err
-			})
-		}
-	})
-}
-
-func adaptNoArgEvent(m *chatModule, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) goja.Value) func() {
-	return ev.SubscribeUsingCallback(event.BufferFirst, func() {
-		m.mu.RLock()
-		defer m.mu.RUnlock()
-
-		for _, listener := range m.listeners[eventType] {
-			m.schedule(func(vm *goja.Runtime) error {
-				_, err := listener.callable(vm.ToValue(m.this), transformArgFn(vm))
-				return err
-			})
-		}
-	})
-}
-
-var knownEvents = []string{"chatenabled", "chatdisabled", "messagecreated", "messagedeleted"}
-
 func (m *chatModule) ExecutionResumed(ctx context.Context) {
 	m.executionContext = ctx
-	go func() {
-		defer adaptNoArgEvent(m, m.chatManager.OnChatEnabled(), "chatenabled", func(vm *goja.Runtime) goja.Value {
-			return vm.ToValue(map[string]interface{}{
-				"type": "chatenabled",
-			})
-		})()
-		defer adaptEvent(m, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) goja.Value {
-			return vm.ToValue(map[string]interface{}{
-				"type":    "chatdisabled",
-				"message": arg.SerializeForAPI(),
-			})
-		})()
-		defer adaptEvent(m, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) goja.Value {
-			return vm.ToValue(map[string]interface{}{
-				"type":    "messagecreated",
-				"message": arg.Message.SerializeForJS(ctx, m.dateSerializer),
-			})
-		})()
-		defer adaptEvent(m, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) goja.Value {
-			return vm.ToValue(map[string]interface{}{
-				"type":      "messagedeleted",
-				"messageID": arg.String(),
-			})
-		})()
-
-		<-m.doneCh
-	}()
+	if m.eventAdapter != nil {
+		m.eventAdapter.StartOrResume()
+	}
 }
 
 func (m *chatModule) ExecutionPaused() {
+	if m.eventAdapter != nil {
+		m.eventAdapter.Pause()
+	}
 	m.executionContext = nil
-	m.doneCh <- struct{}{}
-}
-
-func (m *chatModule) addEventListener(call goja.FunctionCall) goja.Value {
-	if len(call.Arguments) < 2 {
-		panic(m.runtime.NewTypeError("Missing argument"))
-	}
-	eventValue := call.Argument(0)
-	listenerValue := call.Argument(1)
-
-	callback, ok := goja.AssertFunction(listenerValue)
-	if !ok {
-		panic(m.runtime.NewTypeError("Invalid callback specified as second argument"))
-	}
-
-	event := eventValue.String()
-
-	if !slices.Contains(knownEvents, event) {
-		panic(m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
-	}
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.listeners[event] = append(m.listeners[event], eventListener{
-		value:    listenerValue,
-		callable: callback,
-	})
-
-	return goja.Undefined()
-}
-
-func (m *chatModule) removeEventListener(call goja.FunctionCall) goja.Value {
-	if len(call.Arguments) < 2 {
-		panic(m.runtime.NewTypeError("Missing argument"))
-	}
-	eventValue := call.Argument(0)
-	listenerValue := call.Argument(1)
-
-	event := eventValue.String()
-
-	if !slices.Contains(knownEvents, event) {
-		panic(m.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
-	}
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	for i, listener := range m.listeners[event] {
-		if listener.value.SameAs(listenerValue) {
-			m.listeners[event] = slices.Delete(m.listeners[event], i, i+1)
-			break
-		}
-	}
-
-	return goja.Undefined()
 }
 
 func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
