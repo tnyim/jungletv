@@ -25,7 +25,7 @@ func (s *HTTPServer) ApplicationFile(w http.ResponseWriter, r *http.Request) err
 	running, version, _ := s.appRunner.IsRunning(applicationID)
 
 	if !running {
-		w.WriteHeader(http.StatusNotFound)
+		http.NotFound(w, r)
 		return nil
 	}
 
@@ -35,11 +35,12 @@ func (s *HTTPServer) ApplicationFile(w http.ResponseWriter, r *http.Request) err
 	}
 	file, ok := files[fileName]
 	if !ok || !file.Public {
-		w.WriteHeader(http.StatusNotFound)
+		http.NotFound(w, r)
 		return nil
 	}
 
 	w.Header().Add("Content-Type", file.Type)
+	w.Header().Set("X-Frame-Options", "sameorigin")
 	http.ServeContent(w, r, "", file.UpdatedAt, bytes.NewReader(file.Content))
 	return nil
 }

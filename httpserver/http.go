@@ -34,9 +34,9 @@ func New(log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppR
 	return map[string]func(w http.ResponseWriter, r *http.Request){
 		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets": s.wrapHTTPHandler(s.RaffleTickets),
 		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/":        s.wrapHTTPHandler(s.RaffleInfo),
-		"/oauth/callback":                  s.wrapHTTPHandler(s.OAuthCallback),
-		"/oauth/monkeyconnect/callback":    s.wrapHTTPHandler(s.OAuthCallback),
-		"/applications/{app}/files/{file}": s.wrapHTTPHandler(s.ApplicationFile),
+		"/oauth/callback":               s.wrapHTTPHandler(s.OAuthCallback),
+		"/oauth/monkeyconnect/callback": s.wrapHTTPHandler(s.OAuthCallback),
+		"/assets/app/{app}/{file}":      s.wrapHTTPHandler(s.ApplicationFile),
 	}, nil
 }
 

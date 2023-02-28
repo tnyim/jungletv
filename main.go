@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"mime"
 	"net/http"
@@ -387,7 +387,7 @@ func main() {
 
 func init() {
 	if !DEBUG {
-		grpcLog = log.New(ioutil.Discard, "grpc ", log.Ldate|log.Ltime)
+		grpcLog = log.New(io.Discard, "grpc ", log.Ldate|log.Ltime)
 	}
 	h := sha256.New()
 	h.Write([]byte(BuildDate + GitCommit))
@@ -465,7 +465,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		resp.Header().Set("X-Frame-Options", "deny")
 		resp.Header().Set("X-Content-Type-Options", "nosniff")
 		// remember to edit the CSP in index.template too
-		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
+		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
 		resp.Header().Set("Referrer-Policy", "strict-origin")
 		resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
 		resp.Header().Set("Strict-Transport-Security", "max-age=31536000")

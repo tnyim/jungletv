@@ -1,7 +1,7 @@
 import { apiClient } from "./api_client";
-import App from "./App.svelte";
+import Main from "./Main.svelte";
 
-const app = new App({
+const app = new Main({
   target: ((): ShadowRoot => {
     let shadowRoot = document.body.attachShadow({ mode: "closed" });
     // move loading message into shadow root so it keeps showing even though we've turned the contents of the body tag into a shadow root

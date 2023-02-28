@@ -8,6 +8,7 @@
 	import type { Context } from "svelte-simple-modal/types/Modal.svelte";
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
+	import ApplicationPage from "./ApplicationPage.svelte";
 	import Document from "./Document.svelte";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
@@ -282,79 +283,27 @@
 				<Route path="/faq" component={Document} documentID="faq" />
 				<Route path="/documents/:documentID" component={Document} />
 				<Route path="/history" component={PlayedMediaHistory} />
-				<Route path="/moderate">
-					{#if isAdmin}
-						<Moderate />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
+				<Route path="/apps/:applicationID/*" let:params>
+					<Route path="/" component={ApplicationPage} pageID="" />
+					<Route path=":pageID" component={ApplicationPage} applicationID={params.applicationID} />
 				</Route>
-				<Route path="/moderate/users/:address/chathistory" let:params>
+				<Route path="/moderate/*">
 					{#if isAdmin}
-						<UserChatHistory address={params.address} />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/media/disallowed" let:params>
-					{#if isAdmin}
-						<DisallowedMedia />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/bans" let:params>
-					{#if isAdmin}
-						<UserBans />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/verifiedusers" let:params>
-					{#if isAdmin}
-						<UserVerifications />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/applications" let:params>
-					{#if isAdmin}
-						<Applications />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/applications/:applicationID" let:params>
-					{#if isAdmin}
-						<ApplicationDetails applicationID={params.applicationID} />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/applications/:applicationID/files/:fileName" let:params>
-					{#if isAdmin}
-						<ApplicationFileEditor applicationID={params.applicationID} fileName={params.fileName} />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/applications/:applicationID/console" let:params>
-					{#if isAdmin}
-						<ApplicationConsole applicationID={params.applicationID} />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/documents" let:params>
-					{#if isAdmin}
-						<Documents />
-					{:else}
-						<a href="/admin/signin">Sign in</a>
-					{/if}
-				</Route>
-				<Route path="/moderate/documents/:documentID" let:params>
-					{#if isAdmin}
-						<EditDocument documentID={params.documentID} />
+						<Route path="/" component={Moderate} />
+						<Route path="users/:address/chathistory" component={UserChatHistory} />
+						<Route path="media/disallowed" component={DisallowedMedia} />
+						<Route path="bans" component={UserBans} />
+						<Route path="verifiedusers" component={UserVerifications} />
+						<Route path="applications/*">
+							<Route path="/" component={Applications} />
+							<Route path=":applicationID" component={ApplicationDetails} />
+							<Route path=":applicationID/files/:fileName" component={ApplicationFileEditor} />
+							<Route path=":applicationID/console" component={ApplicationConsole} />
+						</Route>
+						<Route path="documents/*">
+							<Route path="/" component={Documents} />
+							<Route path=":documentID" component={EditDocument} />
+						</Route>
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}
