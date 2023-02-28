@@ -1,7 +1,6 @@
 package gojautil
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -67,7 +66,7 @@ func (a *EventAdapter) AddEventListener(call goja.FunctionCall) goja.Value {
 
 		return goja.Undefined()
 	}
-	panic(a.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
+	panic(a.runtime.NewTypeError("Unknown event '%s'", event))
 
 }
 
@@ -94,7 +93,7 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 
 		return goja.Undefined()
 	}
-	panic(a.runtime.NewTypeError(fmt.Sprintf("Unknown event %s", event)))
+	panic(a.runtime.NewTypeError("Unknown event '%s'", event))
 }
 
 // StartOrResume should be called when the owner module is imported AND when execution resumes with a different context

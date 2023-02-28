@@ -6,6 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "common.proto";
 import "application_editor.proto";
+import "application_runtime.proto";
 
 package jungletv;
 
@@ -116,6 +117,9 @@ service JungleTV {
     rpc ConsumeApplicationLog(ConsumeApplicationLogRequest) returns (stream ApplicationLogEntryContainer) {}
     rpc MonitorRunningApplications(MonitorRunningApplicationsRequest) returns (stream RunningApplications) {}
     rpc EvaluateExpressionOnApplication(EvaluateExpressionOnApplicationRequest) returns (EvaluateExpressionOnApplicationResponse) {}
+
+    // application runtime endpoints
+    rpc ResolveApplicationPage(ResolveApplicationPageRequest) returns (ResolveApplicationPageResponse) {}
 }
 
 message SignInRequest {

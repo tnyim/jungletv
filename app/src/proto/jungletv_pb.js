@@ -23,6 +23,8 @@ var common_pb = require('./common_pb.js');
 goog.object.extend(proto, common_pb);
 var application_editor_pb = require('./application_editor_pb.js');
 goog.object.extend(proto, application_editor_pb);
+var application_runtime_pb = require('./application_runtime_pb.js');
+goog.object.extend(proto, application_runtime_pb);
 goog.exportSymbol('proto.jungletv.ActivityChallenge', null, global);
 goog.exportSymbol('proto.jungletv.AddDisallowedMediaCollectionRequest', null, global);
 goog.exportSymbol('proto.jungletv.AddDisallowedMediaCollectionResponse', null, global);

@@ -314,3 +314,19 @@ func (r *AppRunner) EvaluateExpressionOnApplication(ctx context.Context, applica
 	}
 	return successful, result, executionTime, nil
 }
+
+func (r *AppRunner) ResolvePage(applicationID, pageID string) (string, string, bool) {
+	var instance *appInstance
+	var ok bool
+	func() {
+		// make sure to release lock ASAP since expression execution can take a significant amount of time
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
+		instance, ok = r.instances[applicationID]
+	}()
+	if !ok {
+		return "", "", false
+	}
+	page, ok := instance.ResolvePage(pageID)
+	return page.File, page.Title, ok
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/tnyim/jungletv/proto";
+
+package jungletv;
+
+message ResolveApplicationPageRequest {
+    string application_id = 1;
+    string page_id = 2;
+}
+
+message ResolveApplicationPageResponse {
+    string application_file_name = 1;
+    string page_title = 2;
+}

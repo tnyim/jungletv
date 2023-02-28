@@ -4,6 +4,7 @@
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import { pageTitleMedia } from "./pageTitleStores";
     import PlayerDocument from "./PlayerDocument.svelte";
     import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
     import PlayerYouTube from "./PlayerYouTube.svelte";
@@ -27,15 +28,6 @@
     export let bigMinimizedPlayer: boolean;
 
     let checkpoint: MediaConsumptionCheckpoint;
-    let mediaTitle = "";
-    $: {
-        if (fullSize && mediaTitle != "") {
-            document.title = mediaTitle + " - JungleTV";
-        } else {
-            document.title = "JungleTV";
-        }
-    }
-
     let consumeMediaRequest: Request;
     let consumeMediaTimeoutHandle: number = null;
 
@@ -63,7 +55,7 @@
             clearTimeout(consumeMediaTimeoutHandle);
         }
         activityChallengeReceived.update((_) => null);
-        document.title = "JungleTV";
+        $pageTitleMedia = "";
     });
 
     let lastTTSAlertAt = 0;
@@ -99,7 +91,7 @@
             playerCurrentTime.set(cp.getCurrentPosition().getSeconds());
         } else {
             playerCurrentTime.set(0);
-            mediaTitle = "";
+            $pageTitleMedia = "";
         }
         rewardReceived.update((_) => checkpoint.getReward());
         if (checkpoint.getRewardBalance() !== "") {
@@ -127,7 +119,7 @@
             }
         }
         if (checkpoint.hasMediaTitle()) {
-            mediaTitle = checkpoint.getMediaTitle();
+            $pageTitleMedia = checkpoint.getMediaTitle();
         }
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }

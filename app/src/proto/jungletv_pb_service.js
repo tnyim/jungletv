@@ -3,6 +3,7 @@
 
 var jungletv_pb = require("./jungletv_pb");
 var application_editor_pb = require("./application_editor_pb");
+var application_runtime_pb = require("./application_runtime_pb");
 var grpc = require("@improbable-eng/grpc-web").grpc;
 
 var JungleTV = (function () {
@@ -927,6 +928,15 @@ JungleTV.EvaluateExpressionOnApplication = {
   responseStream: false,
   requestType: application_editor_pb.EvaluateExpressionOnApplicationRequest,
   responseType: application_editor_pb.EvaluateExpressionOnApplicationResponse
+};
+
+JungleTV.ResolveApplicationPage = {
+  methodName: "ResolveApplicationPage",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_runtime_pb.ResolveApplicationPageRequest,
+  responseType: application_runtime_pb.ResolveApplicationPageResponse
 };
 
 exports.JungleTV = JungleTV;
@@ -4152,6 +4162,37 @@ JungleTVClient.prototype.evaluateExpressionOnApplication = function evaluateExpr
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.EvaluateExpressionOnApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.resolveApplicationPage = function resolveApplicationPage(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ResolveApplicationPage, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -64,7 +64,7 @@ func (m *processModule) ExecutionPaused()                     {}
 func (m *processModule) abort(call goja.FunctionCall) goja.Value {
 	m.runtime.Interrupt("process aborted")
 	m.lifecycleManager.AbortProcess()
-	return nil
+	return goja.Undefined()
 }
 
 func (m *processModule) exit(call goja.FunctionCall) goja.Value {
@@ -81,5 +81,5 @@ func (m *processModule) exit(call goja.FunctionCall) goja.Value {
 		}
 	}
 	m.lifecycleManager.ExitProcess(exitCode)
-	return nil
+	return goja.Undefined()
 }

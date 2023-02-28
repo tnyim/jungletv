@@ -6,6 +6,7 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as common_pb from "./common_pb";
 import * as application_editor_pb from "./application_editor_pb";
+import * as application_runtime_pb from "./application_runtime_pb";
 
 export class SignInRequest extends jspb.Message {
   getRewardsAddress(): string;

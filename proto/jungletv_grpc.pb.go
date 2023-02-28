@@ -122,6 +122,8 @@ type JungleTVClient interface {
 	ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error)
 	MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error)
 	EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error)
+	// application runtime endpoints
+	ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error)
 }
 
 type jungleTVClient struct {
@@ -1280,6 +1282,15 @@ func (c *jungleTVClient) EvaluateExpressionOnApplication(ctx context.Context, in
 	return out, nil
 }
 
+func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error) {
+	out := new(ResolveApplicationPageResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ResolveApplicationPage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JungleTVServer is the server API for JungleTV service.
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
@@ -1388,6 +1399,8 @@ type JungleTVServer interface {
 	ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error
 	MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error
 	EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error)
+	// application runtime endpoints
+	ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
 }
 
@@ -1700,6 +1713,9 @@ func (UnimplementedJungleTVServer) MonitorRunningApplications(*MonitorRunningApp
 }
 func (UnimplementedJungleTVServer) EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluateExpressionOnApplication not implemented")
+}
+func (UnimplementedJungleTVServer) ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResolveApplicationPage not implemented")
 }
 func (UnimplementedJungleTVServer) mustEmbedUnimplementedJungleTVServer() {}
 
@@ -3580,6 +3596,24 @@ func _JungleTV_EvaluateExpressionOnApplication_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ResolveApplicationPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveApplicationPageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ResolveApplicationPage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ResolveApplicationPage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ResolveApplicationPage(ctx, req.(*ResolveApplicationPageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JungleTV_ServiceDesc is the grpc.ServiceDesc for JungleTV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3954,6 +3988,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EvaluateExpressionOnApplication",
 			Handler:    _JungleTV_EvaluateExpressionOnApplication_Handler,
+		},
+		{
+			MethodName: "ResolveApplicationPage",
+			Handler:    _JungleTV_ResolveApplicationPage_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

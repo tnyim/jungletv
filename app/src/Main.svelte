@@ -27,6 +27,7 @@
 	import Navbar from "./Navbar.svelte";
 	import NoConnection from "./NoConnection.svelte";
 	import NotFound from "./NotFound.svelte";
+	import { pageTitleApplicationPage, pageTitleMedia, pageTitlePopoutTab } from "./pageTitleStores";
 	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
 	import PlayerContainer from "./PlayerContainer.svelte";
 	import Points from "./Points.svelte";
@@ -231,9 +232,18 @@
 			popoutTab = undefined;
 		}
 	}
+	$: pageTitlePopoutTab.set(popoutTab?.tabTitle ?? "");
+
 	$: {
-		if (typeof popoutTab !== "undefined") {
-			document.title = popoutTab.tabTitle + " - JungleTV";
+		let t = $pageTitlePopoutTab;
+		let m = $pageTitleMedia;
+		let a = $pageTitleApplicationPage;
+		if (t) {
+			document.title = t + " - JungleTV";
+		} else if (m && isOnHomepage) {
+			document.title = m + " - JungleTV";
+		} else if (a) {
+			document.title = a + " - JungleTV";
 		} else {
 			document.title = "JungleTV";
 		}

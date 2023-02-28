@@ -20,6 +20,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/db"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -43,6 +44,7 @@ type appInstance struct {
 	loop               *eventloop.EventLoop
 	appLogger          *appLogger
 	modules            *modules.Collection
+	pagesModule        pages.PagesModule
 
 	// promisesWithoutRejectionHandler are rejected promises with no handler,
 	// if there is something in this map at an end of an event loop then it will exit with an error.
@@ -86,6 +88,8 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(process.New(instance, instance))
 	instance.modules.RegisterNativeModule(chat.New(d.ChatManager, instance.runOnLoopLogError, scheduleFunctionNoError))
 	instance.modules.RegisterNativeModule(db.New(scheduleFunctionNoError))
+	instance.pagesModule = pages.New(instance)
+	instance.modules.RegisterNativeModule(instance.pagesModule)
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
@@ -529,6 +533,15 @@ func (a *appInstance) AbortProcess() {
 func (a *appInstance) ExitProcess(exitCode int) {
 	a.exitCode = exitCode
 	_ = a.Terminate(true, 0, false)
+}
+func (a *appInstance) ResolvePage(pageID string) (pages.Page, bool) {
+	a.mu.RLock()
+	r := a.running
+	a.mu.RUnlock()
+	if !r {
+		return pages.Page{}, false
+	}
+	return a.pagesModule.ResolvePage(pageID)
 }
 
 const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {

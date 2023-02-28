@@ -9,12 +9,15 @@
     export let file: ApplicationFile;
 
     let publicFile = false;
+    let mimeType = "";
     onMount(() => {
         publicFile = file?.getPublic();
+        mimeType = file?.getType();
     });
 
     async function updateProperties() {
         file.setPublic(publicFile);
+        file.setType(mimeType);
         resultCallback(file);
     }
 
@@ -29,6 +32,13 @@
         link.addEventListener("onclick", () => URL.revokeObjectURL(link.href));
         link.click();
     }
+
+    let typeInput: HTMLInputElement;
+
+    function focusOnTypeEditing() {
+        typeInput.focus();
+        typeInput.select();
+    }
 </script>
 
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
@@ -37,6 +47,18 @@
         <p>Loading...</p>
     {:then completeFile}
         <p>Size: {completeFile.getContent_asU8().byteLength} bytes</p>
+        <p class="flex flex-row gap-2">
+            <span>MIME type:</span>
+            <button
+                type="button"
+                title="Edit nickname"
+                on:click={focusOnTypeEditing}
+                class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500 self-center"
+            >
+                <i class="fas fa-edit" />
+            </button>
+            <input bind:this={typeInput} class="bg-transparent flex-grow" type="text" bind:value={mimeType} />
+        </p>
         {#if completeFile.getType().startsWith("image/")}
             <p class="my-4 text-center max-w-xl max-h-96 flex justify-center">
                 <img

@@ -6,6 +6,7 @@ import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
+import { ResolveApplicationPageRequest, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
@@ -919,6 +920,13 @@ class APIClient {
         request.setApplicationId(applicationID);
         request.setExpression(expression);
         return this.unaryRPC(JungleTV.EvaluateExpressionOnApplication, request);
+    }
+
+    async resolveApplicationPage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
+        let request = new ResolveApplicationPageRequest();
+        request.setApplicationId(applicationID);
+        request.setPageId(pageID);
+        return this.unaryRPC(JungleTV.ResolveApplicationPage, request);
     }
 
     convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
