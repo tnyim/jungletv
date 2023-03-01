@@ -316,7 +316,7 @@ func (r *AppRunner) EvaluateExpressionOnApplication(ctx context.Context, applica
 	return successful, result, executionTime, nil
 }
 
-func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, bool) {
+func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, types.ApplicationVersion, bool) {
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -326,7 +326,7 @@ func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, b
 		instance, ok = r.instances[applicationID]
 	}()
 	if !ok {
-		return pages.PageInfo{}, false
+		return pages.PageInfo{}, types.ApplicationVersion{}, false
 	}
 	return instance.ResolvePage(pageID)
 }

@@ -57,9 +57,8 @@ func (s *HTTPServer) ApplicationPage(w http.ResponseWriter, r *http.Request) err
 	applicationID := vars["app"]
 	pageID := vars["page"]
 
-	running, version, _ := s.appRunner.IsRunning(applicationID)
-	fileInfo, ok := s.appRunner.ResolvePage(applicationID, pageID)
-	if !running || !ok {
+	fileInfo, version, ok := s.appRunner.ResolvePage(applicationID, pageID)
+	if !ok {
 		http.NotFound(w, r)
 		return nil
 	}

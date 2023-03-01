@@ -2,6 +2,7 @@
 // file: application_runtime.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 
 export class ResolveApplicationPageRequest extends jspb.Message {
   getApplicationId(): string;
@@ -34,6 +35,11 @@ export class ResolveApplicationPageResponse extends jspb.Message {
   getPageTitle(): string;
   setPageTitle(value: string): void;
 
+  hasApplicationVersion(): boolean;
+  clearApplicationVersion(): void;
+  getApplicationVersion(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setApplicationVersion(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ResolveApplicationPageResponse.AsObject;
   static toObject(includeInstance: boolean, msg: ResolveApplicationPageResponse): ResolveApplicationPageResponse.AsObject;
@@ -48,6 +54,7 @@ export namespace ResolveApplicationPageResponse {
   export type AsObject = {
     applicationFileName: string,
     pageTitle: string,
+    applicationVersion?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 

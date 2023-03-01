@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "github.com/tnyim/jungletv/proto";
 
+import "google/protobuf/timestamp.proto";
+
 package jungletv;
 
 message ResolveApplicationPageRequest {
@@ -12,4 +14,5 @@ message ResolveApplicationPageRequest {
 message ResolveApplicationPageResponse {
     string application_file_name = 1;
     string page_title = 2;
+    google.protobuf.Timestamp application_version = 3;
 }

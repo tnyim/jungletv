@@ -534,14 +534,16 @@ func (a *appInstance) ExitProcess(exitCode int) {
 	a.exitCode = exitCode
 	_ = a.Terminate(true, 0, false)
 }
-func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, bool) {
+func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.ApplicationVersion, bool) {
 	a.mu.RLock()
 	r := a.running
+	v := a.applicationVersion
 	a.mu.RUnlock()
 	if !r {
-		return pages.PageInfo{}, false
+		return pages.PageInfo{}, types.ApplicationVersion{}, false
 	}
-	return a.pagesModule.ResolvePage(pageID)
+	p, ok := a.pagesModule.ResolvePage(pageID)
+	return p, v, ok
 }
 
 const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {

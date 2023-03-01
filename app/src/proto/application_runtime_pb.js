@@ -15,6 +15,8 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
 
+var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
+goog.object.extend(proto, google_protobuf_timestamp_pb);
 goog.exportSymbol('proto.jungletv.ResolveApplicationPageRequest', null, global);
 goog.exportSymbol('proto.jungletv.ResolveApplicationPageResponse', null, global);
 /**
@@ -252,7 +254,8 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.toObject = function(opt_
 proto.jungletv.ResolveApplicationPageResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     applicationFileName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    pageTitle: jspb.Message.getFieldWithDefault(msg, 2, "")
+    pageTitle: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    applicationVersion: (f = msg.getApplicationVersion()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -297,6 +300,11 @@ proto.jungletv.ResolveApplicationPageResponse.deserializeBinaryFromReader = func
       var value = /** @type {string} */ (reader.readString());
       msg.setPageTitle(value);
       break;
+    case 3:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setApplicationVersion(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -340,6 +348,14 @@ proto.jungletv.ResolveApplicationPageResponse.serializeBinaryToWriter = function
       f
     );
   }
+  f = message.getApplicationVersion();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -376,6 +392,43 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.getPageTitle = function(
  */
 proto.jungletv.ResolveApplicationPageResponse.prototype.setPageTitle = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp application_version = 3;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.jungletv.ResolveApplicationPageResponse.prototype.getApplicationVersion = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.jungletv.ResolveApplicationPageResponse} returns this
+*/
+proto.jungletv.ResolveApplicationPageResponse.prototype.setApplicationVersion = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.ResolveApplicationPageResponse} returns this
+ */
+proto.jungletv.ResolveApplicationPageResponse.prototype.clearApplicationVersion = function() {
+  return this.setApplicationVersion(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ResolveApplicationPageResponse.prototype.hasApplicationVersion = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
