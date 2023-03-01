@@ -2,6 +2,8 @@ package pages
 
 import (
 	"context"
+	"net/http"
+	"net/textproto"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -10,6 +12,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/exp/slices"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -18,7 +21,7 @@ const ModuleName = "jungletv:pages"
 // PagesModule manages page associations for an application
 type PagesModule interface {
 	modules.NativeModule
-	ResolvePage(pageID string) (Page, bool)
+	ResolvePage(pageID string) (PageInfo, bool)
 }
 
 // ProcessInformationProvider can get information about the process
@@ -31,21 +34,22 @@ type pagesModule struct {
 	runtime      *goja.Runtime
 	exports      *goja.Object
 	infoProvider ProcessInformationProvider
-	pages        map[string]Page
+	pages        map[string]PageInfo
 	mu           sync.RWMutex
 	ctx          context.Context // just to pass the sqalx node around...
 }
 
-type Page struct {
-	Title string
-	File  string
+type PageInfo struct {
+	Title  string
+	File   string
+	Header http.Header
 }
 
 // New returns a new pages module
 func New(infoProvider ProcessInformationProvider) PagesModule {
 	return &pagesModule{
 		infoProvider: infoProvider,
-		pages:        make(map[string]Page),
+		pages:        make(map[string]PageInfo),
 	}
 }
 
@@ -70,12 +74,26 @@ func (m *pagesModule) ExecutionPaused() {
 	m.ctx = nil
 }
 
-func (m *pagesModule) ResolvePage(pageID string) (Page, bool) {
+func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	page, ok := m.pages[pageID]
 	return page, ok
+}
+
+var headerWhitelist = []string{
+	"Content-Security-Policy",
+	"Permissions-Policy",
+	"Cross-Origin-Opener-Policy",
+	"Cross-Origin-Embedder-Policy",
+	"Cross-Origin-Resource-Policy",
+}
+
+func init() {
+	for i := range headerWhitelist {
+		headerWhitelist[i] = textproto.CanonicalMIMEHeaderKey(headerWhitelist[i])
+	}
 }
 
 func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
@@ -108,13 +126,30 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("File '%s' is not public", fileName))
 	}
 
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.pages[call.Argument(0).String()] = Page{
+	page := PageInfo{
 		File:  call.Argument(1).String(),
 		Title: call.Argument(2).String(),
 	}
+
+	if len(call.Arguments) > 3 {
+		page.Header = make(http.Header)
+		headersMap := map[string]goja.Value{}
+		err := m.runtime.ExportTo(call.Argument(3), &headersMap)
+		if err != nil {
+			panic(m.runtime.NewTypeError("Fourth argument is not an object"))
+		}
+		for key, value := range headersMap {
+			key = textproto.CanonicalMIMEHeaderKey(key)
+			if slices.Contains(headerWhitelist, key) {
+				page.Header.Add(key, value.ToString().String())
+			}
+		}
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.pages[call.Argument(0).String()] = page
+
 	return goja.Undefined()
 }
 

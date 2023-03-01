@@ -534,12 +534,12 @@ func (a *appInstance) ExitProcess(exitCode int) {
 	a.exitCode = exitCode
 	_ = a.Terminate(true, 0, false)
 }
-func (a *appInstance) ResolvePage(pageID string) (pages.Page, bool) {
+func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, bool) {
 	a.mu.RLock()
 	r := a.running
 	a.mu.RUnlock()
 	if !r {
-		return pages.Page{}, false
+		return pages.PageInfo{}, false
 	}
 	return a.pagesModule.ResolvePage(pageID)
 }

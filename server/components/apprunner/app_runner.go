@@ -11,6 +11,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -315,7 +316,7 @@ func (r *AppRunner) EvaluateExpressionOnApplication(ctx context.Context, applica
 	return successful, result, executionTime, nil
 }
 
-func (r *AppRunner) ResolvePage(applicationID, pageID string) (string, string, bool) {
+func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, bool) {
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -325,8 +326,7 @@ func (r *AppRunner) ResolvePage(applicationID, pageID string) (string, string, b
 		instance, ok = r.instances[applicationID]
 	}()
 	if !ok {
-		return "", "", false
+		return pages.PageInfo{}, false
 	}
-	page, ok := instance.ResolvePage(pageID)
-	return page.File, page.Title, ok
+	return instance.ResolvePage(pageID)
 }

@@ -25,7 +25,7 @@
     <iframe
         class="w-screen h-screen -mt-16 pt-16"
         title={response.getPageTitle()}
-        src="/assets/app/{applicationID}/{response.getApplicationFileName()}"
+        src="/apppages/{applicationID}/{pageID}"
     />
 {:catch}
     <NotFound />
