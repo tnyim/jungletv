@@ -71,6 +71,7 @@
             fileType = t;
         }
         file.setType(fileType);
+        file.setPublic(publicFile);
         await apiClient.updateApplicationFile(file);
         await modalAlert("File updated");
         editing = true;
