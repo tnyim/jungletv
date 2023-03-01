@@ -1,7 +1,7 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "rootDir": "src",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "appbridge/common/**/*"],
   "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
   "types": ["svelte", "node"],
   "compilerOptions": {

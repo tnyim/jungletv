@@ -1,5 +1,8 @@
 <script lang="ts">
+    import { Connection, ParentHandshake } from "post-me";
+    import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
     import { onDestroy } from "svelte";
+    import { BRIDGE_VERSION, ChildEvents, ChildMethods, ParentEvents, ParentMethods } from "../appbridge/common/model";
     import { apiClient } from "./api_client";
     import NotFound from "./NotFound.svelte";
     import { pageTitleApplicationPage } from "./pageTitleStores";
@@ -7,25 +10,70 @@
 
     export let applicationID: string;
     export let pageID: string;
+    let applicationVersion: Date;
 
     async function resolvePage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
         let r = await apiClient.resolveApplicationPage(applicationID, pageID);
+        applicationVersion = r.getApplicationVersion().toDate();
         pageTitleApplicationPage.set(r.getPageTitle());
         return r;
+    }
+
+    let iframe: HTMLIFrameElement;
+    $: if (typeof iframe !== "undefined") {
+        iframeBound(iframe);
     }
 
     onDestroy(() => {
         pageTitleApplicationPage.set("");
     });
+
+    let connection: Connection<ParentMethods, ParentEvents, ChildMethods, ChildEvents>;
+
+    let bridgeMethods: ParentMethods = {
+        applicationID() {
+            return applicationID;
+        },
+        bridgeVersion() {
+            return BRIDGE_VERSION;
+        },
+        serverRequest(method, ...args): any {
+            // TODO
+            return "TODO";
+        },
+    };
+
+    async function iframeBound(iframe: HTMLIFrameElement) {
+        const messenger = new JungleTVWindowMessenger({
+            localWindow: window,
+            remoteWindow: iframe.contentWindow,
+            remoteOrigin: "null",
+        });
+
+        connection = await ParentHandshake(messenger, bridgeMethods);
+
+        connection.remoteHandle().addEventListener("pageTitleUpdated", pageTitleApplicationPage.set);
+
+        await connection.remoteHandle().once("handshook");
+
+        connection.localHandle().emit("mounted", {
+            applicationID: applicationID,
+            applicationVersion: applicationVersion,
+            pageID: pageID,
+            role: "standalone",
+        });
+    }
 </script>
 
 {#await resolvePage(applicationID, pageID)}
     Loading
 {:then response}
     <iframe
+        bind:this={iframe}
         class="w-screen h-screen -mt-16 pt-16"
         title={response.getPageTitle()}
         src="/apppages/{applicationID}/{pageID}"
+        sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads"
     />
 {:catch}
     <NotFound />

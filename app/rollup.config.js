@@ -167,7 +167,49 @@ export default [
 			typescript({
 				tsconfig: './tsconfig-serviceworker.json',
 				sourceMap: !production,
-				lib: ["ES2020", "DOM"],
+				lib: ["ES2021", "DOM", "WebWorker"],
+			}),
+			resolve({
+				browser: true,
+				dedupe: ['svelte', 'svelte/transition', 'svelte/internal'],
+			}),
+			commonjs(),
+
+			// If we're building for production (npm run build
+			// instead of npm run dev), minify
+			production && terser(
+				{
+					format: {
+						comments: false
+					}
+				}
+			),
+		]
+	},
+	{
+		input: 'appbridge/main.ts',
+		output: {
+			sourcemap: true,
+			format: 'iife',
+			name: 'appbridge',
+			file: 'public/build/appbridge.js'
+		},
+		plugins: [
+			replace({
+				globalThis: JSON.stringify({
+					EXPECTED_PARENT_WINDOW_ORIGIN: production ? "https://jungletv.live" : "*",
+					PRODUCTION_BUILD: production,
+				}),
+				preventAssignment: true,
+			}),
+			replace({
+				'process.env.NODE_ENV': JSON.stringify('production'),
+				preventAssignment: true,
+			}),
+			typescript({
+				tsconfig: './tsconfig-appbridge.json',
+				sourceMap: !production,
+				lib: ["ES2021", "DOM"],
 			}),
 			resolve({
 				browser: true,

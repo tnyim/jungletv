@@ -1,0 +1,8 @@
+{
+  "rootDir": "appbridge",
+  "include": ["appbridge/**/*"],
+  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
+  "compilerOptions": {
+    "lib": ["ES2021", "DOM"]
+  }
+}
