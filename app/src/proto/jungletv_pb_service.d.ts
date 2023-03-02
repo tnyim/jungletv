@@ -933,6 +933,33 @@ type JungleTVResolveApplicationPage = {
   readonly responseType: typeof application_runtime_pb.ResolveApplicationPageResponse;
 };
 
+type JungleTVConsumeApplicationEventStream = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof application_runtime_pb.ConsumeApplicationEventStreamRequest;
+  readonly responseType: typeof application_runtime_pb.ApplicationEventStreamUpdate;
+};
+
+type JungleTVApplicationServerMethod = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_runtime_pb.ApplicationServerMethodRequest;
+  readonly responseType: typeof application_runtime_pb.ApplicationServerMethodResponse;
+};
+
+type JungleTVTriggerApplicationEvent = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_runtime_pb.TriggerApplicationEventRequest;
+  readonly responseType: typeof application_runtime_pb.TriggerApplicationEventResponse;
+};
+
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
@@ -1038,6 +1065,9 @@ export class JungleTV {
   static readonly MonitorRunningApplications: JungleTVMonitorRunningApplications;
   static readonly EvaluateExpressionOnApplication: JungleTVEvaluateExpressionOnApplication;
   static readonly ResolveApplicationPage: JungleTVResolveApplicationPage;
+  static readonly ConsumeApplicationEventStream: JungleTVConsumeApplicationEventStream;
+  static readonly ApplicationServerMethod: JungleTVApplicationServerMethod;
+  static readonly TriggerApplicationEvent: JungleTVTriggerApplicationEvent;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -1918,6 +1948,25 @@ export class JungleTVClient {
   resolveApplicationPage(
     requestMessage: application_runtime_pb.ResolveApplicationPageRequest,
     callback: (error: ServiceError|null, responseMessage: application_runtime_pb.ResolveApplicationPageResponse|null) => void
+  ): UnaryResponse;
+  consumeApplicationEventStream(requestMessage: application_runtime_pb.ConsumeApplicationEventStreamRequest, metadata?: grpc.Metadata): ResponseStream<application_runtime_pb.ApplicationEventStreamUpdate>;
+  applicationServerMethod(
+    requestMessage: application_runtime_pb.ApplicationServerMethodRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_runtime_pb.ApplicationServerMethodResponse|null) => void
+  ): UnaryResponse;
+  applicationServerMethod(
+    requestMessage: application_runtime_pb.ApplicationServerMethodRequest,
+    callback: (error: ServiceError|null, responseMessage: application_runtime_pb.ApplicationServerMethodResponse|null) => void
+  ): UnaryResponse;
+  triggerApplicationEvent(
+    requestMessage: application_runtime_pb.TriggerApplicationEventRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_runtime_pb.TriggerApplicationEventResponse|null) => void
+  ): UnaryResponse;
+  triggerApplicationEvent(
+    requestMessage: application_runtime_pb.TriggerApplicationEventRequest,
+    callback: (error: ServiceError|null, responseMessage: application_runtime_pb.TriggerApplicationEventResponse|null) => void
   ): UnaryResponse;
 }
 

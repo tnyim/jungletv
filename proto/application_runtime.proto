@@ -16,3 +16,41 @@ message ResolveApplicationPageResponse {
     string page_title = 2;
     google.protobuf.Timestamp application_version = 3;
 }
+
+message ConsumeApplicationEventStreamRequest {
+    string application_id = 1;
+    string page_id = 2;
+}
+
+message ApplicationEventStreamUpdate {
+    oneof type {
+        ApplicationHeartbeatEvent heartbeat = 1;
+        ApplicationServerEvent application_event = 2;
+    }
+}
+
+message ApplicationHeartbeatEvent {}
+
+message ApplicationServerEvent {
+    string name = 1;
+    repeated string arguments = 2;
+}
+
+message ApplicationServerMethodRequest {
+    string application_id = 1;
+    string method = 2;
+    repeated string arguments = 3;
+}
+
+message ApplicationServerMethodResponse {
+    string result = 1;
+}
+
+message TriggerApplicationEventRequest {
+    string application_id = 1;
+    string page_id = 2;
+    string name = 3;
+    repeated string arguments = 4;
+}
+
+message TriggerApplicationEventResponse {}

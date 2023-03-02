@@ -127,8 +127,10 @@
 			});
 		}, 1000);
 
-		selfXSSWarning();
-		setInterval(selfXSSWarning, 20000);
+		if (globalThis.PRODUCTION_BUILD) {
+			selfXSSWarning();
+			setInterval(selfXSSWarning, 20000);
+		}
 	});
 
 	let modalOpen: any;

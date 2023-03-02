@@ -1,17 +1,21 @@
-export const BRIDGE_VERSION = 1;
+export const BRIDGE_VERSION = 3;
 // methods the child can call on the parent
 export type ParentMethods = {
     bridgeVersion: () => number;
     applicationID: () => string;
-    serverRequest: (method: string, ...args: any[]) => any;
+    serverMethod: (method: string, ...args: any[]) => Promise<any>;
+    navigateToApplicationPage: (pageID: string, applicationID?: string) => void;
+    alert: (message: string, title: string, buttonLabel: string) => Promise<void>;
+    confirm: (question: string, title: string, positiveAnswerLabel: string, negativeAnswerLabel: string) => Promise<boolean>;
+    prompt: (question: string, title: string, placeholder: string, initialValue: string, positiveAnswerLabel: string, negativeAnswerLabel: string) => Promise<string>;
 }
 
 // events that the parent can trigger on the child
 export type ParentEvents = {
     "mounted": MountEventArgs,
-    "destroyed": void,
-    "connected": void,
-    "disconnected": void,
+    "destroyed": undefined,
+    "connected": undefined,
+    "disconnected": undefined,
     "eventForClient": ApplicationEventArgs,
 }
 
@@ -20,7 +24,7 @@ export type ChildMethods = {}
 
 // events that the child can trigger on the parent
 export type ChildEvents = {
-    "handshook": void,
+    "handshook": undefined,
     "eventForServer": ApplicationEventArgs,
     "pageTitleUpdated": string,
 }

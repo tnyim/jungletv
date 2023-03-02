@@ -15678,7 +15678,7 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x41, 0x50, 0x50, 0x45, 0x41, 0x52, 0x41, 0x4e, 0x43, 0x45, 0x5f, 0x56, 0x49, 0x50, 0x10, 0x03,
 	0x12, 0x25, 0x0a, 0x21, 0x56, 0x49, 0x50, 0x5f, 0x55, 0x53, 0x45, 0x52, 0x5f, 0x41, 0x50, 0x50,
 	0x45, 0x41, 0x52, 0x41, 0x4e, 0x43, 0x45, 0x5f, 0x56, 0x49, 0x50, 0x5f, 0x4d, 0x4f, 0x44, 0x45,
-	0x52, 0x41, 0x54, 0x4f, 0x52, 0x10, 0x04, 0x32, 0x97, 0x4e, 0x0a, 0x08, 0x4a, 0x75, 0x6e, 0x67,
+	0x52, 0x41, 0x54, 0x4f, 0x52, 0x10, 0x04, 0x32, 0xf8, 0x50, 0x0a, 0x08, 0x4a, 0x75, 0x6e, 0x67,
 	0x6c, 0x65, 0x54, 0x56, 0x12, 0x3f, 0x0a, 0x06, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x12, 0x17,
 	0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65,
@@ -16304,9 +16304,31 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x28, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76,
 	0x2e, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
 	0x69, 0x6f, 0x6e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x00, 0x12, 0x7b, 0x0a, 0x1d, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x65, 0x41, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x12, 0x2e, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x43, 0x6f,
+	0x6e, 0x73, 0x75, 0x6d, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x26, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x70,
+	0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x70,
+	0x0a, 0x17, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72,
+	0x76, 0x65, 0x72, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12, 0x28, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
+	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41,
+	0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72,
+	0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x70, 0x0a, 0x17, 0x54, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x41, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x28, 0x2e, 0x6a, 0x75,
+	0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x54, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x41, 0x70,
+	0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76,
+	0x2e, 0x54, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -16585,21 +16607,27 @@ var file_jungletv_proto_goTypes = []interface{}{
 	(*MonitorRunningApplicationsRequest)(nil),           // 258: jungletv.MonitorRunningApplicationsRequest
 	(*EvaluateExpressionOnApplicationRequest)(nil),      // 259: jungletv.EvaluateExpressionOnApplicationRequest
 	(*ResolveApplicationPageRequest)(nil),               // 260: jungletv.ResolveApplicationPageRequest
-	(*ApplicationsResponse)(nil),                        // 261: jungletv.ApplicationsResponse
-	(*UpdateApplicationResponse)(nil),                   // 262: jungletv.UpdateApplicationResponse
-	(*CloneApplicationResponse)(nil),                    // 263: jungletv.CloneApplicationResponse
-	(*DeleteApplicationResponse)(nil),                   // 264: jungletv.DeleteApplicationResponse
-	(*ApplicationFilesResponse)(nil),                    // 265: jungletv.ApplicationFilesResponse
-	(*UpdateApplicationFileResponse)(nil),               // 266: jungletv.UpdateApplicationFileResponse
-	(*CloneApplicationFileResponse)(nil),                // 267: jungletv.CloneApplicationFileResponse
-	(*DeleteApplicationFileResponse)(nil),               // 268: jungletv.DeleteApplicationFileResponse
-	(*LaunchApplicationResponse)(nil),                   // 269: jungletv.LaunchApplicationResponse
-	(*StopApplicationResponse)(nil),                     // 270: jungletv.StopApplicationResponse
-	(*ApplicationLogResponse)(nil),                      // 271: jungletv.ApplicationLogResponse
-	(*ApplicationLogEntryContainer)(nil),                // 272: jungletv.ApplicationLogEntryContainer
-	(*RunningApplications)(nil),                         // 273: jungletv.RunningApplications
-	(*EvaluateExpressionOnApplicationResponse)(nil),     // 274: jungletv.EvaluateExpressionOnApplicationResponse
-	(*ResolveApplicationPageResponse)(nil),              // 275: jungletv.ResolveApplicationPageResponse
+	(*ConsumeApplicationEventStreamRequest)(nil),        // 261: jungletv.ConsumeApplicationEventStreamRequest
+	(*ApplicationServerMethodRequest)(nil),              // 262: jungletv.ApplicationServerMethodRequest
+	(*TriggerApplicationEventRequest)(nil),              // 263: jungletv.TriggerApplicationEventRequest
+	(*ApplicationsResponse)(nil),                        // 264: jungletv.ApplicationsResponse
+	(*UpdateApplicationResponse)(nil),                   // 265: jungletv.UpdateApplicationResponse
+	(*CloneApplicationResponse)(nil),                    // 266: jungletv.CloneApplicationResponse
+	(*DeleteApplicationResponse)(nil),                   // 267: jungletv.DeleteApplicationResponse
+	(*ApplicationFilesResponse)(nil),                    // 268: jungletv.ApplicationFilesResponse
+	(*UpdateApplicationFileResponse)(nil),               // 269: jungletv.UpdateApplicationFileResponse
+	(*CloneApplicationFileResponse)(nil),                // 270: jungletv.CloneApplicationFileResponse
+	(*DeleteApplicationFileResponse)(nil),               // 271: jungletv.DeleteApplicationFileResponse
+	(*LaunchApplicationResponse)(nil),                   // 272: jungletv.LaunchApplicationResponse
+	(*StopApplicationResponse)(nil),                     // 273: jungletv.StopApplicationResponse
+	(*ApplicationLogResponse)(nil),                      // 274: jungletv.ApplicationLogResponse
+	(*ApplicationLogEntryContainer)(nil),                // 275: jungletv.ApplicationLogEntryContainer
+	(*RunningApplications)(nil),                         // 276: jungletv.RunningApplications
+	(*EvaluateExpressionOnApplicationResponse)(nil),     // 277: jungletv.EvaluateExpressionOnApplicationResponse
+	(*ResolveApplicationPageResponse)(nil),              // 278: jungletv.ResolveApplicationPageResponse
+	(*ApplicationEventStreamUpdate)(nil),                // 279: jungletv.ApplicationEventStreamUpdate
+	(*ApplicationServerMethodResponse)(nil),             // 280: jungletv.ApplicationServerMethodResponse
+	(*TriggerApplicationEventResponse)(nil),             // 281: jungletv.TriggerApplicationEventResponse
 }
 var file_jungletv_proto_depIdxs = []int32{
 	16,  // 0: jungletv.SignInProgress.verification:type_name -> jungletv.SignInVerification
@@ -16877,111 +16905,117 @@ var file_jungletv_proto_depIdxs = []int32{
 	258, // 272: jungletv.JungleTV.MonitorRunningApplications:input_type -> jungletv.MonitorRunningApplicationsRequest
 	259, // 273: jungletv.JungleTV.EvaluateExpressionOnApplication:input_type -> jungletv.EvaluateExpressionOnApplicationRequest
 	260, // 274: jungletv.JungleTV.ResolveApplicationPage:input_type -> jungletv.ResolveApplicationPageRequest
-	15,  // 275: jungletv.JungleTV.SignIn:output_type -> jungletv.SignInProgress
-	25,  // 276: jungletv.JungleTV.EnqueueMedia:output_type -> jungletv.EnqueueMediaResponse
-	31,  // 277: jungletv.JungleTV.RemoveOwnQueueEntry:output_type -> jungletv.RemoveOwnQueueEntryResponse
-	33,  // 278: jungletv.JungleTV.MoveQueueEntry:output_type -> jungletv.MoveQueueEntryResponse
-	27,  // 279: jungletv.JungleTV.MonitorTicket:output_type -> jungletv.EnqueueMediaTicket
-	39,  // 280: jungletv.JungleTV.ConsumeMedia:output_type -> jungletv.MediaConsumptionCheckpoint
-	42,  // 281: jungletv.JungleTV.MonitorQueue:output_type -> jungletv.Queue
-	49,  // 282: jungletv.JungleTV.MonitorSkipAndTip:output_type -> jungletv.SkipAndTipStatus
-	51,  // 283: jungletv.JungleTV.RewardInfo:output_type -> jungletv.RewardInfoResponse
-	57,  // 284: jungletv.JungleTV.SubmitActivityChallenge:output_type -> jungletv.SubmitActivityChallengeResponse
-	146, // 285: jungletv.JungleTV.ProduceSegchaChallenge:output_type -> jungletv.ProduceSegchaChallengeResponse
-	59,  // 286: jungletv.JungleTV.ConsumeChat:output_type -> jungletv.ChatUpdate
-	75,  // 287: jungletv.JungleTV.SendChatMessage:output_type -> jungletv.SendChatMessageResponse
-	99,  // 288: jungletv.JungleTV.UserPermissionLevel:output_type -> jungletv.UserPermissionLevelResponse
-	115, // 289: jungletv.JungleTV.GetDocument:output_type -> jungletv.Document
-	121, // 290: jungletv.JungleTV.SetChatNickname:output_type -> jungletv.SetChatNicknameResponse
-	129, // 291: jungletv.JungleTV.Withdraw:output_type -> jungletv.WithdrawResponse
-	131, // 292: jungletv.JungleTV.Leaderboards:output_type -> jungletv.LeaderboardsResponse
-	137, // 293: jungletv.JungleTV.RewardHistory:output_type -> jungletv.RewardHistoryResponse
-	140, // 294: jungletv.JungleTV.WithdrawalHistory:output_type -> jungletv.WithdrawalHistoryResponse
-	155, // 295: jungletv.JungleTV.OngoingRaffleInfo:output_type -> jungletv.OngoingRaffleInfoResponse
-	159, // 296: jungletv.JungleTV.RaffleDrawings:output_type -> jungletv.RaffleDrawingsResponse
-	179, // 297: jungletv.JungleTV.Connections:output_type -> jungletv.ConnectionsResponse
-	181, // 298: jungletv.JungleTV.CreateConnection:output_type -> jungletv.CreateConnectionResponse
-	183, // 299: jungletv.JungleTV.RemoveConnection:output_type -> jungletv.RemoveConnectionResponse
-	189, // 300: jungletv.JungleTV.UserProfile:output_type -> jungletv.UserProfileResponse
-	192, // 301: jungletv.JungleTV.UserStats:output_type -> jungletv.UserStatsResponse
-	195, // 302: jungletv.JungleTV.SetProfileBiography:output_type -> jungletv.SetProfileBiographyResponse
-	197, // 303: jungletv.JungleTV.SetProfileFeaturedMedia:output_type -> jungletv.SetProfileFeaturedMediaResponse
-	201, // 304: jungletv.JungleTV.PlayedMediaHistory:output_type -> jungletv.PlayedMediaHistoryResponse
-	203, // 305: jungletv.JungleTV.BlockUser:output_type -> jungletv.BlockUserResponse
-	205, // 306: jungletv.JungleTV.UnblockUser:output_type -> jungletv.UnblockUserResponse
-	208, // 307: jungletv.JungleTV.BlockedUsers:output_type -> jungletv.BlockedUsersResponse
-	214, // 308: jungletv.JungleTV.PointsInfo:output_type -> jungletv.PointsInfoResponse
-	217, // 309: jungletv.JungleTV.PointsTransactions:output_type -> jungletv.PointsTransactionsResponse
-	220, // 310: jungletv.JungleTV.ChatGifSearch:output_type -> jungletv.ChatGifSearchResponse
-	225, // 311: jungletv.JungleTV.ConvertBananoToPoints:output_type -> jungletv.ConvertBananoToPointsStatus
-	227, // 312: jungletv.JungleTV.StartOrExtendSubscription:output_type -> jungletv.StartOrExtendSubscriptionResponse
-	229, // 313: jungletv.JungleTV.SoundCloudTrackDetails:output_type -> jungletv.SoundCloudTrackDetailsResponse
-	237, // 314: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:output_type -> jungletv.IncreaseOrReduceSkipThresholdResponse
-	55,  // 315: jungletv.JungleTV.ForciblyEnqueueTicket:output_type -> jungletv.ForciblyEnqueueTicketResponse
-	53,  // 316: jungletv.JungleTV.RemoveQueueEntry:output_type -> jungletv.RemoveQueueEntryResponse
-	77,  // 317: jungletv.JungleTV.RemoveChatMessage:output_type -> jungletv.RemoveChatMessageResponse
-	79,  // 318: jungletv.JungleTV.SetChatSettings:output_type -> jungletv.SetChatSettingsResponse
-	95,  // 319: jungletv.JungleTV.SetMediaEnqueuingEnabled:output_type -> jungletv.SetMediaEnqueuingEnabledResponse
-	86,  // 320: jungletv.JungleTV.UserBans:output_type -> jungletv.UserBansResponse
-	81,  // 321: jungletv.JungleTV.BanUser:output_type -> jungletv.BanUserResponse
-	83,  // 322: jungletv.JungleTV.RemoveBan:output_type -> jungletv.RemoveBanResponse
-	93,  // 323: jungletv.JungleTV.UserVerifications:output_type -> jungletv.UserVerificationsResponse
-	88,  // 324: jungletv.JungleTV.VerifyUser:output_type -> jungletv.VerifyUserResponse
-	90,  // 325: jungletv.JungleTV.RemoveUserVerification:output_type -> jungletv.RemoveUserVerificationResponse
-	97,  // 326: jungletv.JungleTV.UserChatMessages:output_type -> jungletv.UserChatMessagesResponse
-	102, // 327: jungletv.JungleTV.DisallowedMedia:output_type -> jungletv.DisallowedMediaResponse
-	104, // 328: jungletv.JungleTV.AddDisallowedMedia:output_type -> jungletv.AddDisallowedMediaResponse
-	106, // 329: jungletv.JungleTV.RemoveDisallowedMedia:output_type -> jungletv.RemoveDisallowedMediaResponse
-	109, // 330: jungletv.JungleTV.DisallowedMediaCollections:output_type -> jungletv.DisallowedMediaCollectionsResponse
-	111, // 331: jungletv.JungleTV.AddDisallowedMediaCollection:output_type -> jungletv.AddDisallowedMediaCollectionResponse
-	113, // 332: jungletv.JungleTV.RemoveDisallowedMediaCollection:output_type -> jungletv.RemoveDisallowedMediaCollectionResponse
-	116, // 333: jungletv.JungleTV.UpdateDocument:output_type -> jungletv.UpdateDocumentResponse
-	119, // 334: jungletv.JungleTV.Documents:output_type -> jungletv.DocumentsResponse
-	123, // 335: jungletv.JungleTV.SetUserChatNickname:output_type -> jungletv.SetUserChatNicknameResponse
-	125, // 336: jungletv.JungleTV.SetPricesMultiplier:output_type -> jungletv.SetPricesMultiplierResponse
-	127, // 337: jungletv.JungleTV.SetMinimumPricesMultiplier:output_type -> jungletv.SetMinimumPricesMultiplierResponse
-	142, // 338: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:output_type -> jungletv.SetCrowdfundedSkippingEnabledResponse
-	144, // 339: jungletv.JungleTV.SetSkipPriceMultiplier:output_type -> jungletv.SetSkipPriceMultiplierResponse
-	149, // 340: jungletv.JungleTV.ConfirmRaffleWinner:output_type -> jungletv.ConfirmRaffleWinnerResponse
-	151, // 341: jungletv.JungleTV.CompleteRaffle:output_type -> jungletv.CompleteRaffleResponse
-	153, // 342: jungletv.JungleTV.RedrawRaffle:output_type -> jungletv.RedrawRaffleResponse
-	161, // 343: jungletv.JungleTV.TriggerAnnouncementsNotification:output_type -> jungletv.TriggerAnnouncementsNotificationResponse
-	163, // 344: jungletv.JungleTV.SpectatorInfo:output_type -> jungletv.Spectator
-	165, // 345: jungletv.JungleTV.ResetSpectatorStatus:output_type -> jungletv.ResetSpectatorStatusResponse
-	167, // 346: jungletv.JungleTV.MonitorModerationStatus:output_type -> jungletv.ModerationStatusOverview
-	171, // 347: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:output_type -> jungletv.SetOwnQueueEntryRemovalAllowedResponse
-	169, // 348: jungletv.JungleTV.SetQueueEntryReorderingAllowed:output_type -> jungletv.SetQueueEntryReorderingAllowedResponse
-	173, // 349: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:output_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
-	175, // 350: jungletv.JungleTV.SetSkippingEnabled:output_type -> jungletv.SetSkippingEnabledResponse
-	185, // 351: jungletv.JungleTV.SetQueueInsertCursor:output_type -> jungletv.SetQueueInsertCursorResponse
-	187, // 352: jungletv.JungleTV.ClearQueueInsertCursor:output_type -> jungletv.ClearQueueInsertCursorResponse
-	199, // 353: jungletv.JungleTV.ClearUserProfile:output_type -> jungletv.ClearUserProfileResponse
-	210, // 354: jungletv.JungleTV.MarkAsActivelyModerating:output_type -> jungletv.MarkAsActivelyModeratingResponse
-	212, // 355: jungletv.JungleTV.StopActivelyModerating:output_type -> jungletv.StopActivelyModeratingResponse
-	223, // 356: jungletv.JungleTV.AdjustPointsBalance:output_type -> jungletv.AdjustPointsBalanceResponse
-	231, // 357: jungletv.JungleTV.AddVipUser:output_type -> jungletv.AddVipUserResponse
-	233, // 358: jungletv.JungleTV.RemoveVipUser:output_type -> jungletv.RemoveVipUserResponse
-	235, // 359: jungletv.JungleTV.TriggerClientReload:output_type -> jungletv.TriggerClientReloadResponse
-	239, // 360: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:output_type -> jungletv.SetMulticurrencyPaymentsEnabledResponse
-	261, // 361: jungletv.JungleTV.Applications:output_type -> jungletv.ApplicationsResponse
-	246, // 362: jungletv.JungleTV.GetApplication:output_type -> jungletv.Application
-	262, // 363: jungletv.JungleTV.UpdateApplication:output_type -> jungletv.UpdateApplicationResponse
-	263, // 364: jungletv.JungleTV.CloneApplication:output_type -> jungletv.CloneApplicationResponse
-	264, // 365: jungletv.JungleTV.DeleteApplication:output_type -> jungletv.DeleteApplicationResponse
-	265, // 366: jungletv.JungleTV.ApplicationFiles:output_type -> jungletv.ApplicationFilesResponse
-	251, // 367: jungletv.JungleTV.GetApplicationFile:output_type -> jungletv.ApplicationFile
-	266, // 368: jungletv.JungleTV.UpdateApplicationFile:output_type -> jungletv.UpdateApplicationFileResponse
-	267, // 369: jungletv.JungleTV.CloneApplicationFile:output_type -> jungletv.CloneApplicationFileResponse
-	268, // 370: jungletv.JungleTV.DeleteApplicationFile:output_type -> jungletv.DeleteApplicationFileResponse
-	269, // 371: jungletv.JungleTV.LaunchApplication:output_type -> jungletv.LaunchApplicationResponse
-	270, // 372: jungletv.JungleTV.StopApplication:output_type -> jungletv.StopApplicationResponse
-	271, // 373: jungletv.JungleTV.ApplicationLog:output_type -> jungletv.ApplicationLogResponse
-	272, // 374: jungletv.JungleTV.ConsumeApplicationLog:output_type -> jungletv.ApplicationLogEntryContainer
-	273, // 375: jungletv.JungleTV.MonitorRunningApplications:output_type -> jungletv.RunningApplications
-	274, // 376: jungletv.JungleTV.EvaluateExpressionOnApplication:output_type -> jungletv.EvaluateExpressionOnApplicationResponse
-	275, // 377: jungletv.JungleTV.ResolveApplicationPage:output_type -> jungletv.ResolveApplicationPageResponse
-	275, // [275:378] is the sub-list for method output_type
-	172, // [172:275] is the sub-list for method input_type
+	261, // 275: jungletv.JungleTV.ConsumeApplicationEventStream:input_type -> jungletv.ConsumeApplicationEventStreamRequest
+	262, // 276: jungletv.JungleTV.ApplicationServerMethod:input_type -> jungletv.ApplicationServerMethodRequest
+	263, // 277: jungletv.JungleTV.TriggerApplicationEvent:input_type -> jungletv.TriggerApplicationEventRequest
+	15,  // 278: jungletv.JungleTV.SignIn:output_type -> jungletv.SignInProgress
+	25,  // 279: jungletv.JungleTV.EnqueueMedia:output_type -> jungletv.EnqueueMediaResponse
+	31,  // 280: jungletv.JungleTV.RemoveOwnQueueEntry:output_type -> jungletv.RemoveOwnQueueEntryResponse
+	33,  // 281: jungletv.JungleTV.MoveQueueEntry:output_type -> jungletv.MoveQueueEntryResponse
+	27,  // 282: jungletv.JungleTV.MonitorTicket:output_type -> jungletv.EnqueueMediaTicket
+	39,  // 283: jungletv.JungleTV.ConsumeMedia:output_type -> jungletv.MediaConsumptionCheckpoint
+	42,  // 284: jungletv.JungleTV.MonitorQueue:output_type -> jungletv.Queue
+	49,  // 285: jungletv.JungleTV.MonitorSkipAndTip:output_type -> jungletv.SkipAndTipStatus
+	51,  // 286: jungletv.JungleTV.RewardInfo:output_type -> jungletv.RewardInfoResponse
+	57,  // 287: jungletv.JungleTV.SubmitActivityChallenge:output_type -> jungletv.SubmitActivityChallengeResponse
+	146, // 288: jungletv.JungleTV.ProduceSegchaChallenge:output_type -> jungletv.ProduceSegchaChallengeResponse
+	59,  // 289: jungletv.JungleTV.ConsumeChat:output_type -> jungletv.ChatUpdate
+	75,  // 290: jungletv.JungleTV.SendChatMessage:output_type -> jungletv.SendChatMessageResponse
+	99,  // 291: jungletv.JungleTV.UserPermissionLevel:output_type -> jungletv.UserPermissionLevelResponse
+	115, // 292: jungletv.JungleTV.GetDocument:output_type -> jungletv.Document
+	121, // 293: jungletv.JungleTV.SetChatNickname:output_type -> jungletv.SetChatNicknameResponse
+	129, // 294: jungletv.JungleTV.Withdraw:output_type -> jungletv.WithdrawResponse
+	131, // 295: jungletv.JungleTV.Leaderboards:output_type -> jungletv.LeaderboardsResponse
+	137, // 296: jungletv.JungleTV.RewardHistory:output_type -> jungletv.RewardHistoryResponse
+	140, // 297: jungletv.JungleTV.WithdrawalHistory:output_type -> jungletv.WithdrawalHistoryResponse
+	155, // 298: jungletv.JungleTV.OngoingRaffleInfo:output_type -> jungletv.OngoingRaffleInfoResponse
+	159, // 299: jungletv.JungleTV.RaffleDrawings:output_type -> jungletv.RaffleDrawingsResponse
+	179, // 300: jungletv.JungleTV.Connections:output_type -> jungletv.ConnectionsResponse
+	181, // 301: jungletv.JungleTV.CreateConnection:output_type -> jungletv.CreateConnectionResponse
+	183, // 302: jungletv.JungleTV.RemoveConnection:output_type -> jungletv.RemoveConnectionResponse
+	189, // 303: jungletv.JungleTV.UserProfile:output_type -> jungletv.UserProfileResponse
+	192, // 304: jungletv.JungleTV.UserStats:output_type -> jungletv.UserStatsResponse
+	195, // 305: jungletv.JungleTV.SetProfileBiography:output_type -> jungletv.SetProfileBiographyResponse
+	197, // 306: jungletv.JungleTV.SetProfileFeaturedMedia:output_type -> jungletv.SetProfileFeaturedMediaResponse
+	201, // 307: jungletv.JungleTV.PlayedMediaHistory:output_type -> jungletv.PlayedMediaHistoryResponse
+	203, // 308: jungletv.JungleTV.BlockUser:output_type -> jungletv.BlockUserResponse
+	205, // 309: jungletv.JungleTV.UnblockUser:output_type -> jungletv.UnblockUserResponse
+	208, // 310: jungletv.JungleTV.BlockedUsers:output_type -> jungletv.BlockedUsersResponse
+	214, // 311: jungletv.JungleTV.PointsInfo:output_type -> jungletv.PointsInfoResponse
+	217, // 312: jungletv.JungleTV.PointsTransactions:output_type -> jungletv.PointsTransactionsResponse
+	220, // 313: jungletv.JungleTV.ChatGifSearch:output_type -> jungletv.ChatGifSearchResponse
+	225, // 314: jungletv.JungleTV.ConvertBananoToPoints:output_type -> jungletv.ConvertBananoToPointsStatus
+	227, // 315: jungletv.JungleTV.StartOrExtendSubscription:output_type -> jungletv.StartOrExtendSubscriptionResponse
+	229, // 316: jungletv.JungleTV.SoundCloudTrackDetails:output_type -> jungletv.SoundCloudTrackDetailsResponse
+	237, // 317: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:output_type -> jungletv.IncreaseOrReduceSkipThresholdResponse
+	55,  // 318: jungletv.JungleTV.ForciblyEnqueueTicket:output_type -> jungletv.ForciblyEnqueueTicketResponse
+	53,  // 319: jungletv.JungleTV.RemoveQueueEntry:output_type -> jungletv.RemoveQueueEntryResponse
+	77,  // 320: jungletv.JungleTV.RemoveChatMessage:output_type -> jungletv.RemoveChatMessageResponse
+	79,  // 321: jungletv.JungleTV.SetChatSettings:output_type -> jungletv.SetChatSettingsResponse
+	95,  // 322: jungletv.JungleTV.SetMediaEnqueuingEnabled:output_type -> jungletv.SetMediaEnqueuingEnabledResponse
+	86,  // 323: jungletv.JungleTV.UserBans:output_type -> jungletv.UserBansResponse
+	81,  // 324: jungletv.JungleTV.BanUser:output_type -> jungletv.BanUserResponse
+	83,  // 325: jungletv.JungleTV.RemoveBan:output_type -> jungletv.RemoveBanResponse
+	93,  // 326: jungletv.JungleTV.UserVerifications:output_type -> jungletv.UserVerificationsResponse
+	88,  // 327: jungletv.JungleTV.VerifyUser:output_type -> jungletv.VerifyUserResponse
+	90,  // 328: jungletv.JungleTV.RemoveUserVerification:output_type -> jungletv.RemoveUserVerificationResponse
+	97,  // 329: jungletv.JungleTV.UserChatMessages:output_type -> jungletv.UserChatMessagesResponse
+	102, // 330: jungletv.JungleTV.DisallowedMedia:output_type -> jungletv.DisallowedMediaResponse
+	104, // 331: jungletv.JungleTV.AddDisallowedMedia:output_type -> jungletv.AddDisallowedMediaResponse
+	106, // 332: jungletv.JungleTV.RemoveDisallowedMedia:output_type -> jungletv.RemoveDisallowedMediaResponse
+	109, // 333: jungletv.JungleTV.DisallowedMediaCollections:output_type -> jungletv.DisallowedMediaCollectionsResponse
+	111, // 334: jungletv.JungleTV.AddDisallowedMediaCollection:output_type -> jungletv.AddDisallowedMediaCollectionResponse
+	113, // 335: jungletv.JungleTV.RemoveDisallowedMediaCollection:output_type -> jungletv.RemoveDisallowedMediaCollectionResponse
+	116, // 336: jungletv.JungleTV.UpdateDocument:output_type -> jungletv.UpdateDocumentResponse
+	119, // 337: jungletv.JungleTV.Documents:output_type -> jungletv.DocumentsResponse
+	123, // 338: jungletv.JungleTV.SetUserChatNickname:output_type -> jungletv.SetUserChatNicknameResponse
+	125, // 339: jungletv.JungleTV.SetPricesMultiplier:output_type -> jungletv.SetPricesMultiplierResponse
+	127, // 340: jungletv.JungleTV.SetMinimumPricesMultiplier:output_type -> jungletv.SetMinimumPricesMultiplierResponse
+	142, // 341: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:output_type -> jungletv.SetCrowdfundedSkippingEnabledResponse
+	144, // 342: jungletv.JungleTV.SetSkipPriceMultiplier:output_type -> jungletv.SetSkipPriceMultiplierResponse
+	149, // 343: jungletv.JungleTV.ConfirmRaffleWinner:output_type -> jungletv.ConfirmRaffleWinnerResponse
+	151, // 344: jungletv.JungleTV.CompleteRaffle:output_type -> jungletv.CompleteRaffleResponse
+	153, // 345: jungletv.JungleTV.RedrawRaffle:output_type -> jungletv.RedrawRaffleResponse
+	161, // 346: jungletv.JungleTV.TriggerAnnouncementsNotification:output_type -> jungletv.TriggerAnnouncementsNotificationResponse
+	163, // 347: jungletv.JungleTV.SpectatorInfo:output_type -> jungletv.Spectator
+	165, // 348: jungletv.JungleTV.ResetSpectatorStatus:output_type -> jungletv.ResetSpectatorStatusResponse
+	167, // 349: jungletv.JungleTV.MonitorModerationStatus:output_type -> jungletv.ModerationStatusOverview
+	171, // 350: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:output_type -> jungletv.SetOwnQueueEntryRemovalAllowedResponse
+	169, // 351: jungletv.JungleTV.SetQueueEntryReorderingAllowed:output_type -> jungletv.SetQueueEntryReorderingAllowedResponse
+	173, // 352: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:output_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
+	175, // 353: jungletv.JungleTV.SetSkippingEnabled:output_type -> jungletv.SetSkippingEnabledResponse
+	185, // 354: jungletv.JungleTV.SetQueueInsertCursor:output_type -> jungletv.SetQueueInsertCursorResponse
+	187, // 355: jungletv.JungleTV.ClearQueueInsertCursor:output_type -> jungletv.ClearQueueInsertCursorResponse
+	199, // 356: jungletv.JungleTV.ClearUserProfile:output_type -> jungletv.ClearUserProfileResponse
+	210, // 357: jungletv.JungleTV.MarkAsActivelyModerating:output_type -> jungletv.MarkAsActivelyModeratingResponse
+	212, // 358: jungletv.JungleTV.StopActivelyModerating:output_type -> jungletv.StopActivelyModeratingResponse
+	223, // 359: jungletv.JungleTV.AdjustPointsBalance:output_type -> jungletv.AdjustPointsBalanceResponse
+	231, // 360: jungletv.JungleTV.AddVipUser:output_type -> jungletv.AddVipUserResponse
+	233, // 361: jungletv.JungleTV.RemoveVipUser:output_type -> jungletv.RemoveVipUserResponse
+	235, // 362: jungletv.JungleTV.TriggerClientReload:output_type -> jungletv.TriggerClientReloadResponse
+	239, // 363: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:output_type -> jungletv.SetMulticurrencyPaymentsEnabledResponse
+	264, // 364: jungletv.JungleTV.Applications:output_type -> jungletv.ApplicationsResponse
+	246, // 365: jungletv.JungleTV.GetApplication:output_type -> jungletv.Application
+	265, // 366: jungletv.JungleTV.UpdateApplication:output_type -> jungletv.UpdateApplicationResponse
+	266, // 367: jungletv.JungleTV.CloneApplication:output_type -> jungletv.CloneApplicationResponse
+	267, // 368: jungletv.JungleTV.DeleteApplication:output_type -> jungletv.DeleteApplicationResponse
+	268, // 369: jungletv.JungleTV.ApplicationFiles:output_type -> jungletv.ApplicationFilesResponse
+	251, // 370: jungletv.JungleTV.GetApplicationFile:output_type -> jungletv.ApplicationFile
+	269, // 371: jungletv.JungleTV.UpdateApplicationFile:output_type -> jungletv.UpdateApplicationFileResponse
+	270, // 372: jungletv.JungleTV.CloneApplicationFile:output_type -> jungletv.CloneApplicationFileResponse
+	271, // 373: jungletv.JungleTV.DeleteApplicationFile:output_type -> jungletv.DeleteApplicationFileResponse
+	272, // 374: jungletv.JungleTV.LaunchApplication:output_type -> jungletv.LaunchApplicationResponse
+	273, // 375: jungletv.JungleTV.StopApplication:output_type -> jungletv.StopApplicationResponse
+	274, // 376: jungletv.JungleTV.ApplicationLog:output_type -> jungletv.ApplicationLogResponse
+	275, // 377: jungletv.JungleTV.ConsumeApplicationLog:output_type -> jungletv.ApplicationLogEntryContainer
+	276, // 378: jungletv.JungleTV.MonitorRunningApplications:output_type -> jungletv.RunningApplications
+	277, // 379: jungletv.JungleTV.EvaluateExpressionOnApplication:output_type -> jungletv.EvaluateExpressionOnApplicationResponse
+	278, // 380: jungletv.JungleTV.ResolveApplicationPage:output_type -> jungletv.ResolveApplicationPageResponse
+	279, // 381: jungletv.JungleTV.ConsumeApplicationEventStream:output_type -> jungletv.ApplicationEventStreamUpdate
+	280, // 382: jungletv.JungleTV.ApplicationServerMethod:output_type -> jungletv.ApplicationServerMethodResponse
+	281, // 383: jungletv.JungleTV.TriggerApplicationEvent:output_type -> jungletv.TriggerApplicationEventResponse
+	278, // [278:384] is the sub-list for method output_type
+	172, // [172:278] is the sub-list for method input_type
 	172, // [172:172] is the sub-list for extension type_name
 	172, // [172:172] is the sub-list for extension extendee
 	0,   // [0:172] is the sub-list for field type_name

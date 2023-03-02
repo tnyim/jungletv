@@ -139,6 +139,453 @@ func (x *ResolveApplicationPageResponse) GetApplicationVersion() *timestamppb.Ti
 	return nil
 }
 
+type ConsumeApplicationEventStreamRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId string `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	PageId        string `protobuf:"bytes,2,opt,name=page_id,json=pageId,proto3" json:"page_id,omitempty"`
+}
+
+func (x *ConsumeApplicationEventStreamRequest) Reset() {
+	*x = ConsumeApplicationEventStreamRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ConsumeApplicationEventStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConsumeApplicationEventStreamRequest) ProtoMessage() {}
+
+func (x *ConsumeApplicationEventStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConsumeApplicationEventStreamRequest.ProtoReflect.Descriptor instead.
+func (*ConsumeApplicationEventStreamRequest) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ConsumeApplicationEventStreamRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *ConsumeApplicationEventStreamRequest) GetPageId() string {
+	if x != nil {
+		return x.PageId
+	}
+	return ""
+}
+
+type ApplicationEventStreamUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Type:
+	//	*ApplicationEventStreamUpdate_Heartbeat
+	//	*ApplicationEventStreamUpdate_ApplicationEvent
+	Type isApplicationEventStreamUpdate_Type `protobuf_oneof:"type"`
+}
+
+func (x *ApplicationEventStreamUpdate) Reset() {
+	*x = ApplicationEventStreamUpdate{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationEventStreamUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationEventStreamUpdate) ProtoMessage() {}
+
+func (x *ApplicationEventStreamUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationEventStreamUpdate.ProtoReflect.Descriptor instead.
+func (*ApplicationEventStreamUpdate) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{3}
+}
+
+func (m *ApplicationEventStreamUpdate) GetType() isApplicationEventStreamUpdate_Type {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (x *ApplicationEventStreamUpdate) GetHeartbeat() *ApplicationHeartbeatEvent {
+	if x, ok := x.GetType().(*ApplicationEventStreamUpdate_Heartbeat); ok {
+		return x.Heartbeat
+	}
+	return nil
+}
+
+func (x *ApplicationEventStreamUpdate) GetApplicationEvent() *ApplicationServerEvent {
+	if x, ok := x.GetType().(*ApplicationEventStreamUpdate_ApplicationEvent); ok {
+		return x.ApplicationEvent
+	}
+	return nil
+}
+
+type isApplicationEventStreamUpdate_Type interface {
+	isApplicationEventStreamUpdate_Type()
+}
+
+type ApplicationEventStreamUpdate_Heartbeat struct {
+	Heartbeat *ApplicationHeartbeatEvent `protobuf:"bytes,1,opt,name=heartbeat,proto3,oneof"`
+}
+
+type ApplicationEventStreamUpdate_ApplicationEvent struct {
+	ApplicationEvent *ApplicationServerEvent `protobuf:"bytes,2,opt,name=application_event,json=applicationEvent,proto3,oneof"`
+}
+
+func (*ApplicationEventStreamUpdate_Heartbeat) isApplicationEventStreamUpdate_Type() {}
+
+func (*ApplicationEventStreamUpdate_ApplicationEvent) isApplicationEventStreamUpdate_Type() {}
+
+type ApplicationHeartbeatEvent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ApplicationHeartbeatEvent) Reset() {
+	*x = ApplicationHeartbeatEvent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationHeartbeatEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationHeartbeatEvent) ProtoMessage() {}
+
+func (x *ApplicationHeartbeatEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationHeartbeatEvent.ProtoReflect.Descriptor instead.
+func (*ApplicationHeartbeatEvent) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{4}
+}
+
+type ApplicationServerEvent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name      string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Arguments []string `protobuf:"bytes,2,rep,name=arguments,proto3" json:"arguments,omitempty"`
+}
+
+func (x *ApplicationServerEvent) Reset() {
+	*x = ApplicationServerEvent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationServerEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationServerEvent) ProtoMessage() {}
+
+func (x *ApplicationServerEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationServerEvent.ProtoReflect.Descriptor instead.
+func (*ApplicationServerEvent) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ApplicationServerEvent) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ApplicationServerEvent) GetArguments() []string {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
+type ApplicationServerMethodRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId string   `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	Method        string   `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Arguments     []string `protobuf:"bytes,3,rep,name=arguments,proto3" json:"arguments,omitempty"`
+}
+
+func (x *ApplicationServerMethodRequest) Reset() {
+	*x = ApplicationServerMethodRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationServerMethodRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationServerMethodRequest) ProtoMessage() {}
+
+func (x *ApplicationServerMethodRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationServerMethodRequest.ProtoReflect.Descriptor instead.
+func (*ApplicationServerMethodRequest) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ApplicationServerMethodRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *ApplicationServerMethodRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ApplicationServerMethodRequest) GetArguments() []string {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
+type ApplicationServerMethodResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result string `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+}
+
+func (x *ApplicationServerMethodResponse) Reset() {
+	*x = ApplicationServerMethodResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ApplicationServerMethodResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplicationServerMethodResponse) ProtoMessage() {}
+
+func (x *ApplicationServerMethodResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplicationServerMethodResponse.ProtoReflect.Descriptor instead.
+func (*ApplicationServerMethodResponse) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ApplicationServerMethodResponse) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+type TriggerApplicationEventRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId string   `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	PageId        string   `protobuf:"bytes,2,opt,name=page_id,json=pageId,proto3" json:"page_id,omitempty"`
+	Name          string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Arguments     []string `protobuf:"bytes,4,rep,name=arguments,proto3" json:"arguments,omitempty"`
+}
+
+func (x *TriggerApplicationEventRequest) Reset() {
+	*x = TriggerApplicationEventRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TriggerApplicationEventRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerApplicationEventRequest) ProtoMessage() {}
+
+func (x *TriggerApplicationEventRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerApplicationEventRequest.ProtoReflect.Descriptor instead.
+func (*TriggerApplicationEventRequest) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *TriggerApplicationEventRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *TriggerApplicationEventRequest) GetPageId() string {
+	if x != nil {
+		return x.PageId
+	}
+	return ""
+}
+
+func (x *TriggerApplicationEventRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TriggerApplicationEventRequest) GetArguments() []string {
+	if x != nil {
+		return x.Arguments
+	}
+	return nil
+}
+
+type TriggerApplicationEventResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *TriggerApplicationEventResponse) Reset() {
+	*x = TriggerApplicationEventResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_runtime_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TriggerApplicationEventResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerApplicationEventResponse) ProtoMessage() {}
+
+func (x *TriggerApplicationEventResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_runtime_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerApplicationEventResponse.ProtoReflect.Descriptor instead.
+func (*TriggerApplicationEventResponse) Descriptor() ([]byte, []int) {
+	return file_application_runtime_proto_rawDescGZIP(), []int{9}
+}
+
 var File_application_runtime_proto protoreflect.FileDescriptor
 
 var file_application_runtime_proto_rawDesc = []byte{
@@ -164,10 +611,58 @@ var file_application_runtime_proto_rawDesc = []byte{
 	0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f,
 	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d,
 	0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x12, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x6e, 0x79, 0x69, 0x6d, 0x2f, 0x6a,
-	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x69, 0x6f, 0x6e, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x66, 0x0a, 0x24, 0x43, 0x6f,
+	0x6e, 0x73, 0x75, 0x6d, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x61, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x61, 0x67,
+	0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x61, 0x67, 0x65,
+	0x49, 0x64, 0x22, 0xbc, 0x01, 0x0a, 0x1c, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x12, 0x43, 0x0a, 0x09, 0x68, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
+	0x76, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x65, 0x61,
+	0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x09, 0x68,
+	0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x12, 0x4f, 0x0a, 0x11, 0x61, 0x70, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41,
+	0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72,
+	0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x10, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70,
+	0x65, 0x22, 0x1b, 0x0a, 0x19, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x4a,
+	0x0a, 0x16, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72,
+	0x76, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09,
+	0x61, 0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52,
+	0x09, 0x61, 0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x22, 0x7d, 0x0a, 0x1e, 0x41, 0x70,
+	0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x4d,
+	0x65, 0x74, 0x68, 0x6f, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e,
+	0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x49, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12, 0x1c, 0x0a, 0x09, 0x61,
+	0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09,
+	0x61, 0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x22, 0x39, 0x0a, 0x1f, 0x41, 0x70, 0x70,
+	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x4d, 0x65,
+	0x74, 0x68, 0x6f, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06,
+	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x72, 0x65,
+	0x73, 0x75, 0x6c, 0x74, 0x22, 0x92, 0x01, 0x0a, 0x1e, 0x54, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72,
+	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0d, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x17,
+	0x0a, 0x07, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x70, 0x61, 0x67, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x61,
+	0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09,
+	0x61, 0x72, 0x67, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x22, 0x21, 0x0a, 0x1f, 0x54, 0x72, 0x69,
+	0x67, 0x67, 0x65, 0x72, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x6e, 0x79, 0x69, 0x6d,
+	0x2f, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -182,19 +677,29 @@ func file_application_runtime_proto_rawDescGZIP() []byte {
 	return file_application_runtime_proto_rawDescData
 }
 
-var file_application_runtime_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_application_runtime_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_application_runtime_proto_goTypes = []interface{}{
-	(*ResolveApplicationPageRequest)(nil),  // 0: jungletv.ResolveApplicationPageRequest
-	(*ResolveApplicationPageResponse)(nil), // 1: jungletv.ResolveApplicationPageResponse
-	(*timestamppb.Timestamp)(nil),          // 2: google.protobuf.Timestamp
+	(*ResolveApplicationPageRequest)(nil),        // 0: jungletv.ResolveApplicationPageRequest
+	(*ResolveApplicationPageResponse)(nil),       // 1: jungletv.ResolveApplicationPageResponse
+	(*ConsumeApplicationEventStreamRequest)(nil), // 2: jungletv.ConsumeApplicationEventStreamRequest
+	(*ApplicationEventStreamUpdate)(nil),         // 3: jungletv.ApplicationEventStreamUpdate
+	(*ApplicationHeartbeatEvent)(nil),            // 4: jungletv.ApplicationHeartbeatEvent
+	(*ApplicationServerEvent)(nil),               // 5: jungletv.ApplicationServerEvent
+	(*ApplicationServerMethodRequest)(nil),       // 6: jungletv.ApplicationServerMethodRequest
+	(*ApplicationServerMethodResponse)(nil),      // 7: jungletv.ApplicationServerMethodResponse
+	(*TriggerApplicationEventRequest)(nil),       // 8: jungletv.TriggerApplicationEventRequest
+	(*TriggerApplicationEventResponse)(nil),      // 9: jungletv.TriggerApplicationEventResponse
+	(*timestamppb.Timestamp)(nil),                // 10: google.protobuf.Timestamp
 }
 var file_application_runtime_proto_depIdxs = []int32{
-	2, // 0: jungletv.ResolveApplicationPageResponse.application_version:type_name -> google.protobuf.Timestamp
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	10, // 0: jungletv.ResolveApplicationPageResponse.application_version:type_name -> google.protobuf.Timestamp
+	4,  // 1: jungletv.ApplicationEventStreamUpdate.heartbeat:type_name -> jungletv.ApplicationHeartbeatEvent
+	5,  // 2: jungletv.ApplicationEventStreamUpdate.application_event:type_name -> jungletv.ApplicationServerEvent
+	3,  // [3:3] is the sub-list for method output_type
+	3,  // [3:3] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_application_runtime_proto_init() }
@@ -227,6 +732,106 @@ func file_application_runtime_proto_init() {
 				return nil
 			}
 		}
+		file_application_runtime_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ConsumeApplicationEventStreamRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationEventStreamUpdate); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationHeartbeatEvent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationServerEvent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationServerMethodRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ApplicationServerMethodResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TriggerApplicationEventRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_runtime_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TriggerApplicationEventResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	file_application_runtime_proto_msgTypes[3].OneofWrappers = []interface{}{
+		(*ApplicationEventStreamUpdate_Heartbeat)(nil),
+		(*ApplicationEventStreamUpdate_ApplicationEvent)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -234,7 +839,7 @@ func file_application_runtime_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_application_runtime_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

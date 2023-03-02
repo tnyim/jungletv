@@ -22,6 +22,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -45,6 +47,7 @@ type appInstance struct {
 	appLogger          *appLogger
 	modules            *modules.Collection
 	pagesModule        pages.PagesModule
+	rpcModule          rpc.RPCModule
 
 	// promisesWithoutRejectionHandler are rejected promises with no handler,
 	// if there is something in this map at an end of an event loop then it will exit with an error.
@@ -81,7 +84,9 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	}
 
 	scheduleFunctionNoError := func(f func(vm *goja.Runtime)) {
-		instance.runOnLoopWithInterruption(instance.ctx, f)
+		instance.runOnLoopWithInterruption(instance.ctx, f, func(x interface{}) {
+			instance.appLogger.RuntimeError(fmt.Sprint(x))
+		})
 	}
 
 	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
@@ -90,6 +95,8 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(db.New(scheduleFunctionNoError))
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
+	instance.rpcModule = rpc.New()
+	instance.modules.RegisterNativeModule(instance.rpcModule)
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
@@ -228,12 +235,13 @@ func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 		if err != nil {
 			a.appLogger.RuntimeError(err.Error())
 		}
+	}, func(x interface{}) {
+		a.appLogger.RuntimeError(fmt.Sprint(x))
 	})
 }
 
-func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime)) {
+func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(interface{})) {
 	a.loop.RunOnLoop(func(vm *goja.Runtime) {
-
 		ranChan := make(chan struct{}, 1)
 		waitGroup := sync.WaitGroup{}
 		waitGroup.Add(1)
@@ -251,7 +259,9 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		func() {
 			defer func() {
 				if x := recover(); x != nil {
-					a.appLogger.RuntimeError(fmt.Sprint("runtime panic occurred: ", x))
+					if panicCb != nil {
+						panicCb(x)
+					}
 				}
 			}()
 			f(vm)
@@ -405,6 +415,27 @@ func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
 }
 
 func (a *appInstance) EvaluateExpression(ctx context.Context, expression string) (bool, string, time.Duration, error) {
+	type evalResult struct {
+		result     string
+		successful bool
+	}
+	result, executionTime, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (evalResult, error) {
+		result, err := vm.RunString(expression)
+		if err != nil {
+			return evalResult{
+				successful: false,
+				result:     err.Error(),
+			}, nil
+		}
+		return evalResult{
+			result:     resultString(vm, result, 0),
+			successful: true,
+		}, nil
+	})
+	return result.successful, result.result, executionTime, stacktrace.Propagate(err, "")
+}
+
+func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstance, cb func(vm *goja.Runtime) (T, error)) (T, time.Duration, error) {
 	a.mu.RLock()
 	running := a.running
 	// we release the lock here because there's no guarantee the function passed to runOnLoopWithInterruption
@@ -414,21 +445,24 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 	a.mu.RUnlock()
 
 	if !running {
-		return false, "", 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+		return *new(T), 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
-	resultChan := make(chan string)
+	resultChan := make(chan T)
 	errChan := make(chan error)
 	var executionTime time.Duration
 	couldHavePaused := &atomic.Int32{}
 	couldHavePaused.Store(1)
+	var panicReason interface{}
 	a.runOnLoopWithInterruption(ctx, func(vm *goja.Runtime) {
 		couldHavePaused.Store(0)
 		start := time.Now()
-		result, err := vm.RunString(expression)
+		result, err := cb(vm)
 		executionTime = time.Since(start)
-		resultChan <- resultString(vm, result, 0)
+		resultChan <- result
 		errChan <- err
+	}, func(x interface{}) {
+		panicReason = x
 	})
 
 	onPaused, pausedU := a.Paused().Subscribe(event.BufferFirst)
@@ -438,14 +472,14 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 		select {
 		case result := <-resultChan:
 			err := <-errChan
-			if err != nil {
-				return false, err.Error(), executionTime, nil
+			if panicReason != nil {
+				err = errors.New(fmt.Sprint(panicReason))
 			}
-			return true, result, executionTime, nil
+			return result, executionTime, stacktrace.Propagate(err, "")
 		case <-onPaused:
 			if couldHavePaused.Load() == 1 {
 				// application paused before our loop function could run / before our expression returned
-				return false, "", executionTime, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+				return *new(T), executionTime, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 			}
 			// otherwise: application paused but we are still going to get a result
 			// (even if it's an error due to the interrupt still being set)
@@ -544,6 +578,36 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 	}
 	p, ok := a.pagesModule.ResolvePage(pageID)
 	return p, v, ok
+}
+
+func (a *appInstance) ApplicationMethod(ctx context.Context, method string, args []string) (string, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	result, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (string, error) {
+		value := a.rpcModule.HandleInvocation(vm, user, method, args)
+		return value.String(), nil
+	})
+	return result, stacktrace.Propagate(err, "")
+}
+
+func (a *appInstance) ApplicationEvent(ctx context.Context, pageID string, eventName string, eventArgs []string) error {
+	a.mu.RLock()
+	running := a.running
+	// we release the lock here because there's no guarantee the function passed to runOnLoopWithInterruption
+	// will ever execute (the event loop could be stuck in an infinite loop)
+	// we also can't hold the lock until this function finishes executing, for the same reason
+	// (if we keep holding the lock, Pause/Terminate will get stuck waiting for it)
+	a.mu.RUnlock()
+
+	if !running {
+		return stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+	}
+
+	//user := authinterceptor.UserClaimsFromContext(ctx)
+	a.runOnLoopLogError(func(vm *goja.Runtime) error {
+		// TODO
+		return nil
+	})
+	return nil
 }
 
 const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {

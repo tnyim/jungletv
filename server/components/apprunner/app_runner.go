@@ -330,3 +330,33 @@ func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, t
 	}
 	return instance.ResolvePage(pageID)
 }
+
+func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, method string, args []string) (string, error) {
+	var instance *appInstance
+	var ok bool
+	func() {
+		// make sure to release lock ASAP since expression execution can take a significant amount of time
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
+		instance, ok = r.instances[applicationID]
+	}()
+	if !ok {
+		return "", stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	}
+	result, err := instance.ApplicationMethod(ctx, method, args)
+	return result, stacktrace.Propagate(err, "")
+}
+
+func (r *AppRunner) ApplicationEvent(ctx context.Context, applicationID, pageID string, eventName string, eventArgs []string) error {
+	var instance *appInstance
+	var ok bool
+	func() {
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
+		instance, ok = r.instances[applicationID]
+	}()
+	if !ok {
+		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	}
+	return stacktrace.Propagate(instance.ApplicationEvent(ctx, pageID, eventName, eventArgs), "")
+}

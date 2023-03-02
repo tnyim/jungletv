@@ -1,9 +1,11 @@
 <script lang="ts">
     import { Connection, ParentHandshake } from "post-me";
-    import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
     import { onDestroy } from "svelte";
+    import { navigate } from "svelte-navigator";
+    import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
     import { BRIDGE_VERSION, ChildEvents, ChildMethods, ParentEvents, ParentMethods } from "../appbridge/common/model";
     import { apiClient } from "./api_client";
+    import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import NotFound from "./NotFound.svelte";
     import { pageTitleApplicationPage } from "./pageTitleStores";
     import type { ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
@@ -11,11 +13,13 @@
     export let applicationID: string;
     export let pageID: string;
     let applicationVersion: Date;
+    let originalPageTitle: string;
 
     async function resolvePage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
         let r = await apiClient.resolveApplicationPage(applicationID, pageID);
         applicationVersion = r.getApplicationVersion().toDate();
-        pageTitleApplicationPage.set(r.getPageTitle());
+        originalPageTitle = r.getPageTitle();
+        pageTitleApplicationPage.set(originalPageTitle);
         return r;
     }
 
@@ -37,10 +41,20 @@
         bridgeVersion() {
             return BRIDGE_VERSION;
         },
-        serverRequest(method, ...args): any {
-            // TODO
-            return "TODO";
+        async serverMethod(method, ...args): Promise<any> {
+            let jsonArgs: string[] = [];
+            for (let arg of args) {
+                jsonArgs.push(JSON.stringify(arg));
+            }
+            let result = await apiClient.applicationServerMethod(applicationID, method, jsonArgs);
+            return JSON.parse(result.getResult(), (key, value) => (key === "__proto__" ? undefined : value));
         },
+        navigateToApplicationPage(newPageID, newApplicationID) {
+            navigate(`/apps/${newApplicationID ?? applicationID}/${newPageID}`);
+        },
+        alert: modalAlert,
+        confirm: modalConfirm,
+        prompt: modalPrompt,
     };
 
     async function iframeBound(iframe: HTMLIFrameElement) {
@@ -52,7 +66,9 @@
 
         connection = await ParentHandshake(messenger, bridgeMethods);
 
-        connection.remoteHandle().addEventListener("pageTitleUpdated", pageTitleApplicationPage.set);
+        connection.remoteHandle().addEventListener("pageTitleUpdated", (t) => {
+            pageTitleApplicationPage.set(t ? t : originalPageTitle);
+        });
 
         await connection.remoteHandle().once("handshook");
 
@@ -63,6 +79,12 @@
             role: "standalone",
         });
     }
+
+    onDestroy(() => {
+        if (typeof connection !== "undefined") {
+            connection.localHandle().emit("destroyed", undefined);
+        }
+    });
 </script>
 
 {#await resolvePage(applicationID, pageID)}

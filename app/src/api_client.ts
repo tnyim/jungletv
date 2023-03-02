@@ -6,7 +6,7 @@ import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
 import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
-import { ResolveApplicationPageRequest, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
+import { ApplicationEventStreamUpdate, ApplicationServerMethodRequest, ApplicationServerMethodResponse, ConsumeApplicationEventStreamRequest, ResolveApplicationPageRequest, ResolveApplicationPageResponse, TriggerApplicationEventRequest, TriggerApplicationEventResponse } from "./proto/application_runtime_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
     AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
@@ -927,6 +927,34 @@ class APIClient {
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
         return this.unaryRPC(JungleTV.ResolveApplicationPage, request);
+    }
+
+    consumeApplicationEventStream(applicationID: string, pageID: string, onUpdate: (update: ApplicationEventStreamUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        let request = new ConsumeApplicationEventStreamRequest();
+        request.setApplicationId(applicationID);
+        request.setPageId(pageID);
+        return this.serverStreamingRPC(
+            JungleTV.ConsumeApplicationEventStream,
+            request,
+            onUpdate,
+            onEnd);
+    }
+
+    async applicationServerMethod(applicationID: string, method: string, args: string[]): Promise<ApplicationServerMethodResponse> {
+        let request = new ApplicationServerMethodRequest();
+        request.setApplicationId(applicationID);
+        request.setMethod(method);
+        request.setArgumentsList(args);
+        return this.unaryRPC(JungleTV.ApplicationServerMethod, request);
+    }
+
+    async triggerApplicationEvent(applicationID: string, pageID: string, eventName: string, eventArgs: string[]): Promise<TriggerApplicationEventResponse> {
+        let request = new TriggerApplicationEventRequest();
+        request.setApplicationId(applicationID);
+        request.setPageId(pageID);
+        request.setName(eventName);
+        request.setArgumentsList(eventArgs);
+        return this.unaryRPC(JungleTV.TriggerApplicationEvent, request);
     }
 
     convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
