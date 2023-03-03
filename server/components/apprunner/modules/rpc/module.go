@@ -49,14 +49,7 @@ func (m *rpcModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setMethodHandler", m.setMethodHandler)
 		m.exports.Set("removeMethodHandler", m.removeMethodHandler)
 
-		unmarshallerValue, err := runtime.RunString(`
-		(function(args) {
-			let r = [];
-			for (let arg of args) {
-				r.push(JSON.parse(arg, (key, value) => key === "__proto__" ? undefined : value));
-			}
-			return r;
-		})`)
+		unmarshallerValue, err := runtime.RunString(`(arg) => JSON.parse(arg, (key, value) => key === "__proto__" ? undefined : value)`)
 		if err != nil {
 			panic(stacktrace.Propagate(err, ""))
 		}
@@ -101,18 +94,6 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, method st
 		panic(vm.NewTypeError("Insufficient permissions"))
 	}
 
-	// unmarshal args
-	jsArgs := vm.ToValue(args)
-	parsedArgs, err := m.argUnmarshaller(goja.Undefined(), jsArgs)
-	if err != nil {
-		panic(err)
-	}
-	var parsedArgsArray []goja.Value
-	err = vm.ExportTo(parsedArgs, &parsedArgsArray)
-	if err != nil {
-		panic(vm.NewGoError(stacktrace.Propagate(err, "")))
-	}
-
 	jsUser := goja.Undefined()
 	if user != nil && !user.IsUnknown() {
 		jsUser = vm.ToValue(map[string]interface{}{
@@ -122,10 +103,18 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, method st
 		})
 	}
 
-	completeArgs := []goja.Value{jsUser}
-	completeArgs = append(completeArgs, parsedArgsArray...)
+	// unmarshal args
+	callableArgs := make([]goja.Value, len(args)+1)
+	callableArgs[0] = jsUser
+	for i, arg := range args {
+		var err error
+		callableArgs[i+1], err = m.argUnmarshaller(goja.Undefined(), vm.ToValue(arg))
+		if err != nil {
+			panic(err)
+		}
+	}
 
-	result, err := h.callable(goja.Undefined(), completeArgs...)
+	result, err := h.callable(goja.Undefined(), callableArgs...)
 	if err != nil {
 		panic(err)
 	}
