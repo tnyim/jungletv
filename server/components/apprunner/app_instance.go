@@ -58,6 +58,7 @@ type appInstance struct {
 	ctx              context.Context
 	ctxCancel        func()
 	stopWatchdog     func()
+	feedWatchdog     func()
 	vmInterrupt      func(v any)
 	vmClearInterrupt func()
 }
@@ -159,7 +160,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.loop.Start()
 	a.running = true
 	a.startedOrStoppedAt = time.Now()
-	a.stopWatchdog = a.startWatchdog(30 * time.Second)
+	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
 
 	a.modules.ExecutionResumed(a.ctx)
 
@@ -190,11 +191,17 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	return nil
 }
 
-func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) func() {
+func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (func(), func()) {
 	doneCh := make(chan struct{})
-	timer := time.NewTimer(tolerateEventLoopStuckFor)
+	feedCh := make(chan struct{})
+	feedWatchdog := func() {
+		select {
+		case feedCh <- struct{}{}:
+		default:
+		}
+	}
 	interval := a.loop.SetInterval(func(vm *goja.Runtime) {
-		timer.Reset(tolerateEventLoopStuckFor)
+		feedWatchdog()
 		for promise := range a.promisesWithoutRejectionHandler {
 			value := promise.Result()
 			if !goja.IsUndefined(value) && !goja.IsNull(value) {
@@ -209,13 +216,22 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) fun
 		maps.Clear(a.promisesWithoutRejectionHandler)
 	}, 1*time.Second)
 	go func() {
-		select {
-		case <-doneCh:
-			return
-		case <-timer.C:
-			a.appLogger.RuntimeError(fmt.Sprintf("application event loop stuck for at least %v, terminating", tolerateEventLoopStuckFor))
-			a.Terminate(true, 0*time.Second, false)
-			return
+		timer := time.NewTimer(tolerateEventLoopStuckFor)
+		defer timer.Stop()
+		for {
+			select {
+			case <-doneCh:
+				return
+			case <-feedCh:
+				if !timer.Stop() {
+					<-timer.C
+				}
+				timer.Reset(tolerateEventLoopStuckFor)
+			case <-timer.C:
+				a.appLogger.RuntimeError(fmt.Sprintf("application event loop stuck for at least %v, terminating", tolerateEventLoopStuckFor))
+				a.Terminate(true, 0*time.Second, false)
+				return
+			}
 		}
 	}()
 
@@ -224,9 +240,8 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) fun
 		case doneCh <- struct{}{}:
 		default:
 		}
-		timer.Stop()
 		a.loop.ClearInterval(interval)
-	}
+	}, feedWatchdog
 }
 
 func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
@@ -242,6 +257,7 @@ func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 
 func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(interface{})) {
 	a.loop.RunOnLoop(func(vm *goja.Runtime) {
+		a.feedWatchdog() // if we got scheduled then the loop is not stuck
 		ranChan := make(chan struct{}, 1)
 		waitGroup := sync.WaitGroup{}
 		waitGroup.Add(1)
