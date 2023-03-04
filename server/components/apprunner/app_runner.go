@@ -10,9 +10,12 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
+	"github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -43,29 +46,38 @@ var ErrApplicationLogNotFound = errors.New("application log not found")
 
 // AppRunner launches applications and manages their lifecycle
 type AppRunner struct {
-	workerContext                context.Context
-	log                          *log.Logger
-	instances                    map[string]*appInstance
-	recentLogs                   *cache.Cache[string, ApplicationLog]
-	instancesLock                sync.RWMutex
-	onRunningApplicationsUpdated event.Event[[]RunningApplication]
-	onApplicationLaunched        event.Event[RunningApplication]
-	onApplicationStopped         event.Event[RunningApplication]
-	moduleDependencies           modules.Dependencies
+	workerContext                  context.Context
+	log                            *log.Logger
+	instances                      map[string]*appInstance
+	recentLogs                     *cache.Cache[string, ApplicationLog]
+	instancesLock                  sync.RWMutex
+	onRunningApplicationsUpdated   event.Event[[]RunningApplication]
+	onApplicationLaunched          event.Event[RunningApplication]
+	onApplicationStopped           event.Event[RunningApplication]
+	moduleDependencies             modules.Dependencies
+	incomingClientEventRateLimiter limiter.Store
 }
 
 // New returns a new initialized AppRunner
 func New(
 	workerContext context.Context,
 	log *log.Logger) *AppRunner {
+	rateLimiter, err := memorystore.New(&memorystore.Config{
+		Tokens:   60,
+		Interval: 1 * time.Second,
+	})
+	if err != nil {
+		panic(stacktrace.Propagate(err, "failed to create rate limiter"))
+	}
 	return &AppRunner{
-		workerContext:                workerContext,
-		instances:                    make(map[string]*appInstance),
-		recentLogs:                   cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
-		log:                          log,
-		onRunningApplicationsUpdated: event.New[[]RunningApplication](),
-		onApplicationLaunched:        event.New[RunningApplication](),
-		onApplicationStopped:         event.New[RunningApplication](),
+		workerContext:                  workerContext,
+		instances:                      make(map[string]*appInstance),
+		recentLogs:                     cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
+		log:                            log,
+		onRunningApplicationsUpdated:   event.New[[]RunningApplication](),
+		onApplicationLaunched:          event.New[RunningApplication](),
+		onApplicationStopped:           event.New[RunningApplication](),
+		incomingClientEventRateLimiter: rateLimiter,
 	}
 }
 
@@ -344,6 +356,13 @@ func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, pageID
 	if !ok {
 		return "", stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
+	_, _, _, ok, err := r.incomingClientEventRateLimiter.Take(ctx, auth.RemoteAddressFromContext(ctx))
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return "", stacktrace.NewError("rate limit reached")
+	}
 	result, err := instance.ApplicationMethod(ctx, pageID, method, args)
 	return result, stacktrace.Propagate(err, "")
 }
@@ -358,6 +377,13 @@ func (r *AppRunner) ApplicationEvent(ctx context.Context, applicationID, pageID 
 	}()
 	if !ok {
 		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	}
+	_, _, _, ok, err := r.incomingClientEventRateLimiter.Take(ctx, auth.RemoteAddressFromContext(ctx))
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return stacktrace.NewError("rate limit reached")
 	}
 	return stacktrace.Propagate(instance.ApplicationEvent(ctx, pageID, eventName, eventArgs), "")
 }
