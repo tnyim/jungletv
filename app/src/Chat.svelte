@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import "emoji-picker-element";
     import type { CustomEmoji } from "emoji-picker-element/shared";
@@ -14,6 +15,7 @@
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, ChatUpdateEvent } from "./proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import {
         blockedUsers,
         chatEmote,
@@ -44,44 +46,24 @@
     let chatDisabledReason = "";
     let chatMessages: ChatMessage[] = [];
     let seenMessageIDs = new Set<string>();
-    let consumeChatRequest: Request;
     let chatContainer: HTMLElement;
     let allowExpensiveCSSAnimations = false;
-    let consumeChatTimeoutHandle: number = null;
     let currentlyExpandedSystemMessageGroup = "";
     let chatSystemMessageGroupInfo: systemMessageGroupInfo[] = [];
     const systemMessageMinGroupSize = 5;
     const messageHistorySize = 250;
 
-    onMount(() => {
-        document.addEventListener("visibilitychange", handleVisibilityChanged);
-        allowExpensiveCSSAnimations = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-        consumeChat();
-        unreadChatMention.set(false);
-    });
+    function buildConsumeChatRequest(
+        onUpdate: (update: ChatUpdate) => void,
+        onEnd: (code: grpc.Code, msg: string) => void
+    ): Request {
+        return apiClient.consumeChat(50, onUpdate, onEnd);
+    }
 
-    function consumeChat() {
-        chatEnabled = true;
-        $blockedUsers = new Set<string>();
-        consumeChatRequest = apiClient.consumeChat(50, handleChatUpdated, (code, msg) => {
-            setTimeout(consumeChat, 5000);
-        });
-    }
-    function consumeChatTimeout() {
-        if (consumeChatRequest !== undefined) {
-            consumeChatRequest.close();
-        }
-        consumeChat();
-    }
-    onDestroy(() => {
-        document.removeEventListener("visibilitychange", handleVisibilityChanged);
-        if (consumeChatRequest !== undefined) {
-            consumeChatRequest.close();
-        }
-        if (consumeChatTimeoutHandle != null) {
-            clearTimeout(consumeChatTimeoutHandle);
+    consumeStreamRPCFromSvelteComponent(20000, 5000, buildConsumeChatRequest, handleChatUpdated, (connected) => {
+        if (connected) {
+            chatEnabled = true;
+            $blockedUsers = new Set<string>();
         }
     });
 
@@ -111,6 +93,15 @@
 
         scrollToBottom();
         return () => observer.unobserve(bottomDetectionDiv);
+    });
+    onMount(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChanged);
+        allowExpensiveCSSAnimations = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+        unreadChatMention.set(false);
+
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChanged);
     });
 
     type autoscrollStatusType =
@@ -296,10 +287,6 @@
     }
 
     function handleChatUpdated(update: ChatUpdate): void {
-        if (consumeChatTimeoutHandle != null) {
-            clearTimeout(consumeChatTimeoutHandle);
-        }
-        consumeChatTimeoutHandle = setTimeout(consumeChatTimeout, 20000);
         let updatesRequired = {
             messageCreated: false,
             messageDeleted: false,

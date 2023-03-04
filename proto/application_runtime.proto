@@ -17,19 +17,21 @@ message ResolveApplicationPageResponse {
     google.protobuf.Timestamp application_version = 3;
 }
 
-message ConsumeApplicationEventStreamRequest {
+message ConsumeApplicationEventsRequest {
     string application_id = 1;
     string page_id = 2;
 }
 
-message ApplicationEventStreamUpdate {
+message ApplicationEventUpdate {
     oneof type {
         ApplicationHeartbeatEvent heartbeat = 1;
         ApplicationServerEvent application_event = 2;
     }
 }
 
-message ApplicationHeartbeatEvent {}
+message ApplicationHeartbeatEvent {
+    uint32 sequence = 1;
+}
 
 message ApplicationServerEvent {
     string name = 1;
@@ -38,8 +40,9 @@ message ApplicationServerEvent {
 
 message ApplicationServerMethodRequest {
     string application_id = 1;
-    string method = 2;
-    repeated string arguments = 3;
+    string page_id = 2;
+    string method = 3;
+    repeated string arguments = 4;
 }
 
 message ApplicationServerMethodResponse {

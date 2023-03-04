@@ -82,7 +82,7 @@ export const serverMethod = async function <T>(method: string, ...args: any[]): 
  * @param args The arguments of the event.
  * @public
  */
-export const emitNet = async function (eventName: string, ...args: any[]): Promise<void> {
+export const emitToServer = async function (eventName: string, ...args: any[]): Promise<void> {
     let connection = await connectionPromise;
     connection.localHandle().emit("eventForServer", {
         name: eventName,

@@ -12,6 +12,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -331,7 +332,7 @@ func (r *AppRunner) ResolvePage(applicationID, pageID string) (pages.PageInfo, t
 	return instance.ResolvePage(pageID)
 }
 
-func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, method string, args []string) (string, error) {
+func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, pageID, method string, args []string) (string, error) {
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -343,7 +344,7 @@ func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, method
 	if !ok {
 		return "", stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
-	result, err := instance.ApplicationMethod(ctx, method, args)
+	result, err := instance.ApplicationMethod(ctx, pageID, method, args)
 	return result, stacktrace.Propagate(err, "")
 }
 
@@ -359,4 +360,14 @@ func (r *AppRunner) ApplicationEvent(ctx context.Context, applicationID, pageID 
 		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
 	return stacktrace.Propagate(instance.ApplicationEvent(ctx, pageID, eventName, eventArgs), "")
+}
+
+func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, applicationID, pageID string) (<-chan rpc.ClientEventData, func(), error) {
+	r.instancesLock.RLock()
+	defer r.instancesLock.RUnlock()
+	if instance, ok := r.instances[applicationID]; ok {
+		ch, cancel := instance.ConsumeApplicationEvents(ctx, pageID)
+		return ch, cancel, nil
+	}
+	return nil, nil, stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 }

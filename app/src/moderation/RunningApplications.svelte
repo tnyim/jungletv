@@ -1,44 +1,19 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
     import type { RunningApplication, RunningApplications } from "../proto/application_editor_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import { formatDateForModeration } from "../utils";
 
     export let runningApplications: RunningApplication[];
-    let monitorRunningApplicationsRequest: Request;
-    let monitorRunningApplicationsTimeoutHandle: number = null;
 
-    onMount(monitorRunningApplications);
-    function monitorRunningApplications() {
-        monitorRunningApplicationsRequest = apiClient.monitorRunningApplications(
-            handleRunningApplicationsUpdated,
-            (code, msg) => {
-                setTimeout(monitorRunningApplications, 5000);
-            }
-        );
-    }
-    onDestroy(() => {
-        if (monitorRunningApplicationsRequest !== undefined) {
-            monitorRunningApplicationsRequest.close();
-        }
-        if (monitorRunningApplicationsTimeoutHandle != null) {
-            clearTimeout(monitorRunningApplicationsTimeoutHandle);
-        }
-    });
-
-    function monitorRunningApplicationsTimeout() {
-        if (monitorRunningApplicationsRequest !== undefined) {
-            monitorRunningApplicationsRequest.close();
-        }
-        monitorRunningApplications();
-    }
+    consumeStreamRPCFromSvelteComponent(
+        20000,
+        5000,
+        apiClient.monitorRunningApplications.bind(apiClient),
+        handleRunningApplicationsUpdated
+    );
 
     function handleRunningApplicationsUpdated(applications: RunningApplications) {
-        if (monitorRunningApplicationsTimeoutHandle != null) {
-            clearTimeout(monitorRunningApplicationsTimeoutHandle);
-        }
-        monitorRunningApplicationsTimeoutHandle = setTimeout(monitorRunningApplicationsTimeout, 20000);
         if (!applications.getIsHeartbeat()) {
             runningApplications = applications.getRunningApplicationsList();
         }

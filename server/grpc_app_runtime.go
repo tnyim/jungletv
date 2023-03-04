@@ -24,13 +24,51 @@ func (s *grpcServer) ResolveApplicationPage(ctx context.Context, r *proto.Resolv
 	}, nil
 }
 
-func (s *grpcServer) ConsumeApplicationEventStream(r *proto.ConsumeApplicationEventStreamRequest, stream proto.JungleTV_ConsumeApplicationEventStreamServer) error {
-	// TODO
-	return stacktrace.NewError("not implemented")
+func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsRequest, stream proto.JungleTV_ConsumeApplicationEventsServer) error {
+	eventCh, unsub, err := s.appRunner.ConsumeApplicationEvents(stream.Context(), r.ApplicationId, r.PageId)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer unsub()
+
+	heartbeat := time.NewTicker(5 * time.Second)
+	defer heartbeat.Stop()
+	var seq uint32
+
+	for {
+		select {
+		case e, ok := <-eventCh:
+			if !ok {
+				return nil
+			}
+			err = stream.Send(&proto.ApplicationEventUpdate{
+				Type: &proto.ApplicationEventUpdate_ApplicationEvent{
+					ApplicationEvent: &proto.ApplicationServerEvent{
+						Name:      e.EventName,
+						Arguments: e.EventArgs,
+					},
+				},
+			})
+		case <-heartbeat.C:
+			err = stream.Send(&proto.ApplicationEventUpdate{
+				Type: &proto.ApplicationEventUpdate_Heartbeat{
+					Heartbeat: &proto.ApplicationHeartbeatEvent{
+						Sequence: seq,
+					},
+				},
+			})
+			seq++
+		case <-stream.Context().Done():
+			return nil
+		}
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
 }
 
 func (s *grpcServer) ApplicationServerMethod(ctx context.Context, r *proto.ApplicationServerMethodRequest) (*proto.ApplicationServerMethodResponse, error) {
-	result, err := s.appRunner.ApplicationMethod(ctx, r.ApplicationId, r.Method, r.Arguments)
+	result, err := s.appRunner.ApplicationMethod(ctx, r.ApplicationId, r.PageId, r.Method, r.Arguments)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -40,5 +78,9 @@ func (s *grpcServer) ApplicationServerMethod(ctx context.Context, r *proto.Appli
 }
 
 func (s *grpcServer) TriggerApplicationEvent(ctx context.Context, r *proto.TriggerApplicationEventRequest) (*proto.TriggerApplicationEventResponse, error) {
-	return nil, stacktrace.NewError("not implemented") // TODO
+	err := s.appRunner.ApplicationEvent(ctx, r.ApplicationId, r.PageId, r.Name, r.Arguments)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return &proto.TriggerApplicationEventResponse{}, nil
 }

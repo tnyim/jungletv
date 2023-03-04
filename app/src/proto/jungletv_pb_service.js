@@ -939,13 +939,13 @@ JungleTV.ResolveApplicationPage = {
   responseType: application_runtime_pb.ResolveApplicationPageResponse
 };
 
-JungleTV.ConsumeApplicationEventStream = {
-  methodName: "ConsumeApplicationEventStream",
+JungleTV.ConsumeApplicationEvents = {
+  methodName: "ConsumeApplicationEvents",
   service: JungleTV,
   requestStream: false,
   responseStream: true,
-  requestType: application_runtime_pb.ConsumeApplicationEventStreamRequest,
-  responseType: application_runtime_pb.ApplicationEventStreamUpdate
+  requestType: application_runtime_pb.ConsumeApplicationEventsRequest,
+  responseType: application_runtime_pb.ApplicationEventUpdate
 };
 
 JungleTV.ApplicationServerMethod = {
@@ -4246,13 +4246,13 @@ JungleTVClient.prototype.resolveApplicationPage = function resolveApplicationPag
   };
 };
 
-JungleTVClient.prototype.consumeApplicationEventStream = function consumeApplicationEventStream(requestMessage, metadata) {
+JungleTVClient.prototype.consumeApplicationEvents = function consumeApplicationEvents(requestMessage, metadata) {
   var listeners = {
     data: [],
     end: [],
     status: []
   };
-  var client = grpc.invoke(JungleTV.ConsumeApplicationEventStream, {
+  var client = grpc.invoke(JungleTV.ConsumeApplicationEvents, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

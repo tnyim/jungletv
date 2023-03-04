@@ -58,7 +58,7 @@ export namespace ResolveApplicationPageResponse {
   }
 }
 
-export class ConsumeApplicationEventStreamRequest extends jspb.Message {
+export class ConsumeApplicationEventsRequest extends jspb.Message {
   getApplicationId(): string;
   setApplicationId(value: string): void;
 
@@ -66,23 +66,23 @@ export class ConsumeApplicationEventStreamRequest extends jspb.Message {
   setPageId(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ConsumeApplicationEventStreamRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ConsumeApplicationEventStreamRequest): ConsumeApplicationEventStreamRequest.AsObject;
+  toObject(includeInstance?: boolean): ConsumeApplicationEventsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsumeApplicationEventsRequest): ConsumeApplicationEventsRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ConsumeApplicationEventStreamRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ConsumeApplicationEventStreamRequest;
-  static deserializeBinaryFromReader(message: ConsumeApplicationEventStreamRequest, reader: jspb.BinaryReader): ConsumeApplicationEventStreamRequest;
+  static serializeBinaryToWriter(message: ConsumeApplicationEventsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsumeApplicationEventsRequest;
+  static deserializeBinaryFromReader(message: ConsumeApplicationEventsRequest, reader: jspb.BinaryReader): ConsumeApplicationEventsRequest;
 }
 
-export namespace ConsumeApplicationEventStreamRequest {
+export namespace ConsumeApplicationEventsRequest {
   export type AsObject = {
     applicationId: string,
     pageId: string,
   }
 }
 
-export class ApplicationEventStreamUpdate extends jspb.Message {
+export class ApplicationEventUpdate extends jspb.Message {
   hasHeartbeat(): boolean;
   clearHeartbeat(): void;
   getHeartbeat(): ApplicationHeartbeatEvent | undefined;
@@ -93,18 +93,18 @@ export class ApplicationEventStreamUpdate extends jspb.Message {
   getApplicationEvent(): ApplicationServerEvent | undefined;
   setApplicationEvent(value?: ApplicationServerEvent): void;
 
-  getTypeCase(): ApplicationEventStreamUpdate.TypeCase;
+  getTypeCase(): ApplicationEventUpdate.TypeCase;
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ApplicationEventStreamUpdate.AsObject;
-  static toObject(includeInstance: boolean, msg: ApplicationEventStreamUpdate): ApplicationEventStreamUpdate.AsObject;
+  toObject(includeInstance?: boolean): ApplicationEventUpdate.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationEventUpdate): ApplicationEventUpdate.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ApplicationEventStreamUpdate, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ApplicationEventStreamUpdate;
-  static deserializeBinaryFromReader(message: ApplicationEventStreamUpdate, reader: jspb.BinaryReader): ApplicationEventStreamUpdate;
+  static serializeBinaryToWriter(message: ApplicationEventUpdate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationEventUpdate;
+  static deserializeBinaryFromReader(message: ApplicationEventUpdate, reader: jspb.BinaryReader): ApplicationEventUpdate;
 }
 
-export namespace ApplicationEventStreamUpdate {
+export namespace ApplicationEventUpdate {
   export type AsObject = {
     heartbeat?: ApplicationHeartbeatEvent.AsObject,
     applicationEvent?: ApplicationServerEvent.AsObject,
@@ -118,6 +118,9 @@ export namespace ApplicationEventStreamUpdate {
 }
 
 export class ApplicationHeartbeatEvent extends jspb.Message {
+  getSequence(): number;
+  setSequence(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApplicationHeartbeatEvent.AsObject;
   static toObject(includeInstance: boolean, msg: ApplicationHeartbeatEvent): ApplicationHeartbeatEvent.AsObject;
@@ -130,6 +133,7 @@ export class ApplicationHeartbeatEvent extends jspb.Message {
 
 export namespace ApplicationHeartbeatEvent {
   export type AsObject = {
+    sequence: number,
   }
 }
 
@@ -163,6 +167,9 @@ export class ApplicationServerMethodRequest extends jspb.Message {
   getApplicationId(): string;
   setApplicationId(value: string): void;
 
+  getPageId(): string;
+  setPageId(value: string): void;
+
   getMethod(): string;
   setMethod(value: string): void;
 
@@ -184,6 +191,7 @@ export class ApplicationServerMethodRequest extends jspb.Message {
 export namespace ApplicationServerMethodRequest {
   export type AsObject = {
     applicationId: string,
+    pageId: string,
     method: string,
     argumentsList: Array<string>,
   }

@@ -124,7 +124,7 @@ type JungleTVClient interface {
 	EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error)
-	ConsumeApplicationEventStream(ctx context.Context, in *ConsumeApplicationEventStreamRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventStreamClient, error)
+	ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error)
 	ApplicationServerMethod(ctx context.Context, in *ApplicationServerMethodRequest, opts ...grpc.CallOption) (*ApplicationServerMethodResponse, error)
 	TriggerApplicationEvent(ctx context.Context, in *TriggerApplicationEventRequest, opts ...grpc.CallOption) (*TriggerApplicationEventResponse, error)
 }
@@ -1294,12 +1294,12 @@ func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *Resolve
 	return out, nil
 }
 
-func (c *jungleTVClient) ConsumeApplicationEventStream(ctx context.Context, in *ConsumeApplicationEventStreamRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/ConsumeApplicationEventStream", opts...)
+func (c *jungleTVClient) ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/ConsumeApplicationEvents", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &jungleTVConsumeApplicationEventStreamClient{stream}
+	x := &jungleTVConsumeApplicationEventsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -1309,17 +1309,17 @@ func (c *jungleTVClient) ConsumeApplicationEventStream(ctx context.Context, in *
 	return x, nil
 }
 
-type JungleTV_ConsumeApplicationEventStreamClient interface {
-	Recv() (*ApplicationEventStreamUpdate, error)
+type JungleTV_ConsumeApplicationEventsClient interface {
+	Recv() (*ApplicationEventUpdate, error)
 	grpc.ClientStream
 }
 
-type jungleTVConsumeApplicationEventStreamClient struct {
+type jungleTVConsumeApplicationEventsClient struct {
 	grpc.ClientStream
 }
 
-func (x *jungleTVConsumeApplicationEventStreamClient) Recv() (*ApplicationEventStreamUpdate, error) {
-	m := new(ApplicationEventStreamUpdate)
+func (x *jungleTVConsumeApplicationEventsClient) Recv() (*ApplicationEventUpdate, error) {
+	m := new(ApplicationEventUpdate)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -1454,7 +1454,7 @@ type JungleTVServer interface {
 	EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error)
-	ConsumeApplicationEventStream(*ConsumeApplicationEventStreamRequest, JungleTV_ConsumeApplicationEventStreamServer) error
+	ConsumeApplicationEvents(*ConsumeApplicationEventsRequest, JungleTV_ConsumeApplicationEventsServer) error
 	ApplicationServerMethod(context.Context, *ApplicationServerMethodRequest) (*ApplicationServerMethodResponse, error)
 	TriggerApplicationEvent(context.Context, *TriggerApplicationEventRequest) (*TriggerApplicationEventResponse, error)
 	mustEmbedUnimplementedJungleTVServer()
@@ -1773,8 +1773,8 @@ func (UnimplementedJungleTVServer) EvaluateExpressionOnApplication(context.Conte
 func (UnimplementedJungleTVServer) ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveApplicationPage not implemented")
 }
-func (UnimplementedJungleTVServer) ConsumeApplicationEventStream(*ConsumeApplicationEventStreamRequest, JungleTV_ConsumeApplicationEventStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method ConsumeApplicationEventStream not implemented")
+func (UnimplementedJungleTVServer) ConsumeApplicationEvents(*ConsumeApplicationEventsRequest, JungleTV_ConsumeApplicationEventsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ConsumeApplicationEvents not implemented")
 }
 func (UnimplementedJungleTVServer) ApplicationServerMethod(context.Context, *ApplicationServerMethodRequest) (*ApplicationServerMethodResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplicationServerMethod not implemented")
@@ -3679,24 +3679,24 @@ func _JungleTV_ResolveApplicationPage_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JungleTV_ConsumeApplicationEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ConsumeApplicationEventStreamRequest)
+func _JungleTV_ConsumeApplicationEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConsumeApplicationEventsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(JungleTVServer).ConsumeApplicationEventStream(m, &jungleTVConsumeApplicationEventStreamServer{stream})
+	return srv.(JungleTVServer).ConsumeApplicationEvents(m, &jungleTVConsumeApplicationEventsServer{stream})
 }
 
-type JungleTV_ConsumeApplicationEventStreamServer interface {
-	Send(*ApplicationEventStreamUpdate) error
+type JungleTV_ConsumeApplicationEventsServer interface {
+	Send(*ApplicationEventUpdate) error
 	grpc.ServerStream
 }
 
-type jungleTVConsumeApplicationEventStreamServer struct {
+type jungleTVConsumeApplicationEventsServer struct {
 	grpc.ServerStream
 }
 
-func (x *jungleTVConsumeApplicationEventStreamServer) Send(m *ApplicationEventStreamUpdate) error {
+func (x *jungleTVConsumeApplicationEventsServer) Send(m *ApplicationEventUpdate) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -4176,8 +4176,8 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "ConsumeApplicationEventStream",
-			Handler:       _JungleTV_ConsumeApplicationEventStream_Handler,
+			StreamName:    "ConsumeApplicationEvents",
+			Handler:       _JungleTV_ConsumeApplicationEvents_Handler,
 			ServerStreams: true,
 		},
 	},

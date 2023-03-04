@@ -580,10 +580,10 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 	return p, v, ok
 }
 
-func (a *appInstance) ApplicationMethod(ctx context.Context, method string, args []string) (string, error) {
+func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	result, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (string, error) {
-		value := a.rpcModule.HandleInvocation(vm, user, method, args)
+		value := a.rpcModule.HandleInvocation(vm, user, pageID, method, args)
 		return value.String(), nil
 	})
 	return result, stacktrace.Propagate(err, "")
@@ -591,23 +591,66 @@ func (a *appInstance) ApplicationMethod(ctx context.Context, method string, args
 
 func (a *appInstance) ApplicationEvent(ctx context.Context, pageID string, eventName string, eventArgs []string) error {
 	a.mu.RLock()
-	running := a.running
-	// we release the lock here because there's no guarantee the function passed to runOnLoopWithInterruption
-	// will ever execute (the event loop could be stuck in an infinite loop)
-	// we also can't hold the lock until this function finishes executing, for the same reason
-	// (if we keep holding the lock, Pause/Terminate will get stuck waiting for it)
-	a.mu.RUnlock()
+	defer a.mu.RUnlock()
 
-	if !running {
+	if !a.running {
 		return stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
-	//user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserClaimsFromContext(ctx)
 	a.runOnLoopLogError(func(vm *goja.Runtime) error {
-		// TODO
+		a.rpcModule.HandleEvent(vm, user, pageID, eventName, eventArgs)
 		return nil
 	})
 	return nil
+}
+
+func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID string) (<-chan rpc.ClientEventData, func()) {
+	ctx, cancel := context.WithCancel(ctx)
+
+	userStr := ""
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user != nil && !user.IsUnknown() {
+		userStr = user.Address()
+	}
+
+	eventCh := make(chan rpc.ClientEventData)
+
+	go func() {
+		defer close(eventCh)
+
+		onGlobalEvent, globalEventU := a.rpcModule.GlobalEventEmitted().Subscribe(event.BufferAll)
+		defer globalEventU()
+
+		onPageEvent, pageEventU := a.rpcModule.PageEventEmitted().Subscribe(pageID, event.BufferAll)
+		defer pageEventU()
+
+		onUserEvent, userEventU := a.rpcModule.PageEventEmitted().Subscribe(userStr, event.BufferAll)
+		defer userEventU()
+
+		onPageUserEvent, pageUserEventU := a.rpcModule.PageUserEventEmitted().Subscribe(rpc.PageUserTuple{Page: pageID, User: userStr}, event.BufferAll)
+		defer pageUserEventU()
+
+		terminatedU := a.onTerminated.SubscribeUsingCallback(event.BufferFirst, cancel)
+		defer terminatedU()
+
+		for {
+			select {
+			case d := <-onGlobalEvent:
+				eventCh <- d
+			case d := <-onPageEvent:
+				eventCh <- d
+			case d := <-onUserEvent:
+				eventCh <- d
+			case d := <-onPageUserEvent:
+				eventCh <- d
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return eventCh, cancel
 }
 
 const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {

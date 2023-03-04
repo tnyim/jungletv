@@ -1,7 +1,6 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { DateTime, Duration } from "luxon";
-    import { onDestroy, onMount, tick } from "svelte";
+    import { onDestroy, tick } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import Fuzzy from "./Fuzzy.svelte";
@@ -9,6 +8,7 @@
     import QueueEntryDetails from "./QueueEntryDetails.svelte";
     import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import QueueTop from "./QueueTop.svelte";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import { permissionLevel, rewardAddress } from "./stores";
     import VirtualList from "./uielements/VirtualList.svelte";
     import { editNicknameForUser } from "./utils";
@@ -28,75 +28,52 @@
     let currentEntryOffset: Duration = Duration.fromMillis(0);
     let totalQueueValue = BigInt(0);
     let totalQueueParticipants = 0;
-    let monitorQueueRequest: Request;
-    let monitorQueueTimeoutHandle: number = null;
-    onMount(monitorQueue);
-    function monitorQueue() {
-        monitorQueueRequest = apiClient.monitorQueue(handleQueueUpdated, (code, msg) => {
-            setTimeout(monitorQueue, 5000);
-        });
-    }
-    onDestroy(() => {
-        if (monitorQueueRequest !== undefined) {
-            monitorQueueRequest.close();
-        }
-        if (monitorQueueTimeoutHandle != null) {
-            clearTimeout(monitorQueueTimeoutHandle);
-        }
-    });
 
-    function monitorQueueTimeout() {
-        if (monitorQueueRequest !== undefined) {
-            monitorQueueRequest.close();
-        }
-        monitorQueue();
-    }
+    consumeStreamRPCFromSvelteComponent(20000, 5000, apiClient.monitorQueue.bind(apiClient), handleQueueUpdated);
 
     function handleQueueUpdated(queue: Queue) {
-        if (monitorQueueTimeoutHandle != null) {
-            clearTimeout(monitorQueueTimeoutHandle);
+        if (queue.getIsHeartbeat()) {
+            return;
         }
-        monitorQueueTimeoutHandle = setTimeout(monitorQueueTimeout, 20000);
-        if (!queue.getIsHeartbeat()) {
-            removalOfOwnEntriesAllowed = queue.getOwnEntryRemovalEnabled();
-            queueEntries = queue.getEntriesList().map((entry, index): QueueEntryWithIndex => {
-                return Object.assign(new QueueEntry(), entry, {
-                    queueIndex: index,
-                });
+        removalOfOwnEntriesAllowed = queue.getOwnEntryRemovalEnabled();
+        queueEntries = queue.getEntriesList().map((entry, index): QueueEntryWithIndex => {
+            return Object.assign(new QueueEntry(), entry, {
+                queueIndex: index,
             });
-            if (queue.hasInsertCursor()) {
-                insertCursor = queue.getInsertCursor();
-            } else {
-                insertCursor = "";
-            }
-            if (queue.hasPlayingSince()) {
-                playingSince = DateTime.fromJSDate(queue.getPlayingSince().toDate());
-            } else {
-                playingSince = undefined;
-            }
-            let tl = Duration.fromMillis(0);
-            let tv = BigInt(0);
-            let participantsSet = new Set();
-            if (queueEntries.length > 0 && queueEntries[0].hasOffset()) {
-                currentEntryOffset = Duration.fromMillis(
-                    queueEntries[0].getOffset().getSeconds() * 1000 + queueEntries[0].getOffset().getNanos() / 1000000
-                );
-            } else {
-                currentEntryOffset = Duration.fromMillis(0);
-            }
-            for (let entry of queueEntries) {
-                tl = tl.plus(
-                    Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
-                );
-                tv += BigInt(entry.getRequestCost());
-                if (entry.hasRequestedBy()) {
-                    participantsSet.add(entry.getRequestedBy().getAddress());
-                }
-            }
-            totalQueueLength = tl;
-            totalQueueValue = tv;
-            totalQueueParticipants = participantsSet.size;
+        });
+        if (queue.hasInsertCursor()) {
+            insertCursor = queue.getInsertCursor();
+        } else {
+            insertCursor = "";
         }
+        if (queue.hasPlayingSince()) {
+            playingSince = DateTime.fromJSDate(queue.getPlayingSince().toDate());
+        } else {
+            playingSince = undefined;
+        }
+        let tl = Duration.fromMillis(0);
+        let tv = BigInt(0);
+        let participantsSet = new Set();
+        if (queueEntries.length > 0 && queueEntries[0].hasOffset()) {
+            currentEntryOffset = Duration.fromMillis(
+                queueEntries[0].getOffset().getSeconds() * 1000 + queueEntries[0].getOffset().getNanos() / 1000000
+            );
+        } else {
+            currentEntryOffset = Duration.fromMillis(0);
+        }
+        for (let entry of queueEntries) {
+            tl = tl.plus(
+                Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
+            );
+            tv += BigInt(entry.getRequestCost());
+            if (entry.hasRequestedBy()) {
+                participantsSet.add(entry.getRequestedBy().getAddress());
+            }
+        }
+        totalQueueLength = tl;
+        totalQueueValue = tv;
+        totalQueueParticipants = participantsSet.size;
+
         firstLoaded = true;
     }
 

@@ -1,44 +1,19 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { onDestroy, onMount } from "svelte";
     import { apiClient } from "../api_client";
     import { modalAlert } from "../modal/modal";
     import { AllowedMediaEnqueuingType, ModerationStatusOverview } from "../proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import { rewardAddress } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
 
     let statusOverview: ModerationStatusOverview;
-    let monitorSettingsRequest: Request;
-    let monitorStatusTimeoutHandle: number = null;
-    onMount(monitorStatus);
-    function monitorStatus() {
-        monitorSettingsRequest = apiClient.monitorModerationStatus(handleStatusUpdated, (code, msg) => {
-            setTimeout(monitorStatus, 5000);
-        });
-    }
-    onDestroy(() => {
-        if (monitorSettingsRequest !== undefined) {
-            monitorSettingsRequest.close();
-        }
-        if (monitorStatusTimeoutHandle != null) {
-            clearTimeout(monitorStatusTimeoutHandle);
-        }
-    });
 
-    function monitorStatusTimeout() {
-        if (monitorSettingsRequest !== undefined) {
-            monitorSettingsRequest.close();
-        }
-        monitorStatus();
-    }
-
-    function handleStatusUpdated(settings: ModerationStatusOverview) {
-        if (monitorStatusTimeoutHandle != null) {
-            clearTimeout(monitorStatusTimeoutHandle);
-        }
-        monitorStatusTimeoutHandle = setTimeout(monitorStatusTimeout, 20000);
-        statusOverview = settings;
-    }
+    consumeStreamRPCFromSvelteComponent<ModerationStatusOverview>(
+        20000,
+        5000,
+        apiClient.monitorModerationStatus.bind(apiClient),
+        (settings) => (statusOverview = settings)
+    );
 
     async function markAsActivelyModerating() {
         await apiClient.markAsActivelyModerating();

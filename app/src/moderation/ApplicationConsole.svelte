@@ -1,8 +1,9 @@
 <script lang="ts">
+    import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import type { Duration as ProtoDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { DateTime, Duration } from "luxon";
-    import { afterUpdate, onDestroy, onMount } from "svelte";
+    import { afterUpdate, onMount } from "svelte";
     import { apiClient } from "../api_client";
     import { modalAlert } from "../modal/modal";
     import {
@@ -13,6 +14,7 @@
         EvaluateExpressionOnApplicationResponse,
     } from "../proto/application_editor_pb";
     import { JungleTV } from "../proto/jungletv_pb_service";
+    import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import ApplicationConsoleLogToggle from "../uielements/ApplicationConsoleLogToggle.svelte";
     import ApplicationConsoleCommandEditor from "./ApplicationConsoleCommandEditor.svelte";
 
@@ -31,6 +33,7 @@
         };
         result?: {
             response: EvaluateExpressionOnApplicationResponse;
+            receivedAt: Date;
             inputEntry: consoleEntry;
         };
     };
@@ -50,11 +53,22 @@
     });
 
     // application log monitoring:
-    let consumeApplicationLogRequest: Request;
-    let consumeApplicationLogTimeoutHandle: number = null;
-
     let historicalLogCursor: string;
     let historicalLogHasMore = false;
+
+    function consumeApplicationLogRequestBuilder(
+        onUpdate: (update: ApplicationLogEntryContainer) => void,
+        onEnd: (code: grpc.Code, msg: string) => void
+    ): Request {
+        return apiClient.consumeApplicationLog(applicationID, logLevels, onUpdate, onEnd);
+    }
+
+    let applicationLogRequestManager = consumeStreamRPCFromSvelteComponent(
+        20000,
+        5000,
+        consumeApplicationLogRequestBuilder,
+        handleNewLogMessage
+    );
 
     let showRuntimeErrors = true,
         showRuntimeLogs = true,
@@ -94,16 +108,9 @@
         if (logLevels.length > 0) {
             await fetchHistoricalLog(25);
             // force resubscription with new log levels
-            consumeApplicationLogTimeout();
+            applicationLogRequestManager.rebuildAndReconnect();
         } else {
-            if (consumeApplicationLogRequest !== undefined) {
-                consumeApplicationLogRequest.close();
-                consumeApplicationLogRequest = undefined;
-            }
-            if (consumeApplicationLogTimeoutHandle != null) {
-                clearTimeout(consumeApplicationLogTimeoutHandle);
-                consumeApplicationLogTimeoutHandle = null;
-            }
+            applicationLogRequestManager.disconnect();
         }
         scrollToBottom();
     }
@@ -131,51 +138,22 @@
         ];
     }
 
-    function consumeApplicationLog() {
-        consumeApplicationLogRequest = apiClient.consumeApplicationLog(
-            applicationID,
-            logLevels,
-            handleNewLogMessage,
-            (code, msg) => {
-                setTimeout(consumeApplicationLog, 5000);
-            }
-        );
-    }
-    onDestroy(() => {
-        if (consumeApplicationLogRequest !== undefined) {
-            consumeApplicationLogRequest.close();
-        }
-        if (consumeApplicationLogTimeoutHandle != null) {
-            clearTimeout(consumeApplicationLogTimeoutHandle);
-        }
-    });
-
-    function consumeApplicationLogTimeout() {
-        if (consumeApplicationLogRequest !== undefined) {
-            consumeApplicationLogRequest.close();
-        }
-        consumeApplicationLog();
-    }
-
     let scrollToBottomAfterUpdate = false;
     function handleNewLogMessage(entryContainer: ApplicationLogEntryContainer) {
-        if (consumeApplicationLogTimeoutHandle != null) {
-            clearTimeout(consumeApplicationLogTimeoutHandle);
+        if (entryContainer.getIsHeartbeat()) {
+            return;
         }
-        consumeApplicationLogTimeoutHandle = setTimeout(consumeApplicationLogTimeout, 20000);
-        if (!entryContainer.getIsHeartbeat()) {
-            let bottomWasVisible = bottomVisible;
-            consoleEntries = [
-                ...consoleEntries,
-                {
-                    logEntry: entryContainer.getEntry(),
-                },
-            ];
-            if (bottomWasVisible) {
-                scrollToBottomAfterUpdate = true;
-            } else {
-                scrollToBottomAfterUpdate = false;
-            }
+        let bottomWasVisible = bottomVisible;
+        consoleEntries = [
+            ...consoleEntries,
+            {
+                logEntry: entryContainer.getEntry(),
+            },
+        ];
+        if (bottomWasVisible) {
+            scrollToBottomAfterUpdate = true;
+        } else {
+            scrollToBottomAfterUpdate = false;
         }
     }
 
@@ -232,6 +210,7 @@
                     result: {
                         response: response,
                         inputEntry: inputEntry,
+                        receivedAt: new Date(),
                     },
                 };
                 scrollToBottomAfterUpdate = true;
@@ -398,7 +377,9 @@
 
                 <div class="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
                     {#if entry.result}
-                        {formatExecutionTime(entry.result.response.getExecutionTime())}
+                        <span title={formatLogEntryTime(entry.result.receivedAt)}>
+                            {formatExecutionTime(entry.result.response.getExecutionTime())}
+                        </span>
                     {:else if entry.logEntry}
                         {formatLogEntryTime(entry.logEntry.getCreatedAt().toDate())}
                     {:else if entry.userInput}

@@ -933,13 +933,13 @@ type JungleTVResolveApplicationPage = {
   readonly responseType: typeof application_runtime_pb.ResolveApplicationPageResponse;
 };
 
-type JungleTVConsumeApplicationEventStream = {
+type JungleTVConsumeApplicationEvents = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
   readonly requestStream: false;
   readonly responseStream: true;
-  readonly requestType: typeof application_runtime_pb.ConsumeApplicationEventStreamRequest;
-  readonly responseType: typeof application_runtime_pb.ApplicationEventStreamUpdate;
+  readonly requestType: typeof application_runtime_pb.ConsumeApplicationEventsRequest;
+  readonly responseType: typeof application_runtime_pb.ApplicationEventUpdate;
 };
 
 type JungleTVApplicationServerMethod = {
@@ -1065,7 +1065,7 @@ export class JungleTV {
   static readonly MonitorRunningApplications: JungleTVMonitorRunningApplications;
   static readonly EvaluateExpressionOnApplication: JungleTVEvaluateExpressionOnApplication;
   static readonly ResolveApplicationPage: JungleTVResolveApplicationPage;
-  static readonly ConsumeApplicationEventStream: JungleTVConsumeApplicationEventStream;
+  static readonly ConsumeApplicationEvents: JungleTVConsumeApplicationEvents;
   static readonly ApplicationServerMethod: JungleTVApplicationServerMethod;
   static readonly TriggerApplicationEvent: JungleTVTriggerApplicationEvent;
 }
@@ -1949,7 +1949,7 @@ export class JungleTVClient {
     requestMessage: application_runtime_pb.ResolveApplicationPageRequest,
     callback: (error: ServiceError|null, responseMessage: application_runtime_pb.ResolveApplicationPageResponse|null) => void
   ): UnaryResponse;
-  consumeApplicationEventStream(requestMessage: application_runtime_pb.ConsumeApplicationEventStreamRequest, metadata?: grpc.Metadata): ResponseStream<application_runtime_pb.ApplicationEventStreamUpdate>;
+  consumeApplicationEvents(requestMessage: application_runtime_pb.ConsumeApplicationEventsRequest, metadata?: grpc.Metadata): ResponseStream<application_runtime_pb.ApplicationEventUpdate>;
   applicationServerMethod(
     requestMessage: application_runtime_pb.ApplicationServerMethodRequest,
     metadata: grpc.Metadata,

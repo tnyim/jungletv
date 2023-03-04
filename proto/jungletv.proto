@@ -120,7 +120,7 @@ service JungleTV {
 
     // application runtime endpoints
     rpc ResolveApplicationPage(ResolveApplicationPageRequest) returns (ResolveApplicationPageResponse) {}
-    rpc ConsumeApplicationEventStream(ConsumeApplicationEventStreamRequest) returns (stream ApplicationEventStreamUpdate) {}
+    rpc ConsumeApplicationEvents(ConsumeApplicationEventsRequest) returns (stream ApplicationEventUpdate) {}
     rpc ApplicationServerMethod(ApplicationServerMethodRequest) returns (ApplicationServerMethodResponse) {}
     rpc TriggerApplicationEvent(TriggerApplicationEventRequest) returns (TriggerApplicationEventResponse) {}
 }

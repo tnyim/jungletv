@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy } from "svelte";
     import { link } from "svelte-navigator";
     import { fade } from "svelte/transition";
     import { apiClient } from "./api_client";
     import { SkipAndTipStatus, SkipStatus } from "./proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import { currentSubscription, darkMode, rewardAddress } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
@@ -13,37 +13,11 @@
     export let mode = "sidebar";
 
     let skipAndTipStatus: SkipAndTipStatus;
-    let monitorSkipAndTipRequest: Request;
-    let monitorSkipAndTipTimeoutHandle: number = null;
     let skipPercentage = "";
-    onMount(monitorSkipAndTip);
-    function monitorSkipAndTip() {
-        monitorSkipAndTipRequest = apiClient.monitorSkipAndTip(handleStatusUpdated, (code, msg) => {
-            setTimeout(monitorSkipAndTip, 5000);
-        });
-    }
-    onDestroy(() => {
-        if (monitorSkipAndTipRequest !== undefined) {
-            monitorSkipAndTipRequest.close();
-        }
-        if (monitorSkipAndTipTimeoutHandle != null) {
-            clearTimeout(monitorSkipAndTipTimeoutHandle);
-        }
-    });
 
-    function monitorQueueTimeout() {
-        if (monitorSkipAndTipRequest !== undefined) {
-            monitorSkipAndTipRequest.close();
-        }
-        monitorSkipAndTip();
-    }
+    consumeStreamRPCFromSvelteComponent(20000, 5000, apiClient.monitorSkipAndTip.bind(apiClient), handleStatusUpdated);
 
     function handleStatusUpdated(status: SkipAndTipStatus) {
-        if (monitorSkipAndTipTimeoutHandle != null) {
-            clearTimeout(monitorSkipAndTipTimeoutHandle);
-        }
-        monitorSkipAndTipTimeoutHandle = setTimeout(monitorQueueTimeout, 20000);
-
         skipAndTipStatus = status;
         skipPercentage = Math.min(
             100,

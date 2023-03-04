@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { DateTime } from "luxon";
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import type { ConvertBananoToPointsStatus } from "./proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import { darkMode } from "./stores";
     import AddressBox from "./uielements/AddressBox.svelte";
     import ButtonButton from "./uielements/ButtonButton.svelte";
@@ -15,37 +15,34 @@
     import Wizard from "./uielements/Wizard.svelte";
 
     let status: ConvertBananoToPointsStatus;
-    let timedOut = false;
     let disconnected = false;
-
-    let monitorProcessRequest: Request;
     let timeRemainingFormatted = "";
     let updateTimeRemainingInterval: number;
 
-    onMount(() => {
-        monitorProcess();
-    });
-    function monitorProcess() {
-        monitorProcessRequest = apiClient.convertBananoToPoints(
-            (newStatus) => {
-                disconnected = false;
-                status = newStatus;
-                updateTicketTimeRemaining();
-            },
-            (code, msg) => {
-                disconnected = true;
-                if (typeof status !== "undefined" && !status.getExpired()) {
-                    setTimeout(monitorProcess, 5000);
-                }
-            }
-        );
+    let requestController = consumeStreamRPCFromSvelteComponent<ConvertBananoToPointsStatus>(
+        20000,
+        5000,
+        apiClient.convertBananoToPoints.bind(apiClient),
+        (newStatus) => {
+            disconnected = false;
+            status = newStatus;
+            updateTicketTimeRemaining();
+        },
+        (connected) => {
+            disconnected = !connected;
+        }
+    );
+
+    $: {
+        if (typeof status !== "undefined" && status.getExpired() && disconnected) {
+            // do not attempt to reconnect
+            requestController?.disconnect();
+        }
     }
+
     onDestroy(() => {
         if (updateTimeRemainingInterval !== undefined) {
             clearInterval(updateTimeRemainingInterval);
-        }
-        if (monitorProcessRequest !== undefined) {
-            monitorProcessRequest.close();
         }
     });
 
@@ -61,7 +58,7 @@
         let diff = endTime.diffNow();
         if (diff.toMillis() < -6000) {
             // surely by now we would have received an updated ticket with expired status
-            timedOut = true;
+            disconnected = true;
         }
         timeRemainingFormatted = diff.toFormat("mm:ss");
     }
@@ -98,17 +95,13 @@
                     will receive a refund once the JungleTV team reviews your process. No action is needed on your part.
                 </ErrorMessage>
             {/if}
-        {:else if timedOut}
-            <ErrorMessage>
-                Connection to the server lost. If you already paid,
-                <a use:link href="/points">check the points dashboard</a> to see if your points have been converted.
-            </ErrorMessage>
         {:else}
             {#if disconnected}
                 <div class="mb-8">
                     <WarningMessage>
                         Currently disconnected from the server and attempting to reconnect. If the problem persists,
-                        reload the page.
+                        reload the page. If you already paid,
+                        <a use:link href="/points">check the points dashboard</a> to see if your points have been converted.
                     </WarningMessage>
                 </div>
             {/if}

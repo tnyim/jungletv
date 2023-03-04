@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type { grpc } from "@improbable-eng/grpc-web";
+    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { Connection, ParentHandshake } from "post-me";
     import { onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
@@ -8,7 +10,8 @@
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import NotFound from "./NotFound.svelte";
     import { pageTitleApplicationPage } from "./pageTitleStores";
-    import type { ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
+    import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
+    import { consumeStreamRPC, StreamRequestController } from "./rpcUtils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -24,9 +27,7 @@
     }
 
     let iframe: HTMLIFrameElement;
-    $: if (typeof iframe !== "undefined") {
-        iframeBound(iframe);
-    }
+    let jsonCleaner = (key, value) => (key === "__proto__" ? undefined : value);
 
     onDestroy(() => {
         pageTitleApplicationPage.set("");
@@ -46,8 +47,8 @@
             for (let arg of args) {
                 jsonArgs.push(JSON.stringify(arg));
             }
-            let result = await apiClient.applicationServerMethod(applicationID, method, jsonArgs);
-            return JSON.parse(result.getResult(), (key, value) => (key === "__proto__" ? undefined : value));
+            let result = await apiClient.applicationServerMethod(applicationID, pageID, method, jsonArgs);
+            return JSON.parse(result.getResult(), jsonCleaner);
         },
         navigateToApplicationPage(newPageID, newApplicationID) {
             navigate(`/apps/${newApplicationID ?? applicationID}/${newPageID}`);
@@ -57,7 +58,48 @@
         prompt: modalPrompt,
     };
 
-    async function iframeBound(iframe: HTMLIFrameElement) {
+    function consumeApplicationEventsRequestBuilder(
+        onUpdate: (update: ApplicationEventUpdate) => void,
+        onEnd: (code: grpc.Code, msg: string) => void
+    ): Request {
+        return apiClient.consumeApplicationEvents(applicationID, pageID, onUpdate, onEnd);
+    }
+
+    async function handleApplicationEventUpdate(update: ApplicationEventUpdate) {
+        if (update.hasApplicationEvent()) {
+            try {
+                let decodedArgs: any[] = [];
+                for (let arg of update.getApplicationEvent().getArgumentsList()) {
+                    decodedArgs.push(JSON.parse(arg, jsonCleaner));
+                }
+                connection.localHandle().emit("eventForClient", {
+                    name: update.getApplicationEvent().getName(),
+                    args: decodedArgs,
+                });
+            } catch (e) {
+                console.log("exception caught while transmitting event from server:", e);
+            }
+        }
+    }
+
+    let hadConnectedPreviously = false;
+    function handleApplicationEventRequestStatusChanged(connected: boolean) {
+        if (connected && !hadConnectedPreviously) {
+            hadConnectedPreviously = true;
+            connection.localHandle().emit("connected", undefined);
+        } else if (hadConnectedPreviously) {
+            connection.localHandle().emit("disconnected", undefined);
+        }
+    }
+
+    let eventsRequestController: StreamRequestController;
+
+    async function onIframeLoaded() {
+        if (typeof eventsRequestController !== "undefined") {
+            eventsRequestController.disconnect();
+            eventsRequestController = undefined;
+            hadConnectedPreviously = false;
+        }
         const messenger = new JungleTVWindowMessenger({
             localWindow: window,
             remoteWindow: iframe.contentWindow,
@@ -69,6 +111,13 @@
         connection.remoteHandle().addEventListener("pageTitleUpdated", (t) => {
             pageTitleApplicationPage.set(t ? t : originalPageTitle);
         });
+        connection.remoteHandle().addEventListener("eventForServer", async (data) => {
+            let jsonArgs: string[] = [];
+            for (let arg of data.args) {
+                jsonArgs.push(JSON.stringify(arg));
+            }
+            await apiClient.triggerApplicationEvent(applicationID, pageID, data.name, jsonArgs);
+        });
 
         await connection.remoteHandle().once("handshook");
 
@@ -78,9 +127,22 @@
             pageID: pageID,
             role: "standalone",
         });
+
+        eventsRequestController = consumeStreamRPC(
+            20000,
+            5000,
+            consumeApplicationEventsRequestBuilder,
+            handleApplicationEventUpdate,
+            handleApplicationEventRequestStatusChanged
+        );
+
+        eventsRequestController.rebuildAndReconnect();
     }
 
     onDestroy(() => {
+        if (typeof eventsRequestController !== "undefined") {
+            eventsRequestController.disconnect();
+        }
         if (typeof connection !== "undefined") {
             connection.localHandle().emit("destroyed", undefined);
         }
@@ -92,6 +154,7 @@
 {:then response}
     <iframe
         bind:this={iframe}
+        on:load={onIframeLoaded}
         class="w-screen h-screen -mt-16 pt-16"
         title={response.getPageTitle()}
         src="/apppages/{applicationID}/{pageID}"

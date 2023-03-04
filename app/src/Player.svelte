@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { onDestroy, onMount } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
     import { link } from "svelte-navigator";
@@ -9,6 +8,7 @@
     import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
     import PlayerYouTube from "./PlayerYouTube.svelte";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import {
         activityChallengeReceived,
         currentlyWatching,
@@ -28,32 +28,15 @@
     export let bigMinimizedPlayer: boolean;
 
     let checkpoint: MediaConsumptionCheckpoint;
-    let consumeMediaRequest: Request;
-    let consumeMediaTimeoutHandle: number = null;
 
-    onMount(() => {
-        consumeMedia();
-    });
-    function consumeMedia() {
-        consumeMediaRequest = apiClient.consumeMedia(handleCheckpoint, (code, msg) => {
-            playerConnected.update(() => false);
+    consumeStreamRPCFromSvelteComponent(20000, 5000, apiClient.consumeMedia.bind(apiClient), handleCheckpoint, (connected) => {
+        playerConnected.set(connected);
+        if (!connected) {
             activityChallengeReceived.update((_) => null);
-            setTimeout(consumeMedia, 5000);
-        });
-    }
-    function consumeMediaTimeout() {
-        if (consumeMediaRequest !== undefined) {
-            consumeMediaRequest.close();
         }
-        consumeMedia();
-    }
+    });
+
     onDestroy(() => {
-        if (consumeMediaRequest !== undefined) {
-            consumeMediaRequest.close();
-        }
-        if (consumeMediaTimeoutHandle != null) {
-            clearTimeout(consumeMediaTimeoutHandle);
-        }
         activityChallengeReceived.update((_) => null);
         $pageTitleMedia = "";
     });
@@ -81,10 +64,6 @@
     });
 
     async function handleCheckpoint(cp: MediaConsumptionCheckpoint) {
-        if (consumeMediaTimeoutHandle != null) {
-            clearTimeout(consumeMediaTimeoutHandle);
-        }
-        consumeMediaTimeoutHandle = setTimeout(consumeMediaTimeout, 20000);
         playerConnected.update(() => true);
         checkpoint = cp;
         if (checkpoint.getMediaPresent()) {
