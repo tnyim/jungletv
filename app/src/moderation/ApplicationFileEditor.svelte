@@ -1,11 +1,14 @@
 <script lang="ts">
     import { acceptCompletion, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
     import { defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
+    import { html } from "@codemirror/lang-html";
     import { javascript } from "@codemirror/lang-javascript";
-    import { foldKeymap } from "@codemirror/language";
+    import { json } from "@codemirror/lang-json";
+    import { markdown } from "@codemirror/lang-markdown";
+    import { foldKeymap, LanguageSupport } from "@codemirror/language";
     import { lintKeymap } from "@codemirror/lint";
     import { searchKeymap } from "@codemirror/search";
-    import { Compartment, EditorState } from "@codemirror/state";
+    import { Compartment, EditorState, Extension } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
     import { basicSetup } from "codemirror";
     import { onDestroy } from "svelte";
@@ -21,8 +24,8 @@
     import ApplicationConsole from "./ApplicationConsole.svelte";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
-    export let applicationID;
-    export let fileName;
+    export let applicationID: string;
+    export let fileName: string;
     let content = "";
     let editing = false;
     let fileType: string;
@@ -45,6 +48,8 @@
                 fileType = "application/json";
             } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
                 fileType = "text/html";
+            } else if (fileName.endsWith(".md")) {
+                fileType = "text/markdown";
             } else {
                 fileType = "text/plain";
             }
@@ -82,6 +87,7 @@
 
     const themeCompartment = new Compartment();
     const highlightCompartment = new Compartment();
+    const languageCompartment = new Compartment();
 
     const darkModeUnsubscribe = darkMode.subscribe((dm) => {
         if (typeof editorView !== "undefined") {
@@ -94,6 +100,26 @@
         }
     });
     onDestroy(darkModeUnsubscribe);
+
+    $: languageCompartment.reconfigure(languageSupport(fileType));
+
+    function languageSupport(fileType: string): Extension {
+        switch (fileType) {
+            case "application/json":
+                return json();
+            case "text/javascript":
+            case "application/javascript":
+            case "application/x-javascript":
+                return javascript();
+            case "text/html":
+                return html();
+            case "text/markdown":
+            case "text/x-markdown":
+                return markdown();
+            default:
+                return [];
+        }
+    }
 
     function setupEditor() {
         editorView = new EditorView({
@@ -129,7 +155,7 @@
                             },
                         },
                     ]),
-                    javascript(),
+                    languageCompartment.of(languageSupport(fileType)),
                     EditorView.lineWrapping,
                     themeCompartment.of(editorTheme($darkMode)),
                 ],

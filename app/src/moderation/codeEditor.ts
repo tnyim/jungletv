@@ -65,6 +65,7 @@ export const editorTheme = function (darkMode: boolean): Extension {
 export const mimeTypeIsEditable = function (mimeType: string): boolean {
     return mimeType.startsWith("text/") ||
         mimeType == "application/json" ||
+        mimeType == "application/javascript" ||
         mimeType == "application/x-javascript";
 }
 

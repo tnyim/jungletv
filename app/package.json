@@ -35,6 +35,7 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.2",
     "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-markdown": "^6.0.0",
     "@codemirror/language": "^6.0.0",
     "@codemirror/lint": "^6.0.0",
