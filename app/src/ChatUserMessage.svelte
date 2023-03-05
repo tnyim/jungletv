@@ -202,7 +202,7 @@
     </div>
     {#if detailsOpenForMsgID == message.getId()}
         <ChatMessageDetails
-            allowReplies={$rewardAddress != ""}
+            allowReplies={!!$rewardAddress}
             msg={message}
             on:reply
             on:delete={() => removeChatMessage()}

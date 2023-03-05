@@ -110,7 +110,7 @@
                 bind:this={searchBox}
             />
             <div class="grid gap-2 text-xs grid-rows-1 grid-cols-2">
-                {#if $rewardAddress != ""}
+                {#if $rewardAddress}
                     <div class="flex flex-row">
                         <div class="flex items-center h-4">
                             <input

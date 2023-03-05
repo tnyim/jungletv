@@ -131,7 +131,7 @@
     let showOnlyOwnEntries = false;
     let useExtendedSearch = false;
     $: entriesToSearch =
-        showOnlyOwnEntries && $rewardAddress != ""
+        showOnlyOwnEntries && $rewardAddress
             ? queueEntries.filter((e) => e.getRequestedBy()?.getAddress() == $rewardAddress)
             : queueEntries;
 

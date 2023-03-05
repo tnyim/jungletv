@@ -1,7 +1,7 @@
 import type { CustomEmoji } from 'emoji-picker-element/shared';
 import type { Callbacks, Component, Options } from 'svelte-simple-modal/types/Modal.svelte';
 import { writable } from 'svelte/store';
-import { ActivityChallenge, ChatGifSearchResult, PermissionLevel, PermissionLevelMap, SubscriptionDetails } from './proto/jungletv_pb';
+import type { ActivityChallenge, ChatGifSearchResult, PermissionLevelMap, SubscriptionDetails } from './proto/jungletv_pb';
 
 type valueof<T> = T[keyof T];
 
@@ -13,7 +13,7 @@ export const playerVolume = writable(((): number => {
     }
     return parseFloat(localStorage.playerVolume);
 })());
-export const rewardAddress = writable("");
+export const rewardAddress = writable(null);
 export const rewardBalance = writable("");
 export const rewardReceived = writable("");
 export const badRepresentative = writable(false);
@@ -34,7 +34,7 @@ export const chatMediaPickerMode = writable(((): "emoji" | "gifs" | "settings" =
     }
     return localStorage.chatMediaPickerMode;
 })());
-export const permissionLevel = writable(PermissionLevel.UNAUTHENTICATED as valueof<PermissionLevelMap>);
+export const permissionLevel = writable(null as valueof<PermissionLevelMap>);
 export const darkMode = writable((() => {
     return localStorage.darkMode == 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 })());

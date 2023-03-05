@@ -102,6 +102,16 @@ export const navigateToApplicationPage = async function (pageID: string, applica
 }
 
 /**
+ * Instructs the JungleTV host page to navigate to a different JungleTV app route using svelte-navigator.
+ * @param to The destination to navigate to.
+ * @public
+ */
+export const navigate = async function (to: string): Promise<void> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("navigate", to);
+}
+
+/**
  * Resolves the URL that can be used to reference a public file of this application, within the context of the page.
  * @param fileName The name of the file to resolve.
  * @returns The resolved URL, or undefined if the connection between the page and the host JungleTV page has not been established yet.
@@ -159,6 +169,26 @@ export const prompt = async function (question: string,
     negativeAnswerLabel: string = "Cancel"): Promise<string> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("prompt", question, title, placeholder, initialValue, positiveAnswerLabel, negativeAnswerLabel);
+}
+
+/**
+ * Get the reward address of the currently logged in user.
+ * @returns The reward address of the currently logged in user, or undefined if the user is not authenticated.
+ * @public
+ */
+export const userAddress = async function (): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("userAddress");
+}
+
+/**
+ * Get the permission level of the current user.
+ * @returns The permission level of the current user.
+ * @public
+ */
+export const userPermissionLevel = async function (): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("userPermissionLevel");
 }
 
 // #region Page title syncing

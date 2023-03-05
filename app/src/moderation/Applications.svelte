@@ -73,6 +73,22 @@
         <ButtonButton on:click={create}>Create application</ButtonButton>
     </p>
 
+    <div class="text-2xl flex flex-row items-center">
+        <video
+            src="/assets/brand/af.webm"
+            autoplay={true}
+            muted={true}
+            controls={false}
+            loop={true}
+            playsinline={true}
+            title="JungleTV Application Framework"
+            width={100}
+            height={100}
+            class="block mr-2"
+        />
+        <div>JungleTV<br />Application Framework</div>
+    </div>
+
     <RunningApplications bind:runningApplications />
 
     <PaginatedTable

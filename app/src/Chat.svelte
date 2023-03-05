@@ -579,7 +579,7 @@
         </div>
     {/if}
     <div class="border-t border-gray-300 shadow-md flex flex-col">
-        {#if $rewardAddress == ""}
+        {#if !$rewardAddress}
             <div class="p-2 text-gray-600 dark:text-gray-400">
                 <a href="/rewards/address" use:link>Set a reward address</a> to chat.
             </div>

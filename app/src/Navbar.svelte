@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { globalHistory, link, navigate } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import { darkMode, rewardAddress, rewardBalance } from "./stores";
-    import Toggle from "svelte-toggle";
-    import watchMedia from "svelte-media";
-    import NavbarAlert from "./NavbarAlert.svelte";
     import { onDestroy } from "svelte";
+    import watchMedia from "svelte-media";
+    import { globalHistory, link, navigate } from "svelte-navigator";
+    import Toggle from "svelte-toggle";
+    import { apiClient } from "./api_client";
+    import NavbarAlert from "./NavbarAlert.svelte";
+    import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import { buildMonKeyURL } from "./utils";
 
     const media = watchMedia({
@@ -82,7 +82,7 @@
                     <a
                         class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
-                        href={rAddress !== "" ? "/rewards" : "/rewards/address"}
+                        href={rAddress ? "/rewards" : "/rewards/address"}
                     >
                         <i class="fas fa-coins" />
                         <div class="text-xs font-bold uppercase">Rewards</div>
@@ -108,7 +108,7 @@
         <div class="lg:flex flex-grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
             <ul class="flex flex-grow flex-row list-none mr-auto">
                 <li class="flex items-center">
-                    {#if rAddress !== ""}
+                    {#if rAddress}
                         <div
                             class="text-xs text-gray-700 dark:text-gray-300 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
                             on:click={() => navigate("/rewards")}
@@ -239,11 +239,11 @@
                         <a
                             class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
-                            href={rAddress !== "" ? "/rewards" : "/rewards/address"}
+                            href={rAddress ? "/rewards" : "/rewards/address"}
                         >
                             <i class="fas fa-coins" />
                             <div class="text-xs font-bold uppercase">
-                                {#if rAddress !== ""}
+                                {#if rAddress}
                                     Rewards
                                 {:else}
                                     Earn rewards

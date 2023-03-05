@@ -5,9 +5,12 @@ export type ParentMethods = {
     applicationID: () => string;
     serverMethod: (method: string, ...args: any[]) => Promise<any>;
     navigateToApplicationPage: (pageID: string, applicationID?: string) => void;
+    navigate: (to: string) => void;
     alert: (message: string, title: string, buttonLabel: string) => Promise<void>;
     confirm: (question: string, title: string, positiveAnswerLabel: string, negativeAnswerLabel: string) => Promise<boolean>;
     prompt: (question: string, title: string, placeholder: string, initialValue: string, positiveAnswerLabel: string, negativeAnswerLabel: string) => Promise<string>;
+    userAddress: () => Promise<string>;
+    userPermissionLevel: () => Promise<string>;
 }
 
 // events that the parent can trigger on the child

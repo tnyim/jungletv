@@ -117,7 +117,7 @@
                         </div>
                     </div>
                 </div>
-                {#if $rewardAddress != ""}
+                {#if $rewardAddress}
                     <div class="flex flex-row space-x-2 justify-center">
                         {#if skipAndTipStatus.getSkipThresholdReducible()}
                             <button

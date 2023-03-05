@@ -241,7 +241,7 @@
                 </span>
             {/if}
         </div>
-        {#if !isSelf && $rewardAddress != ""}
+        {#if !isSelf && $rewardAddress}
             {#if $blockedUsers.has(userAddress)}
                 <div class="flex flex-col justify-center">
                     <ButtonButton color="purple" on:click={unblockUser}>Unblock</ButtonButton>

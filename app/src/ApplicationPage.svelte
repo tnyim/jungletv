@@ -11,7 +11,9 @@
     import NotFound from "./NotFound.svelte";
     import { pageTitleApplicationPage } from "./pageTitleStores";
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
+    import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { consumeStreamRPC, StreamRequestController } from "./rpcUtils";
+    import { permissionLevel, rewardAddress } from "./stores";
 
     export let applicationID: string;
     export let pageID: string;
@@ -53,10 +55,41 @@
         navigateToApplicationPage(newPageID, newApplicationID) {
             navigate(`/apps/${newApplicationID ?? applicationID}/${newPageID}`);
         },
+        navigate(to) {
+            navigate(to);
+        },
         alert: modalAlert,
         confirm: modalConfirm,
         prompt: modalPrompt,
+        userAddress: () => rewardAddressPromise,
+        userPermissionLevel: () => permissionLevelPromise,
     };
+
+    let rewardAddressPromise = new Promise((resolve: (address: string) => void) => {
+        let unsub = rewardAddress.subscribe((address) => {
+            if (address !== null) {
+                unsub();
+                resolve(address === "" ? undefined : address);
+            }
+        });
+    });
+
+    const permissionLevelMapping: Record<PermissionLevelMap[keyof PermissionLevelMap], string> = {
+        0: "unauthenticated",
+        1: "user",
+        2: "admin",
+    };
+
+    let permissionLevelPromise = new Promise((resolve: (level: string) => void) => {
+        let unsub = permissionLevel.subscribe((level) => {
+            if (level !== null) {
+                console.log("level is", level);
+                console.log("resolving with", permissionLevelMapping[level]);
+                unsub();
+                resolve(permissionLevelMapping[level]);
+            }
+        });
+    });
 
     function consumeApplicationEventsRequestBuilder(
         onUpdate: (update: ApplicationEventUpdate) => void,
