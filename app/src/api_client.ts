@@ -180,7 +180,7 @@ class APIClient {
             }
             return c;
         }
-        // cookie may have been magically cleared (bad server response/CloudFlare magic?!), attempt to retrieve backup from local storage
+        // cookie may have been magically cleared (https://github.com/brave/brave-browser/issues/3443), attempt to retrieve backup from local storage
         if (token != null && tokenExpiryString != null) {
             let tokenExpiry = new Date(tokenExpiryString);
             if (tokenExpiry.getTime() > new Date().getTime()) {
