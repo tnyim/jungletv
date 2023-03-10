@@ -28,6 +28,12 @@ const messenger = new JungleTVWindowMessenger({
 
 let cachedApplicationID: string = "";
 
+// remove and re-add body to force reevaluation of relative URLs with new base
+let origBody = document.getElementsByTagName("body")[0];
+let bodyParent = origBody.parentNode ?? document;
+bodyParent.removeChild(origBody);
+// body is re-added inside connectionPromise
+
 const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMethods, ParentEvents>> = async function () {
     let childMethods: ChildMethods = {};
     let connection: Connection<ChildMethods, ChildEvents, ParentMethods, ParentEvents> = await ChildHandshake(messenger, childMethods);
@@ -39,6 +45,17 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
     }
 
     cachedApplicationID = await h.call("applicationID");
+
+    let head: HTMLHeadElement;
+    let headElems = document.getElementsByTagName("head");
+    if (headElems.length > 0) {
+        head = headElems[0];
+    } else {
+        head = document.createElement("head");
+        document.appendChild(head);
+    }
+    head.innerHTML += `<base href="${document.location.origin}/assets/app/aaa/" />`;
+    bodyParent.appendChild(origBody);
 
     h.addEventListener("eventForClient", (args) => {
         server.dispatchEvent(new CustomEvent<any[]>(args.name, { detail: args.args }))
