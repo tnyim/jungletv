@@ -31,6 +31,14 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 	}
 	defer unsub()
 
+	err = s.appRunner.ApplicationEvent(stream.Context(), true, r.ApplicationId, r.PageId, "connected", []string{})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer func() {
+		_ = s.appRunner.ApplicationEvent(stream.Context(), true, r.ApplicationId, r.PageId, "disconnected", []string{})
+	}()
+
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
 	var seq uint32
@@ -78,7 +86,7 @@ func (s *grpcServer) ApplicationServerMethod(ctx context.Context, r *proto.Appli
 }
 
 func (s *grpcServer) TriggerApplicationEvent(ctx context.Context, r *proto.TriggerApplicationEventRequest) (*proto.TriggerApplicationEventResponse, error) {
-	err := s.appRunner.ApplicationEvent(ctx, r.ApplicationId, r.PageId, r.Name, r.Arguments)
+	err := s.appRunner.ApplicationEvent(ctx, false, r.ApplicationId, r.PageId, r.Name, r.Arguments)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

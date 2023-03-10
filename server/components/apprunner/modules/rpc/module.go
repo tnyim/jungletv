@@ -21,7 +21,7 @@ type RPCModule interface {
 	// HandleInvocation must be called inside the event loop
 	HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) goja.Value
 	// HandleEvent must be called inside the event loop
-	HandleEvent(vm *goja.Runtime, user auth.User, pageID, event string, args []string)
+	HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, pageID, event string, args []string)
 
 	GlobalEventEmitted() event.Event[ClientEventData]
 	PageEventEmitted() event.Keyed[string, ClientEventData]
@@ -133,8 +133,9 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 	}
 
 	callContext := map[string]interface{}{
-		"page":   pageID,
-		"sender": goja.Undefined(),
+		"page":    pageID,
+		"sender":  goja.Undefined(),
+		"trusted": false,
 	}
 	if user != nil && !user.IsUnknown() {
 		callContext["sender"] = map[string]interface{}{
@@ -169,14 +170,15 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 }
 
 // to be called inside the loop
-func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, pageID, event string, args []string) {
+func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, pageID, event string, args []string) {
 	// no need to sync access to m.eventListeners as it can only be accessed inside the loop
 	handlers := m.eventListeners[event]
 
 	for _, h := range handlers {
 		eventContext := map[string]interface{}{
-			"page":   pageID,
-			"sender": goja.Undefined(),
+			"page":    pageID,
+			"sender":  goja.Undefined(),
+			"trusted": trusted,
 		}
 		if user != nil && !user.IsUnknown() {
 			eventContext["sender"] = map[string]interface{}{

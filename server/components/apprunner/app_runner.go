@@ -367,7 +367,7 @@ func (r *AppRunner) ApplicationMethod(ctx context.Context, applicationID, pageID
 	return result, stacktrace.Propagate(err, "")
 }
 
-func (r *AppRunner) ApplicationEvent(ctx context.Context, applicationID, pageID string, eventName string, eventArgs []string) error {
+func (r *AppRunner) ApplicationEvent(ctx context.Context, trusted bool, applicationID, pageID string, eventName string, eventArgs []string) error {
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -385,7 +385,7 @@ func (r *AppRunner) ApplicationEvent(ctx context.Context, applicationID, pageID 
 	if !ok {
 		return stacktrace.NewError("rate limit reached")
 	}
-	return stacktrace.Propagate(instance.ApplicationEvent(ctx, pageID, eventName, eventArgs), "")
+	return stacktrace.Propagate(instance.ApplicationEvent(ctx, trusted, pageID, eventName, eventArgs), "")
 }
 
 func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, applicationID, pageID string) (<-chan rpc.ClientEventData, func(), error) {

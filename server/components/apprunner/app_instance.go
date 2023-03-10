@@ -612,7 +612,7 @@ func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method stri
 	return result, stacktrace.Propagate(err, "")
 }
 
-func (a *appInstance) ApplicationEvent(ctx context.Context, pageID string, eventName string, eventArgs []string) error {
+func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID string, eventName string, eventArgs []string) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -622,7 +622,7 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, pageID string, event
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	a.runOnLoopLogError(func(vm *goja.Runtime) error {
-		a.rpcModule.HandleEvent(vm, user, pageID, eventName, eventArgs)
+		a.rpcModule.HandleEvent(vm, user, trusted, pageID, eventName, eventArgs)
 		return nil
 	})
 	return nil
