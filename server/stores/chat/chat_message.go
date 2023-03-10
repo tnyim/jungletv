@@ -53,7 +53,7 @@ func (m *Message) SerializeForAPI(ctx context.Context, userSerializer auth.APIUs
 func (m *Message) SerializeForJS(ctx context.Context, dateSerializer func(time.Time) interface{}) map[string]interface{} {
 	result := map[string]interface{}{
 		"id":           m.ID.String(),
-		"createdAt":    m.CreatedAt,
+		"createdAt":    dateSerializer(m.CreatedAt),
 		"content":      m.Content,
 		"shadowbanned": m.Shadowbanned,
 	}

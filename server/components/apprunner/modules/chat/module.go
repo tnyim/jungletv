@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -28,12 +27,6 @@ type chatModule struct {
 	eventAdapter   *gojautil.EventAdapter
 
 	executionContext context.Context
-	mu               sync.RWMutex
-}
-
-type eventListener struct {
-	value    goja.Value
-	callable goja.Callable
 }
 
 // New returns a new chat module
