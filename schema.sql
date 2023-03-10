@@ -313,7 +313,8 @@ INSERT INTO "points_tx_type" VALUES
     (9, 'monthly_subscription'),
     (10, 'skip_threshold_reduction'),
     (11, 'skip_threshold_increase'),
-    (12, 'concealed_entry_enqueuing');
+    (12, 'concealed_entry_enqueuing'),
+    (13, 'application_defined');
 
 CREATE TABLE IF NOT EXISTS "points_tx" (
     id BIGINT PRIMARY KEY,

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -84,7 +85,7 @@ func convertPointsTransactions(orig []*types.PointsTx) []*proto.PointsTransactio
 }
 
 func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
-	return &proto.PointsTransaction{
+	protoTx := &proto.PointsTransaction{
 		Id:             tx.ID,
 		RewardsAddress: tx.RewardsAddress,
 		CreatedAt:      timestamppb.New(tx.CreatedAt),
@@ -92,6 +93,8 @@ func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
 		Value:          int32(tx.Value),
 		Type:           proto.PointsTransactionType(tx.Type),
 	}
+	_ = json.Unmarshal(tx.Extra, &protoTx.Extra)
+	return protoTx
 }
 
 func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest, stream proto.JungleTV_ConvertBananoToPointsServer) error {

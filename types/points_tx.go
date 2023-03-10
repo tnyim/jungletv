@@ -116,4 +116,5 @@ const (
 	PointsTxTypeSkipThresholdReduction      PointsTxType = 10
 	PointsTxTypeSkipThresholdIncrease       PointsTxType = 11
 	PointsTxTypeConcealedEntryEnqueuing     PointsTxType = 12
+	PointsTxTypeApplicationDefined          PointsTxType = 13
 )

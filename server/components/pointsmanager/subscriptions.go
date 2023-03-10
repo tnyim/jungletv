@@ -69,7 +69,7 @@ func (m *Manager) SubscribeOrExtendSubscription(ctxCtx context.Context, user aut
 		return nil, stacktrace.NewError("the user is already subscribed")
 	}
 
-	txID, err := m.CreateTransaction(ctx, user, types.PointsTxTypeMonthlySubscription, -6900)
+	pointsTx, err := m.CreateTransaction(ctx, user, types.PointsTxTypeMonthlySubscription, -6900)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -79,7 +79,7 @@ func (m *Manager) SubscribeOrExtendSubscription(ctxCtx context.Context, user aut
 			RewardsAddress: user.Address(),
 			StartsAt:       now,
 			EndsAt:         oneMonthFromNow,
-			PaymentTxs:     pq.Int64Array{txID},
+			PaymentTxs:     pq.Int64Array{pointsTx.ID},
 		}
 	} else {
 		// this logic ensures that subscriptions which started e.g. on the 31st of some month
@@ -92,7 +92,7 @@ func (m *Manager) SubscribeOrExtendSubscription(ctxCtx context.Context, user aut
 		for m := 1; !subscription.EndsAt.After(min); m++ {
 			subscription.EndsAt = subscription.StartsAt.AddDate(0, m, 0)
 		}
-		subscription.PaymentTxs = append(subscription.PaymentTxs, txID)
+		subscription.PaymentTxs = append(subscription.PaymentTxs, pointsTx.ID)
 	}
 
 	err = subscription.Update(ctx)

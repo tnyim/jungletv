@@ -1235,6 +1235,7 @@ message PointsTransaction {
     google.protobuf.Timestamp updated_at = 4;
     int32 value = 5;
     PointsTransactionType type = 6;
+    map<string, string> extra = 7;
 }
 
 enum PointsTransactionType {
@@ -1251,6 +1252,7 @@ enum PointsTransactionType {
     POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION = 10;
     POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE = 11;
     POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING = 12;
+    POINTS_TRANSACTION_TYPE_APPLICATION_DEFINED = 13;
 }
 
 message ChatGifSearchRequest {

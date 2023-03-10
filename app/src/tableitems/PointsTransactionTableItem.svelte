@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Map } from "google-protobuf";
     import { DateTime } from "luxon";
     import { PointsTransaction, PointsTransactionType, PointsTransactionTypeMap } from "../proto/jungletv_pb";
 
@@ -11,7 +12,10 @@
             .toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS);
     }
 
-    function formatType(t: PointsTransactionTypeMap[keyof PointsTransactionTypeMap]): string {
+    function formatType(
+        t: PointsTransactionTypeMap[keyof PointsTransactionTypeMap],
+        extra: Map<string, string>
+    ): string {
         switch (t) {
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_ACTIVITY_CHALLENGE_REWARD:
                 return "Reward for captcha solving";
@@ -37,6 +41,8 @@
                 return "Crowdfunded skipping target increase";
             case PointsTransactionType.POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING:
                 return "Enqueuing with hidden media information";
+            case PointsTransactionType.POINTS_TRANSACTION_TYPE_APPLICATION_DEFINED:
+                return extra.get("description");
             default:
                 return "Unknown";
         }
@@ -60,6 +66,6 @@
         {/if}
     </td>
     <td class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-xs p-4 text-gray-700 dark:text-white">
-        {formatType(tx.getType())}
+        {formatType(tx.getType(), tx.getExtraMap())}
     </td>
 </tr>

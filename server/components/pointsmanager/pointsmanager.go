@@ -13,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
@@ -26,6 +27,9 @@ type Manager struct {
 	bananoConversionFlowsLock sync.RWMutex
 
 	subscriptionCache *cache.Cache[string, *types.Subscription]
+
+	transactionCreated event.Event[*types.PointsTx]
+	transactionUpdated event.Event[TransactionUpdatedEventArgs]
 }
 
 // New returns a new initialized Manager
@@ -36,26 +40,44 @@ func New(workerContext context.Context, snowflakeNode *snowflake.Node, paymentAc
 		paymentAccountPool:    paymentAccountPool,
 		bananoConversionFlows: make(map[string]*BananoConversionFlow),
 		subscriptionCache:     cache.New[string, *types.Subscription](30*time.Minute, 10*time.Minute),
+		transactionCreated:    event.New[*types.PointsTx](),
+		transactionUpdated:    event.New[TransactionUpdatedEventArgs](),
 	}
 }
 
+// TransactionUpdatedEventArgs are the arguments to the OnTransactionUpdated event
+type TransactionUpdatedEventArgs struct {
+	Transaction     *types.PointsTx
+	AdjustmentValue int
+}
+
+// OnTransactionCreated returns the event that is fired when a points transaction is committed
+func (m *Manager) OnTransactionCreated() event.Event[*types.PointsTx] {
+	return m.transactionCreated
+}
+
+// OnTransactionUpdated returns the event that is fired when a points transaction is updated (due to transaction collapsing)
+func (m *Manager) OnTransactionUpdated() event.Event[TransactionUpdatedEventArgs] {
+	return m.transactionUpdated
+}
+
 // CreateTransaction creates a points transaction
-func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int, extraFields ...TxExtraField) (int64, error) {
+func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, txType types.PointsTxType, value int, extraFields ...TxExtraField) (*types.PointsTx, error) {
 	err := validateBalanceMovement(txType, value)
 	if err != nil {
-		return 0, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return 0, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
 	// a CHECK (balance >= 0) exists in the table to prevent overdraw, even in concurrent transactions
 	err = types.AdjustPointsBalanceOfAddress(ctx, forUser.Address(), value)
 	if err != nil {
-		return 0, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
 
 	var lastTransaction *types.PointsTx
@@ -64,7 +86,7 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 		lastTransaction, err = types.GetLatestPointsTxForAddress(ctx, forUser.Address())
 		if err != nil {
 			if !errors.Is(err, types.ErrPointsTxNotFound) {
-				return 0, stacktrace.Propagate(err, "")
+				return nil, stacktrace.Propagate(err, "")
 			}
 			lastTransaction = nil
 		} else if lastTransaction.Type != txType {
@@ -76,9 +98,15 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	if lastTransaction != nil {
 		err = lastTransaction.AdjustValue(ctx, value)
 		if err != nil {
-			return 0, stacktrace.Propagate(err, "")
+			return nil, stacktrace.Propagate(err, "")
 		}
-		return 0, stacktrace.Propagate(ctx.Commit(), "")
+		ctx.DeferToCommit(func() {
+			m.transactionUpdated.Notify(TransactionUpdatedEventArgs{
+				Transaction:     lastTransaction,
+				AdjustmentValue: value,
+			}, false)
+		})
+		return lastTransaction, stacktrace.Propagate(ctx.Commit(), "")
 	}
 
 	extra := []byte{}
@@ -89,14 +117,14 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 
 	for _, mandatoryFieldKey := range pointsTxTypeMandatoryExtraFields[txType] {
 		if _, present := extraFieldsMap[mandatoryFieldKey]; !present {
-			return 0, stacktrace.NewError("mandatory extra field %s not provided", mandatoryFieldKey)
+			return nil, stacktrace.NewError("mandatory extra field %s not provided", mandatoryFieldKey)
 		}
 	}
 
 	if len(extraFields) > 0 {
 		extra, err = json.Marshal(extraFieldsMap)
 		if err != nil {
-			return 0, stacktrace.Propagate(err, "")
+			return nil, stacktrace.Propagate(err, "")
 		}
 	}
 	now := time.Now()
@@ -111,9 +139,12 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	}
 	err = tx.Insert(ctx)
 	if err != nil {
-		return 0, stacktrace.Propagate(err, "")
+		return nil, stacktrace.Propagate(err, "")
 	}
-	return tx.ID, stacktrace.Propagate(ctx.Commit(), "")
+	ctx.DeferToCommit(func() {
+		m.transactionCreated.Notify(tx, false)
+	})
+	return tx, stacktrace.Propagate(ctx.Commit(), "")
 }
 
 func validateBalanceMovement(txType types.PointsTxType, value int) error {
@@ -151,6 +182,7 @@ var pointsTxAllowedDirectionByType = map[types.PointsTxType]pointsTxDirection{
 	types.PointsTxTypeSkipThresholdReduction:      pointsTxDirectionDecrease,
 	types.PointsTxTypeSkipThresholdIncrease:       pointsTxDirectionDecrease,
 	types.PointsTxTypeConcealedEntryEnqueuing:     pointsTxDirectionDecrease,
+	types.PointsTxTypeApplicationDefined:          pointsTxDirectionIncreaseOrDecrease,
 }
 
 // to save on DB storage space, for "uninteresting" transaction types, we collapse consecutive records of the same type
@@ -169,4 +201,5 @@ var pointsTxTypeMandatoryExtraFields = map[types.PointsTxType][]string{
 	types.PointsTxTypeConversionFromBanano:        {"tx_hash"},
 	types.PointsTxTypeQueueEntryReordering:        {"media", "direction"},
 	types.PointsTxTypeConcealedEntryEnqueuing:     {"media"},
+	types.PointsTxTypeApplicationDefined:          {"application_id", "application_version", "description"},
 }

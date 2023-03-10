@@ -42933,7 +42933,8 @@ proto.jungletv.PointsTransaction.toObject = function(includeInstance, msg) {
     createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     updatedAt: (f = msg.getUpdatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     value: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    type: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    type: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    extraMap: (f = msg.getExtraMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -42995,6 +42996,12 @@ proto.jungletv.PointsTransaction.deserializeBinaryFromReader = function(msg, rea
     case 6:
       var value = /** @type {!proto.jungletv.PointsTransactionType} */ (reader.readEnum());
       msg.setType(value);
+      break;
+    case 7:
+      var value = msg.getExtraMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -43068,6 +43075,10 @@ proto.jungletv.PointsTransaction.serializeBinaryToWriter = function(message, wri
       6,
       f
     );
+  }
+  f = message.getExtraMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(7, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -43216,6 +43227,28 @@ proto.jungletv.PointsTransaction.prototype.getType = function() {
 proto.jungletv.PointsTransaction.prototype.setType = function(value) {
   return jspb.Message.setProto3EnumField(this, 6, value);
 };
+
+
+/**
+ * map<string, string> extra = 7;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.jungletv.PointsTransaction.prototype.getExtraMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 7, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.jungletv.PointsTransaction} returns this
+ */
+proto.jungletv.PointsTransaction.prototype.clearExtraMap = function() {
+  this.getExtraMap().clear();
+  return this;};
 
 
 
@@ -46361,7 +46394,8 @@ proto.jungletv.PointsTransactionType = {
   POINTS_TRANSACTION_TYPE_MONTHLY_SUBSCRIPTION: 9,
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION: 10,
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE: 11,
-  POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING: 12
+  POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING: 12,
+  POINTS_TRANSACTION_TYPE_APPLICATION_DEFINED: 13
 };
 
 /**

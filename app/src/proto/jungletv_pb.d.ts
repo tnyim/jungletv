@@ -5517,6 +5517,8 @@ export class PointsTransaction extends jspb.Message {
   getType(): PointsTransactionTypeMap[keyof PointsTransactionTypeMap];
   setType(value: PointsTransactionTypeMap[keyof PointsTransactionTypeMap]): void;
 
+  getExtraMap(): jspb.Map<string, string>;
+  clearExtraMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PointsTransaction.AsObject;
   static toObject(includeInstance: boolean, msg: PointsTransaction): PointsTransaction.AsObject;
@@ -5535,6 +5537,7 @@ export namespace PointsTransaction {
     updatedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     value: number,
     type: PointsTransactionTypeMap[keyof PointsTransactionTypeMap],
+    extraMap: Array<[string, string]>,
   }
 }
 
@@ -6107,6 +6110,7 @@ export interface PointsTransactionTypeMap {
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_REDUCTION: 10;
   POINTS_TRANSACTION_TYPE_SKIP_THRESHOLD_INCREASE: 11;
   POINTS_TRANSACTION_TYPE_CONCEALED_ENTRY_ENQUEUING: 12;
+  POINTS_TRANSACTION_TYPE_APPLICATION_DEFINED: 13;
 }
 
 export const PointsTransactionType: PointsTransactionTypeMap;
