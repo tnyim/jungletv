@@ -123,9 +123,13 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 			spectator.activityChallenge.Types = append(spectator.activityChallenge.Types, ActivityChallengeTypeSegcha)
 			spectator.activityChallenge.Tolerance = 2 * time.Minute
 		}
-		if spectator.lastHardChallengeSolvedAt.IsZero() {
-			spectator.activityChallenge.Types = append(spectator.activityChallenge.Types, ActivityChallengeTypeTurnstile)
-		}
+		/*
+			Turnstile challenges temporarily disabled until pass rate issues for mobile users can be investigated
+
+			if spectator.lastHardChallengeSolvedAt.IsZero() {
+				spectator.activityChallenge.Types = append(spectator.activityChallenge.Types, ActivityChallengeTypeTurnstile)
+			}
+		*/
 	}
 	if hadChallenge || spectator.noToleranceOnNextChallenge {
 		spectator.activityChallenge.Tolerance = 0
