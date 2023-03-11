@@ -176,7 +176,7 @@ class APIClient {
         if (c != "") {
             if (token == null || tokenExpiryString == null) {
                 localStorage.setItem("authToken", c);
-                localStorage.setItem("authTokenExpiry", DateTime.now().plus({ hours: 7 * 24 }).toJSDate().toUTCString());
+                localStorage.setItem("authTokenExpiry", DateTime.now().plus({ hours: 30 * 24 }).toJSDate().toUTCString());
             }
             return c;
         }
