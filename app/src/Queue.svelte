@@ -243,10 +243,13 @@
                         <div class="text-xs text-white py-1 pl-2 bg-red-600 rounded-bl-md">
                             New entries will be added here
                             {#if isStaff}
-                                <i
-                                    class="ml-1 fas fa-times cursor-pointer hover:text-gray-300"
+                                <button
+                                    type="button"
+                                    class="ml-1 hover:text-gray-300"
                                     on:click={async () => await apiClient.clearQueueInsertCursor()}
-                                />
+                                >
+                                    <i class="fas fa-times" />
+                                </button>
                             {/if}
                         </div>
                     </div>
@@ -255,7 +258,7 @@
             {#if visible}
                 <button
                     type="button"
-                    class="px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm text-left
+                    class="w-full px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm text-left
                         transition-colors ease-in-out duration-1000
                         {highlightedEntryID == entry.getId() ? 'bg-yellow-100 dark:bg-yellow-800' : ''}
                         hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
