@@ -13,12 +13,6 @@
     export let mode: string;
     export let index: number;
     export let showPosition: boolean;
-
-    function onJumpToKeyDown(ev: KeyboardEvent) {
-        if (ev.key == "Enter") {
-            dispatch("jumpTo");
-        }
-    }
 </script>
 
 {#if showPosition}
@@ -26,13 +20,14 @@
         <div class={index + 1 > 999 ? "text-lg" : index + 1 > 99 ? "text-xl" : "text-2xl"} title="Position in queue">
             {index + 1}
         </div>
-        <i
-            tabindex="0"
+        <button
+            type="button"
             title="See in the complete queue"
-            class="fas fa-location-arrow text-gray-500 hover:text-purple-500 cursor-pointer ease-linear transition-all"
             on:click|stopPropagation={() => dispatch("jumpTo")}
-            on:keydown={onJumpToKeyDown}
-        />
+            class="text-gray-500 hover:text-purple-500 ease-linear transition-all"
+        >
+            <i class="fas fa-location-arrow " />
+        </button>
     </div>
 {/if}
 {#if entry.hasYoutubeVideoData()}

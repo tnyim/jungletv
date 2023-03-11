@@ -1,10 +1,7 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
-    import { apiClient } from "./api_client";
     import type { QueueEntry } from "./proto/jungletv_pb";
-    import { buildMonKeyURL, formatQueueEntryThumbnailDuration, getReadableUserString } from "./utils";
-
-    const dispatch = createEventDispatcher();
+    import QueueEntryEnqueuedBy from "./QueueEntryEnqueuedBy.svelte";
+    import { formatQueueEntryThumbnailDuration } from "./utils";
 
     export let entry: QueueEntry;
     export let isPlaying: boolean;
@@ -52,29 +49,7 @@
             {"█".repeat(5 + randomUpTo(randomBase, 15))}
         </span>
     </p>
-    <p class="text-xs whitespace-nowrap">
-        {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
-            Enqueued by <img
-                src={buildMonKeyURL(entry.getRequestedBy().getAddress())}
-                alt="&nbsp;"
-                class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-            />
-            <span
-                class="{entry.getRequestedBy().hasNickname()
-                    ? 'requester-user-nickname'
-                    : 'requester-user-address'} cursor-pointer"
-                style="font-size: 0.70rem;">{getReadableUserString(entry.getRequestedBy())}</span
-            >
-        {:else}
-            Added by JungleTV {#if apiClient.isPriceZero(entry.getRequestCost())}(no reward){/if}
-        {/if}
-        {#if mode == "moderation"}
-            | Request cost: {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN |
-            <span class="text-blue-600 hover:underline cursor-pointer" on:click={() => dispatch("remove", entry)}
-                >Remove</span
-            >
-        {/if}
-    </p>
+    <QueueEntryEnqueuedBy {entry} {mode} on:remove on:disallow />
 </div>
 
 <style lang="postcss" src="./styles/QueueEntryHeader.postcss"></style>
