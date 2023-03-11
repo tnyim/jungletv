@@ -63,13 +63,6 @@
         />
     </div>
     <p class="mt-3">
-        JungleTV is also a
-        <a href="https://creators.brave.com/" target="_blank" rel="noopener">Brave Verified Creator</a>, so if you are a
-        Brave browser user, you can donate your accumulated Basic Attention Tokens (BAT). To do this, click the
-        triangular "Brave Rewards" icon to the right of your address bar, and select "Send a Tip". You can choose to
-        send a "One Time Tip", or set up a recurring "Monthly" contribution.
-    </p>
-    <p class="mt-3">
         JungleTV is source-available software licensed under the Apache License 2.0 with Commons Clause. Head over to
         the <a href="https://github.com/tnyim/jungletv" target="_blank" rel="noopener">JungleTV GitHub</a> to take a look
         at the source code, report issues, or to maybe even make some contributions of your own!
