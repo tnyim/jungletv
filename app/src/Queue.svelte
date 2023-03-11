@@ -261,7 +261,8 @@
                     class="w-full px-2 py-1 {searching ? 'pl-0' : ''} flex flex-row text-sm text-left
                         transition-colors ease-in-out duration-1000
                         {highlightedEntryID == entry.getId() ? 'bg-yellow-100 dark:bg-yellow-800' : ''}
-                        hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                        hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-800 dark:focus:bg-gray-800
+                        outline-none focus:outline-none"
                     on:click={() => openOrCollapse(entry)}
                 >
                     <QueueEntryHeader

@@ -98,6 +98,7 @@
         }
     }
 </script>
+
 <svelte:body on:keydown={documentKeyDown} />
 <div class="w-full flex flex-row">
     {#if searching}
@@ -179,7 +180,8 @@
         <button
             title="Search queue entries"
             class="text-purple-700 dark:text-purple-500 min-h-full w-8 p-2 rounded hover:shadow-sm
-        dark:hover:bg-gray-700 hover:bg-gray-200 cursor-pointer ease-linear transition-all duration-150"
+                dark:hover:bg-gray-700 hover:bg-gray-200 dark:focus:bg-gray-700 focus:bg-gray-200
+                outline-none focus:outline-none ease-linear transition-all duration-150"
             on:click={() => (searching = !searching)}
         >
             <i class="fas {searching ? 'fa-times' : 'fa-search'}" />

@@ -111,7 +111,8 @@
     const commonButtonClasses =
         "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
         "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150";
+        "ease-linear transition-all duration-150" +
+        "focus:bg-gray-100 dark:focus:bg-gray-800";
 
     function moveQueueEntry(direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]) {
         modal.set({
