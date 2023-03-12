@@ -473,6 +473,7 @@
     }
 
     let detailsOpenForMsgID = "";
+    let detailsLastOpenForMsgID = "";
     let detailsOpenTimer: number;
     function beginShowMessageDetails(msg: ChatMessage) {
         endPreShowMessageDetails();
@@ -491,6 +492,7 @@
 
     function hideMessageDetails() {
         endPreShowMessageDetails();
+        detailsLastOpenForMsgID = detailsOpenForMsgID;
         detailsOpenForMsgID = "";
     }
     let containerClasses = "";
@@ -519,13 +521,14 @@
                         {allowExpensiveCSSAnimations}
                         {mode}
                         {detailsOpenForMsgID}
+                        {detailsLastOpenForMsgID}
                         highlighted={highlightedMessageID == message.getId()}
                         on:reply={() => replyToMessage(message)}
                         on:highlight={(e) => highlightMessage(e.detail)}
                         on:history={() => openChatHistoryForAuthorOfMessage(message)}
                         on:changeNickname={() => editNicknameForAuthorOfMessage(message)}
-                        on:beginShowDetails={(e) => beginShowMessageDetails(e.detail)}
-                        on:showDetails={(e) => showMessageDetails(e.detail)}
+                        on:beginShowDetails={() => beginShowMessageDetails(message)}
+                        on:showDetails={() => showMessageDetails(message)}
                         on:hideDetails={hideMessageDetails}
                     />
                 {:else if message.hasSystemMessage()}

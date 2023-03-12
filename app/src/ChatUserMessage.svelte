@@ -1,3 +1,7 @@
+<script context="module">
+    let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+</script>
+
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { apiClient } from "./api_client";
@@ -17,6 +21,7 @@
     export let mode: string;
     export let allowExpensiveCSSAnimations: boolean;
     export let detailsOpenForMsgID: string;
+    export let detailsLastOpenForMsgID: string;
     export let highlighted = false;
 
     let gifExpanded = false;
@@ -56,6 +61,7 @@
     let renderedMessage = "";
     let emotesOnly = false;
     $: [renderedMessage, emotesOnly] = renderMessage(message);
+    let dragging = false;
 </script>
 
 {#if message.hasReference()}
@@ -95,34 +101,53 @@
     on:pointerleave={(ev) => {
         if (ev.pointerType != "touch") {
             dispatch("hideDetails");
+        } else {
+            ev.stopPropagation();
+        }
+    }}
+    on:touchstart={() => {
+        dragging = false;
+    }}
+    on:touchmove={() => {
+        dragging = true;
+    }}
+    on:touchend={() => {
+        if (!dragging) {
+            if (detailsLastOpenForMsgID != message.getId()) {
+                dispatch("showDetails");
+            }
         }
     }}
 >
     {#if mode == "moderation"}
-        <button type="button" class="inline cursor-pointer" on:click={() => removeChatMessage()}>
+        <button type="button" class="inline" on:click={() => removeChatMessage()}>
             <i class="fas fa-trash " />
         </button>
-        <button type="button" class="inline cursor-pointer  ml-1" on:click={() => dispatch("history")}>
+        <button type="button" class="inline ml-1" on:click={() => dispatch("history")}>
             <i class="fas fa-history" />
         </button>
-        <button type="button" class="inline cursor-pointer ml-1" on:click={() => dispatch("changeNickname")}>
+        <button type="button" class="inline ml-1" on:click={() => dispatch("changeNickname")}>
             <i class="fas fa-edit" />
         </button>
     {/if}
     <div class="{emotesOnly ? '' : 'overflow-hidden'} inline">
         <button
             type="button"
-            class="inline {emotesOnly ? 'align-middle' : ''}"
-            on:keydown={(ev) => {
+            class="inline-block {emotesOnly ? 'align-middle' : ''} whitespace-nowrap"
+            title="Click to reply"
+            on:keydown|preventDefault={(ev) => {
                 if (ev.key == "Enter") {
-                    dispatch("showDetails", message);
+                    dispatch("showDetails");
                 }
             }}
             on:pointerenter={(ev) => {
-                if (detailsOpenForMsgID == "" || ev.pointerType != "touch") {
-                    dispatch("beginShowDetails", message);
-                } else {
-                    dispatch("hideDetails");
+                if (ev.pointerType != "touch") {
+                    dispatch("beginShowDetails");
+                }
+            }}
+            on:pointerdown|preventDefault={(e) => {
+                if (e.pointerType != "touch") {
+                    dispatch("reply");
                 }
             }}
         >
@@ -131,20 +156,15 @@
                     <img
                         src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress())}
                         alt="&nbsp;"
-                        title="Click to reply"
-                        class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1 cursor-pointer"
-                        on:click={() => dispatch("reply")}
+                        title="monKey for this user's address"
+                        class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1"
                     />
                 {:else}
                     <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
                 {/if}
             </VisibilityGuard>
-            <button
-                type="button"
-                class="{getClassForMessageAuthor(message, allowExpensiveCSSAnimations)} inline cursor-pointer"
-                title="Click to reply"
-                data-rewards-address={message.getUserMessage().getAuthor().getAddress()}
-                on:click|stopPropagation={(e) => dispatch("reply")}>{getReadableMessageAuthor(message)}</button
+            <span class={getClassForMessageAuthor(message, allowExpensiveCSSAnimations)}
+                >{getReadableMessageAuthor(message)}</span
             >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR) && message
                     .getUserMessage()
                     .getAuthor()
@@ -169,7 +189,11 @@
                 <i
                     class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
                     title="Requester of currently playing content"
-                />{/if}:
+                />{/if}{#if isSafari}<span class="relative">&colon;&nbsp;</span>{:else}&colon;{/if}
+            <!-- whitespace-nowrap in the parent button and <span class="relative">:&nbsp;</span> at the end of the
+                button are a workaround for a Safari bug -->
+            <!-- https://cdn.discordapp.com/attachments/864131682234925156/1084404474275184800/IMG_0547.png -->
+            <!-- https://stackoverflow.com/a/41633840 -->
         </button>
         <span class={emotesOnly ? "text-2xl align-middle" : ""}>{@html renderedMessage}</span>
         {#each message.getAttachmentsList() as attachment}

@@ -186,7 +186,7 @@
         <div class="flex-grow" />
         <ButtonButton type="submit" on:click={save} extraClasses="block">Save</ButtonButton>
         {#if documentID == "announcements"}
-            <ButtonButton color="blue" extraClasses="block lg:hidden" on:click={triggerAnnouncementsNotification}>
+            <ButtonButton color="blue" on:click={triggerAnnouncementsNotification}>
                 Trigger new announcement notification
             </ButtonButton>
         {/if}
