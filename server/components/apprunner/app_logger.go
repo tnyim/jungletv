@@ -1,10 +1,12 @@
 package apprunner
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
+	"github.com/DisgoOrg/disgohook/api"
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/btree"
 	"github.com/oklog/ulid/v2"
@@ -64,9 +66,11 @@ type appLogger struct {
 	mu            sync.RWMutex
 	onEntryAdded  event.Event[ApplicationLogEntry]
 	snowflakeNode *snowflake.Node
+	modLogWebhook api.WebhookClient
+	applicationID string
 }
 
-func NewAppLogger() *appLogger {
+func NewAppLogger(modLogWebhook api.WebhookClient, applicationID string) *appLogger {
 	node, _ := snowflake.NewNode(rand.Int63n(1000))
 	return &appLogger{
 		entries: btree.NewG(32, func(a, b appLogEntry) bool {
@@ -74,6 +78,8 @@ func NewAppLogger() *appLogger {
 		}),
 		onEntryAdded:  event.New[ApplicationLogEntry](),
 		snowflakeNode: node,
+		modLogWebhook: modLogWebhook,
+		applicationID: applicationID,
 	}
 }
 
@@ -132,6 +138,18 @@ func (p *appLogger) Error(s string) {
 
 func (p *appLogger) RuntimeLog(s string) {
 	p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
+}
+
+func (p *appLogger) RuntimeAuditLog(s string) {
+	p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
+	if p.modLogWebhook != nil {
+		_, err := p.modLogWebhook.SendContent(
+			fmt.Sprintf("Application `%s` %s",
+				p.applicationID, s))
+		if err != nil {
+			p.RuntimeError(fmt.Sprint("Failed to send mod log webhook:", err))
+		}
+	}
 }
 
 func (p *appLogger) RuntimeError(s string) {

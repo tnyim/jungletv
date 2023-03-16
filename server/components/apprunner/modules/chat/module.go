@@ -25,13 +25,15 @@ type chatModule struct {
 	runOnLoop      gojautil.ScheduleFunctionNoError
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
+	logger         modules.ApplicationLogger
 
 	executionContext context.Context
 }
 
 // New returns a new chat module
-func New(chatManager *chatmanager.Manager, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
+func New(logger modules.ApplicationLogger, chatManager *chatmanager.Manager, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
 	return &chatModule{
+		logger:      logger,
 		chatManager: chatManager,
 		schedule:    schedule,
 		runOnLoop:   runOnLoop,
@@ -50,6 +52,15 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 		m.exports.Set("createSystemMessage", m.createSystemMessage)
 		m.exports.Set("getMessages", m.getMessages)
+
+		m.exports.DefineAccessorProperty("enabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			enabled, _ := m.chatManager.Enabled()
+			return m.runtime.ToValue(enabled)
+		}), m.runtime.ToValue(m.setEnabled), goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+		m.exports.DefineAccessorProperty("slowMode", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			return m.runtime.ToValue(m.chatManager.SlowModeEnabled())
+		}), m.runtime.ToValue(m.setSlowModeEnabled), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		gojautil.AdaptNoArgEvent(m.eventAdapter, m.chatManager.OnChatEnabled(), "chatenabled", nil)
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) map[string]interface{} {
@@ -134,4 +145,47 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 			return jsMessages
 		}
 	})
+}
+
+func (m *chatModule) setEnabled(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	var enabled bool
+	err := m.runtime.ExportTo(call.Argument(0), &enabled)
+	if err != nil {
+		panic(m.runtime.NewTypeError("First argument to setEnabled must be a boolean"))
+	}
+
+	if enabled {
+		m.chatManager.EnableChat()
+		m.logger.RuntimeAuditLog("enabled chat")
+	} else {
+		m.chatManager.DisableChat(chatmanager.DisabledReasonUnspecified)
+		m.logger.RuntimeAuditLog("disabled chat")
+	}
+
+	return goja.Undefined()
+}
+
+func (m *chatModule) setSlowModeEnabled(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	var enabled bool
+	err := m.runtime.ExportTo(call.Argument(0), &enabled)
+	if err != nil {
+		panic(m.runtime.NewTypeError("First argument to setSlowmodeEnabled must be a boolean"))
+	}
+
+	m.chatManager.SetSlowModeEnabled(enabled)
+	if enabled {
+		m.logger.RuntimeAuditLog("enabled chat slowmode")
+	} else {
+		m.logger.RuntimeAuditLog("disabled chat slowmode")
+	}
+
+	return goja.Undefined()
 }

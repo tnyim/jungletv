@@ -14,3 +14,8 @@ type NativeModule interface {
 	ExecutionResumed(context.Context)
 	ExecutionPaused()
 }
+
+// ApplicationLogger logs application actions
+type ApplicationLogger interface {
+	RuntimeAuditLog(s string)
+}

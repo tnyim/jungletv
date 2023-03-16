@@ -21,6 +21,10 @@ func (c *Manager) DisableChat(reason DisabledReason) {
 	}
 }
 
+func (c *Manager) SlowModeEnabled() bool {
+	return c.slowmode
+}
+
 func (c *Manager) SetSlowModeEnabled(enabled bool) {
 	c.slowmode = enabled
 }

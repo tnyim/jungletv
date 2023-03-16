@@ -459,6 +459,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.raffleSecretKey = sk.ToECDSA()
 
 	s.appRunner.SetModuleDependencies(modules.Dependencies{
+		ModLogWebhook: s.modLogWebhook,
 		ChatManager:   s.chat,
 		PointsManager: s.pointsManager,
 	})

@@ -81,7 +81,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		onTerminated:                    event.NewNoArg(),
 		runner:                          r,
 		modules:                         &modules.Collection{},
-		appLogger:                       NewAppLogger(),
+		appLogger:                       NewAppLogger(d.ModLogWebhook, applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
 	}
 
@@ -93,7 +93,12 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 
 	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
 	instance.modules.RegisterNativeModule(process.New(instance, instance))
-	instance.modules.RegisterNativeModule(chat.New(d.ChatManager, instance.runOnLoopLogError, scheduleFunctionNoError))
+	instance.modules.RegisterNativeModule(
+		chat.New(
+			instance.appLogger,
+			d.ChatManager,
+			instance.runOnLoopLogError,
+			scheduleFunctionNoError))
 	instance.modules.RegisterNativeModule(
 		points.New(d.PointsManager,
 			instance.runOnLoopLogError,
