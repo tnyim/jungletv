@@ -13,7 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
@@ -43248,7 +43254,8 @@ proto.jungletv.PointsTransaction.prototype.getExtraMap = function(opt_noLazyCrea
  */
 proto.jungletv.PointsTransaction.prototype.clearExtraMap = function() {
   this.getExtraMap().clear();
-  return this;};
+  return this;
+};
 
 
 

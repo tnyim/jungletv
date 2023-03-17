@@ -51,10 +51,8 @@ export default [
 		},
 		plugins: [
 			replace({
-				globalThis: JSON.stringify({
-					API_HOST: production ? "https://jungletv.live" : "use-origin",
-					PRODUCTION_BUILD: production,
-				}),
+				"globalThis.API_HOST": JSON.stringify(production ? "https://jungletv.live" : "use-origin"),
+				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
 				preventAssignment: true,
 			}),
 			replace({
@@ -196,10 +194,8 @@ export default [
 		},
 		plugins: [
 			replace({
-				globalThis: JSON.stringify({
-					EXPECTED_PARENT_WINDOW_ORIGIN: production ? "https://jungletv.live" : "*",
-					PRODUCTION_BUILD: production,
-				}),
+				"globalThis.EXPECTED_PARENT_WINDOW_ORIGIN": JSON.stringify(production ? "https://jungletv.live" : "*"),
+				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
 				preventAssignment: true,
 			}),
 			replace({
