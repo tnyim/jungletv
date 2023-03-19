@@ -29,6 +29,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/components/enqueuemanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
@@ -117,8 +118,9 @@ type grpcServer struct {
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
 
-	appEditor *appeditor.AppEditor
-	appRunner *apprunner.AppRunner
+	appEditor     *appeditor.AppEditor
+	appRunner     *apprunner.AppRunner
+	configManager *configurationmanager.Manager
 
 	soundCloudProvider *soundcloud.TrackProvider
 	mediaProviders     map[types.MediaType]media.Provider
@@ -161,7 +163,8 @@ type Options struct {
 	CaptchaImageDB  *segcha.ImageDatabase
 	CaptchaFontPath string
 
-	AppRunner *apprunner.AppRunner
+	AppRunner     *apprunner.AppRunner
+	ConfigManager *configurationmanager.Manager
 
 	AutoEnqueueVideoListFile string
 	QueueFile                string
@@ -312,7 +315,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		nicknameCache:             usercache.NewInMemory(),
 		websiteURL:                options.WebsiteURL,
 
-		appRunner: options.AppRunner,
+		appRunner:     options.AppRunner,
+		configManager: options.ConfigManager,
 
 		oauthManager: options.OAuthManager,
 

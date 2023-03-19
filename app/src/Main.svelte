@@ -9,6 +9,7 @@
 	import About from "./About.svelte";
 	import { apiClient } from "./api_client";
 	import ApplicationPage from "./ApplicationPage.svelte";
+    import { applicationName, faviconURL } from "./configurationStores";
 	import Document from "./Document.svelte";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
@@ -240,15 +241,21 @@
 		let t = $pageTitlePopoutTab;
 		let m = $pageTitleMedia;
 		let a = $pageTitleApplicationPage;
+		let n = $applicationName;
 		if (t) {
-			document.title = t + " - JungleTV";
+			document.title = t + " - " + n;
 		} else if (m && isOnHomepage) {
-			document.title = m + " - JungleTV";
+			document.title = m + " - " + n;
 		} else if (a) {
-			document.title = a + " - JungleTV";
+			document.title = a + " - " + n;
 		} else {
-			document.title = "JungleTV";
+			document.title = n;
 		}
+	}
+
+	$: {
+		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+		link.href = $faviconURL;
 	}
 </script>
 

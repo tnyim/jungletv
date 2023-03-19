@@ -294,12 +294,21 @@ message MediaConsumptionCheckpoint {
     optional uint32 latest_announcement = 14;
     optional bool has_chat_mention = 15;
     optional string media_title = 16;
+    repeated ConfigurationChange configuration_changes = 17;
 }
 
 message ActivityChallenge {
     string id = 1;
     repeated string types = 2;
     google.protobuf.Timestamp challenged_at = 3;
+}
+
+message ConfigurationChange {
+    oneof configuration_change {
+        string application_name = 1;
+        string logo_url = 2;
+        string favicon_url = 3;
+    }
 }
 
 message MonitorQueueRequest {}

@@ -18,6 +18,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/configuration"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/db"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
@@ -110,6 +111,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(instance.pagesModule)
 	instance.rpcModule = rpc.New()
 	instance.modules.RegisterNativeModule(instance.rpcModule)
+	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager))
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))

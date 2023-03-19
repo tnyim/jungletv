@@ -802,6 +802,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getMediaTitle(): string;
   setMediaTitle(value: string): void;
 
+  clearConfigurationChangesList(): void;
+  getConfigurationChangesList(): Array<ConfigurationChange>;
+  setConfigurationChangesList(value: Array<ConfigurationChange>): void;
+  addConfigurationChanges(value?: ConfigurationChange, index?: number): ConfigurationChange;
+
   getMediaInfoCase(): MediaConsumptionCheckpoint.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MediaConsumptionCheckpoint.AsObject;
@@ -831,6 +836,7 @@ export namespace MediaConsumptionCheckpoint {
     latestAnnouncement: number,
     hasChatMention: boolean,
     mediaTitle: string,
+    configurationChangesList: Array<ConfigurationChange.AsObject>,
   }
 
   export enum MediaInfoCase {
@@ -871,6 +877,48 @@ export namespace ActivityChallenge {
     id: string,
     typesList: Array<string>,
     challengedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class ConfigurationChange extends jspb.Message {
+  hasApplicationName(): boolean;
+  clearApplicationName(): void;
+  getApplicationName(): string;
+  setApplicationName(value: string): void;
+
+  hasLogoUrl(): boolean;
+  clearLogoUrl(): void;
+  getLogoUrl(): string;
+  setLogoUrl(value: string): void;
+
+  hasFaviconUrl(): boolean;
+  clearFaviconUrl(): void;
+  getFaviconUrl(): string;
+  setFaviconUrl(value: string): void;
+
+  getConfigurationChangeCase(): ConfigurationChange.ConfigurationChangeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConfigurationChange.AsObject;
+  static toObject(includeInstance: boolean, msg: ConfigurationChange): ConfigurationChange.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConfigurationChange, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConfigurationChange;
+  static deserializeBinaryFromReader(message: ConfigurationChange, reader: jspb.BinaryReader): ConfigurationChange;
+}
+
+export namespace ConfigurationChange {
+  export type AsObject = {
+    applicationName: string,
+    logoUrl: string,
+    faviconUrl: string,
+  }
+
+  export enum ConfigurationChangeCase {
+    CONFIGURATION_CHANGE_NOT_SET = 0,
+    APPLICATION_NAME = 1,
+    LOGO_URL = 2,
+    FAVICON_URL = 3,
   }
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -48,6 +49,7 @@ var ErrApplicationLogNotFound = errors.New("application log not found")
 type AppRunner struct {
 	workerContext                  context.Context
 	log                            *log.Logger
+	configManager                  *configurationmanager.Manager
 	instances                      map[string]*appInstance
 	recentLogs                     *cache.Cache[string, ApplicationLog]
 	instancesLock                  sync.RWMutex
@@ -61,7 +63,8 @@ type AppRunner struct {
 // New returns a new initialized AppRunner
 func New(
 	workerContext context.Context,
-	log *log.Logger) *AppRunner {
+	log *log.Logger,
+	configManager *configurationmanager.Manager) *AppRunner {
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   60,
 		Interval: 1 * time.Second,
@@ -71,6 +74,7 @@ func New(
 	}
 	return &AppRunner{
 		workerContext:                  workerContext,
+		configManager:                  configManager,
 		instances:                      make(map[string]*appInstance),
 		recentLogs:                     cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
 		log:                            log,
@@ -181,6 +185,8 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		defer r.instancesLock.Unlock()
 
 		delete(r.instances, applicationID)
+
+		r.configManager.RemoveApplicationConfigs(applicationID)
 
 		r.recentLogs.SetDefault(applicationID, instance.appLogger)
 		r.onApplicationStopped.Notify(RunningApplication{

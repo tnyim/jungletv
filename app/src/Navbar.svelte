@@ -4,6 +4,7 @@
     import { globalHistory, link, navigate } from "svelte-navigator";
     import Toggle from "svelte-toggle";
     import { apiClient } from "./api_client";
+    import { applicationName, logoURL } from "./configurationStores";
     import NavbarAlert from "./NavbarAlert.svelte";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import { buildMonKeyURL } from "./utils";
@@ -72,7 +73,7 @@
                 class="text-blueGray-700 text-sm font-bold leading-relaxed inline-block mr-4 whitespace-nowrap uppercase"
                 href="/"
             >
-                <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-11 -mb-2" />
+                <img src={$logoURL} alt={$applicationName} class="h-11 -mb-2" />
             </a>
             {#if !largeScreen}
                 <NavbarAlert bind:hasAlert />

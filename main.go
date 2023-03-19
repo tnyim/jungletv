@@ -40,6 +40,7 @@ import (
 	"github.com/tnyim/jungletv/server"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
@@ -326,6 +327,7 @@ func main() {
 		},
 	})
 
+	configManager := configurationmanager.New(ctx)
 	options := server.Options{
 		DebugBuild:               DEBUG,
 		Log:                      apiLog,
@@ -350,7 +352,8 @@ func main() {
 		OAuthManager:             oauthManager,
 		NanswapAPIKey:            nanswapAPIKey,
 		TurnstileSecretKey:       turnstileSecretKey,
-		AppRunner:                apprunner.New(ctx, apiLog),
+		ConfigManager:            configManager,
+		AppRunner:                apprunner.New(ctx, apiLog, configManager),
 	}
 
 	apiServer, err := server.NewServer(ctx, options)

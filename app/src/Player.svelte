@@ -3,6 +3,7 @@
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import { processConfigurationChanges, resetConfigurationChanges } from "./configurationStores";
     import { pageTitleMedia } from "./pageTitleStores";
     import PlayerDocument from "./PlayerDocument.svelte";
     import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
@@ -29,12 +30,20 @@
 
     let checkpoint: MediaConsumptionCheckpoint;
 
-    consumeStreamRPCFromSvelteComponent(20000, 5000, apiClient.consumeMedia.bind(apiClient), handleCheckpoint, (connected) => {
-        playerConnected.set(connected);
-        if (!connected) {
-            activityChallengeReceived.update((_) => null);
+    consumeStreamRPCFromSvelteComponent(
+        20000,
+        5000,
+        apiClient.consumeMedia.bind(apiClient),
+        handleCheckpoint,
+        (connected) => {
+            playerConnected.set(connected);
+            if (connected) {
+                resetConfigurationChanges();
+            } else {
+                activityChallengeReceived.update((_) => null);
+            }
         }
-    });
+    );
 
     onDestroy(() => {
         activityChallengeReceived.update((_) => null);
@@ -100,6 +109,7 @@
         if (checkpoint.hasMediaTitle()) {
             $pageTitleMedia = checkpoint.getMediaTitle();
         }
+        processConfigurationChanges(checkpoint.getConfigurationChangesList());
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }
 </script>

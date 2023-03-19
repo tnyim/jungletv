@@ -2,46 +2,22 @@ package server
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/rewards"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
-	// stream.Send is not safe to be called on concurrent goroutines
-	streamSendLock := sync.Mutex{}
-	var initialActivityChallenge *rewards.ActivityChallenge
-	send := func(cp *proto.MediaConsumptionCheckpoint) error {
-		streamSendLock.Lock()
-		defer streamSendLock.Unlock()
-		if initialActivityChallenge != nil {
-			cp.ActivityChallenge = initialActivityChallenge.SerializeForAPI()
-			initialActivityChallenge = nil
-		}
-		return stream.Send(cp)
-	}
-
-	counter, err := s.getAnnouncementsCounter(stream.Context())
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
+	cpChan := make(chan *proto.MediaConsumptionCheckpoint, 3)
 
 	user := authinterceptor.UserClaimsFromContext(stream.Context())
-	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context(), true)
-	v := uint32(counter.CounterValue)
-	initialCp.LatestAnnouncement = &v
-	err = stream.Send(initialCp)
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
 
-	errChan := make(chan error)
-
+	var initialActivityChallenge *rewards.ActivityChallenge
 	if user != nil {
 		spectator, err := s.rewardsHandler.RegisterSpectator(stream.Context(), user)
 		if err != nil {
@@ -56,40 +32,28 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			cp.Reward = &s
 			s2 := args.RewardBalance.String()
 			cp.RewardBalance = &s2
-			err := send(cp)
-			if err != nil {
-				errChan <- stacktrace.Propagate(err, "")
-			}
+			cpChan <- cp
 		})()
 
 		defer spectator.OnWithdrew().SubscribeUsingCallback(event.BufferFirst, func() {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			s2 := "0"
 			cp.RewardBalance = &s2
-			err := send(cp)
-			if err != nil {
-				errChan <- stacktrace.Propagate(err, "")
-			}
+			cpChan <- cp
 		})()
 
 		initialActivityChallenge = spectator.CurrentActivityChallenge()
 		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.BufferFirst, func(challenge *rewards.ActivityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			cp.ActivityChallenge = challenge.SerializeForAPI()
-			err := send(cp)
-			if err != nil {
-				errChan <- stacktrace.Propagate(err, "")
-			}
+			cpChan <- cp
 		})()
 
 		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.BufferFirst, func() {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 			t := true
 			cp.HasChatMention = &t
-			err := send(cp)
-			if err != nil {
-				errChan <- stacktrace.Propagate(err, "")
-			}
+			cpChan <- cp
 		})()
 
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
@@ -99,14 +63,21 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 		v := uint32(counterValue)
 		cp.LatestAnnouncement = &v
-		err := send(cp)
-		if err != nil {
-			errChan <- stacktrace.Propagate(err, "")
-		}
+		cpChan <- cp
+	})()
+
+	defer s.configManager.ClientConfigurationChanged().SubscribeUsingCallback(event.BufferAll, func(arg *proto.ConfigurationChange) {
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
+		cp.ConfigurationChanges = []*proto.ConfigurationChange{arg}
+		cpChan <- cp
 	})()
 
 	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
+
+	s.mediaQueue.MediaChanged().SubscribeUsingCallback(event.BufferFirst, func(_ media.QueueEntry) {
+		cpChan <- s.produceMediaConsumptionCheckpoint(stream.Context(), true)
+	})
 
 	statsCleanup, err := s.statsRegistry.RegisterSpectator(stream.Context())
 	if err != nil {
@@ -114,40 +85,43 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	}
 	defer statsCleanup()
 
+	counter, err := s.getAnnouncementsCounter(stream.Context())
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context(), true)
+	v := uint32(counter.CounterValue)
+	initialCp.LatestAnnouncement = &v
+	initialCp.ConfigurationChanges = s.configManager.AllClientConfigurationChanges()
+	if initialActivityChallenge != nil {
+		initialCp.ActivityChallenge = initialActivityChallenge.SerializeForAPI()
+	}
+	err = stream.Send(initialCp)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	t := time.NewTicker(3 * time.Second)
 	defer t.Stop()
 	// if we set this ticker to e.g. 10 seconds, it seems to be too long and CloudFlare or something drops connection :(
 
-	onMediaChanged, mediaChangedU := s.mediaQueue.MediaChanged().Subscribe(event.BufferFirst)
-	defer mediaChangedU()
-	sendTitle := false
-	lastTitleSend := time.Now()
 	for {
 		select {
 		case <-t.C:
-			// unblock loop
-		case <-onMediaChanged:
-			sendTitle = true
-			// unblock loop
+			err := stream.Send(s.produceMediaConsumptionCheckpoint(stream.Context(), false))
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		case cp := <-cpChan:
+			err := stream.Send(cp)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
 		case <-stream.Context().Done():
 			return nil
 		case <-onVersionHashChanged:
 			return nil
-		case err := <-errChan:
-			return err
 		}
-		now := time.Now()
-		if now.Sub(lastTitleSend) > 30*time.Second {
-			sendTitle = true
-		}
-		if sendTitle {
-			lastTitleSend = now
-		}
-		err := send(s.produceMediaConsumptionCheckpoint(stream.Context(), sendTitle))
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-		sendTitle = false
 	}
 }
 
