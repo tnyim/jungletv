@@ -72,17 +72,19 @@ func (m *configurationModule) setAppName(call goja.FunctionCall) goja.Value {
 	nameValue := call.Argument(0)
 
 	var err error
+	var success bool
 	if goja.IsUndefined(nameValue) || goja.IsNull(nameValue) || nameValue.String() == "" {
 		err = m.configManager.ResetConfigurable(configurationmanager.ApplicationName, m.infoProvider.ApplicationID())
+		success = true
 	} else {
-		err = configurationmanager.SetConfigurable(m.configManager, configurationmanager.ApplicationName, m.infoProvider.ApplicationID(), nameValue.String())
+		success, err = configurationmanager.SetConfigurable(m.configManager, configurationmanager.ApplicationName, m.infoProvider.ApplicationID(), nameValue.String())
 	}
 
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return goja.Undefined()
+	return m.runtime.ToValue(success)
 }
 
 func (m *configurationModule) assertFileAvailablePublicly(ctxCtx context.Context, fileName string, cb func(*types.ApplicationFile)) {
@@ -125,7 +127,7 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
-		return goja.Undefined()
+		return m.runtime.ToValue(true)
 	}
 
 	m.assertFileAvailablePublicly(m.executionContext, fileName, func(af *types.ApplicationFile) {
@@ -136,12 +138,12 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 
 	url := fmt.Sprintf("/assets/app/%s/%s", m.infoProvider.ApplicationID(), fileName)
 
-	err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return goja.Undefined()
+	return m.runtime.ToValue(success)
 }
 
 func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
@@ -156,7 +158,7 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
-		return goja.Undefined()
+		return m.runtime.ToValue(true)
 	}
 
 	m.assertFileAvailablePublicly(m.executionContext, fileName, func(af *types.ApplicationFile) {
@@ -167,10 +169,10 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 
 	url := fmt.Sprintf("/assets/app/%s/%s", m.infoProvider.ApplicationID(), fileName)
 
-	err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return goja.Undefined()
+	return m.runtime.ToValue(success)
 }

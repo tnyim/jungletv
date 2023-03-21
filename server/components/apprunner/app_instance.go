@@ -613,6 +613,11 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	result, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (string, error) {
+		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
+		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
+			return "", stacktrace.NewError("page not available")
+		}
+
 		value := a.rpcModule.HandleInvocation(vm, user, pageID, method, args)
 		return value.String(), nil
 	})
@@ -629,6 +634,10 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	a.runOnLoopLogError(func(vm *goja.Runtime) error {
+		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
+		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
+			return nil
+		}
 		a.rpcModule.HandleEvent(vm, user, trusted, pageID, eventName, eventArgs)
 		return nil
 	})

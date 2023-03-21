@@ -32,19 +32,25 @@ type Manager struct {
 // New returns a new configuration manager
 func New(ctx context.Context) *Manager {
 	clientConfigs := map[ConfigurationKey]ClientConfigurable{
-		ApplicationName: newClientConfigurable("", func(v string) proto.IsConfigurationChange_ConfigurationChange {
-			return &proto.ConfigurationChange_ApplicationName{
-				ApplicationName: v,
+		ApplicationName: newClientConfigurable("", func(v string) *proto.ConfigurationChange {
+			return &proto.ConfigurationChange{
+				ConfigurationChange: &proto.ConfigurationChange_ApplicationName{
+					ApplicationName: v,
+				},
 			}
 		}),
-		LogoURL: newClientConfigurable("", func(v string) proto.IsConfigurationChange_ConfigurationChange {
-			return &proto.ConfigurationChange_LogoUrl{
-				LogoUrl: v,
+		LogoURL: newClientConfigurable("", func(v string) *proto.ConfigurationChange {
+			return &proto.ConfigurationChange{
+				ConfigurationChange: &proto.ConfigurationChange_LogoUrl{
+					LogoUrl: v,
+				},
 			}
 		}),
-		FaviconURL: newClientConfigurable("", func(v string) proto.IsConfigurationChange_ConfigurationChange {
-			return &proto.ConfigurationChange_FaviconUrl{
-				FaviconUrl: v,
+		FaviconURL: newClientConfigurable("", func(v string) *proto.ConfigurationChange {
+			return &proto.ConfigurationChange{
+				ConfigurationChange: &proto.ConfigurationChange_FaviconUrl{
+					FaviconUrl: v,
+				},
 			}
 		}),
 	}
@@ -65,10 +71,8 @@ func New(ctx context.Context) *Manager {
 	wg.Add(1)
 	go func() {
 		for _, config := range clientConfigs {
-			defer config.OnValueUpdated().SubscribeUsingCallback(event.BufferLatest, func(arg proto.IsConfigurationChange_ConfigurationChange) {
-				onConfigChange.Notify(&proto.ConfigurationChange{
-					ConfigurationChange: arg,
-				}, false)
+			defer config.OnValueUpdated().SubscribeUsingCallback(event.BufferLatest, func(arg *proto.ConfigurationChange) {
+				onConfigChange.Notify(arg, false)
 			})()
 		}
 		wg.Done()
@@ -95,12 +99,7 @@ func (m *Manager) RemoveApplicationConfigs(applicationID string) {
 func (m *Manager) AllClientConfigurationChanges() []*proto.ConfigurationChange {
 	changes := []*proto.ConfigurationChange{}
 	for _, c := range m.clientConfigs {
-		change := c.ValueToProtoIfNonDefault()
-		if change != nil {
-			changes = append(changes, &proto.ConfigurationChange{
-				ConfigurationChange: change,
-			})
-		}
+		changes = append(changes, c.ValueToProtoIfNonDefault()...)
 	}
 	return changes
 }
@@ -122,17 +121,16 @@ func (m *Manager) ResetConfigurable(key ConfigurationKey, applicationID string) 
 }
 
 // SetConfigurable is called by an application environment to set the value for a configurable
-func SetConfigurable[T comparable](m *Manager, key ConfigurationKey, applicationID string, value T) error {
+func SetConfigurable[T comparable](m *Manager, key ConfigurationKey, applicationID string, value T) (bool, error) {
 	configurableInterface, ok := m.configs[key]
 	if !ok {
-		return stacktrace.NewError("unknown configurable")
+		return false, stacktrace.NewError("unknown configurable")
 	}
 
 	configurable, ok := configurableInterface.(SettableConfigurable[T])
 	if !ok {
-		return stacktrace.NewError("wrong value type for configurable")
+		return false, stacktrace.NewError("wrong value type for configurable")
 	}
 
-	configurable.Push(applicationID, value)
-	return nil
+	return configurable.Set(applicationID, value), nil
 }
