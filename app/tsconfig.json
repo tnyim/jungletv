@@ -5,6 +5,6 @@
   "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
   "types": ["svelte", "node"],
   "compilerOptions": {
-    "lib": ["ES2021", "DOM"]
+    "lib": ["ES2021", "DOM", "dom.iterable"]
   }
 }

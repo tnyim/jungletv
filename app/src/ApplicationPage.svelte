@@ -4,6 +4,7 @@
     import { Connection, ParentHandshake } from "post-me";
     import { onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
+    import type { Unsubscriber } from "svelte/store";
     import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
     import { BRIDGE_VERSION, ChildEvents, ChildMethods, ParentEvents, ParentMethods } from "../appbridge/common/model";
     import { apiClient } from "./api_client";
@@ -13,7 +14,7 @@
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { consumeStreamRPC, StreamRequestController } from "./rpcUtils";
-    import { permissionLevel, rewardAddress } from "./stores";
+    import { darkMode, permissionLevel, rewardAddress } from "./stores";
 
     export let applicationID: string;
     export let pageID: string;
@@ -83,8 +84,6 @@
     let permissionLevelPromise = new Promise((resolve: (level: string) => void) => {
         let unsub = permissionLevel.subscribe((level) => {
             if (level !== null) {
-                console.log("level is", level);
-                console.log("resolving with", permissionLevelMapping[level]);
                 unsub();
                 resolve(permissionLevelMapping[level]);
             }
@@ -127,11 +126,16 @@
 
     let eventsRequestController: StreamRequestController;
 
+    let darkModeUnsubscriber: Unsubscriber;
+
     async function onIframeLoaded() {
         if (typeof eventsRequestController !== "undefined") {
             eventsRequestController.disconnect();
             eventsRequestController = undefined;
             hadConnectedPreviously = false;
+        }
+        if (typeof darkModeUnsubscriber !== "undefined") {
+            darkModeUnsubscriber();
         }
         const messenger = new JungleTVWindowMessenger({
             localWindow: window,
@@ -161,6 +165,12 @@
             role: "standalone",
         });
 
+        darkModeUnsubscriber = darkMode.subscribe((dark) => {
+            connection.localHandle().emit("themeChanged", {
+                darkMode: dark,
+            });
+        });
+
         eventsRequestController = consumeStreamRPC(
             20000,
             5000,
@@ -178,6 +188,9 @@
         }
         if (typeof connection !== "undefined") {
             connection.localHandle().emit("destroyed", undefined);
+        }
+        if (typeof darkModeUnsubscriber !== "undefined") {
+            darkModeUnsubscriber();
         }
     });
 </script>

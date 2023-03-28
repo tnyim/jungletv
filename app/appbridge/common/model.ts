@@ -20,6 +20,7 @@ export type ParentEvents = {
     "connected": undefined,
     "disconnected": undefined,
     "eventForClient": ApplicationEventArgs,
+    "themeChanged": ThemeChangedEventArgs,
 }
 
 // methods the parent can call on the child
@@ -42,4 +43,8 @@ export type MountEventArgs = {
 export type ApplicationEventArgs = {
     name: string,
     args: any[],
+}
+
+export type ThemeChangedEventArgs = {
+    darkMode: boolean,
 }

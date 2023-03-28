@@ -98,7 +98,8 @@ export default [
 			}),
 			typescript({
 				sourceMap: !production,
-				lib: ["ES2020", "DOM"],
+				lib: ["ES2020", "DOM", "dom.iterable"],
+				target: "ES2021",
 				tsconfig: "./tsconfig.json",
 			}),
 			// we'll extract any component CSS out into
@@ -165,6 +166,7 @@ export default [
 			typescript({
 				tsconfig: './tsconfig-serviceworker.json',
 				sourceMap: !production,
+				target: "ES2021",
 				lib: ["ES2021", "DOM", "WebWorker"],
 			}),
 			resolve({
@@ -205,7 +207,8 @@ export default [
 			typescript({
 				tsconfig: './tsconfig-appbridge.json',
 				sourceMap: !production,
-				lib: ["ES2021", "DOM"],
+				target: "ES2021",
+				lib: ["ES2021", "DOM", "dom.iterable"],
 			}),
 			resolve({
 				browser: true,
