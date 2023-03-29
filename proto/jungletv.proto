@@ -117,6 +117,7 @@ service JungleTV {
     rpc ConsumeApplicationLog(ConsumeApplicationLogRequest) returns (stream ApplicationLogEntryContainer) {}
     rpc MonitorRunningApplications(MonitorRunningApplicationsRequest) returns (stream RunningApplications) {}
     rpc EvaluateExpressionOnApplication(EvaluateExpressionOnApplicationRequest) returns (EvaluateExpressionOnApplicationResponse) {}
+    rpc ExportApplication(ExportApplicationRequest) returns (ExportApplicationResponse) {}
 
     // application runtime endpoints
     rpc ResolveApplicationPage(ResolveApplicationPageRequest) returns (ResolveApplicationPageResponse) {}

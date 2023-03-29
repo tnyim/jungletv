@@ -264,3 +264,16 @@ func (s *grpcServer) DeleteApplicationFile(ctx context.Context, r *proto.DeleteA
 
 	return &proto.DeleteApplicationFileResponse{}, nil
 }
+
+func (s *grpcServer) ExportApplication(ctx context.Context, r *proto.ExportApplicationRequest) (*proto.ExportApplicationResponse, error) {
+	zipContent, err := s.appEditor.CreateApplicationZIP(ctx, r.ApplicationId)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.ExportApplicationResponse{
+		ArchiveName:    r.ApplicationId + ".zip",
+		ArchiveType:    "application/zip",
+		ArchiveContent: zipContent,
+	}, nil
+}

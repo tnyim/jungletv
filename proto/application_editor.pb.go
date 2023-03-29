@@ -1839,6 +1839,116 @@ func (x *EvaluateExpressionOnApplicationResponse) GetExecutionTime() *durationpb
 	return nil
 }
 
+type ExportApplicationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApplicationId string `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+}
+
+func (x *ExportApplicationRequest) Reset() {
+	*x = ExportApplicationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[32]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ExportApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportApplicationRequest) ProtoMessage() {}
+
+func (x *ExportApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[32]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportApplicationRequest.ProtoReflect.Descriptor instead.
+func (*ExportApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ExportApplicationRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+type ExportApplicationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ArchiveName    string `protobuf:"bytes,1,opt,name=archive_name,json=archiveName,proto3" json:"archive_name,omitempty"`
+	ArchiveType    string `protobuf:"bytes,2,opt,name=archive_type,json=archiveType,proto3" json:"archive_type,omitempty"`
+	ArchiveContent []byte `protobuf:"bytes,3,opt,name=archive_content,json=archiveContent,proto3" json:"archive_content,omitempty"`
+}
+
+func (x *ExportApplicationResponse) Reset() {
+	*x = ExportApplicationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_application_editor_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ExportApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportApplicationResponse) ProtoMessage() {}
+
+func (x *ExportApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_editor_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportApplicationResponse.ProtoReflect.Descriptor instead.
+func (*ExportApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_application_editor_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ExportApplicationResponse) GetArchiveName() string {
+	if x != nil {
+		return x.ArchiveName
+	}
+	return ""
+}
+
+func (x *ExportApplicationResponse) GetArchiveType() string {
+	if x != nil {
+		return x.ArchiveType
+	}
+	return ""
+}
+
+func (x *ExportApplicationResponse) GetArchiveContent() []byte {
+	if x != nil {
+		return x.ArchiveContent
+	}
+	return nil
+}
+
 var File_application_editor_proto protoreflect.FileDescriptor
 
 var file_application_editor_proto_rawDesc = []byte{
@@ -2065,7 +2175,20 @@ var file_application_editor_proto_rawDesc = []byte{
 	0x75, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
 	0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0d, 0x65, 0x78, 0x65,
-	0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x2a, 0xf1, 0x01, 0x0a, 0x13, 0x41,
+	0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x22, 0x41, 0x0a, 0x18, 0x45, 0x78,
+	0x70, 0x6f, 0x72, 0x74, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
+	0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x8a, 0x01,
+	0x0a, 0x19, 0x45, 0x78, 0x70, 0x6f, 0x72, 0x74, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x61,
+	0x72, 0x63, 0x68, 0x69, 0x76, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0b, 0x61, 0x72, 0x63, 0x68, 0x69, 0x76, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x21,
+	0x0a, 0x0c, 0x61, 0x72, 0x63, 0x68, 0x69, 0x76, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x61, 0x72, 0x63, 0x68, 0x69, 0x76, 0x65, 0x54, 0x79, 0x70,
+	0x65, 0x12, 0x27, 0x0a, 0x0f, 0x61, 0x72, 0x63, 0x68, 0x69, 0x76, 0x65, 0x5f, 0x63, 0x6f, 0x6e,
+	0x74, 0x65, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0e, 0x61, 0x72, 0x63, 0x68,
+	0x69, 0x76, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x2a, 0xf1, 0x01, 0x0a, 0x13, 0x41,
 	0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x4c, 0x65, 0x76,
 	0x65, 0x6c, 0x12, 0x21, 0x0a, 0x1d, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x5f, 0x41, 0x50,
 	0x50, 0x4c, 0x49, 0x43, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x4c, 0x4f, 0x47, 0x5f, 0x4c, 0x45,
@@ -2099,7 +2222,7 @@ func file_application_editor_proto_rawDescGZIP() []byte {
 }
 
 var file_application_editor_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_application_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_application_editor_proto_goTypes = []interface{}{
 	(ApplicationLogLevel)(0),                        // 0: jungletv.ApplicationLogLevel
 	(*ApplicationsRequest)(nil),                     // 1: jungletv.ApplicationsRequest
@@ -2134,30 +2257,32 @@ var file_application_editor_proto_goTypes = []interface{}{
 	(*RunningApplications)(nil),                     // 30: jungletv.RunningApplications
 	(*EvaluateExpressionOnApplicationRequest)(nil),  // 31: jungletv.EvaluateExpressionOnApplicationRequest
 	(*EvaluateExpressionOnApplicationResponse)(nil), // 32: jungletv.EvaluateExpressionOnApplicationResponse
-	(*PaginationParameters)(nil),                    // 33: jungletv.PaginationParameters
-	(*timestamppb.Timestamp)(nil),                   // 34: google.protobuf.Timestamp
-	(*User)(nil),                                    // 35: jungletv.User
-	(*durationpb.Duration)(nil),                     // 36: google.protobuf.Duration
+	(*ExportApplicationRequest)(nil),                // 33: jungletv.ExportApplicationRequest
+	(*ExportApplicationResponse)(nil),               // 34: jungletv.ExportApplicationResponse
+	(*PaginationParameters)(nil),                    // 35: jungletv.PaginationParameters
+	(*timestamppb.Timestamp)(nil),                   // 36: google.protobuf.Timestamp
+	(*User)(nil),                                    // 37: jungletv.User
+	(*durationpb.Duration)(nil),                     // 38: google.protobuf.Duration
 }
 var file_application_editor_proto_depIdxs = []int32{
-	33, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	35, // 0: jungletv.ApplicationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
 	4,  // 1: jungletv.ApplicationsResponse.applications:type_name -> jungletv.Application
-	34, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
-	35, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
-	33, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	36, // 2: jungletv.Application.updated_at:type_name -> google.protobuf.Timestamp
+	37, // 3: jungletv.Application.updated_by:type_name -> jungletv.User
+	35, // 4: jungletv.ApplicationFilesRequest.pagination_params:type_name -> jungletv.PaginationParameters
 	12, // 5: jungletv.ApplicationFilesResponse.files:type_name -> jungletv.ApplicationFile
-	34, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
-	35, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
+	36, // 6: jungletv.ApplicationFile.updated_at:type_name -> google.protobuf.Timestamp
+	37, // 7: jungletv.ApplicationFile.updated_by:type_name -> jungletv.User
 	0,  // 8: jungletv.ApplicationLogRequest.levels:type_name -> jungletv.ApplicationLogLevel
-	34, // 9: jungletv.ApplicationLogEntry.created_at:type_name -> google.protobuf.Timestamp
+	36, // 9: jungletv.ApplicationLogEntry.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 10: jungletv.ApplicationLogEntry.level:type_name -> jungletv.ApplicationLogLevel
 	24, // 11: jungletv.ApplicationLogResponse.entries:type_name -> jungletv.ApplicationLogEntry
 	0,  // 12: jungletv.ConsumeApplicationLogRequest.levels:type_name -> jungletv.ApplicationLogLevel
 	24, // 13: jungletv.ApplicationLogEntryContainer.entry:type_name -> jungletv.ApplicationLogEntry
-	34, // 14: jungletv.RunningApplication.application_version:type_name -> google.protobuf.Timestamp
-	34, // 15: jungletv.RunningApplication.started_at:type_name -> google.protobuf.Timestamp
+	36, // 14: jungletv.RunningApplication.application_version:type_name -> google.protobuf.Timestamp
+	36, // 15: jungletv.RunningApplication.started_at:type_name -> google.protobuf.Timestamp
 	29, // 16: jungletv.RunningApplications.running_applications:type_name -> jungletv.RunningApplication
-	36, // 17: jungletv.EvaluateExpressionOnApplicationResponse.execution_time:type_name -> google.protobuf.Duration
+	38, // 17: jungletv.EvaluateExpressionOnApplicationResponse.execution_time:type_name -> google.protobuf.Duration
 	18, // [18:18] is the sub-list for method output_type
 	18, // [18:18] is the sub-list for method input_type
 	18, // [18:18] is the sub-list for extension type_name
@@ -2556,6 +2681,30 @@ func file_application_editor_proto_init() {
 				return nil
 			}
 		}
+		file_application_editor_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ExportApplicationRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_application_editor_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ExportApplicationResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_application_editor_proto_msgTypes[11].OneofWrappers = []interface{}{}
 	file_application_editor_proto_msgTypes[22].OneofWrappers = []interface{}{}
@@ -2566,7 +2715,7 @@ func file_application_editor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_application_editor_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   32,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

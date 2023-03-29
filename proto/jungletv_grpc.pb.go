@@ -122,6 +122,7 @@ type JungleTVClient interface {
 	ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error)
 	MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error)
 	EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error)
+	ExportApplication(ctx context.Context, in *ExportApplicationRequest, opts ...grpc.CallOption) (*ExportApplicationResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error)
 	ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error)
@@ -1285,6 +1286,15 @@ func (c *jungleTVClient) EvaluateExpressionOnApplication(ctx context.Context, in
 	return out, nil
 }
 
+func (c *jungleTVClient) ExportApplication(ctx context.Context, in *ExportApplicationRequest, opts ...grpc.CallOption) (*ExportApplicationResponse, error) {
+	out := new(ExportApplicationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ExportApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error) {
 	out := new(ResolveApplicationPageResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ResolveApplicationPage", in, out, opts...)
@@ -1452,6 +1462,7 @@ type JungleTVServer interface {
 	ConsumeApplicationLog(*ConsumeApplicationLogRequest, JungleTV_ConsumeApplicationLogServer) error
 	MonitorRunningApplications(*MonitorRunningApplicationsRequest, JungleTV_MonitorRunningApplicationsServer) error
 	EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error)
+	ExportApplication(context.Context, *ExportApplicationRequest) (*ExportApplicationResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error)
 	ConsumeApplicationEvents(*ConsumeApplicationEventsRequest, JungleTV_ConsumeApplicationEventsServer) error
@@ -1769,6 +1780,9 @@ func (UnimplementedJungleTVServer) MonitorRunningApplications(*MonitorRunningApp
 }
 func (UnimplementedJungleTVServer) EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluateExpressionOnApplication not implemented")
+}
+func (UnimplementedJungleTVServer) ExportApplication(context.Context, *ExportApplicationRequest) (*ExportApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportApplication not implemented")
 }
 func (UnimplementedJungleTVServer) ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveApplicationPage not implemented")
@@ -3661,6 +3675,24 @@ func _JungleTV_EvaluateExpressionOnApplication_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_ExportApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ExportApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ExportApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ExportApplication(ctx, req.(*ExportApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ResolveApplicationPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResolveApplicationPageRequest)
 	if err := dec(in); err != nil {
@@ -4110,6 +4142,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EvaluateExpressionOnApplication",
 			Handler:    _JungleTV_EvaluateExpressionOnApplication_Handler,
+		},
+		{
+			MethodName: "ExportApplication",
+			Handler:    _JungleTV_ExportApplication_Handler,
 		},
 		{
 			MethodName: "ResolveApplicationPage",

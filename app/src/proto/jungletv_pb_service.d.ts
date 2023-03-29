@@ -924,6 +924,15 @@ type JungleTVEvaluateExpressionOnApplication = {
   readonly responseType: typeof application_editor_pb.EvaluateExpressionOnApplicationResponse;
 };
 
+type JungleTVExportApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.ExportApplicationRequest;
+  readonly responseType: typeof application_editor_pb.ExportApplicationResponse;
+};
+
 type JungleTVResolveApplicationPage = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1064,6 +1073,7 @@ export class JungleTV {
   static readonly ConsumeApplicationLog: JungleTVConsumeApplicationLog;
   static readonly MonitorRunningApplications: JungleTVMonitorRunningApplications;
   static readonly EvaluateExpressionOnApplication: JungleTVEvaluateExpressionOnApplication;
+  static readonly ExportApplication: JungleTVExportApplication;
   static readonly ResolveApplicationPage: JungleTVResolveApplicationPage;
   static readonly ConsumeApplicationEvents: JungleTVConsumeApplicationEvents;
   static readonly ApplicationServerMethod: JungleTVApplicationServerMethod;
@@ -1939,6 +1949,15 @@ export class JungleTVClient {
   evaluateExpressionOnApplication(
     requestMessage: application_editor_pb.EvaluateExpressionOnApplicationRequest,
     callback: (error: ServiceError|null, responseMessage: application_editor_pb.EvaluateExpressionOnApplicationResponse|null) => void
+  ): UnaryResponse;
+  exportApplication(
+    requestMessage: application_editor_pb.ExportApplicationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ExportApplicationResponse|null) => void
+  ): UnaryResponse;
+  exportApplication(
+    requestMessage: application_editor_pb.ExportApplicationRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.ExportApplicationResponse|null) => void
   ): UnaryResponse;
   resolveApplicationPage(
     requestMessage: application_runtime_pb.ResolveApplicationPageRequest,

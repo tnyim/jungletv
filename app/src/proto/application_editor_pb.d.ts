@@ -818,6 +818,56 @@ export namespace EvaluateExpressionOnApplicationResponse {
   }
 }
 
+export class ExportApplicationRequest extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExportApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ExportApplicationRequest): ExportApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExportApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExportApplicationRequest;
+  static deserializeBinaryFromReader(message: ExportApplicationRequest, reader: jspb.BinaryReader): ExportApplicationRequest;
+}
+
+export namespace ExportApplicationRequest {
+  export type AsObject = {
+    applicationId: string,
+  }
+}
+
+export class ExportApplicationResponse extends jspb.Message {
+  getArchiveName(): string;
+  setArchiveName(value: string): void;
+
+  getArchiveType(): string;
+  setArchiveType(value: string): void;
+
+  getArchiveContent(): Uint8Array | string;
+  getArchiveContent_asU8(): Uint8Array;
+  getArchiveContent_asB64(): string;
+  setArchiveContent(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExportApplicationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ExportApplicationResponse): ExportApplicationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExportApplicationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExportApplicationResponse;
+  static deserializeBinaryFromReader(message: ExportApplicationResponse, reader: jspb.BinaryReader): ExportApplicationResponse;
+}
+
+export namespace ExportApplicationResponse {
+  export type AsObject = {
+    archiveName: string,
+    archiveType: string,
+    archiveContent: Uint8Array | string,
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

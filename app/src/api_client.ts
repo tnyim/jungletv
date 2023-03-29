@@ -5,7 +5,7 @@ import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/ser
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
-import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
+import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, ExportApplicationRequest, ExportApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
 import { ApplicationEventUpdate, ApplicationServerMethodRequest, ApplicationServerMethodResponse, ConsumeApplicationEventsRequest, ResolveApplicationPageRequest, ResolveApplicationPageResponse, TriggerApplicationEventRequest, TriggerApplicationEventResponse } from "./proto/application_runtime_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
@@ -893,6 +893,12 @@ class APIClient {
         }
         request.setLimit(limit);
         return this.unaryRPC(JungleTV.ApplicationLog, request);
+    }
+
+    async exportApplication(applicationID: string): Promise<ExportApplicationResponse> {
+        let request = new ExportApplicationRequest();
+        request.setApplicationId(applicationID);
+        return this.unaryRPC(JungleTV.ExportApplication, request);
     }
 
     consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {

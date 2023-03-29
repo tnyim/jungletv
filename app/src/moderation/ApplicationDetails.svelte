@@ -99,6 +99,23 @@
             await modalAlert("An error occurred when updating the application: " + e);
         }
     }
+
+    async function exportApplication() {
+        try {
+            let response = await apiClient.exportApplication(application.getId());
+            let link = document.createElement("a");
+            let a = response.getArchiveContent_asU8();
+            let blob = new Blob([a.buffer.slice(a.byteOffset, a.byteLength + a.byteOffset)], {
+                type: response.getArchiveType(),
+            });
+            link.download = response.getArchiveName();
+            link.href = URL.createObjectURL(blob);
+            link.addEventListener("onclick", () => URL.revokeObjectURL(link.href));
+            link.click();
+        } catch (e) {
+            await modalAlert("An error occurred when exporting the application: " + e);
+        }
+    }
 </script>
 
 <div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
@@ -185,5 +202,9 @@
                 <ApplicationFileTableItem {application} file={item} {updateDataCallback} />
             </tbody>
         </PaginatedTable>
+        <p class="font-semibold text-lg">Backup and restore</p>
+        <p>
+            <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
+        </p>
     {/if}
 </div>

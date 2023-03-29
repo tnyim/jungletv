@@ -930,6 +930,15 @@ JungleTV.EvaluateExpressionOnApplication = {
   responseType: application_editor_pb.EvaluateExpressionOnApplicationResponse
 };
 
+JungleTV.ExportApplication = {
+  methodName: "ExportApplication",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.ExportApplicationRequest,
+  responseType: application_editor_pb.ExportApplicationResponse
+};
+
 JungleTV.ResolveApplicationPage = {
   methodName: "ResolveApplicationPage",
   service: JungleTV,
@@ -4189,6 +4198,37 @@ JungleTVClient.prototype.evaluateExpressionOnApplication = function evaluateExpr
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.EvaluateExpressionOnApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.exportApplication = function exportApplication(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.ExportApplication, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
