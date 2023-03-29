@@ -69,9 +69,9 @@ func BenchmarkUnsubscribeRandomWalk(b *testing.B) {
 		order[i] = i
 	}
 
-	rand.Seed(2034923598)
+	r := rand.New(rand.NewSource(2034923598))
 
-	rand.Shuffle(b.N, func(i, j int) {
+	r.Shuffle(b.N, func(i, j int) {
 		order[i], order[j] = order[j], order[i]
 	})
 
@@ -88,10 +88,10 @@ func BenchmarkSubscribeUnsubscribe(b *testing.B) {
 	e := event.New[int]()
 
 	unsubFns := []func(){}
-	rand.Seed(345978324923)
+	r := rand.New(rand.NewSource(345978324923))
 	for i := 0; i < b.N; i++ {
-		numSubs := rand.Intn(10)
-		numUnsubs := rand.Intn(6)
+		numSubs := r.Intn(10)
+		numUnsubs := r.Intn(6)
 
 		for j := 0; j < numSubs; j++ {
 			b.StartTimer()
@@ -104,7 +104,7 @@ func BenchmarkSubscribeUnsubscribe(b *testing.B) {
 			if l == 0 {
 				return
 			}
-			idx := rand.Intn(l)
+			idx := r.Intn(l)
 			b.StartTimer()
 			unsubFns[idx]()
 			b.StopTimer()

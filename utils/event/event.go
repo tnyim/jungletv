@@ -31,18 +31,16 @@ type Event[T any] interface {
 }
 
 type event[T any] struct {
-	mu                   sync.RWMutex
-	nonBlockingSubs      fastcollection.FastCollection[nonBlockingSub[T]]
-	blockingSubs         fastcollection.FastCollection[*chanx.UnboundedChan[T]]
-	closed               bool
-	pendingNotifications []T
-	onUnsubscribed       Event[int]
+	mu                    sync.RWMutex
+	bufferFirstOrNoneSubs fastcollection.FastCollection[nonBlockingSub[T]]
+	bufferLatestSubs      fastcollection.FastCollection[nonBlockingSub[T]]
+	bufferAllSubs         fastcollection.FastCollection[*chanx.UnboundedChan[T]]
+	closed                bool
+	pendingNotifications  []T
+	onUnsubscribed        Event[int]
 }
 
-type nonBlockingSub[T any] struct {
-	keepLast bool
-	c        chan T
-}
+type nonBlockingSub[T any] chan T
 
 // BufferStrategy defines how much buffering happens on the receiving side for event subscribers
 type BufferStrategy int
@@ -83,21 +81,19 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 	switch bufferStrategy {
 	case BufferNone:
 		subChan := make(chan T)
-		subID = e.nonBlockingSubs.Insert(nonBlockingSub[T]{
-			keepLast: false,
-			c:        subChan,
-		})
+		subID = e.bufferFirstOrNoneSubs.Insert(nonBlockingSub[T](subChan))
 		retChan = subChan
-	case BufferFirst, BufferLatest:
+	case BufferFirst:
 		subChan := make(chan T, 1)
-		subID = e.nonBlockingSubs.Insert(nonBlockingSub[T]{
-			keepLast: bufferStrategy == BufferLatest,
-			c:        subChan,
-		})
+		subID = e.bufferFirstOrNoneSubs.Insert(nonBlockingSub[T](subChan))
+		retChan = subChan
+	case BufferLatest:
+		subChan := make(chan T, 1)
+		subID = e.bufferLatestSubs.Insert(nonBlockingSub[T](subChan))
 		retChan = subChan
 	case BufferAll:
 		subChan := chanx.NewUnboundedChan[T](1)
-		subID = e.blockingSubs.Insert(subChan)
+		subID = e.bufferAllSubs.Insert(subChan)
 		retChan = subChan.Out
 	default:
 		panic("invalid buffer strategy")
@@ -144,11 +140,14 @@ func (e *event[T]) unsubscribe(subID int, bufferStrategy BufferStrategy, unsubsc
 	switch bufferStrategy {
 	case BufferNone:
 		fallthrough
-	case BufferFirst, BufferLatest:
-		sub := e.nonBlockingSubs.Delete(subID)
-		close(sub.c)
+	case BufferFirst:
+		sub := e.bufferFirstOrNoneSubs.Delete(subID)
+		close(sub)
+	case BufferLatest:
+		sub := e.bufferLatestSubs.Delete(subID)
+		close(sub)
 	case BufferAll:
-		subChan := e.blockingSubs.Delete(subID)
+		subChan := e.bufferAllSubs.Delete(subID)
 		close(subChan.In) // this is important, to destroy the internal goroutine of the UnboundedChan
 	default:
 		panic("invalid buffer strategy")
@@ -160,7 +159,7 @@ func (e *event[T]) unsubscribe(subID int, bufferStrategy BufferStrategy, unsubsc
 }
 
 func (e *event[T]) len() int {
-	return e.nonBlockingSubs.Len() + e.blockingSubs.Len()
+	return e.bufferFirstOrNoneSubs.Len() + e.bufferLatestSubs.Len() + e.bufferAllSubs.Len()
 }
 
 // Notify notifies subscribers that the event has occurred.
@@ -174,39 +173,51 @@ func (e *event[T]) Notify(param T, deferNotification bool) {
 		return
 	}
 
-	if e.len() > 0 {
-		e.notifyNowWithinMutex(param)
-	} else if deferNotification {
+	if deferNotification && e.len() == 0 {
 		e.mu.RUnlock()
 
 		e.mu.Lock()
 		defer e.mu.Unlock()
 		// must do checks again since conditions may have changed while we reacquired the lock
-		if !e.closed && e.len() == 0 {
-			e.pendingNotifications = append(e.pendingNotifications, param)
+		if e.closed {
+			return
 		}
+		if e.len() > 0 {
+			// we have a subscriber now, notify as normal and quit
+			e.notifyNowWithinMutex(param)
+			return
+		}
+		e.pendingNotifications = append(e.pendingNotifications, param)
 		return
 	}
+
+	e.notifyNowWithinMutex(param)
 	e.mu.RUnlock()
 }
 
 func (e *event[T]) notifyNowWithinMutex(param T) {
-	for _, entry := range e.nonBlockingSubs.UnsafeBackingArray {
-		// no need to check if the entry is valid before checking the condition as we'll do a non-blocking read anyway
-		if entry.Content.keepLast {
-			// empty the 1-buffered channel before replacing with latest entry
-			select {
-			case <-entry.Content.c:
-			default:
-			}
-		}
+	for _, entry := range e.bufferFirstOrNoneSubs.UnsafeBackingArray {
 		// no need to check if the entry is valid as sends on a nil channel block (and since we're using the select with default case, they won't block)
 		select {
-		case entry.Content.c <- param:
+		case entry.Content <- param:
 		default:
 		}
 	}
-	for _, entry := range e.blockingSubs.UnsafeBackingArray {
+	for _, entry := range e.bufferLatestSubs.UnsafeBackingArray {
+		// no need to check if the entry is valid before checking the condition as we'll do a non-blocking read anyway
+
+		// empty the 1-buffered channel before replacing with latest entry
+		select {
+		case <-entry.Content:
+		default:
+		}
+
+		select {
+		case entry.Content <- param:
+		default:
+		}
+	}
+	for _, entry := range e.bufferAllSubs.UnsafeBackingArray {
 		if entry.NextDeleteIdx < 0 {
 			entry.Content.In <- param
 		}
@@ -220,12 +231,17 @@ func (e *event[T]) Close() {
 
 	if !e.closed {
 		e.closed = true
-		for _, entry := range e.nonBlockingSubs.UnsafeBackingArray {
+		for _, entry := range e.bufferFirstOrNoneSubs.UnsafeBackingArray {
 			if entry.NextDeleteIdx == -2 {
-				close(entry.Content.c)
+				close(entry.Content)
 			}
 		}
-		for _, entry := range e.blockingSubs.UnsafeBackingArray {
+		for _, entry := range e.bufferLatestSubs.UnsafeBackingArray {
+			if entry.NextDeleteIdx == -2 {
+				close(entry.Content)
+			}
+		}
+		for _, entry := range e.bufferAllSubs.UnsafeBackingArray {
 			if entry.NextDeleteIdx == -2 {
 				close(entry.Content.In)
 			}

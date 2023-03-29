@@ -79,6 +79,7 @@ func getStructInfo(t interface{}) (fields []structDBfield, tableName string) {
 		tableName = strcase.ToSnake(rt.Name())
 	}
 
+	fields = make([]structDBfield, 0, rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
 		fieldType := rt.Field(i)
 
@@ -136,7 +137,7 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 	var t T
 	fields, tableName := getStructInfo(t)
 
-	columns := []string{}
+	columns := make([]string, 0, len(fields)+1)
 	for _, f := range fields {
 		if !f.ignore {
 			if f.rawColumnName {
@@ -167,7 +168,7 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 	var globalCount uint64
 	for rows.Next() {
 		rv := reflect.New(rt).Elem()
-		valueFields := []interface{}{}
+		valueFields := make([]interface{}, 0, rv.NumField())
 		for i := 0; i < rv.NumField(); i++ {
 			if fields[i].ignore {
 				continue
@@ -298,8 +299,8 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	}
 
 	suffixStr := ""
-	keyFields := []*structDBfield{}
-	keyFieldNames := []string{}
+	keyFields := make([]*structDBfield, 0, len(fields))
+	keyFieldNames := make([]string, 0, len(fields))
 	for _, field := range fields {
 		if field.key {
 			keyFields = append(keyFields, &field)
@@ -390,7 +391,7 @@ func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) err
 	}
 	defer tx.Rollback()
 
-	or := sq.Or{}
+	or := make(sq.Or, 0, len(t))
 
 	tableName := ""
 	_, hasExtra := (any)(t[0]).(extraDataDeleter)
