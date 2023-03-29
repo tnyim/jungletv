@@ -65,7 +65,10 @@ func (m *Manager) createBananoConversionFlow(user auth.User) (*BananoConversionF
 		m.bananoConversionFlowsLock.Lock()
 		defer m.bananoConversionFlowsLock.Unlock()
 		delete(m.bananoConversionFlows, flow.user.Address())
+		m.log.Printf("Destroyed Banano to points conversion flow for user %s with payment address %s", user.Address(), flow.paymentAddress)
 	})
+
+	m.log.Printf("Created Banano to points conversion flow for user %s with payment address %s", user.Address(), flow.paymentAddress)
 
 	return flow, nil
 }
@@ -170,7 +173,14 @@ func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent 
 		case <-onClientReconnected:
 			f.lock.Lock()
 			f.createdOrRecoveredAt = time.Now()
+			if !expireTimer.Stop() {
+				<-expireTimer.C
+			}
 			expireTimer.Reset(flowExpiry)
+
+			if !actualExpirationTimer.Stop() {
+				<-actualExpirationTimer.C
+			}
 			actualExpirationTimer.Reset(flowExpiry + flowExpiryTolerance)
 			f.lock.Unlock()
 		case <-expireTimer.C:

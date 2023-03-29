@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"sync"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 
 // Manager manages user points
 type Manager struct {
+	log                *log.Logger
 	workerContext      context.Context
 	snowflakeNode      *snowflake.Node
 	paymentAccountPool *payment.PaymentAccountPool
@@ -33,8 +35,9 @@ type Manager struct {
 }
 
 // New returns a new initialized Manager
-func New(workerContext context.Context, snowflakeNode *snowflake.Node, paymentAccountPool *payment.PaymentAccountPool) *Manager {
+func New(workerContext context.Context, log *log.Logger, snowflakeNode *snowflake.Node, paymentAccountPool *payment.PaymentAccountPool) *Manager {
 	return &Manager{
+		log:                   log,
 		workerContext:         workerContext,
 		snowflakeNode:         snowflakeNode,
 		paymentAccountPool:    paymentAccountPool,

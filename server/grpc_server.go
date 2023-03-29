@@ -418,7 +418,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
 		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address(), nanswapClient)
 
-	s.pointsManager = pointsmanager.New(ctx, s.snowflakeNode, s.paymentAccountPool)
+	s.pointsManager = pointsmanager.New(ctx, s.log, s.snowflakeNode, s.paymentAccountPool)
 
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
 	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
