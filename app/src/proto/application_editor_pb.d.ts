@@ -868,6 +868,56 @@ export namespace ExportApplicationResponse {
   }
 }
 
+export class ImportApplicationRequest extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getAppendOnly(): boolean;
+  setAppendOnly(value: boolean): void;
+
+  getRestoreEditMessages(): boolean;
+  setRestoreEditMessages(value: boolean): void;
+
+  getArchiveContent(): Uint8Array | string;
+  getArchiveContent_asU8(): Uint8Array;
+  getArchiveContent_asB64(): string;
+  setArchiveContent(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ImportApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ImportApplicationRequest): ImportApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ImportApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ImportApplicationRequest;
+  static deserializeBinaryFromReader(message: ImportApplicationRequest, reader: jspb.BinaryReader): ImportApplicationRequest;
+}
+
+export namespace ImportApplicationRequest {
+  export type AsObject = {
+    applicationId: string,
+    appendOnly: boolean,
+    restoreEditMessages: boolean,
+    archiveContent: Uint8Array | string,
+  }
+}
+
+export class ImportApplicationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ImportApplicationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ImportApplicationResponse): ImportApplicationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ImportApplicationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ImportApplicationResponse;
+  static deserializeBinaryFromReader(message: ImportApplicationResponse, reader: jspb.BinaryReader): ImportApplicationResponse;
+}
+
+export namespace ImportApplicationResponse {
+  export type AsObject = {
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

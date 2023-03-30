@@ -178,3 +178,12 @@ message ExportApplicationResponse {
     string archive_type = 2;
     bytes archive_content = 3;
 }
+
+message ImportApplicationRequest {
+    string application_id = 1;
+    bool append_only = 2;
+    bool restore_edit_messages = 3;
+    bytes archive_content = 4;
+}
+
+message ImportApplicationResponse {}

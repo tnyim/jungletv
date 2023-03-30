@@ -277,3 +277,18 @@ func (s *grpcServer) ExportApplication(ctx context.Context, r *proto.ExportAppli
 		ArchiveContent: zipContent,
 	}, nil
 }
+
+func (s *grpcServer) ImportApplication(ctx context.Context, r *proto.ImportApplicationRequest) (*proto.ImportApplicationResponse, error) {
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.appEditor.ImportApplicationFilesFromZIP(ctx, r.ApplicationId, r.ArchiveContent, !r.AppendOnly, r.RestoreEditMessages, moderator)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.ImportApplicationResponse{}, nil
+}

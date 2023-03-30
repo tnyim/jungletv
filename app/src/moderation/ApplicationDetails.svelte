@@ -48,6 +48,10 @@
     let fileInput: HTMLInputElement;
     let uploadFiles: FileList;
 
+    let importFileInput: HTMLInputElement;
+    let importFiles: FileList;
+    let importAppendOnly = false;
+
     async function uploadFile() {
         let name = await modalPrompt(
             "Enter the name for the new file:\nNote: if you specify the name of an existing file, it will be updated.",
@@ -114,6 +118,22 @@
             link.click();
         } catch (e) {
             await modalAlert("An error occurred when exporting the application: " + e);
+        }
+    }
+
+    async function importApplication() {
+        try {
+            await apiClient.importApplication(
+                application.getId(),
+                importAppendOnly,
+                false,
+                new Uint8Array(await importFiles[0].arrayBuffer())
+            );
+            cur_page = -1;
+            importFileInput.value = "";
+            importFiles = undefined;
+        } catch (e) {
+            await modalAlert("An error occurred when importing the application: " + e);
         }
     }
 </script>
@@ -205,6 +225,26 @@
         <p class="font-semibold text-lg">Backup and restore</p>
         <p>
             <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
+        </p>
+        <p>
+            <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip" />
+            <input
+                id="importAppendOnly"
+                name="importAppendOnly"
+                type="checkbox"
+                bind:checked={importAppendOnly}
+                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+            />
+            <label for="publicFile" class="font-medium text-gray-700 dark:text-gray-300">
+                Append only (keep files not present in archive)
+            </label>
+            <ButtonButton
+                on:click={importApplication}
+                disabled={!(importFiles && importFiles[0])}
+                color={!(importFiles && importFiles[0]) ? "gray" : "yellow"}
+            >
+                Import application
+            </ButtonButton>
         </p>
     {/if}
 </div>
