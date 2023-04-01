@@ -247,8 +247,6 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
-	// remove emoji that can be confused for chat moderator icons
-	r.Content = disallowedEmojiRegex.ReplaceAllString(r.Content, "")
 	r.Content = strings.Map(func(r rune) rune {
 		if unicode.IsGraphic(r) || r == '\n' || r == '\u200d' {
 			return r
