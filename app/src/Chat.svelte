@@ -455,6 +455,7 @@
                 closeable: true,
                 highlighted: false,
                 canPopout: false,
+                isApplicationTab: false,
             };
             dispatch("openSidebarTab", newTab);
         } else if (mode == "popout") {

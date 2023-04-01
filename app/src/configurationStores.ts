@@ -1,5 +1,8 @@
 import { StartStopNotifier, writable, Writable } from "svelte/store";
+import ApplicationPage from "./ApplicationPage.svelte";
 import { ConfigurationChange } from "./proto/jungletv_pb";
+import { sidebarMode } from "./stores";
+import { closeSidebarTab, openSidebarTab, SidebarTab, sidebarTabs } from "./tabStores";
 
 export const applicationName = writableWithInitialValue("JungleTV");
 export const logoURL = writableWithInitialValue("/assets/brand/logo.svg");
@@ -9,6 +12,7 @@ export const resetConfigurationChanges = function () {
     applicationName.reset()
     logoURL.reset();
     faviconURL.reset();
+    closeAllApplicationTabs();
 }
 
 export const processConfigurationChanges = function (changes: ConfigurationChange[]) {
@@ -23,8 +27,50 @@ export const processConfigurationChanges = function (changes: ConfigurationChang
             case ConfigurationChange.ConfigurationChangeCase.FAVICON_URL:
                 faviconURL.setOrUseDefaultIfEqualTo(change.getFaviconUrl(), "");
                 break;
+            case ConfigurationChange.ConfigurationChangeCase.OPEN_SIDEBAR_TAB:
+                let tabInfo = change.getOpenSidebarTab();
+                let newTab: SidebarTab = {
+                    id: tabInfo.getTabId(),
+                    component: ApplicationPage,
+                    tabTitle: tabInfo.getTabTitle(),
+                    props: {
+                        applicationID: tabInfo.getApplicationId(),
+                        pageID: tabInfo.getPageId(),
+                        mode: "sidebar",
+                    },
+                    closeable: false,
+                    highlighted: false,
+                    canPopout: false,
+                    isApplicationTab: true,
+                };
+                openSidebarTab(newTab, tabInfo.getBeforeTabId(), true);
+                break;
+            case ConfigurationChange.ConfigurationChangeCase.CLOSE_SIDEBAR_TAB:
+                closeSidebarTab(change.getCloseSidebarTab());
+                break;
         }
     }
+}
+
+function closeAllApplicationTabs() {
+    sidebarTabs.update((tabs) => {
+        sidebarMode.update((currentMode) => {
+            let currentTabIndex = tabs.findIndex((t) => currentMode == t.id);
+            let foundNonApplicationTabToTheLeft = false;
+            for (let i = currentTabIndex; i >= 0; i--) {
+                if (!tabs[i].isApplicationTab) {
+                    foundNonApplicationTabToTheLeft = true;
+                    currentMode = tabs[i].id;
+                    break;
+                }
+            }
+            if (!foundNonApplicationTabToTheLeft) {
+                currentMode = tabs.find(tab => !tab.isApplicationTab).id;
+            }
+            return currentMode;
+        });
+        return tabs.filter(tab => !tab.isApplicationTab);
+    });
 }
 
 interface WritableWithInitialValue<T> extends Writable<T> {

@@ -8,9 +8,12 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
@@ -18,10 +21,13 @@ import (
 const ModuleName = "jungletv:configuration"
 
 type configurationModule struct {
-	runtime       *goja.Runtime
-	exports       *goja.Object
-	infoProvider  ProcessInformationProvider
-	configManager *configurationmanager.Manager
+	runtime              *goja.Runtime
+	exports              *goja.Object
+	infoProvider         ProcessInformationProvider
+	configManager        *configurationmanager.Manager
+	pagesModule          pages.PagesModule
+	pageUnpublishedUnsub func()
+	currentSidebarPageID string
 
 	executionContext context.Context
 }
@@ -33,10 +39,11 @@ type ProcessInformationProvider interface {
 }
 
 // New returns a new configuration module
-func New(infoProvider ProcessInformationProvider, configManager *configurationmanager.Manager) modules.NativeModule {
+func New(infoProvider ProcessInformationProvider, configManager *configurationmanager.Manager, pagesModule pages.PagesModule) modules.NativeModule {
 	return &configurationModule{
 		infoProvider:  infoProvider,
 		configManager: configManager,
+		pagesModule:   pagesModule,
 	}
 }
 
@@ -47,6 +54,7 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setAppName", m.setAppName)
 		m.exports.Set("setAppLogo", m.setAppLogo)
 		m.exports.Set("setAppFavicon", m.setAppFavicon)
+		m.exports.Set("setSidebarTab", m.setSidebarTab)
 
 	}
 }
@@ -59,10 +67,19 @@ func (m *configurationModule) AutoRequire() (bool, string) {
 
 func (m *configurationModule) ExecutionResumed(ctx context.Context) {
 	m.executionContext = ctx
+
+	m.pageUnpublishedUnsub = m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 }
 
 func (m *configurationModule) ExecutionPaused() {
 	m.executionContext = nil
+	m.pageUnpublishedUnsub()
+}
+
+func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(unpublishedPageID string) {
+	if unpublishedPageID == m.currentSidebarPageID {
+		_ = m.configManager.ResetConfigurable(configurationmanager.SidebarTabs, m.infoProvider.ApplicationID())
+	}
 }
 
 func (m *configurationModule) setAppName(call goja.FunctionCall) goja.Value {
@@ -70,14 +87,16 @@ func (m *configurationModule) setAppName(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 	nameValue := call.Argument(0)
+	configurable := configurationmanager.ApplicationName
+	applicationID := m.infoProvider.ApplicationID()
 
 	var err error
 	var success bool
 	if goja.IsUndefined(nameValue) || goja.IsNull(nameValue) || nameValue.String() == "" {
-		err = m.configManager.ResetConfigurable(configurationmanager.ApplicationName, m.infoProvider.ApplicationID())
+		err = m.configManager.ResetConfigurable(configurable, applicationID)
 		success = true
 	} else {
-		success, err = configurationmanager.SetConfigurable(m.configManager, configurationmanager.ApplicationName, m.infoProvider.ApplicationID(), nameValue.String())
+		success, err = configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, nameValue.String())
 	}
 
 	if err != nil {
@@ -120,10 +139,12 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
+	applicationID := m.infoProvider.ApplicationID()
 	fileName := call.Argument(0).String()
+	configurable := configurationmanager.LogoURL
 
 	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || fileName == "" {
-		err := m.configManager.ResetConfigurable(configurationmanager.LogoURL, m.infoProvider.ApplicationID())
+		err := m.configManager.ResetConfigurable(configurable, applicationID)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -136,9 +157,9 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 		}
 	})
 
-	url := fmt.Sprintf("/assets/app/%s/%s", m.infoProvider.ApplicationID(), fileName)
+	url := fmt.Sprintf("/assets/app/%s/%s", applicationID, fileName)
 
-	success, err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -151,10 +172,12 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
+	applicationID := m.infoProvider.ApplicationID()
 	fileName := call.Argument(0).String()
+	configurable := configurationmanager.FaviconURL
 
 	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || fileName == "" {
-		err := m.configManager.ResetConfigurable(configurationmanager.FaviconURL, m.infoProvider.ApplicationID())
+		err := m.configManager.ResetConfigurable(configurable, applicationID)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -167,11 +190,56 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 		}
 	})
 
-	url := fmt.Sprintf("/assets/app/%s/%s", m.infoProvider.ApplicationID(), fileName)
+	url := fmt.Sprintf("/assets/app/%s/%s", applicationID, fileName)
 
-	success, err := configurationmanager.SetConfigurable(m.configManager, configurationmanager.LogoURL, m.infoProvider.ApplicationID(), url)
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	return m.runtime.ToValue(success)
+}
+
+func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	applicationID := m.infoProvider.ApplicationID()
+	pageID := call.Argument(0).String()
+	configurable := configurationmanager.SidebarTabs
+
+	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || pageID == "" {
+		err := m.configManager.ResetConfigurable(configurable, applicationID)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+		m.currentSidebarPageID = ""
+		return m.runtime.ToValue(true)
+	}
+
+	beforeTabID := ""
+	if !goja.IsUndefined(call.Argument(1)) && !goja.IsNull(call.Argument(1)) && call.Argument(1).String() != "" {
+		beforeTabID = call.Argument(1).String()
+	}
+
+	info, ok := m.pagesModule.ResolvePage(pageID)
+	if !ok {
+		panic(m.runtime.NewTypeError("Page not published"))
+	}
+
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, configurationmanager.SidebarTabData{
+		TabID:         uuid.NewV4().String(),
+		ApplicationID: applicationID,
+		PageID:        pageID,
+		Title:         info.Title,
+		BeforeTabID:   beforeTabID,
+	})
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+	if success {
+		m.currentSidebarPageID = pageID
 	}
 
 	return m.runtime.ToValue(success)

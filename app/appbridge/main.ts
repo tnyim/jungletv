@@ -63,10 +63,12 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
     });
     h.addEventListener("mounted", (args) => {
         beginObservingPageTitle();
+        beginObservingDocumentResizes();
         page.dispatchEvent(new CustomEvent<MountEventArgs>("mounted", { detail: args }));
     });
     h.addEventListener("destroyed", () => {
         stopObservingPageTitle();
+        stopObservingDocumentResizes();
         page.dispatchEvent(new Event("destroyed"));
     });
     h.addEventListener("themeChanged", (args) => {
@@ -238,6 +240,29 @@ async function beginObservingPageTitle() {
 
 function stopObservingPageTitle() {
     pageTitleObserver?.disconnect();
+}
+
+// #endregion
+
+// #region Page dimensions syncing
+
+let pageResizeObserver: ResizeObserver;
+
+function beginObservingDocumentResizes() {
+    pageResizeObserver = new ResizeObserver(async (changes) => {
+        let connection = await connectionPromise;
+        let rect = document.body.getBoundingClientRect();
+        connection.localHandle().emit("pageResized", {
+            width: rect.width,
+            height: rect.height,
+        });
+    })
+
+    pageResizeObserver.observe(document.body);
+}
+
+function stopObservingDocumentResizes() {
+    pageResizeObserver?.disconnect();
 }
 
 // #endregion

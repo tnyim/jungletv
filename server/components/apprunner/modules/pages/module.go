@@ -11,6 +11,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/exp/slices"
 )
@@ -22,6 +23,7 @@ const ModuleName = "jungletv:pages"
 type PagesModule interface {
 	modules.NativeModule
 	ResolvePage(pageID string) (PageInfo, bool)
+	OnPageUnpublished() event.Event[string]
 }
 
 // ProcessInformationProvider can get information about the process
@@ -31,12 +33,13 @@ type ProcessInformationProvider interface {
 }
 
 type pagesModule struct {
-	runtime      *goja.Runtime
-	exports      *goja.Object
-	infoProvider ProcessInformationProvider
-	pages        map[string]PageInfo
-	mu           sync.RWMutex
-	ctx          context.Context // just to pass the sqalx node around...
+	runtime           *goja.Runtime
+	exports           *goja.Object
+	onPageUnpublished event.Event[string]
+	infoProvider      ProcessInformationProvider
+	pages             map[string]PageInfo
+	mu                sync.RWMutex
+	ctx               context.Context // just to pass the sqalx node around...
 }
 
 type PageInfo struct {
@@ -48,8 +51,9 @@ type PageInfo struct {
 // New returns a new pages module
 func New(infoProvider ProcessInformationProvider) PagesModule {
 	return &pagesModule{
-		infoProvider: infoProvider,
-		pages:        make(map[string]PageInfo),
+		onPageUnpublished: event.New[string](),
+		infoProvider:      infoProvider,
+		pages:             make(map[string]PageInfo),
 	}
 }
 
@@ -80,6 +84,10 @@ func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {
 
 	page, ok := m.pages[pageID]
 	return page, ok
+}
+
+func (m *pagesModule) OnPageUnpublished() event.Event[string] {
+	return m.onPageUnpublished
 }
 
 var headerWhitelist = []string{
@@ -161,7 +169,13 @@ func (m *pagesModule) unpublish(call goja.FunctionCall) goja.Value {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	delete(m.pages, call.Argument(0).String())
+	pageID := call.Argument(0).String()
+	_, present := m.pages[pageID]
+	delete(m.pages, pageID)
+
+	if present {
+		m.onPageUnpublished.Notify(pageID, false)
+	}
 
 	return goja.Undefined()
 }

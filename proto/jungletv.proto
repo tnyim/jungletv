@@ -310,7 +310,17 @@ message ConfigurationChange {
         string application_name = 1;
         string logo_url = 2;
         string favicon_url = 3;
+        ConfigurationChangeSidebarTabOpen open_sidebar_tab = 4;
+        string close_sidebar_tab = 5;
     }
+}
+
+message ConfigurationChangeSidebarTabOpen {
+    string tab_id = 1;
+    string application_id = 2;
+    string page_id = 3;
+    string tab_title = 4;
+    string before_tab_id = 5;
 }
 
 message MonitorQueueRequest {}

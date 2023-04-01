@@ -44,39 +44,59 @@ func (s *KeyedStack[K, V]) Get() V {
 	return s.get()
 }
 
+// GetAll returns the complete stack values
+func (s *KeyedStack[K, V]) GetAll(includeDefaultValue bool) []V {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if len(s.stack) == 0 && includeDefaultValue {
+		return []V{s.defaultValue}
+	}
+	es := make([]V, len(s.stack))
+	for i, e := range s.stack {
+		es[i] = e.value
+	}
+	return es
+}
+
 // Push updates the current value, replacing any value that the provided key has already set
-func (s *KeyedStack[K, V]) Push(key K, value V) {
+// Returns true and the previous value for the key, if the value was replaced
+func (s *KeyedStack[K, V]) Push(key K, value V) (V, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.remove(key, false)
+	removedValue, removed := s.remove(key, false)
 	s.stack = append([]entry[K, V]{{
 		key:   key,
 		value: value,
 	}}, s.stack...)
 	s.currentValueUpdated.Notify(value, false)
+	return removedValue, removed
 }
 
-func (s *KeyedStack[K, V]) remove(key K, notify bool) {
-	for i := range s.stack {
-		if s.stack[i].key == key {
+func (s *KeyedStack[K, V]) remove(key K, notify bool) (V, bool) {
+	for i, v := range s.stack {
+		if v.key == key {
 			s.stack = slices.Delete(s.stack, i, i+1)
 			if i == 0 && notify {
 				s.currentValueUpdated.Notify(s.get(), false)
 			}
-			break
+			return v.value, true
 		}
 	}
+	var v V
+	return v, false
 }
 
-// Remove removes a value by key
-func (s *KeyedStack[K, V]) Remove(key K) {
+// Remove removes a value by key.
+// Returns true and the previous value for the key, if the value was present
+func (s *KeyedStack[K, V]) Remove(key K) (V, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.remove(key, true)
+	return s.remove(key, true)
 }
 
-// OnValueUpdated returns the event that is fired when the current value is updated
+// OnValueUpdated returns the event that is fired when the value at the top of the stack is updated
 func (s *KeyedStack[K, V]) OnValueUpdated() event.Event[V] {
 	return s.currentValueUpdated
 }

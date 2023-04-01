@@ -111,7 +111,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(instance.pagesModule)
 	instance.rpcModule = rpc.New()
 	instance.modules.RegisterNativeModule(instance.rpcModule)
-	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager))
+	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))

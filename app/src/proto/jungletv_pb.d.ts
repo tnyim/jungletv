@@ -896,6 +896,16 @@ export class ConfigurationChange extends jspb.Message {
   getFaviconUrl(): string;
   setFaviconUrl(value: string): void;
 
+  hasOpenSidebarTab(): boolean;
+  clearOpenSidebarTab(): void;
+  getOpenSidebarTab(): ConfigurationChangeSidebarTabOpen | undefined;
+  setOpenSidebarTab(value?: ConfigurationChangeSidebarTabOpen): void;
+
+  hasCloseSidebarTab(): boolean;
+  clearCloseSidebarTab(): void;
+  getCloseSidebarTab(): string;
+  setCloseSidebarTab(value: string): void;
+
   getConfigurationChangeCase(): ConfigurationChange.ConfigurationChangeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConfigurationChange.AsObject;
@@ -912,6 +922,8 @@ export namespace ConfigurationChange {
     applicationName: string,
     logoUrl: string,
     faviconUrl: string,
+    openSidebarTab?: ConfigurationChangeSidebarTabOpen.AsObject,
+    closeSidebarTab: string,
   }
 
   export enum ConfigurationChangeCase {
@@ -919,6 +931,44 @@ export namespace ConfigurationChange {
     APPLICATION_NAME = 1,
     LOGO_URL = 2,
     FAVICON_URL = 3,
+    OPEN_SIDEBAR_TAB = 4,
+    CLOSE_SIDEBAR_TAB = 5,
+  }
+}
+
+export class ConfigurationChangeSidebarTabOpen extends jspb.Message {
+  getTabId(): string;
+  setTabId(value: string): void;
+
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getPageId(): string;
+  setPageId(value: string): void;
+
+  getTabTitle(): string;
+  setTabTitle(value: string): void;
+
+  getBeforeTabId(): string;
+  setBeforeTabId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConfigurationChangeSidebarTabOpen.AsObject;
+  static toObject(includeInstance: boolean, msg: ConfigurationChangeSidebarTabOpen): ConfigurationChangeSidebarTabOpen.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConfigurationChangeSidebarTabOpen, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConfigurationChangeSidebarTabOpen;
+  static deserializeBinaryFromReader(message: ConfigurationChangeSidebarTabOpen, reader: jspb.BinaryReader): ConfigurationChangeSidebarTabOpen;
+}
+
+export namespace ConfigurationChangeSidebarTabOpen {
+  export type AsObject = {
+    tabId: string,
+    applicationId: string,
+    pageId: string,
+    tabTitle: string,
+    beforeTabId: string,
   }
 }
 

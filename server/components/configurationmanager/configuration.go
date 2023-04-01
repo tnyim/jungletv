@@ -19,6 +19,8 @@ const (
 	LogoURL
 	// FaviconURL is an override of the application's favicon
 	FaviconURL
+	// SidebarTabs allows applications to present pages as sidebar tabs
+	SidebarTabs
 )
 
 // Manager manages configuration set by the application framework
@@ -53,6 +55,27 @@ func New(ctx context.Context) *Manager {
 				},
 			}
 		}),
+		SidebarTabs: newClientCollectionConfigurable(
+			func(v SidebarTabData) *proto.ConfigurationChange {
+				return &proto.ConfigurationChange{
+					ConfigurationChange: &proto.ConfigurationChange_OpenSidebarTab{
+						OpenSidebarTab: &proto.ConfigurationChangeSidebarTabOpen{
+							TabId:         v.TabID,
+							ApplicationId: v.ApplicationID,
+							PageId:        v.PageID,
+							TabTitle:      v.Title,
+							BeforeTabId:   v.BeforeTabID,
+						},
+					},
+				}
+			},
+			func(v SidebarTabData) *proto.ConfigurationChange {
+				return &proto.ConfigurationChange{
+					ConfigurationChange: &proto.ConfigurationChange_CloseSidebarTab{
+						CloseSidebarTab: v.TabID,
+					},
+				}
+			}),
 	}
 
 	serverConfigs := map[ConfigurationKey]Configurable{}

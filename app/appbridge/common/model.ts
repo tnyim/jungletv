@@ -31,6 +31,7 @@ export type ChildEvents = {
     "handshook": undefined,
     "eventForServer": ApplicationEventArgs,
     "pageTitleUpdated": string,
+    "pageResized": PageResizedEventArgs,
 }
 
 export type MountEventArgs = {
@@ -47,4 +48,9 @@ export type ApplicationEventArgs = {
 
 export type ThemeChangedEventArgs = {
     darkMode: boolean,
+}
+
+export type PageResizedEventArgs = {
+    width: number,
+    height: number,
 }

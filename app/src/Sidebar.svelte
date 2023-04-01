@@ -3,8 +3,15 @@
     import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
     import { fly } from "svelte/transition";
     import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
-    import type { SidebarTab } from "./tabStores";
-    import { defaultSidebarTabIDs, sidebarTabs } from "./tabStores";
+    import {
+        closeSidebarTab,
+        defaultSidebarTabIDs,
+        openAndSwitchToSidebarTab,
+        setSidebarTabHighlighted,
+        setSidebarTabTitle,
+        SidebarTab,
+        sidebarTabs,
+    } from "./tabStores";
     import TabButton from "./uielements/TabButton.svelte";
     import { openPopout } from "./utils";
 
@@ -17,46 +24,21 @@
     $: currentlyWatchingCount = $currentlyWatching;
 
     const unreadAnnouncementUnsubscribe = unreadAnnouncement.subscribe((hasUnread) => {
-        sidebarTabs.update((currentTabs) => {
-            currentTabs.find((t) => "announcements" == t.id).highlighted = hasUnread;
-            return currentTabs;
-        });
+        setSidebarTabHighlighted("announcements", hasUnread);
     });
     onDestroy(unreadAnnouncementUnsubscribe);
 
     const unreadChatMentionUnsubscribe = unreadChatMention.subscribe((hasUnread) => {
         if (selectedTabID != "chat" || !hasUnread) {
-            sidebarTabs.update((currentTabs) => {
-                currentTabs.find((t) => "chat" == t.id).highlighted = hasUnread;
-                return currentTabs;
-            });
+            setSidebarTabHighlighted("chat", hasUnread);
         } else if (hasUnread) {
             unreadChatMention.set(false);
         }
     });
     onDestroy(unreadChatMentionUnsubscribe);
 
-    let tabs = $sidebarTabs;
+    let tabs: SidebarTab[] = $sidebarTabs;
     $: tabs = $sidebarTabs;
-
-    function openSidebarTab(event: CustomEvent<SidebarTab>) {
-        let newTab = event.detail;
-        let selectedTabIndex = tabs.findIndex((t) => selectedTabID == t.id);
-        tabs.splice(selectedTabIndex + 1, 0, newTab);
-        sidebarTabs.update((_) => tabs);
-        sidebarMode.update((_) => newTab.id);
-    }
-
-    function closeTab(tab: SidebarTab) {
-        let tabIndex = tabs.findIndex((t) => tab.id == t.id);
-        if (tabIndex >= 0) {
-            tabs.splice(tabIndex, 1);
-            if (selectedTabID == tab.id) {
-                sidebarMode.update((_) => tabs[Math.max(0, tabIndex - 1)].id);
-            }
-            sidebarTabs.update((_) => tabs);
-        }
-    }
 
     let tabInX = 384;
     const SLIDE_DURATION = 200;
@@ -185,10 +167,13 @@
                     {/if}
                     {tab.tabTitle}
                     {#if tab.closeable}
-                        <i
-                            class="fas fa-times cursor-pointer hover:text-yellow-700 dark:hover:text-yellow-500"
-                            on:click|stopPropagation={() => closeTab(tab)}
-                        />
+                        <button
+                            type="button"
+                            class="hover:text-yellow-700 dark:hover:text-yellow-500"
+                            on:click|stopPropagation={() => closeSidebarTab(tab.id)}
+                        >
+                            <i class="fas fa-times " />
+                        </button>
                     {/if}
                 </TabButton>
             {/each}
@@ -223,8 +208,9 @@
             <svelte:component
                 this={selectedTab.component}
                 {...selectedTab.props}
-                on:openSidebarTab={openSidebarTab}
-                on:closeTab={() => closeTab(selectedTab)}
+                on:openSidebarTab={(e) => openAndSwitchToSidebarTab(e.detail, selectedTab.id)}
+                on:closeTab={() => closeSidebarTab(selectedTab.id)}
+                on:setTabTitle={(e) => setSidebarTabTitle(selectedTab.id, e.detail)}
             />
         </div>
     {:else}
@@ -236,8 +222,9 @@
             <svelte:component
                 this={selectedTab.component}
                 {...selectedTab.props}
-                on:openSidebarTab={openSidebarTab}
-                on:closeTab={() => closeTab(selectedTab)}
+                on:openSidebarTab={(e) => openAndSwitchToSidebarTab(e.detail, selectedTab.id)}
+                on:closeTab={() => closeSidebarTab(selectedTab.id)}
+                on:setTabTitle={(e) => setSidebarTabTitle(selectedTab.id, e.detail)}
             />
         </div>
     {/if}

@@ -2,7 +2,7 @@
     import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { Connection, ParentHandshake } from "post-me";
-    import { onDestroy } from "svelte";
+    import { createEventDispatcher, onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
     import type { Unsubscriber } from "svelte/store";
     import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
@@ -18,14 +18,21 @@
 
     export let applicationID: string;
     export let pageID: string;
+    export let mode: "sidebar" | "page" = "page";
     let applicationVersion: Date;
     let originalPageTitle: string;
+
+    const dispatch = createEventDispatcher();
 
     async function resolvePage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
         let r = await apiClient.resolveApplicationPage(applicationID, pageID);
         applicationVersion = r.getApplicationVersion().toDate();
         originalPageTitle = r.getPageTitle();
-        pageTitleApplicationPage.set(originalPageTitle);
+        if (mode == "page") {
+            pageTitleApplicationPage.set(originalPageTitle);
+        } else if (mode == "sidebar") {
+            dispatch("setTabTitle", originalPageTitle);
+        }
         return r;
     }
 
@@ -33,7 +40,9 @@
     let jsonCleaner = (key, value) => (key === "__proto__" ? undefined : value);
 
     onDestroy(() => {
-        pageTitleApplicationPage.set("");
+        if (mode == "page") {
+            pageTitleApplicationPage.set("");
+        }
     });
 
     let connection: Connection<ParentMethods, ParentEvents, ChildMethods, ChildEvents>;
@@ -146,7 +155,12 @@
         connection = await ParentHandshake(messenger, bridgeMethods);
 
         connection.remoteHandle().addEventListener("pageTitleUpdated", (t) => {
-            pageTitleApplicationPage.set(t ? t : originalPageTitle);
+            let title = t ? t : originalPageTitle;
+            if (mode == "page") {
+                pageTitleApplicationPage.set(title);
+            } else if (mode == "sidebar") {
+                dispatch("setTabTitle", title);
+            }
         });
         connection.remoteHandle().addEventListener("eventForServer", async (data) => {
             let jsonArgs: string[] = [];
@@ -154,6 +168,9 @@
                 jsonArgs.push(JSON.stringify(arg));
             }
             await apiClient.triggerApplicationEvent(applicationID, pageID, data.name, jsonArgs);
+        });
+        connection.remoteHandle().addEventListener("pageResized", (args) => {
+            iframe.height = args.height + "";
         });
 
         await connection.remoteHandle().once("handshook");
@@ -201,9 +218,10 @@
     <iframe
         bind:this={iframe}
         on:load={onIframeLoaded}
-        class="w-screen h-screen -mt-16 pt-16"
+        class="w-full"
         title={response.getPageTitle()}
         src="/apppages/{applicationID}/{pageID}"
+        scrolling="no"
         sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads"
     />
 {:catch}
