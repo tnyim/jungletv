@@ -1,6 +1,6 @@
-import { ChildHandshake, Connection } from 'post-me';
-import { JungleTVWindowMessenger } from './common/messenger';
+import { ChildHandshake, Connection, WindowMessenger } from 'post-me';
 import { BRIDGE_VERSION as bridgeVersion, ChildEvents, ChildMethods, MountEventArgs, ParentEvents, ParentMethods } from './common/model';
+import { defineCustomElements, setCustomElementsDarkMode } from './ui';
 
 /**
  * Version of the bridge between the application page code and the host JungleTV page.
@@ -20,14 +20,15 @@ export const server = document.createTextNode("");
  */
 export const page = document.createTextNode("");
 
-const messenger = new JungleTVWindowMessenger({
+const messenger = new WindowMessenger({
     localWindow: window,
     remoteWindow: window.parent,
-    remoteOrigin: globalThis.EXPECTED_PARENT_WINDOW_ORIGIN,
+    remoteOrigin: window.origin,
 });
 
 // synchronously change the document base as the page loads, so the body will be parsed with the new base taken into account
 let cachedApplicationID: string = (/^\/apppages\/(.*)\//g.exec(document.location.pathname) ?? ['', ''])[1];
+let cachedApplicationVersion: string;
 
 let head: HTMLHeadElement;
 let headElems = document.getElementsByTagName("head");
@@ -50,6 +51,8 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
     }
 
     cachedApplicationID = await h.call("applicationID");
+    cachedApplicationVersion = await h.call("applicationVersion");
+    defineCustomElements(await h.call("hostVersion"));
 
     h.addEventListener("eventForClient", (args) => {
         server.dispatchEvent(new CustomEvent<any[]>(args.name, { detail: args.args }))
@@ -78,9 +81,11 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
         } else {
             body.classList.remove("dark");
         }
+        setCustomElementsDarkMode(args.darkMode);
     })
 
     connection.localHandle().emit("handshook", undefined);
+
 
     return connection;
 }();
@@ -139,8 +144,8 @@ export const navigate = async function (to: string): Promise<void> {
  * @public
  */
 export const resolveApplicationFileURL = function (fileName: string): string | undefined {
-    if (cachedApplicationID) {
-        return `/assets/app/${cachedApplicationID}/${fileName}`;
+    if (cachedApplicationID && cachedApplicationVersion) {
+        return `/assets/app/${cachedApplicationID}/${fileName}?v=${cachedApplicationVersion}`;
     }
     return undefined;
 }

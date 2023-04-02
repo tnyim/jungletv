@@ -1,14 +1,17 @@
-import svelte from 'rollup-plugin-svelte';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
-import css from 'rollup-plugin-css-only';
-import sveltePreprocess from "svelte-preprocess";
-import typescript from "@rollup/plugin-typescript";
 import replace from '@rollup/plugin-replace';
+import { terser } from '@rollup/plugin-terser';
+import typescript from "@rollup/plugin-typescript";
+import autoprefixer from 'autoprefixer';
+import { spawn } from 'child_process';
 import CleanCSS from 'clean-css';
 import fs from 'fs';
+import css from 'rollup-plugin-css-only';
+import livereload from 'rollup-plugin-livereload';
+import svelte from 'rollup-plugin-svelte';
+import sveltePreprocess from "svelte-preprocess";
+import tailwindcss from "tailwindcss";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -22,7 +25,7 @@ function serve() {
 	return {
 		writeBundle() {
 			if (server) return;
-			server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
+			server = spawn('npm', ['run', 'start', '--', '--dev'], {
 				stdio: ['ignore', 'inherit', 'inherit'],
 				shell: true
 			});
@@ -90,8 +93,8 @@ export default [
 					sourceMap: !production,
 					postcss: {
 						plugins: [
-							require("tailwindcss"),
-							require("autoprefixer"),
+							tailwindcss,
+							autoprefixer,
 						],
 					},
 				}),
@@ -196,13 +199,30 @@ export default [
 		},
 		plugins: [
 			replace({
-				"globalThis.EXPECTED_PARENT_WINDOW_ORIGIN": JSON.stringify(production ? "https://jungletv.live" : "*"),
 				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
 				preventAssignment: true,
 			}),
 			replace({
 				'process.env.NODE_ENV': JSON.stringify('production'),
 				preventAssignment: true,
+			}),
+			svelte({
+				compilerOptions: {
+					// enable run-time checks when not in production
+					dev: !production,
+					css: "injected",
+				},
+				emitCss: false, // together with css "injected" above, forces svelte component CSS to be part of the JS bundle for simplicity
+				// (we already have sufficient problems including the main app's bundle.css inside the application pages to bring tailwind rules in)
+				preprocess: sveltePreprocess({
+					sourceMap: !production,
+					postcss: {
+						plugins: [
+							tailwindcss,
+							autoprefixer,
+						],
+					},
+				}),
 			}),
 			typescript({
 				tsconfig: './tsconfig-appbridge.json',
@@ -218,8 +238,10 @@ export default [
 
 			// If we're building for production (npm run build
 			// instead of npm run dev), minify
-			production && terser(
+			production && production && terser(
 				{
+					ecma: 2020,
+					toplevel: false, // probably important because much of our code is for other scripts, outside of the bundle, to use
 					format: {
 						comments: false
 					}

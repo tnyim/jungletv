@@ -1,8 +1,10 @@
-export const BRIDGE_VERSION = 3;
+export const BRIDGE_VERSION = 4;
 // methods the child can call on the parent
 export type ParentMethods = {
     bridgeVersion: () => number;
+    hostVersion: () => string;
     applicationID: () => string;
+    applicationVersion: () => string;
     serverMethod: (method: string, ...args: any[]) => Promise<any>;
     navigateToApplicationPage: (pageID: string, applicationID?: string) => void;
     navigate: (to: string) => void;

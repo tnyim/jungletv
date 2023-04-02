@@ -456,7 +456,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		}*/
 		if strings.Contains(req.Header.Get("Content-Type"), "application/grpc") ||
 			strings.Contains(req.Header.Get("Access-Control-Request-Headers"), "x-grpc-web") {
-			resp.Header().Set("Access-Control-Allow-Origin", "*")
+			resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
 			resp.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 			resp.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-User-Agent, X-Grpc-Web")
 			/*resp.Header().Set("grpc-status", "")
@@ -465,6 +465,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 			return
 		}
 
+		resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
 		resp.Header().Set("X-Frame-Options", "deny")
 		resp.Header().Set("X-Content-Type-Options", "nosniff")
 		// remember to edit the CSP in index.template too

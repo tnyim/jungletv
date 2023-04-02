@@ -1,3 +1,6 @@
+// this file is imported by the main application bundle and also by the appbridge
+// this file is exceptionally included in the paths for typescript to process when compiling appbridge
+
 export const formatBANPrice = function (raw: string): string {
     return getAmountPartsAsDecimal(getAmountPartsFromRaw(raw, "ban_"), 29, 2);
 }

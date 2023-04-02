@@ -1,11 +1,10 @@
 <script lang="ts">
     import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { Connection, ParentHandshake } from "post-me";
+    import { Connection, ParentHandshake, WindowMessenger } from "post-me";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
     import type { Unsubscriber } from "svelte/store";
-    import { JungleTVWindowMessenger } from "../appbridge/common/messenger";
     import { BRIDGE_VERSION, ChildEvents, ChildMethods, ParentEvents, ParentMethods } from "../appbridge/common/model";
     import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
@@ -48,11 +47,17 @@
     let connection: Connection<ParentMethods, ParentEvents, ChildMethods, ChildEvents>;
 
     let bridgeMethods: ParentMethods = {
+        bridgeVersion() {
+            return BRIDGE_VERSION;
+        },
+        hostVersion() {
+            return apiClient.getClientVersion();
+        },
         applicationID() {
             return applicationID;
         },
-        bridgeVersion() {
-            return BRIDGE_VERSION;
+        applicationVersion() {
+            return applicationVersion.getTime() + "";
         },
         async serverMethod(method, ...args): Promise<any> {
             let jsonArgs: string[] = [];
@@ -146,10 +151,10 @@
         if (typeof darkModeUnsubscriber !== "undefined") {
             darkModeUnsubscriber();
         }
-        const messenger = new JungleTVWindowMessenger({
+        const messenger = new WindowMessenger({
             localWindow: window,
             remoteWindow: iframe.contentWindow,
-            remoteOrigin: "null",
+            remoteOrigin: window.origin,
         });
 
         connection = await ParentHandshake(messenger, bridgeMethods);
@@ -220,9 +225,9 @@
         on:load={onIframeLoaded}
         class="w-full"
         title={response.getPageTitle()}
-        src="/apppages/{applicationID}/{pageID}"
+        src="/apppages/{applicationID}/{pageID}?v={applicationVersion}"
         scrolling="no"
-        sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads"
+        sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads allow-same-origin"
     />
 {:catch}
     <NotFound />
