@@ -3,6 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import { formatBANPriceFixed } from "./currency_utils";
     import type { PlayedMedia } from "./proto/jungletv_pb";
 
     const dispatch = createEventDispatcher();
@@ -95,7 +96,7 @@
                 <td
                     class="border-t-0 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
                 >
-                    {apiClient.formatBANPriceFixed(request.getRequestCost())} BAN
+                    {formatBANPriceFixed(request.getRequestCost())} BAN
                 </td>
                 {#if isSelf}
                     <td class="border-t-0 align-middle border-l-0 border-r-0 whitespace-nowrap p-4">

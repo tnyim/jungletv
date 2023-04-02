@@ -9,6 +9,7 @@
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import PaginatedTable from "./uielements/PaginatedTable.svelte";
 
+    import { formatBANPrice } from "./currency_utils";
     import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
@@ -141,7 +142,7 @@
                 <p class="text-lg font-semibold">Available to withdraw:</p>
             {/if}
             <p class="text-2xl sm:text-3xl">
-                {apiClient.formatBANPrice($rewardBalance)} <span class="text-xl">BAN</span>
+                {formatBANPrice($rewardBalance)} <span class="text-xl">BAN</span>
             </p>
             {#if !pendingWithdrawal}
                 <p class="mt-2 mb-6">
@@ -154,7 +155,7 @@
                             Withdraw request failed. It is possible that a withdraw request is already in progress.
                             Please try again later.
                         </ErrorMessage>
-                    {:else if parseFloat(apiClient.formatBANPrice($rewardBalance)) > 0}
+                    {:else if parseFloat(formatBANPrice($rewardBalance)) > 0}
                         <ButtonButton
                             on:click={withdraw}
                             extraClasses={withdrawClicked ? "animate-pulse" : ""}

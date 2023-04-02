@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Duration } from "luxon";
-    import { apiClient } from "./api_client";
+    import { formatBANPriceFixed } from "./currency_utils";
     import type { UserStatsForPeriod } from "./proto/jungletv_pb";
 
     export let stats: UserStatsForPeriod;
@@ -14,7 +14,7 @@
     }
 </script>
 
-<p>Total spent: {apiClient.formatBANPriceFixed(stats.getTotalSpent())} BAN</p>
-<p>Total withdrawn: {apiClient.formatBANPriceFixed(stats.getTotalWithdrawn())} BAN</p>
+<p>Total spent: {formatBANPriceFixed(stats.getTotalSpent())} BAN</p>
+<p>Total withdrawn: {formatBANPriceFixed(stats.getTotalWithdrawn())} BAN</p>
 <p>Entries enqueued: {stats.getRequestedMediaCount()}</p>
 <p>Play time paid for: {totalPlayTime}</p>

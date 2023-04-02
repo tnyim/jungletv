@@ -1,7 +1,7 @@
 <script lang="ts">
     import { DateTime, Duration } from "luxon";
     import { onDestroy, onMount, tick } from "svelte";
-    import { apiClient } from "./api_client";
+    import { formatBANPriceFixed } from "./currency_utils";
     import { playerCurrentTime, rewardAddress } from "./stores";
 
     export let numEntries = 0;
@@ -163,7 +163,7 @@
             </div>
             <div title="Request cost of all queue entries">
                 <i class="fas fa-coins text-sm" />
-                {apiClient.formatBANPriceFixed(totalQueueValue.toString())} BAN
+                {formatBANPriceFixed(totalQueueValue.toString())} BAN
             </div>
             <div title="Number of people who enqueued entries">
                 {#if numParticipants == 0}

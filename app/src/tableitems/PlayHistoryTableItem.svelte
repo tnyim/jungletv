@@ -1,7 +1,7 @@
 <script lang="ts">
     import { DateTime } from "luxon";
     import { link } from "svelte-navigator";
-    import { apiClient } from "../api_client";
+    import { formatBANPriceFixed } from "../currency_utils";
     import { openUserProfile } from "../profile_utils";
     import { PlayedMedia } from "../proto/jungletv_pb";
     import { formatQueueEntryThumbnailDuration } from "../utils";
@@ -92,6 +92,6 @@
     <td
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
     >
-        {apiClient.formatBANPriceFixed(media.getRequestCost())} BAN
+        {formatBANPriceFixed(media.getRequestCost())} BAN
     </td>
 </tr>

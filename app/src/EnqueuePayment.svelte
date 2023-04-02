@@ -4,6 +4,7 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { apiClient } from "./api_client";
+    import { formatPrice } from "./currency_utils";
     import EnqueueTicketPreview from "./EnqueueTicketPreview.svelte";
     import { EnqueueMediaTicket, EnqueueMediaTicketStatus } from "./proto/jungletv_pb";
     import { darkMode } from "./stores";
@@ -180,7 +181,7 @@
                                 <td class="text-right p-2">
                                     Minimum send of
                                     <span class="font-bold"
-                                        >{apiClient.formatPrice(
+                                        >{formatPrice(
                                             paymentInfo.getEnqueuePrice(),
                                             selectedCurrency
                                         )}&nbsp;{selectedCurrency}</span
@@ -194,7 +195,7 @@
                                 <td class="text-right p-2">
                                     Send at least
                                     <span class="font-bold"
-                                        >{apiClient.formatPrice(
+                                        >{formatPrice(
                                             paymentInfo.getPlayNextPrice(),
                                             selectedCurrency
                                         )}&nbsp;{selectedCurrency}</span
@@ -212,7 +213,7 @@
                                 >
                                     Send at least
                                     <span class="font-bold"
-                                        >{apiClient.formatPrice(
+                                        >{formatPrice(
                                             paymentInfo.getPlayNowPrice(),
                                             selectedCurrency
                                         )}&nbsp;{selectedCurrency}</span
@@ -246,7 +247,7 @@
                                     on:change={() => updateSelectedPrice("enqueue")}
                                 />
                                 <label for="enqueueoption" class="font-semibold">
-                                    {apiClient.formatPrice(paymentInfo.getEnqueuePrice(), selectedCurrency)}
+                                    {formatPrice(paymentInfo.getEnqueuePrice(), selectedCurrency)}
                                     {selectedCurrency}
                                 </label>
                             </div>
@@ -260,7 +261,7 @@
                                     on:change={() => updateSelectedPrice("next")}
                                 />
                                 <label for="playnextoption" class="font-semibold">
-                                    {apiClient.formatPrice(paymentInfo.getPlayNextPrice(), selectedCurrency)}
+                                    {formatPrice(paymentInfo.getPlayNextPrice(), selectedCurrency)}
                                     {selectedCurrency}
                                 </label>
                             </div>
@@ -274,7 +275,7 @@
                                     on:change={() => updateSelectedPrice("skip")}
                                 />
                                 <label for="skipoption" class="font-semibold">
-                                    {apiClient.formatPrice(paymentInfo.getPlayNowPrice(), selectedCurrency)}
+                                    {formatPrice(paymentInfo.getPlayNowPrice(), selectedCurrency)}
                                     {selectedCurrency}
                                 </label>
                             </div>

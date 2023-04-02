@@ -2,7 +2,7 @@
     import { onDestroy } from "svelte";
 
     import QrCode from "svelte-qrcode";
-    import { apiClient } from "../api_client";
+    import { formatPrice } from "../currency_utils";
 
     export let address = "";
     export let allowQR = false;
@@ -50,7 +50,7 @@
                 webWalletHost +
                 "/send?to=" +
                 address +
-                (paymentAmount != "" ? "&amount=" + apiClient.formatPrice(paymentAmount, currency) : "");
+                (paymentAmount != "" ? "&amount=" + formatPrice(paymentAmount, currency) : "");
         }
     }
 

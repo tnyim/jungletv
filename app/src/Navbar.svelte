@@ -3,8 +3,8 @@
     import watchMedia from "svelte-media";
     import { globalHistory, link, navigate } from "svelte-navigator";
     import Toggle from "svelte-toggle";
-    import { apiClient } from "./api_client";
     import { applicationName, logoURL } from "./configurationStores";
+    import { formatBANPrice } from "./currency_utils";
     import NavbarAlert from "./NavbarAlert.svelte";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import { buildMonKeyURL } from "./utils";
@@ -129,7 +129,7 @@
                                 <div>
                                     Balance:
                                     <span class="font-bold">
-                                        {apiClient.formatBANPrice($rewardBalance)} BAN
+                                        {formatBANPrice($rewardBalance)} BAN
                                     </span>
                                 </div>
                             </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { apiClient } from "../api_client";
+    import { formatBANPriceFixed } from "../currency_utils";
     import type { LeaderboardRow } from "../proto/jungletv_pb";
     import { ordinalSuffix } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
@@ -23,7 +23,7 @@
             <td
                 class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-2 text-gray-700 dark:text-white font-semibold"
             >
-                {apiClient.formatBANPriceFixed(value.getAmount())} BAN
+                {formatBANPriceFixed(value.getAmount())} BAN
             </td>
         {/if}
     {/each}

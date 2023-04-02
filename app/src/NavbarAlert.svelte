@@ -2,7 +2,7 @@
     import { onDestroy } from "svelte";
     import watchMedia from "svelte-media";
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
+    import { formatBANPrice } from "./currency_utils";
     import NavbarAlertFlyer from "./NavbarAlertFlyer.svelte";
     import { badRepresentative, currentSubscription, rewardReceived } from "./stores";
     import { isSubscriptionAboutToExpire } from "./utils";
@@ -36,7 +36,7 @@
     let shownSubExpireWarning = false;
     $: {
         let aboutToExpire = isSubscriptionAboutToExpire($currentSubscription);
-        if(!aboutToExpire) {
+        if (!aboutToExpire) {
             showSubExpirationWarning = false;
             shownSubExpireWarning = false;
         } else if (!shownSubExpireWarning) {
@@ -56,7 +56,7 @@
             lastReward = "";
         }}
     >
-        Received <span class="font-bold">{apiClient.formatBANPrice(lastReward)} BAN</span>!
+        Received <span class="font-bold">{formatBANPrice(lastReward)} BAN</span>!
     </NavbarAlertFlyer>
 {:else if showSubExpirationWarning}
     <NavbarAlertFlyer

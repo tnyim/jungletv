@@ -3,6 +3,7 @@
     import { link } from "svelte-navigator";
     import { fade } from "svelte/transition";
     import { apiClient } from "./api_client";
+    import { formatBANPrice, formatBANPriceFixed } from "./currency_utils";
     import { SkipAndTipStatus, SkipStatus } from "./proto/jungletv_pb";
     import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import { currentSubscription, darkMode, rewardAddress } from "./stores";
@@ -89,7 +90,7 @@
                     The content will be skipped once the balance of the skip pool reaches
                     {#key skipThreshold}
                         <span in:fade|local={{ duration: 200 }}>
-                            {apiClient.formatBANPrice(skipAndTipStatus.getSkipThreshold())} BAN</span
+                            {formatBANPrice(skipAndTipStatus.getSkipThreshold())} BAN</span
                         >{/key}.
                 </p>
                 <p class="text-xs mb-1">
@@ -100,7 +101,7 @@
                     <div class="text-xs flex flex-row mt-1 justify-end pr-1">
                         {#key skipThreshold}
                             <div in:fade|local={{ duration: 200 }}>
-                                {apiClient.formatBANPriceFixed(skipAndTipStatus.getSkipThreshold())} BAN
+                                {formatBANPriceFixed(skipAndTipStatus.getSkipThreshold())} BAN
                             </div>
                         {/key}
                     </div>
@@ -111,7 +112,7 @@
                                 class="shadow-none flex flex-col text-right whitespace-nowrap text-white text-shadow justify-center bg-purple-500 dark:bg-purple-400"
                             >
                                 <div class="px-2">
-                                    {apiClient.formatBANPriceFixed(skipAndTipStatus.getSkipBalance())} BAN
+                                    {formatBANPriceFixed(skipAndTipStatus.getSkipBalance())} BAN
                                 </div>
                             </div>
                         </div>
@@ -182,7 +183,7 @@
                     This content will pay out an additional reward of
                     {#key rainBalance}
                         <span class="font-semibold text-xl" in:fade|local={{ duration: 200 }}>
-                            {apiClient.formatBANPriceFixed(skipAndTipStatus.getRainBalance())} BAN</span
+                            {formatBANPriceFixed(skipAndTipStatus.getRainBalance())} BAN</span
                         >{/key}, that will be distributed among active viewers at the end of the current queue entry.
                 </p>
                 <p class="mb-2">

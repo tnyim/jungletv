@@ -1,6 +1,6 @@
 <script lang="ts">
     import { DateTime, DurationUnit } from "luxon";
-    import { apiClient } from "../api_client";
+    import { formatBANPriceFixed } from "../currency_utils";
     import type { Withdrawal } from "../proto/jungletv_pb";
 
     export let withdrawal: Withdrawal;
@@ -33,7 +33,7 @@
     <td
         class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-semibold"
     >
-        {apiClient.formatBANPriceFixed(withdrawal.getAmount())} BAN
+        {formatBANPriceFixed(withdrawal.getAmount())} BAN
     </td>
     <td class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 p-4 text-gray-700 dark:text-white">
         {formatDate(withdrawal.getStartedAt().toDate())}

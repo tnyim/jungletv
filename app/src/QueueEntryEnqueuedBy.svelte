@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { apiClient } from "./api_client";
+    import { formatBANPriceFixed, isPriceZero } from "./currency_utils";
     import type { QueueEntry } from "./proto/jungletv_pb";
     import { buildMonKeyURL, getReadableUserString } from "./utils";
 
@@ -22,10 +22,10 @@
             style="font-size: 0.70rem;">{getReadableUserString(entry.getRequestedBy())}</span
         >
     {:else}
-        Added by JungleTV {#if apiClient.isPriceZero(entry.getRequestCost())}(no reward){/if}
+        Added by JungleTV {#if isPriceZero(entry.getRequestCost())}(no reward){/if}
     {/if}
     {#if mode == "moderation"}
-        | Request cost: {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN |
+        | Request cost: {formatBANPriceFixed(entry.getRequestCost())} BAN |
         <button class="text-blue-600 hover:underline cursor-pointer" on:click={() => dispatch("remove", entry)}>
             Remove
         </button>

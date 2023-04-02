@@ -4,6 +4,7 @@
     import QrCode from "svelte-qrcode";
     import { slide } from "svelte/transition";
     import { apiClient } from "./api_client";
+    import { formatBANPriceFixed, isPriceZero } from "./currency_utils";
     import { modalAlert } from "./modal/modal";
     import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
     import { openUserProfile } from "./profile_utils";
@@ -134,7 +135,7 @@
     <p>
         Request cost:
         <span class="font-normal filter blur-sm hover:blur-none active:blur-none transition-all">
-            {apiClient.formatBANPriceFixed(entry.getRequestCost())} BAN
+            {formatBANPriceFixed(entry.getRequestCost())} BAN
         </span>
     </p>
     {#if timeUntilStarting.as("minutes") > 45}
@@ -172,7 +173,7 @@
         <p>
             Added to the queue {formatEnqueuedAt(entry)}.
         </p>
-        {#if apiClient.isPriceZero(entry.getRequestCost())}
+        {#if isPriceZero(entry.getRequestCost())}
             <p class="mt-2">
                 This video was automatically enqueued by JungleTV. Since nobody paid for this video, it will pay no
                 rewards.

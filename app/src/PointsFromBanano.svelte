@@ -4,6 +4,7 @@
     import { Moon } from "svelte-loading-spinners";
     import { link, navigate } from "svelte-navigator";
     import { apiClient } from "./api_client";
+    import { formatBANPriceFixed } from "./currency_utils";
     import type { ConvertBananoToPointsStatus } from "./proto/jungletv_pb";
     import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import { darkMode } from "./stores";
@@ -87,7 +88,7 @@
                     The payment address has expired. You acquired
                     <span class="font-bold">{status.getPointsConverted()} <PointsIcon /></span>
                     using
-                    <span class="font-semibold">{apiClient.formatBANPriceFixed(status.getBananoConverted())} BAN</span>.
+                    <span class="font-semibold">{formatBANPriceFixed(status.getBananoConverted())} BAN</span>.
                 </p>
             {:else}
                 <ErrorMessage>
@@ -110,7 +111,7 @@
                 0.01 BAN = 1 <PointsIcon />
                 {#if status.getPointsConverted() > 0}
                     <br />
-                    {apiClient.formatBANPriceFixed(status.getBananoConverted())} BAN = {status.getPointsConverted()}
+                    {formatBANPriceFixed(status.getBananoConverted())} BAN = {status.getPointsConverted()}
                     <PointsIcon />
                 {/if}
             </p>
@@ -126,8 +127,8 @@
             </div>
             <p class="mt-8">
                 You acquired <span class="font-bold">{status.getPointsConverted()} <PointsIcon /></span> using
-                <span class="font-semibold">{apiClient.formatBANPriceFixed(status.getBananoConverted())} BAN</span>.
-                This payment address will expire in <span class="font-bold">{timeRemainingFormatted}</span>.
+                <span class="font-semibold">{formatBANPriceFixed(status.getBananoConverted())} BAN</span>. This payment
+                address will expire in <span class="font-bold">{timeRemainingFormatted}</span>.
             </p>
             <p class="mt-4 font-semibold text-yellow-600 dark:text-yellow-400">
                 Acquired points cannot be refunded. JungleTV Points can only be spent within JungleTV.
