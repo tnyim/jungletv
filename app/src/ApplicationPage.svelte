@@ -225,7 +225,7 @@
         on:load={onIframeLoaded}
         class="w-full"
         title={response.getPageTitle()}
-        src="/apppages/{applicationID}/{pageID}?v={applicationVersion}"
+        src="/assets/app/{applicationID}/*{pageID}/?v={applicationVersion.getTime() + ''}"
         scrolling="no"
         sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads allow-same-origin"
     />

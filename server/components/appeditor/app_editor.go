@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"mime"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -111,6 +112,10 @@ func (*AppEditor) UpdateApplicationFile(ctxCtx context.Context, applicationID st
 		return stacktrace.Propagate(err, "invalid file type")
 	}
 
+	if strings.HasPrefix(fileName, "*") {
+		return stacktrace.Propagate(err, "invalid file name")
+	}
+
 	file := &types.ApplicationFile{
 		ApplicationID: applicationID,
 		Name:          fileName,
@@ -195,6 +200,9 @@ func (*AppEditor) CloneApplicationFile(ctxCtx context.Context, applicationID, fi
 	_, ok = destFiles[destinationFileName]
 	if ok {
 		return stacktrace.NewError("destination file already exists")
+	}
+	if strings.HasPrefix(destinationFileName, "*") {
+		return stacktrace.Propagate(err, "invalid file name")
 	}
 
 	file.ApplicationID = destApplication.ID

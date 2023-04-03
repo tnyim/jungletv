@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -143,6 +144,9 @@ func (e *AppEditor) ImportApplicationFilesFromZIP(ctxCtx context.Context, applic
 	filesInZip := map[string]struct{}{}
 	for _, zipFile := range zipReader.File {
 		fileName := filepath.Base(zipFile.Name) // effectively flatten any folder structure
+		if strings.HasPrefix(fileName, "*") {
+			return stacktrace.Propagate(err, "invalid file name in archive: %s", fileName)
+		}
 		filesInZip[fileName] = struct{}{}
 
 		fileReader, err := zipFile.Open()

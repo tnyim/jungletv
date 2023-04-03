@@ -37,7 +37,7 @@ func New(log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppR
 		"/oauth/callback":               s.wrapHTTPHandler(s.OAuthCallback),
 		"/oauth/monkeyconnect/callback": s.wrapHTTPHandler(s.OAuthCallback),
 		"/assets/app/{app}/{file}":      s.wrapHTTPHandler(s.ApplicationFile),
-		"/apppages/{app}/{page}":        s.wrapHTTPHandler(s.ApplicationPage),
+		"/assets/app/{app}/*{page}":     s.wrapHTTPHandler(s.ApplicationPage),
 	}, nil
 }
 

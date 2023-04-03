@@ -26,19 +26,8 @@ const messenger = new WindowMessenger({
     remoteOrigin: window.origin,
 });
 
-// synchronously change the document base as the page loads, so the body will be parsed with the new base taken into account
-let cachedApplicationID: string = (/^\/apppages\/(.*)\//g.exec(document.location.pathname) ?? ['', ''])[1];
-let cachedApplicationVersion: string;
-
-let head: HTMLHeadElement;
-let headElems = document.getElementsByTagName("head");
-if (headElems.length > 0) {
-    head = headElems[0];
-} else {
-    head = document.createElement("head");
-    document.appendChild(head);
-}
-head.innerHTML += `<base href="${document.location.origin}/assets/app/${cachedApplicationID}/" />`;
+let cachedApplicationID: string = (/^\/assets\/app\/(.*)\//g.exec(document.location.pathname) ?? ["", ""])[1];
+let cachedApplicationVersion: string = new URLSearchParams(document.location.search).get("v") ?? "";
 
 const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMethods, ParentEvents>> = async function () {
     let childMethods: ChildMethods = {};
