@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/textproto"
+	"regexp"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -104,6 +105,8 @@ func init() {
 	}
 }
 
+var allowedPageIDs = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
 func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 3 {
 		panic(m.runtime.NewTypeError("Missing argument"))
@@ -115,6 +118,10 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 	}
 	defer ctx.Commit() // read-only tx
 
+	pageID := call.Argument(0).String()
+	if !allowedPageIDs.MatchString(pageID) {
+		panic(m.runtime.NewTypeError("Invalid page ID specified"))
+	}
 	fileName := call.Argument(1).String()
 
 	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(
@@ -156,7 +163,7 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.pages[call.Argument(0).String()] = page
+	m.pages[pageID] = page
 
 	return goja.Undefined()
 }
