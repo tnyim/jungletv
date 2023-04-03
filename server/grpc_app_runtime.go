@@ -43,6 +43,24 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 	defer heartbeat.Stop()
 	var seq uint32
 
+	sendHeartbeat := func() error {
+		err := stream.Send(&proto.ApplicationEventUpdate{
+			Type: &proto.ApplicationEventUpdate_Heartbeat{
+				Heartbeat: &proto.ApplicationHeartbeatEvent{
+					Sequence: seq,
+				},
+			},
+		})
+		seq++
+		return stacktrace.Propagate(err, "")
+	}
+
+	// immediately send a heartbeat so the client knows it's connected
+	err = sendHeartbeat()
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	for {
 		select {
 		case e, ok := <-eventCh:
@@ -58,14 +76,7 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 				},
 			})
 		case <-heartbeat.C:
-			err = stream.Send(&proto.ApplicationEventUpdate{
-				Type: &proto.ApplicationEventUpdate_Heartbeat{
-					Heartbeat: &proto.ApplicationHeartbeatEvent{
-						Sequence: seq,
-					},
-				},
-			})
-			seq++
+			err = sendHeartbeat()
 		case <-stream.Context().Done():
 			return nil
 		}

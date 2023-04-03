@@ -5,7 +5,14 @@
     import { createEventDispatcher, onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
     import type { Unsubscriber } from "svelte/store";
-    import { BRIDGE_VERSION, ChildEvents, ChildMethods, ParentEvents, ParentMethods } from "../appbridge/common/model";
+    import {
+        BRIDGE_VERSION,
+        ChildEvents,
+        ChildMethods,
+        MountEventArgs,
+        ParentEvents,
+        ParentMethods,
+    } from "../appbridge/common/model";
     import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import NotFound from "./NotFound.svelte";
@@ -58,6 +65,9 @@
         },
         applicationVersion() {
             return applicationVersion.getTime() + "";
+        },
+        pageID() {
+            return pageID;
         },
         async serverMethod(method, ...args): Promise<any> {
             let jsonArgs: string[] = [];
@@ -133,7 +143,8 @@
         if (connected && !hadConnectedPreviously) {
             hadConnectedPreviously = true;
             connection.localHandle().emit("connected", undefined);
-        } else if (hadConnectedPreviously) {
+        } else if (!connected && hadConnectedPreviously) {
+            hadConnectedPreviously = false;
             connection.localHandle().emit("disconnected", undefined);
         }
     }
@@ -180,11 +191,9 @@
 
         await connection.remoteHandle().once("handshook");
 
+        let role: MountEventArgs["role"] = mode == "page" ? "standalone" : mode;
         connection.localHandle().emit("mounted", {
-            applicationID: applicationID,
-            applicationVersion: applicationVersion,
-            pageID: pageID,
-            role: "standalone",
+            role: role,
         });
 
         darkModeUnsubscriber = darkMode.subscribe((dark) => {

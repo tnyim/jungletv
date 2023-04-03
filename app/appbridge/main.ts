@@ -1,5 +1,5 @@
 import { ChildHandshake, Connection, WindowMessenger } from 'post-me';
-import { BRIDGE_VERSION as bridgeVersion, ChildEvents, ChildMethods, MountEventArgs, ParentEvents, ParentMethods } from './common/model';
+import { ChildEvents, ChildMethods, MountEventArgs, ParentEvents, ParentMethods, BRIDGE_VERSION as bridgeVersion } from './common/model';
 import { defineCustomElements, setCustomElementsDarkMode } from './ui';
 
 /**
@@ -26,8 +26,17 @@ const messenger = new WindowMessenger({
     remoteOrigin: window.origin,
 });
 
-let cachedApplicationID: string = (/^\/assets\/app\/(.*)\//g.exec(document.location.pathname) ?? ["", ""])[1];
-let cachedApplicationVersion: string = new URLSearchParams(document.location.search).get("v") ?? "";
+let cachedInfo = {
+    applicationID: (/^\/assets\/app\/(.*)\//g.exec(document.location.pathname) ?? ["", ""])[1],
+    applicationVersion: new URLSearchParams(document.location.search).get("v") ?? "",
+    hostVersion: "",
+    pageID: "",
+};
+
+let resolveServerConnectionPromise: () => void;
+let serverConnectionPromise = new Promise<void>((resolve) => {
+    resolveServerConnectionPromise = resolve;
+});
 
 const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMethods, ParentEvents>> = async function () {
     let childMethods: ChildMethods = {};
@@ -39,18 +48,24 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
         throw new Error("Mismatched bridge version between parent and child. The loaded bridge script file may be out of date - attempt to bust the cache?");
     }
 
-    cachedApplicationID = await h.call("applicationID");
-    cachedApplicationVersion = await h.call("applicationVersion");
-    defineCustomElements(await h.call("hostVersion"));
+    cachedInfo.applicationID = await h.call("applicationID");
+    cachedInfo.applicationVersion = await h.call("applicationVersion");
+    cachedInfo.hostVersion = await h.call("hostVersion");
+    cachedInfo.pageID = await h.call("pageID");
+    defineCustomElements(cachedInfo.hostVersion);
 
     h.addEventListener("eventForClient", (args) => {
         server.dispatchEvent(new CustomEvent<any[]>(args.name, { detail: args.args }))
     });
 
     h.addEventListener("connected", () => {
+        resolveServerConnectionPromise();
         page.dispatchEvent(new Event("connected"));
     });
     h.addEventListener("disconnected", () => {
+        serverConnectionPromise = new Promise<void>((resolve) => {
+            resolveServerConnectionPromise = resolve;
+        });
         page.dispatchEvent(new Event("disconnected"));
     });
     h.addEventListener("mounted", (args) => {
@@ -71,7 +86,7 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
             body.classList.remove("dark");
         }
         setCustomElementsDarkMode(args.darkMode);
-    })
+    });
 
     connection.localHandle().emit("handshook", undefined);
 
@@ -88,6 +103,7 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
  */
 export const serverMethod = async function <T>(method: string, ...args: any[]): Promise<T> {
     let connection = await connectionPromise;
+    await serverConnectionPromise;
     return connection.remoteHandle().call("serverMethod", method, ...args);
 }
 
@@ -99,6 +115,7 @@ export const serverMethod = async function <T>(method: string, ...args: any[]): 
  */
 export const emitToServer = async function (eventName: string, ...args: any[]): Promise<void> {
     let connection = await connectionPromise;
+    await serverConnectionPromise;
     connection.localHandle().emit("eventForServer", {
         name: eventName,
         args: args,
@@ -132,11 +149,41 @@ export const navigate = async function (to: string): Promise<void> {
  * @returns The resolved URL, or undefined if the connection between the page and the host JungleTV page has not been established yet.
  * @public
  */
-export const resolveApplicationFileURL = function (fileName: string): string | undefined {
-    if (cachedApplicationID && cachedApplicationVersion) {
-        return `/assets/app/${cachedApplicationID}/${fileName}?v=${cachedApplicationVersion}`;
-    }
-    return undefined;
+export const resolveApplicationFileURL = async function (fileName: string): Promise<string> {
+    await connectionPromise;
+    return `/assets/app/${cachedInfo.applicationID}/${fileName}?v=${cachedInfo.applicationVersion}`;
+}
+
+/**
+ * Resolves the ID of the application to which the page being executed belongs.
+ * @returns The application ID.
+ * @public
+ */
+export const getApplicationID = async function (): Promise<string> {
+    await connectionPromise;
+    return cachedInfo.applicationID;
+}
+
+/**
+ * Resolves the version of the application to which the page being executed belongs.
+ * @returns The application version. May have less precision than the version as recorded on the server.
+ * @public
+ */
+export const getApplicationVersion = async function (): Promise<Date> {
+    await connectionPromise;
+    let d = new Date();
+    d.setTime(Number(cachedInfo.applicationVersion));
+    return d;
+}
+
+/**
+ * Resolves the ID of the application page being executed.
+ * @returns The page ID.
+ * @public
+ */
+export const getApplicationPageID = async function (): Promise<string> {
+    await connectionPromise;
+    return cachedInfo.pageID;
 }
 
 /**

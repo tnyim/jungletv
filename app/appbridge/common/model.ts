@@ -1,10 +1,11 @@
-export const BRIDGE_VERSION = 4;
+export const BRIDGE_VERSION = 5;
 // methods the child can call on the parent
 export type ParentMethods = {
     bridgeVersion: () => number;
     hostVersion: () => string;
     applicationID: () => string;
     applicationVersion: () => string;
+    pageID: () => string;
     serverMethod: (method: string, ...args: any[]) => Promise<any>;
     navigateToApplicationPage: (pageID: string, applicationID?: string) => void;
     navigate: (to: string) => void;
@@ -37,10 +38,7 @@ export type ChildEvents = {
 }
 
 export type MountEventArgs = {
-    role: "standalone" | "activity",
-    applicationID: string,
-    applicationVersion: Date,
-    pageID: string,
+    role: "standalone" | "activity" | "sidebar",
 }
 
 export type ApplicationEventArgs = {
