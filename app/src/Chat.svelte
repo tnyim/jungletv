@@ -501,7 +501,7 @@
         if (mode == "sidebar") {
             containerClasses = "chat-max-height h-full";
         } else if (mode == "popout") {
-            containerClasses = "max-h-screen";
+            containerClasses = "h-screen";
         }
     }
 </script>

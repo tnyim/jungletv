@@ -262,7 +262,7 @@
 <div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
 	<Modal setContext={modalSetContext} styleWindowWrap={{ margin: "1rem" }} on:closed={onModalClosed} />
 	{#if isOnline && typeof popoutTab !== "undefined"}
-		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-x-hidden">
+		<div class="min-h-screen bg-white dark:bg-gray-900 dark:text-white overflow-x-hidden">
 			<svelte:component this={popoutTab.component} {...transformPopoutProps(popoutTab.props)} />
 		</div>
 	{:else if isOnline}
