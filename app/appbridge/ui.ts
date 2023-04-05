@@ -1,5 +1,10 @@
 import AddressBox from "../src/uielements/AddressBox.svelte";
 import ButtonButton from "../src/uielements/ButtonButton.svelte";
+import ErrorMessage from "../src/uielements/ErrorMessage.svelte";
+import SuccessMessage from "../src/uielements/SuccessMessage.svelte";
+import TabButton from "../src/uielements/TabButton.svelte";
+import WarningMessage from "../src/uielements/WarningMessage.svelte";
+import Wizard from "../src/uielements/Wizard.svelte";
 import registerWebComponent from "./svelte-web";
 
 function buildShadowRootPreparer(hostVersion: string) {
@@ -36,7 +41,12 @@ type customElement = {
 
 const customElements: customElement[] = [
     { component: ButtonButton, name: "button" },
+    { component: TabButton, name: "tab-button" },
     { component: AddressBox, name: "payment-address" },
+    { component: Wizard, name: "wizard" },
+    { component: ErrorMessage, name: "error" },
+    { component: WarningMessage, name: "warning" },
+    { component: SuccessMessage, name: "success" },
 ];
 
 export const defineCustomElements = function (hostVersion: string) {
