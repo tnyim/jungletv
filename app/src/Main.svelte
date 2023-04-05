@@ -303,7 +303,7 @@
 				<Route path="/documents/:documentID" component={Document} />
 				<Route path="/history" component={PlayedMediaHistory} />
 				<Route path="/apps/:applicationID/*" let:params>
-					<Route path="/" component={ApplicationPage} pageID="" />
+					<Route path="/" component={ApplicationPage} applicationID={params.applicationID} pageID="" />
 					<Route path=":pageID" component={ApplicationPage} applicationID={params.applicationID} />
 				</Route>
 				<Route path="/moderate/*">

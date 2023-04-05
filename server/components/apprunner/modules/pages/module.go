@@ -105,7 +105,7 @@ func init() {
 	}
 }
 
-var allowedPageIDs = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var allowedPageIDs = regexp.MustCompile("^[A-Za-z0-9_-]*$")
 
 func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 3 {

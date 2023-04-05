@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -439,13 +438,21 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
-	httpServerRoutes, err := httpserver.New(webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
+	router := mux.NewRouter().StrictSlash(true)
+	httpServerSubrouter := router.NewRoute().Subrouter()
+
+	httpServerSubrouter.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
+			next.ServeHTTP(rw, r.WithContext(newCtx))
+		})
+	})
+	err := httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	router := mux.NewRouter().StrictSlash(true)
-	configureRouter(router, httpServerRoutes)
+	configureRouter(router)
 
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 	wrappedServer := grpcweb.WrapServer(grpcServer)
@@ -502,27 +509,8 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 	}
 }
 
-func configureRouter(router *mux.Router, extraHTTProutes map[string]func(w http.ResponseWriter, r *http.Request)) {
+func configureRouter(router *mux.Router) {
 	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
-
-	type extraRoute struct {
-		Path    string
-		Handler func(w http.ResponseWriter, r *http.Request)
-	}
-	extraRoutes := []extraRoute{}
-	for path := range extraHTTProutes {
-		extraRoutes = append(extraRoutes, extraRoute{path, extraHTTProutes[path]})
-	}
-	sort.Slice(extraRoutes, func(i, j int) bool {
-		return len(extraRoutes[i].Path) >= len(extraRoutes[j].Path)
-	})
-	for i := range extraRoutes {
-		route := extraRoutes[i]
-		router.HandleFunc(route.Path, func(rw http.ResponseWriter, r *http.Request) {
-			newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
-			route.Handler(rw, r.WithContext(newCtx))
-		})
-	}
 
 	if DEBUG {
 		router.HandleFunc("/debug/pprof/", pprof.Index)

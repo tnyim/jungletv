@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/oauth"
@@ -19,10 +20,10 @@ type HTTPServer struct {
 	appRunner       *apprunner.AppRunner
 }
 
-func New(log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string) (map[string]func(w http.ResponseWriter, r *http.Request), error) {
+func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string) error {
 	key, err := raffle.DecodeSecretKey(raffleSecretKey)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 	s := &HTTPServer{
 		log:             log,
@@ -31,14 +32,13 @@ func New(log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppR
 		oauthManager:    oauthManager,
 		appRunner:       appRunner,
 	}
-	return map[string]func(w http.ResponseWriter, r *http.Request){
-		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets": s.wrapHTTPHandler(s.RaffleTickets),
-		"/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/":        s.wrapHTTPHandler(s.RaffleInfo),
-		"/oauth/callback":               s.wrapHTTPHandler(s.OAuthCallback),
-		"/oauth/monkeyconnect/callback": s.wrapHTTPHandler(s.OAuthCallback),
-		"/assets/app/{app}/{file}":      s.wrapHTTPHandler(s.ApplicationFile),
-		"/assets/app/{app}/*{page}":     s.wrapHTTPHandler(s.ApplicationPage),
-	}, nil
+	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets", s.wrapHTTPHandler(s.RaffleTickets))
+	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/", s.wrapHTTPHandler(s.RaffleInfo))
+	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))
+	router.HandleFunc("/oauth/monkeyconnect/callback", s.wrapHTTPHandler(s.OAuthCallback))
+	router.HandleFunc("/assets/app/{app}/{file:[^*].*}", s.wrapHTTPHandler(s.ApplicationFile))
+	router.HandleFunc("/assets/app/{app}/{page:[*].*}", s.wrapHTTPHandler(s.ApplicationPage))
+	return nil
 }
 
 func (s *HTTPServer) wrapHTTPHandler(h func(w http.ResponseWriter, r *http.Request) error) func(w http.ResponseWriter, r *http.Request) {
