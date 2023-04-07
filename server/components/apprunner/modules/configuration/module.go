@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -157,7 +158,8 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 		}
 	})
 
-	url := fmt.Sprintf("/assets/app/%s/%s", applicationID, fileName)
+	v := time.Time(m.infoProvider.ApplicationVersion()).Unix()
+	url := fmt.Sprintf("/assets/app/%s/%s?v=%d", applicationID, fileName, v)
 
 	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {
@@ -190,7 +192,8 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 		}
 	})
 
-	url := fmt.Sprintf("/assets/app/%s/%s", applicationID, fileName)
+	v := time.Time(m.infoProvider.ApplicationVersion()).Unix()
+	url := fmt.Sprintf("/assets/app/%s/%s?v=%d", applicationID, fileName, v)
 
 	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {
