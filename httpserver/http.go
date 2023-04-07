@@ -32,6 +32,7 @@ func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRu
 		oauthManager:    oauthManager,
 		appRunner:       appRunner,
 	}
+
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets", s.wrapHTTPHandler(s.RaffleTickets))
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/", s.wrapHTTPHandler(s.RaffleInfo))
 	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))

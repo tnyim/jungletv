@@ -32,6 +32,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.1-0.20220120022325-080bc5c98763
 	github.com/jamesog/iptoasn v0.1.0
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/klauspost/compress v1.16.4
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.10.7
 	github.com/oklog/ulid/v2 v2.1.0
@@ -78,7 +79,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

@@ -29,6 +29,7 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/jmoiron/sqlx"
+	"github.com/klauspost/compress/gzhttp"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
@@ -438,7 +439,15 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
+	gzipWrapper, err := gzhttp.NewWrapper()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	router := mux.NewRouter().StrictSlash(true)
+	router.Use(func(next http.Handler) http.Handler {
+		return gzipWrapper(next)
+	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
 
 	httpServerSubrouter.Use(func(next http.Handler) http.Handler {
@@ -447,7 +456,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 			next.ServeHTTP(rw, r.WithContext(newCtx))
 		})
 	})
-	err := httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
+	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -468,7 +477,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 			resp.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-User-Agent, X-Grpc-Web")
 			/*resp.Header().Set("grpc-status", "")
 			resp.Header().Set("grpc-message", "")*/
-			wrappedServer.ServeHTTP(resp, req)
+			gzipWrapper(wrappedServer).ServeHTTP(resp, req)
 			return
 		}
 
