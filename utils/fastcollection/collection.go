@@ -6,7 +6,7 @@ package fastcollection
 // Do not modify UnsafeBackingArray externally (modifying the Content of its entries is safe, modifying anything else is not)
 // The zero value of FastCollection is usable without any special initialization
 type FastCollection[T any] struct {
-	lastDeleteIdx      int // ofsset from the indices of UnsafeBackingArray by +1, so we can use the zero value of this type as-is
+	lastDeleteIdx      int // offset from the indices of UnsafeBackingArray by +1, so we can use the zero value of this type as-is
 	len                int
 	UnsafeBackingArray []entry[T]
 }

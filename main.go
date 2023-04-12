@@ -15,7 +15,6 @@ import (
 	"net/http/pprof"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/dyson/certman"
@@ -464,20 +463,17 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	configureRouter(router)
 
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
-	wrappedServer := grpcweb.WrapServer(grpcServer)
+
+	wrappedServer := grpcweb.WrapServer(grpcServer,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			return origin == websiteURL
+		}), grpcweb.WithAllowedRequestHeaders([]string{
+			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "X-Grpc-Web",
+		}))
+
 	handler := func(resp http.ResponseWriter, req *http.Request) {
-		/*if req.ProtoMajor != 2 {
-			router.ServeHTTP(resp, req)
-			return
-		}*/
-		if strings.Contains(req.Header.Get("Content-Type"), "application/grpc") ||
-			strings.Contains(req.Header.Get("Access-Control-Request-Headers"), "x-grpc-web") {
-			resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
-			resp.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-			resp.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-User-Agent, X-Grpc-Web")
-			/*resp.Header().Set("grpc-status", "")
-			resp.Header().Set("grpc-message", "")*/
-			gzipWrapper(wrappedServer).ServeHTTP(resp, req)
+		if wrappedServer.IsGrpcWebRequest(req) || wrappedServer.IsAcceptableGrpcCorsRequest(req) {
+			wrappedServer.ServeHTTP(resp, req)
 			return
 		}
 
