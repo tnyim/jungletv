@@ -75,9 +75,9 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
-	s.mediaQueue.MediaChanged().SubscribeUsingCallback(event.BufferFirst, func(_ media.QueueEntry) {
+	defer s.mediaQueue.MediaChanged().SubscribeUsingCallback(event.BufferFirst, func(_ media.QueueEntry) {
 		cpChan <- s.produceMediaConsumptionCheckpoint(stream.Context(), true)
-	})
+	})()
 
 	statsCleanup, err := s.statsRegistry.RegisterSpectator(stream.Context())
 	if err != nil {
