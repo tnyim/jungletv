@@ -376,6 +376,8 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 
+	go statsSender(ctx, statsClient)
+
 	go apiServer.Worker(ctx, func(e error) {
 		mainLog.Println(e)
 	})
@@ -396,6 +398,7 @@ func init() {
 	baseVersionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
 	versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
 	grpclog.SetLogger(grpcLog)
+	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 }
 
 func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
@@ -427,6 +430,36 @@ func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
 	return wallet, nil
 }
 
+type combinedServer struct {
+	wrappedServer *grpcweb.WrappedGrpcServer
+	handler       http.Handler
+}
+
+func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	if s.wrappedServer.IsGrpcWebRequest(req) || s.wrappedServer.IsAcceptableGrpcCorsRequest(req) {
+		s.wrappedServer.ServeHTTP(resp, req)
+		return
+	}
+
+	resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
+	resp.Header().Set("X-Frame-Options", "deny")
+	resp.Header().Set("X-Content-Type-Options", "nosniff")
+	// remember to edit the CSP in index.template too
+	resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
+	resp.Header().Set("Referrer-Policy", "strict-origin")
+	resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
+	resp.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	resp.Header().Set("Strict-Transport-Security", "max-age=31536000")
+	s.handler.ServeHTTP(resp, req)
+}
+
+func sqalxNodeSettingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
+		next.ServeHTTP(rw, r.WithContext(newCtx))
+	})
+}
+
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
 	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
 	versionInterceptor := version.New(&versionHash)
@@ -448,13 +481,8 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		return gzipWrapper(next)
 	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
+	httpServerSubrouter.Use(sqalxNodeSettingMiddleware)
 
-	httpServerSubrouter.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
-			next.ServeHTTP(rw, r.WithContext(newCtx))
-		})
-	})
 	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -462,32 +490,12 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 
 	configureRouter(router)
 
-	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
-
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			return origin == websiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{
 			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "X-Grpc-Web",
 		}))
-
-	handler := func(resp http.ResponseWriter, req *http.Request) {
-		if wrappedServer.IsGrpcWebRequest(req) || wrappedServer.IsAcceptableGrpcCorsRequest(req) {
-			wrappedServer.ServeHTTP(resp, req)
-			return
-		}
-
-		resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
-		resp.Header().Set("X-Frame-Options", "deny")
-		resp.Header().Set("X-Content-Type-Options", "nosniff")
-		// remember to edit the CSP in index.template too
-		resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
-		resp.Header().Set("Referrer-Policy", "strict-origin")
-		resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
-		resp.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-		resp.Header().Set("Strict-Transport-Security", "max-age=31536000")
-		router.ServeHTTP(resp, req)
-	}
 
 	cm, err := certman.New(certFile, keyFile)
 	if err != nil {
@@ -500,8 +508,11 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	}
 
 	return &http.Server{
-		Addr:    listenAddr,
-		Handler: http.HandlerFunc(handler),
+		Addr: listenAddr,
+		Handler: &combinedServer{
+			wrappedServer: wrappedServer,
+			handler:       router,
+		},
 		TLSConfig: &tls.Config{
 			GetCertificate: cm.GetCertificate,
 		},
