@@ -6,9 +6,23 @@ import (
 	"github.com/tnyim/jungletv/utils/event"
 )
 
+// EntryAddedPlacement is whether the entry was added to play now/play next/play at the end
+type EntryAddedPlacement int
+
+const (
+	// EntryAddedPlacementPlayNow is used when the new queue entry is skipping the previously playing entry
+	EntryAddedPlacementPlayNow EntryAddedPlacement = 0
+
+	// EntryAddedPlacementPlayNext is used when the new queue entry is added immediately after the currently playing entry
+	EntryAddedPlacementPlayNext EntryAddedPlacement = 1
+
+	// EntryAddedPlacementEnqueue is used when the new queue entry is added to the end of the queue
+	EntryAddedPlacementEnqueue EntryAddedPlacement = 2
+)
+
 // EntryAddedEventArg is the argument of the event for when a queue entry is added
 type EntryAddedEventArg struct {
-	AddType string
+	AddType EntryAddedPlacement
 	Entry   media.QueueEntry
 }
 

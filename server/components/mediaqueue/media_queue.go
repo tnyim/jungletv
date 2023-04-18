@@ -244,7 +244,7 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{"enqueue", newEntry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{EntryAddedPlacementEnqueue, newEntry}, false)
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) {
@@ -264,7 +264,7 @@ func (q *MediaQueue) PlayAfterNext(entry media.QueueEntry) {
 	q.playAfterNextNoMutex(entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{"play_after_next", entry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{EntryAddedPlacementPlayNext, entry}, false)
 }
 
 func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
@@ -272,13 +272,18 @@ func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
 	defer q.queueMutex.Unlock()
 
 	q.playAfterNextNoMutex(entry)
+	placement := EntryAddedPlacementPlayNext
+	if len(q.queue) <= 1 {
+		placement = EntryAddedPlacementEnqueue
+	}
 	if len(q.queue) > 1 && !q.queue[0].Unskippable() && q.SkippingEnabled() {
+		placement = EntryAddedPlacementPlayNow
 		q.queue[0].Stop()
 	}
 
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{"play_now", entry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{placement, entry}, false)
 }
 
 func (q *MediaQueue) SkipCurrentEntry() {

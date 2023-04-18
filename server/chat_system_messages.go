@@ -7,6 +7,7 @@ import (
 
 	"github.com/JohannesKaufmann/html-to-markdown/escape"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
@@ -64,7 +65,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				name = escape.MarkdownCharacters(name)
 				title := escape.MarkdownCharacters(entry.MediaInfo().Title())
 				switch t {
-				case "enqueue":
+				case mediaqueue.EntryAddedPlacementEnqueue:
 					if entry.Concealed() {
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 							"_%s just enqueued something_", name))
@@ -72,7 +73,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 							"_%s just enqueued_ %s", name, title))
 					}
-				case "play_after_next":
+				case mediaqueue.EntryAddedPlacementPlayNext:
 					if entry.Concealed() {
 						_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 							"_%s just set something to play after the current queue entry_",
@@ -82,7 +83,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 							"_%s just set_ %s _to play after the current queue entry_",
 							name, title))
 					}
-				case "play_now":
+				case mediaqueue.EntryAddedPlacementPlayNow:
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 						"_%s just skipped the previous queue entry!_", name))
 				}
