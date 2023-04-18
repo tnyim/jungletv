@@ -125,7 +125,7 @@ func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to setItem must be a string"))
 	}
 	if len(key) > 2048 {
-		panic(m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters"))
+		panic(m.runtime.NewTypeError("First argument to setItem is longer than 2048 characters"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)
@@ -161,10 +161,10 @@ func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
 	var key string
 	err := m.runtime.ExportTo(keyValue, &key)
 	if err != nil {
-		panic(m.runtime.NewTypeError("First argument to setItem must be a string"))
+		panic(m.runtime.NewTypeError("First argument to removeItem must be a string"))
 	}
 	if len(key) > 2048 {
-		panic(m.runtime.NewTypeError("First argument to getItem is longer than 2048 characters"))
+		panic(m.runtime.NewTypeError("First argument to removeItem is longer than 2048 characters"))
 	}
 
 	ctx, err := transaction.Begin(m.ctx)

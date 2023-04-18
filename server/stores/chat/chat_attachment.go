@@ -80,6 +80,7 @@ func (a *MessageAttachmentTenorGifView) SerializeForModLog(context.Context) stri
 
 func (a *MessageAttachmentTenorGifView) SerializeForJS(context.Context) map[string]interface{} {
 	return map[string]interface{}{
+		"type":             "tenorgif",
 		"id":               a.ID,
 		"videoURL":         a.VideoURL,
 		"videoFallbackURL": a.VideoFallbackURL,

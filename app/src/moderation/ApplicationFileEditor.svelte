@@ -5,7 +5,7 @@
     import { javascript } from "@codemirror/lang-javascript";
     import { json } from "@codemirror/lang-json";
     import { markdown } from "@codemirror/lang-markdown";
-    import { foldKeymap, LanguageSupport } from "@codemirror/language";
+    import { foldKeymap } from "@codemirror/language";
     import { lintKeymap } from "@codemirror/lint";
     import { searchKeymap } from "@codemirror/search";
     import { Compartment, EditorState, Extension } from "@codemirror/state";
