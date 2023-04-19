@@ -226,6 +226,12 @@
                         if (match[1] == "\\") {
                             continue;
                         }
+                        if (match.index+match[0].length != viewUpdate.state.selection.main.head) {
+                            // only perform replacement if the cursor is at the end of the emoticon
+                            // this allows for typing `(this is a test :|)`, where | is the cursor,
+                            // without the resulting :) turning into a emoji (because the cursor would not be at the end of the match)
+                            continue;
+                        }
                         let lastGroup = match[2 + emoticonsPerMatchGroup.length];
                         let emoji = "";
                         for (let i = 2; i < 2 + emoticonsPerMatchGroup.length; i++) {
