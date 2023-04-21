@@ -44,9 +44,19 @@ func (m *processModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
 		m.exports = module.Get("exports").(*goja.Object)
-		m.exports.Set("title", m.infoProvider.ApplicationID())
-		m.exports.Set("platform", "jungletv")
-		m.exports.Set("version", m.infoProvider.RuntimeVersion())
+
+		m.exports.DefineAccessorProperty("title", m.runtime.ToValue(func() string {
+			return m.infoProvider.ApplicationID()
+		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+		m.exports.DefineAccessorProperty("platform", m.runtime.ToValue(func() string {
+			return "jungletv"
+		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+		m.exports.DefineAccessorProperty("version", m.runtime.ToValue(func() int {
+			return m.infoProvider.RuntimeVersion()
+		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+
 		m.exports.Set("abort", m.abort)
 		m.exports.Set("exit", m.exit)
 		m.exports.Set("exitCode", int(0))
