@@ -3,37 +3,38 @@
     import { acceptCompletion, autocompletion, closeCompletion, completionKeymap } from "@codemirror/autocomplete";
     import { defaultKeymap, history, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-    import { bracketMatching, HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";
+    import { HighlightStyle, bracketMatching, syntaxHighlighting, syntaxTree } from "@codemirror/language";
     import { ChangeSpec, Compartment, EditorSelection, EditorState, Extension, RangeSet } from "@codemirror/state";
     import {
         Decoration,
         DecorationSet,
-        drawSelection,
-        dropCursor,
         EditorView,
-        highlightSpecialChars,
-        keymap,
-        placeholder,
         ViewPlugin,
         ViewUpdate,
         WidgetType,
+        drawSelection,
+        dropCursor,
+        highlightSpecialChars,
+        keymap,
+        placeholder,
     } from "@codemirror/view";
     import { tags } from "@lezer/highlight";
-    import { Emoji as MarkdownEmoji, MarkdownConfig, Strikethrough } from "@lezer/markdown";
+    import { MarkdownConfig, Emoji as MarkdownEmoji, Strikethrough } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
     import BlockedUsers from "./BlockedUsers.svelte";
     import ChatComposeAreaAttachmentButton from "./ChatComposeAreaAttachmentButton.svelte";
     import ChatMediaPicker from "./ChatMediaPicker.svelte";
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
+    import { apiClient } from "./api_client";
     import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel, PointsInfoResponse } from "./proto/jungletv_pb";
     import {
+        autoCloseBrackets,
         autoCloseMediaPickerOnInsert,
         autoCloseMediaPickerOnSend,
         chatEmotesAsCustomEmoji,
@@ -77,6 +78,7 @@
 
     const themeCompartment = new Compartment();
     const highlightCompartment = new Compartment();
+    const closeBracketsCompartment = new Compartment();
 
     const darkModeUnsubscribe = darkMode.subscribe((dm) => {
         if (typeof editorView !== "undefined") {
@@ -100,6 +102,15 @@
         }
     });
     onDestroy(permissionLevelUnsubscribe);
+
+    const autoCloseBracketsUnsubscribe = autoCloseBrackets.subscribe((autoClose) => {
+        if (typeof editorView !== "undefined") {
+            editorView.dispatch({
+                effects: closeBracketsCompartment.reconfigure(buildCloseBrackets(autoClose)),
+            });
+        }
+    });
+    onDestroy(autoCloseBracketsUnsubscribe);
 
     $: {
         if (typeof replyingToMessage !== "undefined" && typeof editorView !== "undefined") {
@@ -226,7 +237,7 @@
                         if (match[1] == "\\") {
                             continue;
                         }
-                        if (match.index+match[0].length != viewUpdate.state.selection.main.head) {
+                        if (match.index + match[0].length != viewUpdate.state.selection.main.head) {
                             // only perform replacement if the cursor is at the end of the emoticon
                             // this allows for typing `(this is a test :|)`, where | is the cursor,
                             // without the resulting :) turning into a emoji (because the cursor would not be at the end of the match)
@@ -558,6 +569,13 @@
         );
     }
 
+    function buildCloseBrackets(autocloseBrackets: boolean): Extension {
+        if (!autocloseBrackets) {
+            return [];
+        }
+        return [closeBrackets(), keymap.of(closeBracketsKeymap)];
+    }
+
     function setupEditor() {
         let initialSelection: EditorSelection;
         const selectionJSON = $chatMessageDraftSelectionJSON;
@@ -580,7 +598,7 @@
                     drawSelection(),
                     dropCursor(),
                     bracketMatching(),
-                    closeBrackets(),
+                    closeBracketsCompartment.of(buildCloseBrackets($autoCloseBrackets)),
                     autocompletion({
                         override: [commandCompletions, emojiCompletions],
                         addToOptions: [
@@ -605,7 +623,6 @@
                             },
                             shift: insertNewlineAndIndent,
                         },
-                        ...closeBracketsKeymap,
                         ...defaultKeymap,
                         ...historyKeymap,
                         ...completionKeymap,

@@ -3,18 +3,27 @@
 	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 	import { DateTime } from "luxon";
 	import { afterUpdate, onMount } from "svelte";
-	import { globalHistory, Route, Router } from "svelte-navigator";
+	import { Route, Router, globalHistory } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
 	import type { Context } from "svelte-simple-modal/types/Modal.svelte";
 	import About from "./About.svelte";
-	import { apiClient } from "./api_client";
 	import ApplicationPage from "./ApplicationPage.svelte";
-    import { applicationName, faviconURL } from "./configurationStores";
 	import Document from "./Document.svelte";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
 	import Leaderboards from "./Leaderboards.svelte";
 	import Moderate from "./Moderate.svelte";
+	import Navbar from "./Navbar.svelte";
+	import NoConnection from "./NoConnection.svelte";
+	import NotFound from "./NotFound.svelte";
+	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
+	import PlayerContainer from "./PlayerContainer.svelte";
+	import Points from "./Points.svelte";
+	import PointsFromBanano from "./PointsFromBanano.svelte";
+	import Rewards from "./Rewards.svelte";
+	import SetRewardsAddress from "./SetRewardsAddress.svelte";
+	import { apiClient } from "./api_client";
+	import { applicationName, faviconURL } from "./configurationStores";
 	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
 	import ApplicationFileEditor from "./moderation/ApplicationFileEditor.svelte";
@@ -25,18 +34,11 @@
 	import UserBans from "./moderation/UserBans.svelte";
 	import UserChatHistory from "./moderation/UserChatHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
-	import Navbar from "./Navbar.svelte";
-	import NoConnection from "./NoConnection.svelte";
-	import NotFound from "./NotFound.svelte";
 	import { pageTitleApplicationPage, pageTitleMedia, pageTitlePopoutTab } from "./pageTitleStores";
-	import PlayedMediaHistory from "./PlayedMediaHistory.svelte";
-	import PlayerContainer from "./PlayerContainer.svelte";
-	import Points from "./Points.svelte";
-	import PointsFromBanano from "./PointsFromBanano.svelte";
 	import { PermissionLevel } from "./proto/jungletv_pb";
-	import Rewards from "./Rewards.svelte";
-	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import {
+		ModalData,
+		autoCloseBrackets,
 		autoCloseMediaPickerOnInsert,
 		autoCloseMediaPickerOnSend,
 		badRepresentative,
@@ -47,7 +49,6 @@
 		darkMode,
 		featureFlags,
 		modal,
-		ModalData,
 		permissionLevel,
 		playerVolume,
 		rewardAddress,
@@ -68,6 +69,7 @@
 	$: localStorage.darkMode = $darkMode;
 	$: localStorage.collapseGifs = $collapseGifs;
 	$: localStorage.convertEmoticons = $convertEmoticons;
+	$: localStorage.autoCloseBrackets = $autoCloseBrackets;
 	$: localStorage.autoCloseMediaPickerOnInsert = $autoCloseMediaPickerOnInsert;
 	$: localStorage.autoCloseMediaPickerOnSend = $autoCloseMediaPickerOnSend;
 	$: localStorage.playerVolume = $playerVolume + "";

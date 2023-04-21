@@ -40,6 +40,7 @@ export const darkMode = writable((() => {
 })());
 export const collapseGifs = writable((() => localStorage.collapseGifs == 'true')());
 export const convertEmoticons = writable((() => !('convertEmoticons' in localStorage) || localStorage.convertEmoticons == 'true')());
+export const autoCloseBrackets = writable((() => !('autoCloseBrackets' in localStorage) || localStorage.autoCloseBrackets == 'true')());
 export const autoCloseMediaPickerOnInsert = writable((() => !('autoCloseMediaPickerOnInsert' in localStorage) || localStorage.autoCloseMediaPickerOnInsert == 'true')());
 export const autoCloseMediaPickerOnSend = writable((() => !('autoCloseMediaPickerOnSend' in localStorage) || localStorage.autoCloseMediaPickerOnSend == 'true')());
 export const blockedUsers = writable(new Set<string>());

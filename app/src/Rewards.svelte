@@ -125,7 +125,7 @@
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
             <div class="mt-2 mb-6 flex flex-row gap-4  sm:gap-6">
                 <a use:link href="/rewards/address" class={hrefButtonStyleClasses()}>Change address</a>
-                <ButtonButton on:click={() => openUserProfile($rewardAddress)}>View Profile</ButtonButton>
+                <ButtonButton on:click={() => openUserProfile($rewardAddress)}>Edit profile and nickname</ButtonButton>
             </div>
             {#if pendingWithdrawal}
                 <div class="mt-3">

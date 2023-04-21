@@ -2,6 +2,7 @@
     import { openUserProfile } from "./profile_utils";
 
     import {
+    autoCloseBrackets,
         autoCloseMediaPickerOnInsert,
         autoCloseMediaPickerOnSend,
         collapseGifs,
@@ -14,7 +15,7 @@
 </script>
 
 <div
-    class="w-full h-full flex flex-col border-r border-l border-b border-gray-300 dark:border-gray-700 p-2.5 space-y-4"
+    class="w-full h-full flex flex-col border-r border-l border-b border-gray-300 dark:border-gray-700 p-2.5 space-y-4 overflow-y-auto"
 >
     <div class="flex items-start">
         <div class="flex items-center h-5">
@@ -53,6 +54,22 @@
     <div class="flex items-start">
         <div class="flex items-center h-5">
             <input
+                id="autoCloseBrackets"
+                name="autoCloseBrackets"
+                type="checkbox"
+                bind:checked={$autoCloseBrackets}
+                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+            />
+        </div>
+        <div class="ml-3 text-sm">
+            <label for="autoCloseBrackets" class="font-medium text-gray-700 dark:text-gray-300">
+                Automatically close brackets and parenthesis
+            </label>
+        </div>
+    </div>
+    <div class="flex items-start">
+        <div class="flex items-center h-5">
+            <input
                 id="autoCloseMediaPickerOnInsert"
                 name="autoCloseMediaPickerOnInsert"
                 type="checkbox"
@@ -82,7 +99,6 @@
             </label>
         </div>
     </div>
-    <div class="flex-grow" />
     <div class="text-sm">
         You can change your nickname on
         <button
