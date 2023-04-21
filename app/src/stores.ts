@@ -88,3 +88,18 @@ export const featureFlags = writable<featureFlags>(((): featureFlags => {
     }
     return curFlags;
 })());
+
+export const enqueuingPassword = writable(((): string => {
+    if (!('enqueuingPassword' in localStorage)) {
+        return undefined;
+    }
+    return localStorage.enqueuingPassword;
+})());
+enqueuingPassword.subscribe(v => localStorage.setItem("enqueuingPassword", v))
+export const enqueuingPasswordEdition = writable(((): string => {
+    if (!('enqueuingPasswordEdition' in localStorage)) {
+        return undefined;
+    }
+    return localStorage.enqueuingPasswordEdition;
+})());
+enqueuingPasswordEdition.subscribe(v => localStorage.setItem("enqueuingPasswordEdition", v))

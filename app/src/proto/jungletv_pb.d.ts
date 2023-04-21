@@ -287,6 +287,11 @@ export class EnqueueMediaRequest extends jspb.Message {
   getAnonymous(): boolean;
   setAnonymous(value: boolean): void;
 
+  hasPassword(): boolean;
+  clearPassword(): void;
+  getPassword(): string;
+  setPassword(value: string): void;
+
   hasStubData(): boolean;
   clearStubData(): void;
   getStubData(): EnqueueStubData | undefined;
@@ -323,6 +328,7 @@ export namespace EnqueueMediaRequest {
     unskippable: boolean,
     concealed: boolean,
     anonymous: boolean,
+    password: string,
     stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: EnqueueSoundCloudTrackData.AsObject,
@@ -331,10 +337,10 @@ export namespace EnqueueMediaRequest {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 4,
-    YOUTUBE_VIDEO_DATA = 5,
-    SOUNDCLOUD_TRACK_DATA = 6,
-    DOCUMENT_DATA = 7,
+    STUB_DATA = 5,
+    YOUTUBE_VIDEO_DATA = 6,
+    SOUNDCLOUD_TRACK_DATA = 7,
+    DOCUMENT_DATA = 8,
   }
 }
 
@@ -2529,6 +2535,11 @@ export class SetMediaEnqueuingEnabledRequest extends jspb.Message {
   getAllowed(): AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap];
   setAllowed(value: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap]): void;
 
+  hasEnqueuingPassword(): boolean;
+  clearEnqueuingPassword(): void;
+  getEnqueuingPassword(): string;
+  setEnqueuingPassword(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SetMediaEnqueuingEnabledRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SetMediaEnqueuingEnabledRequest): SetMediaEnqueuingEnabledRequest.AsObject;
@@ -2542,6 +2553,7 @@ export class SetMediaEnqueuingEnabledRequest extends jspb.Message {
 export namespace SetMediaEnqueuingEnabledRequest {
   export type AsObject = {
     allowed: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap],
+    enqueuingPassword: string,
   }
 }
 
@@ -6091,6 +6103,94 @@ export namespace SetMulticurrencyPaymentsEnabledResponse {
   }
 }
 
+export class CheckMediaEnqueuingPasswordRequest extends jspb.Message {
+  getPassword(): string;
+  setPassword(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckMediaEnqueuingPasswordRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckMediaEnqueuingPasswordRequest): CheckMediaEnqueuingPasswordRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckMediaEnqueuingPasswordRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckMediaEnqueuingPasswordRequest;
+  static deserializeBinaryFromReader(message: CheckMediaEnqueuingPasswordRequest, reader: jspb.BinaryReader): CheckMediaEnqueuingPasswordRequest;
+}
+
+export namespace CheckMediaEnqueuingPasswordRequest {
+  export type AsObject = {
+    password: string,
+  }
+}
+
+export class CheckMediaEnqueuingPasswordResponse extends jspb.Message {
+  getPasswordEdition(): string;
+  setPasswordEdition(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckMediaEnqueuingPasswordResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckMediaEnqueuingPasswordResponse): CheckMediaEnqueuingPasswordResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckMediaEnqueuingPasswordResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckMediaEnqueuingPasswordResponse;
+  static deserializeBinaryFromReader(message: CheckMediaEnqueuingPasswordResponse, reader: jspb.BinaryReader): CheckMediaEnqueuingPasswordResponse;
+}
+
+export namespace CheckMediaEnqueuingPasswordResponse {
+  export type AsObject = {
+    passwordEdition: string,
+  }
+}
+
+export class MonitorMediaEnqueuingPermissionRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MonitorMediaEnqueuingPermissionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: MonitorMediaEnqueuingPermissionRequest): MonitorMediaEnqueuingPermissionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MonitorMediaEnqueuingPermissionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MonitorMediaEnqueuingPermissionRequest;
+  static deserializeBinaryFromReader(message: MonitorMediaEnqueuingPermissionRequest, reader: jspb.BinaryReader): MonitorMediaEnqueuingPermissionRequest;
+}
+
+export namespace MonitorMediaEnqueuingPermissionRequest {
+  export type AsObject = {
+  }
+}
+
+export class MediaEnqueuingPermissionStatus extends jspb.Message {
+  getAllowedMediaEnqueuing(): AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap];
+  setAllowedMediaEnqueuing(value: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap]): void;
+
+  getPasswordEdition(): string;
+  setPasswordEdition(value: string): void;
+
+  getPasswordIsNumeric(): boolean;
+  setPasswordIsNumeric(value: boolean): void;
+
+  getHasElevatedPrivileges(): boolean;
+  setHasElevatedPrivileges(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MediaEnqueuingPermissionStatus.AsObject;
+  static toObject(includeInstance: boolean, msg: MediaEnqueuingPermissionStatus): MediaEnqueuingPermissionStatus.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MediaEnqueuingPermissionStatus, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MediaEnqueuingPermissionStatus;
+  static deserializeBinaryFromReader(message: MediaEnqueuingPermissionStatus, reader: jspb.BinaryReader): MediaEnqueuingPermissionStatus;
+}
+
+export namespace MediaEnqueuingPermissionStatus {
+  export type AsObject = {
+    allowedMediaEnqueuing: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap],
+    passwordEdition: string,
+    passwordIsNumeric: boolean,
+    hasElevatedPrivileges: boolean,
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;
@@ -6139,6 +6239,7 @@ export interface AllowedMediaEnqueuingTypeMap {
   DISABLED: 0;
   STAFF_ONLY: 1;
   ENABLED: 2;
+  PASSWORD_REQUIRED: 3;
 }
 
 export const AllowedMediaEnqueuingType: AllowedMediaEnqueuingTypeMap;

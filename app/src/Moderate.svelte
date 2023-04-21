@@ -1,7 +1,8 @@
 <script lang="ts">
     import { link, navigate } from "svelte-navigator";
-    import { apiClient } from "./api_client";
     import Chat from "./Chat.svelte";
+    import Queue from "./Queue.svelte";
+    import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import StatusOverview from "./moderation/StatusOverview.svelte";
     import {
@@ -10,7 +11,6 @@
         VipUserAppearance,
         VipUserAppearanceMap,
     } from "./proto/jungletv_pb";
-    import Queue from "./Queue.svelte";
     import ButtonButton from "./uielements/ButtonButton.svelte";
 
     let ticketID = "";
@@ -35,6 +35,16 @@
     }
     async function setMediaEnqueuingStaffOnly() {
         await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.STAFF_ONLY);
+    }
+    async function setMediaEnqueuingPasswordRequired() {
+        let password = await modalPrompt(
+            "Enter the password that shall be required for enqueuing.",
+            "Password restriction"
+        );
+        if (password === null || password == "") {
+            return;
+        }
+        await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.PASSWORD_REQUIRED, password);
     }
     async function setMediaEnqueuingDisabled() {
         await apiClient.setMediaEnqueuingEnabled(AllowedMediaEnqueuingType.DISABLED);
@@ -243,7 +253,7 @@
         }
         try {
             await apiClient.removeVipUser(rewardsAddress);
-            await modalAlert("User successfully made VIP");
+            await modalAlert("User successfully made non-VIP");
         } catch (e) {
             await modalAlert("An error occurred: " + e);
         }
@@ -295,10 +305,15 @@
     <div class="mt-6">
         <p class="px-2 font-semibold text-lg">Queue flow control</p>
         <p class="px-2 text-sm">Press all green buttons to revert to default settings</p>
-        <div class="px-2 grid grid-cols-3 gap-6">
+        <div class="px-2 grid grid-cols-4 gap-6">
             <ButtonButton color="green" on:click={setMediaEnqueuingEnabled}>Allow media enqueuing</ButtonButton>
+            <ButtonButton color="blue" on:click={setMediaEnqueuingPasswordRequired}
+                >Require password to enqueue</ButtonButton
+            >
             <ButtonButton color="blue" on:click={setMediaEnqueuingStaffOnly}>Allow only staff to enqueue</ButtonButton>
             <ButtonButton color="red" on:click={setMediaEnqueuingDisabled}>Disable media enqueuing</ButtonButton>
+        </div>
+        <div class="px-2 grid grid-cols-3 gap-6 mt-6">
             <ButtonButton on:click={setPricesMultiplier}>Set prices multiplier</ButtonButton>
             <ButtonButton on:click={setMinimumPricesMultiplier}>Set minimum prices multiplier</ButtonButton>
             <div><!-- spacer --></div>

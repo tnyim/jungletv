@@ -38,6 +38,8 @@
                     disabled
                 {:else if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.STAFF_ONLY}
                     restricted to staff
+                {:else if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.PASSWORD_REQUIRED}
+                    requires a password
                 {:else if statusOverview.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.ENABLED}
                     enabled
                 {/if}

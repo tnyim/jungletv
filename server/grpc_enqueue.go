@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
@@ -30,22 +31,47 @@ func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaR
 			return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 		}
 	}
+	s.allowMediaEnqueuingMutex.RLock()
+	defer s.allowMediaEnqueuingMutex.RUnlock()
+
 	if s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_DISABLED {
 		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
+
 	if !isAdmin && s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_STAFF_ONLY {
 		return produceEnqueueMediaFailureResponse("At this moment, only JungleTV staff can enqueue media")
 	}
+
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctxCtx)
+	if !isAdmin && s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED {
+		if r.Password == nil || *r.Password == "" {
+			return produceEnqueueMediaFailureResponse("At this moment, a password is required for enqueuing")
+		}
+		_, _, _, ok, err := s.enqueuingPasswordAttemptRateLimiter.Take(ctxCtx, remoteAddress)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		if !ok {
+			return produceEnqueueMediaFailureResponse("Rate limit reached")
+		}
+
+		if *r.Password != s.enqueuingPassword {
+			return produceEnqueueMediaFailureResponse("Incorrect password")
+		}
+
+		s.enqueuingPasswordAttemptRateLimiter.Burst(ctxCtx, remoteAddress, 1)
+	}
+
 	if !isAdmin && r.Anonymous {
 		return produceEnqueueMediaFailureResponse("Only JungleTV staff members can enqueue media anonymously")
 	}
 
 	if s.allowMediaEnqueuing != proto.AllowedMediaEnqueuingType_STAFF_ONLY {
-		_, _, _, ok, err := s.enqueueRequestLongTermRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
+		_, _, _, ok, err := s.enqueueRequestLongTermRateLimiter.Take(ctxCtx, remoteAddress)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
-		_, _, _, ok2, err := s.enqueueRequestRateLimiter.Take(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx))
+		_, _, _, ok2, err := s.enqueueRequestRateLimiter.Take(ctxCtx, remoteAddress)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -250,4 +276,88 @@ func (s *grpcServer) SoundCloudTrackDetails(ctx context.Context, r *proto.SoundC
 	return &proto.SoundCloudTrackDetailsResponse{
 		Length: durationpb.New(time.Duration(response.Duration) * time.Millisecond),
 	}, nil
+}
+
+func (s *grpcServer) CheckMediaEnqueuingPassword(ctx context.Context, r *proto.CheckMediaEnqueuingPasswordRequest) (*proto.CheckMediaEnqueuingPasswordResponse, error) {
+	s.allowMediaEnqueuingMutex.RLock()
+	defer s.allowMediaEnqueuingMutex.RUnlock()
+
+	if s.allowMediaEnqueuing != proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED {
+		return nil, status.Errorf(codes.FailedPrecondition, "media enqueuing does not currently require a password")
+	}
+	remoteAddress := authinterceptor.RemoteAddressFromContext(ctx)
+	_, _, _, ok, err := s.enqueuingPasswordAttemptRateLimiter.Take(ctx, remoteAddress)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	if !ok {
+		return nil, status.Errorf(codes.ResourceExhausted, "rate limit reached")
+	}
+
+	if r.Password != s.enqueuingPassword {
+		return nil, status.Errorf(codes.PermissionDenied, "incorrect password")
+	}
+
+	s.enqueuingPasswordAttemptRateLimiter.Burst(ctx, remoteAddress, 1)
+
+	return &proto.CheckMediaEnqueuingPasswordResponse{
+		PasswordEdition: s.enqueuingPasswordEdition,
+	}, nil
+}
+
+var numbersOnly = regexp.MustCompile("^[0-9]+$")
+
+func (s *grpcServer) MonitorMediaEnqueuingPermission(r *proto.MonitorMediaEnqueuingPermissionRequest, stream proto.JungleTV_MonitorMediaEnqueuingPermissionServer) error {
+	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	isBanned := false
+	if user != nil {
+		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(stream.Context(), user.Address()); err == nil && banned {
+			isBanned = true
+		}
+	}
+
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	c, unsub := s.allowMediaEnqueuingChanged.Subscribe(event.BufferFirst)
+	defer unsub()
+
+	allowedType, passwordEdition, numeric := func() (proto.AllowedMediaEnqueuingType, string, bool) {
+		s.allowMediaEnqueuingMutex.RLock()
+		defer s.allowMediaEnqueuingMutex.RUnlock()
+		numeric := numbersOnly.MatchString(s.enqueuingPassword)
+		return s.allowMediaEnqueuing, s.enqueuingPasswordEdition, numeric
+	}()
+
+	status := &proto.MediaEnqueuingPermissionStatus{
+		AllowedMediaEnqueuing: allowedType,
+		PasswordEdition:       passwordEdition,
+		PasswordIsNumeric:     numeric,
+	}
+
+	for {
+		if isBanned {
+			status.AllowedMediaEnqueuing = proto.AllowedMediaEnqueuingType_DISABLED
+			status.HasElevatedPrivileges = false
+			status.PasswordIsNumeric = false
+		} else if user != nil && (auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) || s.isVIPUser(user)) {
+			status.HasElevatedPrivileges = true
+		}
+		if err := stream.Send(status); err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
+		select {
+		case <-ticker.C:
+			// unblock loop and resend previous status
+		case arg := <-c:
+			status = &proto.MediaEnqueuingPermissionStatus{
+				AllowedMediaEnqueuing: arg.allowedMediaEnqueuing,
+				PasswordEdition:       arg.passwordEdition,
+				PasswordIsNumeric:     arg.passwordIsNumeric,
+			}
+		case <-stream.Context().Done():
+			return nil
+		}
+	}
 }

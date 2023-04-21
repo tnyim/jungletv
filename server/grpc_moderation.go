@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
@@ -145,7 +146,25 @@ func (s *grpcServer) SetMediaEnqueuingEnabled(ctx context.Context, r *proto.SetM
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
+	if r.Allowed == proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED && (r.EnqueuingPassword == nil || *r.EnqueuingPassword == "") {
+		return nil, status.Error(codes.InvalidArgument, "missing enqueuing password")
+	}
+
+	s.allowMediaEnqueuingMutex.Lock()
+	defer s.allowMediaEnqueuingMutex.Unlock()
 	s.allowMediaEnqueuing = r.Allowed
+	if r.Allowed == proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED {
+		s.enqueuingPassword = *r.EnqueuingPassword
+		s.enqueuingPasswordEdition = uuid.NewV4().String()
+	} else {
+		s.enqueuingPassword = ""
+		s.enqueuingPasswordEdition = ""
+	}
+	s.allowMediaEnqueuingChanged.Notify(allowedMediaEnqueuingChangedEventArgs{
+		allowedMediaEnqueuing: r.Allowed,
+		passwordEdition:       s.enqueuingPasswordEdition,
+		passwordIsNumeric:     numbersOnly.MatchString(s.enqueuingPassword),
+	}, false)
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(

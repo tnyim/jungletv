@@ -372,6 +372,24 @@ JungleTV.IncreaseOrReduceSkipThreshold = {
   responseType: jungletv_pb.IncreaseOrReduceSkipThresholdResponse
 };
 
+JungleTV.CheckMediaEnqueuingPassword = {
+  methodName: "CheckMediaEnqueuingPassword",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.CheckMediaEnqueuingPasswordRequest,
+  responseType: jungletv_pb.CheckMediaEnqueuingPasswordResponse
+};
+
+JungleTV.MonitorMediaEnqueuingPermission = {
+  methodName: "MonitorMediaEnqueuingPermission",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: true,
+  requestType: jungletv_pb.MonitorMediaEnqueuingPermissionRequest,
+  responseType: jungletv_pb.MediaEnqueuingPermissionStatus
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -2282,6 +2300,76 @@ JungleTVClient.prototype.increaseOrReduceSkipThreshold = function increaseOrRedu
   return {
     cancel: function () {
       callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.checkMediaEnqueuingPassword = function checkMediaEnqueuingPassword(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.CheckMediaEnqueuingPassword, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.monitorMediaEnqueuingPermission = function monitorMediaEnqueuingPermission(requestMessage, metadata) {
+  var listeners = {
+    data: [],
+    end: [],
+    status: []
+  };
+  var client = grpc.invoke(JungleTV.MonitorMediaEnqueuingPermission, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onMessage: function (responseMessage) {
+      listeners.data.forEach(function (handler) {
+        handler(responseMessage);
+      });
+    },
+    onEnd: function (status, statusMessage, trailers) {
+      listeners.status.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners.end.forEach(function (handler) {
+        handler({ code: status, details: statusMessage, metadata: trailers });
+      });
+      listeners = null;
+    }
+  });
+  return {
+    on: function (type, handler) {
+      listeners[type].push(handler);
+      return this;
+    },
+    cancel: function () {
+      listeners = null;
       client.close();
     }
   };

@@ -51,6 +51,8 @@ service JungleTV {
     rpc StartOrExtendSubscription (StartOrExtendSubscriptionRequest) returns (StartOrExtendSubscriptionResponse) {}
     rpc SoundCloudTrackDetails (SoundCloudTrackDetailsRequest) returns (SoundCloudTrackDetailsResponse) {}
     rpc IncreaseOrReduceSkipThreshold (IncreaseOrReduceSkipThresholdRequest) returns (IncreaseOrReduceSkipThresholdResponse) {}
+    rpc CheckMediaEnqueuingPassword (CheckMediaEnqueuingPasswordRequest) returns (CheckMediaEnqueuingPasswordResponse) {}
+    rpc MonitorMediaEnqueuingPermission (MonitorMediaEnqueuingPermissionRequest) returns (stream MediaEnqueuingPermissionStatus) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -180,11 +182,12 @@ message EnqueueMediaRequest {
     bool unskippable = 1;
     bool concealed = 2;
     bool anonymous = 3;
+    optional string password = 4;
     oneof media_info {
-        EnqueueStubData stub_data = 4;
-        EnqueueYouTubeVideoData youtube_video_data = 5;
-        EnqueueSoundCloudTrackData soundcloud_track_data = 6;
-        EnqueueDocumentData document_data = 7;
+        EnqueueStubData stub_data = 5;
+        EnqueueYouTubeVideoData youtube_video_data = 6;
+        EnqueueSoundCloudTrackData soundcloud_track_data = 7;
+        EnqueueDocumentData document_data = 8;
     }
 }
 
@@ -649,10 +652,12 @@ enum AllowedMediaEnqueuingType {
     DISABLED = 0;
     STAFF_ONLY = 1;
     ENABLED = 2;
+    PASSWORD_REQUIRED = 3;
 }
 
 message SetMediaEnqueuingEnabledRequest {
     AllowedMediaEnqueuingType allowed = 1;
+    optional string enqueuing_password = 2;
 }
 
 message SetMediaEnqueuingEnabledResponse {}
@@ -1364,3 +1369,20 @@ message SetMulticurrencyPaymentsEnabledRequest {
 }
 
 message SetMulticurrencyPaymentsEnabledResponse {}
+
+message CheckMediaEnqueuingPasswordRequest {
+    string password = 1;
+}
+
+message CheckMediaEnqueuingPasswordResponse {
+    string password_edition = 1;
+}
+
+message MonitorMediaEnqueuingPermissionRequest {}
+
+message MediaEnqueuingPermissionStatus {
+    AllowedMediaEnqueuingType allowed_media_enqueuing = 1;
+    string password_edition = 2;
+    bool password_is_numeric = 3;
+    bool has_elevated_privileges = 4;
+}

@@ -14,13 +14,14 @@ import {
     BlockUserRequest, BlockUserResponse,
     BlockedUsersRequest, BlockedUsersResponse,
     ChatGifSearchRequest,
-    ChatGifSearchResponse, ChatMessage, ChatUpdate, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
+    ChatGifSearchResponse, ChatMessage, ChatUpdate, CheckMediaEnqueuingPasswordRequest, CheckMediaEnqueuingPasswordResponse, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
     EnqueueMediaResponse,
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForcedTicketEnqueueTypeMap,
     ForciblyEnqueueTicketRequest,
     ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
-    MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, ModerationStatusOverview,
+    MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, MediaEnqueuingPermissionStatus, ModerationStatusOverview,
+    MonitorMediaEnqueuingPermissionRequest,
     MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
     RemoveConnectionResponse, RemoveDisallowedMediaCollectionRequest,
@@ -199,11 +200,14 @@ class APIClient {
         return "";
     }
 
-    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
+        if (typeof password !== 'undefined') {
+            request.setPassword(password);
+        }
         let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(id);
         if (typeof startOffset !== 'undefined') {
@@ -216,11 +220,14 @@ class APIClient {
         return this.unaryRPC(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
+        if (typeof password !== 'undefined') {
+            request.setPassword(password);
+        }
         let scData = new EnqueueSoundCloudTrackData();
         scData.setPermalink(url);
         if (typeof startOffset !== 'undefined') {
@@ -233,11 +240,14 @@ class APIClient {
         return this.unaryRPC(JungleTV.EnqueueMedia, request);
     }
 
-    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
+    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
         let request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
+        if (typeof password !== 'undefined') {
+            request.setPassword(password);
+        }
         let docData = new EnqueueDocumentData();
         docData.setDocumentId(id);
         docData.setTitle(title);
@@ -458,9 +468,12 @@ class APIClient {
         return this.unaryRPC(JungleTV.SetChatSettings, request);
     }
 
-    async setMediaEnqueuingEnabled(allowed: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap]): Promise<SetMediaEnqueuingEnabledResponse> {
+    async setMediaEnqueuingEnabled(allowed: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap], enqueuingPassword?: string): Promise<SetMediaEnqueuingEnabledResponse> {
         let request = new SetMediaEnqueuingEnabledRequest();
         request.setAllowed(allowed);
+        if (typeof enqueuingPassword !== "undefined") {
+            request.setEnqueuingPassword(enqueuingPassword);
+        }
         return this.unaryRPC(JungleTV.SetMediaEnqueuingEnabled, request);
     }
 
@@ -991,6 +1004,20 @@ class APIClient {
 
     async startOrExtendSubscription(): Promise<StartOrExtendSubscriptionResponse> {
         return this.unaryRPC(JungleTV.StartOrExtendSubscription, new StartOrExtendSubscriptionRequest());
+    }
+
+    async checkMediaEnqueuingPassword(password: string): Promise<CheckMediaEnqueuingPasswordResponse> {
+        let request = new CheckMediaEnqueuingPasswordRequest();
+        request.setPassword(password);
+        return this.unaryRPC(JungleTV.CheckMediaEnqueuingPassword, request);
+    }
+
+    monitorMediaEnqueuingPermission(onStatusUpdated: (status: MediaEnqueuingPermissionStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+        return this.serverStreamingRPC(
+            JungleTV.MonitorMediaEnqueuingPermission,
+            new MonitorMediaEnqueuingPermissionRequest(),
+            onStatusUpdated,
+            onEnd);
     }
 }
 

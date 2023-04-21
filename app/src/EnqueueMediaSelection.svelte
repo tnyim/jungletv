@@ -1,344 +1,90 @@
 <script lang="ts">
-    import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
-    import { Duration } from "luxon";
-    import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
-    import { link, useLocation } from "svelte-navigator";
-    import type { YouTubePlayer } from "youtube-player/dist/types";
+    import { link } from "svelte-navigator";
+    import EnqueueMediaSelectionForm from "./EnqueueMediaSelectionForm.svelte";
+    import EnqueueMediaSelectionPasswordEntry from "./EnqueueMediaSelectionPasswordEntry.svelte";
     import { apiClient } from "./api_client";
-    import { EnqueueMediaResponse, PermissionLevel } from "./proto/jungletv_pb";
-    import RangeSlider from "./slider/RangeSlider.svelte";
-    import { currentSubscription, permissionLevel } from "./stores";
+    import { AllowedMediaEnqueuingType, MediaEnqueuingPermissionStatus } from "./proto/jungletv_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
+    import { darkMode, enqueuingPasswordEdition } from "./stores";
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
-    import MediaRangeFloat from "./uielements/MediaRangeFloat.svelte";
-    import PointsIcon from "./uielements/PointsIcon.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
-    import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
-    import { parseURLForMediaSelection } from "./utils";
-    import YouTube, { PlayerState } from "./YouTube.svelte";
+    import type { MediaSelectionKind } from "./utils";
 
     const dispatch = createEventDispatcher();
-    const location = useLocation();
 
-    let mediaURL: string = "";
-    let parseResult: MediaSelectionParseResult = { valid: false };
     let mediaKind: MediaSelectionKind = "video";
-    let extractedTimestamp: number = 0;
-    let videoIsBroadcast = false;
-
-    onMount(() => {
-        const searchParams = new URLSearchParams($location.search);
-        if (searchParams.has("url")) {
-            mediaURL = searchParams.get("url");
-        }
-    });
-    $: {
-        parseURL(mediaURL);
-    }
-    $: {
-        if (
-            typeof parseResult !== "undefined" &&
-            parseResult.valid &&
-            parseResult.type == "yt_video" &&
-            parseResult.videoID.length == 11
-        ) {
-            instantiateTempPlayer = true;
-        }
-        mediaRangeValuesFilled = false;
-    }
-    let unskippable: boolean = false;
-    let concealed: boolean = false;
-    let anonymous: boolean = false;
-    let failureReason: string = "";
-
-    $: concealedCost = typeof $currentSubscription !== "undefined" && $currentSubscription != null ? 404 : 690;
-
-    async function handleEnter(event: KeyboardEvent) {
-        if (event.key === "Enter") {
-            await handleSubmit();
-            return false;
-        }
-        return true;
-    }
-
-    async function parseURL(urlString: string) {
-        // this ensures that our reactive statements trigger, and the player always reloads the video,
-        // even if only the timestamp changes
-        parseResult = { valid: false };
-        videoIsBroadcast = false;
-        await tick();
-
-        let result = parseURLForMediaSelection(urlString);
-        if (!result.valid) {
-            return;
-        }
-
-        parseResult = result;
-        mediaKind = result.selectionKind;
-
-        extractedTimestamp = 0;
-        switch (result.type) {
-            case "yt_video":
-                extractedTimestamp = result.extractedTimestamp;
-                break;
-            case "document":
-                mediaRange = [5 * 60];
-                mediaLengthInSeconds = maxRangeLength;
-                enqueueRange = true;
-                await tick();
-                mediaRangeValuesFilled = true;
-                break;
-        }
-    }
-
-    async function submit() {
-        if (errorTimeout !== undefined) {
-            clearTimeout(errorTimeout);
-            errorTimeout = undefined;
-        }
-        if (!parseResult.valid) {
-            failureReason = "A supported media URL must be provided";
-            return;
-        }
-
-        let reqPromise: Promise<EnqueueMediaResponse>;
-
-        if (enqueueRange && mediaRangeValuesFilled) {
-            let startOffset = new PBDuration();
-            let endOffset = new PBDuration();
-            if (mediaRange.length == 1) {
-                startOffset.setSeconds(0);
-                endOffset.setSeconds(mediaRange[0]);
-            } else if (mediaRange.length == 2) {
-                startOffset.setSeconds(mediaRange[0]);
-                endOffset.setSeconds(mediaRange[1]);
-            }
-
-            if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(
-                    parseResult.videoID,
-                    unskippable,
-                    concealed,
-                    anonymous,
-                    startOffset,
-                    endOffset
-                );
-            } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(
-                    parseResult.trackURL,
-                    unskippable,
-                    concealed,
-                    anonymous,
-                    startOffset,
-                    endOffset
-                );
-            } else if (parseResult.type == "document") {
-                reqPromise = apiClient.enqueueDocument(
-                    parseResult.documentID,
-                    parseResult.title,
-                    unskippable,
-                    concealed,
-                    anonymous,
-                    endOffset,
-                    parseResult.enqueueType
-                );
-            }
-        } else {
-            if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(parseResult.videoID, unskippable, concealed, anonymous);
-            } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(parseResult.trackURL, unskippable, concealed, anonymous);
-            } else if (parseResult.type == "document") {
-                reqPromise = apiClient.enqueueDocument(
-                    parseResult.documentID,
-                    parseResult.title,
-                    unskippable,
-                    concealed,
-                    anonymous,
-                    undefined,
-                    parseResult.enqueueType
-                );
-            }
-        }
-
-        let response = await reqPromise;
-        switch (response.getEnqueueResponseCase()) {
-            case EnqueueMediaResponse.EnqueueResponseCase.TICKET:
-                failureReason = "";
-                dispatch("mediaSelected", response);
-                break;
-            case EnqueueMediaResponse.EnqueueResponseCase.FAILURE:
-                failureReason = response.getFailure().getFailureReason();
-                break;
-        }
-    }
-
     let submitting = false;
-    async function handleSubmit() {
-        if (submitting) {
-            return;
-        }
-        submitting = true;
-        try {
-            await submit();
-        } catch {
-            failureReason = "An error occurred. If the problem persists, refresh the page and try again";
-        }
-        submitting = false;
-    }
+    let handleSubmit: () => Promise<void>;
 
     function cancel() {
         dispatch("userCanceled");
     }
 
-    let enqueueRange = false;
-    let mediaRangeValuesFilled = false;
-    let sliderRangeType: any = true;
-    let sliderMin = 0;
-    const defaultMinRangeLength = 30;
-    let minRangeLength = defaultMinRangeLength;
-    const maxRangeLength = 35 * 60;
-    let mediaRange = [0, defaultMinRangeLength];
-    let mediaLengthInSeconds = 500;
-    let pipStep = 60;
-    $: pipStep = (Math.floor(mediaLengthInSeconds / (10 * 60)) + 1) * 60;
-    $: sliderRangeType = mediaRange.length == 1 ? "min" : true;
-    let tempPlayer: YouTubePlayer;
-    let instantiateTempPlayer = false;
+    let formStage: "loading" | "disabled" | "staff-only" | "password-entry" | "available" = "loading";
+    let onlyBecauseStaff = false;
+    let passwordIsNumeric = false;
+    consumeStreamRPCFromSvelteComponent<MediaEnqueuingPermissionStatus>(
+        20000,
+        5000,
+        apiClient.monitorMediaEnqueuingPermission.bind(apiClient),
+        updateFormStage
+    );
 
-    let rangeSliderContainer: HTMLDivElement;
-
-    $: {
-        if (minRangeLength > mediaLengthInSeconds) {
-            minRangeLength = mediaLengthInSeconds;
-        } else {
-            minRangeLength = defaultMinRangeLength;
-        }
-    }
-
-    $: {
-        let activeSlider = rangeSliderContainer?.querySelector("#mediaRangeSlider .rangeHandle.active");
-        let activeSliderIdx = activeSlider == null || activeSlider.getAttribute("data-handle") == "0" ? 0 : 1;
-        if (mediaRange.length == 2 && mediaRange[1] - mediaRange[0] < minRangeLength) {
-            // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
-            if (activeSliderIdx == 0) {
-                // user is adjusting the start slider, we adjust the end
-                mediaRange[1] = Math.min(mediaRange[0] + minRangeLength, mediaLengthInSeconds);
-                if (mediaRange[1] - mediaRange[0] < minRangeLength) {
-                    // ...while making sure the range isn't too small
-                    mediaRange[0] = mediaLengthInSeconds - minRangeLength;
-                }
-            } else {
-                // user is adjusting the end slider, we adjust the start
-                mediaRange[0] = Math.max(mediaRange[1] - minRangeLength, 0);
-                if (mediaRange[1] - mediaRange[0] < minRangeLength) {
-                    // ...while making sure the range isn't too small
-                    mediaRange[1] = minRangeLength;
-                }
-            }
-        }
-        if (mediaRange.length == 2 && mediaRange[1] - mediaRange[0] > maxRangeLength) {
-            // we need to adjust the start when the end is being changed, and adjust the end when the start is being changed
-            if (activeSliderIdx == 0) {
-                // user is adjusting the start slider, we adjust the end
-                mediaRange[1] = Math.min(mediaRange[0] + maxRangeLength, mediaLengthInSeconds);
-            } else {
-                // user is adjusting the end slider, we adjust the start
-                mediaRange[0] = Math.min(mediaRange[1] - maxRangeLength, mediaLengthInSeconds);
-            }
-        }
-    }
-
-    function sliderFormatter(v: number): string {
-        return Duration.fromMillis(v * 1000).toFormat(mediaLengthInSeconds > 60 * 60 ? "hh:mm:ss" : "mm:ss");
-    }
-
-    let errorTimeout: number;
-
-    onDestroy(() => {
-        if (errorTimeout !== undefined) {
-            clearTimeout(errorTimeout);
-            errorTimeout = undefined;
-        }
-    });
-    async function tempPlayerStateChange(event: CustomEvent) {
-        if (event.detail.data == PlayerState.CUED) {
-            if (errorTimeout !== undefined) {
-                clearTimeout(errorTimeout);
-                errorTimeout = undefined;
-            }
-            mediaLengthInSeconds = await tempPlayer.getDuration();
-            if (mediaLengthInSeconds == 0) {
-                // this is either a broadcast or a video that does not exist
-                // we can only find out if we attempt to play it
-                tempPlayer.mute();
-                tempPlayer.playVideo();
-                // this should trigger a change to the playing state, so this callback will be called again and
-                // enter the conditional below for PlayerState.PLAYING
-                errorTimeout = setTimeout(() => {
-                    failureReason = "Video not found or not playable on JungleTV";
-                }, 10000);
-                return;
-            }
-            videoIsBroadcast = false;
-            sliderMin = 0;
-            let rangeStart = 0;
-            let extractedValidTimestamp = extractedTimestamp > 0 && extractedTimestamp < mediaLengthInSeconds;
-            if (extractedValidTimestamp) {
-                rangeStart = extractedTimestamp;
-            }
-            mediaRange = [rangeStart, Math.min(mediaLengthInSeconds, rangeStart + maxRangeLength)];
-
-            // convenience function: when pasting the URL for a video that is over 35 minutes long,
-            // immediately offer the option to adjust the length
-            // same when the pasted link contains a timestamp
-            enqueueRange = enqueueRange || mediaLengthInSeconds > maxRangeLength || extractedValidTimestamp;
-            mediaRangeValuesFilled = true;
-        } else if (event.detail.data == PlayerState.PLAYING) {
-            // turns out it is a broadcast
-            if (errorTimeout !== undefined) {
-                clearTimeout(errorTimeout);
-            }
-            tempPlayer.pauseVideo();
-            // remove the player so it stops downloading data (apparently broadcasts keep buffering even if paused)
-            instantiateTempPlayer = false;
-            videoIsBroadcast = true;
-            mediaLengthInSeconds = maxRangeLength;
-            sliderMin = defaultMinRangeLength;
-            mediaRange = [10 * 60];
-
-            // convenience function: when pasting a broadcast URL, immediately offer the option to adjust the length
-            enqueueRange = true;
-
-            mediaRangeValuesFilled = true;
-        }
-    }
-
-    async function updateSoundCloudTrackRanges() {
-        if (!parseResult.valid || parseResult.type !== "sc_track") {
+    function updateFormStage(status: MediaEnqueuingPermissionStatus) {
+        onlyBecauseStaff = status.getHasElevatedPrivileges();
+        if (status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.ENABLED) {
+            formStage = "available";
+            onlyBecauseStaff = false;
             return;
         }
-        try {
-            let response = await apiClient.soundCloudTrackDetails(parseResult.trackURL);
-            mediaLengthInSeconds = response.getLength().getSeconds();
-            videoIsBroadcast = false;
-            sliderMin = 0;
-            let rangeStart = 0;
-            mediaRange = [rangeStart, Math.min(mediaLengthInSeconds, rangeStart + maxRangeLength)];
 
-            // convenience function: when pasting the URL for a track that is over 35 minutes long,
-            // immediately offer the option to adjust the length
-            enqueueRange = enqueueRange || mediaLengthInSeconds > maxRangeLength;
-            mediaRangeValuesFilled = true;
-        } catch (e) {
-            console.log(e);
-            mediaRangeValuesFilled = false;
-            failureReason = "Track not found or not playable on JungleTV";
+        if (
+            status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.STAFF_ONLY &&
+            status.getHasElevatedPrivileges()
+        ) {
+            formStage = "available";
+            return;
         }
+
+        if (
+            status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.PASSWORD_REQUIRED &&
+            $enqueuingPasswordEdition === status.getPasswordEdition()
+        ) {
+            formStage = "available";
+            onlyBecauseStaff = false;
+            return;
+        }
+
+        if (
+            status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.PASSWORD_REQUIRED &&
+            status.getHasElevatedPrivileges()
+        ) {
+            formStage = "available";
+            return;
+        }
+
+        if (status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.PASSWORD_REQUIRED) {
+            passwordIsNumeric = status.getPasswordIsNumeric();
+            formStage = "password-entry";
+            return;
+        }
+
+        if (status.getAllowedMediaEnqueuing() == AllowedMediaEnqueuingType.STAFF_ONLY) {
+            formStage = "staff-only";
+            return;
+        }
+
+        formStage = "disabled";
+        onlyBecauseStaff = false;
     }
-    $: if (parseResult.valid && parseResult.type === "sc_track") {
-        updateSoundCloudTrackRanges();
+    $: {
+        if (formStage != "available" && formStage != "password-entry") {
+            handleSubmit = undefined;
+        }
     }
 </script>
 
@@ -362,197 +108,39 @@
         </p>
     </div>
     <div slot="main-content">
-        <label for="media_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            YouTube video URL or SoundCloud track URL
-        </label>
-        <div class="mt-1 flex rounded-md shadow-sm">
-            <input
-                on:input={() => (failureReason = "")}
-                on:keydown={handleEnter}
-                type="text"
-                name="media_url"
-                id="media_url"
-                class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
-                ''
-                    ? 'border-red-600'
-                    : 'border-gray-300'} p-2"
-                placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                bind:value={mediaURL}
+        {#if formStage == "loading"}
+            <p><Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" /></p>
+        {:else if formStage == "password-entry"}
+            <EnqueueMediaSelectionPasswordEntry
+                bind:handleSubmit
+                {passwordIsNumeric}
+                on:passwordCorrect={() => {
+                    formStage = "available";
+                }}
             />
-        </div>
-        {#if failureReason !== ""}
-            <div class="mt-3">
-                <ErrorMessage>{failureReason}</ErrorMessage>
-            </div>
+        {:else if formStage == "available"}
+            {#if onlyBecauseStaff}
+                <div class="mb-4">
+                    <WarningMessage>
+                        You are able to enqueue media only because of your elevated privileges
+                    </WarningMessage>
+                </div>
+            {/if}
+            <EnqueueMediaSelectionForm on:mediaSelected bind:mediaKind bind:submitting bind:handleSubmit />
+        {:else if formStage == "staff-only"}
+            <ErrorMessage>At this moment, only JungleTV staff can enqueue media</ErrorMessage>
+            <p class="mt-4">
+                Media enqueuing may be restricted to JungleTV staff due to ongoing or upcoming maintenance, or an
+                ongoing or upcoming special event. If you stay on this page, the media enqueuing form will become
+                available as soon as you are allowed to enqueue.
+            </p>
+        {:else if formStage == "disabled"}
+            <ErrorMessage>Media enqueuing is currently disabled due to upcoming maintenance</ErrorMessage>
+            <p class="mt-4">
+                If you stay on this page, the media enqueuing form will become available as soon as you are allowed to
+                enqueue.
+            </p>
         {/if}
-        <p class="mt-2 text-sm text-gray-500">
-            Playlists are not supported. Videos must not be age-restricted.<br />
-            YouTube live broadcasts with more than 10 viewers are supported.
-        </p>
-        <div class="mt-4 space-y-4">
-            <div class="flex items-start">
-                <div class="flex items-center h-5">
-                    <input
-                        id="unskippable"
-                        name="unskippable"
-                        type="checkbox"
-                        bind:checked={unskippable}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                </div>
-                <div class="ml-3 text-sm">
-                    <label for="unskippable" class="font-semibold text-gray-700 dark:text-gray-300">
-                        Make {mediaKind} unskippable
-                    </label>
-                    <p class="text-gray-500">
-                        Prevent this {mediaKind} from being skipped even if users pay enough to do so.<br />
-                        This will increase the price to enqueue this {mediaKind} by
-                        <span class="font-semibold">6.9 times</span>.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="mt-4 space-y-4">
-            <div class="flex items-start">
-                <div class="flex items-center h-5">
-                    <input
-                        id="concealed"
-                        name="concealed"
-                        type="checkbox"
-                        bind:checked={concealed}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                </div>
-                <div class="ml-3 text-sm">
-                    <label for="concealed" class="font-semibold text-gray-700 dark:text-gray-300">
-                        Hide {mediaKind} information while it is in the queue
-                    </label>
-                    <p class="text-gray-500">
-                        Prevent spoilers by only revealing this {mediaKind} when it begins playing. Only the {mediaKind}
-                        duration will be visible to other users.<br />
-
-                        This will cost
-                        <span class="font-semibold">
-                            {concealedCost}
-                            <PointsIcon />
-                        </span>
-                        and increase the price to enqueue this {mediaKind} <span class="font-semibold">by 50%</span>.
-                    </p>
-                </div>
-            </div>
-        </div>
-        {#if $permissionLevel == PermissionLevel.ADMIN}
-            <div class="mt-4 space-y-4">
-                <div class="flex items-start">
-                    <div class="flex items-center h-5">
-                        <input
-                            id="anonymous"
-                            name="anonymous"
-                            type="checkbox"
-                            bind:checked={anonymous}
-                            class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                        />
-                    </div>
-                    <div class="ml-3 text-sm">
-                        <label for="anonymous" class="font-semibold text-gray-700 dark:text-gray-300">
-                            Enqueue anonymously
-                        </label>
-                        <p class="text-gray-500">
-                            Staff-only option that will make this entry appear as enqueued by JungleTV.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        {/if}
-        <div class="mt-4 space-y-4">
-            <div class="flex items-start">
-                <div class="flex items-center h-5">
-                    <input
-                        id="videorange"
-                        name="videorange"
-                        type="checkbox"
-                        bind:checked={enqueueRange}
-                        class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                    />
-                </div>
-                <div class="ml-3 text-sm w-full">
-                    {#if videoIsBroadcast}
-                        <label for="videorange" class="font-semibold text-gray-700 dark:text-gray-300">
-                            Select for how long the live broadcast should play
-                        </label>
-                        <p class="text-gray-500">
-                            Broadcasts can play for up to {maxRangeLength / 60} minutes at a time and up to a total of 2
-                            hours in the last 4 hours. Prices will be relative to the length that plays.
-                        </p>
-                    {:else}
-                        <label for="videorange" class="font-semibold text-gray-700 dark:text-gray-300">
-                            Select a time range to play
-                        </label>
-                        <p class="text-gray-500">
-                            Enqueue just part of a longer {mediaKind}. Prices will be relative to the length that plays.
-                            {#if mediaLengthInSeconds > maxRangeLength}
-                                <br />
-                                {mediaKind == "video" ? "Videos" : "Tracks"} longer than {maxRangeLength / 60} minutes must
-                                be enqueued in shorter non-overlapping segments, each up to {maxRangeLength / 60} minutes
-                                long.
-                            {/if}
-                        </p>
-                    {/if}
-                    {#if instantiateTempPlayer && parseResult.valid && parseResult.type == "yt_video"}
-                        <div class="hidden">
-                            <YouTube
-                                videoId={parseResult.videoID}
-                                id="tmpplayer"
-                                bind:player={tempPlayer}
-                                on:stateChange={tempPlayerStateChange}
-                            />
-                        </div>
-                    {/if}
-                    {#if enqueueRange && parseResult.valid}
-                        {#if mediaRangeValuesFilled}
-                            <div class="mb-11 mx-3" bind:this={rangeSliderContainer}>
-                                <RangeSlider
-                                    id="mediaRangeSlider"
-                                    bind:values={mediaRange}
-                                    max={mediaLengthInSeconds}
-                                    min={sliderMin}
-                                    range={sliderRangeType}
-                                    pips
-                                    pipstep={pipStep}
-                                    all="label"
-                                    float={true}
-                                    formatter={sliderFormatter}
-                                    pushy
-                                >
-                                    <div slot="float" let:formattedValue let:value let:index>
-                                        <MediaRangeFloat
-                                            {formattedValue}
-                                            {value}
-                                            {index}
-                                            min={sliderMin}
-                                            max={mediaLengthInSeconds}
-                                            bind:values={mediaRange}
-                                        />
-                                    </div>
-                                </RangeSlider>
-                            </div>
-                            {#if mediaLengthInSeconds <= defaultMinRangeLength}
-                                <p class="text-red-500">
-                                    This {mediaKind} is shorter than {defaultMinRangeLength} seconds and can only be enqueued
-                                    in its entirety.
-                                </p>
-                            {/if}
-                        {:else if failureReason == ""}
-                            <div class="mt-2 mb-9">Loading {mediaKind} information...</div>
-                        {/if}
-                    {/if}
-                </div>
-            </div>
-        </div>
-        <p class="mt-4">
-            Make sure to check the
-            <a href="/guidelines" use:link>JungleTV guidelines for content</a> before enqueuing media.
-        </p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
@@ -562,8 +150,10 @@
                 <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
                 Loading
             </ButtonButton>
-        {:else}
+        {:else if typeof handleSubmit !== "undefined"}
             <ButtonButton type="submit" on:click={handleSubmit}>Next</ButtonButton>
+        {:else}
+            <ButtonButton disabled colorClasses="bg-gray-300">Next</ButtonButton>
         {/if}
     </div>
     <div slot="extra_1">

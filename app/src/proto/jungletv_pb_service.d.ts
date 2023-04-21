@@ -366,6 +366,24 @@ type JungleTVIncreaseOrReduceSkipThreshold = {
   readonly responseType: typeof jungletv_pb.IncreaseOrReduceSkipThresholdResponse;
 };
 
+type JungleTVCheckMediaEnqueuingPassword = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.CheckMediaEnqueuingPasswordRequest;
+  readonly responseType: typeof jungletv_pb.CheckMediaEnqueuingPasswordResponse;
+};
+
+type JungleTVMonitorMediaEnqueuingPermission = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.MonitorMediaEnqueuingPermissionRequest;
+  readonly responseType: typeof jungletv_pb.MediaEnqueuingPermissionStatus;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1020,6 +1038,8 @@ export class JungleTV {
   static readonly StartOrExtendSubscription: JungleTVStartOrExtendSubscription;
   static readonly SoundCloudTrackDetails: JungleTVSoundCloudTrackDetails;
   static readonly IncreaseOrReduceSkipThreshold: JungleTVIncreaseOrReduceSkipThreshold;
+  static readonly CheckMediaEnqueuingPassword: JungleTVCheckMediaEnqueuingPassword;
+  static readonly MonitorMediaEnqueuingPermission: JungleTVMonitorMediaEnqueuingPermission;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1426,6 +1446,16 @@ export class JungleTVClient {
     requestMessage: jungletv_pb.IncreaseOrReduceSkipThresholdRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.IncreaseOrReduceSkipThresholdResponse|null) => void
   ): UnaryResponse;
+  checkMediaEnqueuingPassword(
+    requestMessage: jungletv_pb.CheckMediaEnqueuingPasswordRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CheckMediaEnqueuingPasswordResponse|null) => void
+  ): UnaryResponse;
+  checkMediaEnqueuingPassword(
+    requestMessage: jungletv_pb.CheckMediaEnqueuingPasswordRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.CheckMediaEnqueuingPasswordResponse|null) => void
+  ): UnaryResponse;
+  monitorMediaEnqueuingPermission(requestMessage: jungletv_pb.MonitorMediaEnqueuingPermissionRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaEnqueuingPermissionStatus>;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,

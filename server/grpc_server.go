@@ -95,10 +95,15 @@ type grpcServer struct {
 	segchaClient           segchaproto.SegchaClient
 	turnstileClient        *turnstileclient.Turnstile
 
-	allowMediaEnqueuing      proto.AllowedMediaEnqueuingType
-	autoEnqueueVideos        bool
-	autoEnqueueVideoListFile string
-	ticketCheckPeriod        time.Duration
+	allowMediaEnqueuingMutex            sync.RWMutex
+	allowMediaEnqueuing                 proto.AllowedMediaEnqueuingType
+	allowMediaEnqueuingChanged          event.Event[allowedMediaEnqueuingChangedEventArgs]
+	enqueuingPassword                   string
+	enqueuingPasswordEdition            string
+	enqueuingPasswordAttemptRateLimiter limiter.Store
+	autoEnqueueVideos                   bool
+	autoEnqueueVideoListFile            string
+	ticketCheckPeriod                   time.Duration
 
 	verificationProcesses     *cache.Cache[string, *addressVerificationProcess]
 	delegatorCountsPerRep     *cache.Cache[string, uint64]
@@ -298,24 +303,25 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	}
 
 	s := &grpcServer{
-		log:                       options.Log,
-		wallet:                    options.Wallet,
-		statsClient:               options.StatsClient,
-		jwtManager:                options.JWTManager,
-		verificationProcesses:     cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
-		delegatorCountsPerRep:     cache.New[string, uint64](1*time.Hour, 5*time.Minute),
-		addressesWithGoodRepCache: cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
-		mediaQueue:                mediaQueue,
-		collectorAccountQueue:     make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
-		autoEnqueueVideoListFile:  options.AutoEnqueueVideoListFile,
-		autoEnqueueVideos:         options.AutoEnqueueVideoListFile != "",
-		allowMediaEnqueuing:       proto.AllowedMediaEnqueuingType_ENABLED,
-		ipReputationChecker:       ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint),
-		ticketCheckPeriod:         options.TicketCheckPeriod,
-		staffActivityManager:      staffactivitymanager.New(options.StatsClient),
-		moderationStore:           modStore,
-		nicknameCache:             usercache.NewInMemory(),
-		websiteURL:                options.WebsiteURL,
+		log:                        options.Log,
+		wallet:                     options.Wallet,
+		statsClient:                options.StatsClient,
+		jwtManager:                 options.JWTManager,
+		verificationProcesses:      cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
+		delegatorCountsPerRep:      cache.New[string, uint64](1*time.Hour, 5*time.Minute),
+		addressesWithGoodRepCache:  cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
+		mediaQueue:                 mediaQueue,
+		collectorAccountQueue:      make(chan func(*wallet.Account, *rpc.Client, *rpc.Client), 10000),
+		autoEnqueueVideoListFile:   options.AutoEnqueueVideoListFile,
+		autoEnqueueVideos:          options.AutoEnqueueVideoListFile != "",
+		allowMediaEnqueuing:        proto.AllowedMediaEnqueuingType_ENABLED,
+		allowMediaEnqueuingChanged: event.New[allowedMediaEnqueuingChangedEventArgs](),
+		ipReputationChecker:        ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint),
+		ticketCheckPeriod:          options.TicketCheckPeriod,
+		staffActivityManager:       staffactivitymanager.New(options.StatsClient),
+		moderationStore:            modStore,
+		nicknameCache:              usercache.NewInMemory(),
+		websiteURL:                 options.WebsiteURL,
 
 		appRunner:     options.AppRunner,
 		configManager: options.ConfigManager,
@@ -396,6 +402,14 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.mediaPreviewLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   4,
 		Interval: 1 * time.Minute,
+	})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.enqueuingPasswordAttemptRateLimiter, err = memorystore.New(&memorystore.Config{
+		Tokens:   3,
+		Interval: 2 * time.Minute,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -574,4 +588,10 @@ func (s *grpcServer) getRandomVideoForAutoEnqueue() (string, error) {
 	line := lines[rand.Intn(len(lines))]
 	id := strings.TrimSpace(strings.Split(line, " ")[0])
 	return id, nil
+}
+
+type allowedMediaEnqueuingChangedEventArgs struct {
+	allowedMediaEnqueuing proto.AllowedMediaEnqueuingType
+	passwordEdition       string
+	passwordIsNumeric     bool
 }

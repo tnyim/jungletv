@@ -207,8 +207,13 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 					t.Reset(wait)
 				}
 			case <-t.C:
+				allowed := func() bool {
+					s.allowMediaEnqueuingMutex.RLock()
+					defer s.allowMediaEnqueuingMutex.RUnlock()
+					return s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_ENABLED
+				}()
 				if s.mediaQueue.Length() == 0 && s.autoEnqueueVideos &&
-					s.allowMediaEnqueuing == proto.AllowedMediaEnqueuingType_ENABLED {
+					allowed {
 					for attempt := 0; attempt < 3; attempt++ {
 						err := func() error {
 							tx, err := transaction.Begin(ctx)

@@ -58,6 +58,8 @@ type JungleTVClient interface {
 	StartOrExtendSubscription(ctx context.Context, in *StartOrExtendSubscriptionRequest, opts ...grpc.CallOption) (*StartOrExtendSubscriptionResponse, error)
 	SoundCloudTrackDetails(ctx context.Context, in *SoundCloudTrackDetailsRequest, opts ...grpc.CallOption) (*SoundCloudTrackDetailsResponse, error)
 	IncreaseOrReduceSkipThreshold(ctx context.Context, in *IncreaseOrReduceSkipThresholdRequest, opts ...grpc.CallOption) (*IncreaseOrReduceSkipThresholdResponse, error)
+	CheckMediaEnqueuingPassword(ctx context.Context, in *CheckMediaEnqueuingPasswordRequest, opts ...grpc.CallOption) (*CheckMediaEnqueuingPasswordResponse, error)
+	MonitorMediaEnqueuingPermission(ctx context.Context, in *MonitorMediaEnqueuingPermissionRequest, opts ...grpc.CallOption) (JungleTV_MonitorMediaEnqueuingPermissionClient, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -660,6 +662,47 @@ func (c *jungleTVClient) IncreaseOrReduceSkipThreshold(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *jungleTVClient) CheckMediaEnqueuingPassword(ctx context.Context, in *CheckMediaEnqueuingPasswordRequest, opts ...grpc.CallOption) (*CheckMediaEnqueuingPasswordResponse, error) {
+	out := new(CheckMediaEnqueuingPasswordResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CheckMediaEnqueuingPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) MonitorMediaEnqueuingPermission(ctx context.Context, in *MonitorMediaEnqueuingPermissionRequest, opts ...grpc.CallOption) (JungleTV_MonitorMediaEnqueuingPermissionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[7], "/jungletv.JungleTV/MonitorMediaEnqueuingPermission", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVMonitorMediaEnqueuingPermissionClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_MonitorMediaEnqueuingPermissionClient interface {
+	Recv() (*MediaEnqueuingPermissionStatus, error)
+	grpc.ClientStream
+}
+
+type jungleTVMonitorMediaEnqueuingPermissionClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVMonitorMediaEnqueuingPermissionClient) Recv() (*MediaEnqueuingPermissionStatus, error) {
+	m := new(MediaEnqueuingPermissionStatus)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -940,7 +983,7 @@ func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpec
 }
 
 func (c *jungleTVClient) MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[7], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[8], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1215,7 +1258,7 @@ func (c *jungleTVClient) ApplicationLog(ctx context.Context, in *ApplicationLogR
 }
 
 func (c *jungleTVClient) ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[8], "/jungletv.JungleTV/ConsumeApplicationLog", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[9], "/jungletv.JungleTV/ConsumeApplicationLog", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1247,7 +1290,7 @@ func (x *jungleTVConsumeApplicationLogClient) Recv() (*ApplicationLogEntryContai
 }
 
 func (c *jungleTVClient) MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[9], "/jungletv.JungleTV/MonitorRunningApplications", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/MonitorRunningApplications", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1315,7 +1358,7 @@ func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *Resolve
 }
 
 func (c *jungleTVClient) ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/ConsumeApplicationEvents", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[11], "/jungletv.JungleTV/ConsumeApplicationEvents", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1408,6 +1451,8 @@ type JungleTVServer interface {
 	StartOrExtendSubscription(context.Context, *StartOrExtendSubscriptionRequest) (*StartOrExtendSubscriptionResponse, error)
 	SoundCloudTrackDetails(context.Context, *SoundCloudTrackDetailsRequest) (*SoundCloudTrackDetailsResponse, error)
 	IncreaseOrReduceSkipThreshold(context.Context, *IncreaseOrReduceSkipThresholdRequest) (*IncreaseOrReduceSkipThresholdResponse, error)
+	CheckMediaEnqueuingPassword(context.Context, *CheckMediaEnqueuingPasswordRequest) (*CheckMediaEnqueuingPasswordResponse, error)
+	MonitorMediaEnqueuingPermission(*MonitorMediaEnqueuingPermissionRequest, JungleTV_MonitorMediaEnqueuingPermissionServer) error
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1605,6 +1650,12 @@ func (UnimplementedJungleTVServer) SoundCloudTrackDetails(context.Context, *Soun
 }
 func (UnimplementedJungleTVServer) IncreaseOrReduceSkipThreshold(context.Context, *IncreaseOrReduceSkipThresholdRequest) (*IncreaseOrReduceSkipThresholdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IncreaseOrReduceSkipThreshold not implemented")
+}
+func (UnimplementedJungleTVServer) CheckMediaEnqueuingPassword(context.Context, *CheckMediaEnqueuingPasswordRequest) (*CheckMediaEnqueuingPasswordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckMediaEnqueuingPassword not implemented")
+}
+func (UnimplementedJungleTVServer) MonitorMediaEnqueuingPermission(*MonitorMediaEnqueuingPermissionRequest, JungleTV_MonitorMediaEnqueuingPermissionServer) error {
+	return status.Errorf(codes.Unimplemented, "method MonitorMediaEnqueuingPermission not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -2562,6 +2613,45 @@ func _JungleTV_IncreaseOrReduceSkipThreshold_Handler(srv interface{}, ctx contex
 		return srv.(JungleTVServer).IncreaseOrReduceSkipThreshold(ctx, req.(*IncreaseOrReduceSkipThresholdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_CheckMediaEnqueuingPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckMediaEnqueuingPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).CheckMediaEnqueuingPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/CheckMediaEnqueuingPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).CheckMediaEnqueuingPassword(ctx, req.(*CheckMediaEnqueuingPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_MonitorMediaEnqueuingPermission_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MonitorMediaEnqueuingPermissionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).MonitorMediaEnqueuingPermission(m, &jungleTVMonitorMediaEnqueuingPermissionServer{stream})
+}
+
+type JungleTV_MonitorMediaEnqueuingPermissionServer interface {
+	Send(*MediaEnqueuingPermissionStatus) error
+	grpc.ServerStream
+}
+
+type jungleTVMonitorMediaEnqueuingPermissionServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVMonitorMediaEnqueuingPermissionServer) Send(m *MediaEnqueuingPermissionStatus) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -3940,6 +4030,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_IncreaseOrReduceSkipThreshold_Handler,
 		},
 		{
+			MethodName: "CheckMediaEnqueuingPassword",
+			Handler:    _JungleTV_CheckMediaEnqueuingPassword_Handler,
+		},
+		{
 			MethodName: "ForciblyEnqueueTicket",
 			Handler:    _JungleTV_ForciblyEnqueueTicket_Handler,
 		},
@@ -4230,6 +4324,11 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ConvertBananoToPoints",
 			Handler:       _JungleTV_ConvertBananoToPoints_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "MonitorMediaEnqueuingPermission",
+			Handler:       _JungleTV_MonitorMediaEnqueuingPermission_Handler,
 			ServerStreams: true,
 		},
 		{
