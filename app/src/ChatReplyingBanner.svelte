@@ -8,13 +8,12 @@
     const dispatch = createEventDispatcher();
 
     export let replyingToMessage: ChatMessage;
-    export let allowExpensiveCSSAnimations: boolean;
 </script>
 
 <div class="flex flex-row">
     <div class="flex-grow px-2 text-xs overflow-hidden">
         Replying to
-        <span class="{getClassForMessageAuthor(replyingToMessage, allowExpensiveCSSAnimations)} h-5"
+        <span class="{getClassForMessageAuthor(replyingToMessage)} h-5"
             >{getReadableMessageAuthor(replyingToMessage)}</span
         >
         <button

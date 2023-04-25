@@ -9,7 +9,7 @@ export function getReadableMessageAuthor(msg: ChatMessage): string {
     return getReadableUserString(msg.getUserMessage().getAuthor());
 }
 
-export function getClassForMessageAuthor(msg: ChatMessage, allowExpensiveCSSAnimations: boolean): string {
+export function getClassForMessageAuthor(msg: ChatMessage): string {
     let c = "chat-user-address";
     if (msg.getUserMessage().getAuthor().hasNickname()) {
         c = "chat-user-nickname";
@@ -21,10 +21,7 @@ export function getClassForMessageAuthor(msg: ChatMessage, allowExpensiveCSSAnim
         c += " text-yellow-600 dark:text-yellow-200";
     }
     if (msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.TIER_3_REQUESTER)) {
-        c += " text-green-500 dark:text-green-300";
-        if (allowExpensiveCSSAnimations) {
-            c += " chat-user-glow";
-        }
+        c += " text-green-500 dark:text-green-300 chat-user-hyper";
     }
     return c;
 }

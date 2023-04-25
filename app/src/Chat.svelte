@@ -47,7 +47,6 @@
     let chatMessages: ChatMessage[] = [];
     let seenMessageIDs = new Set<string>();
     let chatContainer: HTMLElement;
-    let allowExpensiveCSSAnimations = false;
     let currentlyExpandedSystemMessageGroup = "";
     let chatSystemMessageGroupInfo: systemMessageGroupInfo[] = [];
     const systemMessageMinGroupSize = 5;
@@ -96,9 +95,6 @@
     });
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
-        allowExpensiveCSSAnimations = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
         unreadChatMention.set(false);
 
         return () => document.removeEventListener("visibilitychange", handleVisibilityChanged);
@@ -519,7 +515,6 @@
                     <ChatUserMessage
                         {message}
                         additionalPadding={shouldAddAdditionalPadding(idx)}
-                        {allowExpensiveCSSAnimations}
                         {mode}
                         {detailsOpenForMsgID}
                         {detailsLastOpenForMsgID}
@@ -593,7 +588,6 @@
             </div>
         {:else}
             <ChatComposeArea
-                {allowExpensiveCSSAnimations}
                 bind:replyingToMessage
                 {hasBlockedMessages}
                 on:sentMessage={() => (sentMsgFlag = true)}

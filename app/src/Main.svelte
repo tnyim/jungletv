@@ -477,31 +477,22 @@
 			white-space: nowrap;
 		}
 
-		.chat-user-glow {
-			animation-duration: 3s;
-			animation-name: text-glow;
-			animation-iteration-count: infinite;
-			animation-direction: alternate;
-			animation-timing-function: ease-in-out;
+		.chat-user-hyper {
+			background-color: #10B981;
+			background-image: linear-gradient(45deg, #10B981, #FBBF24, #6D28D9);
+			background-size: 100%;
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			text-fill-color: transparent;
+		}
+		.dark .chat-user-hyper {
+			background-color: #6EE7B7;
+			background-image: linear-gradient(45deg, #6EE7B7, #FBDD11, #A78BFA);
 		}
 
 		.cm-tooltip {
 			@apply shadow-md;
-		}
-
-		@media (prefers-reduced-motion) {
-			.chat-user-glow {
-				animation-name: none;
-			}
-		}
-
-		@keyframes text-glow {
-			from {
-				text-shadow: rgba(167, 139, 250, 1) 0px 0px 10px;
-			}
-			to {
-				text-shadow: rgba(167, 139, 250, 1) 0px 0px 0px;
-			}
 		}
 
 		#videoRangeSlider .pip > .pipVal {

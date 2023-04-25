@@ -19,7 +19,6 @@
     export let message: ChatMessage;
     export let additionalPadding: boolean;
     export let mode: string;
-    export let allowExpensiveCSSAnimations: boolean;
     export let detailsOpenForMsgID: string;
     export let detailsLastOpenForMsgID: string;
     export let highlighted = false;
@@ -84,7 +83,7 @@
             on:click={() => dispatch("highlight", message.getReference())}
         >
             <i class="fas fa-reply" />
-            <span class={getClassForMessageAuthor(message.getReference(), allowExpensiveCSSAnimations)}
+            <span class={getClassForMessageAuthor(message.getReference())}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
             {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent(), false)[0]}
@@ -163,7 +162,7 @@
                     <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
                 {/if}
             </VisibilityGuard>
-            <span class={getClassForMessageAuthor(message, allowExpensiveCSSAnimations)}
+            <span class={getClassForMessageAuthor(message)}
                 >{getReadableMessageAuthor(message)}</span
             >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR) && message
                     .getUserMessage()

@@ -58,7 +58,6 @@
         setNickname,
     } from "./utils";
 
-    export let allowExpensiveCSSAnimations: boolean;
     export let replyingToMessage: ChatMessage;
     export let hasBlockedMessages: boolean;
 
@@ -886,7 +885,6 @@
 {#if replyingToMessage !== undefined}
     <ChatReplyingBanner
         {replyingToMessage}
-        {allowExpensiveCSSAnimations}
         on:clearReply={() => {
             replyingToMessage = undefined;
         }}
