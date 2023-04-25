@@ -18,7 +18,7 @@ The page will have the URL `https://jungletv.live/apps/applicationID/pageID`, wh
 
 The file to serve as the page contents must have the Public property set.
 
-While this is not enforced, the file _should_ have the `text/html` MIME type, contain HTML and make use of the [App bridge](reference/appbridge/) script, so that communication can occur between the application page and the rest of the JungleTV application and service.
+While this is not enforced, the file _should_ have the `text/html` MIME type, contain HTML and make use of the [App bridge](/reference/appbridge/) script, so that communication can occur between the application page and the rest of the JungleTV application and service.
 
 Optionally, a set of specific headers can be overridden so that the served application page has access to web capabilities that are otherwise blocked by default, either by the relevant standards or by the defaults of the JungleTV AF.
 
@@ -44,7 +44,7 @@ pages.publishFile(pageID, fileName, defaultTitle, headers)
   This file must have the Public property enabled.
 - `defaultTitle` - A default, or initial, title for the page.
   This is the title that will be shown while the page is loading within the JungleTV application, or in other states where the final/current title of the application page can't be determined.
-  When the page makes use of the [App bridge](reference/appbridge/), its document title will be automatically synchronized, shadowing the value of this parameter.
+  When the page makes use of the [App bridge](/reference/appbridge/), its document title will be automatically synchronized, shadowing the value of this parameter.
 - `headers` - An optional object containing a key-value set of strings representing HTTP headers and the respective values, that will be sent when the page is served.
   The list of allowed headers can be seen below.
 

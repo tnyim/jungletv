@@ -19,7 +19,7 @@
       --base-background-color: rgb(243,244,246);
       --sidebar-background: white;
       --code-theme-background: white;
-        --code-inline-background: white;
+      --code-inline-background: white;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -29,6 +29,7 @@
         --code-theme-background: rgb(31, 41, 55);
         --code-inline-background: rgb(31, 41, 55);
         --sidebar-toggle-background: rgb(31, 41, 55);
+        --table-row-odd-background: rgb(10, 14, 22);
       }
     }
   </style>
@@ -39,6 +40,7 @@
   <script>
     window.$docsify = {
       name: 'JungleTV AF Docs',
+      relativePath: true,
       loadSidebar: true,
       subMaxLevel: 3,
       markdown: {

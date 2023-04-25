@@ -40,6 +40,6 @@ Those in the latter group should begin by taking a look at the [JungleTV source 
 This documentation is both a practical guide and a reference guide, starting as the former and progressively evolving into the latter in the later sections.
 While it may seem a bit counter-intuitive, because the JAF is still in development, the reference sections are likely more complete and up-to-date than the higher-level overviews and guides.
 
-- The [Getting started](getting-started/) section contains an overview of JungleTV AF concepts and will guide you through the development of a simple application.
-- The [Manual](manual/) section contains more detailed information about different aspects of the framework.
-- The [Reference](reference/) section contains an exhaustive (ideally) enumeration and explanation of every aspect of the interfaces exposed by the JungleTV AF, both to server-side components and to client-side components.
+- The [Getting started](/getting-started/) section contains an overview of JungleTV AF concepts and will guide you through the development of a simple application.
+- The [Manual](/manual/) section contains more detailed information about different aspects of the framework.
+- The [Reference](/reference/) section contains an exhaustive (ideally) enumeration and explanation of every aspect of the interfaces exposed by the JungleTV AF, both to server-side components and to client-side components.
