@@ -80,8 +80,8 @@ func (m *rpcModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
 		m.exports = module.Get("exports").(*goja.Object)
-		m.exports.Set("setMethodHandler", m.setMethodHandler)
-		m.exports.Set("removeMethodHandler", m.removeMethodHandler)
+		m.exports.Set("registerMethod", m.registerMethod)
+		m.exports.Set("unregisterMethod", m.unregisterMethod)
 		m.exports.Set("addEventListener", m.addEventListener)
 		m.exports.Set("removeEventListener", m.removeEventListener)
 		m.exports.Set("emitToAll", m.emitToAll)
@@ -203,7 +203,7 @@ func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, 
 	}
 }
 
-func (m *rpcModule) setMethodHandler(call goja.FunctionCall) goja.Value {
+func (m *rpcModule) registerMethod(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 3 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
@@ -227,7 +227,7 @@ func (m *rpcModule) setMethodHandler(call goja.FunctionCall) goja.Value {
 	return goja.Undefined()
 }
 
-func (m *rpcModule) removeMethodHandler(call goja.FunctionCall) goja.Value {
+func (m *rpcModule) unregisterMethod(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
@@ -309,7 +309,7 @@ func (m *rpcModule) emitToPage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	pageID := call.Argument(1).String()
+	pageID := call.Argument(0).String()
 	m.onPageEvent.Notify(pageID, m.buildEventData(call, 1), false)
 	return goja.Undefined()
 }
@@ -319,7 +319,7 @@ func (m *rpcModule) emitToUser(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	userValue := call.Argument(1)
+	userValue := call.Argument(0)
 	user := ""
 	// make it so that passing null or undefined actually targets unauthenticated users
 	if !goja.IsUndefined(userValue) && !goja.IsNull(userValue) {
@@ -335,8 +335,8 @@ func (m *rpcModule) emitToPageUser(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	pageID := call.Argument(1).String()
-	userValue := call.Argument(2)
+	pageID := call.Argument(0).String()
+	userValue := call.Argument(1)
 	user := ""
 	// make it so that passing null or undefined actually targets unauthenticated users
 	if !goja.IsUndefined(userValue) && !goja.IsNull(userValue) {
