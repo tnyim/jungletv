@@ -11,6 +11,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -91,21 +92,23 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 		return nil, status.Error(codes.InvalidArgument, "must ban from something")
 	}
 
-	remoteAddresses := []string{}
+	remoteAddresses := map[string]struct{}{}
 	if r.RemoteAddress != "" {
-		remoteAddresses = []string{r.RemoteAddress}
+		remoteAddresses[utils.GetUniquifiedIP(r.RemoteAddress)] = struct{}{}
 	}
 
 	additionalRemoteAddresses := s.rewardsHandler.RemoteAddressesForRewardAddress(ctx, r.Address)
-	remoteAddresses = append(remoteAddresses, additionalRemoteAddresses...)
+	for address := range additionalRemoteAddresses {
+		remoteAddresses[utils.GetUniquifiedIP(address)] = struct{}{}
+	}
 
 	if len(remoteAddresses) == 0 {
 		// this way we'll add a single ban entry that only bans by reward address, but better than nothing
-		remoteAddresses = []string{""}
+		remoteAddresses[""] = struct{}{}
 	}
 
 	banIDs := []string{}
-	for _, remoteAddress := range remoteAddresses {
+	for remoteAddress := range remoteAddresses {
 		var banEnd *time.Time
 		if r.Duration != nil {
 			t := time.Now().Add(r.Duration.AsDuration())

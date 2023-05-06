@@ -503,19 +503,15 @@ func (r *Handler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) 
 	return nil
 }
 
-func (r *Handler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAddress string) []string {
+func (r *Handler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAddress string) map[string]struct{} {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 
 	spectator, ok := r.spectatorsByRewardAddress[rewardAddress]
 	if ok {
-		list := []string{}
-		for a := range spectator.remoteAddresses {
-			list = append(list, a)
-		}
-		return list
+		return maps.Clone(spectator.remoteAddresses)
 	}
-	return []string{}
+	return map[string]struct{}{}
 }
 
 func (r *Handler) markAddressAsMentionedInChat(ctx context.Context, address string) {
