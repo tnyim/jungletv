@@ -21,6 +21,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
@@ -146,7 +147,6 @@ type grpcServer struct {
 
 // Options contains the required options to start the server
 type Options struct {
-	DebugBuild  bool
 	Log         *log.Logger
 	StatsClient *statsd.Client
 
@@ -361,7 +361,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 			return nil, stacktrace.Propagate(err, "")
 		}
 
-		if !options.DebugBuild {
+		if !buildconfig.DEBUG {
 			_, err := s.modLogWebhook.SendContent("Server started. If this is not a planned restart, the server may have crashed.")
 			if err != nil {
 				s.log.Println("Failed to send mod log webhook regarding server start:", err)

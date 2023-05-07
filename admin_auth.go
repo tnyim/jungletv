@@ -11,14 +11,51 @@ import (
 )
 
 var (
-	sessionStore *sessions.CookieStore
-	daClient     *ssoclient.SSOClient
-	websiteURL   string
+	sessionStore     *sessions.CookieStore
+	daClient         *ssoclient.SSOClient
+	websiteURL       string
+	basicAuthChecker func(username, password string) bool
 )
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	adminToken, expiration, err := jwtManager.Generate("DEBUG_USER", auth.AdminPermissionLevel, "")
+	if err != nil {
+		authLog.Println("Error generating admin JWT:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth-token",
+		Value:    adminToken,
+		Path:     "/",
+		MaxAge:   int(time.Until(expiration).Seconds()),
+		Expires:  expiration,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	http.Redirect(w, r, "/moderate", http.StatusTemporaryRedirect)
+}
+
+// basicAuthHandler authenticates users as admin based on basic auth
+func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
+	rewardAddress := getCurrentRewardAddress(r)
+	if rewardAddress == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("You must register to receive rewards first"))
+		return
+	}
+
+	username, password, ok := r.BasicAuth()
+	if !ok || !basicAuthChecker(username, password) {
+		w.Header().Add("WWW-Authenticate", `Basic realm="Enter username and password"`)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`Incorrect credentials`))
+		return
+	}
+
+	adminToken, expiration, err := jwtManager.Generate(rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -66,7 +103,11 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCurrentRewardAddress(r *http.Request) string {
-	accessToken := r.Header.Get("authorization")
+	accessTokenCookie, err := r.Cookie("auth-token")
+	if err != nil {
+		return ""
+	}
+	accessToken := accessTokenCookie.Value
 	if accessToken == "" {
 		return ""
 	}

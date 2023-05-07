@@ -1,7 +1,6 @@
 //go:build !release
-// +build !release
 
-package main
+package buildconfig
 
 const (
 	// DEBUG is whether this is a debug build

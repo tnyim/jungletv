@@ -32,6 +32,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/httpserver"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
@@ -79,7 +80,7 @@ func main() {
 	ctx := context.Background()
 	var err error
 	mainLog.Println("Server starting, opening keybox...")
-	secrets, err = keybox.Open(SecretsPath)
+	secrets, err = keybox.Open(buildconfig.SecretsPath)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -100,7 +101,7 @@ func main() {
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
-	rdb.SetMaxOpenConns(MaxDBconnectionPoolSize)
+	rdb.SetMaxOpenConns(buildconfig.MaxDBconnectionPoolSize)
 
 	rootSqalxNode, err = sqalx.New(rdb)
 	if err != nil {
@@ -108,7 +109,7 @@ func main() {
 	}
 	ctx = transaction.ContextWithBaseSqalxNode(ctx, rootSqalxNode)
 
-	if LogDBQueries {
+	if buildconfig.LogDBQueries {
 		types.SetLogger(dbLog)
 	}
 	mainLog.Println("Database opened")
@@ -164,13 +165,7 @@ func main() {
 	}
 
 	ssoKeybox, present := secrets.GetBox("sso")
-	if !present {
-		if DEBUG {
-			mainLog.Println("SSO keybox not present in keybox. Anyone will be signed in as admin as soon as they ask. This is UNSAFE.")
-		} else {
-			mainLog.Fatalln("SSO keybox not present in keybox")
-		}
-	} else {
+	if present {
 		ssoCookieAuthKey, present := ssoKeybox.Get("cookieAuthKey")
 		if !present {
 			mainLog.Fatalln("SSO cookie auth key not present in keybox")
@@ -202,6 +197,27 @@ func main() {
 		daClient, err = ssoclient.NewSSOClient(ssoEndpointURL, ssoAPIkey, ssoAPIsecret)
 		if err != nil {
 			mainLog.Fatalln("Failed to create SSO client: ", err)
+		}
+	} else if !buildconfig.DEBUG && !buildconfig.LAB {
+		mainLog.Fatalln("SSO keybox not present in keybox")
+	} else {
+		basicAuthKeybox, basicAuthKeyboxPresent := secrets.GetBox("basicauth")
+		if basicAuthKeyboxPresent {
+			correctUsername, present := basicAuthKeybox.Get("username")
+			if !present {
+				mainLog.Fatalln("Basic auth username not present in keybox")
+			}
+			correctPassword, present := basicAuthKeybox.Get("password")
+			if !present {
+				mainLog.Fatalln("Basic auth password not present in keybox")
+			}
+			basicAuthChecker = func(username, password string) bool {
+				return username == correctUsername && password == correctPassword
+			}
+		} else if buildconfig.DEBUG {
+			mainLog.Println("Neither SSO nor basic auth keyboxes are present in keybox. Anyone will be signed in as admin as soon as they ask. This is UNSAFE.")
+		} else {
+			mainLog.Fatalln("Neither SSO nor basic auth keyboxes are present in keybox")
 		}
 	}
 
@@ -328,7 +344,6 @@ func main() {
 
 	configManager := configurationmanager.New(ctx)
 	options := server.Options{
-		DebugBuild:               DEBUG,
 		Log:                      apiLog,
 		StatsClient:              statsClient,
 		Wallet:                   wallet,
@@ -368,7 +383,7 @@ func main() {
 
 	listenAddr, present := secrets.Get("listenAddress")
 	if !present {
-		listenAddr = ServerListenAddr
+		listenAddr = buildconfig.ServerListenAddr
 	}
 
 	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr, certFile, keyFile, options)
@@ -390,7 +405,7 @@ func main() {
 }
 
 func init() {
-	if !DEBUG {
+	if !buildconfig.DEBUG {
 		grpcLog = log.New(io.Discard, "grpc ", log.Ldate|log.Ltime)
 	}
 	h := sha256.New()
@@ -528,7 +543,7 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 func configureRouter(router *mux.Router) {
 	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
 
-	if DEBUG {
+	if buildconfig.DEBUG {
 		router.HandleFunc("/debug/pprof/", pprof.Index)
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
@@ -537,10 +552,15 @@ func configureRouter(router *mux.Router) {
 		router.PathPrefix("/debug/pprof/").HandlerFunc(pprof.Index)
 	}
 
-	if DEBUG && daClient == nil {
+	if buildconfig.DEBUG && daClient == nil && basicAuthChecker == nil {
 		router.HandleFunc("/admin/signin", directUnsafeAuthHandler)
+		authLog.Println("using direct unsafe auth")
+	} else if daClient == nil && basicAuthChecker != nil {
+		router.HandleFunc("/admin/signin", basicAuthHandler)
+		authLog.Println("using basic auth")
 	} else {
 		router.HandleFunc("/admin/signin", authInitHandler)
+		authLog.Println("using SSO auth")
 	}
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
@@ -561,7 +581,7 @@ func configureRouter(router *mux.Router) {
 			FullURL:     websiteURL + r.URL.Path,
 			VersionHash: versionHash,
 		}
-		if DEBUG {
+		if buildconfig.DEBUG {
 			templateData.VersionHash += "###" + uuid.NewV4().String()
 		}
 		err := webtemplate.ExecuteTemplate(w, "index.template", templateData)
