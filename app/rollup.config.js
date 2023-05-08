@@ -14,6 +14,7 @@ import sveltePreprocess from "svelte-preprocess";
 import tailwindcss from "tailwindcss";
 
 const production = !process.env.ROLLUP_WATCH;
+const labBuild = process.env.JUNGLETV_LAB;
 
 function serve() {
 	let server;
@@ -36,6 +37,8 @@ function serve() {
 	};
 }
 
+
+
 export default [
 	{
 		input: 'src/main.ts',
@@ -54,8 +57,9 @@ export default [
 		},
 		plugins: [
 			replace({
-				"globalThis.API_HOST": JSON.stringify(production ? "https://jungletv.live" : "use-origin"),
 				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
+				"globalThis.LAB_BUILD": JSON.stringify(labBuild),
+				"globalThis.OVERRIDE_API_HOST": JSON.stringify(process.env.JUNGLETV_API_HOST),
 				preventAssignment: true,
 			}),
 			replace({
@@ -200,6 +204,7 @@ export default [
 		plugins: [
 			replace({
 				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
+				"globalThis.LAB_BUILD": JSON.stringify(labBuild),
 				preventAssignment: true,
 			}),
 			replace({

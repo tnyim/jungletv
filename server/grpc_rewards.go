@@ -11,8 +11,6 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var knownGoodReps = map[string]struct{}{
@@ -137,45 +135,4 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		response.WithdrawalsInQueue = &t
 	}
 	return response, nil
-}
-
-func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) (*proto.WithdrawResponse, error) {
-	ctx, err := transaction.Begin(ctxCtx)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	defer ctx.Rollback()
-
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
-	if userClaims == nil {
-		return nil, stacktrace.NewError("user claims unexpectedly missing")
-	}
-
-	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.RewardAddress)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	if balance.Balance.IsZero() || balance.Balance.IsNegative() {
-		return nil, status.Error(codes.FailedPrecondition, "insufficient balance")
-	}
-
-	pendingWithdraw, _, _, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	if pendingWithdraw {
-		return nil, status.Error(codes.FailedPrecondition, "existing pending withdraw")
-	}
-
-	err = s.withdrawalHandler.WithdrawBalances(ctx, []*types.RewardBalance{balance})
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	err = ctx.Commit()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return &proto.WithdrawResponse{}, nil
 }

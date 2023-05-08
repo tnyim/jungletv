@@ -13,6 +13,7 @@ import (
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pricer"
@@ -331,7 +332,7 @@ func (r *Handler) rewardRequester(ctxCtx context.Context, mediaID string, reques
 func (r *Handler) reimburseRequester(ctx context.Context, address string, amount payment.Amount) {
 	r.receiveCollectorPending(amount)
 
-	if ctx.Err() != nil {
+	if ctx.Err() != nil || !buildconfig.AllowWithdrawalsAndRefunds {
 		return
 	}
 

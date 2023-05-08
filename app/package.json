@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
+    "labbuild": "cross-env JUNGLETV_LAB=true rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear"
   },
@@ -18,6 +19,7 @@
     "@types/youtube-player": "^5.5.3",
     "autoprefixer": "^10.2.6",
     "clean-css": "^5.2.4",
+    "cross-env": "^7.0.3",
     "postcss": "^8.3.5",
     "postcss-load-config": "^3.1.0",
     "protoc-gen-js": "^3.21.2",
@@ -36,9 +38,9 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.2",
     "@codemirror/commands": "^6.2.2",
+    "@codemirror/lang-javascript": "^6.1.6",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-markdown": "^6.1.1",
-    "@codemirror/lang-javascript": "^6.1.6",
     "@codemirror/language": "^6.6.0",
     "@codemirror/lint": "^6.2.1",
     "@codemirror/search": "^6.3.0",

@@ -61,9 +61,17 @@ class APIClient {
 
     public static getInstance(): APIClient {
         if (!APIClient.instance) {
-            let apiHost = window.location.origin;
-            if (globalThis.API_HOST !== "use-origin") {
-                apiHost = globalThis.API_HOST;
+            let apiHost: string;
+            if (globalThis.OVERRIDE_API_HOST) {
+                apiHost = globalThis.OVERRIDE_API_HOST;
+            } else if (globalThis.PRODUCTION_BUILD) {
+                if (globalThis.LAB_BUILD) {
+                    apiHost = "https://staging.jungletv.live";
+                } else {
+                    apiHost = "https://jungletv.live";
+                }
+            } else {
+                apiHost = window.location.origin;
             }
             APIClient.instance = new APIClient(apiHost);
         }

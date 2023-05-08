@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/server/media"
@@ -57,22 +58,24 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		}
 	}(ctx)
 
-	go func(ctx context.Context) {
-		for {
-			s.log.Println("Withdrawal handler starting/restarting")
-			err := s.withdrawalHandler.Worker(ctx)
-			if err == nil {
-				return
+	if buildconfig.AllowWithdrawalsAndRefunds {
+		go func(ctx context.Context) {
+			for {
+				s.log.Println("Withdrawal handler starting/restarting")
+				err := s.withdrawalHandler.Worker(ctx)
+				if err == nil {
+					return
+				}
+				errChan <- stacktrace.Propagate(err, "withdrawal handler error")
+				select {
+				case <-ctx.Done():
+					s.log.Println("Withdrawal handler done")
+					return
+				default:
+				}
 			}
-			errChan <- stacktrace.Propagate(err, "withdrawal handler error")
-			select {
-			case <-ctx.Done():
-				s.log.Println("Withdrawal handler done")
-				return
-			default:
-			}
-		}
-	}(ctx)
+		}(ctx)
+	}
 
 	go func(ctx context.Context) {
 		for {
