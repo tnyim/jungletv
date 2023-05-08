@@ -5,6 +5,7 @@
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import SuccessMessage from "./uielements/SuccessMessage.svelte";
+    import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
 
     const dispatch = createEventDispatcher();
@@ -70,6 +71,15 @@
         {#await rewardInfoPromise}
             <p>Loading...</p>
         {:then}
+            {#if globalThis.LAB_BUILD}
+                <WarningMessage>
+                    This is a lab environment where users cannot withdraw rewards. The rewards system otherwise works as
+                    in the production version of the website, but users will never be able to withdraw their balance.
+                    Banano received goes towards the upkeeping of this lab environment.
+                    <br />
+                    <strong>Please ignore any UI text mentioning the ability to receive rewards.</strong>
+                </WarningMessage>
+            {/if}
             <label for="rewards_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Banano address for rewards
                 {#if rewardsAddress != ""}

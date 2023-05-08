@@ -37,8 +37,6 @@ function serve() {
 	};
 }
 
-
-
 export default [
 	{
 		input: 'src/main.ts',
@@ -59,6 +57,7 @@ export default [
 			replace({
 				"globalThis.PRODUCTION_BUILD": JSON.stringify(production),
 				"globalThis.LAB_BUILD": JSON.stringify(labBuild),
+				"globalThis.OVERRIDE_APP_NAME": JSON.stringify(process.env.JUNGLETV_APP_NAME),
 				"globalThis.OVERRIDE_API_HOST": JSON.stringify(process.env.JUNGLETV_API_HOST),
 				preventAssignment: true,
 			}),

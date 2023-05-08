@@ -1,4 +1,4 @@
-//go:build release && !lab
+//go:build release
 
 package buildconfig
 

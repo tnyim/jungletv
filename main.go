@@ -562,6 +562,13 @@ func configureRouter(router *mux.Router) {
 		router.HandleFunc("/admin/signin", authInitHandler)
 		authLog.Println("using SSO auth")
 	}
+	if buildconfig.LAB {
+		// avoid search engines indexing lab environments to avoid confusion among non-developers
+		router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`User-agent: *
+Disallow: /`))
+		})
+	}
 	router.HandleFunc("/admin/auth", authHandler)
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
 	router.PathPrefix("/emotes").Handler(http.StripPrefix("/emotes", http.FileServer(http.Dir("app/public/emotes/"))))

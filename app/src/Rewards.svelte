@@ -118,12 +118,21 @@
         </p>
     </div>
     <div slot="main-content">
+        {#if globalThis.LAB_BUILD}
+            <WarningMessage>
+                This is a lab environment where users cannot withdraw rewards. The rewards system otherwise works as in
+                the production version of the website, but users will never be able to withdraw their balance. Banano
+                received goes towards the upkeeping of this lab environment.
+                <br />
+                <strong>Please ignore any UI text mentioning the ability to receive rewards.</strong>
+            </WarningMessage>
+        {/if}
         {#await rewardInfoPromise}
             <p><Moon size="28" color={$darkMode ? "#FFFFFF" : "#444444"} unit="px" duration="2s" /></p>
         {:then}
             <p class="text-lg font-semibold">Currently rewarding:</p>
             <p class="font-mono text-sm break-words">{$rewardAddress}</p>
-            <div class="mt-2 mb-6 flex flex-row gap-4  sm:gap-6">
+            <div class="mt-2 mb-6 flex flex-row gap-4 sm:gap-6">
                 <a use:link href="/rewards/address" class={hrefButtonStyleClasses()}>Change address</a>
                 <ButtonButton on:click={() => openUserProfile($rewardAddress)}>Edit profile and nickname</ButtonButton>
             </div>

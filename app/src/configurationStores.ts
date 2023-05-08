@@ -4,7 +4,7 @@ import { ConfigurationChange } from "./proto/jungletv_pb";
 import { sidebarMode } from "./stores";
 import { closeSidebarTab, openSidebarTab, SidebarTab, sidebarTabs } from "./tabStores";
 
-export const applicationName = writableWithInitialValue("JungleTV");
+export const applicationName = writableWithInitialValue(globalThis.OVERRIDE_APP_NAME ? globalThis.OVERRIDE_APP_NAME : "JungleTV");
 export const logoURL = writableWithInitialValue("/assets/brand/logo.svg");
 export const faviconURL = writableWithInitialValue("/favicon.png");
 

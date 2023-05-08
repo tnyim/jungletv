@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
-    "labbuild": "cross-env JUNGLETV_LAB=true rollup -c",
+    "labbuild": "cross-env JUNGLETV_LAB=true JUNGLETV_APP_NAME=\"JungleTV Lab\" rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear"
   },
