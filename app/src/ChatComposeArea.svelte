@@ -600,6 +600,7 @@
                     closeBracketsCompartment.of(buildCloseBrackets($autoCloseBrackets)),
                     autocompletion({
                         override: [commandCompletions, emojiCompletions],
+                        aboveCursor: true,
                         addToOptions: [
                             {
                                 render: addEmojiToAutocompleteOptions,
