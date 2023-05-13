@@ -2,6 +2,7 @@ package apprunner
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"sort"
@@ -14,10 +15,12 @@ import (
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
+	chatmodule "github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -96,6 +99,7 @@ func New(
 
 func (r *AppRunner) SetModuleDependencies(d modules.Dependencies) {
 	r.moduleDependencies = d
+	r.moduleDependencies.ChatManager.SetAttachmentLoaderForType("apppage", r.pageAttachmentLoader)
 }
 
 // RunningApplicationsUpdated is the event that is fired when the list of running applications changes
@@ -421,4 +425,26 @@ func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, applicationID,
 		return ch, cancel, nil
 	}
 	return nil, nil, stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+}
+
+func (r *AppRunner) pageAttachmentLoader(ctx context.Context, data string) (chat.MessageAttachmentView, error) {
+	var storage *chatmodule.MessageAttachmentApplicationPageStorage
+	err := json.Unmarshal([]byte(data), &storage)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	pageInfo, appVersion, ok := r.ResolvePage(storage.ApplicationID, storage.PageID)
+	if !ok || !time.Time(appVersion).Equal(time.Time(storage.ApplicationVersion)) {
+		// page no longer available. this is normal enough, return nil to omit the attachment but don't fail
+		return nil, nil
+	}
+
+	return &chatmodule.MessageAttachmentApplicationPageView{
+		PageInfo:           pageInfo,
+		ApplicationID:      storage.ApplicationID,
+		ApplicationVersion: storage.ApplicationVersion,
+		PageID:             storage.PageID,
+		Height:             storage.Height,
+	}, nil
 }

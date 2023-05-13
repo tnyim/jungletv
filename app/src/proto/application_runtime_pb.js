@@ -436,8 +436,7 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.toObject = function(opt_
  */
 proto.jungletv.ResolveApplicationPageResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    applicationFileName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    pageTitle: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    pageTitle: jspb.Message.getFieldWithDefault(msg, 1, ""),
     applicationVersion: (f = msg.getApplicationVersion()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
@@ -477,13 +476,9 @@ proto.jungletv.ResolveApplicationPageResponse.deserializeBinaryFromReader = func
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setApplicationFileName(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
       msg.setPageTitle(value);
       break;
-    case 3:
+    case 2:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setApplicationVersion(value);
@@ -517,24 +512,17 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.serializeBinary = functi
  */
 proto.jungletv.ResolveApplicationPageResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getApplicationFileName();
+  f = message.getPageTitle();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getPageTitle();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
   f = message.getApplicationVersion();
   if (f != null) {
     writer.writeMessage(
-      3,
+      2,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
@@ -543,10 +531,10 @@ proto.jungletv.ResolveApplicationPageResponse.serializeBinaryToWriter = function
 
 
 /**
- * optional string application_file_name = 1;
+ * optional string page_title = 1;
  * @return {string}
  */
-proto.jungletv.ResolveApplicationPageResponse.prototype.getApplicationFileName = function() {
+proto.jungletv.ResolveApplicationPageResponse.prototype.getPageTitle = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -555,36 +543,18 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.getApplicationFileName =
  * @param {string} value
  * @return {!proto.jungletv.ResolveApplicationPageResponse} returns this
  */
-proto.jungletv.ResolveApplicationPageResponse.prototype.setApplicationFileName = function(value) {
+proto.jungletv.ResolveApplicationPageResponse.prototype.setPageTitle = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string page_title = 2;
- * @return {string}
- */
-proto.jungletv.ResolveApplicationPageResponse.prototype.getPageTitle = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.jungletv.ResolveApplicationPageResponse} returns this
- */
-proto.jungletv.ResolveApplicationPageResponse.prototype.setPageTitle = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional google.protobuf.Timestamp application_version = 3;
+ * optional google.protobuf.Timestamp application_version = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
 proto.jungletv.ResolveApplicationPageResponse.prototype.getApplicationVersion = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
 
 
@@ -593,7 +563,7 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.getApplicationVersion = 
  * @return {!proto.jungletv.ResolveApplicationPageResponse} returns this
 */
 proto.jungletv.ResolveApplicationPageResponse.prototype.setApplicationVersion = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+  return jspb.Message.setWrapperField(this, 2, value);
 };
 
 
@@ -611,7 +581,7 @@ proto.jungletv.ResolveApplicationPageResponse.prototype.clearApplicationVersion 
  * @return {boolean}
  */
 proto.jungletv.ResolveApplicationPageResponse.prototype.hasApplicationVersion = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

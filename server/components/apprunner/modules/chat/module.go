@@ -14,8 +14,10 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/stores/chat"
+	"github.com/tnyim/jungletv/types"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -24,6 +26,8 @@ const ModuleName = "jungletv:chat"
 type chatModule struct {
 	runtime        *goja.Runtime
 	exports        *goja.Object
+	infoProvider   ProcessInformationProvider
+	pagesModule    pages.PagesModule
 	chatManager    *chatmanager.Manager
 	schedule       gojautil.ScheduleFunction
 	runOnLoop      gojautil.ScheduleFunctionNoError
@@ -35,14 +39,22 @@ type chatModule struct {
 	executionContext context.Context
 }
 
+// ProcessInformationProvider can get information about the process
+type ProcessInformationProvider interface {
+	ApplicationID() string
+	ApplicationVersion() types.ApplicationVersion
+}
+
 // New returns a new chat module
-func New(logger modules.ApplicationLogger, chatManager *chatmanager.Manager, appUser auth.User, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
+func New(logger modules.ApplicationLogger, infoProvider ProcessInformationProvider, chatManager *chatmanager.Manager, pagesModule pages.PagesModule, appUser auth.User, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
 	return &chatModule{
-		logger:      logger,
-		chatManager: chatManager,
-		schedule:    schedule,
-		runOnLoop:   runOnLoop,
-		appUser:     appUser,
+		infoProvider: infoProvider,
+		pagesModule:  pagesModule,
+		logger:       logger,
+		chatManager:  chatManager,
+		schedule:     schedule,
+		runOnLoop:    runOnLoop,
+		appUser:      appUser,
 	}
 }
 
@@ -58,6 +70,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 		m.exports.Set("createSystemMessage", m.createSystemMessage)
 		m.exports.Set("createMessage", m.createMessage)
+		m.exports.Set("createMessageWithPageAttachment", m.createMessageWithPageAttachment)
 		m.exports.Set("getMessages", m.getMessages)
 
 		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
@@ -155,6 +168,64 @@ func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
 	}
 
 	message, err := m.chatManager.CreateMessage(m.executionContext, m.appUser, content, reference, []chat.MessageAttachmentStorage{})
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
+}
+
+func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 3 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+	contentValue := call.Argument(0)
+
+	pageID := call.Argument(1).String()
+
+	_, ok := m.pagesModule.ResolvePage(pageID)
+	if !ok {
+		panic(m.runtime.NewTypeError("Second argument to createMessageWithPageAttachment must be the ID of a published page"))
+	}
+
+	var height int
+	err := m.runtime.ExportTo(call.Argument(2), &height)
+	if err != nil || height == 0 {
+		panic(m.runtime.NewTypeError("Third argument to createMessageWithPageAttachment must be a non-zero integer"))
+	}
+	if height > 512 {
+		panic(m.runtime.NewTypeError("Desired height must be lower or equal to 512 pixels"))
+	}
+
+	attachment := &MessageAttachmentApplicationPageStorage{
+		ApplicationID:      m.infoProvider.ApplicationID(),
+		ApplicationVersion: m.infoProvider.ApplicationVersion(),
+		PageID:             pageID,
+		Height:             height,
+	}
+
+	var reference *chat.Message
+	referenceValue := call.Argument(3)
+	if referenceString := referenceValue.String(); !goja.IsUndefined(referenceValue) && !goja.IsNull(referenceValue) && referenceString != "" {
+		id, err := snowflake.ParseString(referenceString)
+		if err != nil {
+			panic(m.runtime.NewTypeError("Fourth argument must be a message ID string"))
+		}
+		reference, err = m.chatManager.LoadMessage(m.executionContext, id)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+		if reference.Author == nil || reference.Author.IsUnknown() {
+			panic(m.runtime.NewTypeError("Referenced message must not be a system message"))
+		}
+	}
+
+	content := ""
+	if !goja.IsUndefined(contentValue) && !goja.IsNull(contentValue) {
+		content = strings.TrimSpace(contentValue.String())
+	}
+
+	message, err := m.chatManager.CreateMessage(m.executionContext, m.appUser, content, reference, []chat.MessageAttachmentStorage{attachment})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}

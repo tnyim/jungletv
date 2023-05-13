@@ -29,9 +29,6 @@ export namespace ResolveApplicationPageRequest {
 }
 
 export class ResolveApplicationPageResponse extends jspb.Message {
-  getApplicationFileName(): string;
-  setApplicationFileName(value: string): void;
-
   getPageTitle(): string;
   setPageTitle(value: string): void;
 
@@ -52,7 +49,6 @@ export class ResolveApplicationPageResponse extends jspb.Message {
 
 export namespace ResolveApplicationPageResponse {
   export type AsObject = {
-    applicationFileName: string,
     pageTitle: string,
     applicationVersion?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }

@@ -40,7 +40,7 @@ type Manager struct {
 
 	tenorClient                      tenorclient.ClientWithResponsesInterface
 	tenorAPIkey                      string
-	tenorGifCache                    *cache.Cache[string, *chat.MessageAttachmentTenorGifView]
+	tenorGifCache                    *cache.Cache[string, *MessageAttachmentTenorGifView]
 	getTenorGifInfoSingleflightGroup singleflight.Group
 
 	enabled        bool
@@ -103,8 +103,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to create Tenor client")
 	}
-
-	return &Manager{
+	m := &Manager{
 		log:                   log,
 		statsClient:           statsClient,
 		store:                 store,
@@ -122,7 +121,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 
 		tenorClient:   tenorClient,
 		tenorAPIkey:   tenorAPIkey,
-		tenorGifCache: cache.New[string, *chat.MessageAttachmentTenorGifView](5*time.Minute, 1*time.Minute),
+		tenorGifCache: cache.New[string, *MessageAttachmentTenorGifView](5*time.Minute, 1*time.Minute),
 
 		userBlockedBy:   event.NewKeyed[string, string](),
 		userUnblockedBy: event.NewKeyed[string, string](),
@@ -133,7 +132,15 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		chatDisabled:   event.New[DisabledReason](),
 		messageCreated: event.New[MessageCreatedEventArgs](),
 		messageDeleted: event.New[snowflake.ID](),
-	}, nil
+	}
+
+	m.store.SetAttachmentLoaderForType(MessageAttachmentTypeTenorGif, m.getTenorGifInfo)
+
+	return m, nil
+}
+
+func (c *Manager) SetAttachmentLoaderForType(attachmentType string, loader chat.AttachmentLoader) {
+	c.store.SetAttachmentLoaderForType(attachmentType, loader)
 }
 
 func (c *Manager) DeleteMessage(ctx context.Context, id snowflake.ID) (*chat.Message, error) {

@@ -442,7 +442,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	chatStore.SetAttachmentLoader(s.chat.AttachmentLoader)
 
 	s.withdrawalHandler = withdrawalhandler.New(s.log, s.statsClient, s.collectorAccountQueue, &s.wallet.RPC, s.modLogWebhook)
 

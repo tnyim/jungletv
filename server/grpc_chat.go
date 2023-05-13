@@ -15,6 +15,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/stats"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -266,7 +267,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
-		attachments = append(attachments, &chat.MessageAttachmentTenorGifStorage{
+		attachments = append(attachments, &chatmanager.MessageAttachmentTenorGifStorage{
 			ID:   *r.TenorGifAttachment,
 			Cost: pointsCost,
 		})

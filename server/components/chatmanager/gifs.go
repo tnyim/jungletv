@@ -102,7 +102,7 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 	return results, next, nil
 }
 
-func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *chat.MessageAttachmentTenorGifView {
+func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *MessageAttachmentTenorGifView {
 	url := ""
 	fallbackURL := ""
 	var width, height int
@@ -121,7 +121,7 @@ func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *chat.MessageAtt
 		return nil
 	}
 
-	return &chat.MessageAttachmentTenorGifView{
+	return &MessageAttachmentTenorGifView{
 		ID:               gifObject.Id,
 		VideoURL:         url,
 		VideoFallbackURL: fallbackURL,
@@ -131,7 +131,7 @@ func produceTenorGifCacheEntry(gifObject tenorclient.GifObject) *chat.MessageAtt
 	}
 }
 
-func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (*chat.MessageAttachmentTenorGifView, error) {
+func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (chat.MessageAttachmentView, error) {
 	v, err, _ := c.getTenorGifInfoSingleflightGroup.Do(id, func() (interface{}, error) {
 		info, present := c.tenorGifCache.Get(id)
 		if present {
@@ -164,7 +164,7 @@ func (c *Manager) getTenorGifInfo(ctx context.Context, id string) (*chat.Message
 	if v == nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	return v.(*chat.MessageAttachmentTenorGifView), stacktrace.Propagate(err, "")
+	return v.(*MessageAttachmentTenorGifView), stacktrace.Propagate(err, "")
 }
 
 func (c *Manager) TenorGifAttachmentCostForUser(ctx context.Context, user auth.User) (int, error) {

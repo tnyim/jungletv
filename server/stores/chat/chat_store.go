@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -29,27 +31,34 @@ type Store interface {
 	LoadMessage(context.Context, snowflake.ID) (*Message, error)
 	SetUserNickname(context.Context, auth.User, *string) error
 	GetUserNickname(context.Context, auth.User) *string
+	SetAttachmentLoaderForType(attachmentType string, attachmentLoader AttachmentLoader)
+	LoadAttachment(ctx context.Context, attachmentString string) (MessageAttachmentView, error)
 }
 
+// AttachmentLoader transforms a DB-serialized attachment storage model into the respective view model
 type AttachmentLoader func(context.Context, string) (MessageAttachmentView, error)
 
 // ChatStoreDatabase stores messages in the database
 type ChatStoreDatabase struct {
-	log              *log.Logger
-	nicknameCache    usercache.UserCache
-	attachmentLoader AttachmentLoader
+	log                 *log.Logger
+	nicknameCache       usercache.UserCache
+	attachmentLoaders   map[string]AttachmentLoader
+	attachmentLoadersMu sync.RWMutex
 }
 
 // NewStoreDatabase initializes and returns a new ChatStoreDatabase
 func NewStoreDatabase(log *log.Logger, nicknameCache usercache.UserCache) *ChatStoreDatabase {
 	return &ChatStoreDatabase{
-		log:           log,
-		nicknameCache: nicknameCache,
+		log:               log,
+		nicknameCache:     nicknameCache,
+		attachmentLoaders: make(map[string]AttachmentLoader),
 	}
 }
 
-func (s *ChatStoreDatabase) SetAttachmentLoader(attachmentLoader AttachmentLoader) {
-	s.attachmentLoader = attachmentLoader
+func (s *ChatStoreDatabase) SetAttachmentLoaderForType(attachmentType string, attachmentLoader AttachmentLoader) {
+	s.attachmentLoadersMu.Lock()
+	defer s.attachmentLoadersMu.Unlock()
+	s.attachmentLoaders[attachmentType] = attachmentLoader
 }
 
 type dbChatMsg struct {
@@ -97,7 +106,7 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*s
 	}
 
 	for _, attachment := range m.Attachments {
-		message.Attachments = append(message.Attachments, attachment.SerializeForDatabase(ctx))
+		message.Attachments = append(message.Attachments, attachment.AttachmentType()+":"+attachment.SerializeForDatabase(ctx))
 	}
 
 	var nickname *string
@@ -172,7 +181,7 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 
 	attachments := []MessageAttachmentView{}
 	for _, a := range deletedMsg.Attachments {
-		loaded, err := s.attachmentLoader(ctx, a)
+		loaded, err := s.LoadAttachment(ctx, a)
 		if err != nil {
 			log.Println(stacktrace.Propagate(err, ""))
 		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
@@ -424,7 +433,7 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(ctx context.Context,
 		}
 	}
 	for _, a := range message.Attachments {
-		loaded, err := s.attachmentLoader(ctx, a)
+		loaded, err := s.LoadAttachment(ctx, a)
 		if err != nil {
 			log.Println(stacktrace.Propagate(err, ""))
 		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
@@ -511,4 +520,23 @@ func (s *ChatStoreDatabase) GetUserNickname(ctx context.Context, user auth.User)
 		return user.Nickname()
 	}
 	return nil
+}
+
+func (s *ChatStoreDatabase) LoadAttachment(ctx context.Context, attachmentString string) (MessageAttachmentView, error) {
+	s.attachmentLoadersMu.RLock()
+	defer s.attachmentLoadersMu.RUnlock()
+
+	parts := strings.SplitN(attachmentString, ":", 2)
+	if loader, ok := s.attachmentLoaders[parts[0]]; ok {
+		data := ""
+		if len(parts) > 1 {
+			data = parts[1]
+		}
+		view, err := loader(ctx, data)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		return view, nil
+	}
+	return nil, stacktrace.NewError("unknown attachment type")
 }

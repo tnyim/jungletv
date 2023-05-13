@@ -55,7 +55,7 @@ func (s *HTTPServer) ApplicationPage(w http.ResponseWriter, r *http.Request) err
 	vars := mux.Vars(r)
 
 	applicationID := vars["app"]
-	pageID := vars["page"]
+	pageID := vars["page"][1:]
 
 	fileInfo, version, ok := s.appRunner.ResolvePage(applicationID, pageID)
 	if !ok {

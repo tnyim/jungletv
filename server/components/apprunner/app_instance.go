@@ -107,13 +107,6 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
 	instance.modules.RegisterNativeModule(process.New(instance, instance))
 	instance.modules.RegisterNativeModule(
-		chat.New(
-			instance.appLogger,
-			d.ChatManager,
-			instance.applicationUser,
-			instance.runOnLoopLogError,
-			scheduleFunctionNoError))
-	instance.modules.RegisterNativeModule(
 		points.New(d.PointsManager,
 			instance.runOnLoopLogError,
 			scheduleFunctionNoError,
@@ -122,6 +115,15 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(db.New(scheduleFunctionNoError))
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
+	instance.modules.RegisterNativeModule(
+		chat.New(
+			instance.appLogger,
+			instance,
+			d.ChatManager,
+			instance.pagesModule,
+			instance.applicationUser,
+			instance.runOnLoopLogError,
+			scheduleFunctionNoError))
 	instance.rpcModule = rpc.New()
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))

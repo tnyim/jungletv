@@ -228,7 +228,7 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 
 	info, ok := m.pagesModule.ResolvePage(pageID)
 	if !ok {
-		panic(m.runtime.NewTypeError("Page not published"))
+		panic(m.runtime.NewTypeError("First argument to createMessageWithPageAttachment must be the ID of a published page"))
 	}
 
 	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, configurationmanager.SidebarTabData{

@@ -73,7 +73,7 @@ func (m *Message) SerializeForJS(ctx context.Context, dateSerializer func(time.T
 
 	attachments := []map[string]interface{}{}
 	for _, a := range m.AttachmentsView {
-		attachments = append(attachments, a.SerializeForJS(ctx))
+		attachments = append(attachments, a.SerializeForJS(ctx, dateSerializer))
 	}
 	result["attachments"] = attachments
 

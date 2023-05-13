@@ -30,6 +30,22 @@ func (d ApplicationVersion) Value() (driver.Value, error) {
 	return time.Time(d), nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (d *ApplicationVersion) UnmarshalJSON(b []byte) error {
+	var t time.Time
+	err := t.UnmarshalJSON(b)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	*d = ApplicationVersion(t)
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface
+func (d ApplicationVersion) MarshalJSON() ([]byte, error) {
+	return time.Time(d).MarshalJSON()
+}
+
 // Application represents an application
 type Application struct {
 	ID               string             `dbKey:"true"`

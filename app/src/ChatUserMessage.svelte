@@ -11,6 +11,7 @@
     import { getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
     import { UserRole } from "./proto/common_pb";
 
+    import ApplicationPage from "./ApplicationPage.svelte";
     import { ChatMessage, ChatMessageAttachment } from "./proto/jungletv_pb";
     import { blockedUsers, collapseGifs, rewardAddress } from "./stores";
     import VisibilityGuard from "./uielements/VisibilityGuard.svelte";
@@ -230,6 +231,14 @@
                         </button>
                     {/if}
                 </div>
+            {:else if attachment.getAttachmentCase() === ChatMessageAttachment.AttachmentCase.APPLICATION_PAGE}
+                <ApplicationPage
+                    applicationID={attachment.getApplicationPage().getApplicationId()}
+                    pageID={attachment.getApplicationPage().getPageId()}
+                    preloadedPageInfo={attachment.getApplicationPage().getPageInfo()}
+                    mode="chatattachment"
+                    fixedHeight={attachment.getApplicationPage().getHeight()}
+                />
             {/if}
         {/each}
     </div>

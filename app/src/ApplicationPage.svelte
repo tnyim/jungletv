@@ -13,25 +13,32 @@
         ParentEvents,
         ParentMethods,
     } from "../appbridge/common/model";
+    import NotFound from "./NotFound.svelte";
     import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
-    import NotFound from "./NotFound.svelte";
     import { pageTitleApplicationPage } from "./pageTitleStores";
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
-    import { consumeStreamRPC, StreamRequestController } from "./rpcUtils";
+    import { StreamRequestController, consumeStreamRPC } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
 
     export let applicationID: string;
     export let pageID: string;
-    export let mode: "sidebar" | "page" = "page";
+    export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
+    export let mode: "sidebar" | "page" | "chatattachment" = "page";
+    export let fixedHeight: number = 0;
     let applicationVersion: Date;
     let originalPageTitle: string;
 
     const dispatch = createEventDispatcher();
 
     async function resolvePage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
-        let r = await apiClient.resolveApplicationPage(applicationID, pageID);
+        let r: ResolveApplicationPageResponse;
+        if (typeof preloadedPageInfo !== "undefined") {
+            r = preloadedPageInfo;
+        } else {
+            r = await apiClient.resolveApplicationPage(applicationID, pageID);
+        }
         applicationVersion = r.getApplicationVersion().toDate();
         originalPageTitle = r.getPageTitle();
         if (mode == "page") {
@@ -44,6 +51,10 @@
 
     let iframe: HTMLIFrameElement;
     let jsonCleaner = (key, value) => (key === "__proto__" ? undefined : value);
+
+    $: if (typeof iframe !== "undefined" && fixedHeight !== 0) {
+        iframe.height = fixedHeight + "";
+    }
 
     onDestroy(() => {
         if (mode == "page") {
@@ -186,7 +197,9 @@
             await apiClient.triggerApplicationEvent(applicationID, pageID, data.name, jsonArgs);
         });
         connection.remoteHandle().addEventListener("pageResized", (args) => {
-            iframe.height = args.height + "";
+            if (fixedHeight == 0) {
+                iframe.height = args.height + "";
+            }
         });
 
         await connection.remoteHandle().once("handshook");

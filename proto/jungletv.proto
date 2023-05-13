@@ -477,6 +477,7 @@ message ChatMessage {
 message ChatMessageAttachment {
     oneof attachment {
         ChatMessageTenorGifAttachment tenor_gif = 1;
+        ChatMessageApplicationPageAttachment application_page = 2;
     }
 }
 
@@ -487,6 +488,13 @@ message ChatMessageTenorGifAttachment {
     string title = 4;
     int32 width = 5;
     int32 height = 6;
+}
+
+message ChatMessageApplicationPageAttachment {
+    string application_id = 1;
+    string page_id = 2;
+    int32 height = 3;
+    ResolveApplicationPageResponse page_info = 4;
 }
 
 message UserChatMessage {

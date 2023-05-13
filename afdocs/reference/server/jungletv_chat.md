@@ -66,9 +66,43 @@ chat.createMessage(content, referenceID)
 ##### Parameters
 
 - `content` - A string containing the content of the message.
+  It must not be empty or consist of only whitespace characters.
   The content will be parsed as a restricted subset of [GitHub Flavored Markdown](https://github.github.com/gfm/) by the JungleTV clients.
   Consider escaping any characters that may unintentionally constitute Markdown formatting.
   Message contents are subject to some of the validation rules of chat messages sent by users, but do not have an explicit length limit.
+- `referenceID` - An optional string containing the ID of another message to which this one is a reply.
+  The message must not be a system message.
+  This message reference may be removed from the message at a later point, if the referenced message is deleted.
+
+##### Return value
+
+A [message object](#message-object) representing the created chat message.
+
+### `createMessageWithPageAttachment()`
+
+Similar to [createMessage()](#createmessage), creates a new chat message including an application page as an attachment.
+The message will appear as having been sent by the application, with the [nickname](#nickname) that is currently set.
+The specified page must correspond to a page published by the caller application.
+Optionally, the message may reference another non-system message to which it is a reply.
+
+#### Syntax
+
+```js
+chat.createMessageWithPageAttachment(content, pageID, height)
+chat.createMessageWithPageAttachment(content, pageID, height, referenceID)
+```
+
+##### Parameters
+
+- `content` - A string containing the content of the message.
+  Unlike with [createMessage()](#createmessage), **the content may be empty**.
+  The content will be parsed as a restricted subset of [GitHub Flavored Markdown](https://github.github.com/gfm/) by the JungleTV clients.
+  Consider escaping any characters that may unintentionally constitute Markdown formatting.
+  Message contents are subject to some of the validation rules of chat messages sent by users, but do not have an explicit length limit.
+- `pageID` - The ID of the application page to attach, as specified when publishing the page using e.g. [publishFile()](jungletv_pages#publishfile).
+  The attached application page will be displayed below the content.
+- `height` - The non-zero height of the application page in pixels as it will be displayed in the chat history.
+  The maximum height is 512 pixels.
 - `referenceID` - An optional string containing the ID of another message to which this one is a reply.
   The message must not be a system message.
   This message reference may be removed from the message at a later point, if the referenced message is deleted.
@@ -284,3 +318,16 @@ Note that despite the "GIF" name, these are typically served as web-compatible v
 | `title`            | string | The title of the Tenor GIF.                                                                 |
 | `width`            | number | The width of the GIF in pixels.                                                             |
 | `height`           | number | The height of the GIF in pixels.                                                            |
+
+#### `apppage` attachment object
+
+Corresponds to an attached application page, e.g. as attached using [createMessageWithPageAttachment()](#createmessagewithpageattachment) by this or other application.
+
+| Field                | Type   | Description                                                                                |
+| -------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| `type`               | string | Guaranteed to be `apppage` for this type of attachment.                                    |
+| `applicationID`      | string | The ID of the application the attached page belongs to.                                    |
+| `applicationVersion` | string | The version of the application the attached page belongs to.                               |
+| `pageID`             | string | The ID of the page.                                                                        |
+| `pageTitle`          | string | The default title of the application page.                                                 |
+| `height`             | number | The height of the application page in pixels as it would be displayed in the chat history. |

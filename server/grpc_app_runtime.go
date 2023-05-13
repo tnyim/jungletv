@@ -18,9 +18,8 @@ func (s *grpcServer) ResolveApplicationPage(ctx context.Context, r *proto.Resolv
 	}
 
 	return &proto.ResolveApplicationPageResponse{
-		ApplicationFileName: pageInfo.File,
-		PageTitle:           pageInfo.Title,
-		ApplicationVersion:  timestamppb.New(time.Time(appVersion)),
+		PageTitle:          pageInfo.Title,
+		ApplicationVersion: timestamppb.New(time.Time(appVersion)),
 	}, nil
 }
 

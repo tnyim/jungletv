@@ -1681,6 +1681,11 @@ export class ChatMessageAttachment extends jspb.Message {
   getTenorGif(): ChatMessageTenorGifAttachment | undefined;
   setTenorGif(value?: ChatMessageTenorGifAttachment): void;
 
+  hasApplicationPage(): boolean;
+  clearApplicationPage(): void;
+  getApplicationPage(): ChatMessageApplicationPageAttachment | undefined;
+  setApplicationPage(value?: ChatMessageApplicationPageAttachment): void;
+
   getAttachmentCase(): ChatMessageAttachment.AttachmentCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChatMessageAttachment.AsObject;
@@ -1695,11 +1700,13 @@ export class ChatMessageAttachment extends jspb.Message {
 export namespace ChatMessageAttachment {
   export type AsObject = {
     tenorGif?: ChatMessageTenorGifAttachment.AsObject,
+    applicationPage?: ChatMessageApplicationPageAttachment.AsObject,
   }
 
   export enum AttachmentCase {
     ATTACHMENT_NOT_SET = 0,
     TENOR_GIF = 1,
+    APPLICATION_PAGE = 2,
   }
 }
 
@@ -1740,6 +1747,40 @@ export namespace ChatMessageTenorGifAttachment {
     title: string,
     width: number,
     height: number,
+  }
+}
+
+export class ChatMessageApplicationPageAttachment extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getPageId(): string;
+  setPageId(value: string): void;
+
+  getHeight(): number;
+  setHeight(value: number): void;
+
+  hasPageInfo(): boolean;
+  clearPageInfo(): void;
+  getPageInfo(): application_runtime_pb.ResolveApplicationPageResponse | undefined;
+  setPageInfo(value?: application_runtime_pb.ResolveApplicationPageResponse): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMessageApplicationPageAttachment.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMessageApplicationPageAttachment): ChatMessageApplicationPageAttachment.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMessageApplicationPageAttachment, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMessageApplicationPageAttachment;
+  static deserializeBinaryFromReader(message: ChatMessageApplicationPageAttachment, reader: jspb.BinaryReader): ChatMessageApplicationPageAttachment;
+}
+
+export namespace ChatMessageApplicationPageAttachment {
+  export type AsObject = {
+    applicationId: string,
+    pageId: string,
+    height: number,
+    pageInfo?: application_runtime_pb.ResolveApplicationPageResponse.AsObject,
   }
 }
 
