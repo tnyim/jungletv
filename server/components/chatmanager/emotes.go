@@ -62,7 +62,7 @@ func (c *Manager) processEmotesForStorage(ctx context.Context, author auth.User,
 			// escape it
 			return `\` + s[0]
 		}
-		if emote.RequiresSubscription && !author.IsUnknown() {
+		if emote.RequiresSubscription && !author.IsUnknown() && author.ApplicationID() == "" {
 			currentlySubscribed, err := c.pointsManager.IsUserCurrentlySubscribed(ctx, author)
 			if err != nil {
 				outerError = stacktrace.Propagate(err, "")

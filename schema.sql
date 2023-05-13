@@ -91,7 +91,8 @@ CREATE TABLE IF NOT EXISTS "document" (
 CREATE TABLE IF NOT EXISTS "chat_user" (
     "address" VARCHAR(64) PRIMARY KEY,
     permission_level VARCHAR(36) NOT NULL,
-    nickname VARCHAR(32)
+    nickname VARCHAR(32),
+    "application_id" VARCHAR(36)
 );
 
 CREATE TABLE IF NOT EXISTS "chat_message" (

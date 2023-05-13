@@ -78,6 +78,25 @@ func GetApplicationsWithIDs(node sqalx.Node, ids []string) (map[string]*Applicat
 	return result, nil
 }
 
+// GetEarliestVersionOfApplication returns the earliest version of the application with the specified ID
+func GetEarliestVersionOfApplication(node sqalx.Node, id string) (ApplicationVersion, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return ApplicationVersion{}, stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var version ApplicationVersion
+	err = sdb.Select("MIN(application.updated_at)").
+		From("application").
+		Where(sq.Eq{"application.id": id}).
+		RunWith(tx).QueryRow().Scan(&version)
+	if err != nil {
+		return ApplicationVersion{}, stacktrace.Propagate(err, "")
+	}
+	return version, nil
+}
+
 // Update updates or inserts the Application
 func (obj *Application) Update(node sqalx.Node) error {
 	return Update(node, obj)

@@ -30,5 +30,9 @@ func (u *unknownUser) IsFromAlienChain() bool {
 	return true
 }
 
+func (u *unknownUser) ApplicationID() string {
+	return ""
+}
+
 func (u *unknownUser) SetNickname(s *string) {
 }

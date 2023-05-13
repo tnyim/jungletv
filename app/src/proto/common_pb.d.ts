@@ -70,6 +70,7 @@ export interface UserRoleMap {
   TIER_3_REQUESTER: 3;
   CURRENT_ENTRY_REQUESTER: 4;
   VIP: 5;
+  APPLICATION: 6;
 }
 
 export const UserRole: UserRoleMap;

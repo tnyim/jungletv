@@ -32,7 +32,7 @@ func (manager *JWTManager) Generate(rewardAddress string, permissionLevel Permis
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiration.Unix(),
 		},
-		userInfo: userInfo{
+		authenticatedUser: authenticatedUser{
 			RewardAddress: rewardAddress,
 			PermLevel:     permissionLevel,
 			Username:      username,

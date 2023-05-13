@@ -4,9 +4,9 @@
 
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { apiClient } from "./api_client";
     import ChatGifAttachment from "./ChatGifAttachment.svelte";
     import ChatMessageDetails from "./ChatMessageDetails.svelte";
+    import { apiClient } from "./api_client";
 
     import { getClassForMessageAuthor, getReadableMessageAuthor } from "./chat_utils";
     import { UserRole } from "./proto/common_pb";
@@ -56,6 +56,8 @@
         );
         return [result.replaceAll("<a ", '<a target="_blank" rel="noopener" '), emotesOnly];
     }
+
+    $: rolesList = message?.getUserMessage()?.getAuthor()?.getRolesList() ?? [];
 
     let renderedMessage = "";
     let emotesOnly = false;
@@ -120,7 +122,7 @@
 >
     {#if mode == "moderation"}
         <button type="button" class="inline" on:click={() => removeChatMessage()}>
-            <i class="fas fa-trash " />
+            <i class="fas fa-trash" />
         </button>
         <button type="button" class="inline ml-1" on:click={() => dispatch("history")}>
             <i class="fas fa-history" />
@@ -150,21 +152,29 @@
                 }
             }}
         >
-            <VisibilityGuard let:visible divClass="inline">
-                {#if visible}
-                    <img
-                        src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress())}
-                        alt="&nbsp;"
-                        title="monKey for this user's address"
-                        class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1"
-                    />
-                {:else}
-                    <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
-                {/if}
-            </VisibilityGuard>
-            <span class={getClassForMessageAuthor(message)}
-                >{getReadableMessageAuthor(message)}</span
-            >{#if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR) && message
+            {#if rolesList.includes(UserRole.APPLICATION)}
+                <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1">
+                    <i class="fas fa-robot text-gray-600 dark:text-gray-400" />
+                </div>
+            {:else}
+                <VisibilityGuard let:visible divClass="inline">
+                    {#if visible}
+                        <img
+                            src={buildMonKeyURL(message.getUserMessage().getAuthor().getAddress())}
+                            alt="&nbsp;"
+                            title="monKey for this user's address"
+                            class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1"
+                        />
+                    {:else}
+                        <div class="inline-block h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1" />
+                    {/if}
+                </VisibilityGuard>
+            {/if}
+            <span class={getClassForMessageAuthor(message)}>{getReadableMessageAuthor(message)}</span>{#if message
+                .getUserMessage()
+                .getAuthor()
+                .getRolesList()
+                .includes(UserRole.MODERATOR) && message
                     .getUserMessage()
                     .getAuthor()
                     .getRolesList()
@@ -172,11 +182,11 @@
                 <i
                     class="fas fa-shield-alt text-xs ml-1 text-yellow-400 dark:text-yellow-600"
                     title="VIP Chat moderator"
-                />{:else if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.VIP)}
+                />{:else if rolesList.includes(UserRole.VIP)}
                 <i
                     class="fas fa-crown text-xs ml-1 text-yellow-400 dark:text-yellow-600"
                     title="VIP"
-                />{:else if message.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)}
+                />{:else if rolesList.includes(UserRole.MODERATOR)}
                 <i
                     class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
                     title="Chat moderator"

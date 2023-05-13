@@ -28,6 +28,7 @@ type Store interface {
 	LoadNumLatestMessagesFromUser(context.Context, auth.User, int) ([]*Message, error)
 	LoadMessage(context.Context, snowflake.ID) (*Message, error)
 	SetUserNickname(context.Context, auth.User, *string) error
+	GetUserNickname(context.Context, auth.User) *string
 }
 
 type AttachmentLoader func(context.Context, string) (MessageAttachmentView, error)
@@ -62,22 +63,22 @@ type dbChatMsg struct {
 }
 
 type dbChatMsgWithReference struct {
-	ID                    snowflake.ID   `db:"id"`
-	CreatedAt             time.Time      `db:"created_at"`
-	Author                *string        `db:"author"`
-	AuthorPermissionLevel *string        `db:"author_permission_level"`
-	Content               string         `db:"content"`
-	Reference             *snowflake.ID  `db:"reference"`
-	Shadowbanned          bool           `db:"shadowbanned"`
-	Attachments           pq.StringArray `db:"attachments"`
-	ReferenceID           *snowflake.ID  `db:"reference_id"`
-	ReferenceCreatedAt    *time.Time     `db:"reference_created_at"`
-	ReferenceAuthor       *string        `db:"reference_author"`
-	ReferenceContent      *string        `db:"reference_content"`
-	Address               *string        `db:"address"`
-	PermissionLevel       *string        `db:"permission_level"`
-	Nickname              *string        `db:"nickname"`
-	ReferenceNickname     *string        `db:"reference_nickname"`
+	ID                 snowflake.ID   `db:"id"`
+	CreatedAt          time.Time      `db:"created_at"`
+	Author             *string        `db:"author"`
+	Content            string         `db:"content"`
+	Reference          *snowflake.ID  `db:"reference"`
+	Shadowbanned       bool           `db:"shadowbanned"`
+	Attachments        pq.StringArray `db:"attachments"`
+	ReferenceID        *snowflake.ID  `db:"reference_id"`
+	ReferenceCreatedAt *time.Time     `db:"reference_created_at"`
+	ReferenceAuthor    *string        `db:"reference_author"`
+	ReferenceContent   *string        `db:"reference_content"`
+	Address            *string        `db:"address"`
+	PermissionLevel    *string        `db:"permission_level"`
+	Nickname           *string        `db:"nickname"`
+	ApplicationID      *string        `db:"application_id"`
+	ReferenceNickname  *string        `db:"reference_nickname"`
 }
 
 func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*string, error) {
@@ -104,19 +105,28 @@ func (s *ChatStoreDatabase) StoreMessage(ctxCtx context.Context, m *Message) (*s
 		a := m.Author.Address()
 		message.Author = &a
 
-		err = ctx.Tx().GetContext(ctx, &nickname, `
-		INSERT INTO chat_user ("address", permission_level, nickname)
-		VALUES ($1, $2, $3)
+		var returning struct {
+			Nickname      *string `db:"nickname"`
+			ApplicationID *string `db:"application_id"`
+		}
+
+		var applicationID *string
+		if id := m.Author.ApplicationID(); id != "" {
+			applicationID = &id
+		}
+
+		err = ctx.Tx().GetContext(ctx, &returning, `
+		INSERT INTO chat_user ("address", permission_level, nickname, application_id)
+		VALUES ($1, $2, $3, $4)
 		ON CONFLICT ("address") DO UPDATE SET permission_level = $2
-		RETURNING nickname`,
-			a, m.Author.PermissionLevel(), nil,
+		RETURNING nickname, application_id`,
+			a, m.Author.PermissionLevel(), nil, applicationID,
 		)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
-		userToSave := auth.NewAddressOnlyUserWithPermissionLevel(a, m.Author.PermissionLevel())
-		userToSave.SetNickname(nickname)
-		err = s.nicknameCache.CacheUser(ctx, userToSave)
+		nickname = returning.Nickname
+		err = s.nicknameCache.CacheUser(ctx, auth.BuildNonAuthorizedUser(a, m.Author.PermissionLevel(), returning.Nickname, returning.ApplicationID))
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -210,6 +220,7 @@ func (s *ChatStoreDatabase) LoadMessagesBetween(ctxCtx context.Context, includeS
 		u.address AS address,
 		u.permission_level AS permission_level,
 		u.nickname AS nickname,
+		u.application_id AS application_id,
 		v.nickname AS reference_nickname
 		FROM
 			chat_message a
@@ -266,6 +277,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessages(ctxCtx context.Context, includ
 			b.content AS reference_content,
 			u.address AS address,
 			u.permission_level AS permission_level,
+			u.application_id AS application_id,
 			u.nickname AS nickname,
 			v.nickname AS reference_nickname
 		FROM
@@ -320,6 +332,7 @@ func (s *ChatStoreDatabase) LoadNumLatestMessagesFromUser(ctxCtx context.Context
 			b.content AS reference_content,
 			u.address AS address,
 			u.permission_level AS permission_level,
+			u.application_id AS application_id,
 			u.nickname AS nickname
 		FROM
 			chat_message a
@@ -372,6 +385,7 @@ func (s *ChatStoreDatabase) LoadMessage(ctxCtx context.Context, id snowflake.ID)
 			b.content AS reference_content,
 			u.address AS address,
 			u.permission_level AS permission_level,
+			u.application_id AS application_id,
 			u.nickname AS nickname
 		FROM
 			chat_message a
@@ -396,8 +410,7 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(ctx context.Context,
 		Content:   message.Content,
 	}
 	if message.Author != nil {
-		chatMessage.Author = auth.NewAddressOnlyUserWithPermissionLevel(*message.Author, auth.PermissionLevel(*message.PermissionLevel))
-		chatMessage.Author.SetNickname(message.Nickname)
+		chatMessage.Author = auth.BuildNonAuthorizedUser(*message.Author, auth.PermissionLevel(*message.PermissionLevel), message.Nickname, message.ApplicationID)
 	}
 	if message.ReferenceID != nil {
 		chatMessage.Reference = &Message{
@@ -435,30 +448,43 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user auth.Us
 		}
 	}
 
-	if len(levelsAbove) > 0 {
-		rows := []int{}
-		query, args, err := sqlx.In(`
-		SELECT 1 FROM chat_user WHERE nickname = ? AND permission_level IN (?)`,
-			nickname, levelsAbove)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-		query = ctx.Rebind(query)
-		err = ctx.Tx().SelectContext(ctx, &rows, query, args...)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
+	if len(levelsAbove) == 0 {
+		levelsAbove = []string{"INVALID"}
+	}
 
-		if len(rows) > 0 {
-			return stacktrace.NewError("this nickname is in use by a user with more privileges")
-		}
+	rows := []int{}
+	query, args, err := sqlx.In(`
+		SELECT 1
+		FROM chat_user
+		WHERE (
+				nickname = ? OR (nickname IS NULL AND application_id = ?)
+			) AND (
+				permission_level IN (?) OR application_id IS NOT NULL
+			)`,
+		nickname, nickname, levelsAbove)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	query = ctx.Rebind(query)
+	err = ctx.Tx().SelectContext(ctx, &rows, query, args...)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	if len(rows) > 0 {
+		return stacktrace.NewError("this nickname is in use by a user with more privileges")
+	}
+
+	var applicationID *string
+	if id := user.ApplicationID(); id != "" {
+		applicationID = &id
 	}
 
 	_, err = ctx.ExecContext(ctx, `
-		INSERT INTO chat_user ("address", permission_level, nickname)
-		VALUES ($1, $2, $3)
+		INSERT INTO chat_user ("address", permission_level, nickname, application_id)
+		VALUES ($1, $2, $3, $4)
 		ON CONFLICT ("address") DO UPDATE SET nickname = $3`,
-		user.Address(), user.PermissionLevel(), nickname,
+		user.Address(), user.PermissionLevel(), nickname, applicationID,
 	)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -471,4 +497,18 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user auth.Us
 	}
 
 	return stacktrace.Propagate(ctx.Commit(), "")
+}
+
+func (s *ChatStoreDatabase) GetUserNickname(ctx context.Context, user auth.User) *string {
+	if user == nil || user.IsUnknown() {
+		return nil
+	}
+	user, err := s.nicknameCache.GetOrFetchUser(ctx, user.Address())
+	if err != nil {
+		return nil
+	}
+	if user != nil && !user.IsUnknown() {
+		return user.Nickname()
+	}
+	return nil
 }

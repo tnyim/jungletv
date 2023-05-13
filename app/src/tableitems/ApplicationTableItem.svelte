@@ -29,7 +29,7 @@
     async function deleteApplication() {
         if (
             (await modalPrompt(
-                "Are you sure? This will permanently delete all current and past versions of the application.\nTo proceed, type the application ID '" +
+                "Are you sure? This will permanently delete all current and past versions of the application.\nAny FUNDS in the application wallet will also be LOST FOREVER.\n\nTo proceed, type the application ID '" +
                     application.getId() +
                     "':",
                 `Delete application ${application.getId()}`,

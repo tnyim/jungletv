@@ -24,18 +24,20 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	var ok bool
-	if (c.slowmode || banned) && !auth.UserPermissionLevelIsAtLeast(author, auth.AdminPermissionLevel) {
-		_, _, _, ok, err = c.slowmodeRateLimiter.Take(ctx, author.Address())
-	} else {
-		_, _, _, ok, err = c.rateLimiter.Take(ctx, author.Address())
-	}
+	if author.ApplicationID() == "" {
+		var ok bool
+		if (c.slowmode || banned) && !auth.UserPermissionLevelIsAtLeast(author, auth.AdminPermissionLevel) {
+			_, _, _, ok, err = c.slowmodeRateLimiter.Take(ctx, author.Address())
+		} else {
+			_, _, _, ok, err = c.rateLimiter.Take(ctx, author.Address())
+		}
 
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	if !ok {
-		return nil, stacktrace.NewError("rate limit reached")
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+		if !ok {
+			return nil, stacktrace.NewError("rate limit reached")
+		}
 	}
 
 	content = strings.TrimSpace(content)

@@ -11,7 +11,10 @@ import (
 
 func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *proto.User {
 	userAddress := user.Address()
-	fetchedUser, _ := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
+	fetchedUser, err := s.nicknameCache.GetOrFetchUser(ctx, userAddress)
+	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+		user = fetchedUser
+	}
 
 	s.vipUsersMutex.RLock()
 	vipUserAppearance, isVip := s.vipUsers[userAddress]
@@ -27,8 +30,9 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		case vipUserAppearanceVIPModerator:
 			roles = append(roles, proto.UserRole_VIP, proto.UserRole_MODERATOR)
 		}
-	} else if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) ||
-		(fetchedUser != nil && auth.UserPermissionLevelIsAtLeast(fetchedUser, auth.AdminPermissionLevel)) {
+	} else if user.ApplicationID() != "" {
+		roles = append(roles, proto.UserRole_APPLICATION)
+	} else if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
 
@@ -52,12 +56,12 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 	serializingForUser := authinterceptor.UserClaimsFromContext(ctx)
 	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.RewardAddress == userAddress)) {
 		nickname = user.Nickname()
-		if nickname == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
-			nickname = fetchedUser.Nickname()
-		}
 		if nickname != nil && strings.TrimSpace(*nickname) == "" {
 			nickname = nil
 		}
+	}
+	if id := user.ApplicationID(); nickname == nil && id != "" {
+		nickname = &id
 	}
 
 	return &proto.User{

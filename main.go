@@ -24,14 +24,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/hectorchu/gonano/rpc"
-	"github.com/hectorchu/gonano/wallet"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/jmoiron/sqlx"
 	"github.com/klauspost/compress/gzhttp"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/httpserver"
 	"github.com/tnyim/jungletv/proto"
@@ -120,7 +119,7 @@ func main() {
 	}
 	defer statsClient.Close()
 
-	wallet, err := buildWallet(secrets)
+	wallet, appWalletBuilder, err := buildWallet(secrets)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -211,7 +210,18 @@ func main() {
 			if !present {
 				mainLog.Fatalln("Basic auth password not present in keybox")
 			}
-			basicAuthChecker = func(username, password string) bool {
+			rateLimiter, err := memorystore.New(&memorystore.Config{
+				Tokens:   5,
+				Interval: time.Minute,
+			})
+			if err != nil {
+				mainLog.Fatalln("Failed to create rate limiter: ", err)
+			}
+			basicAuthChecker = func(ip, username, password string) bool {
+				_, _, _, ok, err := rateLimiter.Take(ctx, ip)
+				if err != nil || !ok {
+					return false
+				}
 				return username == correctUsername && password == correctPassword
 			}
 		} else if buildconfig.DEBUG {
@@ -367,7 +377,7 @@ func main() {
 		NanswapAPIKey:            nanswapAPIKey,
 		TurnstileSecretKey:       turnstileSecretKey,
 		ConfigManager:            configManager,
-		AppRunner:                apprunner.New(ctx, apiLog, configManager),
+		AppRunner:                apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
 	}
 
 	apiServer, err := server.NewServer(ctx, options)
@@ -414,35 +424,6 @@ func init() {
 	versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
 	grpclog.SetLogger(grpcLog)
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
-}
-
-func buildWallet(secrets *keybox.Keybox) (*wallet.Wallet, error) {
-	seedHex, present := secrets.Get("walletSeed")
-	if !present {
-		return nil, stacktrace.NewError("wallet seed not present in keybox")
-	}
-	seed, err := hex.DecodeString(seedHex)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "failed to decode seed")
-	}
-
-	wallet, err := wallet.NewBananoWallet(seed)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "failed to create wallet")
-	}
-	wallet.WorkDifficulty = "fffffe0000000000"
-	wallet.ReceiveWorkDifficulty = "fffffe0000000000"
-
-	walletRPCAddress, present := secrets.Get("walletRPCAddress")
-	if present {
-		wallet.RPC = rpc.Client{URL: walletRPCAddress}
-	}
-
-	walletWorkRPCAddress, present := secrets.Get("walletWorkRPCAddress")
-	if present {
-		wallet.RPCWork = rpc.Client{URL: walletWorkRPCAddress}
-	}
-	return wallet, nil
 }
 
 type combinedServer struct {

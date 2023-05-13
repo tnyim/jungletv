@@ -15,7 +15,9 @@ import (
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/eventloop"
 	"github.com/dop251/goja_nodejs/require"
+	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/configuration"
@@ -36,6 +38,8 @@ import (
 type appInstance struct {
 	applicationID      string
 	applicationVersion types.ApplicationVersion
+	applicationUser    auth.User
+	applicationWallet  *wallet.Wallet
 	mu                 sync.RWMutex
 	running            bool
 	startedOnce        bool
@@ -74,10 +78,11 @@ var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application
 // ErrApplicationInstanceNotRunning is returned when the specified application is not running
 var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
 
-func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, d modules.Dependencies) (*appInstance, error) {
+func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *wallet.Wallet, d modules.Dependencies) (*appInstance, error) {
 	instance := &appInstance{
 		applicationID:                   applicationID,
 		applicationVersion:              applicationVersion,
+		applicationWallet:               applicationWallet,
 		onPaused:                        event.NewNoArg(),
 		onTerminated:                    event.NewNoArg(),
 		runner:                          r,
@@ -85,6 +90,13 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		appLogger:                       NewAppLogger(d.ModLogWebhook, applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
 	}
+
+	accountIndex := uint32(0)
+	account, err := applicationWallet.NewAccount(&accountIndex)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	instance.applicationUser = auth.NewApplicationUser(account.Address(), instance.applicationID)
 
 	scheduleFunctionNoError := func(f func(vm *goja.Runtime)) {
 		instance.runOnLoopWithInterruption(instance.ctx, f, func(x interface{}) {
@@ -98,6 +110,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		chat.New(
 			instance.appLogger,
 			d.ChatManager,
+			instance.applicationUser,
 			instance.runOnLoopLogError,
 			scheduleFunctionNoError))
 	instance.modules.RegisterNativeModule(

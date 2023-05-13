@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
@@ -50,6 +51,7 @@ type AppRunner struct {
 	workerContext                  context.Context
 	log                            *log.Logger
 	configManager                  *configurationmanager.Manager
+	walletBuilder                  WalletBuilder
 	instances                      map[string]*appInstance
 	recentLogs                     *cache.Cache[string, ApplicationLog]
 	instancesLock                  sync.RWMutex
@@ -60,11 +62,17 @@ type AppRunner struct {
 	incomingClientEventRateLimiter limiter.Store
 }
 
+// WalletBuilder builds wallets for an application
+type WalletBuilder interface {
+	BuildApplicationWallet(applicationID string, earliestVersion types.ApplicationVersion) (*wallet.Wallet, error)
+}
+
 // New returns a new initialized AppRunner
 func New(
 	workerContext context.Context,
 	log *log.Logger,
-	configManager *configurationmanager.Manager) *AppRunner {
+	configManager *configurationmanager.Manager,
+	walletBuilder WalletBuilder) *AppRunner {
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   60,
 		Interval: 1 * time.Second,
@@ -75,6 +83,7 @@ func New(
 	return &AppRunner{
 		workerContext:                  workerContext,
 		configManager:                  configManager,
+		walletBuilder:                  walletBuilder,
 		instances:                      make(map[string]*appInstance),
 		recentLogs:                     cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
 		log:                            log,
@@ -172,7 +181,17 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		return stacktrace.NewError("an instance of this application already exists")
 	}
 
-	instance, err := newAppInstance(r, application.ID, specificVersion, r.moduleDependencies)
+	earliestVersion, err := types.GetEarliestVersionOfApplication(ctx, application.ID)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	wallet, err := r.walletBuilder.BuildApplicationWallet(application.ID, earliestVersion)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	instance, err := newAppInstance(r, application.ID, specificVersion, wallet, r.moduleDependencies)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

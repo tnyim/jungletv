@@ -1,20 +1,23 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/gbl08ma/ssoclient"
 	"github.com/gorilla/sessions"
+	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/utils"
 )
 
 var (
 	sessionStore     *sessions.CookieStore
 	daClient         *ssoclient.SSOClient
 	websiteURL       string
-	basicAuthChecker func(username, password string) bool
+	basicAuthChecker func(ip, username, password string) bool
 )
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
@@ -47,8 +50,19 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		authLog.Println(stacktrace.Propagate(err, ""))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if cfIP := r.Header.Get("cf-connecting-ip"); cfIP != "" {
+		ip = cfIP
+	}
+	ip = utils.GetUniquifiedIP(ip)
+
 	username, password, ok := r.BasicAuth()
-	if !ok || !basicAuthChecker(username, password) {
+	if !ok || !basicAuthChecker(ip, username, password) {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Enter username and password"`)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`Incorrect credentials`))

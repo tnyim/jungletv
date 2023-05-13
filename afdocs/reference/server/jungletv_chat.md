@@ -50,6 +50,33 @@ chat.removeEventListener(type, listener)
 
 None.
 
+### `createMessage()`
+
+Creates a new chat message, that is immediately sent to all connected chat clients and registered in the chat message history.
+The message will appear as having been sent by the application, with the [nickname](#nickname) that is currently set.
+Optionally, the message may reference another non-system message to which it is a reply.
+
+#### Syntax
+
+```js
+chat.createMessage(content)
+chat.createMessage(content, referenceID)
+```
+
+##### Parameters
+
+- `content` - A string containing the content of the message.
+  The content will be parsed as a restricted subset of [GitHub Flavored Markdown](https://github.github.com/gfm/) by the JungleTV clients.
+  Consider escaping any characters that may unintentionally constitute Markdown formatting.
+  Message contents are subject to some of the validation rules of chat messages sent by users, but do not have an explicit length limit.
+- `referenceID` - An optional string containing the ID of another message to which this one is a reply.
+  The message must not be a system message.
+  This message reference may be removed from the message at a later point, if the referenced message is deleted.
+
+##### Return value
+
+A [message object](#message-object) representing the created chat message.
+
 ### `createSystemMessage()`
 
 Creates a new chat message with the appearance of a system message (centered content within a rectangle, without an identified author), that is immediately sent to all connected chat clients and registered in the chat message history.
@@ -62,7 +89,7 @@ chat.createSystemMessage(content)
 
 ##### Parameters
 
-- `content` - The content of the message.
+- `content` - A string containing the content of the message.
   The content will be parsed as [GitHub Flavored Markdown](https://github.github.com/gfm/) by the JungleTV clients.
   Consider escaping any characters that may unintentionally constitute Markdown formatting.
   System message contents do not have an explicit length limit.
@@ -120,6 +147,20 @@ Slow mode does not affect chat moderators nor the creation of system messages.
 chat.slowMode = true
 chat.slowMode = false
 ```
+
+### `nickname`
+
+This writable property corresponds to the nickname set for this application, visible in chat messages sent by the application.
+When set to `null`, `undefined` or the empty string, the application will appear in chat using its ID.
+The nickname is subject to similar restrictions as nicknames set by users.
+
+#### Syntax
+
+```js
+chat.nickname = "My application"
+chat.nickname = null
+```
+
 
 ## Events
 
@@ -216,6 +257,7 @@ Represents the author of a chat [message](#message-object).
 | Field              | Type    | Description                                                                                                                                                 |
 | ------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `address`          | string  | Reward address of the message author.                                                                                                                       |
+| `applicationID`    | string  | Application ID responsible for this user, may be empty if this user is not controlled by an application.                                                    |
 | `isFromAlienChain` | boolean | Whether the `address` is from a currency system that is not the one native to JungleTV. Currently guaranteed to be false in the context of the chat system. |
 | `nickname`         | string  | Nickname of the message author, may be empty if the user does not have a nickname set.                                                                      |
 

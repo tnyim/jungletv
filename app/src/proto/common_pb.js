@@ -502,7 +502,8 @@ proto.jungletv.UserRole = {
   TIER_2_REQUESTER: 2,
   TIER_3_REQUESTER: 3,
   CURRENT_ENTRY_REQUESTER: 4,
-  VIP: 5
+  VIP: 5,
+  APPLICATION: 6
 };
 
 /**

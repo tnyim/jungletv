@@ -158,3 +158,7 @@ func (c *Manager) SetNickname(ctxCtx context.Context, user auth.User, nickname *
 
 	return stacktrace.Propagate(c.store.SetUserNickname(ctxCtx, user, nickname), "")
 }
+
+func (c *Manager) GetNickname(ctxCtx context.Context, user auth.User) *string {
+	return c.store.GetUserNickname(ctxCtx, user)
+}

@@ -43,16 +43,18 @@ func (c *MemoryUserCache) GetOrFetchUser(ctxCtx context.Context, address string)
 
 	var userRecord struct {
 		Nickname        *string
-		PermissionLevel string `db:"permission_level"`
+		PermissionLevel string  `db:"permission_level"`
+		ApplicationID   *string `db:"application_id"`
 	}
-	err = ctx.Tx().GetContext(ctx, &userRecord, `SELECT nickname, permission_level FROM chat_user WHERE address = $1`, address)
+	err = ctx.Tx().GetContext(ctx, &userRecord,
+		`SELECT nickname, permission_level, application_id FROM chat_user WHERE address = $1`, address)
 	if err != nil {
 		// no nickname for this user
 		return nil, nil
 	}
 
-	user := auth.NewAddressOnlyUserWithPermissionLevel(address, auth.PermissionLevel(userRecord.PermissionLevel))
-	user.SetNickname(userRecord.Nickname)
+	user := auth.BuildNonAuthorizedUser(
+		address, auth.PermissionLevel(userRecord.PermissionLevel), userRecord.Nickname, userRecord.ApplicationID)
 
 	c.c.SetDefault(address, user)
 	return user, nil

@@ -328,6 +328,7 @@ func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNickna
 
 func validateNicknameReturningGRPCError(nickname string) (string, error) {
 	if len(nickname) > 0 {
+		// when making changes, consider updating also the validation rules in the application framework chat module
 		nickname = strings.TrimSpace(nickname)
 		// remove emoji that can be confused for chat moderator icons
 		nickname = disallowedEmojiRegex.ReplaceAllString(nickname, "")

@@ -63,6 +63,7 @@ func (m *Message) SerializeForJS(ctx context.Context, dateSerializer func(time.T
 			"address":          m.Author.Address(),
 			"isFromAlienChain": m.Author.IsFromAlienChain(),
 			"nickname":         m.Author.Nickname(),
+			"applicationID":    m.Author.ApplicationID(),
 		}
 	}
 

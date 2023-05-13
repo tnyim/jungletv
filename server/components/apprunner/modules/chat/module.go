@@ -2,12 +2,16 @@ package chat
 
 import (
 	"context"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
+	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
@@ -26,17 +30,19 @@ type chatModule struct {
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
 	logger         modules.ApplicationLogger
+	appUser        auth.User
 
 	executionContext context.Context
 }
 
 // New returns a new chat module
-func New(logger modules.ApplicationLogger, chatManager *chatmanager.Manager, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
+func New(logger modules.ApplicationLogger, chatManager *chatmanager.Manager, appUser auth.User, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
 	return &chatModule{
 		logger:      logger,
 		chatManager: chatManager,
 		schedule:    schedule,
 		runOnLoop:   runOnLoop,
+		appUser:     appUser,
 	}
 }
 
@@ -51,7 +57,12 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 		m.exports.Set("createSystemMessage", m.createSystemMessage)
+		m.exports.Set("createMessage", m.createMessage)
 		m.exports.Set("getMessages", m.getMessages)
+
+		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appUser))
+		}), m.runtime.ToValue(m.setApplicationNickname), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.DefineAccessorProperty("enabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			enabled, _ := m.chatManager.Enabled()
@@ -116,6 +127,41 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
 }
 
+func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+	contentValue := call.Argument(0)
+
+	var reference *chat.Message
+	referenceValue := call.Argument(1)
+	if referenceString := referenceValue.String(); !goja.IsUndefined(referenceValue) && !goja.IsNull(referenceValue) && referenceString != "" {
+		id, err := snowflake.ParseString(referenceString)
+		if err != nil {
+			panic(m.runtime.NewTypeError("Second argument must be a message ID string"))
+		}
+		reference, err = m.chatManager.LoadMessage(m.executionContext, id)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+		if reference.Author == nil || reference.Author.IsUnknown() {
+			panic(m.runtime.NewTypeError("Referenced message must not be a system message"))
+		}
+	}
+
+	content := strings.TrimSpace(contentValue.String())
+	if content == "" {
+		panic(m.runtime.NewTypeError("Message content is empty"))
+	}
+
+	message, err := m.chatManager.CreateMessage(m.executionContext, m.appUser, content, reference, []chat.MessageAttachmentStorage{})
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
+}
+
 func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
@@ -145,6 +191,37 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 			return jsMessages
 		}
 	})
+}
+
+func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+	nicknameValue := call.Argument(0)
+	var nickname *string
+	if nicknameString := nicknameValue.String(); !goja.IsUndefined(nicknameValue) && !goja.IsNull(nicknameValue) && nicknameString != "" {
+		nicknameString = strings.TrimSpace(nicknameString)
+
+		nicknameString = stringsx.Clean(nicknameString)
+		if utf8.RuneCountInString(nicknameString) < 3 {
+			panic(m.runtime.NewTypeError("Nickname must be at least 3 characters long"))
+		}
+		if utf8.RuneCountInString(nicknameString) > 16 {
+			panic(m.runtime.NewTypeError("Nickname must be at most 16 characters long"))
+		}
+		if strings.HasPrefix(nicknameString, "ban_1") || strings.HasPrefix(nicknameString, "ban_3") {
+			panic(m.runtime.NewTypeError("Nickname must not look like a Banano address"))
+		}
+
+		nickname = &nicknameString
+	}
+
+	err := m.chatManager.SetNickname(m.executionContext, m.appUser, nickname, true)
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	return goja.Undefined()
 }
 
 func (m *chatModule) setEnabled(call goja.FunctionCall) goja.Value {

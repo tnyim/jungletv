@@ -42,6 +42,10 @@ func (u *addressOnlyUser) IsFromAlienChain() bool {
 	return !strings.HasPrefix(u.address, "ban_")
 }
 
+func (u *addressOnlyUser) ApplicationID() string {
+	return ""
+}
+
 func (u *addressOnlyUser) SetNickname(s *string) {
 	u.nickname = s
 }
