@@ -1,11 +1,7 @@
 /app/node_modules/
 /app/public/build/
 /app/public/emotes/
-/misc/*.key
-/misc/*.crt
-/misc/*.pem
-/misc/*.csr
-/misc/*.srl
+/certs
 /captchatest
 /segcha/pics
 /segcha/font.ttf

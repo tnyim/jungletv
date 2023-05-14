@@ -21,6 +21,7 @@
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { StreamRequestController, consumeStreamRPC } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import { parseCompleteMarkdown } from "./utils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -99,6 +100,7 @@
         prompt: modalPrompt,
         userAddress: () => rewardAddressPromise,
         userPermissionLevel: () => permissionLevelPromise,
+        parseMarkdown: parseCompleteMarkdown,
     };
 
     let rewardAddressPromise = new Promise((resolve: (address: string) => void) => {

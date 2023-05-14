@@ -55,11 +55,8 @@ console.log(uint8_to_hex(random_bytes(32)));
 See [Creeper](https://creeper.banano.cc/representatives) for a list of representatives.
 
 ### certFile, keyFile
-Run `/misc/gen_cert.sh` to generate these files.
 
-`bash gen_cert.sh`
-
-If on windows, you may need to turn on developer mode, and enable "Windows subsystem for Linux", and install a linux distribution (like Ubuntu on window store) in order to get bash working.
+Use a tool like [mkcert](https://github.com/FiloSottile/mkcert) to generate TLS certificates for the server name you wish to use locally (e.g. `localhost` or the hostname of your machine), then put the path to the certificate and respective key in these fields.
 
 ### modLogWebhook
 Optional, but to get the Discord webhook url, go to the settings of a Discord channel, go to "Integrations", then "Webhooks". Create a webhook, and copy the url.
