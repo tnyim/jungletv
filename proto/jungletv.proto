@@ -684,7 +684,8 @@ message UserPermissionLevelRequest {}
 enum PermissionLevel {
     UNAUTHENTICATED = 0;
     USER = 1;
-    ADMIN = 2;
+    APPEDITOR = 2;
+    ADMIN = 3;
 }
 
 message UserPermissionLevelResponse {

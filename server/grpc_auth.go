@@ -166,6 +166,8 @@ func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermi
 		switch user.PermissionLevel() {
 		case auth.UserPermissionLevel:
 			level = proto.PermissionLevel_USER
+		case auth.AppEditorPermissionLevel:
+			level = proto.PermissionLevel_APPEDITOR
 		case auth.AdminPermissionLevel:
 			level = proto.PermissionLevel_ADMIN
 		}

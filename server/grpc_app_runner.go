@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -128,6 +129,13 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
 
+	err = stream.Send(&proto.ApplicationLogEntryContainer{
+		IsHeartbeat: true,
+	})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
 	for {
 		var err error
 		select {
@@ -137,6 +145,9 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 					IsHeartbeat: false,
 					Entry:       convertApplicationLogEntry(entry),
 				})
+			}
+			if entry.LogLevel() == apprunner.ApplicationLogLevelRuntimeLog && strings.HasPrefix(entry.Message(), "application instance terminated with") {
+				return nil
 			}
 		case <-heartbeat.C:
 			err = stream.Send(&proto.ApplicationLogEntryContainer{

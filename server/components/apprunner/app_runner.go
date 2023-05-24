@@ -112,7 +112,7 @@ func (r *AppRunner) ApplicationLaunched() event.Event[RunningApplication] {
 	return r.onApplicationLaunched
 }
 
-// ApplicationStopped is the event that is fired when an application is launched
+// ApplicationStopped is the event that is fired when an application is stopped
 func (r *AppRunner) ApplicationStopped() event.Event[RunningApplication] {
 	return r.onApplicationStopped
 }

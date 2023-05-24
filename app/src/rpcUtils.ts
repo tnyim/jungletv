@@ -58,6 +58,8 @@ export const consumeStreamRPC = function <T>(
 
     function handleClose(code: grpc.Code, message: string) {
         request = undefined;
+        connected = false;
+        onStatusChanged(connected);
         // ideally this should use exponential backoff
         reconnectionTimeoutHandle = setTimeout(makeRequest, reconnectionInterval);
     }

@@ -48142,7 +48142,8 @@ proto.jungletv.AllowedMediaEnqueuingType = {
 proto.jungletv.PermissionLevel = {
   UNAUTHENTICATED: 0,
   USER: 1,
-  ADMIN: 2
+  APPEDITOR: 2,
+  ADMIN: 3
 };
 
 /**

@@ -334,8 +334,9 @@ func main() {
 	}
 
 	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
-		auth.UserPermissionLevel:  180 * 24 * time.Hour,
-		auth.AdminPermissionLevel: 7 * 24 * time.Hour,
+		auth.UserPermissionLevel:      180 * 24 * time.Hour,
+		auth.AppEditorPermissionLevel: 7 * 24 * time.Hour,
+		auth.AdminPermissionLevel:     7 * 24 * time.Hour,
 	})
 	authInterceptor := authinterceptor.New(jwtManager, &authorizer{})
 
