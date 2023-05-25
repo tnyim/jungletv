@@ -22,7 +22,7 @@ var (
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	adminToken, expiration, err := jwtManager.Generate("DEBUG_USER", auth.AdminPermissionLevel, "")
+	adminToken, expiration, err := jwtManager.Generate(r.Context(), "DEBUG_USER", auth.AdminPermissionLevel, "")
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -69,7 +69,7 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	adminToken, expiration, err := jwtManager.Generate(rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
+	adminToken, expiration, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -171,7 +171,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	if v, ok := session.Values["rewardAddress"]; ok {
 		rewardAddress = v.(string)
 	}
-	adminToken, expiration, err := jwtManager.Generate(rewardAddress, auth.AdminPermissionLevel, login.UserID)
+	adminToken, expiration, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, login.UserID)
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)

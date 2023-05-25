@@ -148,7 +148,7 @@ func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata
 }
 
 func (interceptor *Interceptor) renewAuthToken(ctx context.Context, claims *auth.UserClaims) error {
-	token, expiration, err := interceptor.jwtManager.Generate(claims.RewardAddress, claims.PermLevel, claims.Username)
+	token, expiration, err := interceptor.jwtManager.Generate(ctx, claims.RewardAddress, claims.PermLevel, claims.Username)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

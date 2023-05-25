@@ -43,9 +43,9 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	var tokenExpiry time.Time
 	if user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
 		// keep permissions of authenticated user
-		jwtToken, tokenExpiry, err = s.jwtManager.Generate(r.RewardsAddress, user.PermLevel, user.Username)
+		jwtToken, tokenExpiry, err = s.jwtManager.Generate(ctx, r.RewardsAddress, user.PermLevel, user.Username)
 	} else {
-		jwtToken, tokenExpiry, err = s.jwtManager.Generate(r.RewardsAddress, auth.UserPermissionLevel, "")
+		jwtToken, tokenExpiry, err = s.jwtManager.Generate(ctx, r.RewardsAddress, auth.UserPermissionLevel, "")
 	}
 	if err != nil {
 		return stacktrace.Propagate(err, "")
