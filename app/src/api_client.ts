@@ -177,6 +177,8 @@ class APIClient {
 
     signOut() {
         deleteCookie("auth-token");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("authTokenExpiry");
         //this.authNeededCallback();
     }
 
