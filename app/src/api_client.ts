@@ -19,7 +19,7 @@ import {
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForcedTicketEnqueueTypeMap,
     ForciblyEnqueueTicketRequest,
-    ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
+    ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, InvalidateAuthTokensRequest, InvalidateAuthTokensResponse, InvalidateUserAuthTokensRequest, InvalidateUserAuthTokensResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, MediaEnqueuingPermissionStatus, ModerationStatusOverview,
     MonitorMediaEnqueuingPermissionRequest,
     MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
@@ -166,7 +166,7 @@ class APIClient {
     }
 
     signIn(address: string, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new SignInRequest();
+        const request = new SignInRequest();
         request.setRewardsAddress(address);
         return this.serverStreamingRPC(
             JungleTV.SignIn,
@@ -209,7 +209,7 @@ class APIClient {
     }
 
     async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
-        let request = new EnqueueMediaRequest();
+        const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
@@ -229,7 +229,7 @@ class APIClient {
     }
 
     async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
-        let request = new EnqueueMediaRequest();
+        const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
@@ -249,7 +249,7 @@ class APIClient {
     }
 
     async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
-        let request = new EnqueueMediaRequest();
+        const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
         request.setAnonymous(anonymous);
@@ -270,19 +270,19 @@ class APIClient {
     }
 
     async soundCloudTrackDetails(url: string): Promise<SoundCloudTrackDetailsResponse> {
-        let request = new SoundCloudTrackDetailsRequest();
+        const request = new SoundCloudTrackDetailsRequest();
         request.setTrackUrl(url);
         return this.unaryRPC(JungleTV.SoundCloudTrackDetails, request);
     }
 
     async increaseOrReduceSkipThreshold(increase: boolean): Promise<IncreaseOrReduceSkipThresholdResponse> {
-        let request = new IncreaseOrReduceSkipThresholdRequest();
+        const request = new IncreaseOrReduceSkipThresholdRequest();
         request.setIncrease(increase);
         return this.unaryRPC(JungleTV.IncreaseOrReduceSkipThreshold, request);
     }
 
     consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new ConsumeMediaRequest();
+        const request = new ConsumeMediaRequest();
         return this.serverStreamingRPC(
             JungleTV.ConsumeMedia,
             request,
@@ -307,7 +307,7 @@ class APIClient {
     }
 
     monitorTicket(ticketID: string, onTicketUpdated: (ticket: EnqueueMediaTicket) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new MonitorTicketRequest();
+        const request = new MonitorTicketRequest();
         request.setTicketId(ticketID);
         return this.serverStreamingRPC(
             JungleTV.MonitorTicket,
@@ -317,13 +317,13 @@ class APIClient {
     }
 
     async removeOwnQueueEntry(id: string): Promise<RemoveOwnQueueEntryResponse> {
-        let request = new RemoveOwnQueueEntryRequest();
+        const request = new RemoveOwnQueueEntryRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveOwnQueueEntry, request);
     }
 
     async moveQueueEntry(id: string, direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]): Promise<MoveQueueEntryResponse> {
-        let request = new MoveQueueEntryRequest();
+        const request = new MoveQueueEntryRequest();
         request.setId(id);
         request.setDirection(direction);
         return this.unaryRPC(JungleTV.MoveQueueEntry, request);
@@ -334,7 +334,7 @@ class APIClient {
     }
 
     async submitActivityChallenge(challenge: string, challengeResponses: string[], trusted: boolean): Promise<SubmitActivityChallengeResponse> {
-        let request = new SubmitActivityChallengeRequest();
+        const request = new SubmitActivityChallengeRequest();
         request.setChallenge(challenge);
         request.setResponsesList(challengeResponses);
         request.setTrusted(trusted);
@@ -343,12 +343,12 @@ class APIClient {
     }
 
     async produceSegchaChallenge(): Promise<ProduceSegchaChallengeResponse> {
-        let request = new ProduceSegchaChallengeRequest();
+        const request = new ProduceSegchaChallengeRequest();
         return this.unaryRPC(JungleTV.ProduceSegchaChallenge, request);
     }
 
     consumeChat(initialHistorySize: number, onUpdate: (update: ChatUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new ConsumeChatRequest();
+        const request = new ConsumeChatRequest();
         request.setInitialHistorySize(initialHistorySize);
         return this.serverStreamingRPC(
             JungleTV.ConsumeChat,
@@ -358,7 +358,7 @@ class APIClient {
     }
 
     async sendChatMessage(message: string, trusted: boolean, reference?: ChatMessage, tenorGifAttachment?: string): Promise<SendChatMessageResponse> {
-        let request = new SendChatMessageRequest();
+        const request = new SendChatMessageRequest();
         request.setContent(message);
         request.setTrusted(trusted);
         if (typeof reference !== 'undefined') {
@@ -371,19 +371,19 @@ class APIClient {
     }
 
     async setChatNickname(nickname: string): Promise<SetChatNicknameResponse> {
-        let request = new SetChatNicknameRequest();
+        const request = new SetChatNicknameRequest();
         request.setNickname(nickname);
         return this.unaryRPC(JungleTV.SetChatNickname, request);
     }
 
     async getDocument(id: string): Promise<Document> {
-        let request = new GetDocumentRequest();
+        const request = new GetDocumentRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.GetDocument, request);
     }
 
     async documents(searchQuery: string, pagParams: PaginationParameters): Promise<DocumentsResponse> {
-        let request = new DocumentsRequest();
+        const request = new DocumentsRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.Documents, request);
@@ -398,86 +398,86 @@ class APIClient {
     }
 
     async leaderboards(period: LeaderboardPeriodMap[keyof LeaderboardPeriodMap]): Promise<LeaderboardsResponse> {
-        let request = new LeaderboardsRequest();
+        const request = new LeaderboardsRequest();
         request.setPeriod(period);
         return this.unaryRPC(JungleTV.Leaderboards, request);
     }
 
     async rewardHistory(pagParams: PaginationParameters): Promise<RewardHistoryResponse> {
-        let request = new RewardHistoryRequest();
+        const request = new RewardHistoryRequest();
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.RewardHistory, request);
     }
 
     async withdrawalHistory(pagParams: PaginationParameters): Promise<WithdrawalHistoryResponse> {
-        let request = new WithdrawalHistoryRequest();
+        const request = new WithdrawalHistoryRequest();
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.WithdrawalHistory, request);
     }
 
     async ongoingRaffleInfo(): Promise<OngoingRaffleInfoResponse> {
-        let request = new OngoingRaffleInfoRequest();
+        const request = new OngoingRaffleInfoRequest();
         return this.unaryRPC(JungleTV.OngoingRaffleInfo, request);
     }
 
     async raffleDrawings(pagParams: PaginationParameters): Promise<RaffleDrawingsResponse> {
-        let request = new RaffleDrawingsRequest();
+        const request = new RaffleDrawingsRequest();
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.RaffleDrawings, request);
     }
 
     async connections(): Promise<ConnectionsResponse> {
-        let request = new ConnectionsRequest();
+        const request = new ConnectionsRequest();
         return this.unaryRPC(JungleTV.Connections, request);
     }
 
     async playedMediaHistory(searchQuery: string, pagParams: PaginationParameters): Promise<PlayedMediaHistoryResponse> {
-        let request = new PlayedMediaHistoryRequest();
+        const request = new PlayedMediaHistoryRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.PlayedMediaHistory, request);
     }
 
     async createConnection(service: ConnectionServiceMap[keyof ConnectionServiceMap]): Promise<CreateConnectionResponse> {
-        let request = new CreateConnectionRequest();
+        const request = new CreateConnectionRequest();
         request.setService(service);
         return this.unaryRPC(JungleTV.CreateConnection, request);
     }
 
     async removeConnection(id: string): Promise<RemoveConnectionResponse> {
-        let request = new RemoveConnectionRequest();
+        const request = new RemoveConnectionRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveConnection, request);
     }
 
     async forciblyEnqueueTicket(id: string, type: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<ForciblyEnqueueTicketResponse> {
-        let request = new ForciblyEnqueueTicketRequest();
+        const request = new ForciblyEnqueueTicketRequest();
         request.setId(id);
         request.setEnqueueType(type);
         return this.unaryRPC(JungleTV.ForciblyEnqueueTicket, request);
     }
 
     async removeQueueEntry(id: string): Promise<RemoveQueueEntryResponse> {
-        let request = new RemoveQueueEntryRequest();
+        const request = new RemoveQueueEntryRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveQueueEntry, request);
     }
 
     async removeChatMessage(id: string): Promise<RemoveChatMessageResponse> {
-        let request = new RemoveChatMessageRequest();
+        const request = new RemoveChatMessageRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveChatMessage, request);
     }
 
     async setChatSettings(enabled: boolean, slowmode: boolean): Promise<SetChatSettingsResponse> {
-        let request = new SetChatSettingsRequest();
+        const request = new SetChatSettingsRequest();
         request.setEnabled(enabled);
         request.setSlowmode(slowmode);
         return this.unaryRPC(JungleTV.SetChatSettings, request);
     }
 
     async setMediaEnqueuingEnabled(allowed: AllowedMediaEnqueuingTypeMap[keyof AllowedMediaEnqueuingTypeMap], enqueuingPassword?: string): Promise<SetMediaEnqueuingEnabledResponse> {
-        let request = new SetMediaEnqueuingEnabledRequest();
+        const request = new SetMediaEnqueuingEnabledRequest();
         request.setAllowed(allowed);
         if (typeof enqueuingPassword !== "undefined") {
             request.setEnqueuingPassword(enqueuingPassword);
@@ -486,7 +486,7 @@ class APIClient {
     }
 
     async userBans(searchQuery: string, activeOnly: boolean, pagParams: PaginationParameters): Promise<UserBansResponse> {
-        let request = new UserBansRequest();
+        const request = new UserBansRequest();
         request.setSearchQuery(searchQuery);
         request.setActiveOnly(activeOnly);
         request.setPaginationParams(pagParams);
@@ -494,7 +494,7 @@ class APIClient {
     }
 
     async banUser(address: string, remoteAddress: string, chatBanned: boolean, enqueuingBanned: boolean, rewardsBanned: boolean, reason: string, duration?: Duration): Promise<BanUserResponse> {
-        let request = new BanUserRequest();
+        const request = new BanUserRequest();
         request.setAddress(address);
         request.setRemoteAddress(remoteAddress);
         request.setChatBanned(chatBanned);
@@ -506,21 +506,21 @@ class APIClient {
     }
 
     async removeBan(banID: string, reason: string): Promise<RemoveBanResponse> {
-        let request = new RemoveBanRequest();
+        const request = new RemoveBanRequest();
         request.setBanId(banID);
         request.setReason(reason);
         return this.unaryRPC(JungleTV.RemoveBan, request);
     }
 
     async userVerifications(searchQuery: string, pagParams: PaginationParameters): Promise<UserVerificationsResponse> {
-        let request = new UserVerificationsRequest();
+        const request = new UserVerificationsRequest();
         request.setPaginationParams(pagParams);
         request.setSearchQuery(searchQuery);
         return this.unaryRPC(JungleTV.UserVerifications, request);
     }
 
     async verifyUser(address: string, skipClientIntegrityChecks: boolean, skipIPAddressReputationChecks: boolean, reduceHardChallengeFrequency: boolean, reason: string): Promise<VerifyUserResponse> {
-        let request = new VerifyUserRequest();
+        const request = new VerifyUserRequest();
         request.setAddress(address);
         request.setSkipClientIntegrityChecks(skipClientIntegrityChecks);
         request.setSkipIpAddressReputationChecks(skipIPAddressReputationChecks);
@@ -530,47 +530,47 @@ class APIClient {
     }
 
     async removeUserVerification(verificationID: string, reason: string): Promise<RemoveUserVerificationResponse> {
-        let request = new RemoveUserVerificationRequest();
+        const request = new RemoveUserVerificationRequest();
         request.setVerificationId(verificationID);
         request.setReason(reason);
         return this.unaryRPC(JungleTV.RemoveUserVerification, request);
     }
 
     async userChatMessages(address: string, numMessages: number): Promise<UserChatMessagesResponse> {
-        let request = new UserChatMessagesRequest();
+        const request = new UserChatMessagesRequest();
         request.setAddress(address);
         request.setNumMessages(numMessages);
         return this.unaryRPC(JungleTV.UserChatMessages, request);
     }
 
     async setUserChatNickname(address: string, nickname: string): Promise<SetUserChatNicknameResponse> {
-        let request = new SetUserChatNicknameRequest();
+        const request = new SetUserChatNicknameRequest();
         request.setAddress(address);
         request.setNickname(nickname);
         return this.unaryRPC(JungleTV.SetUserChatNickname, request);
     }
 
     async setPricesMultiplier(multiplier: number): Promise<SetPricesMultiplierResponse> {
-        let request = new SetPricesMultiplierRequest();
+        const request = new SetPricesMultiplierRequest();
         request.setMultiplier(multiplier);
         return this.unaryRPC(JungleTV.SetPricesMultiplier, request);
     }
 
     async setMinimumPricesMultiplier(multiplier: number): Promise<SetMinimumPricesMultiplierResponse> {
-        let request = new SetMinimumPricesMultiplierRequest();
+        const request = new SetMinimumPricesMultiplierRequest();
         request.setMultiplier(multiplier);
         return this.unaryRPC(JungleTV.SetMinimumPricesMultiplier, request);
     }
 
     async disallowedMedia(searchQuery: string, pagParams: PaginationParameters): Promise<DisallowedMediaResponse> {
-        let request = new DisallowedMediaRequest();
+        const request = new DisallowedMediaRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.DisallowedMedia, request);
     }
 
     async addDisallowedYouTubeVideo(ytVideoID: string): Promise<AddDisallowedMediaResponse> {
-        let request = new AddDisallowedMediaRequest();
+        const request = new AddDisallowedMediaRequest();
         let data = new EnqueueMediaRequest();
         let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(ytVideoID);
@@ -580,7 +580,7 @@ class APIClient {
     }
 
     async addDisallowedSoundCloudTrack(trackURL: string): Promise<AddDisallowedMediaResponse> {
-        let request = new AddDisallowedMediaRequest();
+        const request = new AddDisallowedMediaRequest();
         let data = new EnqueueMediaRequest();
         let scData = new EnqueueSoundCloudTrackData();
         scData.setPermalink(trackURL);
@@ -590,20 +590,20 @@ class APIClient {
     }
 
     async removeDisallowedMedia(id: string): Promise<RemoveDisallowedMediaResponse> {
-        let request = new RemoveDisallowedMediaRequest();
+        const request = new RemoveDisallowedMediaRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveDisallowedMedia, request);
     }
 
     async disallowedMediaCollections(searchQuery: string, pagParams: PaginationParameters): Promise<DisallowedMediaCollectionsResponse> {
-        let request = new DisallowedMediaCollectionsRequest();
+        const request = new DisallowedMediaCollectionsRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.DisallowedMediaCollections, request);
     }
 
     async addDisallowedYouTubeChannel(ytVideoID: string): Promise<AddDisallowedMediaCollectionResponse> {
-        let request = new AddDisallowedMediaCollectionRequest();
+        const request = new AddDisallowedMediaCollectionRequest();
         let data = new EnqueueMediaRequest();
         let ytData = new EnqueueYouTubeVideoData();
         ytData.setId(ytVideoID);
@@ -613,7 +613,7 @@ class APIClient {
     }
 
     async addDisallowedSoundCloudUser(trackURL: string): Promise<AddDisallowedMediaCollectionResponse> {
-        let request = new AddDisallowedMediaCollectionRequest();
+        const request = new AddDisallowedMediaCollectionRequest();
         let data = new EnqueueMediaRequest();
         let scData = new EnqueueSoundCloudTrackData();
         scData.setPermalink(trackURL);
@@ -623,38 +623,38 @@ class APIClient {
     }
 
     async removeDisallowedMediaCollection(id: string): Promise<RemoveDisallowedMediaCollectionResponse> {
-        let request = new RemoveDisallowedMediaCollectionRequest();
+        const request = new RemoveDisallowedMediaCollectionRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.RemoveDisallowedMediaCollection, request);
     }
 
     async setCrowdfundedSkippingEnabled(enabled: boolean): Promise<SetCrowdfundedSkippingEnabledResponse> {
-        let request = new SetCrowdfundedSkippingEnabledRequest();
+        const request = new SetCrowdfundedSkippingEnabledRequest();
         request.setEnabled(enabled);
         return this.unaryRPC(JungleTV.SetCrowdfundedSkippingEnabled, request);
     }
 
     async setSkipPriceMultiplier(multiplier: number): Promise<SetSkipPriceMultiplierResponse> {
-        let request = new SetSkipPriceMultiplierRequest();
+        const request = new SetSkipPriceMultiplierRequest();
         request.setMultiplier(multiplier);
         return this.unaryRPC(JungleTV.SetSkipPriceMultiplier, request);
     }
 
     async confirmRaffleWinner(raffleID: string): Promise<ConfirmRaffleWinnerResponse> {
-        let request = new ConfirmRaffleWinnerRequest();
+        const request = new ConfirmRaffleWinnerRequest();
         request.setRaffleId(raffleID);
         return this.unaryRPC(JungleTV.ConfirmRaffleWinner, request);
     }
 
     async completeRaffle(raffleID: string, prizeTxHash: string): Promise<CompleteRaffleResponse> {
-        let request = new CompleteRaffleRequest();
+        const request = new CompleteRaffleRequest();
         request.setRaffleId(raffleID);
         request.setPrizeTxHash(prizeTxHash);
         return this.unaryRPC(JungleTV.CompleteRaffle, request);
     }
 
     async redrawRaffle(raffleID: string, reason: string): Promise<RedrawRaffleResponse> {
-        let request = new RedrawRaffleRequest();
+        const request = new RedrawRaffleRequest();
         request.setRaffleId(raffleID);
         request.setReason(reason);
         return this.unaryRPC(JungleTV.RedrawRaffle, request);
@@ -666,19 +666,19 @@ class APIClient {
     }
 
     async setMulticurrencyPaymentsEnabled(enabled: boolean): Promise<SetMulticurrencyPaymentsEnabledResponse> {
-        let request = new SetMulticurrencyPaymentsEnabledRequest();
+        const request = new SetMulticurrencyPaymentsEnabledRequest();
         request.setEnabled(enabled);
         return this.unaryRPC(JungleTV.SetMulticurrencyPaymentsEnabled, request);
     }
 
     async spectatorInfo(rewardsAddress: string): Promise<Spectator> {
-        let request = new SpectatorInfoRequest();
+        const request = new SpectatorInfoRequest();
         request.setRewardsAddress(rewardsAddress);
         return this.unaryRPC(JungleTV.SpectatorInfo, request);
     }
 
     async resetSpectatorStatus(rewardsAddress: string): Promise<ResetSpectatorStatusResponse> {
-        let request = new ResetSpectatorStatusRequest();
+        const request = new ResetSpectatorStatusRequest();
         request.setRewardsAddress(rewardsAddress);
         return this.unaryRPC(JungleTV.ResetSpectatorStatus, request);
     }
@@ -692,31 +692,31 @@ class APIClient {
     }
 
     async setOwnQueueEntryRemovalAllowed(allowed: boolean): Promise<SetOwnQueueEntryRemovalAllowedResponse> {
-        let request = new SetOwnQueueEntryRemovalAllowedRequest();
+        const request = new SetOwnQueueEntryRemovalAllowedRequest();
         request.setAllowed(allowed);
         return this.unaryRPC(JungleTV.SetOwnQueueEntryRemovalAllowed, request);
     }
 
     async setQueueEntryReorderingAllowed(allowed: boolean): Promise<SetQueueEntryReorderingAllowedResponse> {
-        let request = new SetQueueEntryReorderingAllowedRequest();
+        const request = new SetQueueEntryReorderingAllowedRequest();
         request.setAllowed(allowed);
         return this.unaryRPC(JungleTV.SetQueueEntryReorderingAllowed, request);
     }
 
     async setNewQueueEntriesAlwaysUnskippable(enabled: boolean): Promise<SetNewQueueEntriesAlwaysUnskippableResponse> {
-        let request = new SetNewQueueEntriesAlwaysUnskippableRequest();
+        const request = new SetNewQueueEntriesAlwaysUnskippableRequest();
         request.setEnabled(enabled);
         return this.unaryRPC(JungleTV.SetNewQueueEntriesAlwaysUnskippable, request);
     }
 
     async setSkippingEnabled(enabled: boolean): Promise<SetSkippingEnabledResponse> {
-        let request = new SetSkippingEnabledRequest();
+        const request = new SetSkippingEnabledRequest();
         request.setEnabled(enabled);
         return this.unaryRPC(JungleTV.SetSkippingEnabled, request);
     }
 
     async setQueueInsertCursor(id: string): Promise<SetQueueInsertCursorResponse> {
-        let request = new SetQueueInsertCursorRequest();
+        const request = new SetQueueInsertCursorRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.SetQueueInsertCursor, request);
     }
@@ -730,25 +730,25 @@ class APIClient {
     }
 
     async userProfile(address: string): Promise<UserProfileResponse> {
-        let request = new UserProfileRequest();
+        const request = new UserProfileRequest();
         request.setAddress(address);
         return this.unaryRPC(JungleTV.UserProfile, request);
     }
 
     async userStats(address: string): Promise<UserStatsResponse> {
-        let request = new UserStatsRequest();
+        const request = new UserStatsRequest();
         request.setAddress(address);
         return this.unaryRPC(JungleTV.UserStats, request);
     }
 
     async setProfileBiography(biography: string): Promise<SetProfileBiographyResponse> {
-        let request = new SetProfileBiographyRequest();
+        const request = new SetProfileBiographyRequest();
         request.setBiography(biography);
         return this.unaryRPC(JungleTV.SetProfileBiography, request);
     }
 
     async setProfileFeaturedMedia(mediaID?: string): Promise<SetProfileFeaturedMediaResponse> {
-        let request = new SetProfileFeaturedMediaRequest();
+        const request = new SetProfileFeaturedMediaRequest();
         if (typeof mediaID !== 'undefined') {
             request.setMediaId(mediaID);
         }
@@ -756,19 +756,19 @@ class APIClient {
     }
 
     async clearUserProfile(address: string): Promise<ClearUserProfileResponse> {
-        let request = new ClearUserProfileRequest();
+        const request = new ClearUserProfileRequest();
         request.setAddress(address);
         return this.unaryRPC(JungleTV.ClearUserProfile, request);
     }
 
     async blockUser(address: string): Promise<BlockUserResponse> {
-        let request = new BlockUserRequest();
+        const request = new BlockUserRequest();
         request.setAddress(address);
         return this.unaryRPC(JungleTV.BlockUser, request);
     }
 
     async unblockUser(blockID?: string, address?: string): Promise<BlockUserResponse> {
-        let request = new UnblockUserRequest();
+        const request = new UnblockUserRequest();
         if (typeof (blockID) !== "undefined") {
             request.setBlockId(blockID);
         } else if (typeof (address) !== "undefined") {
@@ -778,41 +778,41 @@ class APIClient {
     }
 
     async blockedUsers(pagParams: PaginationParameters): Promise<BlockedUsersResponse> {
-        let request = new BlockedUsersRequest();
+        const request = new BlockedUsersRequest();
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.BlockedUsers, request);
     }
 
     async markAsActivelyModerating(): Promise<MarkAsActivelyModeratingResponse> {
-        let request = new MarkAsActivelyModeratingRequest();
+        const request = new MarkAsActivelyModeratingRequest();
         return this.unaryRPC(JungleTV.MarkAsActivelyModerating, request);
     }
 
     async stopActivelyModerating(): Promise<StopActivelyModeratingResponse> {
-        let request = new StopActivelyModeratingRequest();
+        const request = new StopActivelyModeratingRequest();
         return this.unaryRPC(JungleTV.StopActivelyModerating, request);
     }
 
     async addVipUser(address: string, appearance: VipUserAppearanceMap[keyof VipUserAppearanceMap]): Promise<AddVipUserResponse> {
-        let request = new AddVipUserRequest();
+        const request = new AddVipUserRequest();
         request.setRewardsAddress(address);
         request.setAppearance(appearance);
         return this.unaryRPC(JungleTV.AddVipUser, request);
     }
 
     async removeVipUser(address: string): Promise<RemoveVipUserResponse> {
-        let request = new RemoveVipUserRequest();
+        const request = new RemoveVipUserRequest();
         request.setRewardsAddress(address);
         return this.unaryRPC(JungleTV.RemoveVipUser, request);
     }
 
     async triggerClientReload(): Promise<TriggerClientReloadResponse> {
-        let request = new TriggerClientReloadRequest();
+        const request = new TriggerClientReloadRequest();
         return this.unaryRPC(JungleTV.TriggerClientReload, request);
     }
 
     async adjustPointsBalance(rewardsAddress: string, value: number, reason: string): Promise<AdjustPointsBalanceResponse> {
-        let request = new AdjustPointsBalanceRequest();
+        const request = new AdjustPointsBalanceRequest();
         request.setRewardsAddress(rewardsAddress);
         request.setValue(value);
         request.setReason(reason);
@@ -824,27 +824,27 @@ class APIClient {
     }
 
     async pointsTransactions(pagParams: PaginationParameters): Promise<PointsTransactionsResponse> {
-        let request = new PointsTransactionsRequest();
+        const request = new PointsTransactionsRequest();
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.PointsTransactions, request);
     }
 
     async chatGifSearch(query: string, cursor: string): Promise<ChatGifSearchResponse> {
-        let request = new ChatGifSearchRequest();
+        const request = new ChatGifSearchRequest();
         request.setQuery(query);
         request.setCursor(cursor);
         return this.unaryRPC(JungleTV.ChatGifSearch, request);
     }
 
     async applications(searchQuery: string, pagParams: PaginationParameters): Promise<ApplicationsResponse> {
-        let request = new ApplicationsRequest();
+        const request = new ApplicationsRequest();
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams);
         return this.unaryRPC(JungleTV.Applications, request);
     }
 
     async getApplication(id: string): Promise<Application> {
-        let request = new GetApplicationRequest();
+        const request = new GetApplicationRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.GetApplication, request);
     }
@@ -854,20 +854,20 @@ class APIClient {
     }
 
     async cloneApplication(id: string, destinationID: string): Promise<CloneApplicationResponse> {
-        let request = new CloneApplicationRequest();
+        const request = new CloneApplicationRequest();
         request.setId(id);
         request.setDestinationId(destinationID);
         return this.unaryRPC(JungleTV.CloneApplication, request);
     }
 
     async deleteApplication(id: string): Promise<DeleteApplicationResponse> {
-        let request = new DeleteApplicationRequest();
+        const request = new DeleteApplicationRequest();
         request.setId(id);
         return this.unaryRPC(JungleTV.DeleteApplication, request);
     }
 
     async applicationFiles(applicationID: string, searchQuery: string, pagParams: PaginationParameters): Promise<ApplicationFilesResponse> {
-        let request = new ApplicationFilesRequest();
+        const request = new ApplicationFilesRequest();
         request.setApplicationId(applicationID);
         request.setSearchQuery(searchQuery);
         request.setPaginationParams(pagParams)
@@ -875,7 +875,7 @@ class APIClient {
     }
 
     async getApplicationFile(applicationID: string, name: string): Promise<ApplicationFile> {
-        let request = new GetApplicationFileRequest();
+        const request = new GetApplicationFileRequest();
         request.setApplicationId(applicationID);
         request.setName(name);
         return this.unaryRPC(JungleTV.GetApplicationFile, request);
@@ -886,7 +886,7 @@ class APIClient {
     }
 
     async cloneApplicationFile(applicationID: string, name: string, destinationApplicationID: string, destinationName: string): Promise<CloneApplicationFileResponse> {
-        let request = new CloneApplicationFileRequest();
+        const request = new CloneApplicationFileRequest();
         request.setApplicationId(applicationID);
         request.setName(name);
         request.setDestinationApplicationId(destinationApplicationID);
@@ -895,26 +895,26 @@ class APIClient {
     }
 
     async deleteApplicationFile(applicationID: string, name: string): Promise<DeleteApplicationFileResponse> {
-        let request = new DeleteApplicationFileRequest();
+        const request = new DeleteApplicationFileRequest();
         request.setApplicationId(applicationID);
         request.setName(name);
         return this.unaryRPC(JungleTV.DeleteApplicationFile, request);
     }
 
     async launchApplication(applicationID: string): Promise<LaunchApplicationResponse> {
-        let request = new LaunchApplicationRequest();
+        const request = new LaunchApplicationRequest();
         request.setId(applicationID);
         return this.unaryRPC(JungleTV.LaunchApplication, request);
     }
 
     async stopApplication(applicationID: string): Promise<StopApplicationResponse> {
-        let request = new StopApplicationRequest();
+        const request = new StopApplicationRequest();
         request.setId(applicationID);
         return this.unaryRPC(JungleTV.StopApplication, request);
     }
 
     async applicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, offset?: string, limit: number = 50): Promise<ApplicationLogResponse> {
-        let request = new ApplicationLogRequest();
+        const request = new ApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
         if (typeof (offset) !== "undefined") {
@@ -925,13 +925,13 @@ class APIClient {
     }
 
     async exportApplication(applicationID: string): Promise<ExportApplicationResponse> {
-        let request = new ExportApplicationRequest();
+        const request = new ExportApplicationRequest();
         request.setApplicationId(applicationID);
         return this.unaryRPC(JungleTV.ExportApplication, request);
     }
 
     async importApplication(applicationID: string, appendOnly: boolean, restoreEditMessages: boolean, archiveContent: Uint8Array): Promise<ImportApplicationResponse> {
-        let request = new ImportApplicationRequest();
+        const request = new ImportApplicationRequest();
         request.setApplicationId(applicationID);
         request.setAppendOnly(appendOnly);
         request.setRestoreEditMessages(restoreEditMessages);
@@ -940,7 +940,7 @@ class APIClient {
     }
 
     consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new ConsumeApplicationLogRequest();
+        const request = new ConsumeApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
         return this.serverStreamingRPC(
@@ -951,7 +951,7 @@ class APIClient {
     }
 
     monitorRunningApplications(onUpdate: (update: RunningApplications) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new MonitorRunningApplicationsRequest();
+        const request = new MonitorRunningApplicationsRequest();
         return this.serverStreamingRPC(
             JungleTV.MonitorRunningApplications,
             request,
@@ -960,21 +960,21 @@ class APIClient {
     }
 
     async evaluateExpressionOnApplication(applicationID: string, expression: string): Promise<EvaluateExpressionOnApplicationResponse> {
-        let request = new EvaluateExpressionOnApplicationRequest();
+        const request = new EvaluateExpressionOnApplicationRequest();
         request.setApplicationId(applicationID);
         request.setExpression(expression);
         return this.unaryRPC(JungleTV.EvaluateExpressionOnApplication, request);
     }
 
     async resolveApplicationPage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
-        let request = new ResolveApplicationPageRequest();
+        const request = new ResolveApplicationPageRequest();
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
         return this.unaryRPC(JungleTV.ResolveApplicationPage, request);
     }
 
     consumeApplicationEvents(applicationID: string, pageID: string, onUpdate: (update: ApplicationEventUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        let request = new ConsumeApplicationEventsRequest();
+        const request = new ConsumeApplicationEventsRequest();
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
         return this.serverStreamingRPC(
@@ -985,7 +985,7 @@ class APIClient {
     }
 
     async applicationServerMethod(applicationID: string, pageID: string, method: string, args: string[]): Promise<ApplicationServerMethodResponse> {
-        let request = new ApplicationServerMethodRequest();
+        const request = new ApplicationServerMethodRequest();
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
         request.setMethod(method);
@@ -994,7 +994,7 @@ class APIClient {
     }
 
     async triggerApplicationEvent(applicationID: string, pageID: string, eventName: string, eventArgs: string[]): Promise<TriggerApplicationEventResponse> {
-        let request = new TriggerApplicationEventRequest();
+        const request = new TriggerApplicationEventRequest();
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
         request.setName(eventName);
@@ -1015,9 +1015,19 @@ class APIClient {
     }
 
     async checkMediaEnqueuingPassword(password: string): Promise<CheckMediaEnqueuingPasswordResponse> {
-        let request = new CheckMediaEnqueuingPasswordRequest();
+        const request = new CheckMediaEnqueuingPasswordRequest();
         request.setPassword(password);
         return this.unaryRPC(JungleTV.CheckMediaEnqueuingPassword, request);
+    }
+
+    async invalidateAuthTokens(): Promise<InvalidateAuthTokensResponse> {
+        return this.unaryRPC(JungleTV.InvalidateAuthTokens, new InvalidateAuthTokensRequest());
+    }
+
+    async invalidateUserAuthTokens(address: string): Promise<InvalidateUserAuthTokensResponse> {
+        const request = new InvalidateUserAuthTokensRequest();
+        request.setAddress(address);
+        return this.unaryRPC(JungleTV.InvalidateUserAuthTokens, request);
     }
 
     monitorMediaEnqueuingPermission(onStatusUpdated: (status: MediaEnqueuingPermissionStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {

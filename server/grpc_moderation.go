@@ -698,3 +698,32 @@ func (s *grpcServer) SetMulticurrencyPaymentsEnabled(ctx context.Context, r *pro
 
 	return &proto.SetMulticurrencyPaymentsEnabledResponse{}, nil
 }
+
+func (s *grpcServer) InvalidateUserAuthTokens(ctxCtx context.Context, r *proto.InvalidateUserAuthTokensRequest) (*proto.InvalidateUserAuthTokensResponse, error) {
+	moderator := authinterceptor.UserClaimsFromContext(ctxCtx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.jwtManager.InvalidateUserAuthTokens(ctxCtx, auth.NewAddressOnlyUser(r.Address))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	s.log.Printf("Auth tokens of user %s invalidated by %s (remote address %s)",
+		r.Address, moderator.Username, authinterceptor.RemoteAddressFromContext(ctxCtx))
+
+	if s.modLogWebhook != nil {
+		_, err = s.modLogWebhook.SendContent(
+			fmt.Sprintf("Moderator %s (%s) invalidated auth tokens of user %s",
+				moderator.Address()[:14],
+				moderator.Username,
+				r.Address))
+		if err != nil {
+			s.log.Println("Failed to send mod log webhook:", err)
+		}
+	}
+
+	return &proto.InvalidateUserAuthTokensResponse{}, nil
+}

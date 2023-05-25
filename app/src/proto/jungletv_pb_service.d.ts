@@ -384,6 +384,15 @@ type JungleTVMonitorMediaEnqueuingPermission = {
   readonly responseType: typeof jungletv_pb.MediaEnqueuingPermissionStatus;
 };
 
+type JungleTVInvalidateAuthTokens = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.InvalidateAuthTokensRequest;
+  readonly responseType: typeof jungletv_pb.InvalidateAuthTokensResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -798,6 +807,15 @@ type JungleTVSetMulticurrencyPaymentsEnabled = {
   readonly responseType: typeof jungletv_pb.SetMulticurrencyPaymentsEnabledResponse;
 };
 
+type JungleTVInvalidateUserAuthTokens = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.InvalidateUserAuthTokensRequest;
+  readonly responseType: typeof jungletv_pb.InvalidateUserAuthTokensResponse;
+};
+
 type JungleTVApplications = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1040,6 +1058,7 @@ export class JungleTV {
   static readonly IncreaseOrReduceSkipThreshold: JungleTVIncreaseOrReduceSkipThreshold;
   static readonly CheckMediaEnqueuingPassword: JungleTVCheckMediaEnqueuingPassword;
   static readonly MonitorMediaEnqueuingPermission: JungleTVMonitorMediaEnqueuingPermission;
+  static readonly InvalidateAuthTokens: JungleTVInvalidateAuthTokens;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1086,6 +1105,7 @@ export class JungleTV {
   static readonly RemoveVipUser: JungleTVRemoveVipUser;
   static readonly TriggerClientReload: JungleTVTriggerClientReload;
   static readonly SetMulticurrencyPaymentsEnabled: JungleTVSetMulticurrencyPaymentsEnabled;
+  static readonly InvalidateUserAuthTokens: JungleTVInvalidateUserAuthTokens;
   static readonly Applications: JungleTVApplications;
   static readonly GetApplication: JungleTVGetApplication;
   static readonly UpdateApplication: JungleTVUpdateApplication;
@@ -1456,6 +1476,15 @@ export class JungleTVClient {
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.CheckMediaEnqueuingPasswordResponse|null) => void
   ): UnaryResponse;
   monitorMediaEnqueuingPermission(requestMessage: jungletv_pb.MonitorMediaEnqueuingPermissionRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.MediaEnqueuingPermissionStatus>;
+  invalidateAuthTokens(
+    requestMessage: jungletv_pb.InvalidateAuthTokensRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateAuthTokensResponse|null) => void
+  ): UnaryResponse;
+  invalidateAuthTokens(
+    requestMessage: jungletv_pb.InvalidateAuthTokensRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateAuthTokensResponse|null) => void
+  ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,
     metadata: grpc.Metadata,
@@ -1861,6 +1890,15 @@ export class JungleTVClient {
   setMulticurrencyPaymentsEnabled(
     requestMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse|null) => void
+  ): UnaryResponse;
+  invalidateUserAuthTokens(
+    requestMessage: jungletv_pb.InvalidateUserAuthTokensRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateUserAuthTokensResponse|null) => void
+  ): UnaryResponse;
+  invalidateUserAuthTokens(
+    requestMessage: jungletv_pb.InvalidateUserAuthTokensRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateUserAuthTokensResponse|null) => void
   ): UnaryResponse;
   applications(
     requestMessage: application_editor_pb.ApplicationsRequest,

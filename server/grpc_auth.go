@@ -159,6 +159,20 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 
 }
 
+func (s *grpcServer) InvalidateAuthTokens(ctx context.Context, r *proto.InvalidateAuthTokensRequest) (*proto.InvalidateAuthTokensResponse, error) {
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user == nil {
+		return nil, stacktrace.NewError("user claims unexpectedly missing")
+	}
+
+	err := s.jwtManager.InvalidateUserAuthTokens(ctx, user)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.InvalidateAuthTokensResponse{}, nil
+}
+
 func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	level := proto.PermissionLevel_UNAUTHENTICATED

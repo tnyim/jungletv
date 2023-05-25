@@ -6232,6 +6232,74 @@ export namespace MediaEnqueuingPermissionStatus {
   }
 }
 
+export class InvalidateAuthTokensRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvalidateAuthTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: InvalidateAuthTokensRequest): InvalidateAuthTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvalidateAuthTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvalidateAuthTokensRequest;
+  static deserializeBinaryFromReader(message: InvalidateAuthTokensRequest, reader: jspb.BinaryReader): InvalidateAuthTokensRequest;
+}
+
+export namespace InvalidateAuthTokensRequest {
+  export type AsObject = {
+  }
+}
+
+export class InvalidateAuthTokensResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvalidateAuthTokensResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: InvalidateAuthTokensResponse): InvalidateAuthTokensResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvalidateAuthTokensResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvalidateAuthTokensResponse;
+  static deserializeBinaryFromReader(message: InvalidateAuthTokensResponse, reader: jspb.BinaryReader): InvalidateAuthTokensResponse;
+}
+
+export namespace InvalidateAuthTokensResponse {
+  export type AsObject = {
+  }
+}
+
+export class InvalidateUserAuthTokensRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvalidateUserAuthTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: InvalidateUserAuthTokensRequest): InvalidateUserAuthTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvalidateUserAuthTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvalidateUserAuthTokensRequest;
+  static deserializeBinaryFromReader(message: InvalidateUserAuthTokensRequest, reader: jspb.BinaryReader): InvalidateUserAuthTokensRequest;
+}
+
+export namespace InvalidateUserAuthTokensRequest {
+  export type AsObject = {
+    address: string,
+  }
+}
+
+export class InvalidateUserAuthTokensResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvalidateUserAuthTokensResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: InvalidateUserAuthTokensResponse): InvalidateUserAuthTokensResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvalidateUserAuthTokensResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvalidateUserAuthTokensResponse;
+  static deserializeBinaryFromReader(message: InvalidateUserAuthTokensResponse, reader: jspb.BinaryReader): InvalidateUserAuthTokensResponse;
+}
+
+export namespace InvalidateUserAuthTokensResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

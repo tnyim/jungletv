@@ -126,7 +126,7 @@ func getCurrentRewardAddress(r *http.Request) string {
 		return ""
 	}
 
-	claims, err := jwtManager.Verify(accessToken)
+	claims, err := jwtManager.Verify(r.Context(), accessToken)
 	if err != nil {
 		return ""
 	}

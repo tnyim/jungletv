@@ -60,6 +60,7 @@ type JungleTVClient interface {
 	IncreaseOrReduceSkipThreshold(ctx context.Context, in *IncreaseOrReduceSkipThresholdRequest, opts ...grpc.CallOption) (*IncreaseOrReduceSkipThresholdResponse, error)
 	CheckMediaEnqueuingPassword(ctx context.Context, in *CheckMediaEnqueuingPasswordRequest, opts ...grpc.CallOption) (*CheckMediaEnqueuingPasswordResponse, error)
 	MonitorMediaEnqueuingPermission(ctx context.Context, in *MonitorMediaEnqueuingPermissionRequest, opts ...grpc.CallOption) (JungleTV_MonitorMediaEnqueuingPermissionClient, error)
+	InvalidateAuthTokens(ctx context.Context, in *InvalidateAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateAuthTokensResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -107,6 +108,7 @@ type JungleTVClient interface {
 	RemoveVipUser(ctx context.Context, in *RemoveVipUserRequest, opts ...grpc.CallOption) (*RemoveVipUserResponse, error)
 	TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error)
+	InvalidateUserAuthTokens(ctx context.Context, in *InvalidateUserAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateUserAuthTokensResponse, error)
 	// application editor endpoints
 	Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error)
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
@@ -703,6 +705,15 @@ func (x *jungleTVMonitorMediaEnqueuingPermissionClient) Recv() (*MediaEnqueuingP
 	return m, nil
 }
 
+func (c *jungleTVClient) InvalidateAuthTokens(ctx context.Context, in *InvalidateAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateAuthTokensResponse, error) {
+	out := new(InvalidateAuthTokensResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/InvalidateAuthTokens", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -1140,6 +1151,15 @@ func (c *jungleTVClient) SetMulticurrencyPaymentsEnabled(ctx context.Context, in
 	return out, nil
 }
 
+func (c *jungleTVClient) InvalidateUserAuthTokens(ctx context.Context, in *InvalidateUserAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateUserAuthTokensResponse, error) {
+	out := new(InvalidateUserAuthTokensResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/InvalidateUserAuthTokens", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error) {
 	out := new(ApplicationsResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Applications", in, out, opts...)
@@ -1453,6 +1473,7 @@ type JungleTVServer interface {
 	IncreaseOrReduceSkipThreshold(context.Context, *IncreaseOrReduceSkipThresholdRequest) (*IncreaseOrReduceSkipThresholdResponse, error)
 	CheckMediaEnqueuingPassword(context.Context, *CheckMediaEnqueuingPasswordRequest) (*CheckMediaEnqueuingPasswordResponse, error)
 	MonitorMediaEnqueuingPermission(*MonitorMediaEnqueuingPermissionRequest, JungleTV_MonitorMediaEnqueuingPermissionServer) error
+	InvalidateAuthTokens(context.Context, *InvalidateAuthTokensRequest) (*InvalidateAuthTokensResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1500,6 +1521,7 @@ type JungleTVServer interface {
 	RemoveVipUser(context.Context, *RemoveVipUserRequest) (*RemoveVipUserResponse, error)
 	TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error)
+	InvalidateUserAuthTokens(context.Context, *InvalidateUserAuthTokensRequest) (*InvalidateUserAuthTokensResponse, error)
 	// application editor endpoints
 	Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error)
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
@@ -1657,6 +1679,9 @@ func (UnimplementedJungleTVServer) CheckMediaEnqueuingPassword(context.Context, 
 func (UnimplementedJungleTVServer) MonitorMediaEnqueuingPermission(*MonitorMediaEnqueuingPermissionRequest, JungleTV_MonitorMediaEnqueuingPermissionServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorMediaEnqueuingPermission not implemented")
 }
+func (UnimplementedJungleTVServer) InvalidateAuthTokens(context.Context, *InvalidateAuthTokensRequest) (*InvalidateAuthTokensResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InvalidateAuthTokens not implemented")
+}
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
 }
@@ -1794,6 +1819,9 @@ func (UnimplementedJungleTVServer) TriggerClientReload(context.Context, *Trigger
 }
 func (UnimplementedJungleTVServer) SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetMulticurrencyPaymentsEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) InvalidateUserAuthTokens(context.Context, *InvalidateUserAuthTokensRequest) (*InvalidateUserAuthTokensResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InvalidateUserAuthTokens not implemented")
 }
 func (UnimplementedJungleTVServer) Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Applications not implemented")
@@ -2654,6 +2682,24 @@ func (x *jungleTVMonitorMediaEnqueuingPermissionServer) Send(m *MediaEnqueuingPe
 	return x.ServerStream.SendMsg(m)
 }
 
+func _JungleTV_InvalidateAuthTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InvalidateAuthTokensRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).InvalidateAuthTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/InvalidateAuthTokens",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).InvalidateAuthTokens(ctx, req.(*InvalidateAuthTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ForciblyEnqueueTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ForciblyEnqueueTicketRequest)
 	if err := dec(in); err != nil {
@@ -3485,6 +3531,24 @@ func _JungleTV_SetMulticurrencyPaymentsEnabled_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_InvalidateUserAuthTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InvalidateUserAuthTokensRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).InvalidateUserAuthTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/InvalidateUserAuthTokens",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).InvalidateUserAuthTokens(ctx, req.(*InvalidateUserAuthTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_Applications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplicationsRequest)
 	if err := dec(in); err != nil {
@@ -4034,6 +4098,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_CheckMediaEnqueuingPassword_Handler,
 		},
 		{
+			MethodName: "InvalidateAuthTokens",
+			Handler:    _JungleTV_InvalidateAuthTokens_Handler,
+		},
+		{
 			MethodName: "ForciblyEnqueueTicket",
 			Handler:    _JungleTV_ForciblyEnqueueTicket_Handler,
 		},
@@ -4212,6 +4280,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMulticurrencyPaymentsEnabled",
 			Handler:    _JungleTV_SetMulticurrencyPaymentsEnabled_Handler,
+		},
+		{
+			MethodName: "InvalidateUserAuthTokens",
+			Handler:    _JungleTV_InvalidateUserAuthTokens_Handler,
 		},
 		{
 			MethodName: "Applications",

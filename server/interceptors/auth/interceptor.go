@@ -140,7 +140,7 @@ func (interceptor *Interceptor) tryAuthenticate(ctx context.Context, md metadata
 	}
 
 	accessToken := values[0]
-	claims, err := interceptor.jwtManager.Verify(accessToken)
+	claims, err := interceptor.jwtManager.Verify(ctx, accessToken)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
 	}

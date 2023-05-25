@@ -53,6 +53,7 @@ service JungleTV {
     rpc IncreaseOrReduceSkipThreshold (IncreaseOrReduceSkipThresholdRequest) returns (IncreaseOrReduceSkipThresholdResponse) {}
     rpc CheckMediaEnqueuingPassword (CheckMediaEnqueuingPasswordRequest) returns (CheckMediaEnqueuingPasswordResponse) {}
     rpc MonitorMediaEnqueuingPermission (MonitorMediaEnqueuingPermissionRequest) returns (stream MediaEnqueuingPermissionStatus) {}
+    rpc InvalidateAuthTokens (InvalidateAuthTokensRequest) returns (InvalidateAuthTokensResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -101,6 +102,7 @@ service JungleTV {
     rpc RemoveVipUser(RemoveVipUserRequest) returns (RemoveVipUserResponse) {}
     rpc TriggerClientReload(TriggerClientReloadRequest) returns (TriggerClientReloadResponse) {}
     rpc SetMulticurrencyPaymentsEnabled(SetMulticurrencyPaymentsEnabledRequest) returns (SetMulticurrencyPaymentsEnabledResponse) {}
+    rpc InvalidateUserAuthTokens(InvalidateUserAuthTokensRequest) returns (InvalidateUserAuthTokensResponse) {}
 
     // application editor endpoints
     rpc Applications(ApplicationsRequest) returns (ApplicationsResponse) {}
@@ -1395,3 +1397,13 @@ message MediaEnqueuingPermissionStatus {
     bool password_is_numeric = 3;
     bool has_elevated_privileges = 4;
 }
+
+message InvalidateAuthTokensRequest {}
+
+message InvalidateAuthTokensResponse {}
+
+message InvalidateUserAuthTokensRequest {
+    string address = 1;
+}
+
+message InvalidateUserAuthTokensResponse {}

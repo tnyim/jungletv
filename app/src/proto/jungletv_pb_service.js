@@ -390,6 +390,15 @@ JungleTV.MonitorMediaEnqueuingPermission = {
   responseType: jungletv_pb.MediaEnqueuingPermissionStatus
 };
 
+JungleTV.InvalidateAuthTokens = {
+  methodName: "InvalidateAuthTokens",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.InvalidateAuthTokensRequest,
+  responseType: jungletv_pb.InvalidateAuthTokensResponse
+};
+
 JungleTV.ForciblyEnqueueTicket = {
   methodName: "ForciblyEnqueueTicket",
   service: JungleTV,
@@ -802,6 +811,15 @@ JungleTV.SetMulticurrencyPaymentsEnabled = {
   responseStream: false,
   requestType: jungletv_pb.SetMulticurrencyPaymentsEnabledRequest,
   responseType: jungletv_pb.SetMulticurrencyPaymentsEnabledResponse
+};
+
+JungleTV.InvalidateUserAuthTokens = {
+  methodName: "InvalidateUserAuthTokens",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.InvalidateUserAuthTokensRequest,
+  responseType: jungletv_pb.InvalidateUserAuthTokensResponse
 };
 
 JungleTV.Applications = {
@@ -2375,6 +2393,37 @@ JungleTVClient.prototype.monitorMediaEnqueuingPermission = function monitorMedia
   };
 };
 
+JungleTVClient.prototype.invalidateAuthTokens = function invalidateAuthTokens(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.InvalidateAuthTokens, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
 JungleTVClient.prototype.forciblyEnqueueTicket = function forciblyEnqueueTicket(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
@@ -3783,6 +3832,37 @@ JungleTVClient.prototype.setMulticurrencyPaymentsEnabled = function setMulticurr
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.SetMulticurrencyPaymentsEnabled, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.invalidateUserAuthTokens = function invalidateUserAuthTokens(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.InvalidateUserAuthTokens, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

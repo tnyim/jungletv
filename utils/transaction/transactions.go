@@ -13,6 +13,9 @@ type WrappingContext struct {
 	sqalx.Node
 }
 
+type sqalxNodeKey struct{}
+type sqalxBaseNodeKey struct{}
+
 // Begin begins a new transaction and returns a transaction.WrappingContext that
 // is the transaction and the context with the new sqalx transaction node.
 // The caller must use the returned context in subsequent function calls that are meant
@@ -40,4 +43,14 @@ func (ctx *WrappingContext) WithoutTx() context.Context {
 		panic("base sqalx node not present in context")
 	}
 	return context.WithValue(ctx, sqalxNodeKey{}, n)
+}
+
+// ContextWithBaseSqalxNode returns a new context with the sqalx node set to the provided one
+func ContextWithBaseSqalxNode(ctx context.Context, node sqalx.Node) context.Context {
+	if node.Tx() != nil {
+		panic("node already in transaction")
+	}
+	ctx = context.WithValue(ctx, sqalxNodeKey{}, node)
+	ctx = context.WithValue(ctx, sqalxBaseNodeKey{}, node)
+	return ctx
 }

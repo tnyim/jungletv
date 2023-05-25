@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"mime"
+	"net"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -450,19 +451,11 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	s.handler.ServeHTTP(resp, req)
 }
 
-func sqalxNodeSettingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		newCtx := transaction.ContextWithBaseSqalxNode(r.Context(), rootSqalxNode)
-		next.ServeHTTP(rw, r.WithContext(newCtx))
-	})
-}
-
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
-	sqalxInterceptor := transaction.NewInterceptor(rootSqalxNode)
 	versionInterceptor := version.New(&versionHash)
 
-	unaryInterceptor := grpc_middleware.ChainUnaryServer(sqalxInterceptor.Unary(), versionInterceptor.Unary(), authInterceptor.Unary())
-	streamInterceptor := grpc_middleware.ChainStreamServer(sqalxInterceptor.Stream(), versionInterceptor.Stream(), authInterceptor.Stream())
+	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
+	streamInterceptor := grpc_middleware.ChainStreamServer(versionInterceptor.Stream(), authInterceptor.Stream())
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(unaryInterceptor),
 		grpc.StreamInterceptor(streamInterceptor))
@@ -478,7 +471,6 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		return gzipWrapper(next)
 	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
-	httpServerSubrouter.Use(sqalxNodeSettingMiddleware)
 
 	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
 	if err != nil {
@@ -515,6 +507,9 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		},
 		TLSConfig: &tls.Config{
 			GetCertificate: cm.GetCertificate,
+		},
+		BaseContext: func(l net.Listener) context.Context {
+			return transaction.ContextWithBaseSqalxNode(context.Background(), rootSqalxNode)
 		},
 	}, nil
 }

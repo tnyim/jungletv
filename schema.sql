@@ -380,3 +380,9 @@ CREATE TABLE IF NOT EXISTS "application_value" (
     "value" TEXT NOT NULL,
     PRIMARY KEY (application_id, "key")
 );
+
+CREATE TABLE IF NOT EXISTS "user_jwt_claim_season" (
+    "address" VARCHAR(64) PRIMARY KEY,
+    season INTEGER NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

@@ -9,6 +9,7 @@ type UserClaims struct {
 	jwt.StandardClaims
 	authenticatedUser
 	ClaimsVersion int `json:"claims_version"`
+	Season        int `json:"season"` // incremented on a per-user basis when each user wants to invalidate all of their auth tokens
 }
 
 type authenticatedUser struct {
