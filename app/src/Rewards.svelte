@@ -10,6 +10,7 @@
     import PaginatedTable from "./uielements/PaginatedTable.svelte";
 
     import { formatBANPrice } from "./currency_utils";
+    import { modalConfirm } from "./modal/modal";
     import { badRepresentative, currentSubscription, darkMode, rewardAddress, rewardBalance } from "./stores";
     import ReceivedRewardTableItem from "./tableitems/ReceivedRewardTableItem.svelte";
     import WithdrawalTableItem from "./tableitems/WithdrawalTableItem.svelte";
@@ -98,6 +99,39 @@
     }
 
     $: currentSubAboutToExpire = isSubscriptionAboutToExpire($currentSubscription);
+
+    async function signOut() {
+        if (
+            await modalConfirm(
+                "You will stop receiving rewards for watching and you will no longer be able to participate in chat, until you authenticate with your Banano address again. Continue?",
+                "Sign out?",
+                "Sign out",
+                "Cancel"
+            )
+        ) {
+            apiClient.signOut();
+            rewardAddress.update((_) => "");
+            navigate("/rewards/address");
+        }
+    }
+
+    async function invalidateAuthTokens() {
+        if (
+            await modalConfirm(
+                "This will sign you out on every browser where you've registered to receive rewards with this Banano address, including the one you are currently using.\n" +
+                    "You will stop receiving rewards for watching and you will no longer be able to participate in chat, until you reauthenticate on all the devices where you wish to do so.\n\n" +
+                    "You should use this option if you forgot to sign out of JungleTV on a shared device, or if you believe you've been a victim of cookie stealing/session hijacking.",
+                "Sign out everywhere?",
+                "Sign out everywhere",
+                "Cancel"
+            )
+        ) {
+            apiClient.invalidateAuthTokens();
+            apiClient.signOut();
+            rewardAddress.update((_) => "");
+            navigate("/rewards/address");
+        }
+    }
 </script>
 
 <Wizard>
@@ -333,5 +367,20 @@
                 <WithdrawalTableItem withdrawal={item} />
             </tbody>
         </PaginatedTable>
+    </div>
+    <div slot="extra_5">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+            <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="col-span-3">
+                        <p class="text-lg font-semibold text-gray-800 dark:text-white">Account security</p>
+                        <div class="mt-2 mb-6 flex flex-row gap-4 sm:gap-6">
+                            <ButtonButton on:click={signOut}>Sign out</ButtonButton>
+                            <ButtonButton color="red" on:click={invalidateAuthTokens}>Sign out everywhere</ButtonButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </Wizard>

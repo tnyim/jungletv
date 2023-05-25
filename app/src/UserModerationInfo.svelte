@@ -19,6 +19,15 @@
         }
     }
 
+    async function invalidateAuthTokens() {
+        try {
+            await apiClient.invalidateUserAuthTokens(userAddress);
+            alert("Auth tokens invalidated successfully");
+        } catch (e) {
+            alert("An error occurred: " + e);
+        }
+    }
+
     async function clearProfile() {
         try {
             await apiClient.clearUserProfile(userAddress);
@@ -74,5 +83,8 @@
     {/await}
     <p class="mt-6 mb-4">
         <ButtonButton on:click={clearProfile}>Clear user profile</ButtonButton>
+    </p>
+    <p class="mt-6 mb-4">
+        <ButtonButton color="red" on:click={invalidateAuthTokens}>Invalidate user auth tokens (sign user off on all devices)</ButtonButton>
     </p>
 </div>

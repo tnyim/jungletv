@@ -39,5 +39,10 @@
                 <slot name="extra_4" />
             </div>
         {/if}
+        {#if $$slots.extra_5}
+            <div class="mt-4">
+                <slot name="extra_5" />
+            </div>
+        {/if}
     </div>
 </div>
