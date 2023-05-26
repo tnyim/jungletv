@@ -6300,6 +6300,226 @@ export namespace InvalidateUserAuthTokensResponse {
   }
 }
 
+export class AuthorizeApplicationRequest extends jspb.Message {
+  getApplicationName(): string;
+  setApplicationName(value: string): void;
+
+  getDesiredPermissionLevel(): PermissionLevelMap[keyof PermissionLevelMap];
+  setDesiredPermissionLevel(value: PermissionLevelMap[keyof PermissionLevelMap]): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizeApplicationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizeApplicationRequest): AuthorizeApplicationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizeApplicationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizeApplicationRequest;
+  static deserializeBinaryFromReader(message: AuthorizeApplicationRequest, reader: jspb.BinaryReader): AuthorizeApplicationRequest;
+}
+
+export namespace AuthorizeApplicationRequest {
+  export type AsObject = {
+    applicationName: string,
+    desiredPermissionLevel: PermissionLevelMap[keyof PermissionLevelMap],
+    reason: string,
+  }
+}
+
+export class AuthorizeApplicationEvent extends jspb.Message {
+  hasHeartbeat(): boolean;
+  clearHeartbeat(): void;
+  getHeartbeat(): AuthorizeApplicationHeartbeatEvent | undefined;
+  setHeartbeat(value?: AuthorizeApplicationHeartbeatEvent): void;
+
+  hasAuthorizationUrl(): boolean;
+  clearAuthorizationUrl(): void;
+  getAuthorizationUrl(): AuthorizeApplicationAuthorizationURLEvent | undefined;
+  setAuthorizationUrl(value?: AuthorizeApplicationAuthorizationURLEvent): void;
+
+  hasApproved(): boolean;
+  clearApproved(): void;
+  getApproved(): AuthorizeApplicationApprovedEvent | undefined;
+  setApproved(value?: AuthorizeApplicationApprovedEvent): void;
+
+  getEventCase(): AuthorizeApplicationEvent.EventCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizeApplicationEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizeApplicationEvent): AuthorizeApplicationEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizeApplicationEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizeApplicationEvent;
+  static deserializeBinaryFromReader(message: AuthorizeApplicationEvent, reader: jspb.BinaryReader): AuthorizeApplicationEvent;
+}
+
+export namespace AuthorizeApplicationEvent {
+  export type AsObject = {
+    heartbeat?: AuthorizeApplicationHeartbeatEvent.AsObject,
+    authorizationUrl?: AuthorizeApplicationAuthorizationURLEvent.AsObject,
+    approved?: AuthorizeApplicationApprovedEvent.AsObject,
+  }
+
+  export enum EventCase {
+    EVENT_NOT_SET = 0,
+    HEARTBEAT = 1,
+    AUTHORIZATION_URL = 2,
+    APPROVED = 3,
+  }
+}
+
+export class AuthorizeApplicationHeartbeatEvent extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizeApplicationHeartbeatEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizeApplicationHeartbeatEvent): AuthorizeApplicationHeartbeatEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizeApplicationHeartbeatEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizeApplicationHeartbeatEvent;
+  static deserializeBinaryFromReader(message: AuthorizeApplicationHeartbeatEvent, reader: jspb.BinaryReader): AuthorizeApplicationHeartbeatEvent;
+}
+
+export namespace AuthorizeApplicationHeartbeatEvent {
+  export type AsObject = {
+  }
+}
+
+export class AuthorizeApplicationAuthorizationURLEvent extends jspb.Message {
+  getAuthorizationUrl(): string;
+  setAuthorizationUrl(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizeApplicationAuthorizationURLEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizeApplicationAuthorizationURLEvent): AuthorizeApplicationAuthorizationURLEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizeApplicationAuthorizationURLEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizeApplicationAuthorizationURLEvent;
+  static deserializeBinaryFromReader(message: AuthorizeApplicationAuthorizationURLEvent, reader: jspb.BinaryReader): AuthorizeApplicationAuthorizationURLEvent;
+}
+
+export namespace AuthorizeApplicationAuthorizationURLEvent {
+  export type AsObject = {
+    authorizationUrl: string,
+  }
+}
+
+export class AuthorizeApplicationApprovedEvent extends jspb.Message {
+  getAuthToken(): string;
+  setAuthToken(value: string): void;
+
+  hasTokenExpiration(): boolean;
+  clearTokenExpiration(): void;
+  getTokenExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setTokenExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizeApplicationApprovedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizeApplicationApprovedEvent): AuthorizeApplicationApprovedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizeApplicationApprovedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizeApplicationApprovedEvent;
+  static deserializeBinaryFromReader(message: AuthorizeApplicationApprovedEvent, reader: jspb.BinaryReader): AuthorizeApplicationApprovedEvent;
+}
+
+export namespace AuthorizeApplicationApprovedEvent {
+  export type AsObject = {
+    authToken: string,
+    tokenExpiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class AuthorizationProcessDataRequest extends jspb.Message {
+  getProcessId(): string;
+  setProcessId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizationProcessDataRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizationProcessDataRequest): AuthorizationProcessDataRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizationProcessDataRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizationProcessDataRequest;
+  static deserializeBinaryFromReader(message: AuthorizationProcessDataRequest, reader: jspb.BinaryReader): AuthorizationProcessDataRequest;
+}
+
+export namespace AuthorizationProcessDataRequest {
+  export type AsObject = {
+    processId: string,
+  }
+}
+
+export class AuthorizationProcessDataResponse extends jspb.Message {
+  getApplicationName(): string;
+  setApplicationName(value: string): void;
+
+  getDesiredPermissionLevel(): PermissionLevelMap[keyof PermissionLevelMap];
+  setDesiredPermissionLevel(value: PermissionLevelMap[keyof PermissionLevelMap]): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthorizationProcessDataResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthorizationProcessDataResponse): AuthorizationProcessDataResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthorizationProcessDataResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthorizationProcessDataResponse;
+  static deserializeBinaryFromReader(message: AuthorizationProcessDataResponse, reader: jspb.BinaryReader): AuthorizationProcessDataResponse;
+}
+
+export namespace AuthorizationProcessDataResponse {
+  export type AsObject = {
+    applicationName: string,
+    desiredPermissionLevel: PermissionLevelMap[keyof PermissionLevelMap],
+    reason: string,
+  }
+}
+
+export class ConsentOrDissentToAuthorizationRequest extends jspb.Message {
+  getProcessId(): string;
+  setProcessId(value: string): void;
+
+  getConsent(): boolean;
+  setConsent(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsentOrDissentToAuthorizationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsentOrDissentToAuthorizationRequest): ConsentOrDissentToAuthorizationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsentOrDissentToAuthorizationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsentOrDissentToAuthorizationRequest;
+  static deserializeBinaryFromReader(message: ConsentOrDissentToAuthorizationRequest, reader: jspb.BinaryReader): ConsentOrDissentToAuthorizationRequest;
+}
+
+export namespace ConsentOrDissentToAuthorizationRequest {
+  export type AsObject = {
+    processId: string,
+    consent: boolean,
+  }
+}
+
+export class ConsentOrDissentToAuthorizationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsentOrDissentToAuthorizationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsentOrDissentToAuthorizationResponse): ConsentOrDissentToAuthorizationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsentOrDissentToAuthorizationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsentOrDissentToAuthorizationResponse;
+  static deserializeBinaryFromReader(message: ConsentOrDissentToAuthorizationResponse, reader: jspb.BinaryReader): ConsentOrDissentToAuthorizationResponse;
+}
+
+export namespace ConsentOrDissentToAuthorizationResponse {
+  export type AsObject = {
+  }
+}
+
 export interface EnqueueMediaTicketStatusMap {
   ACTIVE: 0;
   PAID: 1;

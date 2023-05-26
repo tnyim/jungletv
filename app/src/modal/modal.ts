@@ -15,7 +15,7 @@ export const getModalResult = async function <ResponseType>(mi: ModalData): Prom
         let opened = false;
         if (typeof mi.options === "undefined") {
             mi.options = {
-                closeButton: true,
+                closeButton: false,
                 closeOnEsc: true,
                 closeOnOuterClick: true,
                 styleContent: {

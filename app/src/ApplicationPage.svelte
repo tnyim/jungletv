@@ -115,7 +115,8 @@
     const permissionLevelMapping: Record<PermissionLevelMap[keyof PermissionLevelMap], string> = {
         0: "unauthenticated",
         1: "user",
-        2: "admin",
+        2: "appeditor",
+        3: "admin",
     };
 
     let permissionLevelPromise = new Promise((resolve: (level: string) => void) => {

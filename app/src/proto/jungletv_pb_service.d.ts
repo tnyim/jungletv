@@ -393,6 +393,33 @@ type JungleTVInvalidateAuthTokens = {
   readonly responseType: typeof jungletv_pb.InvalidateAuthTokensResponse;
 };
 
+type JungleTVAuthorizeApplication = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof jungletv_pb.AuthorizeApplicationRequest;
+  readonly responseType: typeof jungletv_pb.AuthorizeApplicationEvent;
+};
+
+type JungleTVAuthorizationProcessData = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.AuthorizationProcessDataRequest;
+  readonly responseType: typeof jungletv_pb.AuthorizationProcessDataResponse;
+};
+
+type JungleTVConsentOrDissentToAuthorization = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.ConsentOrDissentToAuthorizationRequest;
+  readonly responseType: typeof jungletv_pb.ConsentOrDissentToAuthorizationResponse;
+};
+
 type JungleTVForciblyEnqueueTicket = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1059,6 +1086,9 @@ export class JungleTV {
   static readonly CheckMediaEnqueuingPassword: JungleTVCheckMediaEnqueuingPassword;
   static readonly MonitorMediaEnqueuingPermission: JungleTVMonitorMediaEnqueuingPermission;
   static readonly InvalidateAuthTokens: JungleTVInvalidateAuthTokens;
+  static readonly AuthorizeApplication: JungleTVAuthorizeApplication;
+  static readonly AuthorizationProcessData: JungleTVAuthorizationProcessData;
+  static readonly ConsentOrDissentToAuthorization: JungleTVConsentOrDissentToAuthorization;
   static readonly ForciblyEnqueueTicket: JungleTVForciblyEnqueueTicket;
   static readonly RemoveQueueEntry: JungleTVRemoveQueueEntry;
   static readonly RemoveChatMessage: JungleTVRemoveChatMessage;
@@ -1484,6 +1514,25 @@ export class JungleTVClient {
   invalidateAuthTokens(
     requestMessage: jungletv_pb.InvalidateAuthTokensRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateAuthTokensResponse|null) => void
+  ): UnaryResponse;
+  authorizeApplication(requestMessage: jungletv_pb.AuthorizeApplicationRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.AuthorizeApplicationEvent>;
+  authorizationProcessData(
+    requestMessage: jungletv_pb.AuthorizationProcessDataRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AuthorizationProcessDataResponse|null) => void
+  ): UnaryResponse;
+  authorizationProcessData(
+    requestMessage: jungletv_pb.AuthorizationProcessDataRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.AuthorizationProcessDataResponse|null) => void
+  ): UnaryResponse;
+  consentOrDissentToAuthorization(
+    requestMessage: jungletv_pb.ConsentOrDissentToAuthorizationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConsentOrDissentToAuthorizationResponse|null) => void
+  ): UnaryResponse;
+  consentOrDissentToAuthorization(
+    requestMessage: jungletv_pb.ConsentOrDissentToAuthorizationRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.ConsentOrDissentToAuthorizationResponse|null) => void
   ): UnaryResponse;
   forciblyEnqueueTicket(
     requestMessage: jungletv_pb.ForciblyEnqueueTicketRequest,

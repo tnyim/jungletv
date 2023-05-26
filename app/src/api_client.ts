@@ -9,12 +9,12 @@ import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFiles
 import { ApplicationEventUpdate, ApplicationServerMethodRequest, ApplicationServerMethodResponse, ConsumeApplicationEventsRequest, ResolveApplicationPageRequest, ResolveApplicationPageResponse, TriggerApplicationEventRequest, TriggerApplicationEventResponse } from "./proto/application_runtime_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
-    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, BanUserRequest,
+    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, AuthorizationProcessDataRequest, AuthorizationProcessDataResponse, BanUserRequest,
     BanUserResponse,
     BlockUserRequest, BlockUserResponse,
     BlockedUsersRequest, BlockedUsersResponse,
     ChatGifSearchRequest,
-    ChatGifSearchResponse, ChatMessage, ChatUpdate, CheckMediaEnqueuingPasswordRequest, CheckMediaEnqueuingPasswordResponse, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
+    ChatGifSearchResponse, ChatMessage, ChatUpdate, CheckMediaEnqueuingPasswordRequest, CheckMediaEnqueuingPasswordResponse, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsentOrDissentToAuthorizationRequest, ConsentOrDissentToAuthorizationResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
     EnqueueMediaResponse,
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForcedTicketEnqueueTypeMap,
@@ -1030,6 +1030,19 @@ class APIClient {
         const request = new InvalidateUserAuthTokensRequest();
         request.setAddress(address);
         return this.unaryRPC(JungleTV.InvalidateUserAuthTokens, request);
+    }
+
+    async authorizationProcessData(processID: string): Promise<AuthorizationProcessDataResponse> {
+        const request = new AuthorizationProcessDataRequest();
+        request.setProcessId(processID);
+        return this.unaryRPC(JungleTV.AuthorizationProcessData, request);
+    }
+
+    async consentOrDissentToAuthorization(processID: string, consent: boolean): Promise<ConsentOrDissentToAuthorizationResponse> {
+        const request = new ConsentOrDissentToAuthorizationRequest();
+        request.setProcessId(processID);
+        request.setConsent(consent);
+        return this.unaryRPC(JungleTV.ConsentOrDissentToAuthorization, request);
     }
 
     monitorMediaEnqueuingPermission(onStatusUpdated: (status: MediaEnqueuingPermissionStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {

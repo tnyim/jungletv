@@ -61,6 +61,9 @@ type JungleTVClient interface {
 	CheckMediaEnqueuingPassword(ctx context.Context, in *CheckMediaEnqueuingPasswordRequest, opts ...grpc.CallOption) (*CheckMediaEnqueuingPasswordResponse, error)
 	MonitorMediaEnqueuingPermission(ctx context.Context, in *MonitorMediaEnqueuingPermissionRequest, opts ...grpc.CallOption) (JungleTV_MonitorMediaEnqueuingPermissionClient, error)
 	InvalidateAuthTokens(ctx context.Context, in *InvalidateAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateAuthTokensResponse, error)
+	AuthorizeApplication(ctx context.Context, in *AuthorizeApplicationRequest, opts ...grpc.CallOption) (JungleTV_AuthorizeApplicationClient, error)
+	AuthorizationProcessData(ctx context.Context, in *AuthorizationProcessDataRequest, opts ...grpc.CallOption) (*AuthorizationProcessDataResponse, error)
+	ConsentOrDissentToAuthorization(ctx context.Context, in *ConsentOrDissentToAuthorizationRequest, opts ...grpc.CallOption) (*ConsentOrDissentToAuthorizationResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(ctx context.Context, in *RemoveQueueEntryRequest, opts ...grpc.CallOption) (*RemoveQueueEntryResponse, error)
@@ -714,6 +717,56 @@ func (c *jungleTVClient) InvalidateAuthTokens(ctx context.Context, in *Invalidat
 	return out, nil
 }
 
+func (c *jungleTVClient) AuthorizeApplication(ctx context.Context, in *AuthorizeApplicationRequest, opts ...grpc.CallOption) (JungleTV_AuthorizeApplicationClient, error) {
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[8], "/jungletv.JungleTV/AuthorizeApplication", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &jungleTVAuthorizeApplicationClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type JungleTV_AuthorizeApplicationClient interface {
+	Recv() (*AuthorizeApplicationEvent, error)
+	grpc.ClientStream
+}
+
+type jungleTVAuthorizeApplicationClient struct {
+	grpc.ClientStream
+}
+
+func (x *jungleTVAuthorizeApplicationClient) Recv() (*AuthorizeApplicationEvent, error) {
+	m := new(AuthorizeApplicationEvent)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *jungleTVClient) AuthorizationProcessData(ctx context.Context, in *AuthorizationProcessDataRequest, opts ...grpc.CallOption) (*AuthorizationProcessDataResponse, error) {
+	out := new(AuthorizationProcessDataResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/AuthorizationProcessData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jungleTVClient) ConsentOrDissentToAuthorization(ctx context.Context, in *ConsentOrDissentToAuthorizationRequest, opts ...grpc.CallOption) (*ConsentOrDissentToAuthorizationResponse, error) {
+	out := new(ConsentOrDissentToAuthorizationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ConsentOrDissentToAuthorization", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ForciblyEnqueueTicket(ctx context.Context, in *ForciblyEnqueueTicketRequest, opts ...grpc.CallOption) (*ForciblyEnqueueTicketResponse, error) {
 	out := new(ForciblyEnqueueTicketResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ForciblyEnqueueTicket", in, out, opts...)
@@ -994,7 +1047,7 @@ func (c *jungleTVClient) ResetSpectatorStatus(ctx context.Context, in *ResetSpec
 }
 
 func (c *jungleTVClient) MonitorModerationStatus(ctx context.Context, in *MonitorModerationStatusRequest, opts ...grpc.CallOption) (JungleTV_MonitorModerationStatusClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[8], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[9], "/jungletv.JungleTV/MonitorModerationStatus", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1278,7 +1331,7 @@ func (c *jungleTVClient) ApplicationLog(ctx context.Context, in *ApplicationLogR
 }
 
 func (c *jungleTVClient) ConsumeApplicationLog(ctx context.Context, in *ConsumeApplicationLogRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationLogClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[9], "/jungletv.JungleTV/ConsumeApplicationLog", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/ConsumeApplicationLog", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1310,7 +1363,7 @@ func (x *jungleTVConsumeApplicationLogClient) Recv() (*ApplicationLogEntryContai
 }
 
 func (c *jungleTVClient) MonitorRunningApplications(ctx context.Context, in *MonitorRunningApplicationsRequest, opts ...grpc.CallOption) (JungleTV_MonitorRunningApplicationsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[10], "/jungletv.JungleTV/MonitorRunningApplications", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[11], "/jungletv.JungleTV/MonitorRunningApplications", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1378,7 +1431,7 @@ func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *Resolve
 }
 
 func (c *jungleTVClient) ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[11], "/jungletv.JungleTV/ConsumeApplicationEvents", opts...)
+	stream, err := c.cc.NewStream(ctx, &JungleTV_ServiceDesc.Streams[12], "/jungletv.JungleTV/ConsumeApplicationEvents", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1474,6 +1527,9 @@ type JungleTVServer interface {
 	CheckMediaEnqueuingPassword(context.Context, *CheckMediaEnqueuingPasswordRequest) (*CheckMediaEnqueuingPasswordResponse, error)
 	MonitorMediaEnqueuingPermission(*MonitorMediaEnqueuingPermissionRequest, JungleTV_MonitorMediaEnqueuingPermissionServer) error
 	InvalidateAuthTokens(context.Context, *InvalidateAuthTokensRequest) (*InvalidateAuthTokensResponse, error)
+	AuthorizeApplication(*AuthorizeApplicationRequest, JungleTV_AuthorizeApplicationServer) error
+	AuthorizationProcessData(context.Context, *AuthorizationProcessDataRequest) (*AuthorizationProcessDataResponse, error)
+	ConsentOrDissentToAuthorization(context.Context, *ConsentOrDissentToAuthorizationRequest) (*ConsentOrDissentToAuthorizationResponse, error)
 	// moderation endpoints
 	ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error)
 	RemoveQueueEntry(context.Context, *RemoveQueueEntryRequest) (*RemoveQueueEntryResponse, error)
@@ -1681,6 +1737,15 @@ func (UnimplementedJungleTVServer) MonitorMediaEnqueuingPermission(*MonitorMedia
 }
 func (UnimplementedJungleTVServer) InvalidateAuthTokens(context.Context, *InvalidateAuthTokensRequest) (*InvalidateAuthTokensResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InvalidateAuthTokens not implemented")
+}
+func (UnimplementedJungleTVServer) AuthorizeApplication(*AuthorizeApplicationRequest, JungleTV_AuthorizeApplicationServer) error {
+	return status.Errorf(codes.Unimplemented, "method AuthorizeApplication not implemented")
+}
+func (UnimplementedJungleTVServer) AuthorizationProcessData(context.Context, *AuthorizationProcessDataRequest) (*AuthorizationProcessDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizationProcessData not implemented")
+}
+func (UnimplementedJungleTVServer) ConsentOrDissentToAuthorization(context.Context, *ConsentOrDissentToAuthorizationRequest) (*ConsentOrDissentToAuthorizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConsentOrDissentToAuthorization not implemented")
 }
 func (UnimplementedJungleTVServer) ForciblyEnqueueTicket(context.Context, *ForciblyEnqueueTicketRequest) (*ForciblyEnqueueTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForciblyEnqueueTicket not implemented")
@@ -2696,6 +2761,63 @@ func _JungleTV_InvalidateAuthTokens_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JungleTVServer).InvalidateAuthTokens(ctx, req.(*InvalidateAuthTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_AuthorizeApplication_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AuthorizeApplicationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(JungleTVServer).AuthorizeApplication(m, &jungleTVAuthorizeApplicationServer{stream})
+}
+
+type JungleTV_AuthorizeApplicationServer interface {
+	Send(*AuthorizeApplicationEvent) error
+	grpc.ServerStream
+}
+
+type jungleTVAuthorizeApplicationServer struct {
+	grpc.ServerStream
+}
+
+func (x *jungleTVAuthorizeApplicationServer) Send(m *AuthorizeApplicationEvent) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_AuthorizationProcessData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizationProcessDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).AuthorizationProcessData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/AuthorizationProcessData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).AuthorizationProcessData(ctx, req.(*AuthorizationProcessDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JungleTV_ConsentOrDissentToAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsentOrDissentToAuthorizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).ConsentOrDissentToAuthorization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/ConsentOrDissentToAuthorization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).ConsentOrDissentToAuthorization(ctx, req.(*ConsentOrDissentToAuthorizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4102,6 +4224,14 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JungleTV_InvalidateAuthTokens_Handler,
 		},
 		{
+			MethodName: "AuthorizationProcessData",
+			Handler:    _JungleTV_AuthorizationProcessData_Handler,
+		},
+		{
+			MethodName: "ConsentOrDissentToAuthorization",
+			Handler:    _JungleTV_ConsentOrDissentToAuthorization_Handler,
+		},
+		{
 			MethodName: "ForciblyEnqueueTicket",
 			Handler:    _JungleTV_ForciblyEnqueueTicket_Handler,
 		},
@@ -4401,6 +4531,11 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "MonitorMediaEnqueuingPermission",
 			Handler:       _JungleTV_MonitorMediaEnqueuingPermission_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "AuthorizeApplication",
+			Handler:       _JungleTV_AuthorizeApplication_Handler,
 			ServerStreams: true,
 		},
 		{

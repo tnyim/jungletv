@@ -1,6 +1,9 @@
 package auth
 
-import "github.com/palantir/stacktrace"
+import (
+	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/proto"
+)
 
 // PermissionLevel represents the elevation of a user
 type PermissionLevel string
@@ -23,6 +26,33 @@ func ParsePermissionLevel(p string) (PermissionLevel, error) {
 		return AdminPermissionLevel, nil
 	default:
 		return "", stacktrace.NewError("invalid permission level")
+	}
+}
+
+// ParseAPIPermissionLevel parses a protobuf permission level into a Permission Level
+func ParseAPIPermissionLevel(level proto.PermissionLevel) PermissionLevel {
+	switch level {
+	case proto.PermissionLevel_USER:
+		return UserPermissionLevel
+	case proto.PermissionLevel_APPEDITOR:
+		return AppEditorPermissionLevel
+	case proto.PermissionLevel_ADMIN:
+		return AdminPermissionLevel
+	default:
+		return UnauthenticatedPermissionLevel
+	}
+}
+
+func (p PermissionLevel) SerializeForAPI() proto.PermissionLevel {
+	switch p {
+	case UserPermissionLevel:
+		return proto.PermissionLevel_USER
+	case AppEditorPermissionLevel:
+		return proto.PermissionLevel_APPEDITOR
+	case AdminPermissionLevel:
+		return proto.PermissionLevel_ADMIN
+	default:
+		return proto.PermissionLevel_UNAUTHENTICATED
 	}
 }
 

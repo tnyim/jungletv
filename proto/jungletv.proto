@@ -54,6 +54,9 @@ service JungleTV {
     rpc CheckMediaEnqueuingPassword (CheckMediaEnqueuingPasswordRequest) returns (CheckMediaEnqueuingPasswordResponse) {}
     rpc MonitorMediaEnqueuingPermission (MonitorMediaEnqueuingPermissionRequest) returns (stream MediaEnqueuingPermissionStatus) {}
     rpc InvalidateAuthTokens (InvalidateAuthTokensRequest) returns (InvalidateAuthTokensResponse) {}
+    rpc AuthorizeApplication (AuthorizeApplicationRequest) returns (stream AuthorizeApplicationEvent) {}
+    rpc AuthorizationProcessData (AuthorizationProcessDataRequest) returns (AuthorizationProcessDataResponse) {}
+    rpc ConsentOrDissentToAuthorization (ConsentOrDissentToAuthorizationRequest) returns (ConsentOrDissentToAuthorizationResponse) {}
 
     // moderation endpoints
     rpc ForciblyEnqueueTicket(ForciblyEnqueueTicketRequest) returns (ForciblyEnqueueTicketResponse) {}
@@ -1407,3 +1410,45 @@ message InvalidateUserAuthTokensRequest {
 }
 
 message InvalidateUserAuthTokensResponse {}
+
+message AuthorizeApplicationRequest {
+    string application_name = 1;
+    PermissionLevel desired_permission_level = 2;
+    string reason = 3;
+}
+
+message AuthorizeApplicationEvent {
+    oneof event {
+        AuthorizeApplicationHeartbeatEvent heartbeat = 1;
+        AuthorizeApplicationAuthorizationURLEvent authorization_url = 2;
+        AuthorizeApplicationApprovedEvent approved = 3;
+    }
+}
+
+message AuthorizeApplicationHeartbeatEvent {}
+
+message AuthorizeApplicationAuthorizationURLEvent {
+    string authorization_url = 1;
+}
+
+message AuthorizeApplicationApprovedEvent {
+    string auth_token = 1;
+    google.protobuf.Timestamp token_expiration = 2;
+}
+
+message AuthorizationProcessDataRequest {
+    string process_id = 1;
+}
+
+message AuthorizationProcessDataResponse {
+    string application_name = 1;
+    PermissionLevel desired_permission_level = 2;
+    string reason = 3;
+}
+
+message ConsentOrDissentToAuthorizationRequest {
+    string process_id = 1;
+    bool consent = 2;
+}
+
+message ConsentOrDissentToAuthorizationResponse {}

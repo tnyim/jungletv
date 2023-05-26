@@ -8,6 +8,7 @@
 	import type { Context } from "svelte-simple-modal/types/Modal.svelte";
 	import About from "./About.svelte";
 	import ApplicationPage from "./ApplicationPage.svelte";
+	import Authorize from "./Authorize.svelte";
 	import Document from "./Document.svelte";
 	import Enqueue from "./Enqueue.svelte";
 	import Homepage from "./Homepage.svelte";
@@ -293,6 +294,7 @@
 						on:sidebarOpenEnd={playerContainer.onSidebarOpenEnd}
 					/>
 				</Route>
+				<Route path="/authorize/:processID" component={Authorize} />
 				<Route path="/about" component={About} />
 				<Route path="/enqueue" component={Enqueue} />
 				<Route path="/rewards" component={Rewards} />
@@ -478,8 +480,8 @@
 		}
 
 		.chat-user-hyper {
-			background-color: #10B981;
-			background-image: linear-gradient(45deg, #10B981, #FBBF24, #6D28D9);
+			background-color: #10b981;
+			background-image: linear-gradient(45deg, #10b981, #fbbf24, #6d28d9);
 			background-size: 100%;
 			-webkit-background-clip: text;
 			background-clip: text;
@@ -487,8 +489,8 @@
 			text-fill-color: transparent;
 		}
 		.dark .chat-user-hyper {
-			background-color: #6EE7B7;
-			background-image: linear-gradient(45deg, #6EE7B7, #FBDD11, #A78BFA);
+			background-color: #6ee7b7;
+			background-image: linear-gradient(45deg, #6ee7b7, #fbdd11, #a78bfa);
 		}
 
 		.cm-tooltip {

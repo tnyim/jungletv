@@ -76,6 +76,7 @@ type grpcServer struct {
 	skipAccount                       *wallet.Account
 	rainAccount                       *wallet.Account
 	jwtManager                        *auth.JWTManager
+	thirdPartyAuthorizer              *auth.ThirdPartyAuthorizer
 	enqueueRequestRateLimiter         limiter.Store
 	enqueueRequestLongTermRateLimiter limiter.Store
 	signInRateLimiter                 limiter.Store
@@ -211,6 +212,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/StartOrExtendSubscription", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/IncreaseOrReduceSkipThreshold", auth.UserPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/InvalidateAuthTokens", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/AuthorizationProcessData", auth.UserPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ConsentOrDissentToAuthorization", auth.UserPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ForciblyEnqueueTicket", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/RemoveQueueEntry", auth.AdminPermissionLevel)
@@ -349,6 +352,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 		rewardHistoryMutex: nsync.NewNamedMutex(),
 	}
+	s.thirdPartyAuthorizer = auth.NewThirdPartyAuthorizer(s.jwtManager)
 	s.appEditor = appeditor.New(s.log, s.appRunner)
 	s.userSerializer = s.serializeUserForAPI
 
