@@ -482,7 +482,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			if buildconfig.DEBUG || buildconfig.LAB {
-				return origin == websiteURL || origin == "vscode-file://vscode-app"
+				return origin == websiteURL || origin == "vscode-file://vscode-app" || origin == "https://editor.jungletv.live"
 			}
 			return origin == websiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{

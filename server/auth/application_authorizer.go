@@ -82,8 +82,8 @@ func (process *ThirdPartyAuthorizationProcess) Consent(ctx context.Context, user
 		return stacktrace.NewError("cannot authorize third-party for higher permission level than that of the user")
 	}
 
-	username := ""
-	if user.Nickname() != nil {
+	username := user.Address()[:14]
+	if user.Nickname() != nil && *user.Nickname() != "" {
 		username = *user.Nickname()
 	}
 	token, expiry, err := process.authorizer.jwtManager.Generate(ctx, user.Address(), process.PermissionLevel, username)
