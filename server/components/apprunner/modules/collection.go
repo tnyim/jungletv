@@ -10,13 +10,18 @@ import (
 // Collection is a set of NativeModules that belongs to a single application instance
 type Collection struct {
 	modules []NativeModule
+	vm      *goja.Runtime
 }
+
+// SourceLoader is a function responsible for loading sources
+type SourceLoader func(*goja.Runtime, string) ([]byte, error)
 
 func (c *Collection) RegisterNativeModule(m NativeModule) {
 	c.modules = append(c.modules, m)
 }
 
 func (c *Collection) EnableModules(runtime *goja.Runtime) {
+	c.vm = runtime
 	for _, c := range c.modules {
 		if autoEnable, name := c.AutoRequire(); autoEnable {
 			runtime.Set(name, require.Require(runtime, c.ModuleName()))
@@ -36,8 +41,10 @@ func (c *Collection) ExecutionPaused() {
 	}
 }
 
-func (c *Collection) BuildRegistry(sourceLoader require.SourceLoader) *require.Registry {
-	registry := require.NewRegistry(require.WithLoader(sourceLoader))
+func (c *Collection) BuildRegistry(sourceLoader SourceLoader) *require.Registry {
+	registry := require.NewRegistry(require.WithLoader(func(path string) ([]byte, error) {
+		return sourceLoader(c.vm, path)
+	}))
 	c.registerModules(registry)
 	return registry
 }

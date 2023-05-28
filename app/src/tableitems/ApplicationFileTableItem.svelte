@@ -109,9 +109,13 @@
             case "text/plain":
             case "application/json":
                 return "fas fa-file-alt";
+            case "text/css":
             case "text/javascript":
             case "application/javascript":
             case "application/x-javascript":
+            case "text/typescript":
+            case "application/typescript":
+            case "application/x-typescript":
                 return "fas fa-file-code";
             default:
                 return "fas fa-file";

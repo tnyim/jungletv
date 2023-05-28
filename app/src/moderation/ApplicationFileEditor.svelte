@@ -44,6 +44,8 @@
             editing = false;
             if (fileName.endsWith(".js")) {
                 fileType = "text/javascript";
+            } else if (fileName.endsWith(".ts")) {
+                fileType = "text/typescript";
             } else if (fileName.endsWith(".json")) {
                 fileType = "application/json";
             } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {

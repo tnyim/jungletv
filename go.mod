@@ -10,6 +10,7 @@ require (
 	github.com/anthonynsimon/bild v0.13.0
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
@@ -46,6 +47,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
+	golang.org/x/crypto v0.8.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/image v0.7.0
 	golang.org/x/oauth2 v0.7.0
@@ -89,7 +91,6 @@ require (
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect

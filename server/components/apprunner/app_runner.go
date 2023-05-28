@@ -32,10 +32,17 @@ const RuntimeVersion = 1
 // MainFileName is the name of the application file containing the application entry point
 const MainFileName = "main.js"
 
+// MainFileNameTypeScript is the name of the application TypeScript file containing the application entry point
+const MainFileNameTypeScript = "main.ts"
+
 // ServerScriptMIMEType is the content type of the application scripts executed by the server
 const ServerScriptMIMEType = "text/javascript"
 
 var validServerScriptMIMETypes = []string{ServerScriptMIMEType, "application/javascript", "application/x-javascript"}
+
+var validServerTypeScriptMIMETypes = []string{"text/typescript", "application/typescript", "application/x-typescript"}
+
+const typeScriptVersion = "v4.9.3"
 
 // ErrApplicationNotFound is returned when the specified application was not found
 var ErrApplicationNotFound = errors.New("application not found")

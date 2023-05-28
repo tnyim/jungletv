@@ -1,6 +1,7 @@
 package apprunner
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/clarkmcc/go-typescript"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/eventloop"
@@ -147,25 +149,32 @@ func (a *appInstance) Paused() event.NoArgEvent {
 	return a.onPaused
 }
 
-func (a *appInstance) getMainFileSource() (string, error) {
+func (a *appInstance) getMainFileSource() (string, bool, error) {
 	ctx, err := transaction.Begin(a.ctx)
 	if err != nil {
-		return "", stacktrace.Propagate(err, "")
+		return "", false, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
-	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, a.applicationVersion, []string{MainFileName})
+	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, a.applicationVersion, []string{MainFileName, MainFileNameTypeScript})
 	if err != nil {
-		return "", stacktrace.Propagate(err, "")
+		return "", false, stacktrace.Propagate(err, "")
 	}
 	file, ok := files[MainFileName]
-	if !ok {
-		return "", stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found")
+	tsFile, tsok := files[MainFileNameTypeScript]
+	if !ok && !tsok {
+		return "", false, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found")
 	}
-	if !slices.Contains(validServerScriptMIMETypes, file.Type) {
-		return "", stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
+	if ok {
+		if !slices.Contains(validServerScriptMIMETypes, file.Type) {
+			return "", false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
+		}
+		return string(file.Content), false, nil
 	}
-	return string(file.Content), nil
+	if !slices.Contains(validServerTypeScriptMIMETypes, tsFile.Type) {
+		return "", false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
+	}
+	return string(tsFile.Content), true, nil
 }
 
 // StartOrResume starts or resumes the application instance, returning an error if it is already running
@@ -181,7 +190,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 	a.ctx, a.ctxCancel = context.WithCancel(ctx)
 
-	mainSource, err := a.getMainFileSource()
+	mainSource, isTypeScript, err := a.getMainFileSource()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -209,6 +218,24 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
+
+		if isTypeScript {
+			a.runOnLoopLogError(func(vm *goja.Runtime) error {
+				a.appLogger.RuntimeLog("transpiling TypeScript entrypoint")
+				var err error
+				mainSource, err = typescript.TranspileCtx(a.ctx,
+					strings.NewReader(mainSource), typescript.WithRuntime(vm), typescript.WithVersion(typeScriptVersion))
+				if err != nil {
+					return err
+				}
+				err = vm.Set("exports", vm.NewObject())
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				a.appLogger.RuntimeLog("transpiled TypeScript entrypoint")
+				return nil
+			})
+		}
 
 		a.runOnLoopLogError(func(vm *goja.Runtime) error {
 			_, err = vm.RunScript(MainFileName, mainSource)
@@ -437,26 +464,43 @@ func (a *appInstance) Running() (bool, types.ApplicationVersion, time.Time) {
 	return a.running, a.applicationVersion, a.startedOrStoppedAt
 }
 
-func (a *appInstance) sourceLoader(filename string) ([]byte, error) {
+func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, error) {
 	ctx, err := transaction.Begin(a.ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
-	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, a.applicationVersion, []string{filename})
+	filenames := []string{filename}
+	if !strings.HasSuffix(filename, ".js") {
+		filenames = append(filenames, filename+".ts")
+	}
+
+	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, a.applicationVersion, filenames)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	file, ok := files[filename]
-	if !ok {
-		return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found"))
-	}
-	if !slices.Contains(validServerScriptMIMETypes, file.Type) {
-		return nil, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "source file has wrong type")
-	}
+	for filename, file := range files {
+		isJSON := file.Type == "application/json"
+		isTypeScript := slices.Contains(validServerTypeScriptMIMETypes, file.Type)
+		if !isJSON && !isTypeScript && !slices.Contains(validServerScriptMIMETypes, file.Type) {
+			return nil, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "source file has wrong type")
+		}
 
-	return file.Content, nil
+		if isTypeScript {
+			a.appLogger.RuntimeLog("transpiling TypeScript file " + filename)
+			transpiled, err := typescript.TranspileCtx(a.ctx,
+				bytes.NewReader(file.Content), typescript.WithRuntime(vm), typescript.WithVersion(typeScriptVersion))
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "")
+			}
+			a.appLogger.RuntimeLog("transpiled TypeScript file " + filename)
+			return []byte(transpiled), nil
+		}
+
+		return file.Content, nil
+	}
+	return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "required file not found"))
 }
 
 func (a *appInstance) EvaluateExpression(ctx context.Context, expression string) (bool, string, time.Duration, error) {
