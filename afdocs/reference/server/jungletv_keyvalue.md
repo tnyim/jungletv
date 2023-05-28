@@ -13,7 +13,7 @@ There is no explicit limit to the amount of keys an application can have in stor
 This module is not imported by default. To use this module, import it in your server scripts as follows:
 
 ```js
-let keyvalue = require("jungletv:keyvalue")
+const keyvalue = require("jungletv:keyvalue")
 ```
 
 ## Methods

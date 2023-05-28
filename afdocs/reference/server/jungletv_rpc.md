@@ -10,7 +10,7 @@ It should be used to define how to handle method calls and events originating fr
 This module is not imported by default. To use this module, import it in your server scripts as follows:
 
 ```js
-let rpc = require("jungletv:rpc")
+const rpc = require("jungletv:rpc")
 ```
 
 ## Methods

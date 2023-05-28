@@ -5,7 +5,7 @@ The `jungletv:chat` module allows for interaction with the JungleTV chat subsyst
 This module is not imported by default. To use this module, import it in your server scripts as follows:
 
 ```js
-let chat = require("jungletv:chat")
+const chat = require("jungletv:chat")
 ```
 
 ## Methods

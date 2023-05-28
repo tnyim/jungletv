@@ -5,7 +5,7 @@ The `jungletv:pages` module allows for serving application pages, which is web c
 This module is not imported by default. To use this module, import it in your server scripts as follows:
 
 ```js
-let pages = require("jungletv:pages")
+const pages = require("jungletv:pages")
 ```
 
 ## Methods
