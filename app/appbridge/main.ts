@@ -207,7 +207,7 @@ export const alert = async function (message: string, title: string = "", button
  * @returns Whether the user accepted the confirmation.
  * @public
  */
-export const confirm = async function (question: string, title: string, positiveAnswerLabel: string = "Yes", negativeAnswerLabel: string = "No"): Promise<boolean> {
+export const confirm = async function (question: string, title: string = "", positiveAnswerLabel: string = "Yes", negativeAnswerLabel: string = "No"): Promise<boolean> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("confirm", question, title, positiveAnswerLabel, negativeAnswerLabel);
 }
@@ -224,7 +224,7 @@ export const confirm = async function (question: string, title: string, positive
  * @public
  */
 export const prompt = async function (question: string,
-    title: string,
+    title: string = "",
     placeholder: string = "",
     initialValue: string = "",
     positiveAnswerLabel: string = "OK",

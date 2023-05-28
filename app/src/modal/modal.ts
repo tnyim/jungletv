@@ -65,7 +65,7 @@ export const modalAlert = async function (message: string, title: string = "", b
     });
 }
 
-export const modalConfirm = async function (question: string, title: string, positiveAnswerLabel: string = "Yes", negativeAnswerLabel: string = "No"): Promise<boolean> {
+export const modalConfirm = async function (question: string, title: string = "", positiveAnswerLabel: string = "Yes", negativeAnswerLabel: string = "No"): Promise<boolean> {
     let result = await getModalResult<boolean>({
         component: ModalConfirm,
         props: {
@@ -79,7 +79,7 @@ export const modalConfirm = async function (question: string, title: string, pos
 }
 
 export const modalPrompt = async function (question: string,
-    title: string,
+    title: string = "",
     placeholder: string = "",
     initialValue: string = "",
     positiveAnswerLabel: string = "OK",

@@ -26,7 +26,9 @@
 </script>
 
 <div class="flex flex-col bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-t-lg p-4">
-    <p class="text-xl font-semibold mb-4">{title}</p>
+    {#if title != ""}
+        <p class="text-xl font-semibold mb-4">{title}</p>
+    {/if}
     <p class="whitespace-pre-line">{question}</p>
     <div class="mt-1 flex rounded-md shadow-sm">
         <input
