@@ -469,8 +469,8 @@ func (s *ChatStoreDatabase) SetUserNickname(ctxCtx context.Context, user auth.Us
 				nickname = ? OR (nickname IS NULL AND application_id = ?)
 			) AND (
 				permission_level IN (?) OR application_id IS NOT NULL
-			)`,
-		nickname, nickname, levelsAbove)
+			) AND "address" <> ?`, // allow privileged user to set nickname to the same one they've already set
+		nickname, nickname, levelsAbove, user.Address())
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
