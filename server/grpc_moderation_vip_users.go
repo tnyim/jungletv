@@ -37,14 +37,14 @@ func (s *grpcServer) AddVipUser(ctx context.Context, r *proto.AddVipUserRequest)
 		return nil, status.Error(codes.InvalidArgument, "unknown VIP user appearance")
 	}
 
-	s.log.Printf("User %s made VIP with appearance %d by %s (remote address %s)", r.RewardsAddress, r.Appearance, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("User %s made VIP with appearance %d by %s (remote address %s)", r.RewardsAddress, r.Appearance, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("**User `%s` made VIP by %s (%s)**",
 				r.RewardsAddress,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -73,14 +73,14 @@ func (s *grpcServer) RemoveVipUser(ctx context.Context, r *proto.RemoveVipUserRe
 	}
 	delete(s.vipUsers, r.RewardsAddress)
 
-	s.log.Printf("User %s made non-VIP by %s (remote address %s)", r.RewardsAddress, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("User %s made non-VIP by %s (remote address %s)", r.RewardsAddress, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("**User `%s` made non-VIP by %s (%s)**",
 				r.RewardsAddress,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

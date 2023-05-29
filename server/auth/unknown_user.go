@@ -36,3 +36,7 @@ func (u *unknownUser) ApplicationID() string {
 
 func (u *unknownUser) SetNickname(s *string) {
 }
+
+func (u *unknownUser) ModeratorName() string {
+	return ""
+}

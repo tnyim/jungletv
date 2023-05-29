@@ -119,14 +119,14 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Document with ID %s updated by %s (remote address %s)", r.Id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Document with ID %s updated by %s (remote address %s)", r.Id, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Document with ID `%s` updated by moderator: %s (%s)",
 				r.Id,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -168,13 +168,13 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 
 	s.announcementsUpdated.Notify(counter.CounterValue, true)
 
-	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Announcements notification triggered by moderator: %s (%s)",
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

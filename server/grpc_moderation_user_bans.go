@@ -115,7 +115,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 			banEnd = &t
 		}
 		banID, err := s.moderationStore.BanUser(ctx, r.ChatBanned, r.EnqueuingBanned, r.RewardsBanned,
-			banEnd, r.Address, remoteAddress, r.Reason, moderator, moderator.Username)
+			banEnd, r.Address, remoteAddress, r.Reason, moderator, moderator.ModeratorName())
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -136,7 +136,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 			if r.Duration != nil {
 				banType = fmt.Sprintf("Temporary ban (%.2f hours)", r.Duration.AsDuration().Hours())
 			}
-			s.log.Printf("%s ID %s added by %s (remote address %s) with reason %s", banType, banID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+			s.log.Printf("%s ID %s added by %s (remote address %s) with reason %s", banType, banID, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 			_, err = s.modLogWebhook.SendContent(
 				fmt.Sprintf("**Added %s with ID `%s`**\n\nUser: %s\nBanned from: %s\nReason: %s\nBy moderator: %s (%s)",
 					strings.ToLower(banType),
@@ -145,7 +145,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 					strings.Join(places, ", "),
 					r.Reason,
 					moderator.Address()[:14],
-					moderator.Username))
+					moderator.ModeratorName()))
 			if err != nil {
 				s.log.Println("Failed to send mod log webhook:", err)
 			}
@@ -174,7 +174,7 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Ban ID %s removed by %s (remote address %s) with reason %s", r.BanId, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -182,7 +182,7 @@ func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (
 				r.BanId,
 				r.Reason,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

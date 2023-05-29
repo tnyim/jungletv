@@ -7,7 +7,11 @@ import (
 )
 
 func UserPermissionLevelIsAtLeast(user User, level PermissionLevel) bool {
-	return PermissionLevelOrder[user.PermissionLevel()] >= PermissionLevelOrder[level]
+	userLevel := UnauthenticatedPermissionLevel
+	if user != nil && user != User(nil) {
+		userLevel = user.PermissionLevel()
+	}
+	return PermissionLevelOrder[userLevel] >= PermissionLevelOrder[level]
 }
 
 // User represents an identity on the service
@@ -20,6 +24,7 @@ type User interface {
 
 	Nickname() *string
 	SetNickname(*string)
+	ModeratorName() string
 }
 
 // APIUserSerializer is a function that is able to return the protobuf representation of a user

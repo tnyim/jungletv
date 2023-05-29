@@ -106,7 +106,7 @@ func (s *grpcServer) AddDisallowedMediaCollection(ctxCtx context.Context, r *pro
 	for _, collection := range preInfo.Collections() {
 		collection := &types.DisallowedMediaCollection{
 			ID:              uuid.NewV4().String(),
-			DisallowedBy:    moderator.RewardAddress,
+			DisallowedBy:    moderator.Address(),
 			DisallowedAt:    time.Now(),
 			CollectionType:  collection.Type,
 			CollectionID:    collection.ID,
@@ -124,7 +124,7 @@ func (s *grpcServer) AddDisallowedMediaCollection(ctxCtx context.Context, r *pro
 		}
 
 		s.log.Printf("Media collection of type %s with ID %s disallowed by %s (remote address %s)",
-			collection.CollectionType, collection.CollectionID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+			collection.CollectionType, collection.CollectionID, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 		mediaTypeString := "[Unknown media type]"
 		switch collection.CollectionType {
@@ -141,7 +141,7 @@ func (s *grpcServer) AddDisallowedMediaCollection(ctxCtx context.Context, r *pro
 					collection.CollectionID,
 					collection.CollectionTitle,
 					moderator.Address()[:14],
-					moderator.Username))
+					moderator.ModeratorName()))
 			if err != nil {
 				s.log.Println("Failed to send mod log webhook:", err)
 			}
@@ -186,7 +186,7 @@ func (s *grpcServer) RemoveDisallowedMediaCollection(ctxCtx context.Context, r *
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Media collection of type %s with ID %s reallowed by %s (remote address %s)", collection.CollectionType, collection.CollectionID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Media collection of type %s with ID %s reallowed by %s (remote address %s)", collection.CollectionType, collection.CollectionID, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	mediaTypeString := "[Unknown media type]"
 	switch collection.CollectionType {
@@ -203,7 +203,7 @@ func (s *grpcServer) RemoveDisallowedMediaCollection(ctxCtx context.Context, r *
 				collection.CollectionID,
 				collection.CollectionTitle,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

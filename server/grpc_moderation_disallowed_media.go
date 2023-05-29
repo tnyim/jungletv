@@ -106,7 +106,7 @@ func (s *grpcServer) AddDisallowedMedia(ctxCtx context.Context, r *proto.AddDisa
 
 	disallowedMedia := &types.DisallowedMedia{
 		ID:           uuid.NewV4().String(),
-		DisallowedBy: moderator.RewardAddress,
+		DisallowedBy: moderator.Address(),
 		DisallowedAt: time.Now(),
 		MediaType:    mediaType,
 		MediaID:      mediaID,
@@ -123,7 +123,7 @@ func (s *grpcServer) AddDisallowedMedia(ctxCtx context.Context, r *proto.AddDisa
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Media of type %s with ID %s disallowed by %s (remote address %s)", mediaType, mediaID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Media of type %s with ID %s disallowed by %s (remote address %s)", mediaType, mediaID, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	mediaTypeString := "[Unknown media type]"
 	switch mediaType {
@@ -140,7 +140,7 @@ func (s *grpcServer) AddDisallowedMedia(ctxCtx context.Context, r *proto.AddDisa
 				mediaID,
 				disallowedMedia.MediaTitle,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -183,7 +183,7 @@ func (s *grpcServer) RemoveDisallowedMedia(ctxCtx context.Context, r *proto.Remo
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Media of type %s with ID %s reallowed by %s (remote address %s)", disallowedMedia.MediaType, disallowedMedia.MediaID, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Media of type %s with ID %s reallowed by %s (remote address %s)", disallowedMedia.MediaType, disallowedMedia.MediaID, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	mediaTypeString := "[Unknown media type]"
 	switch disallowedMedia.MediaType {
@@ -200,7 +200,7 @@ func (s *grpcServer) RemoveDisallowedMedia(ctxCtx context.Context, r *proto.Remo
 				disallowedMedia.MediaID,
 				disallowedMedia.MediaTitle,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

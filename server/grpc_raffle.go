@@ -148,12 +148,12 @@ func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRa
 		return nil, stacktrace.Propagate(err, "failed to confirm raffle winner")
 	}
 
-	s.log.Printf("Winner of raffle %s confirmed by  %s (remote address %s)", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Winner of raffle %s confirmed by  %s (remote address %s)", r.RaffleId, user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) confirmed winner of raffle `%s`",
-				user.Address()[:14], user.Username, r.RaffleId))
+				user.Address()[:14], user.ModeratorName(), r.RaffleId))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -174,12 +174,12 @@ func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequ
 		return nil, stacktrace.Propagate(err, "failed to redraw raffle")
 	}
 
-	s.log.Printf("Raffle %s redrawn by %s (remote address %s) with reason \"%s\"", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Raffle %s redrawn by %s (remote address %s) with reason \"%s\"", r.RaffleId, user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) redrawed raffle `%s` with reason \"%s\"",
-				user.Address()[:14], user.Username, r.RaffleId, r.Reason))
+				user.Address()[:14], user.ModeratorName(), r.RaffleId, r.Reason))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -200,12 +200,12 @@ func (s *grpcServer) CompleteRaffle(ctx context.Context, r *proto.CompleteRaffle
 		return nil, stacktrace.Propagate(err, "failed to complete raffle")
 	}
 
-	s.log.Printf("Raffle %s completed by %s (remote address %s) with prize block %s", r.RaffleId, user.Username, authinterceptor.RemoteAddressFromContext(ctx), r.PrizeTxHash)
+	s.log.Printf("Raffle %s completed by %s (remote address %s) with prize block %s", r.RaffleId, user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.PrizeTxHash)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) completed raffle `%s` with prize block `%s`",
-				user.Address()[:14], user.Username, r.RaffleId, r.PrizeTxHash))
+				user.Address()[:14], user.ModeratorName(), r.RaffleId, r.PrizeTxHash))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

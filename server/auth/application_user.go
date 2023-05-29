@@ -40,3 +40,7 @@ func (u *applicationUser) ApplicationID() string {
 func (u *applicationUser) SetNickname(s *string) {
 	u.nickname = s
 }
+
+func (u *applicationUser) ModeratorName() string {
+	return u.applicationID
+}

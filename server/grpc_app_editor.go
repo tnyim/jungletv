@@ -122,14 +122,14 @@ func (s *grpcServer) DeleteApplication(ctx context.Context, r *proto.DeleteAppli
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Application with ID %s deleted by %s (remote address %s)", r.Id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Application with ID %s deleted by %s (remote address %s)", r.Id, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Application with ID `%s` deleted by: %s (%s)",
 				r.Id,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

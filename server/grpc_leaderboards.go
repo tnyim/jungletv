@@ -26,8 +26,8 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 	mustInclude := []string{}
 	userAddress := ""
 	if user != nil && !user.IsUnknown() {
-		mustInclude = append(mustInclude, user.RewardAddress)
-		userAddress = user.RewardAddress
+		mustInclude = append(mustInclude, user.Address())
+		userAddress = user.Address()
 	}
 
 	periodEnd := time.Now()

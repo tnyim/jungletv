@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -71,6 +72,15 @@ type appInstance struct {
 	vmClearInterrupt func()
 }
 
+type panicResult struct {
+	recoverResult interface{}
+	stack         []byte
+}
+
+func (p panicResult) String() string {
+	return fmt.Sprintf("%v, stack trace: %v", p.recoverResult, string(p.stack))
+}
+
 var ErrApplicationInstanceAlreadyRunning = errors.New("application instance already running")
 var ErrApplicationInstanceAlreadyPaused = errors.New("application instance already paused")
 var ErrApplicationInstanceTerminated = errors.New("application instance terminated")
@@ -101,7 +111,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.applicationUser = auth.NewApplicationUser(account.Address(), instance.applicationID)
 
 	scheduleFunctionNoError := func(f func(vm *goja.Runtime)) {
-		instance.runOnLoopWithInterruption(instance.ctx, f, func(x interface{}) {
+		instance.runOnLoopWithInterruption(instance.ctx, f, func(x panicResult) {
 			instance.appLogger.RuntimeError(fmt.Sprint(x))
 		})
 	}
@@ -306,12 +316,12 @@ func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 		if err != nil {
 			a.appLogger.RuntimeError(err.Error())
 		}
-	}, func(x interface{}) {
-		a.appLogger.RuntimeError(fmt.Sprint(x))
+	}, func(p panicResult) {
+		a.appLogger.RuntimeError(p.String())
 	})
 }
 
-func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(interface{})) {
+func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(panicResult)) {
 	a.loop.RunOnLoop(func(vm *goja.Runtime) {
 		a.feedWatchdog() // if we got scheduled then the loop is not stuck
 		ranChan := make(chan struct{}, 1)
@@ -332,7 +342,7 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 			defer func() {
 				if x := recover(); x != nil {
 					if panicCb != nil {
-						panicCb(x)
+						panicCb(panicResult{x, debug.Stack()})
 					}
 				}
 			}()
@@ -480,7 +490,7 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	for filename, file := range files {
+	for f, file := range files {
 		isJSON := file.Type == "application/json"
 		isTypeScript := slices.Contains(validServerTypeScriptMIMETypes, file.Type)
 		if !isJSON && !isTypeScript && !slices.Contains(validServerScriptMIMETypes, file.Type) {
@@ -488,13 +498,17 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 		}
 
 		if isTypeScript {
-			a.appLogger.RuntimeLog("transpiling TypeScript file " + filename)
+			moduleName := strings.TrimSuffix(filename, ".ts")
+			a.appLogger.RuntimeLog("transpiling TypeScript file " + f)
 			transpiled, err := typescript.TranspileCtx(a.ctx,
-				bytes.NewReader(file.Content), typescript.WithRuntime(vm), typescript.WithVersion(typeScriptVersion))
+				bytes.NewReader(file.Content),
+				typescript.WithRuntime(vm),
+				typescript.WithVersion(typeScriptVersion),
+				typescript.WithModuleName(moduleName))
 			if err != nil {
 				return nil, stacktrace.Propagate(err, "")
 			}
-			a.appLogger.RuntimeLog("transpiled TypeScript file " + filename)
+			a.appLogger.RuntimeLog("transpiled TypeScript file " + f)
 			return []byte(transpiled), nil
 		}
 
@@ -539,7 +553,7 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 
 	resultChan := make(chan T, 1)
 	errChan := make(chan error, 1)
-	panicChan := make(chan interface{}, 1)
+	panicChan := make(chan panicResult, 1)
 	var executionTime time.Duration
 	couldHavePaused := &atomic.Int32{}
 	couldHavePaused.Store(1)
@@ -550,8 +564,8 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 		executionTime = time.Since(start)
 		resultChan <- result
 		errChan <- err
-	}, func(x interface{}) {
-		panicChan <- x
+	}, func(p panicResult) {
+		panicChan <- p
 	})
 
 	onPaused, pausedU := a.Paused().Subscribe(event.BufferFirst)
@@ -564,7 +578,7 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 			return result, executionTime, stacktrace.Propagate(err, "")
 		case reason := <-panicChan:
 			var z T
-			return z, executionTime, stacktrace.NewError(fmt.Sprint(reason))
+			return z, executionTime, stacktrace.NewError(reason.String())
 		case <-onPaused:
 			if couldHavePaused.Load() == 1 {
 				// application paused before our loop function could run / before our expression returned

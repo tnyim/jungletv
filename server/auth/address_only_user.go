@@ -49,3 +49,7 @@ func (u *addressOnlyUser) ApplicationID() string {
 func (u *addressOnlyUser) SetNickname(s *string) {
 	u.nickname = s
 }
+
+func (u *addressOnlyUser) ModeratorName() string {
+	return ""
+}

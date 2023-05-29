@@ -30,10 +30,10 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 	var receivedRewards []*types.ReceivedReward
 	var total uint64
 
-	if !s.rewardHistoryMutex.TryLockTimeout(userClaims.RewardAddress, 1*time.Second) {
+	if !s.rewardHistoryMutex.TryLockTimeout(userClaims.Address(), 1*time.Second) {
 		return nil, status.Error(codes.ResourceExhausted, "concurrent request in progress")
 	}
-	defer s.rewardHistoryMutex.Unlock(userClaims.RewardAddress)
+	defer s.rewardHistoryMutex.Unlock(userClaims.Address())
 
 	select {
 	case <-ctx.Done():
@@ -41,7 +41,7 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 	default:
 	}
 
-	receivedRewards, total, err = types.GetReceivedRewardsForAddress(ctx, userClaims.RewardAddress, readPaginationParameters(r))
+	receivedRewards, total, err = types.GetReceivedRewardsForAddress(ctx, userClaims.Address(), readPaginationParameters(r))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

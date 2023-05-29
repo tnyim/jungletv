@@ -31,7 +31,7 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
 
-	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.RewardAddress)
+	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -40,7 +40,7 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 		return nil, status.Error(codes.FailedPrecondition, "insufficient balance")
 	}
 
-	pendingWithdraw, _, _, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
+	pendingWithdraw, _, _, err := types.AddressHasPendingWithdrawal(ctx, userClaims.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -75,7 +75,7 @@ func (s *grpcServer) WithdrawalHistory(ctxCtx context.Context, r *proto.Withdraw
 	var withdrawals []*types.Withdrawal
 	var total uint64
 
-	withdrawals, total, err = types.GetWithdrawalsForAddress(ctx, userClaims.RewardAddress, readPaginationParameters(r))
+	withdrawals, total, err = types.GetWithdrawalsForAddress(ctx, userClaims.Address(), readPaginationParameters(r))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

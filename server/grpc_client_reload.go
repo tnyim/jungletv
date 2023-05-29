@@ -28,12 +28,12 @@ func (s *grpcServer) TriggerClientReload(ctx context.Context, r *proto.TriggerCl
 
 	s.ClientReloadTriggered().Notify(false)
 
-	s.log.Printf("Client reload triggered by %s (remote address %s)", user.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Client reload triggered by %s (remote address %s)", user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) triggered client reload",
-				user.Address()[:14], user.Username))
+				user.Address()[:14], user.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

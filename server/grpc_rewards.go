@@ -55,10 +55,10 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	delegatorsCountChan := make(chan uint64)
 	delegatorsErrChan := make(chan error)
 
-	_, cachedGoodRepResult := s.addressesWithGoodRepCache.Get(userClaims.RewardAddress)
+	_, cachedGoodRepResult := s.addressesWithGoodRepCache.Get(userClaims.Address())
 	if !cachedGoodRepResult {
 		go func() {
-			representative, err := s.wallet.RPC.AccountRepresentative(userClaims.RewardAddress)
+			representative, err := s.wallet.RPC.AccountRepresentative(userClaims.Address())
 			if err != nil {
 				delegatorsErrChan <- stacktrace.Propagate(err, "")
 				return
@@ -95,12 +95,12 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		}()
 	}
 
-	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.RewardAddress)
+	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	pendingWithdrawal, position, total, err := types.AddressHasPendingWithdrawal(ctx, userClaims.RewardAddress)
+	pendingWithdrawal, position, total, err := types.AddressHasPendingWithdrawal(ctx, userClaims.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -111,11 +111,11 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	if !cachedGoodRepResult {
 		select {
 		case err := <-delegatorsErrChan:
-			s.log.Printf("Error checking delegators count for address %s: %v", userClaims.RewardAddress, err)
+			s.log.Printf("Error checking delegators count for address %s: %v", userClaims.Address(), err)
 		case c := <-delegatorsCountChan:
 			badRepresentative = c < 2
 			if !badRepresentative {
-				s.addressesWithGoodRepCache.SetDefault(userClaims.RewardAddress, struct{}{})
+				s.addressesWithGoodRepCache.SetDefault(userClaims.Address(), struct{}{})
 			}
 		case <-timeoutTimer.C:
 			break
@@ -123,7 +123,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 
 	response := &proto.RewardInfoResponse{
-		RewardsAddress:    userClaims.RewardAddress,
+		RewardsAddress:    userClaims.Address(),
 		RewardBalance:     payment.NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
 		WithdrawalPending: pendingWithdrawal,
 		BadRepresentative: badRepresentative,

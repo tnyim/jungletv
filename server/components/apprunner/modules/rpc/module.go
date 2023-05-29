@@ -128,7 +128,7 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 		panic(vm.NewTypeError("Unknown method"))
 	}
 
-	if auth.PermissionLevelOrder[h.minPermissionLevel] > auth.PermissionLevelOrder[user.PermissionLevel()] {
+	if !auth.UserPermissionLevelIsAtLeast(user, h.minPermissionLevel) {
 		panic(vm.NewTypeError("Insufficient permissions"))
 	}
 

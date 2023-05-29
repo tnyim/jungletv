@@ -73,7 +73,7 @@ func (s *grpcServer) VerifyUser(ctx context.Context, r *proto.VerifyUserRequest)
 	}
 
 	id, err := s.moderationStore.VerifyUser(ctx, r.SkipClientIntegrityChecks, r.SkipIpAddressReputationChecks, r.ReduceHardChallengeFrequency,
-		r.Address, r.Reason, moderator, moderator.Username)
+		r.Address, r.Reason, moderator, moderator.ModeratorName())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -93,7 +93,7 @@ func (s *grpcServer) VerifyUser(ctx context.Context, r *proto.VerifyUserRequest)
 		perksStr = "With perks: " + strings.Join(perks, ", ")
 	}
 
-	s.log.Printf("User verification with ID %s added by %s (remote address %s) with reason %s", id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("User verification with ID %s added by %s (remote address %s) with reason %s", id, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -103,7 +103,7 @@ func (s *grpcServer) VerifyUser(ctx context.Context, r *proto.VerifyUserRequest)
 				perksStr,
 				r.Reason,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -130,7 +130,7 @@ func (s *grpcServer) RemoveUserVerification(ctx context.Context, r *proto.Remove
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Verification ID %s removed by %s (remote address %s) with reason %s", r.VerificationId, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+	s.log.Printf("Verification ID %s removed by %s (remote address %s) with reason %s", r.VerificationId, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -138,7 +138,7 @@ func (s *grpcServer) RemoveUserVerification(ctx context.Context, r *proto.Remove
 				r.VerificationId,
 				r.Reason,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}

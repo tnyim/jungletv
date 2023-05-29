@@ -53,3 +53,7 @@ func (u *UserClaims) SetNickname(s *string) {
 		u.TheNickname = *s
 	}
 }
+
+func (u *UserClaims) ModeratorName() string {
+	return u.Username
+}

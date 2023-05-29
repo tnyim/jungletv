@@ -36,7 +36,7 @@ func (s *grpcServer) ForciblyEnqueueTicket(ctx context.Context, r *proto.Forcibl
 	}
 	ticket.ForceEnqueuing(r.EnqueueType)
 
-	s.log.Printf("Ticket %s forcibly enqueued by %s (remote address %s)", r.Id, user.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Ticket %s forcibly enqueued by %s (remote address %s)", r.Id, user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 	return &proto.ForciblyEnqueueTicketResponse{}, nil
 }
 
@@ -52,7 +52,7 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 		return nil, stacktrace.Propagate(err, "failed to remove queue entry")
 	}
 
-	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Queue entry with ID %s removed by %s (remote address %s)", r.Id, user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	requestedBy := "(unknown)"
 	if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
@@ -62,7 +62,7 @@ func (s *grpcServer) RemoveQueueEntry(ctx context.Context, r *proto.RemoveQueueE
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) removed queue entry requested by %s with title \"%s\"",
-				user.Address()[:14], user.Username, requestedBy, entry.MediaInfo().Title()))
+				user.Address()[:14], user.ModeratorName(), requestedBy, entry.MediaInfo().Title()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -96,7 +96,7 @@ func (s *grpcServer) RemoveChatMessage(ctx context.Context, r *proto.RemoveChatM
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) deleted chat message from %s:\n\n%s%s",
-				user.Address()[:14], user.Username, deletedMsg.Author.Address()[:14], content, attachments))
+				user.Address()[:14], user.ModeratorName(), deletedMsg.Author.Address()[:14], content, attachments))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -130,7 +130,7 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) changed chat settings: chat %s, slowmode %s",
-				user.Address()[:14], user.Username, enabledString, slowmodeString))
+				user.Address()[:14], user.ModeratorName(), enabledString, slowmodeString))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -169,7 +169,7 @@ func (s *grpcServer) SetMediaEnqueuingEnabled(ctx context.Context, r *proto.SetM
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) changed video enqueuing to %s",
-				user.Address()[:14], user.Username, r.Allowed.String()))
+				user.Address()[:14], user.ModeratorName(), r.Allowed.String()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -219,7 +219,7 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Nickname for user %s set to \"%s\" by %s (remote address %s)", r.Address, r.Nickname, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Nickname for user %s set to \"%s\" by %s (remote address %s)", r.Address, r.Nickname, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
@@ -227,7 +227,7 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 				r.Address,
 				r.Nickname,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -249,14 +249,14 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 
 	s.pricer.SetFinalPricesMultiplier(int(r.Multiplier))
 
-	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Prices multiplier set to %d by moderator: %s (%s)",
 				r.Multiplier,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -278,14 +278,14 @@ func (s *grpcServer) SetMinimumPricesMultiplier(ctx context.Context, r *proto.Se
 
 	s.pricer.SetMinimumPricesMultiplier(int(r.Multiplier))
 
-	s.log.Printf("Minimum prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Minimum prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Minimum prices multiplier set to %d by moderator: %s (%s)",
 				r.Multiplier,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -310,7 +310,7 @@ func (s *grpcServer) SetCrowdfundedSkippingEnabled(ctx context.Context, r *proto
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s crowdfunded skipping",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -332,14 +332,14 @@ func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSki
 
 	s.pricer.SetSkipPriceMultiplier(int(r.Multiplier))
 
-	s.log.Printf("Skip price multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Skip price multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Skip price multiplier set to %d by moderator: %s (%s)",
 				r.Multiplier,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -364,7 +364,7 @@ func (s *grpcServer) SetSkippingEnabled(ctx context.Context, r *proto.SetSkippin
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s skipping in general",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -389,7 +389,7 @@ func (s *grpcServer) SetNewQueueEntriesAlwaysUnskippable(ctx context.Context, r 
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s forced unskippability of new queue entries",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -414,7 +414,7 @@ func (s *grpcServer) SetOwnQueueEntryRemovalAllowed(ctx context.Context, r *prot
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s removal of own queue entries",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -439,7 +439,7 @@ func (s *grpcServer) SetQueueEntryReorderingAllowed(ctx context.Context, r *prot
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s reordering of queue entries",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -510,14 +510,14 @@ func (s *grpcServer) ResetSpectatorStatus(ctx context.Context, r *proto.ResetSpe
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Spectator state of address %s reset by %s (remote address %s)", r.RewardsAddress, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Spectator state of address %s reset by %s (remote address %s)", r.RewardsAddress, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Spectator state of address %s reset by moderator: %s (%s)",
 				r.RewardsAddress,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -537,14 +537,14 @@ func (s *grpcServer) SetQueueInsertCursor(ctx context.Context, r *proto.SetQueue
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Queue insert cursor set to %s by %s (remote address %s)", r.Id, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Queue insert cursor set to %s by %s (remote address %s)", r.Id, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Queue insert cursor set to %s by moderator: %s (%s)",
 				r.Id,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -562,13 +562,13 @@ func (s *grpcServer) ClearQueueInsertCursor(ctx context.Context, r *proto.ClearQ
 
 	s.mediaQueue.ClearInsertCursor()
 
-	s.log.Printf("Queue insert cursor cleared by %s (remote address %s)", moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Queue insert cursor cleared by %s (remote address %s)", moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Queue insert cursor cleared by moderator: %s (%s)",
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -605,14 +605,14 @@ func (s *grpcServer) ClearUserProfile(ctxCtx context.Context, r *proto.ClearUser
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.log.Printf("Profile for user %s cleared by %s (remote address %s)", r.Address, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx))
+	s.log.Printf("Profile for user %s cleared by %s (remote address %s)", r.Address, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Profile for user %s cleared by moderator: %s (%s)",
 				r.Address,
 				moderator.Address()[:14],
-				moderator.Username))
+				moderator.ModeratorName()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -656,13 +656,13 @@ func (s *grpcServer) AdjustPointsBalance(ctxCtx context.Context, r *proto.Adjust
 	}
 
 	s.log.Printf("Points balance of user %s adjusted by %d by %s (remote address %s) with reason: %s",
-		r.RewardsAddress, r.Value, moderator.Username, authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
+		r.RewardsAddress, r.Value, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx), r.Reason)
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) adjusted points balance of user %s by %d with reason: %s",
 				moderator.Address()[:14],
-				moderator.Username,
+				moderator.ModeratorName(),
 				r.RewardsAddress,
 				r.Value,
 				r.Reason))
@@ -690,7 +690,7 @@ func (s *grpcServer) SetMulticurrencyPaymentsEnabled(ctx context.Context, r *pro
 		}
 		_, err := s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) %s multicurrency payments",
-				user.Address()[:14], user.Username, action))
+				user.Address()[:14], user.ModeratorName(), action))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
 		}
@@ -712,13 +712,13 @@ func (s *grpcServer) InvalidateUserAuthTokens(ctxCtx context.Context, r *proto.I
 	}
 
 	s.log.Printf("Auth tokens of user %s invalidated by %s (remote address %s)",
-		r.Address, moderator.Username, authinterceptor.RemoteAddressFromContext(ctxCtx))
+		r.Address, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctxCtx))
 
 	if s.modLogWebhook != nil {
 		_, err = s.modLogWebhook.SendContent(
 			fmt.Sprintf("Moderator %s (%s) invalidated auth tokens of user %s",
 				moderator.Address()[:14],
-				moderator.Username,
+				moderator.ModeratorName(),
 				r.Address))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)
