@@ -66,7 +66,7 @@ points.createTransaction(address, reason, amount)
 
 ##### Return value
 
-The created [points transaction](#points-transaction).
+The created [points transaction](#transaction-object).
 
 ##### Exceptions
 

@@ -9,6 +9,7 @@
     - [`jungletv:db`](/reference/server/jungletv_db.md)
     - [`jungletv:keyvalue`](/reference/server/jungletv_keyvalue.md)
     - [`jungletv:pages`](/reference/server/jungletv_pages.md)
+    - [`jungletv:points`](/reference/server/jungletv_points.md)
     - [`jungletv:rpc`](/reference/server/jungletv_rpc.md)
     - [`node:console`](/reference/server/node_console.md)
     - [`node:process`](/reference/server/node_process.md)
