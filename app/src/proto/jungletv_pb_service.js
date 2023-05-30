@@ -1011,6 +1011,15 @@ JungleTV.ImportApplication = {
   responseType: application_editor_pb.ImportApplicationResponse
 };
 
+JungleTV.TypeScriptTypeDefinitions = {
+  methodName: "TypeScriptTypeDefinitions",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.TypeScriptTypeDefinitionsRequest,
+  responseType: application_editor_pb.TypeScriptTypeDefinitionsResponse
+};
+
 JungleTV.ResolveApplicationPage = {
   methodName: "ResolveApplicationPage",
   service: JungleTV,
@@ -4565,6 +4574,37 @@ JungleTVClient.prototype.importApplication = function importApplication(requestM
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.ImportApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.typeScriptTypeDefinitions = function typeScriptTypeDefinitions(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.TypeScriptTypeDefinitions, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

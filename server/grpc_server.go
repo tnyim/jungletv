@@ -144,6 +144,8 @@ type grpcServer struct {
 	versionHashChanged    event.NoArgEvent
 
 	rewardHistoryMutex *nsync.NamedMutex
+
+	typeScriptTypeDefinitionsFile string
 }
 
 // Options contains the required options to start the server
@@ -174,6 +176,8 @@ type Options struct {
 
 	AutoEnqueueVideoListFile string
 	QueueFile                string
+
+	TypeScriptTypeDefinitionsFile string
 
 	TenorAPIKey string
 
@@ -278,6 +282,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/EvaluateExpressionOnApplication", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ExportApplication", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ImportApplication", auth.AppEditorPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/TypeScriptTypeDefinitions", auth.AppEditorPermissionLevel)
 
 	ytClient, err := youtubeapi.NewService(ctx, option.WithAPIKey(options.YoutubeAPIkey))
 	if err != nil {
@@ -351,6 +356,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		versionHashChanged:    event.NewNoArg(),
 
 		rewardHistoryMutex: nsync.NewNamedMutex(),
+
+		typeScriptTypeDefinitionsFile: options.TypeScriptTypeDefinitionsFile,
 	}
 	s.thirdPartyAuthorizer = auth.NewThirdPartyAuthorizer(s.jwtManager)
 	s.appEditor = appeditor.New(s.log, s.appRunner)

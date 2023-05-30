@@ -42,7 +42,8 @@ var validServerScriptMIMETypes = []string{ServerScriptMIMEType, "application/jav
 
 var validServerTypeScriptMIMETypes = []string{"text/typescript", "application/typescript", "application/x-typescript"}
 
-const typeScriptVersion = "v4.9.3"
+// TypeScriptVersion currently used by the application runtime
+const TypeScriptVersion = "v4.9.3"
 
 // ErrApplicationNotFound is returned when the specified application was not found
 var ErrApplicationNotFound = errors.New("application not found")

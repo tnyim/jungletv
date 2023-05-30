@@ -126,6 +126,7 @@ service JungleTV {
     rpc EvaluateExpressionOnApplication(EvaluateExpressionOnApplicationRequest) returns (EvaluateExpressionOnApplicationResponse) {}
     rpc ExportApplication(ExportApplicationRequest) returns (ExportApplicationResponse) {}
     rpc ImportApplication(ImportApplicationRequest) returns (ImportApplicationResponse) {}
+    rpc TypeScriptTypeDefinitions(TypeScriptTypeDefinitionsRequest) returns (TypeScriptTypeDefinitionsResponse) {}
 
     // application runtime endpoints
     rpc ResolveApplicationPage(ResolveApplicationPageRequest) returns (ResolveApplicationPageResponse) {}

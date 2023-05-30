@@ -131,6 +131,7 @@ type JungleTVClient interface {
 	EvaluateExpressionOnApplication(ctx context.Context, in *EvaluateExpressionOnApplicationRequest, opts ...grpc.CallOption) (*EvaluateExpressionOnApplicationResponse, error)
 	ExportApplication(ctx context.Context, in *ExportApplicationRequest, opts ...grpc.CallOption) (*ExportApplicationResponse, error)
 	ImportApplication(ctx context.Context, in *ImportApplicationRequest, opts ...grpc.CallOption) (*ImportApplicationResponse, error)
+	TypeScriptTypeDefinitions(ctx context.Context, in *TypeScriptTypeDefinitionsRequest, opts ...grpc.CallOption) (*TypeScriptTypeDefinitionsResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error)
 	ConsumeApplicationEvents(ctx context.Context, in *ConsumeApplicationEventsRequest, opts ...grpc.CallOption) (JungleTV_ConsumeApplicationEventsClient, error)
@@ -1421,6 +1422,15 @@ func (c *jungleTVClient) ImportApplication(ctx context.Context, in *ImportApplic
 	return out, nil
 }
 
+func (c *jungleTVClient) TypeScriptTypeDefinitions(ctx context.Context, in *TypeScriptTypeDefinitionsRequest, opts ...grpc.CallOption) (*TypeScriptTypeDefinitionsResponse, error) {
+	out := new(TypeScriptTypeDefinitionsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/TypeScriptTypeDefinitions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) ResolveApplicationPage(ctx context.Context, in *ResolveApplicationPageRequest, opts ...grpc.CallOption) (*ResolveApplicationPageResponse, error) {
 	out := new(ResolveApplicationPageResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/ResolveApplicationPage", in, out, opts...)
@@ -1597,6 +1607,7 @@ type JungleTVServer interface {
 	EvaluateExpressionOnApplication(context.Context, *EvaluateExpressionOnApplicationRequest) (*EvaluateExpressionOnApplicationResponse, error)
 	ExportApplication(context.Context, *ExportApplicationRequest) (*ExportApplicationResponse, error)
 	ImportApplication(context.Context, *ImportApplicationRequest) (*ImportApplicationResponse, error)
+	TypeScriptTypeDefinitions(context.Context, *TypeScriptTypeDefinitionsRequest) (*TypeScriptTypeDefinitionsResponse, error)
 	// application runtime endpoints
 	ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error)
 	ConsumeApplicationEvents(*ConsumeApplicationEventsRequest, JungleTV_ConsumeApplicationEventsServer) error
@@ -1941,6 +1952,9 @@ func (UnimplementedJungleTVServer) ExportApplication(context.Context, *ExportApp
 }
 func (UnimplementedJungleTVServer) ImportApplication(context.Context, *ImportApplicationRequest) (*ImportApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ImportApplication not implemented")
+}
+func (UnimplementedJungleTVServer) TypeScriptTypeDefinitions(context.Context, *TypeScriptTypeDefinitionsRequest) (*TypeScriptTypeDefinitionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TypeScriptTypeDefinitions not implemented")
 }
 func (UnimplementedJungleTVServer) ResolveApplicationPage(context.Context, *ResolveApplicationPageRequest) (*ResolveApplicationPageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveApplicationPage not implemented")
@@ -4001,6 +4015,24 @@ func _JungleTV_ImportApplication_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_TypeScriptTypeDefinitions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TypeScriptTypeDefinitionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).TypeScriptTypeDefinitions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/TypeScriptTypeDefinitions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).TypeScriptTypeDefinitions(ctx, req.(*TypeScriptTypeDefinitionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_ResolveApplicationPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResolveApplicationPageRequest)
 	if err := dec(in); err != nil {
@@ -4478,6 +4510,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ImportApplication",
 			Handler:    _JungleTV_ImportApplication_Handler,
+		},
+		{
+			MethodName: "TypeScriptTypeDefinitions",
+			Handler:    _JungleTV_TypeScriptTypeDefinitions_Handler,
 		},
 		{
 			MethodName: "ResolveApplicationPage",

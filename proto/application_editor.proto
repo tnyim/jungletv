@@ -187,3 +187,10 @@ message ImportApplicationRequest {
 }
 
 message ImportApplicationResponse {}
+
+message TypeScriptTypeDefinitionsRequest {}
+
+message TypeScriptTypeDefinitionsResponse {
+    string typescript_version = 1;
+    bytes type_definitions_file = 2;
+}

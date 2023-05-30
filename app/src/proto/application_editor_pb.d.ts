@@ -918,6 +918,48 @@ export namespace ImportApplicationResponse {
   }
 }
 
+export class TypeScriptTypeDefinitionsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TypeScriptTypeDefinitionsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TypeScriptTypeDefinitionsRequest): TypeScriptTypeDefinitionsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TypeScriptTypeDefinitionsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TypeScriptTypeDefinitionsRequest;
+  static deserializeBinaryFromReader(message: TypeScriptTypeDefinitionsRequest, reader: jspb.BinaryReader): TypeScriptTypeDefinitionsRequest;
+}
+
+export namespace TypeScriptTypeDefinitionsRequest {
+  export type AsObject = {
+  }
+}
+
+export class TypeScriptTypeDefinitionsResponse extends jspb.Message {
+  getTypescriptVersion(): string;
+  setTypescriptVersion(value: string): void;
+
+  getTypeDefinitionsFile(): Uint8Array | string;
+  getTypeDefinitionsFile_asU8(): Uint8Array;
+  getTypeDefinitionsFile_asB64(): string;
+  setTypeDefinitionsFile(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TypeScriptTypeDefinitionsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TypeScriptTypeDefinitionsResponse): TypeScriptTypeDefinitionsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TypeScriptTypeDefinitionsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TypeScriptTypeDefinitionsResponse;
+  static deserializeBinaryFromReader(message: TypeScriptTypeDefinitionsResponse, reader: jspb.BinaryReader): TypeScriptTypeDefinitionsResponse;
+}
+
+export namespace TypeScriptTypeDefinitionsResponse {
+  export type AsObject = {
+    typescriptVersion: string,
+    typeDefinitionsFile: Uint8Array | string,
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

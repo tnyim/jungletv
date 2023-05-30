@@ -154,6 +154,11 @@ func main() {
 		mainLog.Println("Queue file path not present in keybox, will not persist queue")
 	}
 
+	tsTypesFile, present := secrets.Get("typescriptApplicationFrameworkTypesFile")
+	if !present {
+		mainLog.Println("File path of TypeScript type definitions for the Application Framework not present in keybox")
+	}
+
 	autoEnqueueVideoListFile, present := secrets.Get("autoEnqueueVideosFile")
 	if !present {
 		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
@@ -356,30 +361,31 @@ func main() {
 
 	configManager := configurationmanager.New(ctx)
 	options := server.Options{
-		Log:                      apiLog,
-		StatsClient:              statsClient,
-		Wallet:                   wallet,
-		RepresentativeAddress:    repAddress,
-		JWTManager:               jwtManager,
-		AuthInterceptor:          authInterceptor,
-		TicketCheckPeriod:        ticketCheckPeriod,
-		IPCheckEndpoint:          ipCheckEndpoint,
-		YoutubeAPIkey:            youtubeAPIkey,
-		RaffleSecretKey:          raffleSecretKey,
-		ModLogWebhook:            modLogWebhook,
-		SegchaClient:             segchaClient,
-		CaptchaImageDB:           imageDB,
-		CaptchaFontPath:          segchaFontPath,
-		AutoEnqueueVideoListFile: autoEnqueueVideoListFile,
-		QueueFile:                queueFile,
-		TenorAPIKey:              tenorAPIKey,
-		WebsiteURL:               websiteURL,
-		VersionHash:              &versionHash,
-		OAuthManager:             oauthManager,
-		NanswapAPIKey:            nanswapAPIKey,
-		TurnstileSecretKey:       turnstileSecretKey,
-		ConfigManager:            configManager,
-		AppRunner:                apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
+		Log:                           apiLog,
+		StatsClient:                   statsClient,
+		Wallet:                        wallet,
+		RepresentativeAddress:         repAddress,
+		JWTManager:                    jwtManager,
+		AuthInterceptor:               authInterceptor,
+		TicketCheckPeriod:             ticketCheckPeriod,
+		IPCheckEndpoint:               ipCheckEndpoint,
+		YoutubeAPIkey:                 youtubeAPIkey,
+		RaffleSecretKey:               raffleSecretKey,
+		ModLogWebhook:                 modLogWebhook,
+		SegchaClient:                  segchaClient,
+		CaptchaImageDB:                imageDB,
+		CaptchaFontPath:               segchaFontPath,
+		AutoEnqueueVideoListFile:      autoEnqueueVideoListFile,
+		QueueFile:                     queueFile,
+		TypeScriptTypeDefinitionsFile: tsTypesFile,
+		TenorAPIKey:                   tenorAPIKey,
+		WebsiteURL:                    websiteURL,
+		VersionHash:                   &versionHash,
+		OAuthManager:                  oauthManager,
+		NanswapAPIKey:                 nanswapAPIKey,
+		TurnstileSecretKey:            turnstileSecretKey,
+		ConfigManager:                 configManager,
+		AppRunner:                     apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
 	}
 
 	apiServer, err := server.NewServer(ctx, options)
@@ -482,7 +488,8 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			if buildconfig.DEBUG || buildconfig.LAB {
-				return origin == websiteURL || origin == "vscode-file://vscode-app" || origin == "https://editor.jungletv.live"
+				return true
+				//return origin == websiteURL || origin == "vscode-file://vscode-app" || origin == "https://editor.jungletv.live"
 			}
 			return origin == websiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{

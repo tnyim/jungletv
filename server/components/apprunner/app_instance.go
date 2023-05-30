@@ -234,7 +234,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 				a.appLogger.RuntimeLog("transpiling TypeScript entrypoint")
 				var err error
 				mainSource, err = typescript.TranspileCtx(a.ctx,
-					strings.NewReader(mainSource), typescript.WithRuntime(vm), typescript.WithVersion(typeScriptVersion))
+					strings.NewReader(mainSource), typescript.WithRuntime(vm), typescript.WithVersion(TypeScriptVersion))
 				if err != nil {
 					return err
 				}
@@ -503,7 +503,7 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 			transpiled, err := typescript.TranspileCtx(a.ctx,
 				bytes.NewReader(file.Content),
 				typescript.WithRuntime(vm),
-				typescript.WithVersion(typeScriptVersion),
+				typescript.WithVersion(TypeScriptVersion),
 				typescript.WithModuleName(moduleName))
 			if err != nil {
 				return nil, stacktrace.Propagate(err, "")

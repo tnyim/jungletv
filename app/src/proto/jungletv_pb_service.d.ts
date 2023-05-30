@@ -1005,6 +1005,15 @@ type JungleTVImportApplication = {
   readonly responseType: typeof application_editor_pb.ImportApplicationResponse;
 };
 
+type JungleTVTypeScriptTypeDefinitions = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.TypeScriptTypeDefinitionsRequest;
+  readonly responseType: typeof application_editor_pb.TypeScriptTypeDefinitionsResponse;
+};
+
 type JungleTVResolveApplicationPage = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1154,6 +1163,7 @@ export class JungleTV {
   static readonly EvaluateExpressionOnApplication: JungleTVEvaluateExpressionOnApplication;
   static readonly ExportApplication: JungleTVExportApplication;
   static readonly ImportApplication: JungleTVImportApplication;
+  static readonly TypeScriptTypeDefinitions: JungleTVTypeScriptTypeDefinitions;
   static readonly ResolveApplicationPage: JungleTVResolveApplicationPage;
   static readonly ConsumeApplicationEvents: JungleTVConsumeApplicationEvents;
   static readonly ApplicationServerMethod: JungleTVApplicationServerMethod;
@@ -2094,6 +2104,15 @@ export class JungleTVClient {
   importApplication(
     requestMessage: application_editor_pb.ImportApplicationRequest,
     callback: (error: ServiceError|null, responseMessage: application_editor_pb.ImportApplicationResponse|null) => void
+  ): UnaryResponse;
+  typeScriptTypeDefinitions(
+    requestMessage: application_editor_pb.TypeScriptTypeDefinitionsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.TypeScriptTypeDefinitionsResponse|null) => void
+  ): UnaryResponse;
+  typeScriptTypeDefinitions(
+    requestMessage: application_editor_pb.TypeScriptTypeDefinitionsRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.TypeScriptTypeDefinitionsResponse|null) => void
   ): UnaryResponse;
   resolveApplicationPage(
     requestMessage: application_runtime_pb.ResolveApplicationPageRequest,

@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/apprunner"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -291,4 +293,19 @@ func (s *grpcServer) ImportApplication(ctx context.Context, r *proto.ImportAppli
 	}
 
 	return &proto.ImportApplicationResponse{}, nil
+}
+
+func (s *grpcServer) TypeScriptTypeDefinitions(ctx context.Context, r *proto.TypeScriptTypeDefinitionsRequest) (*proto.TypeScriptTypeDefinitionsResponse, error) {
+	fileContents := []byte{}
+	if s.typeScriptTypeDefinitionsFile != "" {
+		var err error
+		fileContents, err = os.ReadFile(s.typeScriptTypeDefinitionsFile)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "")
+		}
+	}
+	return &proto.TypeScriptTypeDefinitionsResponse{
+		TypescriptVersion:   apprunner.TypeScriptVersion,
+		TypeDefinitionsFile: fileContents,
+	}, nil
 }
