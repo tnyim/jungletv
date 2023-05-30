@@ -88,7 +88,7 @@ rpc.addEventListener(eventName, listener)
 ##### Parameters
 
 - `eventName` - A case-sensitive string identifying the event type.
-  In addition to application-defined events, there is a set of 
+  In addition to application-defined events, there is a set of runtime-emitted [events](#events).
 - `listener` - A function that will be executed whenever this type of remote event is emitted by a client.
   The function will be called with at least one argument, a [context object](#context-object), followed by any arguments included by the client when emitting the event.
 
@@ -233,7 +233,7 @@ rpc.addEventListener("connected", (context) => {
     if (!context.trusted) {
         return; // not a legitimate runtime-emitted event
     }
-    context.user.address // address of the user that connected
+    context.sender.address // address of the user that connected
 })
 ```
 
@@ -252,7 +252,7 @@ rpc.addEventListener("disconnected", (context) => {
     if (!context.trusted) {
         return; // not a legitimate runtime-emitted event
     }
-    context.user.address // address of the user that disconnected
+    context.sender.address // address of the user that disconnected
 })
 ```
 
@@ -266,11 +266,11 @@ This event has no arguments beyond the [context](#context-object).
 
 Represents the context of a remote method invocation or remote event reception.
 
-| Field     | Type                      | Description                                                                                                                          |
-| --------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `page`    | string                    | ID of the page from where this event or method invocation originates, as passed to [publishFile()](./jungletv_pages.md#publishfile). |
-| `sender`  | [Sender](#sender-object)? | The authenticated user originating this event, will be undefined if the event originates from an unauthenticated visitor.            |
-| `trusted` | boolean                   | Set to true on events emitted by the JungleTV AF itself. Guaranteed to be `false` on method invocations.                             |
+| Field     | Type                      | Description                                                                                                                                 |
+| --------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `page`    | string                    | ID of the page from where this event or method invocation originates, as passed to [publishFile()](./jungletv_pages.md#publishfile).        |
+| `sender`  | [Sender](#sender-object)? | The authenticated user originating this event or invocation, will be undefined if the operation originates from an unauthenticated visitor. |
+| `trusted` | boolean                   | Set to true on events emitted by the JungleTV AF itself. Guaranteed to be `false` on method invocations.                                    |
 
 ### Sender object
 

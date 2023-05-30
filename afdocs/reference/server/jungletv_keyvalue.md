@@ -61,7 +61,7 @@ A string containing the value of the storage item with the specified name, or `n
 
 ### `setItem()`
 
-Updates the value of the storage key with the specified name, creating a new key if necessary.
+Updates the value of the storage key with the specified name, creating a new key/value pair if necessary.
 
 #### Syntax
 
