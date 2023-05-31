@@ -56,7 +56,7 @@ Adjusts a user's point balance by creating a new points transaction.
 
 #### Syntax
 ```js
-points.createTransaction(address, reason, amount)
+points.createTransaction(address, description, amount)
 ```
 
 #### Parameters
@@ -74,7 +74,7 @@ The created [points transaction](#transaction-object).
 
 ### `getBalance()`
 
-Returns the current point balance of a user
+Returns the current points balance of a user.
 
 #### Syntax
 ```js
@@ -86,7 +86,7 @@ points.getBalance(address)
 
 ##### Return value
 
-An integer representing the available points balance of the user.
+A non-negative integer representing the available points balance of the user.
 
 ## Events
 
@@ -119,11 +119,11 @@ points.addEventListener("transactionupdated", (transaction) => {})
 
 #### Event properties
 
-| Field             | Type                               | Description                                           |
-| ----------------- | ---------------------------------- | ----------------------------------------------------- |
-| `type`            | string                             | Guaranteed to be `transactioncreated`.                |
-| `transaction`     | [Transaction](#transaction-object) | The created points transaction.                       |
-| `adjustmentValue` | number                             | The amount of points the transaction was adjusted by. |
+| Field              | Type                               | Description                                           |
+| ------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `type`             | string                             | Guaranteed to be `transactioncreated`.                |
+| `transaction`      | [Transaction](#transaction-object) | The updated points transaction.                       |
+| `pointsAdjustment` | number                             | The amount of points the transaction was adjusted by. |
 
 ## Associated types
 
@@ -131,61 +131,80 @@ points.addEventListener("transactionupdated", (transaction) => {})
 
 Represents a points transaction.
 
-| Field             | Type                   | Description                                                                                |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------ |
-| `id`              | string                 | The unique ID of the transaction.                                                          |
-| `address`         | string                 | The reward address of the user affected by this transaction.                               |
-| `createdAt`       | Date                   | When the transaction was created created.                                                  |
-| `updatedAt`       | Date                   | When the transaction was last updated created.                                             |
-| `value`           | number                 | The points value of the transaction.                                                       |
-| `transactionType` | number                 | The type of the transaction. **Note:** the type of this field is subject to change.        |
-| `extra`           | [Extra](#extra-object) | Extra transaction properties. Varies based on transaction type and may be an empty object. |
+| Field             | Type                                  | Description                                                                                |
+| ----------------- | ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `id`              | string                                | The unique ID of the transaction.                                                          |
+| `address`         | string                                | The reward address of the user affected by this transaction.                               |
+| `createdAt`       | Date                                  | When the transaction was created.                                                          |
+| `updatedAt`       | Date                                  | When the transaction was last updated.                                                     |
+| `value`           | number                                | The points value of the transaction.                                                       |
+| `transactionType` | [Transaction type](#transaction-type) | The type of the transaction.                                                               |
+| `extra`           | [Extra](#extra-object)                | Extra transaction properties. Varies based on transaction type and may be an empty object. |
 
+### Transaction type string
+
+Transaction types are represented by the following strings:
+
+| Transaction Type String          | Description                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `activity_challenge_reward`      | Points received for completing an activity challenge.                                                        |
+| `chat_activity_reward`           | Points received for participating in chat.                                                                   |
+| `media_enqueued_reward`          | Points received for enqueuing media.                                                                         |
+| `chat_gif_attachment`            | Points spent to attach a GIF to a chat message.                                                              |
+| `manual_adjustment`              | Points balance manually adjusted (increased or decreased) by a JungleTV staff member.                        |
+| `media_enqueued_reward_reversal` | Points deducted to undo the points reward received by enqueuing media, when media is removed from the queue. |
+| `conversion_from_banano`         | Points received by converting from Banano.                                                                   |
+| `queue_entry_reordering`         | Points spent to reorder queue entries.                                                                       |
+| `monthly_subscription`           | Points spent to subscribe to JungleTV Nice.                                                                  |
+| `skip_threshold_reduction`       | Points spent to reduce the Crowdfunded Skip threshold.                                                       |
+| `skip_threshold_increase`        | Points spent to increase the Crowdfunded Skip threshold.                                                     |
+| `concealed_entry_enqueuing`      | Points spent while enqueuing to hide media information while it is in the queue.                             |
+| `application_defined`            | Points balance adjusted (increased or decreased) by a JAF application.                                       |
 
 ### Extra object
 
 This dictionary holds arbitrary metadata for the transaction and additional fields may be present.
 It differs based on the type of the transaction.
 
-#### Transaction Type 3 `media_enqueued_reward` extra object
+#### Extra object for the transaction type `media_enqueued_reward`
 
 | Field   | Type   | Description                   |
 | ------- | ------ | ----------------------------- |
 | `media` | string | The ID of the enqueued media. |
 
-#### Transaction Type 5 `manual_adjustment` extra object
+#### Extra object for the transaction type `manual_adjustment`
 
 | Field         | Type   | Description                                                        |
 | ------------- | ------ | ------------------------------------------------------------------ |
 | `reason`      | string | The user-provided reason for the change.                           |
 | `adjusted_by` | string | The reward address of the staff member  that performed the change. |
 
-#### Transaction Type 6 `media_enqueued_reward_reversal` extra object
+#### Extra object for the transaction type `media_enqueued_reward_reversal`
 
 | Field   | Type   | Description                                           |
 | ------- | ------ | ----------------------------------------------------- |
 | `media` | string | The ID of the media which was removed from the queue. |
 
-#### Transaction Type 7 `conversion_from_banano` extra object
+#### Extra object for the transaction type `conversion_from_banano`
 
 | Field     | Type   | Description                                       |
 | --------- | ------ | ------------------------------------------------- |
 | `tx_hash` | string | The hash of the state block that sent the banano. |
 
-#### Transaction Type 8 `queue_entry_reordering` extra object
+#### Extra object for the transaction type `queue_entry_reordering`
 
 | Field       | Type               | Description                                                 |
 | ----------- | ------------------ | ----------------------------------------------------------- |
 | `media`     | string             | The ID of the media entry that was moved in the queue.      |
 | `direction` | `"up"` or `"down"` | A string indicating whether the entry was moved up or down. |
 
-#### Transaction Type 12 `concealed_entry_enqueuing` extra object
+#### Extra object for the transaction type `concealed_entry_enqueuing`
 
 | Field   | Type   | Description                   |
 | ------- | ------ | ----------------------------- |
 | `media` | string | The ID of the enqueued media. |
 
-#### Transaction Type 13 `application_defined` extra object
+#### Extra object for the transaction type `application_defined`
 
 | Field                 | Type   | Description                                                          |
 | --------------------- | ------ | -------------------------------------------------------------------- |

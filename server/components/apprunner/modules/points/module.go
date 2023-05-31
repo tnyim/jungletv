@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/hectorchu/gonano/util"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
@@ -69,7 +71,7 @@ func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 		gojautil.AdaptEvent(m.eventAdapter, m.pointsManager.OnTransactionUpdated(), "transactionupdated", func(vm *goja.Runtime, arg pointsmanager.TransactionUpdatedEventArgs) map[string]interface{} {
 			t := map[string]interface{}{}
 			t["transaction"] = serializePointsTransactionForJS(arg.Transaction, m.dateSerializer)
-			t["adjustmentValue"] = arg.AdjustmentValue
+			t["pointsAdjustment"] = arg.AdjustmentValue
 			return t
 		})
 		m.eventAdapter.StartOrResume()
@@ -141,13 +143,18 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 func serializePointsTransactionForJS(tx *types.PointsTx, dateSerializer func(time.Time) interface{}) map[string]interface{} {
 	e := map[string]interface{}{}
 	_ = json.Unmarshal(tx.Extra, &e)
+
+	txTypeProto := proto.PointsTransactionType(tx.Type)
+	typeString := strings.TrimPrefix(txTypeProto.String(), "POINTS_TRANSACTION_TYPE_")
+	typeString = strings.ToLower(typeString)
+
 	return map[string]interface{}{
 		"id":              fmt.Sprint(tx.ID), // JS deals poorly with int64
 		"address":         tx.RewardsAddress,
 		"createdAt":       dateSerializer(tx.CreatedAt),
 		"updatedAt":       dateSerializer(tx.UpdatedAt),
 		"value":           tx.Value,
-		"transactionType": tx.Type,
+		"transactionType": typeString,
 		"extra":           e,
 	}
 }

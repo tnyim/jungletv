@@ -2,6 +2,7 @@ interface Require {
     (id: string): any;
     (id: "jungletv:chat"): typeof import("jungletv:chat");
     (id: "jungletv:pages"): typeof import("jungletv:pages");
+    (id: "jungletv:points"): typeof import("jungletv:points");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
     (id: "node:console"): typeof import("node:console");
     (id: "node:process"): typeof import("node:process");
@@ -15,7 +16,7 @@ declare var require: Require;
 declare module "jungletv:chat" {
     /** Arguments to a chat event */
     interface EventArgs {
-        type: KeyOf<ChatEventMap>;
+        type: keyof ChatEventMap;
     }
 
     /** Arguments to the 'chatenabled' event */
@@ -73,14 +74,14 @@ declare module "jungletv:chat" {
          * Depending on the event, the function may be invoked with arguments containing information about the event.
          * Refer to the documentation about each event type for details.
          * @param eventType A case-sensitive string representing the event to listen for.
-         * @param listener A function that will be called when an event of the specified type occurs. 
+         * @param listener A function that will be called when an event of the specified type occurs.
          */
         addEventListener<K extends keyof ChatEventMap>(eventType: K, listener: (this: unknown, args: ChatEventMap[K]) => void): void;
 
         /**
-         * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
+         * Ceases calling a function previously registered with {@link Chat.addEventListener} whenever the specified event occurs.
          * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
-         * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+         * @param listener The function previously passed to {@link Chat.addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
          */
         removeEventListener<K extends keyof ChatEventMap>(eventType: K, listener: (this: unknown, args: ChatEventMap[K]) => void): void;
 
@@ -257,7 +258,7 @@ declare module "jungletv:chat" {
 
     const module: Chat;
     export = module;
-};
+}
 
 /** Allows for serving application pages, which is web content that can be presented as stand-alone pages within the JungleTV website, or as part of the main JungleTV interface, with the help of the {@link "jungletv:configuration"} module. */
 declare module "jungletv:pages" {
@@ -284,7 +285,7 @@ declare module "jungletv:pages" {
          * When the page makes use of the App bridge, its document title will be automatically synchronized, shadowing the value of this parameter.
          * @param headers An optional object containing a key-value set of strings representing HTTP headers and the respective values, that will be sent when the page is served.
          */
-        publishFile(pageID: string, fileName: string, defaultTitle: string, headers?: { [key in AllowlistedHeaders]: string } = {}): void;
+        publishFile(pageID: string, fileName: string, defaultTitle: string, headers?: { [key in AllowlistedHeaders]: string }): void;
 
         /**
          * Unpublishes a previously published application page.
@@ -345,7 +346,7 @@ declare module "jungletv:keyvalue" {
         clear(): void;
 
         /** The number of items (keys) in storage. */
-        length: readonly number;
+        readonly length: number;
     }
 
     const module: KeyValue;
@@ -455,7 +456,7 @@ declare module "jungletv:rpc" {
     }
 
     /** The permission levels a user can have */
-    const PermissionLevel = {
+    enum PermissionLevelEnum {
         /** The method can be called by any user, even unauthenticated ones. */
         Unauthenticated = "unauthenticated",
 
@@ -464,9 +465,11 @@ declare module "jungletv:rpc" {
 
         /** The method can only be called by JungleTV staff. */
         Admin = "admin",
-    } as const;
+    }
 
-    type MethodRequiredPermissionLevel = (typeof PermissionLevel)[keyof typeof PermissionLevel] | "";
+    type PermissionLevel = `${PermissionLevelEnum}`;
+
+    type MethodRequiredPermissionLevel = PermissionLevel | "";
 
     /** The type of function that handles RPC method calls on the server */
     type RPCHandler = (context: CallContext, ...clientParams: any[]) => any;
@@ -509,7 +512,7 @@ declare module "jungletv:rpc" {
         nickname: string;
 
         /** Either `admin` or `user` depending on whether the user is a JungleTV staff member. */
-        permissionLevel: Exclude<(typeof PermissionLevel)[keyof typeof PermissionLevel], "unauthenticated">;
+        permissionLevel: Exclude<PermissionLevel, "unauthenticated">;
     }
 
     const module: RPC;
@@ -582,15 +585,190 @@ declare module "node:process" {
         exitCode: number;
 
         /** Read-only string indicating the current platform. Guaranteed to be `jungletv`. */
-        platform: readonly string;
+        readonly platform: string;
 
         /** Read-only string indicating the ID of the currently running application. */
-        title: readonly string;
+        readonly title: string;
 
         /** Read-only number indicating the version of the runtime running the application. */
-        version: readonly number;
+        readonly version: number;
     }
 
     const module: Process;
+    export = module;
+}
+
+/** Allows for interaction with the JungleTV points subsystem. */
+declare module "jungletv:points" {
+    /** Arguments to a chat event */
+    interface EventArgs {
+        type: keyof PointsEventMap;
+    }
+
+    /** Arguments to the 'transactioncreated' event */
+    interface TransactionCreatedEventArgs extends EventArgs {
+        /** Guaranteed to be `transactioncreated`. */
+        type: "transactioncreated";
+
+        /** The created points transaction. */
+        transaction: PointsTransaction<keyof PointsTransactionTypeMap>;
+    }
+
+    /** Arguments to the 'transactionupdated' event */
+    interface TransactionUpdatedEventArgs extends EventArgs {
+        /** Guaranteed to be `transactionupdated`. */
+        type: "transactionupdated";
+
+        /** The updated points transaction. */
+        transaction: PointsTransaction<keyof PointsTransactionTypeMap>;
+
+        /** The amount of points the transaction was adjusted by. */
+        pointsAdjustment: number;
+    }
+
+    /** A relation between event types and the arguments passed to the respective listeners */
+    interface PointsEventMap {
+        /** This event is fired when a completely new points transaction is created. */
+        "transactioncreated": TransactionCreatedEventArgs;
+
+        /**
+         * This event is fired when an existing points transaction has its value updated.
+         * This can only happen for specific transaction types, for which consecutive transactions of the same type are essentially collapsed as a single transaction.
+         * The updated transaction retains its creation date but its update date and its value changes.
+         */
+        "transactionupdated": TransactionUpdatedEventArgs;
+    }
+
+    /** Represents the interface of the native module for JungleTV Points */
+    interface Points {
+        /**
+         * Registers a function to be called whenever the specified event occurs.
+         * Depending on the event, the function may be invoked with arguments containing information about the event.
+         * Refer to the documentation about each event type for details.
+         * @param eventType A case-sensitive string representing the event to listen for.
+         * @param listener A function that will be called when an event of the specified type occurs.
+         */
+        addEventListener<K extends keyof PointsEventMap>(eventType: K, listener: (this: unknown, args: PointsEventMap[K]) => void): void;
+
+        /**
+         * Ceases calling a function previously registered with {@link Points.addEventListener} whenever the specified event occurs.
+         * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
+         * @param listener The function previously passed to {@link Points.addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+         */
+        removeEventListener<K extends keyof PointsEventMap>(eventType: K, listener: (this: unknown, args: PointsEventMap[K]) => void): void;
+
+        /**
+         * Adjusts a user’s point balance by creating a new points transaction.
+         * @param address Reward address of the account to add/remove points from.
+         * @param description The user-visible description for the transaction.
+         * @param points A non-zero integer corresponding to the amount to adjust the balance by.
+         * @returns The created {@link PointsTransaction}.
+         */
+        createTransaction(address: string, description: string, points: number): PointsTransaction<"application_defined">;
+
+        /**
+         * Returns the current points balance of a user.
+         * @param address The reward address of the account for which to get the balance.
+         * @returns A non-negative integer representing the available points balance of the user.
+         */
+        getBalance(address: string): number;
+    }
+
+    /** Represents a points transaction. */
+    interface PointsTransaction<K extends keyof PointsTransactionTypeMap> {
+        /** The unique ID of the transaction. */
+        id: string;
+
+        /** The reward address of the user affected by this transaction. */
+        address: string;
+
+        /** When the transaction was created. */
+        createdAt: Date;
+
+        /** When the transaction was last updated. */
+        updatedAt: Date;
+
+        /** The points value of the transaction. */
+        value: number;
+
+        /** The type of the transaction. */
+        transactionType: K;
+
+        /** Extra transaction properties. Varies based on transaction type and may be an empty object. */
+        extra: PointsTransactionTypeMap[K];
+    }
+
+    /** A relation between points transaction types and the extra field of the respective transactions */
+    interface PointsTransactionTypeMap {
+        "activity_challenge_reward": {};
+        "chat_activity_reward": {};
+        "media_enqueued_reward": MediaEnqueuedRewardExtraFields;
+        "chat_gif_attachment": {};
+        "manual_adjustment": ManualAdjustmentExtraFields;
+        "media_enqueued_reward_reversal": MediaEnqueuedRewardReversalExtraFields;
+        "conversion_from_banano": ConversionFromBananoExtraFields;
+        "queue_entry_reordering": QueueEntryReorderingExtraFields;
+        "monthly_subscription": {};
+        "skip_threshold_reduction": {};
+        "skip_threshold_increase": {};
+        "concealed_entry_enqueuing": ConcealedEntryEnqueuingExtraFields;
+        "application_defined": ApplicationDefinedExtraFields;
+    }
+
+    /** Extra object for the transaction type media_enqueued_reward */
+    interface MediaEnqueuedRewardExtraFields {
+        /** The ID of the enqueued media. */
+        media: string;
+    }
+
+    /** Extra object for the transaction type manual_adjustment */
+    interface ManualAdjustmentExtraFields {
+        /** The user-provided reason for the change. */
+        reason: string;
+
+        /** The reward address of the staff member that performed the change. */
+        adjusted_by: string;
+    }
+
+    /** Extra object for the transaction type media_enqueued_reward_reversal */
+    interface MediaEnqueuedRewardReversalExtraFields {
+        /** The ID of the media which was removed from the queue. */
+        media: string;
+    }
+
+    /** Extra object for the transaction type conversion_from_banano */
+    interface ConversionFromBananoExtraFields {
+        /** The hash of the state block that sent the banano. */
+        tx_hash: string;
+    }
+
+    /** Extra object for the transaction type queue_entry_reordering */
+    interface QueueEntryReorderingExtraFields {
+        /** The ID of the media entry that was moved in the queue. */
+        media: string;
+
+        /** A string indicating whether the entry was moved up or down. */
+        direction: "up" | "down";
+    }
+
+    /** Extra object for the transaction type concealed_entry_enqueuing */
+    interface ConcealedEntryEnqueuingExtraFields {
+        /** The ID of the enqueued media. */
+        media: string;
+    }
+
+    /** Extra object for the transaction type application_defined */
+    interface ApplicationDefinedExtraFields {
+        /** The application that created the transaction. */
+        application_id: string;
+
+        /** The version of the application. */
+        application_version: string;
+
+        /** The user-visible transaction description, as set by the application. */
+        description: string;
+    }
+
+    const module: Points;
     export = module;
 }
