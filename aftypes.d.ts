@@ -12,6 +12,11 @@ declare var console: typeof import("node:console");
 declare var process: typeof import("node:process");
 declare var require: Require;
 
+
+interface Window {
+    appbridge: AppBridge;
+}
+
 /** Allows for interaction with the JungleTV chat subsystem. */
 declare module "jungletv:chat" {
     /** Arguments to a chat event */
@@ -135,7 +140,7 @@ declare module "jungletv:chat" {
          * @returns An array of {@link ChatMessage} sent in the specified time range.
          * Shadowbanned messages are not included.
          */
-        getMessages(since: Date, until: Date): ChatMessage[];
+        getMessages(since: Date, until: Date): Promise<ChatMessage[]>;
 
         /**
          * This writable property indicates whether the chat is enabled.
@@ -771,4 +776,162 @@ declare module "jungletv:points" {
 
     const module: Points;
     export = module;
+}
+
+/**
+ * Represents the permission level of the current user as provided by the client-side appbridge script.
+ */
+type UserPermissionLevel = "unauthenticated" | "user" | "appeditor" | "admin";
+
+/**
+ * Strongly-typed event targets
+ * via https://dev.to/marcogrcr/type-safe-eventtarget-subclasses-in-typescript-1nkf
+ */
+interface CustomEventTarget<EventMap> extends EventTarget {
+    addEventListener<K extends keyof EventMap>(
+        type: K,
+        callback: (
+            event: EventMap[K] extends Event ? EventMap[K] : never
+        ) => EventMap[K] extends Event ? void : never,
+        options?: boolean | AddEventListenerOptions
+    ): void;
+
+    addEventListener(
+        type: string,
+        callback: EventListenerOrEventListenerObject | null,
+        options?: EventListenerOptions | boolean
+    ): void;
+}
+
+/**
+ * Arguments of the "mounted" page event
+ */
+type MountEventArgs = {
+    role: "standalone" | "activity" | "sidebar" | "chatattachment",
+}
+
+interface AppBridge {
+    /**
+     * Version of the bridge between the application page code and the host JungleTV page.
+     */
+    readonly BRIDGE_VERSION: number;
+
+    /**
+     * Event target for events sent from the JungleTV server.
+     * Events will have the name of the corresponding server events and the arguments of the event will be on the {@link CustomEvent.detail} field.
+     */
+    readonly server: Omit<CustomEventTarget<{
+        [eventName: string]: CustomEvent;
+    }>, "dispatchEvent">;
+
+    /**
+     * Event target for events sent from the host JungleTV page.
+     */
+    readonly page: Omit<CustomEventTarget<{
+        "connected": Event;
+        "disconnected": Event;
+        "mounted": CustomEvent<MountEventArgs>;
+        "destroyed": Event;
+    }>, "dispatchEvent">;
+
+    /**
+     * Make a remote call to the application's server script.
+     * @param method The remote method to call.
+     * @param args The arguments of the call.
+     * @returns The result of the call after JSON parsing.
+     */
+    serverMethod: <T>(method: string, ...args: any[]) => Promise<T>;
+
+    /**
+     * Emits an event for the server script.
+     * @param eventName The name of the event to emit.
+     * @param args The arguments of the event.
+     */
+    emitToServer: (eventName: string, ...args: any[]) => Promise<void>;
+
+    /**
+     * Instructs the JungleTV host page to navigate to a different page, in this or another application.
+     * @param pageID The ID of the page to navigate to.
+     * @param applicationID The ID of the application the page belongs to, can be omitted if the page belongs to the current application.
+     */
+    navigateToApplicationPage: (pageID: string, applicationID?: string) => Promise<void>;
+
+    /**
+     * Instructs the JungleTV host page to navigate to a different JungleTV app route using svelte-navigator.
+     * @param to The destination to navigate to.
+     */
+    navigate: (to: string) => Promise<void>;
+
+    /**
+     * Resolves the URL that can be used to reference a public file of this application, within the context of the page.
+     * @param fileName The name of the file to resolve.
+     * @returns The resolved URL, or undefined if the connection between the page and the host JungleTV page has not been established yet.
+     */
+    resolveApplicationFileURL: (fileName: string) => Promise<string>;
+
+    /**
+     * Resolves the ID of the application to which the page being executed belongs.
+     * @returns The application ID.
+     */
+    getApplicationID: () => Promise<string>;
+
+    /**
+     * Resolves the version of the application to which the page being executed belongs.
+     * @returns The application version. May have less precision than the version as recorded on the server.
+     */
+    getApplicationVersion: () => Promise<Date>;
+
+    /**
+     * Resolves the ID of the application page being executed.
+     * @returns The page ID.
+     */
+    getApplicationPageID: () => Promise<string>;
+
+    /**
+     * Shows an alert modal to the user.
+     * @param message The message to show.
+     * @param title The title of the modal.
+     * @param buttonLabel The label of the button to dismiss the message.
+     * @returns A promise that resolves when the user closes the modal.
+     */
+    alert: (message: string, title?: string, buttonLabel?: string) => Promise<void>;
+
+    /**
+     * Shows a confirmation modal to the user.
+     * @param question The question to show.
+     * @param title The title of the modal.
+     * @param positiveAnswerLabel The label of the button to accept the confirmation. Defaults to "Yes".
+     * @param negativeAnswerLabel The label of the button to reject the confirmation. Defaults to "No".
+     * @returns Whether the user accepted the confirmation.
+     */
+    confirm: (question: string, title?: string, positiveAnswerLabel?: string, negativeAnswerLabel?: string) => Promise<boolean>;
+
+    /**
+     * Shows a prompt modal to the user, allowing them to enter text.
+     * @param question The question to show.
+     * @param title The title of the modal.
+     * @param placeholder The placeholder value of the text input.
+     * @param initialValue The initial value of the text input.
+     * @param positiveAnswerLabel The label of the button to submit the input. Defaults to "OK".
+     * @param negativeAnswerLabel The label of the button to cancel the prompt. Defaults to "Cancel".
+     * @returns The text entered by the user, or null if the user cancelled the prompt.
+     */
+    prompt: (question: string,
+        title?: string,
+        placeholder?: string,
+        initialValue?: string,
+        positiveAnswerLabel?: string,
+        negativeAnswerLabel?: string) => Promise<string>;
+
+    /**
+     * Get the reward address of the currently logged in user.
+     * @returns The reward address of the currently logged in user, or undefined if the user is not authenticated.
+     */
+    userAddress: () => Promise<string | undefined>;
+
+    /**
+     * Get the permission level of the current user.
+     * @returns The permission level of the current user.
+     */
+    userPermissionLevel: () => Promise<UserPermissionLevel>;
 }

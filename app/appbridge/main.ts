@@ -12,13 +12,13 @@ export const BRIDGE_VERSION = bridgeVersion;
  * Event target for events sent from the JungleTV server.
  * @public
  */
-export const server = document.createTextNode("");
+export const server = new EventTarget();
 
 /**
  * Event target for events sent from the host JungleTV page.
  * @public
  */
-export const page = document.createTextNode("");
+export const page = new EventTarget();
 
 const messenger = new WindowMessenger({
     localWindow: window,
@@ -191,6 +191,7 @@ export const getApplicationPageID = async function (): Promise<string> {
  * @param message The message to show.
  * @param title The title of the modal.
  * @param buttonLabel The label of the button to dismiss the message.
+ * @returns A promise that resolves when the user closes the modal.
  * @public
  */
 export const alert = async function (message: string, title: string = "", buttonLabel: string = "OK"): Promise<void> {
@@ -238,7 +239,7 @@ export const prompt = async function (question: string,
  * @returns The reward address of the currently logged in user, or undefined if the user is not authenticated.
  * @public
  */
-export const userAddress = async function (): Promise<string> {
+export const userAddress = async function (): Promise<string | undefined> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("userAddress");
 }
