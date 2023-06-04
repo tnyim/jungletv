@@ -290,7 +290,7 @@ declare module "jungletv:pages" {
          * When the page makes use of the App bridge, its document title will be automatically synchronized, shadowing the value of this parameter.
          * @param headers An optional object containing a key-value set of strings representing HTTP headers and the respective values, that will be sent when the page is served.
          */
-        publishFile(pageID: string, fileName: string, defaultTitle: string, headers?: { [key in AllowlistedHeaders]: string }): void;
+        publishFile(pageID: string, fileName: string, defaultTitle: string, headers?: Partial<{ [key in AllowlistedHeaders]: string }>): void;
 
         /**
          * Unpublishes a previously published application page.
