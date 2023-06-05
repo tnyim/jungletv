@@ -28,6 +28,7 @@
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
     export let mode: "sidebar" | "page" | "chatattachment" = "page";
     export let fixedHeight: number = 0;
+    let unpublished = false;
     let applicationVersion: Date;
     let originalPageTitle: string;
 
@@ -53,7 +54,7 @@
     let iframe: HTMLIFrameElement;
     let jsonCleaner = (key, value) => (key === "__proto__" ? undefined : value);
 
-    $: if (typeof iframe !== "undefined" && fixedHeight !== 0) {
+    $: if (typeof iframe !== "undefined" && iframe !== null && fixedHeight !== 0) {
         iframe.height = fixedHeight + "";
     }
 
@@ -120,7 +121,8 @@
     };
 
     let permissionLevelPromise = new Promise((resolve: (level: string) => void) => {
-        let unsub = permissionLevel.subscribe((level) => {
+        let unsub: Unsubscriber;
+        unsub = permissionLevel.subscribe((level) => {
             if (level !== null) {
                 unsub();
                 resolve(permissionLevelMapping[level]);
@@ -149,6 +151,9 @@
             } catch (e) {
                 console.log("exception caught while transmitting event from server:", e);
             }
+        } else if (update.hasPageUnpublishedEvent()) {
+            eventsRequestController?.disconnect();
+            unpublished = true;
         }
     }
 
@@ -242,18 +247,24 @@
     });
 </script>
 
-{#await resolvePage(applicationID, pageID)}
-    Loading
-{:then response}
-    <iframe
-        bind:this={iframe}
-        on:load={onIframeLoaded}
-        class="w-full"
-        title={response.getPageTitle()}
-        src="/assets/app/{applicationID}/*{pageID}?v={applicationVersion.getTime() + ''}"
-        scrolling="no"
-        sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads allow-same-origin"
-    />
-{:catch}
+{#if !unpublished}
+    {#await resolvePage(applicationID, pageID)}
+        Loading
+    {:then response}
+        <iframe
+            bind:this={iframe}
+            on:load={onIframeLoaded}
+            class="w-full"
+            title={response.getPageTitle()}
+            src="/assets/app/{applicationID}/*{pageID}?v={applicationVersion.getTime() + ''}"
+            scrolling="no"
+            sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads allow-same-origin"
+        />
+    {:catch}
+        {#if mode != "chatattachment"}
+            <NotFound />
+        {/if}
+    {/await}
+{:else if mode != "chatattachment"}
     <NotFound />
-{/await}
+{/if}

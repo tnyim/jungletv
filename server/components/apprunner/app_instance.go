@@ -746,6 +746,9 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 		terminatedU := a.onTerminated.SubscribeUsingCallback(event.BufferFirst, cancel)
 		defer terminatedU()
 
+		onPageUnpublished, pageUnpublishedU := a.pagesModule.OnPageUnpublished().Subscribe(event.BufferFirst)
+		defer pageUnpublishedU()
+
 		for {
 			select {
 			case d := <-onGlobalEvent:
@@ -756,6 +759,10 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 				eventCh <- d
 			case d := <-onPageUserEvent:
 				eventCh <- d
+			case unpublishedPageID := <-onPageUnpublished:
+				if pageID == unpublishedPageID {
+					return
+				}
 			case <-ctx.Done():
 				return
 			}

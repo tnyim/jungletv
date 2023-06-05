@@ -25,6 +25,7 @@ message ApplicationEventUpdate {
     oneof type {
         ApplicationHeartbeatEvent heartbeat = 1;
         ApplicationServerEvent application_event = 2;
+        ApplicationPageUnpublishedEvent page_unpublished_event = 3;
     }
 }
 
@@ -36,6 +37,8 @@ message ApplicationServerEvent {
     string name = 1;
     repeated string arguments = 2;
 }
+
+message ApplicationPageUnpublishedEvent {}
 
 message ApplicationServerMethodRequest {
     string application_id = 1;

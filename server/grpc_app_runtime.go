@@ -64,7 +64,12 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 		select {
 		case e, ok := <-eventCh:
 			if !ok {
-				return nil
+				err = stream.Send(&proto.ApplicationEventUpdate{
+					Type: &proto.ApplicationEventUpdate_PageUnpublishedEvent{
+						PageUnpublishedEvent: &proto.ApplicationPageUnpublishedEvent{},
+					},
+				})
+				return stacktrace.Propagate(err, "")
 			}
 			err = stream.Send(&proto.ApplicationEventUpdate{
 				Type: &proto.ApplicationEventUpdate_ApplicationEvent{

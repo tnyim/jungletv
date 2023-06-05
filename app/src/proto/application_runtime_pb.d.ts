@@ -89,6 +89,11 @@ export class ApplicationEventUpdate extends jspb.Message {
   getApplicationEvent(): ApplicationServerEvent | undefined;
   setApplicationEvent(value?: ApplicationServerEvent): void;
 
+  hasPageUnpublishedEvent(): boolean;
+  clearPageUnpublishedEvent(): void;
+  getPageUnpublishedEvent(): ApplicationPageUnpublishedEvent | undefined;
+  setPageUnpublishedEvent(value?: ApplicationPageUnpublishedEvent): void;
+
   getTypeCase(): ApplicationEventUpdate.TypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApplicationEventUpdate.AsObject;
@@ -104,12 +109,14 @@ export namespace ApplicationEventUpdate {
   export type AsObject = {
     heartbeat?: ApplicationHeartbeatEvent.AsObject,
     applicationEvent?: ApplicationServerEvent.AsObject,
+    pageUnpublishedEvent?: ApplicationPageUnpublishedEvent.AsObject,
   }
 
   export enum TypeCase {
     TYPE_NOT_SET = 0,
     HEARTBEAT = 1,
     APPLICATION_EVENT = 2,
+    PAGE_UNPUBLISHED_EVENT = 3,
   }
 }
 
@@ -156,6 +163,22 @@ export namespace ApplicationServerEvent {
   export type AsObject = {
     name: string,
     argumentsList: Array<string>,
+  }
+}
+
+export class ApplicationPageUnpublishedEvent extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApplicationPageUnpublishedEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: ApplicationPageUnpublishedEvent): ApplicationPageUnpublishedEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApplicationPageUnpublishedEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApplicationPageUnpublishedEvent;
+  static deserializeBinaryFromReader(message: ApplicationPageUnpublishedEvent, reader: jspb.BinaryReader): ApplicationPageUnpublishedEvent;
+}
+
+export namespace ApplicationPageUnpublishedEvent {
+  export type AsObject = {
   }
 }
 
