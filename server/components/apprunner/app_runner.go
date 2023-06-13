@@ -2,13 +2,13 @@ package apprunner
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"sort"
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
@@ -437,7 +437,7 @@ func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, applicationID,
 
 func (r *AppRunner) pageAttachmentLoader(ctx context.Context, data string) (chat.MessageAttachmentView, error) {
 	var storage *chatmodule.MessageAttachmentApplicationPageStorage
-	err := json.Unmarshal([]byte(data), &storage)
+	err := sonic.Unmarshal([]byte(data), &storage)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

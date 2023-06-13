@@ -2,13 +2,13 @@ package pointsmanager
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/tnyim/jungletv/server/auth"
@@ -125,7 +125,7 @@ func (m *Manager) CreateTransaction(ctxCtx context.Context, forUser auth.User, t
 	}
 
 	if len(extraFields) > 0 {
-		extra, err = json.Marshal(extraFieldsMap)
+		extra, err = sonic.Marshal(extraFieldsMap)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

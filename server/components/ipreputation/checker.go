@@ -3,7 +3,6 @@ package ipreputation
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/jamesog/iptoasn"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/types"
@@ -159,7 +159,7 @@ func (c *Checker) setAddressReputation(address string, reputation float32) {
 var asRegexp = regexp.MustCompile(`AS([0-9]+)\s.*`)
 
 func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error {
-	requestBody, err := json.Marshal(addressesToCheck)
+	requestBody, err := sonic.Marshal(addressesToCheck)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -192,7 +192,7 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 
 	response := []result{}
 
-	err = json.Unmarshal(body, &response)
+	err = sonic.Unmarshal(body, &response)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

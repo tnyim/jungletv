@@ -2,11 +2,11 @@ package document
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -64,7 +64,7 @@ type queueEntryDocumentJsonRepresentation struct {
 }
 
 func (e *queueEntryDocument) MarshalJSON() ([]byte, error) {
-	j, err := json.Marshal(queueEntryDocumentJsonRepresentation{
+	j, err := sonic.Marshal(queueEntryDocumentJsonRepresentation{
 		QueueID:     e.QueueID(),
 		Type:        string(types.MediaTypeDocument),
 		ID:          e.document.ID,
@@ -85,7 +85,7 @@ func (e *queueEntryDocument) MarshalJSON() ([]byte, error) {
 
 func (e *queueEntryDocument) UnmarshalJSON(b []byte) error {
 	var t queueEntryDocumentJsonRepresentation
-	if err := json.Unmarshal(b, &t); err != nil {
+	if err := sonic.Unmarshal(b, &t); err != nil {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 

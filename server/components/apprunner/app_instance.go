@@ -3,7 +3,6 @@ package apprunner
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -13,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/clarkmcc/go-typescript"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
@@ -603,7 +603,7 @@ func resultString(vm *goja.Runtime, v goja.Value, depth int) string {
 	}
 	switch t.Kind() {
 	case reflect.String:
-		j, _ := json.Marshal(v.String())
+		j, _ := sonic.Marshal(v.String())
 		return string(j)
 	case reflect.Slice:
 		var arr []goja.Value

@@ -2,12 +2,12 @@ package points
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/hectorchu/gonano/util"
@@ -142,7 +142,7 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 
 func serializePointsTransactionForJS(tx *types.PointsTx, dateSerializer func(time.Time) interface{}) map[string]interface{} {
 	e := map[string]interface{}{}
-	_ = json.Unmarshal(tx.Extra, &e)
+	_ = sonic.Unmarshal(tx.Extra, &e)
 
 	txTypeProto := proto.PointsTransactionType(tx.Type)
 	typeString := strings.TrimPrefix(txTypeProto.String(), "POINTS_TRANSACTION_TYPE_")

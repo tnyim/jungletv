@@ -2,10 +2,10 @@ package soundcloud
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -68,7 +68,7 @@ type queueEntrySoundCloudTrackJsonRepresentation struct {
 }
 
 func (e *queueEntrySoundCloudTrack) MarshalJSON() ([]byte, error) {
-	j, err := json.Marshal(queueEntrySoundCloudTrackJsonRepresentation{
+	j, err := sonic.Marshal(queueEntrySoundCloudTrackJsonRepresentation{
 		QueueID:      e.QueueID(),
 		Type:         string(types.MediaTypeSoundCloudTrack),
 		ID:           e.id,
@@ -94,7 +94,7 @@ func (e *queueEntrySoundCloudTrack) MarshalJSON() ([]byte, error) {
 
 func (e *queueEntrySoundCloudTrack) UnmarshalJSON(b []byte) error {
 	var t queueEntrySoundCloudTrackJsonRepresentation
-	if err := json.Unmarshal(b, &t); err != nil {
+	if err := sonic.Unmarshal(b, &t); err != nil {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 

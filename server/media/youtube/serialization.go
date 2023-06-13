@@ -2,8 +2,8 @@ package youtube
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/media"
@@ -65,7 +65,7 @@ func (s *VideoProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 
 func (s *VideoProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, error) {
 	v := &queueEntryYouTubeVideo{}
-	err := json.Unmarshal(b, &v)
+	err := sonic.Unmarshal(b, &v)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

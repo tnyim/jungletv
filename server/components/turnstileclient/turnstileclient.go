@@ -3,12 +3,12 @@
 package turnstileclient
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 )
 
@@ -60,7 +60,7 @@ func (t *Turnstile) Verify(response, remoteip string) (*Response, error) {
 	}
 
 	r := Response{}
-	err = json.Unmarshal(body, &r)
+	err = sonic.Unmarshal(body, &r)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "json decode error")
 	}

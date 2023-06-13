@@ -2,10 +2,10 @@ package youtube
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -65,7 +65,7 @@ type queueEntryYouTubeVideoJsonRepresentation struct {
 }
 
 func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
-	j, err := json.Marshal(queueEntryYouTubeVideoJsonRepresentation{
+	j, err := sonic.Marshal(queueEntryYouTubeVideoJsonRepresentation{
 		QueueID:       e.QueueID(),
 		Type:          string(types.MediaTypeYouTubeVideo),
 		ID:            e.id,
@@ -90,7 +90,7 @@ func (e *queueEntryYouTubeVideo) MarshalJSON() ([]byte, error) {
 
 func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 	var t queueEntryYouTubeVideoJsonRepresentation
-	if err := json.Unmarshal(b, &t); err != nil {
+	if err := sonic.Unmarshal(b, &t); err != nil {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 

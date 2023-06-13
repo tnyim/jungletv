@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
@@ -548,7 +549,7 @@ func (q *MediaQueue) persistenceWorker(ctx context.Context, file string) {
 	for {
 		select {
 		case <-c:
-			marshalled, err := json.Marshal(q.Entries())
+			marshalled, err := sonic.Marshal(q.Entries())
 			if err != nil {
 				q.log.Printf("error serializing queue: %v", err)
 				continue
@@ -578,7 +579,7 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 	}
 
 	var entries []json.RawMessage
-	err = json.Unmarshal(b, &entries)
+	err = sonic.Unmarshal(b, &entries)
 	if err != nil {
 		return stacktrace.Propagate(err, "error decoding queue from file: %v", err)
 	}
@@ -588,7 +589,7 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 	q.queue = make([]media.QueueEntry, len(entries))
 	for i := range entries {
 		unknownEntry := unknownTypeEntry{}
-		err := json.Unmarshal(entries[i], &unknownEntry)
+		err := sonic.Unmarshal(entries[i], &unknownEntry)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}

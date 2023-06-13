@@ -3,11 +3,11 @@ package nanswapclient
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"path"
 
+	"github.com/bytedance/sonic"
 	"github.com/google/go-querystring/query"
 	"github.com/palantir/stacktrace"
 )
@@ -45,7 +45,7 @@ func doGetRequest[RequestType any, ResponseType any](ctx context.Context, c *Cli
 		return response, stacktrace.NewError("non-success HTTP status code")
 	}
 
-	err = json.NewDecoder(httpResponse.Body).Decode(&response)
+	err = sonic.ConfigDefault.NewDecoder(httpResponse.Body).Decode(&response)
 	if err != nil {
 		return response, stacktrace.Propagate(err, "")
 	}
@@ -68,7 +68,7 @@ func doPostRequest[RequestType any, ResponseType any](ctx context.Context, c *Cl
 	url.RawQuery = v.Encode()
 
 	payload := new(bytes.Buffer)
-	err = json.NewEncoder(payload).Encode(requestFields)
+	err = sonic.ConfigDefault.NewEncoder(payload).Encode(requestFields)
 	if err != nil {
 		return response, stacktrace.Propagate(err, "")
 	}
@@ -93,7 +93,7 @@ func doPostRequest[RequestType any, ResponseType any](ctx context.Context, c *Cl
 		return response, stacktrace.NewError("non-success HTTP status code")
 	}
 
-	err = json.NewDecoder(httpResponse.Body).Decode(&response)
+	err = sonic.ConfigDefault.NewDecoder(httpResponse.Body).Decode(&response)
 	if err != nil {
 		return response, stacktrace.Propagate(err, "")
 	}

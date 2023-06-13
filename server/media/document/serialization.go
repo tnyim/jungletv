@@ -2,8 +2,8 @@ package document
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/media"
@@ -67,7 +67,7 @@ func (s *DocumentProvider) UnmarshalQueueEntryJSON(ctxCtx context.Context, b []b
 	v := &queueEntryDocument{
 		backgroundContext: s.mediaQueue.LongRunningContext(),
 	}
-	err := json.Unmarshal(b, &v)
+	err := sonic.Unmarshal(b, &v)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

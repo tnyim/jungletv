@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -93,7 +93,7 @@ func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
 		Value:          int32(tx.Value),
 		Type:           proto.PointsTransactionType(tx.Type),
 	}
-	_ = json.Unmarshal(tx.Extra, &protoTx.Extra)
+	_ = sonic.Unmarshal(tx.Extra, &protoTx.Extra)
 	return protoTx
 }
 

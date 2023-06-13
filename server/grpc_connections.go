@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/oauth"
@@ -126,7 +126,7 @@ func onCryptomonKeysCallback(ctx context.Context, token *oauth2.Token, connectio
 		User    string `json:"user"`
 	}
 	var responseData responseType
-	err = json.NewDecoder(response.Body).Decode(&responseData)
+	err = sonic.ConfigDefault.NewDecoder(response.Body).Decode(&responseData)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

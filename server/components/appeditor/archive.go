@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
@@ -88,7 +88,7 @@ func buildZIPExtraFieldForFile(file *types.ApplicationFile) []byte {
 		Public: file.Public,
 		Type:   file.Type,
 	}
-	fieldBytes, _ := json.Marshal(f)
+	fieldBytes, _ := sonic.Marshal(f)
 
 	b := make([]byte, 0, 4+len(fieldBytes))
 	b = append(b, 'A', 'F')
@@ -107,7 +107,7 @@ func parseZIPExtraField(extra []byte) (string, bool, error) {
 		}
 		if e[0] == 'A' && e[1] == 'F' && fieldLen > 2 {
 			var f zipExtraField
-			err := json.Unmarshal(e[4:4+fieldLen], &f)
+			err := sonic.Unmarshal(e[4:4+fieldLen], &f)
 			if err == nil && f.Magic == zipExtraFieldMagic {
 				return f.Type, f.Public, nil
 			}

@@ -1,12 +1,12 @@
 package soundcloud
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -290,7 +290,7 @@ func (c *TrackProvider) TrackInfo(trackURL string) (*APIResponse, error) {
 	defer response.Body.Close()
 
 	var responseData APIResponse
-	err = json.NewDecoder(response.Body).Decode(&responseData)
+	err = sonic.ConfigDefault.NewDecoder(response.Body).Decode(&responseData)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

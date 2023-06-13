@@ -2,10 +2,10 @@ package chat
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -31,7 +31,7 @@ func (a MessageAttachmentApplicationPageStorage) AttachmentType() string {
 }
 
 func (a *MessageAttachmentApplicationPageStorage) SerializeForDatabase(context.Context) string {
-	jsonBytes, err := json.Marshal(a)
+	jsonBytes, err := sonic.Marshal(a)
 	if err != nil {
 		return ""
 	}

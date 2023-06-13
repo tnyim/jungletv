@@ -1,9 +1,9 @@
 package media
 
 import (
-	"encoding/json"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
@@ -180,7 +180,7 @@ func (e *CommonQueueEntry) BaseProducePlayedMedia(mediaType types.MediaType, med
 
 	if mediaInfo != nil {
 		var err error
-		playedMedia.MediaInfo, err = json.Marshal(mediaInfo)
+		playedMedia.MediaInfo, err = sonic.Marshal(mediaInfo)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
