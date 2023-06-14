@@ -45,6 +45,16 @@ var validServerTypeScriptMIMETypes = []string{"text/typescript", "application/ty
 // TypeScriptVersion currently used by the application runtime
 const TypeScriptVersion = "v4.9.3"
 
+var typeScriptCompilerOptions = map[string]interface{}{
+	"target": "es5",
+
+	// without this, iterating over maps with `for (const value of someMap.values())` breaks
+	"downlevelIteration": "false",
+
+	// fixes the lack of a "default" when importing our native "modules" like so: `import rpc from "jungletv:rpc"`. Also fixes importing JSON files in this style
+	"esModuleInterop": "true",
+}
+
 // ErrApplicationNotFound is returned when the specified application was not found
 var ErrApplicationNotFound = errors.New("application not found")
 
@@ -232,6 +242,11 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 
 	// this must not be the transaction context, this context will be used to derive the execution context for the duration of the application's execution
 	err = instance.StartOrResume(ctx.WithoutTx())
+	if err != nil {
+		delete(r.instances, applicationID)
+		terminatedUnsub()
+		return stacktrace.Propagate(err, "")
+	}
 
 	_, _, startedAt = instance.Running()
 
@@ -241,7 +256,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		StartedAt:          startedAt,
 	}, true)
 	r.onRunningApplicationsUpdated.Notify(r.runningApplicationsNoLock(), false)
-	return stacktrace.Propagate(err, "")
+	return nil
 }
 
 // StopApplication stops the specified application

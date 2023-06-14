@@ -159,32 +159,32 @@ func (a *appInstance) Paused() event.NoArgEvent {
 	return a.onPaused
 }
 
-func (a *appInstance) getMainFileSource() (string, bool, error) {
+func (a *appInstance) getMainFile() (*types.ApplicationFile, bool, error) {
 	ctx, err := transaction.Begin(a.ctx)
 	if err != nil {
-		return "", false, stacktrace.Propagate(err, "")
+		return nil, false, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
 	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, a.applicationVersion, []string{MainFileName, MainFileNameTypeScript})
 	if err != nil {
-		return "", false, stacktrace.Propagate(err, "")
+		return nil, false, stacktrace.Propagate(err, "")
 	}
 	file, ok := files[MainFileName]
 	tsFile, tsok := files[MainFileNameTypeScript]
 	if !ok && !tsok {
-		return "", false, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found")
+		return nil, false, stacktrace.Propagate(ErrApplicationFileNotFound, "main application file not found")
 	}
 	if ok {
 		if !slices.Contains(validServerScriptMIMETypes, file.Type) {
-			return "", false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
+			return nil, false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
 		}
-		return string(file.Content), false, nil
+		return file, false, nil
 	}
 	if !slices.Contains(validServerTypeScriptMIMETypes, tsFile.Type) {
-		return "", false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
+		return nil, false, stacktrace.Propagate(ErrApplicationFileTypeMismatch, "main application file has wrong type")
 	}
-	return string(tsFile.Content), true, nil
+	return tsFile, true, nil
 }
 
 // StartOrResume starts or resumes the application instance, returning an error if it is already running
@@ -200,7 +200,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 	a.ctx, a.ctxCancel = context.WithCancel(ctx)
 
-	mainSource, isTypeScript, err := a.getMainFileSource()
+	mainFile, isTypeScript, err := a.getMainFile()
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -212,6 +212,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 	a.modules.ExecutionResumed(a.ctx)
 
+	mainSource := string(mainFile.Content)
 	if !a.startedOnce {
 		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
 		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
@@ -231,10 +232,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 		if isTypeScript {
 			a.runOnLoopLogError(func(vm *goja.Runtime) error {
-				a.appLogger.RuntimeLog("transpiling TypeScript entrypoint")
-				var err error
-				mainSource, err = typescript.TranspileCtx(a.ctx,
-					strings.NewReader(mainSource), typescript.WithRuntime(vm), typescript.WithVersion(TypeScriptVersion))
+				mainSourceBytes, err := a.transpileTS(mainFile.Name, mainFile.Content, vm)
 				if err != nil {
 					return err
 				}
@@ -242,7 +240,8 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}
-				a.appLogger.RuntimeLog("transpiled TypeScript entrypoint")
+				mainSource = string(mainSourceBytes)
+				fmt.Println(mainSource)
 				return nil
 			})
 		}
@@ -498,23 +497,32 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 		}
 
 		if isTypeScript {
-			moduleName := strings.TrimSuffix(filename, ".ts")
-			a.appLogger.RuntimeLog("transpiling TypeScript file " + f)
-			transpiled, err := typescript.TranspileCtx(a.ctx,
-				bytes.NewReader(file.Content),
-				typescript.WithRuntime(vm),
-				typescript.WithVersion(TypeScriptVersion),
-				typescript.WithModuleName(moduleName))
+			transpiled, err := a.transpileTS(f, file.Content, vm)
 			if err != nil {
 				return nil, stacktrace.Propagate(err, "")
 			}
-			a.appLogger.RuntimeLog("transpiled TypeScript file " + f)
 			return []byte(transpiled), nil
 		}
 
 		return file.Content, nil
 	}
 	return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "required file not found"))
+}
+
+func (a *appInstance) transpileTS(filename string, source []byte, vm *goja.Runtime) ([]byte, error) {
+	moduleName := strings.TrimSuffix(filename, ".ts")
+	a.appLogger.RuntimeLog("transpiling TypeScript file " + filename)
+	transpiled, err := typescript.TranspileCtx(a.ctx,
+		bytes.NewReader(source),
+		typescript.WithCompileOptions(typeScriptCompilerOptions),
+		typescript.WithRuntime(vm),
+		typescript.WithVersion(TypeScriptVersion),
+		typescript.WithModuleName(moduleName))
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	a.appLogger.RuntimeLog("transpiled TypeScript file " + filename)
+	return []byte(transpiled), nil
 }
 
 func (a *appInstance) EvaluateExpression(ctx context.Context, expression string) (bool, string, time.Duration, error) {
