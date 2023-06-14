@@ -1,13 +1,75 @@
-import type { Unsubscriber } from "svelte/store";
-import { currentModal, modal, ModalData } from "../stores";
+import type { Callbacks, Component, Context, Options } from "svelte-simple-modal/types/Modal.svelte";
+import { Unsubscriber, writable } from "svelte/store";
 import ModalAlert from "./ModalAlert.svelte";
 import ModalConfirm from "./ModalConfirm.svelte";
 import ModalPrompt from "./ModalPrompt.svelte";
+
+export type ModalData = {
+    component: Component,
+    props?: Record<string, any>,
+    options?: Partial<Options>,
+    callbacks?: Partial<Callbacks>,
+};
 
 export type ModalResult<ResponseType> = {
     result: "response" | "abort";
     response?: ResponseType;
 }
+
+let modalOpen: any;
+let modalClose: any;
+let modalCurrentlyActuallyClosed = false;
+let deferredModalOpeningQueue: ModalData[] = [];
+const currentModal = writable(null as ModalData);
+
+export function modalSetContext<T>(key: any, context: T): T {
+    modalOpen = (context as Context).open;
+    modalClose = (context as Context).close;
+    modalCurrentlyActuallyClosed = true;
+    processModalQueue();
+    return context;
+}
+
+/**
+ * Adds a modal to the queue of modals to be opened.
+ * The modal may not be opened immediately if a modal is presently being displayed.
+ */
+export function openModal(mi: ModalData) {
+    deferredModalOpeningQueue = [...deferredModalOpeningQueue, mi];
+    processModalQueue();
+}
+
+/**
+ * closeModal closes the modal that is presently being displayed.
+ */
+export function closeModal() {
+    if (modalClose !== undefined) {
+        modalClose(); // and later on, onModalClosed gets called when it finishes closing, and modalCurrentlyActuallyClosed is set to true in there
+    }
+}
+
+export function onModalClosed() {
+    modalCurrentlyActuallyClosed = true;
+    processModalQueue();
+}
+
+function processModalQueue() {
+    if (!modalCurrentlyActuallyClosed) {
+        return;
+    }
+    if (deferredModalOpeningQueue.length > 0) {
+        modalCurrentlyActuallyClosed = false;
+        // this delay is an attempt to fix a bug where a modal will end up showing above another, i.e. taking the screen space above another one
+        setTimeout(() => {
+            const p = deferredModalOpeningQueue.pop();
+            modalOpen(p.component, p.props, p.options, p.callbacks);
+            currentModal.set(p);
+        }, 100);
+    } else {
+        currentModal.set(null);
+    }
+}
+
 
 export const getModalResult = async function <ResponseType>(mi: ModalData): Promise<ModalResult<ResponseType>> {
     return new Promise<ModalResult<ResponseType>>((resolve, _) => {
@@ -23,20 +85,20 @@ export const getModalResult = async function <ResponseType>(mi: ModalData): Prom
                 },
             };
         }
-        let resultCallback = function (r: ResponseType) {
+        const resultCallback = function (r: ResponseType) {
             unsubscriber();
             opened = false;
-            modal.set(null);
+            closeModal();
             resolve({
                 result: "response",
                 response: r,
             });
         };
-        let info = {
+        const info = {
             ...mi,
             props: {
                 ...mi.props,
-                resultCallback: resultCallback,
+                resultCallback,
             }
         }
         unsubscriber = currentModal.subscribe((v) => {
@@ -50,7 +112,7 @@ export const getModalResult = async function <ResponseType>(mi: ModalData): Prom
                 });
             }
         });
-        modal.set(info);
+        openModal(info);
     });
 }
 

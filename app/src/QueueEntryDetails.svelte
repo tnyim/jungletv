@@ -3,10 +3,10 @@
     import { createEventDispatcher } from "svelte";
     import QrCode from "svelte-qrcode";
     import { slide } from "svelte/transition";
+    import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
     import { apiClient } from "./api_client";
     import { formatBANPriceFixed, isPriceZero } from "./currency_utils";
-    import { modalAlert } from "./modal/modal";
-    import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
+    import { modalAlert, openModal } from "./modal/modal";
     import { openUserProfile } from "./profile_utils";
     import type { User } from "./proto/common_pb";
     import {
@@ -15,7 +15,7 @@
         QueueEntryMovementDirection,
         QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
-    import { darkMode, modal, permissionLevel, rewardAddress } from "./stores";
+    import { darkMode, permissionLevel, rewardAddress } from "./stores";
     import { buildMonKeyURL, copyToClipboard } from "./utils";
 
     const dispatch = createEventDispatcher();
@@ -116,7 +116,7 @@
         "focus:bg-gray-100 dark:focus:bg-gray-800";
 
     function moveQueueEntry(direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]) {
-        modal.set({
+        openModal({
             component: MoveQueueEntryPrompt,
             props: { direction: direction, entry: entry },
             options: {

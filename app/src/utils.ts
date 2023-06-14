@@ -5,6 +5,7 @@ import emojiRegex from "emoji-regex";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
+import type { Readable, Unsubscriber } from "svelte/store";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
 import { modalAlert, modalPrompt } from "./modal/modal";
@@ -737,4 +738,17 @@ export type ButtonColor = "gray" | "red" | "yellow" | "green" | "blue" | "indigo
 
 export const hrefButtonStyleClasses = function (color: ButtonColor = "yellow", whitespaceNoWrap: boolean = true): string {
     return `hover:no-underline justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white dark:text-white bg-${color}-600 hover:bg-${color}-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${color}-500 hover:shadow-lg ease-linear transition-all duration-150${whitespaceNoWrap ? " whitespace-nowrap" : ""}`;
+}
+
+export const awaitReadableValue = async function <T>(readable: Readable<T>, predicate: (value: T) => boolean): Promise<T> {
+    let resultReady: (t: T) => void;
+    const resultPromise = new Promise<T>((r) => { resultReady = r });
+    const unsub = readable.subscribe((value) => {
+        if (predicate(value)) {
+            resultReady(value);
+        }
+    });
+    const result = await resultPromise;
+    unsub();
+    return result;
 }

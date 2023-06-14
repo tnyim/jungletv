@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { apiClient } from "../api_client";
+    import { closeModal } from "../modal/modal";
     import type { ApplicationFile } from "../proto/application_editor_pb";
-    import { modal } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
 
     export let resultCallback: (ApplicationFile) => void;
@@ -90,7 +90,7 @@
 <div
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
 >
-    <ButtonButton color="purple" on:click={() => modal.set(null)}>Cancel</ButtonButton>
+    <ButtonButton color="purple" on:click={closeModal}>Cancel</ButtonButton>
     <div class="flex-grow" />
     <ButtonButton type="submit" on:click={updateProperties}>Update</ButtonButton>
 </div>

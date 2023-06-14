@@ -5,7 +5,6 @@
 	import { afterUpdate, onMount } from "svelte";
 	import { Route, Router, globalHistory } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
-	import type { Context } from "svelte-simple-modal/types/Modal.svelte";
 	import About from "./About.svelte";
 	import ApplicationPage from "./ApplicationPage.svelte";
 	import Authorize from "./Authorize.svelte";
@@ -25,6 +24,7 @@
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import { apiClient } from "./api_client";
 	import { applicationName, faviconURL } from "./configurationStores";
+	import { closeModal, modalSetContext, onModalClosed } from "./modal/modal";
 	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
 	import ApplicationFileEditor from "./moderation/ApplicationFileEditor.svelte";
@@ -38,18 +38,15 @@
 	import { pageTitleApplicationPage, pageTitleMedia, pageTitlePopoutTab } from "./pageTitleStores";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import {
-		ModalData,
 		autoCloseBrackets,
 		autoCloseMediaPickerOnInsert,
 		autoCloseMediaPickerOnSend,
 		badRepresentative,
 		collapseGifs,
 		convertEmoticons,
-		currentModal,
 		currentSubscription,
 		darkMode,
 		featureFlags,
-		modal,
 		permissionLevel,
 		playerVolume,
 		rewardAddress,
@@ -137,52 +134,12 @@
 		}
 	});
 
-	let modalOpen: any;
-	let modalClose: any;
-	let modalReadyToOpen = false;
-	function modalSetContext<T>(key: any, context: T): T {
-		modalOpen = (context as Context).open;
-		modalClose = (context as Context).close;
-		modalReadyToOpen = true;
-		return context;
-	}
-
-	let deferredModalOpeningQueue: ModalData[] = [];
-	modal.subscribe((p) => {
-		if (p == null || p == undefined) {
-			if (modalClose !== undefined) {
-				modalClose();
-			}
-		} else {
-			deferredModalOpeningQueue = [...deferredModalOpeningQueue, p];
-		}
-	});
-
-	function onModalClosed() {
-		modalReadyToOpen = true;
-	}
-
-	$: {
-		if (modalReadyToOpen) {
-			if (deferredModalOpeningQueue.length > 0) {
-				modalReadyToOpen = false;
-				let p = deferredModalOpeningQueue.pop();
-				modalOpen(p.component, p.props, p.options, p.callbacks);
-				currentModal.set(p);
-			} else {
-				currentModal.set(null);
-			}
-		}
-	}
-
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
 	let hashToJumpTo = "";
 	historyStore.subscribe((v) => {
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
-		if (modalClose !== undefined) {
-			modalClose();
-		}
+		closeModal();
 		refreshOnLineStatus();
 
 		let hash = v.location.hash;

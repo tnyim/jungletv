@@ -1,10 +1,10 @@
 <script lang="ts">
     import { navigate } from "svelte-navigator";
-    import { modal } from "./stores";
+    import { closeModal } from "./modal/modal";
     import ButtonButton from "./uielements/ButtonButton.svelte";
 
     function accept() {
-        modal.set(null);
+        closeModal();
         navigate("/points#nice");
     }
 </script>
@@ -18,7 +18,7 @@
 <div
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
 >
-    <ButtonButton color="purple" on:click={() => modal.set(null)}>Dismiss</ButtonButton>
+    <ButtonButton color="purple" on:click={closeModal}>Dismiss</ButtonButton>
     <div class="flex-grow" />
     <ButtonButton type="submit" on:click={accept}>More information</ButtonButton>
 </div>

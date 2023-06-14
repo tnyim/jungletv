@@ -21,7 +21,7 @@
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { StreamRequestController, consumeStreamRPC } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
-    import { parseCompleteMarkdown } from "./utils";
+    import { awaitReadableValue, parseCompleteMarkdown } from "./utils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -104,14 +104,7 @@
         parseMarkdown: parseCompleteMarkdown,
     };
 
-    let rewardAddressPromise = new Promise((resolve: (address: string) => void) => {
-        let unsub = rewardAddress.subscribe((address) => {
-            if (address !== null) {
-                unsub();
-                resolve(address === "" ? undefined : address);
-            }
-        });
-    });
+    let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);
 
     const permissionLevelMapping: Record<PermissionLevelMap[keyof PermissionLevelMap], string> = {
         0: "unauthenticated",
@@ -121,12 +114,8 @@
     };
 
     let permissionLevelPromise = new Promise((resolve: (level: string) => void) => {
-        let unsub: Unsubscriber;
-        unsub = permissionLevel.subscribe((level) => {
-            if (level !== null) {
-                unsub();
-                resolve(permissionLevelMapping[level]);
-            }
+        awaitReadableValue(permissionLevel, (level) => level !== null).then((level) => {
+            resolve(permissionLevelMapping[level]);
         });
     });
 

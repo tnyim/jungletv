@@ -1,15 +1,16 @@
 <script lang="ts">
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
+    import QueueEntryHeader from "./QueueEntryHeader.svelte";
     import { apiClient } from "./api_client";
+    import { closeModal } from "./modal/modal";
     import {
         PointsInfoResponse,
         QueueEntry,
         QueueEntryMovementDirection,
         QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
-    import QueueEntryHeader from "./QueueEntryHeader.svelte";
-    import { currentSubscription, darkMode, modal } from "./stores";
+    import { currentSubscription, darkMode } from "./stores";
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import PointsIcon from "./uielements/PointsIcon.svelte";
@@ -33,7 +34,7 @@
     async function move() {
         try {
             await apiClient.moveQueueEntry(entry.getId(), direction);
-            modal.set(null);
+            closeModal();
         } catch (ex) {
             if (ex.includes("insufficient points balance")) {
                 errorMessage = "You don't have sufficient points to move this entry.";
@@ -84,7 +85,7 @@
 <div
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
 >
-    <ButtonButton color="purple" on:click={() => modal.set(null)}>Cancel</ButtonButton>
+    <ButtonButton color="purple" on:click={closeModal}>Cancel</ButtonButton>
     <div class="flex-grow" />
     <ButtonButton on:click={move}>Move {dirString}</ButtonButton>
 </div>

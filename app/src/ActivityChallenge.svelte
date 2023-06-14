@@ -2,10 +2,11 @@
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
     import ActivityChallengeModal from "./ActivityChallengeModal.svelte";
-    import { apiClient } from "./api_client";
     import PostSegchaNiceUpsellingPrompt from "./PostSegchaNiceUpsellingPrompt.svelte";
+    import { apiClient } from "./api_client";
+    import { closeModal, openModal } from "./modal/modal";
     import type { ActivityChallenge } from "./proto/jungletv_pb";
-    import { activityChallengesDone, currentSubscription, modal, subscriptionUpsoldAfterSegcha } from "./stores";
+    import { activityChallengesDone, currentSubscription, subscriptionUpsoldAfterSegcha } from "./stores";
     import { checkShadowRootIntegrity } from "./utils";
 
     export let activityChallenge: ActivityChallenge;
@@ -79,7 +80,7 @@
             if (activityChallenge.getTypesList().indexOf("segcha") >= 0) {
                 segchaChallenge = await apiClient.produceSegchaChallenge();
             }
-            modal.set({
+            openModal({
                 component: ActivityChallengeModal,
                 props: {
                     activityChallenge: activityChallenge,
@@ -100,10 +101,10 @@
 
     async function onActivityChallengeModalComplete(answers: string[]) {
         let currentlySubscribed = typeof $currentSubscription !== "undefined" && $currentSubscription != null;
-        modal.set(null);
+        closeModal();
         if (!currentlySubscribed && !$subscriptionUpsoldAfterSegcha) {
             $subscriptionUpsoldAfterSegcha = true;
-            modal.set({
+            openModal({
                 component: PostSegchaNiceUpsellingPrompt,
                 options: {
                     closeButton: false,
@@ -159,7 +160,7 @@
             {clicked
                 ? 'animate-pulse bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
                 : 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'}
-            focus:outline-none focus:ring-2 focus:ring-offset-2  hover:shadow ease-linear transition-all duration-150"
+            focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow ease-linear transition-all duration-150"
             on:click={stillWatching}
         >
             {#if clicked}

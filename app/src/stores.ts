@@ -1,5 +1,4 @@
 import type { CustomEmoji } from 'emoji-picker-element/shared';
-import type { Callbacks, Component, Options } from 'svelte-simple-modal/types/Modal.svelte';
 import { writable } from 'svelte/store';
 import type { ActivityChallenge, ChatGifSearchResult, PermissionLevelMap, SubscriptionDetails } from './proto/jungletv_pb';
 
@@ -13,7 +12,7 @@ export const playerVolume = writable(((): number => {
     }
     return parseFloat(localStorage.playerVolume);
 })());
-export const rewardAddress = writable(null);
+export const rewardAddress = writable(null as string);
 export const rewardBalance = writable("");
 export const rewardReceived = writable("");
 export const badRepresentative = writable(false);
@@ -59,17 +58,6 @@ export const chatMessageDraftTenorGif = writable<ChatGifSearchResult>();
 export const chatMessageDraftSelectionJSON = writable("");
 export const activityChallengesDone = writable(0);
 export const subscriptionUpsoldAfterSegcha = writable(false);
-
-export type ModalData = {
-    component: Component,
-    props?: Record<string, any>,
-    options?: Partial<Options>,
-    callbacks?: Partial<Callbacks>,
-};
-
-export const modal = writable(null as ModalData);
-// always use modal to open/close modals, use currentModal to see what is the currently visible modal
-export const currentModal = writable(null as ModalData);
 
 type featureFlags = {
     version: number,

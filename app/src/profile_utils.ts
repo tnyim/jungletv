@@ -1,8 +1,8 @@
 import UserProfile from "./UserProfile.svelte";
-import { modal } from "./stores";
+import { openModal } from "./modal/modal";
 
 export const openUserProfile = function (userAddress: string) {
-    modal.set({
+    openModal({
         component: UserProfile,
         props: { userAddress: userAddress },
         options: {

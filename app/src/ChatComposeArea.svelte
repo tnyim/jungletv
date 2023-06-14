@@ -32,6 +32,7 @@
     import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
+    import { openModal } from "./modal/modal";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel, PointsInfoResponse } from "./proto/jungletv_pb";
     import {
         autoCloseBrackets,
@@ -44,7 +45,6 @@
         convertEmoticons,
         currentSubscription,
         darkMode,
-        modal,
         permissionLevel,
     } from "./stores";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
@@ -811,7 +811,7 @@
     }
 
     function openBlockedUserManagement() {
-        modal.set({
+        openModal({
             component: BlockedUsers,
             options: {
                 closeButton: true,
