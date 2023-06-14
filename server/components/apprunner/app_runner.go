@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"sort"
 	"sync"
 	"time"
@@ -35,12 +36,16 @@ const MainFileName = "main.js"
 // MainFileNameTypeScript is the name of the application TypeScript file containing the application entry point
 const MainFileNameTypeScript = "main.ts"
 
+const javaScriptMIMEType = "text/javascript"
+
 // ServerScriptMIMEType is the content type of the application scripts executed by the server
-const ServerScriptMIMEType = "text/javascript"
+const ServerScriptMIMEType = javaScriptMIMEType
 
-var validServerScriptMIMETypes = []string{ServerScriptMIMEType, "application/javascript", "application/x-javascript"}
+var validJavaScriptMIMETypes = []string{javaScriptMIMEType, "application/javascript", "application/x-javascript"}
+var validServerScriptMIMETypes = validJavaScriptMIMETypes
 
-var validServerTypeScriptMIMETypes = []string{"text/typescript", "application/typescript", "application/x-typescript"}
+var validTypeScriptMIMETypes = []string{"text/typescript", "application/typescript", "application/x-typescript"}
+var validServerTypeScriptMIMETypes = validTypeScriptMIMETypes
 
 // TypeScriptVersion currently used by the application runtime
 const TypeScriptVersion = "v4.9.3"
@@ -53,6 +58,11 @@ var typeScriptCompilerOptions = map[string]interface{}{
 
 	// fixes the lack of a "default" when importing our native "modules" like so: `import rpc from "jungletv:rpc"`. Also fixes importing JSON files in this style
 	"esModuleInterop": "true",
+}
+
+var typeScriptCompilerOptionsForBrowser = map[string]interface{}{
+	"target": "es2021", // same as what we use when compiling our frontend code
+	"module": "none",   // see also: workaround in transpileTS in app_instance.go
 }
 
 // ErrApplicationNotFound is returned when the specified application was not found
@@ -470,4 +480,24 @@ func (r *AppRunner) pageAttachmentLoader(ctx context.Context, data string) (chat
 		PageID:             storage.PageID,
 		Height:             storage.Height,
 	}, nil
+}
+
+func (r *AppRunner) ServeFile(ctx context.Context, applicationID, fileName string, w http.ResponseWriter, req *http.Request) error {
+	r.instancesLock.RLock()
+	defer r.instancesLock.RUnlock()
+
+	var instance *appInstance
+	var ok bool
+	func() {
+		// release lock ASAP because TypeScript files are transpiled and that takes time
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
+		instance, ok = r.instances[applicationID]
+	}()
+	if !ok {
+		http.NotFound(w, req)
+		return nil
+	}
+
+	return stacktrace.Propagate(instance.ServeFile(ctx, fileName, w, req), "")
 }

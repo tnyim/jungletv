@@ -11,38 +11,13 @@ import (
 )
 
 func (s *HTTPServer) ApplicationFile(w http.ResponseWriter, r *http.Request) error {
-	ctx, err := transaction.Begin(r.Context())
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-	defer ctx.Commit() //read-only tx
-
 	vars := mux.Vars(r)
 
 	applicationID := vars["app"]
 	fileName := vars["file"]
 
-	running, version, _ := s.appRunner.IsRunning(applicationID)
-
-	if !running {
-		http.NotFound(w, r)
-		return nil
-	}
-
-	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, applicationID, version, []string{fileName})
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-	file, ok := files[fileName]
-	if !ok || !file.Public {
-		http.NotFound(w, r)
-		return nil
-	}
-
-	w.Header().Add("Content-Type", file.Type)
-	w.Header().Set("X-Frame-Options", "sameorigin")
-	http.ServeContent(w, r, "", file.UpdatedAt, bytes.NewReader(file.Content))
-	return nil
+	err := s.appRunner.ServeFile(r.Context(), applicationID, fileName, w, r)
+	return stacktrace.Propagate(err, "")
 }
 
 func (s *HTTPServer) ApplicationPage(w http.ResponseWriter, r *http.Request) error {

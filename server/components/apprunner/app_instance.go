@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"runtime/debug"
 	"strings"
@@ -38,6 +39,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type transpiledFilesMapKey struct {
+	fileName   string
+	forBrowser bool
+}
+
 type appInstance struct {
 	applicationID      string
 	applicationVersion types.ApplicationVersion
@@ -57,6 +63,8 @@ type appInstance struct {
 	modules            *modules.Collection
 	pagesModule        pages.PagesModule
 	rpcModule          rpc.RPCModule
+	transpiledFiles    map[transpiledFilesMapKey][]byte
+	transpiledFilesMu  sync.Mutex
 
 	// promisesWithoutRejectionHandler are rejected promises with no handler,
 	// if there is something in this map at an end of an event loop then it will exit with an error.
@@ -101,6 +109,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		modules:                         &modules.Collection{},
 		appLogger:                       NewAppLogger(d.ModLogWebhook, applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
+		transpiledFiles:                 make(map[transpiledFilesMapKey][]byte),
 	}
 
 	accountIndex := uint32(0)
@@ -232,7 +241,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 		if isTypeScript {
 			a.runOnLoopLogError(func(vm *goja.Runtime) error {
-				mainSourceBytes, err := a.transpileTS(mainFile.Name, mainFile.Content, vm)
+				mainSourceBytes, err := a.transpileTS(mainFile.Name, mainFile.Content, false)
 				if err != nil {
 					return err
 				}
@@ -241,7 +250,6 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 					return stacktrace.Propagate(err, "")
 				}
 				mainSource = string(mainSourceBytes)
-				fmt.Println(mainSource)
 				return nil
 			})
 		}
@@ -497,7 +505,7 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 		}
 
 		if isTypeScript {
-			transpiled, err := a.transpileTS(f, file.Content, vm)
+			transpiled, err := a.transpileTS(f, file.Content, false)
 			if err != nil {
 				return nil, stacktrace.Propagate(err, "")
 			}
@@ -509,19 +517,52 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 	return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "required file not found"))
 }
 
-func (a *appInstance) transpileTS(filename string, source []byte, vm *goja.Runtime) ([]byte, error) {
+func (a *appInstance) transpileTS(filename string, source []byte, forBrowser bool) ([]byte, error) {
+	a.transpiledFilesMu.Lock()
+	defer a.transpiledFilesMu.Unlock()
+
+	mapKey := transpiledFilesMapKey{
+		fileName:   filename,
+		forBrowser: forBrowser,
+	}
+
+	if js, ok := a.transpiledFiles[mapKey]; ok {
+		return js, nil
+	}
+
 	moduleName := strings.TrimSuffix(filename, ".ts")
-	a.appLogger.RuntimeLog("transpiling TypeScript file " + filename)
-	transpiled, err := typescript.TranspileCtx(a.ctx,
+
+	compilerOptions := typeScriptCompilerOptions
+	if forBrowser {
+		compilerOptions = typeScriptCompilerOptionsForBrowser
+		a.appLogger.RuntimeLog("transpiling TypeScript file " + filename + " for browser context")
+	} else {
+		a.appLogger.RuntimeLog("transpiling TypeScript file " + filename)
+	}
+
+	transpiled, err := typescript.TranspileCtx(
+		a.ctx,
 		bytes.NewReader(source),
-		typescript.WithCompileOptions(typeScriptCompilerOptions),
-		typescript.WithRuntime(vm),
+		typescript.WithCompileOptions(compilerOptions),
 		typescript.WithVersion(TypeScriptVersion),
 		typescript.WithModuleName(moduleName))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	a.appLogger.RuntimeLog("transpiled TypeScript file " + filename)
+
+	if forBrowser {
+		// work around "works as intended" TypeScript problem
+		// https://github.com/microsoft/TypeScript/issues/41567
+		// https://github.com/microsoft/TypeScript/issues/41562
+		// https://github.com/microsoft/TypeScript/issues/41513
+		// this allows us to use "import type" in browser scripts without the whole thing going into module mode
+		transpiled = strings.Replace(transpiled, `Object.defineProperty(exports, "__esModule", { value: true });`, "", 1)
+
+		a.appLogger.RuntimeLog("transpiled TypeScript file " + filename + " for browser context")
+	} else {
+		a.appLogger.RuntimeLog("transpiled TypeScript file " + filename)
+	}
+	a.transpiledFiles[mapKey] = []byte(transpiled)
 	return []byte(transpiled), nil
 }
 
@@ -778,6 +819,47 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 	}()
 
 	return eventCh, cancel
+}
+
+func (a *appInstance) ServeFile(ctxCtx context.Context, fileName string, w http.ResponseWriter, req *http.Request) error {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() //read-only tx
+
+	running, version, _ := a.Running()
+	if !running {
+		http.NotFound(w, req)
+		return nil
+	}
+
+	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(ctx, a.applicationID, version, []string{fileName})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	file, ok := files[fileName]
+	if !ok || !file.Public {
+		http.NotFound(w, req)
+		return nil
+	}
+
+	fileContent := file.Content
+	fileType := file.Type
+	if slices.Contains(validTypeScriptMIMETypes, file.Type) {
+		fileContent, err = a.transpileTS(file.Name, fileContent, true)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			a.appLogger.RuntimeError("failed to transpile TypeScript file: " + err.Error())
+			return nil
+		}
+		fileType = javaScriptMIMEType
+	}
+
+	w.Header().Add("Content-Type", fileType)
+	w.Header().Set("X-Frame-Options", "sameorigin")
+	http.ServeContent(w, req, "", file.UpdatedAt, bytes.NewReader(fileContent))
+	return nil
 }
 
 const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {
