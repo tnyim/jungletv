@@ -151,7 +151,7 @@ export const navigate = async function (to: string): Promise<void> {
  */
 export const resolveApplicationFileURL = async function (fileName: string): Promise<string> {
     await connectionPromise;
-    return `/assets/app/${cachedInfo.applicationID}/${fileName}?v=${cachedInfo.applicationVersion}`;
+    return `/assets/app/${cachedInfo.applicationID}/${cachedInfo.applicationVersion}/${fileName}`;
 }
 
 /**

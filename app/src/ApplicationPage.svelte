@@ -83,12 +83,16 @@
             return pageID;
         },
         async serverMethod(method, ...args): Promise<any> {
-            let jsonArgs: string[] = [];
+            const jsonArgs: string[] = [];
             for (let arg of args) {
                 jsonArgs.push(JSON.stringify(arg));
             }
-            let result = await apiClient.applicationServerMethod(applicationID, pageID, method, jsonArgs);
-            return JSON.parse(result.getResult(), jsonCleaner);
+            const result = await apiClient.applicationServerMethod(applicationID, pageID, method, jsonArgs);
+            const resultString = result.getResult();
+            if (resultString === "undefined") { // special case
+                return undefined;
+            }
+            return JSON.parse(resultString, jsonCleaner);
         },
         navigateToApplicationPage(newPageID, newApplicationID) {
             navigate(`/apps/${newApplicationID ?? applicationID}/${newPageID}`);
@@ -245,7 +249,7 @@
             on:load={onIframeLoaded}
             class="w-full"
             title={response.getPageTitle()}
-            src="/assets/app/{applicationID}/*{pageID}?v={applicationVersion.getTime() + ''}"
+            src="/assets/app/{applicationID}/{applicationVersion.getTime() + ''}/*{pageID}"
             scrolling="no"
             sandbox="allow-forms allow-scripts allow-popups allow-modals allow-downloads allow-same-origin"
         />

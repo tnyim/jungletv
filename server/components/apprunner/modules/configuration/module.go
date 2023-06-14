@@ -159,7 +159,7 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 	})
 
 	v := time.Time(m.infoProvider.ApplicationVersion()).Unix()
-	url := fmt.Sprintf("/assets/app/%s/%s?v=%d", applicationID, fileName, v)
+	url := fmt.Sprintf("/assets/app/%s/%d/%s", applicationID, v, fileName)
 
 	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {
@@ -193,7 +193,7 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 	})
 
 	v := time.Time(m.infoProvider.ApplicationVersion()).Unix()
-	url := fmt.Sprintf("/assets/app/%s/%s?v=%d", applicationID, fileName, v)
+	url := fmt.Sprintf("/assets/app/%s/%d/%s", applicationID, v, fileName)
 
 	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, url)
 	if err != nil {

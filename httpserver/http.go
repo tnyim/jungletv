@@ -37,8 +37,8 @@ func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRu
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/", s.wrapHTTPHandler(s.RaffleInfo))
 	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))
 	router.HandleFunc("/oauth/monkeyconnect/callback", s.wrapHTTPHandler(s.OAuthCallback))
-	router.HandleFunc("/assets/app/{app}/{file:[^*].*}", s.wrapHTTPHandler(s.ApplicationFile))
-	router.HandleFunc("/assets/app/{app}/{page:[*].*}", s.wrapHTTPHandler(s.ApplicationPage))
+	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{file:[^*].*}", s.wrapHTTPHandler(s.ApplicationFile))
+	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{page:[*].*}", s.wrapHTTPHandler(s.ApplicationPage))
 	return nil
 }
 
