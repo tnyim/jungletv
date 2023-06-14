@@ -51,7 +51,11 @@ var validServerTypeScriptMIMETypes = validTypeScriptMIMETypes
 const TypeScriptVersion = "v4.9.3"
 
 var typeScriptCompilerOptions = map[string]interface{}{
-	"target": "es5",
+	// goja supports most es6 features; es6 modules is one of the notable exceptions
+	// see https://github.com/miragespace/heresy#supported-ecmascript-features for a good notion of how to transpile
+	// "The recommended transpile target is ES2017. However, if you run into problems, ES6 can be used as a fallback."
+	"target": "es2017",
+	"module": "commonjs",
 
 	// without this, iterating over maps with `for (const value of someMap.values())` breaks
 	"downlevelIteration": "false",
