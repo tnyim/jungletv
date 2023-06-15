@@ -3,6 +3,8 @@ package apprunner
 import (
 	"bytes"
 	"context"
+	_ "embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,6 +14,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"regexp"
 
 	"github.com/bytedance/sonic"
 	"github.com/clarkmcc/go-typescript"
@@ -33,6 +37,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/exp/maps"
@@ -209,11 +214,6 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 	a.ctx, a.ctxCancel = context.WithCancel(ctx)
 
-	mainFile, isTypeScript, err := a.getMainFile()
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-
 	a.loop.Start()
 	a.running = true
 	a.startedOrStoppedAt = time.Now()
@@ -221,8 +221,12 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 	a.modules.ExecutionResumed(a.ctx)
 
-	mainSource := string(mainFile.Content)
 	if !a.startedOnce {
+		mainFile, isTypeScript, err := a.getMainFile()
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
 		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
 		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
 		// scheduled by JS functions in a JS setTimeout call.
@@ -239,6 +243,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			a.appLogger.RuntimeLog("application instance started")
 		})
 
+		mainSource := string(mainFile.Content)
 		if isTypeScript {
 			a.runOnLoopLogError(func(vm *goja.Runtime) error {
 				mainSourceBytes, err := a.transpileTS(mainFile.Name, mainFile.Content, false)
@@ -482,6 +487,9 @@ func (a *appInstance) Running() (bool, types.ApplicationVersion, time.Time) {
 }
 
 func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, error) {
+	if filename == "node_modules/tslib" {
+		return tslibCode, nil
+	}
 	ctx, err := transaction.Begin(a.ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -517,6 +525,8 @@ func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, e
 	return nil, errors.Join(require.ModuleFileDoesNotExistError, stacktrace.Propagate(ErrApplicationFileNotFound, "required file not found"))
 }
 
+var sourceMappingRegex = regexp.MustCompile(`//# sourceMappingURL=data:application/json;base64,(.*)`)
+
 func (a *appInstance) transpileTS(filename string, source []byte, forBrowser bool) ([]byte, error) {
 	a.transpiledFilesMu.Lock()
 	defer a.transpiledFilesMu.Unlock()
@@ -549,6 +559,19 @@ func (a *appInstance) transpileTS(filename string, source []byte, forBrowser boo
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+
+	// fix filename in source mapping, unfortunately always comes out as module.ts despite us setting the module name correctly
+	transpiled = utils.ReplaceAllStringSubmatchFunc(sourceMappingRegex, transpiled, func(groups []string) string {
+		decoded, err := base64.StdEncoding.DecodeString(groups[1])
+		if err != nil {
+			return groups[1]
+		}
+		// in our case the "name of the compiled file" is the same as the source file, as there's no actual compiled file being created at any point, it's all in-memory
+		n := fmt.Sprintf(`"%s"`, filename)
+		replacer := strings.NewReplacer(`"module.ts"`, n, `"module.js"`, n)
+		decoded = []byte(replacer.Replace(string(decoded)))
+		return `//# sourceMappingURL=data:application/json;base64,` + base64.StdEncoding.EncodeToString(decoded)
+	})
 
 	if forBrowser {
 		// work around "works as intended" TypeScript problem
@@ -869,3 +892,6 @@ const runtimeBaseCode = `String.prototype.replaceAll = function (search, replace
             search :
             new RegExp(search, 'g'), replacement);
 };`
+
+//go:embed tslib.js
+var tslibCode []byte

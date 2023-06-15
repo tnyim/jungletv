@@ -15,6 +15,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	chatmodule "github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
@@ -50,6 +51,8 @@ var validServerTypeScriptMIMETypes = validTypeScriptMIMETypes
 // TypeScriptVersion currently used by the application runtime
 const TypeScriptVersion = "v4.9.3"
 
+// when updating to a newer TypeScript version, make sure to also check for updates to tslib.js
+
 var typeScriptCompilerOptions = map[string]interface{}{
 	// goja supports most es6 features; es6 modules is one of the notable exceptions
 	// see https://github.com/miragespace/heresy#supported-ecmascript-features for a good notion of how to transpile
@@ -62,11 +65,25 @@ var typeScriptCompilerOptions = map[string]interface{}{
 
 	// fixes the lack of a "default" when importing our native "modules" like so: `import rpc from "jungletv:rpc"`. Also fixes importing JSON files in this style
 	"esModuleInterop": "true",
+	"inlineSourceMap": "true",
+	"importHelpers":   "true",
 }
 
 var typeScriptCompilerOptionsForBrowser = map[string]interface{}{
 	"target": "es2021", // same as what we use when compiling our frontend code
 	"module": "none",   // see also: workaround in transpileTS in app_instance.go
+	"inlineSourceMap": func() string {
+		if buildconfig.LAB || buildconfig.DEBUG {
+			return "true"
+		}
+		return "false"
+	}(),
+	"removeComments": func() string {
+		if buildconfig.LAB || buildconfig.DEBUG {
+			return "false"
+		}
+		return "true"
+	}(),
 }
 
 // ErrApplicationNotFound is returned when the specified application was not found
