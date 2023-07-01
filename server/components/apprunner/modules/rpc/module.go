@@ -19,7 +19,8 @@ const ModuleName = "jungletv:rpc"
 type RPCModule interface {
 	modules.NativeModule
 	// HandleInvocation must be called inside the event loop
-	HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) goja.Value
+	// returns either a goja.Value (if the method handler is synchronous) or a channel where a goja.Value will later be sent (if the method handler returns a Promise)
+	HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) InvocationResult
 	// HandleEvent must be called inside the event loop
 	HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, pageID, event string, args []string)
 
@@ -27,6 +28,18 @@ type RPCModule interface {
 	PageEventEmitted() event.Keyed[string, ClientEventData]
 	UserEventEmitted() event.Keyed[string, ClientEventData]
 	PageUserEventEmitted() event.Keyed[PageUserTuple, ClientEventData]
+}
+
+type InvocationResult struct {
+	Synchronous bool
+	Value       string // if synchronous
+	AsyncResult <-chan PromiseResult
+}
+
+type PromiseResult struct {
+	Rejected       bool
+	Value          goja.Value
+	JSONMarshaller goja.Callable
 }
 
 type PageUserTuple struct {
@@ -121,7 +134,7 @@ func (m *rpcModule) ExecutionResumed(ctx context.Context) {}
 func (m *rpcModule) ExecutionPaused()                     {}
 
 // to be called inside the loop
-func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) goja.Value {
+func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) InvocationResult {
 	// no need to sync access to m.handlers as it can only be accessed inside the loop
 	h, ok := m.handlers[method]
 	if !ok {
@@ -161,12 +174,51 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 		panic(err)
 	}
 
-	resultJSON, err := m.jsonMarshaller(goja.Undefined(), result)
+	p, ok := result.Export().(*goja.Promise)
+	if !ok {
+		resultJSON, err := m.jsonMarshaller(goja.Undefined(), result)
+		if err != nil {
+			panic(err)
+		}
+
+		return InvocationResult{
+			Synchronous: true,
+			Value:       resultJSON.String(),
+		}
+	}
+
+	// await for resolution in a separate goroutine and return the value in a channel
+	resultChan := make(chan PromiseResult, 1)
+	// set up an empty catch function so we don't fall into the "Uncaught (in promise)" log message from our promise rejection tracker
+	// since we pass the exception to the client and through the appbridge, the "Uncaughtness" is up to the client side to decide
+	catch, ok := goja.AssertFunction(result.ToObject(vm).Get("catch"))
+	if !ok {
+		panic("could not get catch method from Promise")
+	}
+	result, err = catch(result, vm.ToValue(func() {}))
 	if err != nil {
 		panic(err)
 	}
 
-	return resultJSON
+	// and set up a finally function so we can return the result/exception to the client when the promise resolves
+	// make sure this finally is chained on the catch above, otherwise parallel resolution shenanigans come into play, and we still get the "Uncaught" messsage
+	// (explanation: https://stackoverflow.com/a/72302273)
+	finally, ok := goja.AssertFunction(result.ToObject(vm).Get("finally"))
+	if !ok {
+		panic("could not get finally method from Promise")
+	}
+	finally(result, vm.ToValue(func() {
+		resultChan <- PromiseResult{
+			Rejected:       p.State() != goja.PromiseStateFulfilled,
+			Value:          p.Result(),
+			JSONMarshaller: m.jsonMarshaller,
+		}
+	}))
+
+	return InvocationResult{
+		Synchronous: false,
+		AsyncResult: resultChan,
+	}
 }
 
 // to be called inside the loop

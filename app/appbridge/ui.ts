@@ -25,7 +25,7 @@ function buildShadowRootPreparer(hostVersion: string) {
                     let link = document.createElement("link");
                     link.setAttribute("rel", "stylesheet");
                     link.setAttribute("href", d);
-                    parent.appendChild(link);
+                    parent.prepend(link); // add our bundle before (document order wise) any user-specified CSS to ensure the latter still overrides the former
                 }
             }
         }

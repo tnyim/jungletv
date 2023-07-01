@@ -579,6 +579,8 @@ func (a *appInstance) transpileTS(filename string, source []byte, forBrowser boo
 		// https://github.com/microsoft/TypeScript/issues/41562
 		// https://github.com/microsoft/TypeScript/issues/41513
 		// this allows us to use "import type" in browser scripts without the whole thing going into module mode
+		// a better approach might be to check if the original code really intends to be a module and only destroy the module aspect of the resulting TS code,
+		// if and only if the original code did not intend to be a module (namely, if it only contains `import type` but no `import` and no `export`).
 		transpiled = strings.Replace(transpiled, `Object.defineProperty(exports, "__esModule", { value: true });`, "", 1)
 
 		a.appLogger.RuntimeLog("transpiled TypeScript file " + filename + " for browser context")
@@ -757,14 +759,31 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
-	result, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (string, error) {
+	invResult, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (rpc.InvocationResult, error) {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
 		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
-			return "", stacktrace.NewError("page not available")
+			return rpc.InvocationResult{}, stacktrace.NewError("page not available")
 		}
 
-		value := a.rpcModule.HandleInvocation(vm, user, pageID, method, args)
-		return value.String(), nil
+		return a.rpcModule.HandleInvocation(vm, user, pageID, method, args), nil
+	})
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	if invResult.Synchronous {
+		return invResult.Value, nil
+	}
+
+	asyncResult := <-invResult.AsyncResult
+	result, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (string, error) {
+		if asyncResult.Rejected {
+			panic(asyncResult.Value.String())
+		}
+		resultJSON, err := asyncResult.JSONMarshaller(goja.Undefined(), asyncResult.Value)
+		if err != nil {
+			panic(err)
+		}
+		return resultJSON.String(), nil
 	})
 	return result, stacktrace.Propagate(err, "")
 }
