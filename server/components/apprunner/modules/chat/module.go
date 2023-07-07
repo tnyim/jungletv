@@ -248,10 +248,10 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to getMessages must be a Date"))
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func() ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
 		messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
 		if err != nil {
-			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
 
 		return messages, func(_ *goja.Runtime, messages []*chat.Message) interface{} {

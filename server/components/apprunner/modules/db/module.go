@@ -67,16 +67,16 @@ func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func() ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func(actx gojautil.AsyncContext) ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
 		ctx, err := transaction.Begin(m.ctx)
 		if err != nil {
-			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
 		defer ctx.Rollback() // force tx to be read-only
 
 		rows, err := ctx.Tx().QueryxContext(ctx, query, args...)
 		if err != nil {
-			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
 
 		result := []map[string]interface{}{}
@@ -84,7 +84,7 @@ func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 			rowResult := make(map[string]interface{})
 			err = rows.MapScan(rowResult)
 			if err != nil {
-				panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+				panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 			}
 			result = append(result, rowResult)
 		}

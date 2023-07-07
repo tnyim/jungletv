@@ -4,12 +4,15 @@ import (
 	"github.com/dop251/goja"
 )
 
+// AsyncContext is a type used mainly to encourage the exclusive use of some functions inside of an AsyncCallback
+type AsyncContext struct{}
+
 // AsyncCallback is a function that should run asynchronously
-type AsyncCallback[T any] func() T
+type AsyncCallback[T any] func(asyncContext AsyncContext) T
 
 // AsyncCallbackWithTransformer is a function that should run asynchronously
 // and returns a PromiseResultTransformer
-type AsyncCallbackWithTransformer[T any] func() (T, PromiseResultTransformer[T])
+type AsyncCallbackWithTransformer[T any] func(asyncContext AsyncContext) (T, PromiseResultTransformer[T])
 
 // PromiseResultTransformer is a function that runs synchronously in the JS event loop
 // and transforms the result of an asynchronous promise before it is provided to the JS runtime
@@ -32,14 +35,14 @@ func DoAsync[T any](runtime *goja.Runtime, runOnLoop ScheduleFunctionNoError, cb
 			defer func() {
 				rejectReason = recover()
 			}()
-			result = cb()
+			result = cb(AsyncContext{})
 		}()
 
 		runOnLoop(func(r *goja.Runtime) {
 			if rejectReason == nil {
 				resolve(result)
 			} else {
-				reject(rejectReason)
+				reject(convertRecoverResult(r, rejectReason))
 			}
 		})
 	}()
@@ -59,16 +62,48 @@ func DoAsyncWithTransformer[T any](runtime *goja.Runtime, runOnLoop ScheduleFunc
 			defer func() {
 				rejectReason = recover()
 			}()
-			result, transformer = cb()
+			result, transformer = cb(AsyncContext{})
 		}()
 
 		runOnLoop(func(r *goja.Runtime) {
 			if rejectReason == nil {
 				resolve(transformer(r, result))
 			} else {
-				reject(rejectReason)
+				reject(convertRecoverResult(r, rejectReason))
 			}
 		})
 	}()
 	return runtime.ToValue(promise)
+}
+
+type asyncGoError struct {
+	error
+}
+
+// AsyncTypeError is a temporary representation of a Goja type error, that will later be converted when the promise is rejected
+type AsyncTypeError struct {
+	args []interface{}
+}
+
+// NewGoError wraps an error so that it will later be converted, by DoAsync functions, into a Goja runtime Go error (via runtime.NewGoError)
+// The returned value should immediately be fed to panic()
+func (AsyncContext) NewGoError(err error) error {
+	return &asyncGoError{error: err}
+}
+
+// NewTypeError wraps an error so that it will later be converted, by DoAsync functions, into a Goja runtime type error (via runtime.NewTypeError)
+// The returned value should immediately be fed to panic()
+func (AsyncContext) NewTypeError(args ...interface{}) *AsyncTypeError {
+	return &AsyncTypeError{args: args}
+}
+
+func convertRecoverResult(r *goja.Runtime, recoverResult interface{}) interface{} {
+	switch a := recoverResult.(type) {
+	case *asyncGoError:
+		return r.NewGoError(a.error)
+	case *AsyncTypeError:
+		return r.NewTypeError(a.args...)
+	default:
+		return recoverResult
+	}
 }
