@@ -59,6 +59,7 @@
                 address={getGoodRepAddress()}
                 allowQR={false}
                 showQR={true}
+                showWebWalletLink={true}
                 isRepresentativeChange={true}
                 qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
                 qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}

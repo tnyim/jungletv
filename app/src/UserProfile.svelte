@@ -333,7 +333,7 @@
                 <AddressBox
                     address={userAddress}
                     showQR={true}
-                    showBananoVaultLink={true}
+                    showWebWalletLink={true}
                     qrCodeBackground={$darkMode ? "#1F2937" : "#E5E7EB"}
                     qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
                 />

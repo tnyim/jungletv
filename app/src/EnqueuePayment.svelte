@@ -232,7 +232,7 @@
                     address={paymentInfo.getPaymentAddress()}
                     allowQR={false}
                     showQR={true}
-                    showBananoVaultLink={true}
+                    showWebWalletLink={true}
                     paymentAmount={selectedPrice}
                     qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
                     qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}

@@ -7,14 +7,14 @@
     export let address = "";
     export let allowQR = false;
     export let showQR = false;
-    export let showBananoVaultLink = false;
+    export let showWebWalletLink = false;
     export let paymentAmount = "";
     export let isRepresentativeChange = false;
     export let qrCodeBackground = "";
     export let qrCodeForeground = "";
 
     let uri = "";
-    let webWalletURI = "";
+    let webWalletURL = "";
     let copySuccess = false;
     let copySuccessTimeout: number;
 
@@ -22,35 +22,51 @@
     let qrPrefix: string;
     let currency: "BAN" | "XNO";
     let webWalletName: string;
-    let webWalletHost: string;
+    let webWalletSendURLBuilder: undefined | ((address: string, amount: string, curr: typeof currency) => string);
+    let webWalletChangeURLBuilder: (rep: string) => string;
     $: if (address.startsWith("ban_")) {
         uriPrefix = "banano";
         qrPrefix = isRepresentativeChange ? "banrep" : "ban";
         currency = "BAN";
-        webWalletName = "BananoVault";
-        webWalletHost = "vault.banano.cc";
+        webWalletName = "The Banano Stand";
+        webWalletSendURLBuilder = (address, amount, currency) => {
+            if (amount != "") {
+                const p = formatPrice(amount, currency);
+                return `https://thebananostand.com?request=send&address=${address}&amount=${p}`;
+            }
+            return `https://thebananostand.com?request=send&address=${address}`;
+        };
+        webWalletChangeURLBuilder = (rep) => {
+            return `https://thebananostand.com?request=change&address=${rep}`;
+        };
     } else if (address.startsWith("nano_")) {
         uriPrefix = "nano";
         qrPrefix = isRepresentativeChange ? "nanorep" : "nano";
         currency = "XNO";
         webWalletName = "Nault";
-        webWalletHost = "nault.cc";
+        webWalletSendURLBuilder = (address, amount, currency) => {
+            if (amount != "") {
+                return `https://nault.cc/send?to=${address}&amount=${formatPrice(amount, currency)}`;
+            }
+            return `https://nault.cc/send?to=${address}`;
+        };
+        webWalletChangeURLBuilder = undefined;
     }
 
     $: {
         if (isRepresentativeChange) {
             uri = `${uriPrefix}rep:${address}`;
+            if (webWalletChangeURLBuilder) {
+                webWalletURL = webWalletChangeURLBuilder(address);
+            } else {
+                webWalletURL = "";
+            }
         } else {
             uri = `${uriPrefix}:${address}`;
             if (paymentAmount != "") {
                 uri += "?amount=" + paymentAmount;
             }
-            webWalletURI =
-                "https://" +
-                webWalletHost +
-                "/send?to=" +
-                address +
-                (paymentAmount != "" ? "&amount=" + formatPrice(paymentAmount, currency) : "");
+            webWalletURL = webWalletSendURLBuilder(address, paymentAmount, currency);
         }
     }
 
@@ -130,11 +146,18 @@
         {/key}
     </div>
 {/if}
-{#if showBananoVaultLink}
+{#if showWebWalletLink && webWalletURL && webWalletName}
     <div class="mt-4 flex justify-center">
         <p>
-            Send <a target="_blank" rel="noopener" href={webWalletURI}>from {webWalletName}</a> •
+            {#if isRepresentativeChange}
+            Set representative
+            <a target="_blank" rel="noopener" href={webWalletURL}>using {webWalletName}</a> •
+            <a href={uri} rel="noopener">using installed wallet</a>
+            {:else}
+            Send
+            <a target="_blank" rel="noopener" href={webWalletURL}>from {webWalletName}</a> •
             <a href={uri} rel="noopener">from installed wallet</a>
+            {/if}
         </p>
     </div>
 {/if}

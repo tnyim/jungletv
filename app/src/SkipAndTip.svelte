@@ -168,7 +168,7 @@
                 <AddressBox
                     address={skipAndTipStatus.getSkipAddress()}
                     allowQR={true}
-                    showBananoVaultLink={true}
+                    showWebWalletLink={true}
                     qrCodeBackground={$darkMode ? "#111827" : "#FFFFFF"}
                     qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
                 />
@@ -198,7 +198,7 @@
             <AddressBox
                 address={skipAndTipStatus.getRainAddress()}
                 allowQR={true}
-                showBananoVaultLink={true}
+                showWebWalletLink={true}
                 qrCodeBackground={$darkMode ? "#111827" : "#FFFFFF"}
                 qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
             />

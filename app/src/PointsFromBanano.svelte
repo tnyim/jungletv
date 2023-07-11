@@ -120,7 +120,7 @@
                     address={status.getPaymentAddress()}
                     allowQR={false}
                     showQR={true}
-                    showBananoVaultLink={true}
+                    showWebWalletLink={true}
                     qrCodeBackground={$darkMode ? "#1F2937" : "#FFFFFF"}
                     qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
                 />
