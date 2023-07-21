@@ -55,7 +55,7 @@ func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 		m.runtime = runtime
 		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
-			return gojautil.ToJSDate(runtime, t)
+			return gojautil.SerializeTime(runtime, t)
 		}
 		m.exports = module.Get("exports").(*goja.Object)
 		m.exports.Set("createTransaction", m.createTransaction)

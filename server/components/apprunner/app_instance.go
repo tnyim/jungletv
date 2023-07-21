@@ -34,6 +34,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/points"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/queue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
@@ -146,6 +147,15 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 			instance.appLogger,
 			instance,
 			d.ChatManager,
+			instance.pagesModule,
+			instance.applicationUser,
+			instance.runOnLoopLogError,
+			scheduleFunctionNoError))
+	instance.modules.RegisterNativeModule(
+		queue.New(
+			instance.appLogger,
+			instance,
+			d.MediaQueue,
 			instance.pagesModule,
 			instance.applicationUser,
 			instance.runOnLoopLogError,

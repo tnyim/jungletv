@@ -383,7 +383,7 @@ func (r *Handler) Worker(ctx context.Context) error {
 	onMediaChanged, mediaChangedU := r.mediaQueue.MediaChanged().Subscribe(event.BufferAll)
 	defer mediaChangedU()
 
-	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.DeepEntryRemoved().Subscribe(event.BufferAll)
+	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.NonPlayingEntryRemoved().Subscribe(event.BufferAll)
 	defer deepEntryRemovedU()
 
 	onPendingWithdrawalsCreated, pendingWithdrawalsCreatedU := r.withdrawalHandler.PendingWithdrawalsCreated().Subscribe(event.BufferFirst)

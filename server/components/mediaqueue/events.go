@@ -53,9 +53,9 @@ func (q *MediaQueue) EntryAdded() event.Event[EntryAddedEventArg] {
 	return q.entryAdded
 }
 
-// DeepEntryRemoved is the event that is fired when an entry other than the currently played one is removed from the queue
-func (q *MediaQueue) DeepEntryRemoved() event.Event[media.QueueEntry] {
-	return q.deepEntryRemoved
+// NonPlayingEntryRemoved is the event that is fired when an entry other than the currently playing one is removed from the queue
+func (q *MediaQueue) NonPlayingEntryRemoved() event.Event[media.QueueEntry] {
+	return q.nonPlayingEntryRemoved
 }
 
 // OwnEntryRemoved is the event that is fired when a user removes one of their own queue entries

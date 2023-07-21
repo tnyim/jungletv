@@ -3,8 +3,8 @@ package chatmanager
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/types"
@@ -68,7 +68,7 @@ func (a *MessageAttachmentTenorGifView) SerializeForModLog(context.Context) stri
 	return fmt.Sprintf("https://tenor.com/view/%s", a.ID)
 }
 
-func (a *MessageAttachmentTenorGifView) SerializeForJS(context.Context, func(time.Time) interface{}) map[string]interface{} {
+func (a *MessageAttachmentTenorGifView) SerializeForJS(context.Context, *goja.Runtime) map[string]interface{} {
 	return map[string]interface{}{
 		"type":             MessageAttachmentTypeTenorGif,
 		"id":               a.ID,

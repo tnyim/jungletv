@@ -2,8 +2,8 @@ package chat
 
 import (
 	"context"
-	"time"
 
+	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/types"
 )
@@ -25,5 +25,5 @@ type MessageAttachmentStorageWithCost interface {
 type MessageAttachmentView interface {
 	SerializeForAPI(ctx context.Context) *proto.ChatMessageAttachment
 	SerializeForModLog(ctx context.Context) string
-	SerializeForJS(ctx context.Context, dateSerializer func(time.Time) interface{}) map[string]interface{}
+	SerializeForJS(ctx context.Context, vm *goja.Runtime) map[string]interface{}
 }

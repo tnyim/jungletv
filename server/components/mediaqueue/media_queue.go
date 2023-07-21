@@ -57,9 +57,9 @@ type MediaQueue struct {
 
 	// fired when an entry that is not at the top of the queue is removed prematurely
 	// receives the removed entry as an argument
-	deepEntryRemoved event.Event[media.QueueEntry]
-	ownEntryRemoved  event.Event[media.QueueEntry] // receives the removed entry as an argument
-	entryMoved       event.Event[EntryMovedEventArg]
+	nonPlayingEntryRemoved event.Event[media.QueueEntry]
+	ownEntryRemoved        event.Event[media.QueueEntry] // receives the removed entry as an argument
+	entryMoved             event.Event[EntryMovedEventArg]
 }
 
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
@@ -75,7 +75,7 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 		mediaChanged:                    event.New[media.QueueEntry](),
 		skippingAllowedUpdated:          event.NewNoArg(),
 		entryAdded:                      event.New[EntryAddedEventArg](),
-		deepEntryRemoved:                event.New[media.QueueEntry](),
+		nonPlayingEntryRemoved:          event.New[media.QueueEntry](),
 		ownEntryRemoved:                 event.New[media.QueueEntry](),
 		entryMoved:                      event.New[EntryMovedEventArg](),
 		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
@@ -354,7 +354,7 @@ func (q *MediaQueue) removeEntryInMutex(entryID string) (media.QueueEntry, error
 	for i, entry := range q.queue {
 		if entryID == entry.QueueID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
-			q.deepEntryRemoved.Notify(entry, true)
+			q.nonPlayingEntryRemoved.Notify(entry, true)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify(false)
 			return entry, nil

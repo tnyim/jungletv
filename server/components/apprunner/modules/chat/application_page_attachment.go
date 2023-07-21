@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/types"
@@ -69,11 +71,11 @@ func (a *MessageAttachmentApplicationPageView) SerializeForModLog(context.Contex
 	return fmt.Sprintf("application page %s/%s", a.ApplicationID, a.PageID)
 }
 
-func (a *MessageAttachmentApplicationPageView) SerializeForJS(ctx context.Context, dateSerializer func(time.Time) interface{}) map[string]interface{} {
+func (a *MessageAttachmentApplicationPageView) SerializeForJS(ctx context.Context, vm *goja.Runtime) map[string]interface{} {
 	return map[string]interface{}{
 		"type":               MessageAttachmentTypeApplicationPage,
 		"applicationID":      a.ApplicationID,
-		"applicationVersion": dateSerializer(time.Time(a.ApplicationVersion)),
+		"applicationVersion": gojautil.SerializeTime(vm, time.Time(a.ApplicationVersion)),
 		"pageID":             a.PageID,
 		"pageTitle":          a.Title,
 		"height":             a.Height,

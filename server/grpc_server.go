@@ -494,6 +494,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		ModLogWebhook: s.modLogWebhook,
 		ChatManager:   s.chat,
 		PointsManager: s.pointsManager,
+		MediaQueue:    s.mediaQueue,
 	})
 
 	return s, nil

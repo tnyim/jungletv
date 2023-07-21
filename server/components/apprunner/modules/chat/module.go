@@ -63,7 +63,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.runtime = runtime
 		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
-			return gojautil.ToJSDate(runtime, t)
+			return gojautil.SerializeTime(runtime, t)
 		}
 		m.exports = module.Get("exports").(*goja.Object)
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
@@ -94,7 +94,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		})
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) map[string]interface{} {
 			return map[string]interface{}{
-				"message": arg.Message.SerializeForJS(m.executionContext, m.dateSerializer),
+				"message": m.serializeMessage(m.executionContext, arg.Message),
 			}
 		})
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) map[string]interface{} {
@@ -126,6 +126,28 @@ func (m *chatModule) ExecutionPaused() {
 	m.executionContext = nil
 }
 
+func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message) goja.Value {
+	result := map[string]interface{}{
+		"id":           message.ID.String(),
+		"createdAt":    gojautil.SerializeTime(m.runtime, message.CreatedAt),
+		"content":      message.Content,
+		"shadowbanned": message.Shadowbanned,
+		"author":       gojautil.SerializeUser(m.runtime, message.Author),
+	}
+
+	if message.Reference != nil {
+		result["reference"] = m.serializeMessage(ctx, message.Reference)
+	}
+
+	attachments := []map[string]interface{}{}
+	for _, a := range message.AttachmentsView {
+		attachments = append(attachments, a.SerializeForJS(ctx, m.runtime))
+	}
+	result["attachments"] = attachments
+
+	return m.runtime.ToValue(result)
+}
+
 func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
@@ -137,7 +159,7 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
+	return m.serializeMessage(m.executionContext, message)
 }
 
 func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
@@ -172,7 +194,7 @@ func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
+	return m.serializeMessage(m.executionContext, message)
 }
 
 func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goja.Value {
@@ -230,7 +252,7 @@ func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goj
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.runtime.ToValue(message.SerializeForJS(m.executionContext, m.dateSerializer))
+	return m.serializeMessage(m.executionContext, message)
 }
 
 func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
@@ -254,10 +276,10 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
 
-		return messages, func(_ *goja.Runtime, messages []*chat.Message) interface{} {
-			jsMessages := make([]map[string]interface{}, len(messages))
+		return messages, func(vm *goja.Runtime, messages []*chat.Message) interface{} {
+			jsMessages := make([]goja.Value, len(messages))
 			for i := range messages {
-				jsMessages[i] = messages[i].SerializeForJS(m.executionContext, m.dateSerializer)
+				jsMessages[i] = m.serializeMessage(m.executionContext, messages[i])
 			}
 			return jsMessages
 		}

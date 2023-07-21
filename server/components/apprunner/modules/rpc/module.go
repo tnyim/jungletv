@@ -7,6 +7,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/exp/slices"
@@ -147,15 +148,8 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 
 	callContext := map[string]interface{}{
 		"page":    pageID,
-		"sender":  goja.Undefined(),
 		"trusted": false,
-	}
-	if user != nil && !user.IsUnknown() {
-		callContext["sender"] = map[string]interface{}{
-			"address":         user.Address(),
-			"nickname":        user.Nickname(),
-			"permissionLevel": user.PermissionLevel(),
-		}
+		"sender":  gojautil.SerializeUser(vm, user),
 	}
 
 	// unmarshal args
