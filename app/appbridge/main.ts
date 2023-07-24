@@ -238,7 +238,7 @@ export const prompt = async function (question: string,
  * @returns The reward address of the currently logged in user, or undefined if the user is not authenticated.
  * @public
  */
-export const userAddress = async function (): Promise<string | undefined> {
+export const getUserAddress = async function (): Promise<string | undefined> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("userAddress");
 }
@@ -248,7 +248,7 @@ export const userAddress = async function (): Promise<string | undefined> {
  * @returns The permission level of the current user.
  * @public
  */
-export const userPermissionLevel = async function (): Promise<string> {
+export const getUserPermissionLevel = async function (): Promise<string> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("userPermissionLevel");
 }
