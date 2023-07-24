@@ -22,6 +22,7 @@
     import { StreamRequestController, consumeStreamRPC } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
     import { awaitReadableValue, parseCompleteMarkdown } from "./utils";
+    import { openUserProfile } from "./profile_utils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -106,6 +107,7 @@
         userAddress: () => rewardAddressPromise,
         userPermissionLevel: () => permissionLevelPromise,
         parseMarkdown: parseCompleteMarkdown,
+        showUserProfile: openUserProfile,
     };
 
     let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);

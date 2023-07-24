@@ -745,6 +745,13 @@ func (a *appInstance) ApplicationID() string {
 func (a *appInstance) ApplicationVersion() types.ApplicationVersion {
 	return a.applicationVersion
 }
+func (a *appInstance) ApplicationStartTime() time.Time {
+	running, _, since := a.Running()
+	if running {
+		return since
+	}
+	return time.Time{}
+}
 func (a *appInstance) RuntimeVersion() int {
 	return RuntimeVersion
 }

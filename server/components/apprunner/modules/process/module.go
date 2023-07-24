@@ -2,6 +2,8 @@ package process
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -16,6 +18,7 @@ const ModuleName = "node:process"
 type ProcessInformationProvider interface {
 	ApplicationID() string
 	ApplicationVersion() types.ApplicationVersion
+	ApplicationStartTime() time.Time
 	RuntimeVersion() int
 }
 
@@ -53,13 +56,21 @@ func (m *processModule) ModuleLoader() require.ModuleLoader {
 			return "jungletv"
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
-		m.exports.DefineAccessorProperty("version", m.runtime.ToValue(func() int {
-			return m.infoProvider.RuntimeVersion()
+		m.exports.DefineAccessorProperty("version", m.runtime.ToValue(func() string {
+			return fmt.Sprint(m.infoProvider.RuntimeVersion())
+		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+		m.exports.DefineAccessorProperty("versions", m.runtime.ToValue(func() map[string]string {
+			return map[string]string{
+				"jungletv":    fmt.Sprint(m.infoProvider.RuntimeVersion()),
+				"application": fmt.Sprint(time.Time(m.infoProvider.ApplicationVersion()).UnixMilli()),
+			}
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.Set("abort", m.abort)
 		m.exports.Set("exit", m.exit)
 		m.exports.Set("exitCode", int(0))
+		m.exports.Set("uptime", m.uptime)
 	}
 }
 func (m *processModule) ModuleName() string {
@@ -92,4 +103,8 @@ func (m *processModule) exit(call goja.FunctionCall) goja.Value {
 	}
 	m.lifecycleManager.ExitProcess(exitCode)
 	return goja.Undefined()
+}
+
+func (m *processModule) uptime(call goja.FunctionCall) goja.Value {
+	return m.runtime.ToValue(time.Since(m.infoProvider.ApplicationStartTime()).Seconds())
 }

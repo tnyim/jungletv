@@ -1,4 +1,4 @@
-export const BRIDGE_VERSION = 5;
+export const BRIDGE_VERSION = 6;
 // methods the child can call on the parent
 export type ParentMethods = {
     bridgeVersion: () => number;
@@ -15,6 +15,7 @@ export type ParentMethods = {
     userAddress: () => Promise<string>;
     userPermissionLevel: () => Promise<string>;
     parseMarkdown: (markdown: string) => string;
+    showUserProfile: (userAddress: string) => void;
 }
 
 // events that the parent can trigger on the child

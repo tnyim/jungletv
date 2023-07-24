@@ -166,14 +166,13 @@ export const getApplicationID = async function (): Promise<string> {
 
 /**
  * Resolves the version of the application to which the page being executed belongs.
- * @returns The application version. May have less precision than the version as recorded on the server.
+ * @returns The application version, represented as a number of milliseconds since midnight, January 1, 1970 UTC.
+ * Should equal `process.versions.application` as available to server-side scripts.
  * @public
  */
-export const getApplicationVersion = async function (): Promise<Date> {
+export const getApplicationVersion = async function (): Promise<string> {
     await connectionPromise;
-    let d = new Date();
-    d.setTime(Number(cachedInfo.applicationVersion));
-    return d;
+    return cachedInfo.applicationVersion;
 }
 
 /**
@@ -252,6 +251,17 @@ export const userAddress = async function (): Promise<string | undefined> {
 export const userPermissionLevel = async function (): Promise<string> {
     let connection = await connectionPromise;
     return connection.remoteHandle().call("userPermissionLevel");
+}
+
+/**
+ * Shows a modal containing the profile of an user.
+ * The modal may not be opened immediately if a modal is presently being displayed, but the promise is resolved regardless.
+ * @param userAddress The reward address of the user.
+ * @public
+ */
+export const showUserProfile = async function (userAddress: string): Promise<void> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("showUserProfile", userAddress);
 }
 
 // #region Page title syncing
