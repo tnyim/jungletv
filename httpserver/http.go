@@ -13,24 +13,26 @@ import (
 )
 
 type HTTPServer struct {
-	log             *log.Logger
-	websiteURL      string
-	raffleSecretKey *ecdsa.PrivateKey
-	oauthManager    *oauth.Manager
-	appRunner       *apprunner.AppRunner
+	log                *log.Logger
+	websiteURL         string
+	raffleSecretKey    *ecdsa.PrivateKey
+	oauthManager       *oauth.Manager
+	appRunner          *apprunner.AppRunner
+	versionHashBuilder func() string
 }
 
-func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string) error {
+func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string, versionHashBuilder func() string) error {
 	key, err := raffle.DecodeSecretKey(raffleSecretKey)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	s := &HTTPServer{
-		log:             log,
-		websiteURL:      websiteURL,
-		raffleSecretKey: key,
-		oauthManager:    oauthManager,
-		appRunner:       appRunner,
+		log:                log,
+		websiteURL:         websiteURL,
+		raffleSecretKey:    key,
+		oauthManager:       oauthManager,
+		appRunner:          appRunner,
+		versionHashBuilder: versionHashBuilder,
 	}
 
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets", s.wrapHTTPHandler(s.RaffleTickets))
@@ -38,7 +40,8 @@ func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRu
 	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))
 	router.HandleFunc("/oauth/monkeyconnect/callback", s.wrapHTTPHandler(s.OAuthCallback))
 	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{file:[^*].*}", s.wrapHTTPHandler(s.ApplicationFile))
-	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{page:[*].*}", s.wrapHTTPHandler(s.ApplicationPage))
+	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{page:[*][A-Za-z0-9_-]*}", s.wrapHTTPHandler(s.ApplicationPage))
+	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/**appbridge.js", s.wrapHTTPHandler(s.AppbridgeJS))
 	return nil
 }
 

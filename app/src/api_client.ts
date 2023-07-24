@@ -84,7 +84,7 @@ class APIClient {
             const metas = document.getElementsByTagName("meta");
             for (let i = 0; i < metas.length; i++) {
                 if (metas[i].getAttribute("name") === "jungletv-version-hash") {
-                    this.versionHash = metas[i].getAttribute("content").split("###")[0];
+                    this.versionHash = metas[i].getAttribute("content").split("***")[0];
                     break;
                 }
             }

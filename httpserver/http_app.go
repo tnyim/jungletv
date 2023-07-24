@@ -57,3 +57,8 @@ func (s *HTTPServer) ApplicationPage(w http.ResponseWriter, r *http.Request) err
 	http.ServeContent(w, r, "", file.UpdatedAt, bytes.NewReader(file.Content))
 	return nil
 }
+
+func (s *HTTPServer) AppbridgeJS(w http.ResponseWriter, r *http.Request) error {
+	http.Redirect(w, r, "/build/appbridge.js?v="+s.versionHashBuilder(), http.StatusFound)
+	return nil
+}

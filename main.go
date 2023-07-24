@@ -457,6 +457,14 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	s.handler.ServeHTTP(resp, req)
 }
 
+func versionHashBuilder() string {
+	v := versionHash
+	if buildconfig.DEBUG {
+		v += "***" + uuid.NewV4().String()
+	}
+	return v
+}
+
 func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
 	versionInterceptor := version.New(&versionHash)
 
@@ -478,7 +486,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
 
-	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey)
+	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, versionHashBuilder)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -573,10 +581,7 @@ Disallow: /`))
 			FullURL     string
 		}{
 			FullURL:     websiteURL + r.URL.Path,
-			VersionHash: versionHash,
-		}
-		if buildconfig.DEBUG {
-			templateData.VersionHash += "###" + uuid.NewV4().String()
+			VersionHash: versionHashBuilder(),
 		}
 		err := webtemplate.ExecuteTemplate(w, "index.template", templateData)
 		if err != nil {
