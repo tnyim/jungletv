@@ -196,54 +196,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 		case tx := <-crowdfundedTransactionReceivedC:
-			if tx.Amount.BigInt().Cmp(pricer.RewardRoundingFactor) < 0 {
-				// values below 0.01 wouldn't show properly with the FloatString(2) below, anyway
-				break
-			}
-
-			formatStr := ""
-			limiterMessage := ""
-			switch tx.TransactionType {
-			case types.CrowdfundedTransactionTypeSkip:
-				formatStr = "_%s just contributed **%s BAN** towards skipping the current queue entry!_"
-				limiterMessage = "_More contributions towards skipping the current queue entry are being received!_"
-			case types.CrowdfundedTransactionTypeRain:
-				formatStr = "_%s just increased the rewards for the current queue entry by **%s BAN**!_"
-				limiterMessage = "_More contributions towards the rewards for the current queue entry are being received!_"
-			}
-
-			// avoid spamming the chat if too many small-ish transactions are received in a short time span
-			// (otherwise we'd let the chat be spammed for the low low price of 1 BAN per 100 messages)
-			// apply only the rate limit to transactions < 10 BAN
-			applyRateLimit := tx.Amount.BigInt().Cmp(big.NewInt(0).Mul(pricer.BananoUnit, big.NewInt(10))) < 0
-
-			if applyRateLimit {
-				_, _, _, ok, err := crowdfundedNotificationLimiter.Take(ctx, string(tx.TransactionType))
-				if err != nil {
-					return stacktrace.Propagate(err, "")
-				}
-				if !ok {
-					if !sentCrowdfundedLimiterMessage[tx.TransactionType] {
-						_, err = s.chat.CreateSystemMessage(ctx, limiterMessage)
-						if err != nil {
-							return stacktrace.Propagate(err, "")
-						}
-						sentCrowdfundedLimiterMessage[tx.TransactionType] = true
-					}
-					break
-				}
-			}
-
-			name, err := s.getChatFriendlyUserName(ctx, tx.FromAddress)
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-			name = escape.MarkdownCharacters(name)
-
-			banStr := new(big.Rat).SetFrac(tx.Amount.BigInt(), pricer.BananoUnit).FloatString(2)
-
-			msg := fmt.Sprintf(formatStr, name, banStr)
-			_, err = s.chat.CreateSystemMessage(ctx, msg)
+			err := s.handleCrowdfundedTransactionSystemMessage(ctx, tx, crowdfundedNotificationLimiter, sentCrowdfundedLimiterMessage)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -257,4 +210,57 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			return nil
 		}
 	}
+}
+
+func (s *grpcServer) handleCrowdfundedTransactionSystemMessage(ctx context.Context, tx *types.CrowdfundedTransaction, limiter limiter.Store, sentCrowdfundedLimiterMessage map[types.CrowdfundedTransactionType]bool) error {
+	amount := tx.Amount.BigInt()
+	if amount.Cmp(pricer.RewardRoundingFactor) < 0 {
+		// values below 0.01 wouldn't show properly with the FloatString(2) below, anyway
+		return nil
+	}
+
+	formatStr := ""
+	limiterMessage := ""
+	switch tx.TransactionType {
+	case types.CrowdfundedTransactionTypeSkip:
+		formatStr = "_%s just contributed **%s BAN** towards skipping the current queue entry!_"
+		limiterMessage = "_More contributions towards skipping the current queue entry are being received!_"
+	case types.CrowdfundedTransactionTypeRain:
+		formatStr = "_%s just increased the rewards for the current queue entry by **%s BAN**!_"
+		limiterMessage = "_More contributions towards the rewards for the current queue entry are being received!_"
+	}
+
+	// avoid spamming the chat if too many small-ish transactions are received in a short time span
+	// (otherwise we'd let the chat be spammed for the low low price of 1 BAN per 100 messages)
+	// apply only the rate limit to transactions < 10 BAN
+	applyRateLimit := amount.Cmp(big.NewInt(0).Mul(pricer.BananoUnit, big.NewInt(10))) < 0
+
+	if applyRateLimit {
+		_, _, _, ok, err := limiter.Take(ctx, string(tx.TransactionType))
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		if !ok {
+			if !sentCrowdfundedLimiterMessage[tx.TransactionType] {
+				_, err = s.chat.CreateSystemMessage(ctx, limiterMessage)
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				sentCrowdfundedLimiterMessage[tx.TransactionType] = true
+			}
+			return nil
+		}
+	}
+
+	name, err := s.getChatFriendlyUserName(ctx, tx.FromAddress)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	name = escape.MarkdownCharacters(name)
+
+	banStr := new(big.Rat).SetFrac(amount, pricer.BananoUnit).FloatString(2)
+
+	msg := fmt.Sprintf(formatStr, name, banStr)
+	_, err = s.chat.CreateSystemMessage(ctx, msg)
+	return stacktrace.Propagate(err, "")
 }
