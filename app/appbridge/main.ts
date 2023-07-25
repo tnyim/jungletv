@@ -254,7 +254,7 @@ export const getUserPermissionLevel = async function (): Promise<string> {
 }
 
 /**
- * Shows a modal containing the profile of an user.
+ * Shows a modal containing the profile of a user.
  * The modal may not be opened immediately if a modal is presently being displayed, but the promise is resolved regardless.
  * @param userAddress The reward address of the user.
  * @public

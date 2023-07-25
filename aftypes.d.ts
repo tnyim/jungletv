@@ -945,11 +945,19 @@ interface AppBridge {
      * Get the reward address of the currently logged in user.
      * @returns The reward address of the currently logged in user, or undefined if the user is not authenticated.
      */
-    userAddress: () => Promise<string | undefined>;
+    getUserAddress: () => Promise<string | undefined>;
 
     /**
      * Get the permission level of the current user.
      * @returns The permission level of the current user.
      */
-    userPermissionLevel: () => Promise<UserPermissionLevel>;
+    getUserPermissionLevel: () => Promise<UserPermissionLevel>;
+
+    /**
+     * Shows a modal containing the profile of a user.
+     * The modal may not be opened immediately if a modal is presently being displayed, but the promise is resolved regardless.
+     * @param userAddress The reward address of the user.
+     * @returns A promise that resolves as soon as the request to open the profile is acknowledged.
+     */
+    showUserProfile: (userAddress: string) => Promise<void>;
 }
