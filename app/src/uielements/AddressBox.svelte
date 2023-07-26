@@ -1,14 +1,15 @@
 <script lang="ts">
+    // This component is available for use in JAF application pages as <jungletv-payment-address>
     import { onDestroy } from "svelte";
 
     import QrCode from "svelte-qrcode";
     import { formatPrice } from "../currency_utils";
 
-    export let address = "";
-    export let allowQR = false;
-    export let showQR = false;
-    export let showWebWalletLink = false;
-    export let paymentAmount = "";
+    export let address = "";  // part of JAF API
+    export let allowQR = false; // part of JAF API
+    export let showQR = false; // part of JAF API
+    export let showWebWalletLink = false; // part of JAF API
+    export let paymentAmount = ""; // part of JAF API
     export let isRepresentativeChange = false;
     export let qrCodeBackground = "";
     export let qrCodeForeground = "";

@@ -564,6 +564,13 @@ declare module "node:process" {
 
     /** Read-only number indicating the version of the runtime running the application. */
     export let version: number;
+
+    /** Read-only property that returns an object listing the version strings of different components associated with the current application instance. */
+    export let versions: {
+        "application": string,
+        "jungletv": string,
+        [key: string]: string;
+    };
 }
 
 /** Allows for interaction with the JungleTV points subsystem. */

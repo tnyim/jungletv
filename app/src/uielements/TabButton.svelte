@@ -1,7 +1,8 @@
 <script lang="ts">
-    export let selected = false;
+    // This component is available for use in JAF application pages as <jungletv-tab-button>
+    export let selected = false; // part of JAF API
     export let bgClasses = "hover:bg-gray-200 dark:hover:bg-gray-800";
-    export let extraClasses = "";
+    export let extraClasses = ""; // part of JAF API
 </script>
 
 <!-- outer div needed for dark mode to work when used as a web component -->

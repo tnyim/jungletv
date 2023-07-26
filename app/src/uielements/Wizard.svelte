@@ -1,4 +1,6 @@
-<script></script>
+<script>
+    // This component is available for use in JAF application pages as <jungletv-wizard>
+</script>
 
 <div class="md:grid md:grid-cols-3 md:gap-6 sm:m-4 md:m-6 flex-grow container max-w-screen-lg">
     <div class="md:col-span-1 m-2 sm:m-0">
