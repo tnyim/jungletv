@@ -5,6 +5,7 @@ import emojiRegex from "emoji-regex";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
+import { gfmHeadingId } from "marked-gfm-heading-id";
 import type { Readable } from "svelte/store";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
@@ -315,12 +316,13 @@ const configureMarked = function () {
             gfm: true,
             breaks: true,
         });
+        marked.use(gfmHeadingId());
         marked.use({
             extensions: [
                 timestampTokenizerMarkedExtension,
                 spoilerTokenizerMarkedExtension,
                 emojiTokenizerMarkedExtension,
-                emoteTokenizerMarkedExtension
+                emoteTokenizerMarkedExtension,
             ],
             tokenizer: disableLinksTokenizer
         });
