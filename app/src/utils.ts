@@ -5,12 +5,12 @@ import emojiRegex from "emoji-regex";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime, Duration } from "luxon";
 import { marked } from "marked";
-import type { Readable, Unsubscriber } from "svelte/store";
+import type { Readable } from "svelte/store";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
 import { modalAlert, modalPrompt } from "./modal/modal";
 import type { User } from "./proto/common_pb";
-import { ForcedTicketEnqueueType, ForcedTicketEnqueueTypeMap, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails } from "./proto/jungletv_pb";
+import { ForcedTicketEnqueueType, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails, type ForcedTicketEnqueueTypeMap } from "./proto/jungletv_pb";
 import { permissionLevel, playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
@@ -729,7 +729,7 @@ export const isSubscriptionAboutToExpire = function (subscription: SubscriptionD
 
 export const formatDateForModeration = function (date: Date): string {
     return DateTime.fromJSDate(date)
-        .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+        .setLocale(DateTime.local().resolvedLocaleOptions().locale)
         .toLocal()
         .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
 }

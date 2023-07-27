@@ -8,7 +8,7 @@
     import { foldKeymap } from "@codemirror/language";
     import { lintKeymap } from "@codemirror/lint";
     import { searchKeymap } from "@codemirror/search";
-    import { Compartment, EditorState, Extension } from "@codemirror/state";
+    import { Compartment, EditorState, type Extension } from "@codemirror/state";
     import { EditorView, keymap } from "@codemirror/view";
     import { basicSetup } from "codemirror";
     import { onDestroy } from "svelte";

@@ -1,8 +1,8 @@
-import { StartStopNotifier, writable, Writable } from "svelte/store";
+import { writable, type StartStopNotifier, type Writable } from "svelte/store";
 import ApplicationPage from "./ApplicationPage.svelte";
 import { ConfigurationChange } from "./proto/jungletv_pb";
 import { sidebarMode } from "./stores";
-import { closeSidebarTab, openSidebarTab, SidebarTab, sidebarTabs } from "./tabStores";
+import { closeSidebarTab, openSidebarTab, sidebarTabs, type SidebarTab } from "./tabStores";
 
 export const applicationName = writableWithInitialValue(globalThis.OVERRIDE_APP_NAME ? globalThis.OVERRIDE_APP_NAME : "JungleTV");
 export const logoURL = writableWithInitialValue("/assets/brand/logo.svg");

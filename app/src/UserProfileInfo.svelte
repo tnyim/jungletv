@@ -2,7 +2,7 @@
     import { apiClient } from "./api_client";
     // @ts-ignore no type info available
     import { onDestroy } from "svelte";
-    import { autoresize } from "svelte-textarea-autoresize";
+    import autosize from "svelte-autosize";
 
     export let biography: string;
     export let isSelf: boolean;
@@ -26,6 +26,14 @@
         await apiClient.setProfileBiography(editedBiography);
         biography = editedBiography;
     }
+
+    // try to work around this bug https://github.com/jackmoore/autosize/issues/407
+    const fixAutosize = (node: HTMLElement) => {
+        Object.defineProperty(node.style, "overflow", {
+            get: () => node.style.overflowY,
+            set: (o) => (node.style.overflowY = o),
+        });
+    };
 </script>
 
 <div>
@@ -44,10 +52,12 @@
 {#if isSelf}
     <textarea
         style="resize: none;"
-        use:autoresize
+        use:fixAutosize
+        use:autosize
         class="w-full max-h-64 bg-transparent"
         placeholder="Tell the monkeys a little bit about yourself"
         maxlength="512"
+        rows="1"
         bind:this={biographyTextArea}
         bind:value={editedBiography}
         on:blur={editBiography}

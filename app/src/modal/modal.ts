@@ -1,14 +1,14 @@
-import type { Callbacks, Component, Context, Options } from "svelte-simple-modal/types/Modal.svelte";
-import { Unsubscriber, writable } from "svelte/store";
+import type { Context, Open, Close } from "svelte-simple-modal";
+import { writable, type Unsubscriber } from "svelte/store";
 import ModalAlert from "./ModalAlert.svelte";
 import ModalConfirm from "./ModalConfirm.svelte";
 import ModalPrompt from "./ModalPrompt.svelte";
 
 export type ModalData = {
-    component: Component,
-    props?: Record<string, any>,
-    options?: Partial<Options>,
-    callbacks?: Partial<Callbacks>,
+    component: Parameters<Open>[0],
+    props?: Parameters<Open>[1],
+    options?: Parameters<Open>[2],
+    callbacks?: Parameters<Open>[3],
 };
 
 export type ModalResult<ResponseType> = {
@@ -16,8 +16,8 @@ export type ModalResult<ResponseType> = {
     response?: ResponseType;
 }
 
-let modalOpen: any;
-let modalClose: any;
+let modalOpen: Open;
+let modalClose: Close;
 let modalCurrentlyActuallyClosed = false;
 let deferredModalOpeningQueue: ModalData[] = [];
 const currentModal = writable(null as ModalData);

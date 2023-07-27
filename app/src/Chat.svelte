@@ -7,22 +7,22 @@
     import { afterUpdate, beforeUpdate, createEventDispatcher, onDestroy, onMount } from "svelte";
     import { link, navigate } from "svelte-navigator";
     import { fade } from "svelte/transition";
-    import { apiClient } from "./api_client";
     import ChatComposeArea from "./ChatComposeArea.svelte";
     import ChatSeparator from "./ChatSeparator.svelte";
     import ChatSystemMessage from "./ChatSystemMessage.svelte";
     import ChatUserMessage from "./ChatUserMessage.svelte";
+    import { apiClient } from "./api_client";
     import { getReadableMessageAuthor } from "./chat_utils";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
     import { ChatDisabledReason, ChatMessage, ChatUpdate, ChatUpdateEvent } from "./proto/jungletv_pb";
     import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import {
         blockedUsers,
-        chatEmote,
         chatEmotes,
         chatEmotesAsCustomEmoji,
         rewardAddress,
         unreadChatMention,
+        type chatEmote,
     } from "./stores";
     import type { SidebarTab } from "./tabStores";
     import TabButton from "./uielements/TabButton.svelte";
@@ -587,11 +587,7 @@
                 Chat currently disabled{#if chatDisabledReason != ""}{chatDisabledReason}{/if}.
             </div>
         {:else}
-            <ChatComposeArea
-                bind:replyingToMessage
-                {hasBlockedMessages}
-                on:sentMessage={() => (sentMsgFlag = true)}
-            />
+            <ChatComposeArea bind:replyingToMessage {hasBlockedMessages} on:sentMessage={() => (sentMsgFlag = true)} />
         {/if}
     </div>
 </div>

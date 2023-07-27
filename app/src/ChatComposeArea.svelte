@@ -4,10 +4,17 @@
     import { defaultKeymap, history, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { HighlightStyle, bracketMatching, syntaxHighlighting, syntaxTree } from "@codemirror/language";
-    import { ChangeSpec, Compartment, EditorSelection, EditorState, Extension, RangeSet } from "@codemirror/state";
+    import {
+        type ChangeSpec,
+        Compartment,
+        EditorSelection,
+        EditorState,
+        type Extension,
+        RangeSet,
+    } from "@codemirror/state";
     import {
         Decoration,
-        DecorationSet,
+        type DecorationSet,
         EditorView,
         ViewPlugin,
         ViewUpdate,
@@ -19,7 +26,7 @@
         placeholder,
     } from "@codemirror/view";
     import { tags } from "@lezer/highlight";
-    import { MarkdownConfig, Emoji as MarkdownEmoji, Strikethrough } from "@lezer/markdown";
+    import { type MarkdownConfig, Emoji as MarkdownEmoji, Strikethrough } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { Moon } from "svelte-loading-spinners";

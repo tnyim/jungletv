@@ -1,5 +1,5 @@
-import { ChildHandshake, Connection, WindowMessenger } from 'post-me';
-import { ChildEvents, ChildMethods, MountEventArgs, ParentEvents, ParentMethods, BRIDGE_VERSION as bridgeVersion } from './common/model';
+import { ChildHandshake, WindowMessenger, type Connection } from 'post-me';
+import { BRIDGE_VERSION as bridgeVersion, type ChildEvents, type ChildMethods, type MountEventArgs, type ParentEvents, type ParentMethods } from './common/model';
 import { defineCustomElements, setCustomElementsDarkMode } from './ui';
 
 /**

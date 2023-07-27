@@ -1,10 +1,39 @@
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
   "rootDir": "src",
-  "include": ["src/**/*", "appbridge/common/**/*"],
-  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
-  "types": ["svelte", "node"],
+  "include": [
+    "src/**/*",
+    "appbridge/common/**/*"
+  ],
+  "exclude": [
+    "__sapper__/*",
+    "public/*"
+  ],
   "compilerOptions": {
-    "lib": ["ES2021", "DOM", "dom.iterable"]
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2021",
+    /**
+    Svelte Preprocess cannot figure out whether you have a value or a type, so tell TypeScript
+    to enforce using `import type` instead of `import` for Types.
+    */
+    "verbatimModuleSyntax": true,
+    /**
+    To have warnings/errors of the Svelte compiler at the correct position,
+    enable source maps by default.
+    */
+    "sourceMap": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "ES2021",
+      "DOM",
+      "dom.iterable"
+    ],
+    "paths": {
+      "post-me": ["./node_modules/post-me"],
+      "broadcast-channel": ["./node_modules/broadcast-channel"],
+      "svelte-simple-modal": ["./node_modules/svelte-simple-modal"],
+    }
   }
 }

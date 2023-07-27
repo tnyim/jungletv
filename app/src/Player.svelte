@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
+    import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import { apiClient } from "./api_client";
     import { processConfigurationChanges, resetConfigurationChanges } from "./configurationStores";

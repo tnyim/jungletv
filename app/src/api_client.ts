@@ -5,24 +5,27 @@ import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/ser
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
-import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogLevelMap, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, ExportApplicationRequest, ExportApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, ImportApplicationRequest, ImportApplicationResponse, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse } from "./proto/application_editor_pb";
+import { Application, ApplicationFile, ApplicationFilesRequest, ApplicationFilesResponse, ApplicationLogEntryContainer, ApplicationLogRequest, ApplicationLogResponse, ApplicationsRequest, ApplicationsResponse, CloneApplicationFileRequest, CloneApplicationFileResponse, CloneApplicationRequest, CloneApplicationResponse, ConsumeApplicationLogRequest, DeleteApplicationFileRequest, DeleteApplicationFileResponse, DeleteApplicationRequest, DeleteApplicationResponse, EvaluateExpressionOnApplicationRequest, EvaluateExpressionOnApplicationResponse, ExportApplicationRequest, ExportApplicationResponse, GetApplicationFileRequest, GetApplicationRequest, ImportApplicationRequest, ImportApplicationResponse, LaunchApplicationRequest, LaunchApplicationResponse, MonitorRunningApplicationsRequest, RunningApplications, StopApplicationRequest, StopApplicationResponse, UpdateApplicationFileResponse, UpdateApplicationResponse, type ApplicationLogLevelMap } from "./proto/application_editor_pb";
 import { ApplicationEventUpdate, ApplicationServerMethodRequest, ApplicationServerMethodResponse, ConsumeApplicationEventsRequest, ResolveApplicationPageRequest, ResolveApplicationPageResponse, TriggerApplicationEventRequest, TriggerApplicationEventResponse } from "./proto/application_runtime_pb";
 import type { PaginationParameters } from "./proto/common_pb";
 import {
-    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse, AllowedMediaEnqueuingTypeMap, AuthorizationProcessDataRequest, AuthorizationProcessDataResponse, BanUserRequest,
+    AddDisallowedMediaCollectionRequest, AddDisallowedMediaCollectionResponse, AddDisallowedMediaRequest, AddDisallowedMediaResponse, AddVipUserRequest, AddVipUserResponse, AdjustPointsBalanceRequest, AdjustPointsBalanceResponse,
+    AuthorizationProcessDataRequest, AuthorizationProcessDataResponse, BanUserRequest,
     BanUserResponse,
     BlockUserRequest, BlockUserResponse,
     BlockedUsersRequest, BlockedUsersResponse,
     ChatGifSearchRequest,
-    ChatGifSearchResponse, ChatMessage, ChatUpdate, CheckMediaEnqueuingPasswordRequest, CheckMediaEnqueuingPasswordResponse, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse, ConnectionServiceMap, ConnectionsRequest, ConnectionsResponse, ConsentOrDissentToAuthorizationRequest, ConsentOrDissentToAuthorizationResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
+    ChatGifSearchResponse, ChatMessage, ChatUpdate, CheckMediaEnqueuingPasswordRequest, CheckMediaEnqueuingPasswordResponse, ClearQueueInsertCursorRequest, ClearQueueInsertCursorResponse, ClearUserProfileRequest, ClearUserProfileResponse, CompleteRaffleRequest, CompleteRaffleResponse, ConfirmRaffleWinnerRequest, ConfirmRaffleWinnerResponse,
+    ConnectionsRequest, ConnectionsResponse, ConsentOrDissentToAuthorizationRequest, ConsentOrDissentToAuthorizationResponse, ConsumeChatRequest, ConsumeMediaRequest, ConvertBananoToPointsRequest, ConvertBananoToPointsStatus, CreateConnectionRequest, CreateConnectionResponse, DisallowedMediaCollectionsRequest, DisallowedMediaCollectionsResponse, DisallowedMediaRequest, DisallowedMediaResponse, Document, DocumentsRequest, DocumentsResponse, EnqueueDocumentData, EnqueueMediaRequest,
     EnqueueMediaResponse,
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
-    ForcedTicketEnqueueTypeMap,
     ForciblyEnqueueTicketRequest,
-    ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, InvalidateAuthTokensRequest, InvalidateAuthTokensResponse, InvalidateUserAuthTokensRequest, InvalidateUserAuthTokensResponse, LeaderboardPeriodMap, LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
+    ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, InvalidateAuthTokensRequest, InvalidateAuthTokensResponse, InvalidateUserAuthTokensRequest, InvalidateUserAuthTokensResponse,
+    LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, MediaEnqueuingPermissionStatus, ModerationStatusOverview,
     MonitorMediaEnqueuingPermissionRequest,
-    MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue, QueueEntryMovementDirectionMap, RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
+    MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue,
+    RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
     RemoveConnectionResponse, RemoveDisallowedMediaCollectionRequest,
     RemoveDisallowedMediaCollectionResponse, RemoveDisallowedMediaRequest, RemoveDisallowedMediaResponse, RemoveOwnQueueEntryRequest, RemoveOwnQueueEntryResponse, RemoveQueueEntryRequest,
@@ -42,9 +45,15 @@ import {
     StopActivelyModeratingResponse, SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse, TriggerAnnouncementsNotificationRequest,
     TriggerAnnouncementsNotificationResponse, TriggerClientReloadRequest, TriggerClientReloadResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
-    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse, VipUserAppearanceMap,
+    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse,
     WithdrawRequest, WithdrawResponse,
-    WithdrawalHistoryRequest, WithdrawalHistoryResponse
+    WithdrawalHistoryRequest, WithdrawalHistoryResponse,
+    type AllowedMediaEnqueuingTypeMap,
+    type ConnectionServiceMap,
+    type ForcedTicketEnqueueTypeMap,
+    type LeaderboardPeriodMap,
+    type QueueEntryMovementDirectionMap,
+    type VipUserAppearanceMap
 } from "./proto/jungletv_pb";
 import { JungleTV } from "./proto/jungletv_pb_service";
 

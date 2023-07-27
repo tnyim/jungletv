@@ -1,0 +1,17 @@
+{
+  "rootDir": ".",
+  "include": [
+    "./**/*"
+  ],
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2021",
+    "verbatimModuleSyntax": true,
+    "lib": [
+      "ES2021",
+      "DOM",
+      "WebWorker"
+    ],
+  }
+}

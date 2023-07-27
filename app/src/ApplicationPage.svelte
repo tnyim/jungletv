@@ -1,28 +1,28 @@
 <script lang="ts">
     import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
-    import { Connection, ParentHandshake, WindowMessenger } from "post-me";
+    import { ParentHandshake, WindowMessenger, type Connection } from "post-me";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
     import type { Unsubscriber } from "svelte/store";
     import {
         BRIDGE_VERSION,
-        ChildEvents,
-        ChildMethods,
-        MountEventArgs,
-        ParentEvents,
-        ParentMethods,
+        type ChildEvents,
+        type ChildMethods,
+        type MountEventArgs,
+        type ParentEvents,
+        type ParentMethods,
     } from "../appbridge/common/model";
     import NotFound from "./NotFound.svelte";
     import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import { pageTitleApplicationPage } from "./pageTitleStores";
+    import { openUserProfile } from "./profile_utils";
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
-    import { StreamRequestController, consumeStreamRPC } from "./rpcUtils";
+    import { consumeStreamRPC, type StreamRequestController } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
     import { awaitReadableValue, parseCompleteMarkdown } from "./utils";
-    import { openUserProfile } from "./profile_utils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -90,7 +90,8 @@
             }
             const result = await apiClient.applicationServerMethod(applicationID, pageID, method, jsonArgs);
             const resultString = result.getResult();
-            if (resultString === "undefined") { // special case
+            if (resultString === "undefined") {
+                // special case
                 return undefined;
             }
             return JSON.parse(resultString, jsonCleaner);

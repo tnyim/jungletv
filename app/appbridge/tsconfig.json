@@ -1,0 +1,24 @@
+{
+  "rootDir": ".",
+  "include": [
+    "./**/*",
+    "../src/currency_utils.ts",
+    "../src/uielements/**/*"
+  ],
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2021",
+    "verbatimModuleSyntax": true,
+    "lib": [
+      "ES2021",
+      "DOM",
+      "dom.iterable"
+    ],
+    "paths": {
+      "post-me": [
+        "./node_modules/post-me"
+      ],
+    }
+  }
+}

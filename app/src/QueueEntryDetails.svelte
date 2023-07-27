@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DateTime, Duration, DurationUnit } from "luxon";
+    import { DateTime, Duration, type DurationUnit } from "luxon";
     import { createEventDispatcher } from "svelte";
     import QrCode from "svelte-qrcode";
     import { slide } from "svelte/transition";
@@ -13,7 +13,7 @@
         PermissionLevel,
         QueueEntry,
         QueueEntryMovementDirection,
-        QueueEntryMovementDirectionMap,
+        type QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
     import { buildMonKeyURL, copyToClipboard } from "./utils";

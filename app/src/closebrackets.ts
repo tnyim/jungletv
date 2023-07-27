@@ -1,10 +1,15 @@
 import { syntaxTree } from "@codemirror/language"
 import {
-    CharCategory, codePointAt, codePointSize, EditorSelection, EditorState,
-    Extension, fromCodePoint, MapMode, RangeSet, RangeValue, StateCommand,
-    StateEffect, StateField, Text, Transaction
+    CharCategory,
+    EditorSelection, EditorState,
+    MapMode, RangeSet, RangeValue,
+    StateEffect, StateField, Text, Transaction,
+    codePointAt, codePointSize,
+    fromCodePoint,
+    type Extension,
+    type StateCommand
 } from "@codemirror/state"
-import { EditorView, KeyBinding } from "@codemirror/view"
+import { EditorView, type KeyBinding } from "@codemirror/view"
 
 /// Configures bracket closing behavior for a syntax (via
 /// [language data](#state.EditorState.languageDataAt)) using the `"closeBrackets"`

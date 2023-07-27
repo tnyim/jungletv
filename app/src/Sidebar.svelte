@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onDestroy } from "svelte";
-    import DoubleBounce from "svelte-loading-spinners/dist/DoubleBounce.svelte";
+    import { DoubleBounce } from "svelte-loading-spinners";
     import { fly } from "svelte/transition";
     import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
     import {
@@ -9,8 +9,8 @@
         openAndSwitchToSidebarTab,
         setSidebarTabHighlighted,
         setSidebarTabTitle,
-        SidebarTab,
         sidebarTabs,
+        type SidebarTab,
     } from "./tabStores";
     import TabButton from "./uielements/TabButton.svelte";
     import { openPopout } from "./utils";
@@ -172,7 +172,7 @@
                             class="hover:text-yellow-700 dark:hover:text-yellow-500"
                             on:click|stopPropagation={() => closeSidebarTab(tab.id)}
                         >
-                            <i class="fas fa-times " />
+                            <i class="fas fa-times" />
                         </button>
                     {/if}
                 </TabButton>
@@ -183,7 +183,7 @@
                 class="text-gray-500 pt-1 pl-2"
                 title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
             >
-                <i class="far fa-eye " />
+                <i class="far fa-eye" />
                 {currentlyWatchingCount}
             </div>
         {:else}

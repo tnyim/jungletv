@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DateTime, DurationUnit } from "luxon";
+    import { DateTime, type DurationUnit } from "luxon";
     import { formatBANPriceFixed } from "../currency_utils";
     import type { Withdrawal } from "../proto/jungletv_pb";
 
@@ -7,7 +7,7 @@
 
     function formatDate(date: Date): string {
         return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+            .setLocale(DateTime.local().resolvedLocaleOptions().locale)
             .toLocal()
             .toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS);
     }

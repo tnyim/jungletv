@@ -51,6 +51,9 @@ export default [
 				warning.id.indexOf('google-protobuf.js') >= 0)
 				return;
 			if (warning.code === 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT') return;
+
+			// https://github.com/moment/luxon/issues/193
+			if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.message.includes('/luxon/')) return;
 			warn(warning);
 		},
 		plugins: [
@@ -71,22 +74,6 @@ export default [
 				preventAssignment: true,
 				"module.exports = require('./node.js');": "",
 			}),
-			replace({
-				// fix library which appends a hidden textarea to document.body for measurement purposes
-				// this doesn't work right inside the shadow DOM - it needs to attach to our shadow DOM root instead
-				include: "node_modules/svelte-textarea-autoresize/src/AutoresizingTextAreaComponent/**",
-				delimiters: ["", ""],
-				preventAssignment: true,
-				"const height = calculateNodeHeight(": "const height = calculateNodeHeight(node,",
-				"export default function calculateNodeHeight(sizingData, value) {": "export default function calculateNodeHeight(node, sizingData, value) {",
-				"document.body": "node.getRootNode()",
-			}),
-			/*replace({
-				// this might help fix things when proxied by Cloudflare? since they don't recognize grpc-web as being grpc
-				include: "node_modules/@improbable-eng/grpc-web/dist/*.js",
-				delimiters: ["", ""],
-				"application/grpc-web+proto": "application/grpc+proto",
-			}),*/
 			svelte({
 				compilerOptions: {
 					// enable run-time checks when not in production
@@ -129,6 +116,8 @@ export default [
 			resolve({
 				browser: true,
 				dedupe: ['svelte', 'svelte/transition', 'svelte/internal'],
+				exportConditions: ['browser', 'svelte'],
+      			extensions: ['.mjs', '.js', '.json', '.node', '.svelte']
 			}),
 			commonjs(),
 
@@ -170,7 +159,7 @@ export default [
 				preventAssignment: true,
 			}),
 			typescript({
-				tsconfig: './tsconfig-serviceworker.json',
+				tsconfig: './serviceworker/tsconfig.json',
 				sourceMap: !production,
 				target: "ES2021",
 				lib: ["ES2021", "DOM", "WebWorker"],
@@ -178,6 +167,8 @@ export default [
 			resolve({
 				browser: true,
 				dedupe: ['svelte', 'svelte/transition', 'svelte/internal'],
+				exportConditions: ['browser', 'svelte'],
+				extensions: ['.mjs', '.js', '.json', '.node', '.svelte']
 			}),
 			commonjs(),
 
@@ -229,7 +220,7 @@ export default [
 				}),
 			}),
 			typescript({
-				tsconfig: './tsconfig-appbridge.json',
+				tsconfig: './appbridge/tsconfig.json',
 				sourceMap: !production,
 				target: "ES2021",
 				lib: ["ES2021", "DOM", "dom.iterable"],
@@ -237,6 +228,8 @@ export default [
 			resolve({
 				browser: true,
 				dedupe: ['svelte', 'svelte/transition', 'svelte/internal'],
+				exportConditions: ['browser', 'svelte'],
+				extensions: ['.mjs', '.js', '.json', '.node', '.svelte']
 			}),
 			commonjs(),
 

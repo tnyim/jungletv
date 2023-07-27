@@ -52,7 +52,7 @@
 		rewardAddress,
 		rewardBalance,
 	} from "./stores";
-	import { SidebarTab, sidebarTabs } from "./tabStores";
+	import { type SidebarTab, sidebarTabs } from "./tabStores";
 	import { formatMarkdownTimestamp } from "./utils";
 
 	export let url = "";

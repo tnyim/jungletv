@@ -1,8 +1,0 @@
-{
-  "rootDir": "appbridge",
-  "include": ["appbridge/**/*", "src/currency_utils.ts"],
-  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
-  "compilerOptions": {
-    "lib": ["ES2021", "DOM", "dom.iterable"]
-  }
-}

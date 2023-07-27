@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import Moon from "svelte-loading-spinners/dist/ts/Moon.svelte";
+    import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import EnqueueMediaSelectionForm from "./EnqueueMediaSelectionForm.svelte";
     import EnqueueMediaSelectionPasswordEntry from "./EnqueueMediaSelectionPasswordEntry.svelte";

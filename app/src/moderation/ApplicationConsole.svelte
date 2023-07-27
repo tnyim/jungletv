@@ -280,7 +280,7 @@
 
     function formatLogEntryTime(date: Date): string {
         return DateTime.fromJSDate(date)
-            .setLocale(DateTime.local().resolvedLocaleOpts().locale)
+            .setLocale(DateTime.local().resolvedLocaleOptions().locale)
             .toLocal()
             .toLocaleString({
                 hour: "numeric",
