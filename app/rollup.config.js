@@ -64,16 +64,6 @@ export default [
 				"globalThis.OVERRIDE_API_HOST": JSON.stringify(process.env.JUNGLETV_API_HOST),
 				preventAssignment: true,
 			}),
-			replace({
-				// fix rollup insistence on trying to use things meant for node
-				include: "node_modules/debug/src/index.js",
-				delimiters: ["", ""],
-				process: JSON.stringify({
-					type: "renderer",
-				}),
-				preventAssignment: true,
-				"module.exports = require('./node.js');": "",
-			}),
 			svelte({
 				compilerOptions: {
 					// enable run-time checks when not in production
