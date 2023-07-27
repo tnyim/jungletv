@@ -5,8 +5,8 @@
 
     interface UserRepresentation {
         getAddress(): string;
-        hasNickname(): boolean;
-        getNickname(): string;
+        hasNickname?(): boolean;
+        getNickname?(): string;
     }
 
     export let user: UserRepresentation;
@@ -30,7 +30,7 @@
         {/if}
     </VisibilityGuard>
 
-    {#if user.hasNickname()}
+    {#if user.hasNickname && user.getNickname && user.hasNickname()}
         <span class="mr-4 text-sm font-semibold">{user.getNickname()}</span>
     {:else}
         <span class="mr-4 text-xs font-mono">{user.getAddress().substring(0, 14)}</span>

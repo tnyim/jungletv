@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { openUserProfile } from "../profile_utils";
     import type { UserVerification } from "../proto/jungletv_pb";
-    import { buildMonKeyURL, formatDateForModeration } from "../utils";
+    import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let verification: UserVerification;
@@ -44,15 +43,8 @@
     </td>
     <td
         class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap pb-4 pt-1 text-gray-700 dark:text-white font-mono cursor-pointer"
-        on:click={() => openUserProfile(verification.getAddress())}
     >
-        <img
-            src={buildMonKeyURL(verification.getAddress())}
-            alt="&nbsp;"
-            title=""
-            class="inline h-7 w-7 -ml-1 -mt-4 -mb-3"
-        />
-        <span class="font-mono">{verification.getAddress().substr(0, 14)} </span>
+        <UserCellRepresentation user={verification} />
     </td>
     <td
         colspan="2"

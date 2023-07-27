@@ -3,20 +3,20 @@
 
     import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
-    import { apiClient } from "./api_client";
     import Document from "./Document.svelte";
-    import { UserRole, UserRoleMap, UserStatus, UserStatusMap } from "./proto/common_pb";
-    import { PermissionLevel, PlayedMedia, UserProfileResponse } from "./proto/jungletv_pb";
-    import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
-    import AddressBox from "./uielements/AddressBox.svelte";
-    import ButtonButton from "./uielements/ButtonButton.svelte";
-    import TabButton from "./uielements/TabButton.svelte";
     import UserModerationInfo from "./UserModerationInfo.svelte";
     import UserProfileFeaturedMediaSoundCloud from "./UserProfileFeaturedMediaSoundCloud.svelte";
     import UserProfileFeaturedMediaYouTube from "./UserProfileFeaturedMediaYouTube.svelte";
     import UserProfileInfo from "./UserProfileInfo.svelte";
     import UserRecentRequests from "./UserRecentRequests.svelte";
     import UserStats from "./UserStats.svelte";
+    import { apiClient } from "./api_client";
+    import { UserRole, UserStatus, type UserRoleMap, type UserStatusMap } from "./proto/common_pb";
+    import { PermissionLevel, PlayedMedia, UserProfileResponse } from "./proto/jungletv_pb";
+    import { blockedUsers, darkMode, permissionLevel, rewardAddress } from "./stores";
+    import AddressBox from "./uielements/AddressBox.svelte";
+    import ButtonButton from "./uielements/ButtonButton.svelte";
+    import TabButton from "./uielements/TabButton.svelte";
     import { buildMonKeyURL, copyToClipboard, setNickname } from "./utils";
 
     export let userAddress: string;
@@ -264,10 +264,12 @@
             >
                 Featured media
                 {#if hasFeaturedMedia && isSelf}
-                    <i
-                        class="fas fa-trash cursor-pointer hover:text-yellow-700 dark:hover:text-yellow-500"
+                    <button
+                        class="hover:text-yellow-700 dark:hover:text-yellow-500"
                         on:click|stopPropagation={clearFeaturedMedia}
-                    />
+                    >
+                        <i class="fas fa-trash" />
+                    </button>
                 {/if}
             </TabButton>
         {/if}

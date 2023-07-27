@@ -3,9 +3,9 @@
     import watchMedia from "svelte-media";
     import { globalHistory, link, navigate } from "svelte-navigator";
     import Toggle from "svelte-toggle";
+    import NavbarAlert from "./NavbarAlert.svelte";
     import { applicationName, logoURL } from "./configurationStores";
     import { formatBANPrice } from "./currency_utils";
-    import NavbarAlert from "./NavbarAlert.svelte";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import { buildMonKeyURL } from "./utils";
 
@@ -110,8 +110,8 @@
             <ul class="flex flex-grow flex-row list-none mr-auto">
                 <li class="flex items-center">
                     {#if rAddress}
-                        <div
-                            class="text-xs text-gray-700 dark:text-gray-300 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row cursor-pointer"
+                        <button
+                            class="text-xs text-gray-700 dark:text-gray-300 mt-2 mb-4 lg:mt-0 lg:mb-0 flex flex-row text-left"
                             on:click={() => navigate("/rewards")}
                         >
                             <img
@@ -133,7 +133,7 @@
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     {/if}
                     {#if largeScreen}
                         <NavbarAlert bind:hasAlert />
@@ -158,24 +158,24 @@
             >
                 {#if moreOpen}
                     <li>
-                        <div
+                        <button
                             style="margin-right:48px;"
-                            class="cursor-pointer p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             on:click={() => (moreOpen = false)}
                         >
                             <i class="fas fa-arrow-left" />
                             <div class="text-xs font-bold uppercase">Back</div>
-                        </div>
+                        </button>
                     </li>
                 {:else if !navbarOpen}
                     <li>
-                        <div
-                            class="cursor-pointer p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        <button
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             on:click={() => (moreOpen = true)}
                         >
                             <i class="fas fa-ellipsis-h" />
                             <div class="text-xs font-bold uppercase">More</div>
-                        </div>
+                        </button>
                     </li>
                 {/if}
                 {#if navbarOpen || moreOpen}

@@ -1,7 +1,10 @@
 <script>
-    import { spring } from "svelte/motion";
     import { createEventDispatcher } from "svelte";
+    import { spring } from "svelte/motion";
     import RangePips from "./RangePips.svelte";
+
+    // dom references
+    export let slider = undefined;
 
     // range slider props
     export let range = false;
@@ -30,6 +33,7 @@
     export let suffix = "";
     export let formatter = (v, i, p) => v;
     export let handleFormatter = formatter;
+    export let ariaLabels = [];
 
     // stylistic props
     export let precision = 2;
@@ -37,9 +41,6 @@
 
     // prepare dispatched events
     const dispatch = createEventDispatcher();
-
-    // dom references
-    let slider;
 
     // state management
     let valueLength = 0;
@@ -55,6 +56,8 @@
     // will update every time the values array is modified
 
     let springPositions;
+
+    const fixFloat = (v) => parseFloat(v.toFixed(precision));
 
     $: {
         // check that "values" is an array, or set it as array
@@ -86,6 +89,12 @@
         }
         // set the valueLength for the next check
         valueLength = values.length;
+
+        if (values.length > 1 && !Array.isArray(ariaLabels)) {
+            console.warn(
+                `'ariaLabels' prop should be an Array (https://github.com/simeydotme/svelte-range-slider-pips#slider-props)`
+            );
+        }
     }
 
     /**
@@ -101,7 +110,7 @@
         } else if (perc >= 100) {
             return 100;
         } else {
-            return parseFloat(perc.toFixed(precision));
+            return fixFloat(perc);
         }
     };
 
@@ -125,11 +134,10 @@
     $: alignValueToStep = function (val) {
         // sanity check for performance
         if (val <= min) {
-            return min;
+            return fixFloat(min);
         } else if (val >= max) {
-            return max;
+            return fixFloat(max);
         }
-
         // find the middle-point between steps
         // and see if the value is closer to the
         // next step, or previous step
@@ -143,8 +151,7 @@
         // make sure the returned value is set to the precision desired
         // this is also because javascript often returns weird floats
         // when dealing with odd numbers and percentages
-
-        return parseFloat(aligned.toFixed(precision));
+        return fixFloat(aligned);
     };
 
     /**
@@ -610,6 +617,7 @@
             on:focus={sliderFocusHandle}
             on:keydown={sliderKeydown}
             style="{orientationStart}: {$springPositions[index]}%; z-index: {activeHandle === index ? 3 : 2};"
+            aria-label={ariaLabels[index]}
             aria-valuemin={range === true && index === 1 ? values[0] : min}
             aria-valuemax={range === true && index === 0 ? values[1] : max}
             aria-valuenow={value}
@@ -663,7 +671,7 @@
         <span
             class="rangeBar"
             style="{orientationStart}: {rangeStart($springPositions)}%; 
-               {orientationEnd}: {rangeEnd($springPositions)}%;"
+             {orientationEnd}: {rangeEnd($springPositions)}%;"
         />
     {/if}
     {#if pips}
@@ -676,7 +684,6 @@
             {vertical}
             {reversed}
             {orientationStart}
-            {orientationEnd}
             {hoverable}
             {disabled}
             {all}
@@ -690,6 +697,7 @@
             {focus}
             {percentOf}
             {moveHandle}
+            {fixFloat}
         />
     {/if}
 </div>
@@ -847,7 +855,7 @@
         pointer-events: initial;
     }
     :global(.rangeSlider .rangeHandle.active .rangeFloat),
-    :global(.rangeSlider .rangeHandle.hoverable:hover .rangeFloat) {
+    :global(.rangeSlider.hoverable .rangeHandle:hover .rangeFloat) {
         opacity: 1;
         top: -0.2em;
         transform: translate(-50%, -100%);

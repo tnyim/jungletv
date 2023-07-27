@@ -325,6 +325,10 @@
 			@apply text-blue-600 dark:text-blue-400 hover:underline cursor-pointer;
 		}
 
+		button:disabled {
+			@apply cursor-not-allowed;
+		}
+
 		.markdown-document h1 {
 			@apply text-2xl mt-6 mb-2;
 		}

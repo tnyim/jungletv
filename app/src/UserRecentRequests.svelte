@@ -35,7 +35,7 @@
             <th
                 class="px-4 align-middle border border-solid py-3 text-xs uppercase
                        border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-                     bg-gray-300 text-gray-600  dark:bg-gray-700 dark:text-gray-400
+                     bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400
                      border-gray-200 dark:border-gray-600"
             >
                 Played at
@@ -43,7 +43,7 @@
             <th
                 class="px-4 align-middle border border-solid py-3 text-xs uppercase
                        border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-                     bg-gray-300 text-gray-600  dark:bg-gray-700 dark:text-gray-400
+                     bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400
                      border-gray-200 dark:border-gray-600"
             >
                 Media
@@ -51,7 +51,7 @@
             <th
                 class="px-4 align-middle border border-solid py-3 text-xs uppercase
                        border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-                     bg-gray-300 text-gray-600  dark:bg-gray-700 dark:text-gray-400
+                     bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400
                      border-gray-200 dark:border-gray-600"
             >
                 Request cost
@@ -60,7 +60,7 @@
                 <th
                     class="px-4 align-middle border border-solid py-3 text-xs uppercase
                        border-l-0 border-r-0 whitespace-nowrap font-semibold text-left
-                     bg-gray-300 text-gray-600  dark:bg-gray-700 dark:text-gray-400
+                     bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400
                      border-gray-200 dark:border-gray-600"
                 />
             {/if}
@@ -100,12 +100,13 @@
                 </td>
                 {#if isSelf}
                     <td class="border-t-0 align-middle border-l-0 border-r-0 whitespace-nowrap p-4">
-                        <i
+                        <button
                             title="Feature this media on your profile"
-                            class="fas fa-highlighter cursor-pointer
-                             text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
+                            class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
                             on:click={() => featureMedia(request.getId())}
-                        />
+                        >
+                            <i class="fas fa-highlighter" />
+                        </button>
                     </td>
                 {/if}
             </tr>

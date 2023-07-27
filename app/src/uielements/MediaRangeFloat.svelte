@@ -60,14 +60,18 @@
     />
 </div>
 <div class="flex flex-row justify-center gap-x-2 text-3xl">
-    <i
-        class="fas fa-minus-square
-            {value > min ? 'cursor-pointer hover:text-yellow-500' : 'text-gray-500'}"
+    <button
         on:click={() => handleFloatMinusClick()}
-    />
-    <i
-        class="fas fa-plus-square
-            {value < max ? 'cursor-pointer hover:text-yellow-500' : 'text-gray-500'}"
+        class={value > min ? "hover:text-yellow-500" : "text-gray-500"}
+        disabled={value <= min}
+    >
+        <i class="fas fa-minus-square" />
+    </button>
+    <button
         on:click={() => handleFloatPlusClick()}
-    />
+        class={value < max ? "hover:text-yellow-500" : "text-gray-500"}
+        disabled={value >= max}
+    >
+        <i class="fas fa-plus-square" />
+    </button>
 </div>
