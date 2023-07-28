@@ -52,7 +52,7 @@ export default [
 					sourceMap: !production,
 					postcss: {
 						plugins: [
-							tailwindcss,
+							tailwindcss("tailwind.config.cjs"),
 							autoprefixer,
 						],
 					},

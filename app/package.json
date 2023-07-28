@@ -2,6 +2,7 @@
   "name": "svelte-app",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "labbuild": "cross-env JUNGLETV_LAB=true JUNGLETV_APP_NAME=\"JungleTV Lab\" rollup -c",
@@ -21,7 +22,7 @@
     "postcss": "^8.4.27",
     "postcss-load-config": "^4.0.1",
     "protoc-gen-js": "^3.21.2",
-    "rollup": "^2.77.4",
+    "rollup": "^3.26.3",
     "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.1.6",
