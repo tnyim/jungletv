@@ -42,7 +42,7 @@
     }
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
+<div class="m-6 grow container mx-auto max-w-screen-md p-2">
     <span use:registerFocus class="hidden" />
     <h1 class="text-2xl">Leaderboards</h1>
     <div class="flex flex-row flex-wrap">

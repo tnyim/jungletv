@@ -28,19 +28,19 @@
 >
     {#if curIcon == 0}
         <i
-            class="fas fa-grin-tongue-wink absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            class="fas fa-grin-tongue-wink absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             in:send|local={{ key: "icon" }}
             out:receive|local={{ key: "icon" }}
         />
     {:else if curIcon == 1}
         <i
-            class="fas fa-photo-video absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            class="fas fa-photo-video absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             in:send|local={{ key: "icon" }}
             out:receive|local={{ key: "icon" }}
         />
     {:else}
         <i
-            class="fas fa-cog absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            class="fas fa-cog absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             in:send|local={{ key: "icon" }}
             out:receive|local={{ key: "icon" }}
         />

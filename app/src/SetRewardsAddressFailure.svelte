@@ -26,7 +26,7 @@
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
-        <div class="flex-grow" />
+        <div class="grow" />
         <ButtonButton type="submit" on:click={tryAgain}>Try again</ButtonButton>
     </div>
 </Wizard>

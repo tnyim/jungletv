@@ -22,7 +22,7 @@
     }
 </script>
 
-<div class="flex-grow w-full max-w-screen-sm">
+<div class="grow w-full max-w-screen-sm">
     <div class="sm:m-4 md:m-6 shadow sm:rounded-md sm:overflow-hidden bg-white dark:bg-gray-800">
         <span use:registerFocus class="hidden" />
         <div class="px-4 py-5 sm:p-6">
@@ -77,7 +77,7 @@
             {#if !allowed && !denied}
                 <div class="flex px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6">
                     <ButtonButton color="purple" on:click={() => respond(false)}>Deny</ButtonButton>
-                    <div class="flex-grow" />
+                    <div class="grow" />
                     <ButtonButton on:click={() => respond(true)}>Authorize</ButtonButton>
                 </div>
             {/if}

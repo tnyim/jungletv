@@ -11,7 +11,7 @@
 </script>
 
 <div class="flex flex-row">
-    <div class="flex-grow px-2 text-xs overflow-hidden">
+    <div class="grow px-2 text-xs overflow-hidden">
         Replying to
         <span class="{getClassForMessageAuthor(replyingToMessage)} h-5"
             >{getReadableMessageAuthor(replyingToMessage)}</span

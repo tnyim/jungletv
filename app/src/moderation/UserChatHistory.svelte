@@ -19,7 +19,7 @@
     }
 </script>
 
-<div class="{mode == 'sidebar' ? '' : 'm-6'} flex-grow container mx-auto max-w-screen-md p-2">
+<div class="{mode == 'sidebar' ? '' : 'm-6'} grow container mx-auto max-w-screen-md p-2">
     {#if mode == "sidebar"}
         <p class="mb-6">
             <ButtonButton on:click={() => dispatch("closeTab")}>Close tab</ButtonButton>

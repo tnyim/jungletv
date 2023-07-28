@@ -309,7 +309,7 @@
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
-        <span class="px-4 text-xs text-gray-400 flex-grow">
+        <span class="px-4 text-xs text-gray-400 grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
         <ButtonButton disabled colorClasses="bg-gray-300">

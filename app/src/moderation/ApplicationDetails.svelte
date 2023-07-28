@@ -138,7 +138,7 @@
     }
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-lg p-2">
+<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
     <p class="mb-6">
         <a use:link href="/moderate/applications" class={hrefButtonStyleClasses()}>Back to application list</a>
     </p>

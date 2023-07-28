@@ -57,7 +57,7 @@
             >
                 <i class="fas fa-edit" />
             </button>
-            <input bind:this={typeInput} class="bg-transparent flex-grow" type="text" bind:value={mimeType} />
+            <input bind:this={typeInput} class="bg-transparent grow" type="text" bind:value={mimeType} />
         </p>
         {#if completeFile.getType().startsWith("image/")}
             <p class="my-4 text-center max-w-xl max-h-96 flex justify-center">
@@ -91,6 +91,6 @@
     class="flex flex-row justify-center px-4 py-3 bg-gray-50 dark:bg-gray-700 sm:px-6 text-black dark:text-gray-100 rounded-b-lg"
 >
     <ButtonButton color="purple" on:click={closeModal}>Cancel</ButtonButton>
-    <div class="flex-grow" />
+    <div class="grow" />
     <ButtonButton type="submit" on:click={updateProperties}>Update</ButtonButton>
 </div>

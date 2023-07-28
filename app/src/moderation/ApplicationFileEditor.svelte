@@ -219,7 +219,7 @@
     onDestroy(mediaUnsubscribe);
 </script>
 
-<div class="flex-grow mx-auto editor-container flex flex-col">
+<div class="grow mx-auto editor-container flex flex-col">
     <div class="flex flex-row flex-wrap space-x-2 bg-gray-50 dark:bg-gray-950">
         <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
             <i class="fas fa-arrow-left" />
@@ -233,9 +233,9 @@
             on
             <span class="font-mono">{applicationID}</span>
         </h1>
-        <div class="flex-grow" />
+        <div class="grow" />
         <ButtonButton color="gray" on:click={toggleConsole} extraClasses="block lg:hidden">Toggle console</ButtonButton>
-        <div class="flex-grow" />
+        <div class="grow" />
         <ButtonButton type="submit" on:click={save} extraClasses="block">Save</ButtonButton>
     </div>
 

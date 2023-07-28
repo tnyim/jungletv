@@ -76,7 +76,7 @@
                     class="h-20 w-20"
                 />
             {/if}
-            <div class="flex-grow overflow-x-hidden">
+            <div class="grow overflow-x-hidden">
                 {#if msg.getUserMessage().getAuthor().hasNickname()}
                     <span class="font-semibold text-md whitespace-nowrap"
                         >{msg.getUserMessage().getAuthor().getNickname()}</span

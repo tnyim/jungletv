@@ -220,7 +220,7 @@
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-6 sm:p-6">
                 <div class="flex flex-row gap-4 sm:gap-6 items-center">
                     <img src="/assets/brand/points.svg" alt="JungleTV Points" title="JungleTV Points" class="h-16" />
-                    <div class="flex-grow">
+                    <div class="grow">
                         <p class="text-lg font-semibold text-gray-800 dark:text-white">JungleTV Points</p>
                         <p class="text-sm">Participate in the community and earn points to spend in JungleTV.</p>
                         {#if typeof $currentSubscription !== "undefined" && $currentSubscription != null}
@@ -251,7 +251,7 @@
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                    <div class="flex-grow">
+                    <div class="grow">
                         You have
                         {#await pointsPromise()}
                             <span class="inline-block">

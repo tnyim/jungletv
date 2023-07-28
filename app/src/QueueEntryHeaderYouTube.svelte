@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Duration as PBDuration } from "google-protobuf/google/protobuf/duration_pb";
-    import type { QueueEntry } from "./proto/jungletv_pb";
     import QueueEntryEnqueuedBy from "./QueueEntryEnqueuedBy.svelte";
+    import type { QueueEntry } from "./proto/jungletv_pb";
     import { playerCurrentTime } from "./stores";
     import { formatQueueEntryThumbnailDuration } from "./utils";
 
@@ -10,7 +10,7 @@
     export let mode: string;
 </script>
 
-<div class="flex-shrink-0 thumbnail mr-2" style="width: 120px">
+<div class="shrink-0 thumbnail mr-2" style="width: 120px">
     <img
         src={entry.getYoutubeVideoData().getThumbnailUrl()}
         alt=""
@@ -35,7 +35,7 @@
     {/if}
     <div class="thumbnail-length-overlay text-white">
         <div
-            class="absolute bottom-0.5 right-0.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+            class="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm"
             style="font-size: 0.7rem; line-height: 0.8rem;"
             title={formatQueueEntryThumbnailDuration(entry.getLength())}
         >
@@ -53,14 +53,14 @@
         {#if entry.getYoutubeVideoData().getLiveBroadcast()}
             <div
                 style="font-size: 0.7rem; line-height: 0.8rem;"
-                class="absolute bottom-0.5 left-0.5 bg-black border border-red-500 text-red-500 bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+                class="absolute bottom-0.5 left-0.5 bg-black/80 border border-red-500 text-red-500 px-1 py-0.5 font-bold rounded-sm"
             >
                 LIVE
             </div>
         {/if}
     </div>
 </div>
-<div class="flex flex-col flex-grow overflow-hidden">
+<div class="flex flex-col grow overflow-hidden">
     <p class="queue-entry-title break-words">
         {entry.getYoutubeVideoData().getTitle()}
         {#if mode == "moderation"}

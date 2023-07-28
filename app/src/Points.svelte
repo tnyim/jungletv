@@ -120,7 +120,7 @@
         <div class="shadow sm:rounded-md sm:overflow-hidden">
             <div class="px-4 py-5 bg-white dark:bg-gray-800 space-y-4 sm:p-6">
                 <div class="flex flex-row gap-4 sm:gap-6">
-                    <div class="text-lg font-semibold flex-grow">
+                    <div class="text-lg font-semibold grow">
                         Insufficient <PointsIcon />? Here's a shortcut.
                     </div>
                     <div>
@@ -138,7 +138,7 @@
                 <p class="text-lg font-semibold text-green-600 dark:text-green-400">JungleTV Nice</p>
                 <div class="flex flex-row gap-4 sm:gap-6 mb-4 align-center">
                     {#if currentlySubscribed}
-                        <div class="font-semibold flex-grow self-center">
+                        <div class="font-semibold grow self-center">
                             Subscribed to JungleTV Nice until
                             {formatSubscriptionDate($currentSubscription.getSubscribedUntil().toDate())}.
                             {#if canRenewSubscription && !hasEnoughPointsToSubscribe}
@@ -146,7 +146,7 @@
                             {/if}
                         </div>
                     {:else}
-                        <div class="font-semibold flex-grow self-center">
+                        <div class="font-semibold grow self-center">
                             Currently, you are not a JungleTV Nice member.
                             {#if !hasEnoughPointsToSubscribe}
                                 You do not have sufficient <PointsIcon /> to become one.

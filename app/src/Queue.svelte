@@ -238,7 +238,7 @@
             </div>
             {#if insertCursor == entry.getId() && !searching}
                 <div class="border-t border-red-600 bg-red-600 flex flex-row mx-2 mb-1 pr-2 rounded-r-md">
-                    <div class="flex-grow bg-white dark:bg-gray-900 rounded-tr-md" />
+                    <div class="grow bg-white dark:bg-gray-900 rounded-tr-md" />
                     <div class="bg-white dark:bg-gray-900">
                         <div class="text-xs text-white py-1 pl-2 bg-red-600 rounded-bl-md">
                             New entries will be added here

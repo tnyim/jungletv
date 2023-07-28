@@ -136,7 +136,7 @@
         {/if}
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <div class="flex-grow" />
+        <div class="grow" />
         <ButtonButton on:click={() => navigate("/points")}>Return to points dashboard</ButtonButton>
     </div>
 </Wizard>

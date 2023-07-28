@@ -4,7 +4,6 @@ import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from "@rollup/plugin-typescript";
 import autoprefixer from 'autoprefixer';
-import { spawn } from 'child_process';
 import CleanCSS from 'clean-css';
 import fs from 'fs';
 import css from 'rollup-plugin-css-only';
@@ -52,7 +51,7 @@ export default [
 					sourceMap: !production,
 					postcss: {
 						plugins: [
-							tailwindcss("tailwind.config.cjs"),
+							tailwindcss,
 							autoprefixer,
 						],
 					},

@@ -150,7 +150,7 @@
                 {/if}
             </div>
         </div>
-        <div class="flex-grow overflow-x-hidden pt-4">
+        <div class="grow overflow-x-hidden pt-4">
             {#if nickname != "" || isSelf}
                 {#if isSelf}
                     <div class="flex flex-row">
@@ -164,7 +164,7 @@
                         </button>
                         <input
                             bind:this={nicknameInput}
-                            class="text-lg font-semibold bg-transparent flex-grow"
+                            class="text-lg font-semibold bg-transparent grow"
                             type="text"
                             placeholder="Set a nickname..."
                             maxlength="16"

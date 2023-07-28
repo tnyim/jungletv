@@ -8,7 +8,7 @@
     export let mode: string;
 </script>
 
-<div class="flex-shrink-0 thumbnail mr-2" style="width: 120px">
+<div class="shrink-0 thumbnail mr-2" style="width: 120px">
     <div style="width: 120px; height: 90px; font-size: 65px;" class="flex flex-col justify-center text-center">
         <i class="fas fa-file-alt" />
     </div>
@@ -28,7 +28,7 @@
     {/if}
     <div class="thumbnail-length-overlay text-white">
         <div
-            class="absolute bottom-0.5 right-0.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+            class="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm"
             style="font-size: 0.7rem; line-height: 0.8rem;"
             title={formatQueueEntryThumbnailDuration(entry.getLength())}
         >
@@ -36,7 +36,7 @@
         </div>
     </div>
 </div>
-<div class="flex flex-col flex-grow overflow-hidden">
+<div class="flex flex-col grow overflow-hidden">
     <p class="queue-entry-title break-words">
         {entry.getDocumentData().getTitle()}
         <br />

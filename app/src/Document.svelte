@@ -55,7 +55,7 @@
     });
 </script>
 
-<div class="flex-grow container mx-auto max-w-screen-md p-2 {mode == 'sidebar' ? 'pt-0' : ''}">
+<div class="grow container mx-auto max-w-screen-md p-2 {mode == 'sidebar' ? 'pt-0' : ''}">
     <span use:registerFocus class="hidden" />
     {#if typeof documentPromise !== "undefined"}
         {#await documentPromise}

@@ -70,7 +70,7 @@
         </p>
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
-        <div class="flex-grow" />
+        <div class="grow" />
         <ButtonButton on:click={close}>Begin watching</ButtonButton>
     </div>
 </Wizard>

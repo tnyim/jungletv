@@ -144,7 +144,7 @@
     </div>
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
-        <div class="flex-grow" />
+        <div class="grow" />
         {#if submitting}
             <ButtonButton disabled colorClasses="bg-gray-300">
                 <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>

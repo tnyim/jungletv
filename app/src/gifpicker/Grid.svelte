@@ -104,7 +104,7 @@
 
     button {
         position: relative;
-        flex-shrink: 0;
+        shrink: 0;
         padding: 0;
         margin: 0;
         overflow: hidden;

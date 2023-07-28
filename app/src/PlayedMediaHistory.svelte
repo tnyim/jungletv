@@ -14,7 +14,7 @@
     }
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-lg sm:p-2">
+<div class="m-6 grow container mx-auto max-w-screen-lg sm:p-2">
     <PaginatedTable
         title={"Play history"}
         column_count={6}

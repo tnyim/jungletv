@@ -8,7 +8,7 @@
     export let mode: string;
 </script>
 
-<div class="flex-shrink-0 thumbnail mr-2" style="width: 90px; margin-left: 30px">
+<div class="shrink-0 thumbnail mr-2" style="width: 90px; margin-left: 30px">
     <img
         src={entry.getSoundcloudTrackData().getThumbnailUrl()}
         alt=""
@@ -33,7 +33,7 @@
     {/if}
     <div class="thumbnail-length-overlay text-white">
         <div
-            class="absolute bottom-0.5 right-0.5 bg-black bg-opacity-80 px-1 py-0.5 font-bold rounded-sm"
+            class="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm"
             style="font-size: 0.7rem; line-height: 0.8rem;"
             title={formatQueueEntryThumbnailDuration(entry.getLength())}
         >
@@ -41,7 +41,7 @@
         </div>
     </div>
 </div>
-<div class="flex flex-col flex-grow overflow-hidden">
+<div class="flex flex-col grow overflow-hidden">
     <p class="queue-entry-title break-words">
         {entry.getSoundcloudTrackData().getTitle()}
         {#if mode == "moderation"}

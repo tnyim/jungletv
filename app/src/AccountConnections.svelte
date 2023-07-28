@@ -67,7 +67,7 @@
     <div class="mt-2 rounded-lg bg-gray-200 dark:bg-gray-850 p-3 pt-2">
         <div class="flex flex-row space-x-2">
             <div class="self-center"><AccountConnectionIcon service={connection.getService()} /></div>
-            <div class="flex-grow">
+            <div class="grow">
                 <p class="font-semibold">{connection.getName()}</p>
                 <p class="text-sm"><AccountConnectionServiceName service={connection.getService()} /></p>
             </div>

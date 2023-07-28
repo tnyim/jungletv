@@ -328,7 +328,7 @@
         <ApplicationConsoleLogToggle bind:checked={showJSErrors} id="showJSErrors" label="JS Errors" />
         <ApplicationConsoleLogToggle bind:checked={showJSWarnings} id="showJSWarnings" label="JS Warnings" />
         <ApplicationConsoleLogToggle bind:checked={showJSLogs} id="showJSLogs" label="JS Logs" />
-        <div class="flex-grow" />
+        <div class="grow" />
         <button
             type="button"
             class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
@@ -361,7 +361,7 @@
                 <div class="w-5 text-right mr-2">
                     <i class={iconForEntry(entry)} />
                 </div>
-                <div class="flex-grow font-mono">
+                <div class="grow font-mono">
                     {#if entry.result}
                         <span
                             class="whitespace-pre-wrap {entry.result.response.getSuccessful()
@@ -403,7 +403,7 @@
         <div bind:this={bottomDetectionDiv} class="h-2 -mt-2" />
     </div>
     <div
-        class="pl-2 flex-grow flex-shrink-0 flex flex-row overflow-y-auto border-t
+        class="pl-2 grow shrink-0 flex flex-row overflow-y-auto border-t
                 border-gray-200 dark:border-gray-800"
         style="max-height: 50%"
     >

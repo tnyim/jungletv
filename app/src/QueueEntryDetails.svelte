@@ -152,7 +152,7 @@
                 title="monKey for this user's address"
                 class="h-20 w-20"
             />
-            <div class="flex-grow">
+            <div class="grow">
                 {#if requestedBy.hasNickname()}
                     <span class="font-semibold text-md">{requestedBy.getNickname()}</span>
                     <br />

@@ -903,7 +903,7 @@
     </ChatReplyingBanner>
 {/if}
 <div class="flex flex-row relative">
-    <div class="flex-grow">
+    <div class="grow">
         <div class="p-1 focus:outline-none" bind:this={editorContainer} />
         {#if typeof $chatMessageDraftTenorGif !== "undefined"}
             <div class="flex flex-row items-center space-x-2 px-2">

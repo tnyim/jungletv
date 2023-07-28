@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "patch-package",
     "build": "rollup -c",
     "labbuild": "cross-env JUNGLETV_LAB=true JUNGLETV_APP_NAME=\"JungleTV Lab\" rollup -c",
     "dev": "rollup -c -w"
@@ -19,6 +20,7 @@
     "autoprefixer": "^10.4.14",
     "clean-css": "^5.3.2",
     "cross-env": "^7.0.3",
+    "patch-package": "^8.0.0",
     "postcss": "^8.4.27",
     "postcss-load-config": "^4.0.1",
     "protoc-gen-js": "^3.21.2",
@@ -31,7 +33,7 @@
     "svelte-media": "^0.1.5",
     "svelte-toggle": "^4.0.0",
     "svelte-turnstile": "^0.5.0",
-    "tailwindcss": "^2.2.19",
+    "tailwindcss": "^3.3.3",
     "typescript": "^5.0.0"
   },
   "dependencies": {

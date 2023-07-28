@@ -97,7 +97,7 @@
 <div class="flex flex-col justify-center" bind:this={container}>
     {#if showSegcha}
         <div class="flex flex-row mb-4 items-center">
-            <p class="text-xl font-semibold flex-grow">Prove that you are human</p>
+            <p class="text-xl font-semibold grow">Prove that you are human</p>
             <p class="text-lg"><span class="text-3xl font-semibold">{curStep + 1}</span> / {numSteps}</p>
         </div>
         <div class="relative inline-block image-container">

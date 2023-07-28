@@ -106,8 +106,8 @@
                 </button>
             </div>
         </div>
-        <div class="lg:flex flex-grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
-            <ul class="flex flex-grow flex-row list-none mr-auto">
+        <div class="lg:flex grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
+            <ul class="flex grow flex-row list-none mr-auto">
                 <li class="flex items-center">
                     {#if rAddress}
                         <button

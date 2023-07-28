@@ -8,7 +8,7 @@
     let donationAddress = "ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt";
 </script>
 
-<div class="m-6 flex-grow container mx-auto max-w-screen-md p-2">
+<div class="m-6 grow container mx-auto max-w-screen-md p-2">
     <span use:registerFocus class="hidden" />
     <img src="/assets/brand/logo.svg" alt="JungleTV" class="h-24" />
     <p class="mt-3 text-lg">

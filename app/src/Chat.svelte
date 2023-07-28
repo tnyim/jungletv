@@ -503,7 +503,7 @@
 </script>
 
 <div class="flex flex-col {containerClasses} relative" on:pointerenter={hideMessageDetails}>
-    <div class="flex-grow overflow-y-auto px-2 relative" bind:this={chatContainer}>
+    <div class="grow overflow-y-auto px-2 relative" bind:this={chatContainer}>
         {#each chatMessages as message, idx (message.getId())}
             <div transition:fade|local={{ duration: 200 }} id="chat-message-{message.getId()}">
                 {#if message.hasUserMessage() && !$blockedUsers.has(message.getUserMessage().getAuthor().getAddress())}
@@ -571,7 +571,7 @@
     </div>
     {#if autoscrollStatus == "scrolled-up-new-message"}
         <div class="flex flex-row border-t border-gray-200 dark:border-gray-500">
-            <div class="px-2 py-1 flex-grow">New {hasNewMentions ? "replies" : "messages"} below</div>
+            <div class="px-2 py-1 grow">New {hasNewMentions ? "replies" : "messages"} below</div>
             <TabButton selected={false} on:click={() => scrollToBottom()}>
                 Jump down <i class="fas fa-caret-down" />
             </TabButton>

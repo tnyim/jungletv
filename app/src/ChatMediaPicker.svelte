@@ -29,7 +29,7 @@
     <div class="flex flex-row flex-wrap px-1 border-l border-r border-gray-300 dark:border-gray-700">
         <TabButton selected={selectedTab == "emoji"} on:click={() => (selectedTab = "emoji")}>Emoji</TabButton>
         <TabButton selected={selectedTab == "gifs"} on:click={() => (selectedTab = "gifs")}>GIFs</TabButton>
-        <div class="flex-grow" />
+        <div class="grow" />
         <TabButton selected={selectedTab == "settings"} on:click={() => (selectedTab = "settings")}>Settings</TabButton>
         <TabButton selected={false} on:click={() => dispatch("closePicker")} extraClasses="w-8 text-center">
             <i class="fas fa-times" />

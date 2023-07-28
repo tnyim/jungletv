@@ -108,7 +108,7 @@
 >
   <div class="rounded-t mb-0 px-4 py-3 border-0">
     <div class="flex flex-wrap items-center">
-      <div class="sm:px-2 flex-grow">
+      <div class="sm:px-2 grow">
         <h3 class="font-semibold text-lg text-gray-800 dark:text-white">
           {title}
           {#if search_query}

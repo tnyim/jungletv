@@ -102,7 +102,7 @@
 <svelte:body on:keydown={documentKeyDown} />
 <div class="w-full flex flex-row">
     {#if searching}
-        <div class="flex-grow flex flex-col px-2 gap-2 mb-2" on:keydown={onKeyDown}>
+        <div class="grow flex flex-col px-2 gap-2 mb-2" on:keydown={onKeyDown}>
             <input
                 type="text"
                 placeholder="Search queue entries..."
@@ -147,7 +147,7 @@
             </div>
         </div>
     {:else}
-        <div class="flex-grow grid grid-cols-2 grid-rows-2 gap-2 px-2 mb-2 text-gray-500 text-center">
+        <div class="grow grid grid-cols-2 grid-rows-2 gap-2 px-2 mb-2 text-gray-500 text-center">
             <div title="Number of entries in queue">
                 {#if numEntries == 0}
                     <i class="fas fa-sad-cry text-sm" />

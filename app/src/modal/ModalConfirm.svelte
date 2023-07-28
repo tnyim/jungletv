@@ -27,7 +27,7 @@
     <ButtonButton color="purple" on:click={() => resultCallback(false)}>
         {negativeAnswerLabel}
     </ButtonButton>
-    <div class="flex-grow" />
+    <div class="grow" />
     <ButtonButton type="submit" on:click={() => resultCallback(true)} bind:innerButton={button}>
         {positiveAnswerLabel}
     </ButtonButton>

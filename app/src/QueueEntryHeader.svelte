@@ -16,7 +16,7 @@
 </script>
 
 {#if showPosition}
-    <div class="w-10 flex-shrink-0 flex flex-col gap-2 place-content-center items-center text-xl">
+    <div class="w-10 shrink-0 flex flex-col gap-2 place-content-center items-center text-xl">
         <div class={index + 1 > 999 ? "text-lg" : index + 1 > 99 ? "text-xl" : "text-2xl"} title="Position in queue">
             {index + 1}
         </div>
