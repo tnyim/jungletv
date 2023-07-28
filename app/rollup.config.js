@@ -49,7 +49,7 @@ export default [
 					dev: !production
 				},
 				preprocess: sveltePreprocess({
-					sourceMap: !production,
+					sourceMap: true,
 					postcss: {
 						plugins: [
 							tailwindcss,
@@ -59,7 +59,7 @@ export default [
 				}),
 			}),
 			typescript({
-				sourceMap: !production,
+				sourceMap: true,
 				lib: ["ES2020", "DOM", "dom.iterable"],
 				target: "ES2021",
 				tsconfig: "./tsconfig.json",
@@ -132,7 +132,7 @@ export default [
 			}),
 			typescript({
 				tsconfig: './serviceworker/tsconfig.json',
-				sourceMap: !production,
+				sourceMap: true,
 				target: "ES2021",
 				lib: ["ES2021", "DOM", "WebWorker"],
 			}),
@@ -186,7 +186,7 @@ export default [
 				emitCss: false, // together with css "injected" above, forces svelte component CSS to be part of the JS bundle for simplicity
 				// (we already have sufficient problems including the main app's bundle.css inside the application pages to bring tailwind rules in)
 				preprocess: sveltePreprocess({
-					sourceMap: !production,
+					sourceMap: true,
 					postcss: {
 						plugins: [
 							tailwindcss,
@@ -197,7 +197,7 @@ export default [
 			}),
 			typescript({
 				tsconfig: './appbridge/tsconfig.json',
-				sourceMap: !production,
+				sourceMap: true,
 				target: "ES2021",
 				lib: ["ES2021", "DOM", "dom.iterable"],
 			}),
