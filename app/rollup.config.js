@@ -16,27 +16,6 @@ import tailwindcss from "tailwindcss";
 const production = !process.env.ROLLUP_WATCH;
 const labBuild = process.env.JUNGLETV_LAB;
 
-function serve() {
-	let server;
-
-	function toExit() {
-		if (server) server.kill(0);
-	}
-
-	return {
-		writeBundle() {
-			if (server) return;
-			server = spawn('npm', ['run', 'start', '--', '--dev'], {
-				stdio: ['ignore', 'inherit', 'inherit'],
-				shell: true
-			});
-
-			process.on('SIGTERM', toExit);
-			process.on('exit', toExit);
-		}
-	};
-}
-
 export default [
 	{
 		input: 'src/main.ts',
@@ -111,12 +90,11 @@ export default [
 			}),
 			commonjs(),
 
-			// In dev mode, call `npm run start` once
-			// the bundle has been generated
-			!production && serve(),
-
 			// Watch the `public` directory and refresh the
 			// browser on changes when not in production
+			// (requires the use of the livereload browser extension -
+			// we can't load the script in the page since the livereload server serves over HTTP,
+			// and we must use HTTPS for HTTP/2, required by gRPC-web)
 			!production && livereload('public'),
 
 			// If we're building for production (npm run build

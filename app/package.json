@@ -5,8 +5,7 @@
   "scripts": {
     "build": "rollup -c",
     "labbuild": "cross-env JUNGLETV_LAB=true JUNGLETV_APP_NAME=\"JungleTV Lab\" rollup -c",
-    "dev": "rollup -c -w",
-    "start": "sirv public --no-clear"
+    "dev": "rollup -c -w"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.3",
@@ -61,7 +60,6 @@
     "marked": "^5.1.2",
     "marked-gfm-heading-id": "^3.0.4",
     "post-me": "^0.4.5",
-    "sirv-cli": "^1.0.0",
     "svelte-autosize": "^1.1.0",
     "svelte-navigator": "^3.2.2",
     "svelte-preprocess": "^5.0.4",
