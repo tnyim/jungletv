@@ -28,6 +28,7 @@
     "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.1.6",
+    "rollup-plugin-visualizer": "^5.9.2",
     "svelte": "^3.59.2",
     "svelte-loading-spinners": "^0.3.4",
     "svelte-media": "^0.1.5",

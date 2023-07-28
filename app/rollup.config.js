@@ -11,6 +11,7 @@ import livereload from 'rollup-plugin-livereload';
 import svelte from 'rollup-plugin-svelte';
 import sveltePreprocess from "svelte-preprocess";
 import tailwindcss from "tailwindcss";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const production = !process.env.ROLLUP_WATCH;
 const labBuild = process.env.JUNGLETV_LAB;
@@ -107,6 +108,10 @@ export default [
 					}
 				}
 			),
+
+			visualizer({
+				filename: "bundle-visualizer-app.html",
+			}),
 		],
 		watch: {
 			clearScreen: false
@@ -148,6 +153,10 @@ export default [
 					}
 				}
 			),
+
+			visualizer({
+				filename: "bundle-visualizer-serviceworker.html",
+			}),
 		]
 	},
 	{
@@ -211,6 +220,10 @@ export default [
 					}
 				}
 			),
+
+			visualizer({
+				filename: "bundle-visualizer-appbridge.html",
+			}),
 		]
 	}
 ];
