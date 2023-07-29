@@ -8,7 +8,7 @@
         PointsInfoResponse,
         QueueEntry,
         QueueEntryMovementDirection,
-        QueueEntryMovementDirectionMap,
+        type QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
     import { currentSubscription, darkMode } from "./stores";
     import ButtonButton from "./uielements/ButtonButton.svelte";

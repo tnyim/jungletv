@@ -1,7 +1,6 @@
 <script lang="ts">
     import { DateTime, Duration, type DurationUnit } from "luxon";
     import { createEventDispatcher } from "svelte";
-    import QrCode from "svelte-qrcode";
     import { slide } from "svelte/transition";
     import MoveQueueEntryPrompt from "./MoveQueueEntryPrompt.svelte";
     import { apiClient } from "./api_client";
@@ -15,9 +14,10 @@
         QueueEntryMovementDirection,
         type QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
-    import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import { permissionLevel, rewardAddress } from "./stores";
     import DetailsButton from "./uielements/DetailsButton.svelte";
-    import { buildMonKeyURL, copyToClipboard } from "./utils";
+    import UserBanner from "./uielements/UserBanner.svelte";
+    import { copyToClipboard } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -149,30 +149,7 @@
     {/if}
     {#if requestedBy !== undefined}
         <p>Added to the queue {formatEnqueuedAt(entry)} by</p>
-        <div class="flex flex-row">
-            <img
-                src={buildMonKeyURL(requestedBy.getAddress())}
-                alt="&nbsp;"
-                title="monKey for this user's address"
-                class="h-20 w-20"
-            />
-            <div class="grow">
-                {#if requestedBy.hasNickname()}
-                    <span class="font-semibold text-md">{requestedBy.getNickname()}</span>
-                    <br />
-                {/if}
-                <span class="font-mono text-md">
-                    {requestedBy.getAddress().substr(0, 14)}
-                </span>
-            </div>
-            <QrCode
-                value={(requestedBy.getAddress().startsWith("nano_") ? "nano:" : "ban:") + requestedBy.getAddress()}
-                size="80"
-                padding="0"
-                background={$darkMode ? "#000000" : "#e5e7eb"}
-                color={$darkMode ? "#e5e7eb" : "#000000"}
-            />
-        </div>
+        <UserBanner user={requestedBy} />
     {:else}
         <p>
             Added to the queue {formatEnqueuedAt(entry)}.
