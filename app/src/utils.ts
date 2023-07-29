@@ -315,6 +315,7 @@ const configureMarked = function () {
         marked.setOptions({
             gfm: true,
             breaks: true,
+            mangle: false,
         });
         marked.use(gfmHeadingId());
         marked.use({

@@ -16,8 +16,10 @@
     let playerOpen = false;
     let playerWasClosedManuallyOnce = false;
     let wasFullSize = false;
+    let isFirstMaximize = false;
     beforeUpdate(() => {
         wasFullSize = fullSize;
+        isFirstMaximize = fullSizePlayerContainerWidth == 0 && fullSizePlayerContainerHeight == 0;
     });
 
     let bigMinimizedPlayer = false;
@@ -103,7 +105,7 @@
         fullSizePlayerContainerHeight;
         fullSizePlayerContainerWidth;
         windowInnerHeight;
-        matchPlayerRectToFakeContainer(true);
+        matchPlayerRectToFakeContainer(!isFirstMaximize);
     }
     $: {
         if (fullSizePlayerContainer) matchPlayerRectToFakeContainer(false);
