@@ -10,7 +10,7 @@
         <i class="fas fa-file-alt" />
     </div>
     {#if ticket.getConcealed()}
-        <div class="thumbnail-concealed-overlay text-yellow-400 flex flex-col place-content-center">
+        <div class="thumbnail-concealed-overlay">
             <div style="width: auto;" class="flex flex-row place-content-center">
                 <i class="far fa-eye-slash text-5xl" />
             </div>

@@ -18,25 +18,21 @@
         style="max-width: 90px; max-height: 90px; object-fit: contain"
     />
     {#if isPlaying}
-        <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center">
+        <div class="thumbnail-now-playing-overlay">
             <div style="width: auto;" class="flex flex-row place-content-center">
                 <i class="fas fa-play text-5xl" />
             </div>
         </div>
     {/if}
     {#if entry.getConcealed()}
-        <div class="thumbnail-concealed-overlay text-yellow-400 flex flex-col place-content-center">
+        <div class="thumbnail-concealed-overlay">
             <div style="width: auto;" class="flex flex-row place-content-center">
                 <i class="far fa-eye-slash text-5xl" />
             </div>
         </div>
     {/if}
     <div class="thumbnail-length-overlay text-white">
-        <div
-            class="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm"
-            style="font-size: 0.7rem; line-height: 0.8rem;"
-            title={formatQueueEntryThumbnailDuration(entry.getLength())}
-        >
+        <div class="thumbnail-length" title={formatQueueEntryThumbnailDuration(entry.getLength())}>
             {formatQueueEntryThumbnailDuration(entry.getLength(), entry.getOffset())}
         </div>
     </div>

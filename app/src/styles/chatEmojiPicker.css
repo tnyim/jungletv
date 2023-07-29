@@ -1,0 +1,43 @@
+.emoji,
+button.emoji {
+    border-radius: 0.175em;
+}
+
+.picker {
+    border-top: none;
+}
+
+input.search::placeholder {
+    opacity: 1;
+}
+
+input.search {
+    background-color: var(--input-background-color);
+}
+
+#tab--1 .category {
+    padding-top: 0.25rem;
+    padding-bottom: 0;
+}
+
+#emoteUpsellOverlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: var(--upsell-background-color);
+    color: var(--upsell-text-color);
+}
+
+#emoteUpsellOverlay .link {
+    cursor: pointer;
+    color: var(--upsell-link-color);
+}
+
+#emoteUpsellOverlay .link:hover {
+    text-decoration: underline;
+}
+
+button.emoji img {
+    --emoji-padding: 0.25rem;
+}

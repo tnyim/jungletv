@@ -5,13 +5,12 @@ import terser from '@rollup/plugin-terser';
 import typescript from "@rollup/plugin-typescript";
 import autoprefixer from 'autoprefixer';
 import CleanCSS from 'clean-css';
-import fs from 'fs';
-import css from 'rollup-plugin-css-only';
+import css from "rollup-plugin-import-css";
 import livereload from 'rollup-plugin-livereload';
 import svelte from 'rollup-plugin-svelte';
+import { visualizer } from "rollup-plugin-visualizer";
 import sveltePreprocess from "svelte-preprocess";
 import tailwindcss from "tailwindcss";
-import { visualizer } from "rollup-plugin-visualizer";
 
 const production = !process.env.ROLLUP_WATCH;
 const labBuild = process.env.JUNGLETV_LAB;
@@ -67,13 +66,12 @@ export default [
 			// we'll extract any component CSS out into
 			// a separate file - better for performance
 			css({
-				output: function (styles, styleNodes, bundle) {
+				output: "bundle.css",
+				transform: function (styles) {
 					if (production) {
-						const compressed = new CleanCSS().minify(styles).styles;
-						fs.writeFileSync('public/build/bundle.css', compressed);
-					} else {
-						fs.writeFileSync('public/build/bundle.css', styles)
+						styles = new CleanCSS().minify(styles).styles;
 					}
+					return styles
 				}
 			}),
 
@@ -86,7 +84,7 @@ export default [
 				browser: true,
 				dedupe: ['svelte', 'svelte/transition', 'svelte/internal'],
 				exportConditions: ['browser', 'svelte'],
-      			extensions: ['.mjs', '.js', '.json', '.node', '.svelte']
+				extensions: ['.mjs', '.js', '.json', '.node', '.svelte']
 			}),
 			commonjs(),
 
@@ -105,6 +103,10 @@ export default [
 					toplevel: true,
 					format: {
 						comments: false
+					},
+					compress: {
+						toplevel: true,
+						passes: 2,
 					}
 				}
 			),
@@ -151,6 +153,9 @@ export default [
 					ecma: 2020,
 					format: {
 						comments: false
+					},
+					compress: {
+						passes: 2,
 					}
 				}
 			),
@@ -218,6 +223,9 @@ export default [
 					toplevel: false, // probably important because much of our code is for other scripts, outside of the bundle, to use
 					format: {
 						comments: false
+					},
+					compress: {
+						passes: 2,
 					}
 				}
 			),

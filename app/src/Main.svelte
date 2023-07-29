@@ -496,6 +496,7 @@
 			height: 100%;
 			width: 100%;
 			text-shadow: 0 0 5px #8b5cf6;
+			@apply text-yellow-400 flex flex-col place-content-center;
 		}
 		.thumbnail-length-overlay {
 			position: absolute;

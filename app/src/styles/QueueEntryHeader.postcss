@@ -26,6 +26,12 @@
     height: 100%;
     width: 100%;
     animation: thumbnail-now-playing-pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    @apply text-white flex flex-col place-content-center;
+}
+.thumbnail-length {
+    @apply absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm;
+    font-size: 0.7rem;
+    line-height: 0.8rem;
 }
 
 @keyframes thumbnail-now-playing-pulse {

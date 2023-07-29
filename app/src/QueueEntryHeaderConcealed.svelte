@@ -25,18 +25,14 @@
 <div class="shrink-0 thumbnail mr-2" style="width: 120px">
     <div class="thumbnail-concealed-queue-entry" style="background-position: {thumbnailPosX}px {thumbnailPosY}px" />
     {#if isPlaying}
-        <div class="thumbnail-now-playing-overlay text-white flex flex-col place-content-center">
+        <div class="thumbnail-now-playing-overlay">
             <div style="width: auto;" class="flex flex-row place-content-center">
                 <i class="fas fa-play text-5xl" />
             </div>
         </div>
     {/if}
     <div class="thumbnail-length-overlay text-white">
-        <div
-            class="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.5 font-bold rounded-sm"
-            style="font-size: 0.7rem; line-height: 0.8rem;"
-            title={formatQueueEntryThumbnailDuration(entry.getLength())}
-        >
+        <div class="thumbnail-length" title={formatQueueEntryThumbnailDuration(entry.getLength())}>
             {formatQueueEntryThumbnailDuration(entry.getLength(), entry.getOffset())}
         </div>
     </div>

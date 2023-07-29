@@ -2,7 +2,7 @@
     import type { Picker } from "emoji-picker-element/svelte";
     import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
-    import { emojiDatabase } from "./chat_utils";
+    import { chatEmojiPickerCSS, emojiDatabase } from "./chat_utils";
     import { chatEmotesAsCustomEmoji, currentSubscription, darkMode } from "./stores";
 
     export let searchQuery = "";
@@ -29,44 +29,7 @@
             }
             return category1.localeCompare(category2);
         };
-        const style = document.createElement("style");
-        style.textContent = `
-            .emoji, button.emoji {
-                border-radius: 0.175em;
-            }
-            .picker {
-                border-top: none;
-            }
-            input.search::placeholder {
-                opacity: 1;
-            }
-            input.search {
-                background-color: var(--input-background-color);
-            }
-            #tab--1 .category {
-                padding-top: 0.25rem;
-                padding-bottom: 0;
-            }
-            #emoteUpsellOverlay {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                background-color: var(--upsell-background-color);
-                color: var(--upsell-text-color);
-            }
-            #emoteUpsellOverlay .link {
-                cursor: pointer;
-                color: var(--upsell-link-color);
-            }
-            #emoteUpsellOverlay .link:hover {
-                text-decoration: underline;
-            }
-            button.emoji img {
-                --emoji-padding: 0.25rem;
-            }
-        `;
-        emojiPicker.shadowRoot.appendChild(style);
+        emojiPicker.shadowRoot.adoptedStyleSheets = [...emojiPicker.shadowRoot.adoptedStyleSheets, chatEmojiPickerCSS];
         emojiPicker.customEmoji = emojiDatabase.customEmoji;
 
         searchBox = emojiPicker.shadowRoot.getElementById("search") as HTMLInputElement;

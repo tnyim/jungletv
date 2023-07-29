@@ -188,9 +188,8 @@
     frameborder="0"
     allow="autoplay"
     title=""
-    class="h-full w-full"
+    class="h-full w-full {suppressIframePointerEvents ? 'pointer-events-none' : 'pointer-events-auto'}"
     bind:this={playerIframe}
-    style="pointer-events: {suppressIframePointerEvents ? 'none' : 'auto'}"
 />
 {#if fullSize || bigMinimizedPlayer}
     <button
