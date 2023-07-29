@@ -1,0 +1,42 @@
+diff --git a/node_modules/svelte-navigator/dist/svelte-navigator.module.mjs b/node_modules/svelte-navigator/dist/svelte-navigator.module.mjs
+index 66470f5..b321744 100644
+--- a/node_modules/svelte-navigator/dist/svelte-navigator.module.mjs
++++ b/node_modules/svelte-navigator/dist/svelte-navigator.module.mjs
+@@ -857,6 +857,9 @@ function query(selector, parent = document) {
+ 
+ function queryHeading(id) {
+ 	const marker = query(`[data-svnav-route-start="${id}"]`);
++	if (!marker) {
++		return null;
++	}
+ 	let current = marker.nextElementSibling;
+ 	while (!isEndMarker(current, id)) {
+ 		if (isHeading(current)) {
+diff --git a/node_modules/svelte-navigator/dist/svelte-navigator.umd.js b/node_modules/svelte-navigator/dist/svelte-navigator.umd.js
+index b59172f..064b8b4 100644
+--- a/node_modules/svelte-navigator/dist/svelte-navigator.umd.js
++++ b/node_modules/svelte-navigator/dist/svelte-navigator.umd.js
+@@ -895,6 +895,9 @@
+ 
+   function queryHeading(id) {
+     const marker = query("[data-svnav-route-start=\"" + id + "\"]");
++    if (!marker) {
++      return null;
++    }
+     let current = marker.nextElementSibling;
+ 
+     while (!isEndMarker(current, id)) {
+diff --git a/node_modules/svelte-navigator/src/a11y.js b/node_modules/svelte-navigator/src/a11y.js
+index 0b09cc5..3314243 100644
+--- a/node_modules/svelte-navigator/src/a11y.js
++++ b/node_modules/svelte-navigator/src/a11y.js
+@@ -112,6 +112,9 @@ function query(selector, parent = document) {
+ 
+ export function queryHeading(id) {
+ 	const marker = query(`[data-svnav-route-start="${id}"]`);
++	if (!marker) {
++		return null;
++	}
+ 	let current = marker.nextElementSibling;
+ 	while (!isEndMarker(current, id)) {
+ 		if (isHeading(current)) {
