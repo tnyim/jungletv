@@ -7,6 +7,8 @@
     import { applicationName, logoURL } from "./configurationStores";
     import { formatBANPrice } from "./currency_utils";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
+    import NavbarButton from "./uielements/NavbarButton.svelte";
+    import NavbarLink from "./uielements/NavbarLink.svelte";
     import { buildMonKeyURL } from "./utils";
 
     const media = watchMedia({
@@ -77,34 +79,30 @@
             </a>
             {#if !largeScreen}
                 <NavbarAlert bind:hasAlert />
+                <div class="ml-auto flex flex-row gap-3">
+                    {#if !hasAlert && !navbarOpen}
+                        <NavbarLink
+                            color="purple"
+                            iconClasses="fas fa-coins"
+                            label="Rewards"
+                            href={rAddress ? "/rewards" : "/rewards/address"}
+                        />
+                        <NavbarLink
+                            color="white"
+                            backgroundClasses="dark:bg-yellow-600 bg-yellow-400 hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:bg-yellow-500 dark:focus:bg-yellow-500"
+                            iconClasses="fas fa-plus"
+                            label="Enqueue"
+                            href="/enqueue"
+                        />
+                    {/if}
+                    <NavbarButton
+                        iconClasses="fas {navbarOpen ? 'fa-times' : 'fa-bars'}"
+                        label=""
+                        extraClasses="text-xl px-3 justify-center"
+                        on:click={setNavbarOpen}
+                    />
+                </div>
             {/if}
-            <div class="ml-auto lg:hidden flex flex-row gap-3">
-                {#if !hasAlert && !navbarOpen}
-                    <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href={rAddress ? "/rewards" : "/rewards/address"}
-                    >
-                        <i class="fas fa-coins" />
-                        <div class="text-xs font-bold uppercase">Rewards</div>
-                    </a>
-                    <a
-                        class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:shadow-lg focus:bg-yellow-500 dark:focus:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                        use:link
-                        href="/enqueue"
-                    >
-                        <i class="fas fa-plus" />
-                        <div class="text-xs font-bold uppercase">Enqueue</div>
-                    </a>
-                {/if}
-                <button
-                    class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none ease-linear transition-all duration-150"
-                    type="button"
-                    on:click={setNavbarOpen}
-                >
-                    <i class="fas {navbarOpen ? 'fa-times' : 'fa-bars'}" />
-                </button>
-            </div>
         </div>
         <div class="lg:flex grow items-center {navbarOpen ? 'block mt-4' : 'hidden'}">
             <ul class="flex grow flex-row list-none mr-auto">
@@ -157,111 +155,63 @@
                 class="grid grid-cols-3 md:grid-cols-12 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
             >
                 {#if moreOpen}
-                    <li>
-                        <button
-                            style="margin-right:48px;"
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                    <li style="margin-right:48px;">
+                        <NavbarButton
+                            iconClasses="fas fa-arrow-left"
+                            label="Back"
                             on:click={() => (moreOpen = false)}
-                        >
-                            <i class="fas fa-arrow-left" />
-                            <div class="text-xs font-bold uppercase">Back</div>
-                        </button>
+                        />
                     </li>
                 {:else if !navbarOpen}
                     <li>
-                        <button
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            on:click={() => (moreOpen = true)}
-                        >
-                            <i class="fas fa-ellipsis-h" />
-                            <div class="text-xs font-bold uppercase">More</div>
-                        </button>
+                        <NavbarButton iconClasses="fas fa-ellipsis-h" label="More" on:click={() => (moreOpen = true)} />
                     </li>
                 {/if}
                 {#if navbarOpen || moreOpen}
                     <li class="md:col-span-3">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
-                            href="/about"
-                        >
-                            <i class="fas fa-info" />
-                            <div class="text-xs font-bold uppercase">About</div>
-                        </a>
+                        <NavbarLink iconClasses="fas fa-info" label="About" href="/about" />
                     </li>
 
                     <li class="md:col-span-3">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
-                            href="/faq"
-                        >
-                            <i class="fas fa-question" />
-                            <div class="text-xs font-bold uppercase">FAQ</div>
-                        </a>
+                        <NavbarLink iconClasses="fas fa-question" label="FAQ" href="/faq" />
                     </li>
 
                     <li class="md:col-span-3">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
-                            href="/guidelines"
-                        >
-                            <i class="fas fa-scroll" />
-                            <div class="text-xs font-bold uppercase">Rules</div>
-                        </a>
+                        <NavbarLink iconClasses="fas fa-scroll" label="Rules" href="/guidelines" />
                     </li>
 
                     <li class="md:col-span-3">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
-                            href="/history"
-                        >
-                            <i class="fas fa-history" />
-                            <div class="text-xs font-bold uppercase">Play history</div>
-                        </a>
+                        <NavbarLink iconClasses="fas fa-history" label="Play history" href="/history" />
                     </li>
                 {/if}
 
                 {#if !moreOpen}
                     <li class="md:col-span-4">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
+                        <NavbarLink
+                            color="green"
+                            iconClasses="fas fa-trophy"
+                            label="Leaderboards"
                             href="/leaderboards"
-                        >
-                            <i class="fas fa-trophy" />
-                            <div class="text-xs font-bold uppercase">Leaderboards</div>
-                        </a>
+                        />
                     </li>
 
                     <li class="md:col-span-4">
-                        <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
+                        <NavbarLink
+                            color="purple"
+                            iconClasses="fas fa-coins"
+                            label={rAddress ? "Rewards" : "Earn rewards"}
                             href={rAddress ? "/rewards" : "/rewards/address"}
-                        >
-                            <i class="fas fa-coins" />
-                            <div class="text-xs font-bold uppercase">
-                                {#if rAddress}
-                                    Rewards
-                                {:else}
-                                    Earn rewards
-                                {/if}
-                            </div>
-                        </a>
+                        />
                     </li>
 
                     <li class="col-span-3 md:col-span-4">
-                        <a
-                            class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:shadow-lg focus:bg-yellow-500 dark:focus:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
-                            use:link
+                        <NavbarLink
+                            color="white"
+                            backgroundClasses="dark:bg-yellow-600 bg-yellow-400 hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:bg-yellow-500 dark:focus:bg-yellow-500"
+                            iconClasses="fas fa-plus"
+                            label="Enqueue media"
                             href="/enqueue"
-                        >
-                            <i class="fas fa-plus" />
-                            <div class="text-xs font-bold uppercase">Enqueue media</div>
-                        </a>
+                        />
                     </li>
                 {/if}
             </ul>

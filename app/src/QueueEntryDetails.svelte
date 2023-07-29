@@ -16,6 +16,7 @@
         type QueueEntryMovementDirectionMap,
     } from "./proto/jungletv_pb";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import DetailsButton from "./uielements/DetailsButton.svelte";
     import { buildMonKeyURL, copyToClipboard } from "./utils";
 
     const dispatch = createEventDispatcher();
@@ -79,6 +80,18 @@
         return "between " + lowerBoundStr + " and " + upperBoundStr;
     }
 
+    function openOutside() {
+        let url = "";
+        if (entry.hasYoutubeVideoData()) {
+            url = "https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId();
+        } else if (entry.hasSoundcloudTrackData()) {
+            url = entry.getSoundcloudTrackData().getPermalink();
+        }
+        if (url) {
+            window.open(url, "", "noopener");
+        }
+    }
+
     function openExplorer() {
         window.open("https://creeper.banano.cc/account/" + requestedBy.getAddress(), "", "noopener");
     }
@@ -105,15 +118,6 @@
         await copyToClipboard(requestedBy.getAddress());
         copied = true;
     }
-
-    // this is a workaround
-    // stuff like dark: and hover: doesn't work in the postcss @apply
-    // https://github.com/tailwindlabs/tailwindcss/discussions/2917
-    const commonButtonClasses =
-        "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
-        "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150" +
-        "focus:bg-gray-100 dark:focus:bg-gray-800";
 
     function moveQueueEntry(direction: QueueEntryMovementDirectionMap[keyof QueueEntryMovementDirectionMap]) {
         openModal({
@@ -182,95 +186,94 @@
     {/if}
     <div class="grid grid-cols-6 gap-2 place-items-center">
         {#if isChatModerator}
-            <button
-                type="button"
-                class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'} "
+            <DetailsButton
+                extraClasses={requestedBy !== undefined ? "col-span-2" : "col-span-3"}
+                iconClasses="fas fa-trash"
+                label="Remove"
                 on:click={() => dispatch("remove")}
-            >
-                <i class="fas fa-trash" /> Remove
-            </button>
+            />
             {#if requestedBy !== undefined}
-                <button type="button" class="{commonButtonClasses} col-span-2" on:click={() => dispatch("disallow")}>
-                    <i class="fas fa-ban" /> Disallow
-                </button>
-                <button
-                    type="button"
-                    class="{commonButtonClasses} col-span-2"
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-ban"
+                    label="Disallow"
+                    on:click={() => dispatch("disallow")}
+                />
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-edit"
+                    label="Nickname"
                     on:click={() => dispatch("changeNickname")}
-                >
-                    <i class="fas fa-edit" /> Nickname
-                </button>
-                <button
-                    type="button"
-                    class="{commonButtonClasses} col-span-2"
-                    on:click={() =>
-                        window.open(
-                            (() => {
-                                if (entry.hasYoutubeVideoData()) {
-                                    return "https://www.youtube.com/watch?v=" + entry.getYoutubeVideoData().getId();
-                                } else if (entry.hasSoundcloudTrackData()) {
-                                    return entry.getSoundcloudTrackData().getPermalink();
-                                }
-                            })(),
-                            "",
-                            "noopener"
-                        )}
-                >
-                    {#if entry.hasYoutubeVideoData()}
-                        <i class="fab fa-youtube" /> YouTube
-                    {:else if entry.hasSoundcloudTrackData()}
-                        <i class="fab fa-soundcloud" /> <span class="text-xs">SoundCloud</span>
-                    {/if}
-                </button>
-                <button type="button" class="{commonButtonClasses} col-span-2" on:click={openExplorer}>
-                    <i class="fas fa-search-dollar" /> Explorer
-                </button>
+                />
+                {#if entry.hasYoutubeVideoData()}
+                    <DetailsButton
+                        extraClasses="col-span-2"
+                        iconClasses="fab fa-youtube"
+                        label="YouTube"
+                        on:click={openOutside}
+                    />
+                {:else if entry.hasSoundcloudTrackData()}
+                    <DetailsButton
+                        extraClasses="col-span-2"
+                        iconClasses="fab fa-soundcloud"
+                        labelClasses="text-xs"
+                        label="SoundCloud"
+                        on:click={openOutside}
+                    />
+                {/if}
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-search-dollar"
+                    label="Explorer"
+                    on:click={openExplorer}
+                />
             {/if}
             {#if entryIndex > 0}
-                <button
-                    type="button"
-                    class="{commonButtonClasses} {requestedBy !== undefined ? 'col-span-2' : 'col-span-3'}"
+                <DetailsButton
+                    extraClasses={requestedBy !== undefined ? "col-span-2" : "col-span-3"}
+                    iconClasses="fas fa-i-cursor"
+                    label="Set cursor"
                     on:click={setCursor}
-                >
-                    <i class="fas fa-i-cursor" /> Set cursor
-                </button>
+                />
             {/if}
         {/if}
         {#if requestedBy !== undefined}
-            <button type="button" class="{commonButtonClasses} col-span-3" on:click={copyAddress}>
-                <i class="fas fa-copy" />
-                {copied ? "Copied!" : "Copy address"}
-            </button>
-            <button
-                type="button"
-                class="{commonButtonClasses} col-span-3"
+            <DetailsButton
+                extraClasses="col-span-3"
+                iconClasses="fas fa-copy"
+                label={copied ? "Copied!" : "Copy address"}
+                on:click={copyAddress}
+            />
+            <DetailsButton
+                extraClasses="col-span-3"
+                iconClasses="fas fa-id-card"
+                label="Profile"
                 on:click={() => openUserProfile(requestedBy.getAddress())}
-            >
-                <i class="fas fa-id-card" /> Profile
-            </button>
+            />
             {#if requestedBy.getAddress() === $rewardAddress && !isChatModerator && removalOfOwnEntriesAllowed}
-                <button type="button" class="{commonButtonClasses} col-span-6" on:click={removeOwnEntry}>
-                    <i class="fas fa-trash" /> Remove
-                </button>
+                <DetailsButton
+                    extraClasses="col-span-6"
+                    iconClasses="fas fa-trash"
+                    label="Remove"
+                    on:click={removeOwnEntry}
+                />
             {/if}
         {/if}
         {#if entry.getCanMoveUp()}
-            <button
-                type="button"
-                class="{commonButtonClasses} col-span-3"
+            <DetailsButton
+                extraClasses="col-span-3"
+                iconClasses="fas fa-arrow-circle-up"
+                label="Move up"
                 on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_UP)}
-            >
-                <i class="fas fa-arrow-circle-up" /> Move up
-            </button>
+            />
         {/if}
         {#if entry.getCanMoveDown()}
-            <button
-                type="button"
-                class="{commonButtonClasses} col-span-3"
+            <DetailsButton
+                extraClasses="col-span-3"
+                iconClasses="fas fa-arrow-circle-down"
+                label="Move down"
                 on:click={() => moveQueueEntry(QueueEntryMovementDirection.QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN)}
-            >
-                <i class="fas fa-arrow-circle-down" /> Move down
-            </button>
+            />
         {/if}
     </div>
 </div>

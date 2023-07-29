@@ -6,6 +6,7 @@
     import { UserRole } from "./proto/common_pb";
     import { ChatMessage, PermissionLevel } from "./proto/jungletv_pb";
     import { darkMode, permissionLevel } from "./stores";
+    import DetailsButton from "./uielements/DetailsButton.svelte";
     import { buildMonKeyURL, copyToClipboard } from "./utils";
 
     export let msg: ChatMessage;
@@ -44,15 +45,6 @@
             dispatch("mouseLeft");
         }
     }
-
-    // this is a workaround
-    // stuff like dark: and hover: doesn't work in the postcss @apply
-    // https://github.com/tailwindlabs/tailwindcss/discussions/2917
-    const commonButtonClasses =
-        "text-purple-700 dark:text-purple-500 px-1.5 py-1 rounded hover:shadow-sm " +
-        "hover:bg-gray-100 dark:hover:bg-gray-800 outline-none focus:outline-none " +
-        "ease-linear transition-all duration-150" +
-        "focus:bg-gray-100 dark:focus:bg-gray-800";
 </script>
 
 <div
@@ -145,42 +137,56 @@
         </div>
         <div class="grid grid-cols-6 gap-2 place-items-center px-2 pb-2">
             {#if isChatModerator}
-                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("delete")}>
-                    <i class="fas fa-trash" /> Delete
-                </button>
-                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("history")}>
-                    <i class="fas fa-history" /> History
-                </button>
-                <button class="{commonButtonClasses} col-span-2" on:click={() => dispatch("changeNickname")}>
-                    <i class="fas fa-edit" /> Nickname
-                </button>
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-trash"
+                    label="Delete"
+                    on:click={() => dispatch("delete")}
+                />
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-history"
+                    label="History"
+                    on:click={() => dispatch("history")}
+                />
+                <DetailsButton
+                    extraClasses="col-span-2"
+                    iconClasses="fas fa-edit"
+                    label="Nickname"
+                    on:click={() => dispatch("changeNickname")}
+                />
             {/if}
             {#if !messageFromApplication}
-                <button
-                    class="{commonButtonClasses} {isChatModerator ? 'col-span-3' : 'col-span-6'}"
+                <DetailsButton
+                    extraClasses={isChatModerator ? "col-span-3" : "col-span-6"}
+                    iconClasses="fas fa-id-card"
+                    label="Profile"
                     on:click={openProfile}
-                >
-                    <i class="fas fa-id-card" /> Profile
-                </button>
+                />
             {/if}
             {#if isChatModerator}
-                <button class="{commonButtonClasses} col-span-3" on:click={() => openExplorer()}>
-                    <i class="fas fa-search-dollar" /> Explorer
-                </button>
+                <DetailsButton
+                    extraClasses="col-span-3"
+                    iconClasses="fas fa-search-dollar"
+                    label="Explorer"
+                    on:click={openExplorer}
+                />
             {/if}
             {#if allowReplies}
-                <button class="{commonButtonClasses} col-span-3" on:click={() => dispatch("reply")}>
-                    <i class="fas fa-reply" /> Reply
-                </button>
+                <DetailsButton
+                    extraClasses="col-span-3"
+                    iconClasses="fas fa-reply"
+                    label="Reply"
+                    on:click={() => dispatch("reply")}
+                />
             {/if}
             {#if !messageFromApplication}
-                <button
-                    class="{commonButtonClasses} {allowReplies ? 'col-span-3' : 'col-span-6'}"
+                <DetailsButton
+                    extraClasses={allowReplies ? "col-span-3" : "col-span-6"}
+                    iconClasses="fas fa-copy"
+                    label={copied ? "Copied!" : "Copy address"}
                     on:click={copyAddress}
-                >
-                    <i class="fas fa-copy" />
-                    {copied ? "Copied!" : "Copy address"}
-                </button>
+                />
             {/if}
         </div>
     </div>

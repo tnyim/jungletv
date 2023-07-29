@@ -31,7 +31,7 @@ export const getReadableUserString = function (user: User): string {
 
 export const editNicknameForUser = async function (user: User) {
     let address = user.getAddress();
-    let nickname = await modalPrompt("Enter new nickname, leave empty to remove nickname", "Edit user nickname");
+    let nickname = await modalPrompt("Enter new nickname, leave empty to remove nickname", "Edit user nickname", "", user.getNickname());
     if (nickname != "") {
         if ([...nickname].length < 3) {
             await modalAlert("The nickname must be at least 3 characters long.");
