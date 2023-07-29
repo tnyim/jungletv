@@ -51,6 +51,7 @@
     "@codemirror/view": "^6.15.3",
     "@improbable-eng/grpc-web": "^0.15.0",
     "@lezer/highlight": "^1.1.6",
+    "@tronweb3/google-protobuf": "^3.21.2",
     "@types/google-protobuf": "^3.15.6",
     "@types/marked": "^5.0.1",
     "broadcast-channel": "^5.1.0",
@@ -59,7 +60,6 @@
     "emoji-picker-element": "^1.18.3",
     "emoji-regex": "^10.2.1",
     "fuse.js": "^6.6.2",
-    "google-protobuf": "^3.21.2",
     "luxon": "^3.3.0",
     "marked": "^5.1.2",
     "marked-gfm-heading-id": "^3.0.4",
@@ -77,5 +77,8 @@
     "workbox-expiration": "^7.0.0",
     "workbox-routing": "^7.0.0",
     "workbox-strategies": "^7.0.0"
+  },
+  "overrides": {
+    "google-protobuf@*": "npm:@tronweb3/google-protobuf@^3.21.2"
   }
 }
