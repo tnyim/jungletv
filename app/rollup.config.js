@@ -148,6 +148,7 @@ export default [
 			// instead of npm run dev), minify
 			production && terser(
 				{
+					ecma: 2020,
 					format: {
 						comments: false
 					}

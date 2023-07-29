@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Map } from "google-protobuf";
     import { DateTime } from "luxon";
-    import { PointsTransaction, PointsTransactionType, PointsTransactionTypeMap } from "../proto/jungletv_pb";
+    import { PointsTransaction, PointsTransactionType, type PointsTransactionTypeMap } from "../proto/jungletv_pb";
 
     export let tx: PointsTransaction;
 

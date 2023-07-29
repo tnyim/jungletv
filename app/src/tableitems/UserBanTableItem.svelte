@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { openUserProfile } from "../profile_utils";
     import type { UserBan } from "../proto/jungletv_pb";
-    import { buildMonKeyURL, formatDateForModeration } from "../utils";
+    import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
     export let ban: UserBan;
