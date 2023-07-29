@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { formatBANPriceFixed, isPriceZero } from "./currency_utils";
+    import { UserRole } from "./proto/common_pb";
     import type { QueueEntry } from "./proto/jungletv_pb";
     import { buildMonKeyURL, getReadableUserString } from "./utils";
 
@@ -8,15 +9,22 @@
     export let mode: string;
 
     const dispatch = createEventDispatcher();
+
+    $: fromApplication = (entry.getRequestedBy()?.getRolesList() ?? []).includes(UserRole.APPLICATION);
 </script>
 
 <p class="text-xs whitespace-nowrap">
     {#if entry.hasRequestedBy() && entry.getRequestedBy().getAddress() != ""}
-        Enqueued by <img
-            src={buildMonKeyURL(entry.getRequestedBy().getAddress())}
-            alt="&nbsp;"
-            class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1"
-        />
+        Enqueued by
+        {#if fromApplication}
+            <i class="fas fa-robot text-gray-300 dark:text-gray-700" title="Application" />
+        {:else}
+            <img
+                src={buildMonKeyURL(entry.getRequestedBy().getAddress())}
+                alt="&nbsp;"
+                class="inline h-7 w-7 -ml-1 -mt-4 -mb-3 -mr-1"
+            />
+        {/if}
         <span
             class={entry.getRequestedBy().hasNickname() ? "requester-user-nickname" : "requester-user-address"}
             style="font-size: 0.70rem;">{getReadableUserString(entry.getRequestedBy())}</span

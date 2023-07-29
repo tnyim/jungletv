@@ -156,8 +156,7 @@
         </p>
         {#if isPriceZero(entry.getRequestCost())}
             <p class="mt-2">
-                This video was automatically enqueued by JungleTV. Since nobody paid for this video, it will pay no
-                rewards.
+                This entry was enqueued by JungleTV itself, at no cost. Rewards, if any, will come from community tipping.
             </p>
         {/if}
     {/if}

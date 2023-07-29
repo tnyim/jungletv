@@ -120,6 +120,12 @@
             }
         }
     }}
+    on:contextmenu={(ev) => {
+        if (window.getSelection().toString() == "") {
+            ev.preventDefault();
+            dispatch("showDetails");
+        }
+    }}
 >
     {#if mode == "moderation"}
         <button type="button" class="inline" on:click={() => removeChatMessage()}>
@@ -172,15 +178,8 @@
                     {/if}
                 </VisibilityGuard>
             {/if}
-            <span class={getClassForMessageAuthor(message)}>{getReadableMessageAuthor(message)}</span>{#if message
-                .getUserMessage()
-                .getAuthor()
-                .getRolesList()
-                .includes(UserRole.MODERATOR) && message
-                    .getUserMessage()
-                    .getAuthor()
-                    .getRolesList()
-                    .includes(UserRole.VIP)}
+            <span class={getClassForMessageAuthor(message)}>{getReadableMessageAuthor(message)}</span
+            >{#if rolesList.includes(UserRole.MODERATOR) && rolesList.includes(UserRole.VIP)}
                 <i
                     class="fas fa-shield-alt text-xs ml-1 text-yellow-400 dark:text-yellow-600"
                     title="VIP Chat moderator"
@@ -192,11 +191,7 @@
                 <i
                     class="fas fa-shield-alt text-xs ml-1 text-purple-700 dark:text-purple-500"
                     title="Chat moderator"
-                />{/if}{#if message
-                .getUserMessage()
-                .getAuthor()
-                .getRolesList()
-                .includes(UserRole.CURRENT_ENTRY_REQUESTER)}
+                />{/if}{#if rolesList.includes(UserRole.CURRENT_ENTRY_REQUESTER)}
                 <i
                     class="fas fa-coins text-xs ml-1 text-green-700 dark:text-green-500"
                     title="Requester of currently playing content"

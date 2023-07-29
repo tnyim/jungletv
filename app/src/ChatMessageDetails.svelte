@@ -20,8 +20,7 @@
 
     let clientHeight = 168;
 
-    $: rolesList = msg?.getUserMessage()?.getAuthor()?.getRolesList() ?? [];
-    $: messageFromApplication = rolesList.includes(UserRole.APPLICATION) ?? false;
+    $: messageFromApplication = (msg?.getUserMessage()?.getAuthor()?.getRolesList() ?? []).includes(UserRole.APPLICATION);
 
     function openProfile() {
         openUserProfile(msg.getUserMessage().getAuthor().getAddress());
