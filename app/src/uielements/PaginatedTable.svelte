@@ -176,10 +176,10 @@
           <ul class="flex px-4 sm:px-6 rounded list-none flex-wrap">
             {#each page_nums as page}
               {#if pages_to_show[page]}
-                <li>
+                <li class="mx-1 first:ml-0">
                   <button
                     on:click={(event) => changePageWithElem(event.currentTarget, page)}
-                    class="first:ml-0 text-xs font-semibold flex w-8 h-8 mx-1 p-0 rounded-full items-center justify-center leading-tight relative border border-solid border-yellow-800
+                    class="text-xs font-semibold flex w-8 h-8 p-0 rounded-full items-center justify-center leading-tight relative border border-solid border-yellow-800
                     {page === cur_page
                       ? 'bg-yellow-600 text-white'
                       : ' bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-yellow-600 ease-linear transition-all duration-150'}

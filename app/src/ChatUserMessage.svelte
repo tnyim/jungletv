@@ -137,8 +137,9 @@
             type="button"
             class="inline-block {emotesOnly ? 'align-middle' : ''} whitespace-nowrap"
             title="Click to reply"
-            on:keydown|preventDefault={(ev) => {
+            on:keydown={(ev) => {
                 if (ev.key == "Enter") {
+                    ev.preventDefault();
                     dispatch("showDetails");
                 }
             }}

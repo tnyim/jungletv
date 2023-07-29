@@ -81,7 +81,7 @@
             <div class="ml-auto lg:hidden flex flex-row gap-3">
                 {#if !hasAlert && !navbarOpen}
                     <a
-                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href={rAddress ? "/rewards" : "/rewards/address"}
                     >
@@ -89,7 +89,7 @@
                         <div class="text-xs font-bold uppercase">Rewards</div>
                     </a>
                     <a
-                        class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                        class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:shadow-lg focus:bg-yellow-500 dark:focus:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                         use:link
                         href="/enqueue"
                     >
@@ -98,7 +98,7 @@
                     </a>
                 {/if}
                 <button
-                    class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent outline-none focus:outline-none"
+                    class="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none ease-linear transition-all duration-150"
                     type="button"
                     on:click={setNavbarOpen}
                 >
@@ -160,7 +160,7 @@
                     <li>
                         <button
                             style="margin-right:48px;"
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             on:click={() => (moreOpen = false)}
                         >
                             <i class="fas fa-arrow-left" />
@@ -170,7 +170,7 @@
                 {:else if !navbarOpen}
                     <li>
                         <button
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             on:click={() => (moreOpen = true)}
                         >
                             <i class="fas fa-ellipsis-h" />
@@ -181,7 +181,7 @@
                 {#if navbarOpen || moreOpen}
                     <li class="md:col-span-3">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/about"
                         >
@@ -192,7 +192,7 @@
 
                     <li class="md:col-span-3">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/faq"
                         >
@@ -203,7 +203,7 @@
 
                     <li class="md:col-span-3">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/guidelines"
                         >
@@ -214,7 +214,7 @@
 
                     <li class="md:col-span-3">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-gray-300 text-gray-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/history"
                         >
@@ -227,7 +227,7 @@
                 {#if !moreOpen}
                     <li class="md:col-span-4">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-green-500 text-green-600 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/leaderboards"
                         >
@@ -238,7 +238,7 @@
 
                     <li class="md:col-span-4">
                         <a
-                            class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="p-1 lg:py-2 flex flex-col items-center dark:text-purple-500 text-purple-700 rounded hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800 focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href={rAddress ? "/rewards" : "/rewards/address"}
                         >
@@ -255,7 +255,7 @@
 
                     <li class="col-span-3 md:col-span-4">
                         <a
-                            class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
+                            class="dark:bg-yellow-600 bg-yellow-400 text-white dark:text-white p-1 lg:py-2 flex flex-col items-center rounded hover:shadow-lg hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:shadow-lg focus:bg-yellow-500 dark:focus:bg-yellow-500 outline-none focus:outline-none hover:no-underline ease-linear transition-all duration-150"
                             use:link
                             href="/enqueue"
                         >

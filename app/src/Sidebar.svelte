@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onDestroy } from "svelte";
     import { DoubleBounce } from "svelte-loading-spinners";
+    import { useFocus } from "svelte-navigator";
     import { fly } from "svelte/transition";
     import { currentlyWatching, playerConnected, sidebarMode, unreadAnnouncement, unreadChatMention } from "./stores";
     import {
@@ -15,6 +16,7 @@
     import TabButton from "./uielements/TabButton.svelte";
     import { openPopout } from "./utils";
 
+    const registerFocus = useFocus();
     const dispatch = createEventDispatcher();
 
     let selectedTabID = "queue"; // do not set this variable directly. update sidebarMode instead to ensure proper animations
@@ -136,6 +138,7 @@
 
 <div class="px-2 pt-1 pb-2 cursor-default relative">
     <button
+        use:registerFocus
         type="button"
         class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={() => dispatch("collapseSidebar")}
@@ -144,6 +147,7 @@
     </button>
     <div class="flex flex-row lg:ml-10">
         <div
+            tabindex="-1"
             class="flex-1 flex flex-row h-9 overflow-x-scroll disable-scrollbars relative"
             on:mousemove={onTabBarMouseMove}
             on:touchstart={() => (touchingTabBar = true)}
