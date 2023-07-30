@@ -4,8 +4,8 @@ interface Require {
     (id: "jungletv:pages"): typeof import("jungletv:pages");
     (id: "jungletv:points"): typeof import("jungletv:points");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
-    (id: "node:console"): typeof import("node:console");
-    (id: "node:process"): typeof import("node:process");
+    (id: "node:console" | "console"): typeof import("node:console");
+    (id: "node:process" | "process"): typeof import("node:process");
 }
 
 declare var console: typeof import("node:console");
@@ -536,6 +536,10 @@ declare module "node:console" {
      */
     export function error(message?: any, ...optionalParams: any[]): void;
 }
+declare module "console" {
+    const m = typeof import("node:console");
+    export default m;
+}
 
 /** Lets applications control and obtain information about their own execution instance and operating environment. */
 declare module "node:process" {
@@ -571,6 +575,10 @@ declare module "node:process" {
         "jungletv": string,
         [key: string]: string;
     };
+}
+declare module "process" {
+    const m = typeof import("node:process");
+    export default m;
 }
 
 /** Allows for interaction with the JungleTV points subsystem. */

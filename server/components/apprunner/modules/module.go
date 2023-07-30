@@ -10,6 +10,7 @@ import (
 type NativeModule interface {
 	ModuleLoader() require.ModuleLoader
 	ModuleName() string
+	IsNodeBuiltin() bool
 	AutoRequire() (bool, string)
 	ExecutionResumed(context.Context)
 	ExecutionPaused()

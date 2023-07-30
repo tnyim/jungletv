@@ -58,6 +58,10 @@ func New(logger modules.ApplicationLogger, infoProvider ProcessInformationProvid
 	}
 }
 
+func (m *chatModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *chatModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

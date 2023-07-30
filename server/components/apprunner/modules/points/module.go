@@ -50,6 +50,10 @@ func New(pointsManager *pointsmanager.Manager, schedule gojautil.ScheduleFunctio
 	}
 }
 
+func (m *pointsModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

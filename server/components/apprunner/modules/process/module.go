@@ -12,7 +12,7 @@ import (
 )
 
 // ModuleName is the name by which this module can be require()d in a script
-const ModuleName = "node:process"
+const ModuleName = "process"
 
 // ProcessInformationProvider can get information about the process
 type ProcessInformationProvider interface {
@@ -41,6 +41,10 @@ func New(infoProvider ProcessInformationProvider, lifecycleManager ProcessLifecy
 		infoProvider:     infoProvider,
 		lifecycleManager: lifecycleManager,
 	}
+}
+
+func (m *processModule) IsNodeBuiltin() bool {
+	return true
 }
 
 func (m *processModule) ModuleLoader() require.ModuleLoader {

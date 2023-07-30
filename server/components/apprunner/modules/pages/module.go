@@ -58,6 +58,10 @@ func New(infoProvider ProcessInformationProvider) PagesModule {
 	}
 }
 
+func (m *pagesModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *pagesModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

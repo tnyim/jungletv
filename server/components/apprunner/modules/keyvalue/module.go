@@ -28,6 +28,10 @@ func New(applicationID string) modules.NativeModule {
 	}
 }
 
+func (m *keyValueModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *keyValueModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

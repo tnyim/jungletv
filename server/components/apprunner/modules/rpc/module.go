@@ -90,6 +90,10 @@ func New() RPCModule {
 	}
 }
 
+func (m *rpcModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *rpcModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

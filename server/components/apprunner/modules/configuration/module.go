@@ -48,6 +48,10 @@ func New(infoProvider ProcessInformationProvider, configManager *configurationma
 	}
 }
 
+func (m *configurationModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

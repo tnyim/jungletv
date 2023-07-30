@@ -51,6 +51,10 @@ func (c *Collection) BuildRegistry(sourceLoader SourceLoader) *require.Registry 
 
 func (c *Collection) registerModules(registry *require.Registry) {
 	for _, c := range c.modules {
-		registry.RegisterNativeModule(c.ModuleName(), c.ModuleLoader())
+		name, loader := c.ModuleName(), c.ModuleLoader()
+		registry.RegisterNativeModule(name, loader)
+		if c.IsNodeBuiltin() {
+			registry.RegisterNativeModule("node:"+name, loader)
+		}
 	}
 }

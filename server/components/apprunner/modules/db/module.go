@@ -28,6 +28,10 @@ func New(runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
 	return &dbModule{runOnLoop: runOnLoop}
 }
 
+func (m *dbModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *dbModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime

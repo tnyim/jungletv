@@ -53,6 +53,10 @@ func New(logger modules.ApplicationLogger, infoProvider ProcessInformationProvid
 	}
 }
 
+func (m *queueModule) IsNodeBuiltin() bool {
+	return false
+}
+
 func (m *queueModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
