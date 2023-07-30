@@ -1,13 +1,12 @@
 <script lang="ts">
-    import type { QueueEntry } from "./proto/jungletv_pb";
-    import QueueEntryEnqueuedBy from "./QueueEntryEnqueuedBy.svelte";
-    import { formatQueueEntryThumbnailDuration } from "./utils";
+    import QueueEntryHeaderLayout from "./QueueEntryHeaderLayout.svelte";
+    import { type PartialQueueEntryForHeader } from "./utils";
 
-    export let entry: QueueEntry;
+    export let entry: PartialQueueEntryForHeader;
     export let isPlaying: boolean;
     export let mode: string;
 
-    $: randomBase = ((e: QueueEntry): number => {
+    $: randomBase = ((e: PartialQueueEntryForHeader): number => {
         let s = 0;
         for (let i = 0; i < e.getId().length; i++) {
             s += e.getId().charCodeAt(i);
@@ -22,30 +21,23 @@
     $: thumbnailPosY = -randomUpTo(randomBase, 512 - 90);
 </script>
 
-<div class="shrink-0 thumbnail mr-2" style="width: 120px">
-    <div class="thumbnail-concealed-queue-entry" style="background-position: {thumbnailPosX}px {thumbnailPosY}px" />
-    {#if isPlaying}
-        <div class="thumbnail-now-playing-overlay">
-            <div style="width: auto;" class="flex flex-row place-content-center">
-                <i class="fas fa-play text-5xl" />
-            </div>
-        </div>
-    {/if}
-    <div class="thumbnail-length-overlay text-white">
-        <div class="thumbnail-length" title={formatQueueEntryThumbnailDuration(entry.getLength())}>
-            {formatQueueEntryThumbnailDuration(entry.getLength(), entry.getOffset())}
-        </div>
-    </div>
-</div>
-<div class="flex flex-col grow overflow-hidden">
-    <p class="queue-entry-title break-words">
+<QueueEntryHeaderLayout {entry} {isPlaying} {mode} hideConcealedIcon={true}>
+    <div slot="thumbnail" class="thumbnail" style="background-position: {thumbnailPosX}px {thumbnailPosY}px" />
+    <svelte:fragment slot="title">
         <span class="bg-black dark:bg-white">{"█".repeat(5 + randomUpTo(randomBase, 17))}</span>
         <br />
         <span class="text-xs text-gray-600 dark:text-gray-300 font-semibold bg-gray-600 dark:bg-gray-300">
             {"█".repeat(5 + randomUpTo(randomBase, 15))}
         </span>
-    </p>
-    <QueueEntryEnqueuedBy {entry} {mode} on:remove on:disallow />
-</div>
+    </svelte:fragment>
+</QueueEntryHeaderLayout>
 
-<style lang="postcss" src="./styles/QueueEntryHeader.postcss"></style>
+<style lang="postcss">
+    .thumbnail {
+        width: 120px;
+        height: 90px;
+        background-image: url("/assets/concealed.webp");
+        background-repeat: no-repeat;
+        background-attachment: scroll;
+    }
+</style>

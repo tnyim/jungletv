@@ -432,10 +432,15 @@ export class EnqueueMediaTicket extends jspb.Message {
   getCurrentlyPlayingIsUnskippable(): boolean;
   setCurrentlyPlayingIsUnskippable(value: boolean): void;
 
-  hasMediaLength(): boolean;
-  clearMediaLength(): void;
-  getMediaLength(): google_protobuf_duration_pb.Duration | undefined;
-  setMediaLength(value?: google_protobuf_duration_pb.Duration): void;
+  hasLength(): boolean;
+  clearLength(): void;
+  getLength(): google_protobuf_duration_pb.Duration | undefined;
+  setLength(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasOffset(): boolean;
+  clearOffset(): void;
+  getOffset(): google_protobuf_duration_pb.Duration | undefined;
+  setOffset(value?: google_protobuf_duration_pb.Duration): void;
 
   clearExtraCurrencyPaymentDataList(): void;
   getExtraCurrencyPaymentDataList(): Array<ExtraCurrencyPaymentData>;
@@ -480,7 +485,8 @@ export namespace EnqueueMediaTicket {
     unskippable: boolean,
     concealed: boolean,
     currentlyPlayingIsUnskippable: boolean,
-    mediaLength?: google_protobuf_duration_pb.Duration.AsObject,
+    length?: google_protobuf_duration_pb.Duration.AsObject,
+    offset?: google_protobuf_duration_pb.Duration.AsObject,
     extraCurrencyPaymentDataList: Array<ExtraCurrencyPaymentData.AsObject>,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
@@ -489,9 +495,9 @@ export namespace EnqueueMediaTicket {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 13,
-    SOUNDCLOUD_TRACK_DATA = 14,
-    DOCUMENT_DATA = 15,
+    YOUTUBE_VIDEO_DATA = 14,
+    SOUNDCLOUD_TRACK_DATA = 15,
+    DOCUMENT_DATA = 16,
   }
 }
 

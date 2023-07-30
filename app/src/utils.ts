@@ -11,7 +11,7 @@ import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
 import { modalAlert, modalPrompt } from "./modal/modal";
 import type { User } from "./proto/common_pb";
-import { ForcedTicketEnqueueType, PermissionLevel, QueueSoundCloudTrackData, SubscriptionDetails, type ForcedTicketEnqueueTypeMap } from "./proto/jungletv_pb";
+import { EnqueueMediaTicket, ForcedTicketEnqueueType, PermissionLevel, QueueEntry, QueueSoundCloudTrackData, SubscriptionDetails, type ForcedTicketEnqueueTypeMap } from "./proto/jungletv_pb";
 import { permissionLevel, playerVolume } from "./stores";
 
 export const copyToClipboard = async function (content: string) {
@@ -755,3 +755,5 @@ export const awaitReadableValue = async function <T>(readable: Readable<T>, pred
     unsub();
     return result;
 }
+
+export type PartialQueueEntryForHeader = QueueEntry | EnqueueMediaTicket;

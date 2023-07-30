@@ -122,7 +122,8 @@ func (e *queueEntryDocument) UnmarshalJSON(b []byte) error {
 }
 
 func (e *queueEntryDocument) FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket) {
-	ticket.MediaLength = durationpb.New(e.Length())
+	ticket.Length = durationpb.New(e.Length())
+	ticket.Offset = durationpb.New(e.Offset())
 	ticket.MediaInfo = &proto.EnqueueMediaTicket_DocumentData{
 		DocumentData: &proto.QueueDocumentData{
 			Id:    e.document.ID,

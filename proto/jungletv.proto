@@ -226,12 +226,13 @@ message EnqueueMediaTicket {
     bool unskippable = 8;
     bool concealed = 9;
     bool currently_playing_is_unskippable = 10;
-    google.protobuf.Duration media_length = 11;
-    repeated ExtraCurrencyPaymentData extra_currency_payment_data = 12;
+    google.protobuf.Duration length = 11;
+    google.protobuf.Duration offset = 12;
+    repeated ExtraCurrencyPaymentData extra_currency_payment_data = 13;
     oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 13;
-        QueueSoundCloudTrackData soundcloud_track_data = 14;
-        QueueDocumentData document_data = 15;
+        QueueYouTubeVideoData youtube_video_data = 14;
+        QueueSoundCloudTrackData soundcloud_track_data = 15;
+        QueueDocumentData document_data = 16;
     }
 }
 

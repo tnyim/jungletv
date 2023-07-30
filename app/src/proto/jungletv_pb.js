@@ -8157,7 +8157,7 @@ proto.jungletv.EnqueueMediaFailure.prototype.setFailureReason = function(value) 
  * @private {!Array<number>}
  * @const
  */
-proto.jungletv.EnqueueMediaTicket.repeatedFields_ = [12];
+proto.jungletv.EnqueueMediaTicket.repeatedFields_ = [13];
 
 /**
  * Oneof group definitions for this message. Each group defines the field
@@ -8167,16 +8167,16 @@ proto.jungletv.EnqueueMediaTicket.repeatedFields_ = [12];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.EnqueueMediaTicket.oneofGroups_ = [[13,14,15]];
+proto.jungletv.EnqueueMediaTicket.oneofGroups_ = [[14,15,16]];
 
 /**
  * @enum {number}
  */
 proto.jungletv.EnqueueMediaTicket.MediaInfoCase = {
   MEDIA_INFO_NOT_SET: 0,
-  YOUTUBE_VIDEO_DATA: 13,
-  SOUNDCLOUD_TRACK_DATA: 14,
-  DOCUMENT_DATA: 15
+  YOUTUBE_VIDEO_DATA: 14,
+  SOUNDCLOUD_TRACK_DATA: 15,
+  DOCUMENT_DATA: 16
 };
 
 /**
@@ -8227,7 +8227,8 @@ proto.jungletv.EnqueueMediaTicket.toObject = function(includeInstance, msg) {
     unskippable: jspb.Message.getBooleanFieldWithDefault(msg, 8, false),
     concealed: jspb.Message.getBooleanFieldWithDefault(msg, 9, false),
     currentlyPlayingIsUnskippable: jspb.Message.getBooleanFieldWithDefault(msg, 10, false),
-    mediaLength: (f = msg.getMediaLength()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    length: (f = msg.getLength()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    offset: (f = msg.getOffset()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     extraCurrencyPaymentDataList: jspb.Message.toObjectList(msg.getExtraCurrencyPaymentDataList(),
     proto.jungletv.ExtraCurrencyPaymentData.toObject, includeInstance),
     youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.QueueYouTubeVideoData.toObject(includeInstance, f),
@@ -8313,24 +8314,29 @@ proto.jungletv.EnqueueMediaTicket.deserializeBinaryFromReader = function(msg, re
     case 11:
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
-      msg.setMediaLength(value);
+      msg.setLength(value);
       break;
     case 12:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setOffset(value);
+      break;
+    case 13:
       var value = new proto.jungletv.ExtraCurrencyPaymentData;
       reader.readMessage(value,proto.jungletv.ExtraCurrencyPaymentData.deserializeBinaryFromReader);
       msg.addExtraCurrencyPaymentData(value);
       break;
-    case 13:
+    case 14:
       var value = new proto.jungletv.QueueYouTubeVideoData;
       reader.readMessage(value,proto.jungletv.QueueYouTubeVideoData.deserializeBinaryFromReader);
       msg.setYoutubeVideoData(value);
       break;
-    case 14:
+    case 15:
       var value = new proto.jungletv.QueueSoundCloudTrackData;
       reader.readMessage(value,proto.jungletv.QueueSoundCloudTrackData.deserializeBinaryFromReader);
       msg.setSoundcloudTrackData(value);
       break;
-    case 15:
+    case 16:
       var value = new proto.jungletv.QueueDocumentData;
       reader.readMessage(value,proto.jungletv.QueueDocumentData.deserializeBinaryFromReader);
       msg.setDocumentData(value);
@@ -8435,7 +8441,7 @@ proto.jungletv.EnqueueMediaTicket.serializeBinaryToWriter = function(message, wr
       f
     );
   }
-  f = message.getMediaLength();
+  f = message.getLength();
   if (f != null) {
     writer.writeMessage(
       11,
@@ -8443,10 +8449,18 @@ proto.jungletv.EnqueueMediaTicket.serializeBinaryToWriter = function(message, wr
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
+  f = message.getOffset();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
   f = message.getExtraCurrencyPaymentDataList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      12,
+      13,
       f,
       proto.jungletv.ExtraCurrencyPaymentData.serializeBinaryToWriter
     );
@@ -8454,7 +8468,7 @@ proto.jungletv.EnqueueMediaTicket.serializeBinaryToWriter = function(message, wr
   f = message.getYoutubeVideoData();
   if (f != null) {
     writer.writeMessage(
-      13,
+      14,
       f,
       proto.jungletv.QueueYouTubeVideoData.serializeBinaryToWriter
     );
@@ -8462,7 +8476,7 @@ proto.jungletv.EnqueueMediaTicket.serializeBinaryToWriter = function(message, wr
   f = message.getSoundcloudTrackData();
   if (f != null) {
     writer.writeMessage(
-      14,
+      15,
       f,
       proto.jungletv.QueueSoundCloudTrackData.serializeBinaryToWriter
     );
@@ -8470,7 +8484,7 @@ proto.jungletv.EnqueueMediaTicket.serializeBinaryToWriter = function(message, wr
   f = message.getDocumentData();
   if (f != null) {
     writer.writeMessage(
-      15,
+      16,
       f,
       proto.jungletv.QueueDocumentData.serializeBinaryToWriter
     );
@@ -8678,10 +8692,10 @@ proto.jungletv.EnqueueMediaTicket.prototype.setCurrentlyPlayingIsUnskippable = f
 
 
 /**
- * optional google.protobuf.Duration media_length = 11;
+ * optional google.protobuf.Duration length = 11;
  * @return {?proto.google.protobuf.Duration}
  */
-proto.jungletv.EnqueueMediaTicket.prototype.getMediaLength = function() {
+proto.jungletv.EnqueueMediaTicket.prototype.getLength = function() {
   return /** @type{?proto.google.protobuf.Duration} */ (
     jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 11));
 };
@@ -8691,7 +8705,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.getMediaLength = function() {
  * @param {?proto.google.protobuf.Duration|undefined} value
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
 */
-proto.jungletv.EnqueueMediaTicket.prototype.setMediaLength = function(value) {
+proto.jungletv.EnqueueMediaTicket.prototype.setLength = function(value) {
   return jspb.Message.setWrapperField(this, 11, value);
 };
 
@@ -8700,8 +8714,8 @@ proto.jungletv.EnqueueMediaTicket.prototype.setMediaLength = function(value) {
  * Clears the message field making it undefined.
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
  */
-proto.jungletv.EnqueueMediaTicket.prototype.clearMediaLength = function() {
-  return this.setMediaLength(undefined);
+proto.jungletv.EnqueueMediaTicket.prototype.clearLength = function() {
+  return this.setLength(undefined);
 };
 
 
@@ -8709,18 +8723,55 @@ proto.jungletv.EnqueueMediaTicket.prototype.clearMediaLength = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.jungletv.EnqueueMediaTicket.prototype.hasMediaLength = function() {
+proto.jungletv.EnqueueMediaTicket.prototype.hasLength = function() {
   return jspb.Message.getField(this, 11) != null;
 };
 
 
 /**
- * repeated ExtraCurrencyPaymentData extra_currency_payment_data = 12;
+ * optional google.protobuf.Duration offset = 12;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.EnqueueMediaTicket.prototype.getOffset = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 12));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.EnqueueMediaTicket} returns this
+*/
+proto.jungletv.EnqueueMediaTicket.prototype.setOffset = function(value) {
+  return jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.EnqueueMediaTicket} returns this
+ */
+proto.jungletv.EnqueueMediaTicket.prototype.clearOffset = function() {
+  return this.setOffset(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.EnqueueMediaTicket.prototype.hasOffset = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * repeated ExtraCurrencyPaymentData extra_currency_payment_data = 13;
  * @return {!Array<!proto.jungletv.ExtraCurrencyPaymentData>}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.getExtraCurrencyPaymentDataList = function() {
   return /** @type{!Array<!proto.jungletv.ExtraCurrencyPaymentData>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.jungletv.ExtraCurrencyPaymentData, 12));
+    jspb.Message.getRepeatedWrapperField(this, proto.jungletv.ExtraCurrencyPaymentData, 13));
 };
 
 
@@ -8729,7 +8780,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.getExtraCurrencyPaymentDataList = fu
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
 */
 proto.jungletv.EnqueueMediaTicket.prototype.setExtraCurrencyPaymentDataList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 12, value);
+  return jspb.Message.setRepeatedWrapperField(this, 13, value);
 };
 
 
@@ -8739,7 +8790,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.setExtraCurrencyPaymentDataList = fu
  * @return {!proto.jungletv.ExtraCurrencyPaymentData}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.addExtraCurrencyPaymentData = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 12, opt_value, proto.jungletv.ExtraCurrencyPaymentData, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 13, opt_value, proto.jungletv.ExtraCurrencyPaymentData, opt_index);
 };
 
 
@@ -8753,12 +8804,12 @@ proto.jungletv.EnqueueMediaTicket.prototype.clearExtraCurrencyPaymentDataList = 
 
 
 /**
- * optional QueueYouTubeVideoData youtube_video_data = 13;
+ * optional QueueYouTubeVideoData youtube_video_data = 14;
  * @return {?proto.jungletv.QueueYouTubeVideoData}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.getYoutubeVideoData = function() {
   return /** @type{?proto.jungletv.QueueYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 13));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 14));
 };
 
 
@@ -8767,7 +8818,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.getYoutubeVideoData = function() {
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
 */
 proto.jungletv.EnqueueMediaTicket.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 13, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 14, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
 };
 
 
@@ -8785,17 +8836,17 @@ proto.jungletv.EnqueueMediaTicket.prototype.clearYoutubeVideoData = function() {
  * @return {boolean}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 13) != null;
+  return jspb.Message.getField(this, 14) != null;
 };
 
 
 /**
- * optional QueueSoundCloudTrackData soundcloud_track_data = 14;
+ * optional QueueSoundCloudTrackData soundcloud_track_data = 15;
  * @return {?proto.jungletv.QueueSoundCloudTrackData}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.getSoundcloudTrackData = function() {
   return /** @type{?proto.jungletv.QueueSoundCloudTrackData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueSoundCloudTrackData, 14));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueSoundCloudTrackData, 15));
 };
 
 
@@ -8804,7 +8855,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.getSoundcloudTrackData = function() 
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
 */
 proto.jungletv.EnqueueMediaTicket.prototype.setSoundcloudTrackData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 14, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 15, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
 };
 
 
@@ -8822,17 +8873,17 @@ proto.jungletv.EnqueueMediaTicket.prototype.clearSoundcloudTrackData = function(
  * @return {boolean}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.hasSoundcloudTrackData = function() {
-  return jspb.Message.getField(this, 14) != null;
+  return jspb.Message.getField(this, 15) != null;
 };
 
 
 /**
- * optional QueueDocumentData document_data = 15;
+ * optional QueueDocumentData document_data = 16;
  * @return {?proto.jungletv.QueueDocumentData}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.getDocumentData = function() {
   return /** @type{?proto.jungletv.QueueDocumentData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueDocumentData, 15));
+    jspb.Message.getWrapperField(this, proto.jungletv.QueueDocumentData, 16));
 };
 
 
@@ -8841,7 +8892,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.getDocumentData = function() {
  * @return {!proto.jungletv.EnqueueMediaTicket} returns this
 */
 proto.jungletv.EnqueueMediaTicket.prototype.setDocumentData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 15, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
+  return jspb.Message.setOneofWrapperField(this, 16, proto.jungletv.EnqueueMediaTicket.oneofGroups_[0], value);
 };
 
 
@@ -8859,7 +8910,7 @@ proto.jungletv.EnqueueMediaTicket.prototype.clearDocumentData = function() {
  * @return {boolean}
  */
 proto.jungletv.EnqueueMediaTicket.prototype.hasDocumentData = function() {
-  return jspb.Message.getField(this, 15) != null;
+  return jspb.Message.getField(this, 16) != null;
 };
 
 

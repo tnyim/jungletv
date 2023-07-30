@@ -120,7 +120,8 @@ func (e *queueEntrySoundCloudTrack) UnmarshalJSON(b []byte) error {
 }
 
 func (e *queueEntrySoundCloudTrack) FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket) {
-	ticket.MediaLength = durationpb.New(e.Length())
+	ticket.Length = durationpb.New(e.Length())
+	ticket.Offset = durationpb.New(e.Offset())
 	ticket.MediaInfo = &proto.EnqueueMediaTicket_SoundcloudTrackData{
 		SoundcloudTrackData: &proto.QueueSoundCloudTrackData{
 			Id:           e.id,

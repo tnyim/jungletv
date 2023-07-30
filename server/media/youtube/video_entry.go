@@ -115,7 +115,8 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 }
 
 func (e *queueEntryYouTubeVideo) FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket) {
-	ticket.MediaLength = durationpb.New(e.Length())
+	ticket.Length = durationpb.New(e.Length())
+	ticket.Offset = durationpb.New(e.Offset())
 	ticket.MediaInfo = &proto.EnqueueMediaTicket_YoutubeVideoData{
 		YoutubeVideoData: &proto.QueueYouTubeVideoData{
 			Id:            e.id,

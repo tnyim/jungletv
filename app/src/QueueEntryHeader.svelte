@@ -1,14 +1,14 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import type { QueueEntry } from "./proto/jungletv_pb";
     import QueueEntryHeaderConcealed from "./QueueEntryHeaderConcealed.svelte";
     import QueueEntryHeaderDocument from "./QueueEntryHeaderDocument.svelte";
     import QueueEntryHeaderSoundCloud from "./QueueEntryHeaderSoundCloud.svelte";
     import QueueEntryHeaderYouTube from "./QueueEntryHeaderYouTube.svelte";
+    import type { PartialQueueEntryForHeader } from "./utils";
 
     const dispatch = createEventDispatcher();
 
-    export let entry: QueueEntry;
+    export let entry: PartialQueueEntryForHeader;
     export let isPlaying: boolean;
     export let mode: string;
     export let index: number;
@@ -26,7 +26,7 @@
             on:click|stopPropagation={() => dispatch("jumpTo")}
             class="text-gray-500 hover:text-purple-500 ease-linear transition-all"
         >
-            <i class="fas fa-location-arrow " />
+            <i class="fas fa-location-arrow" />
         </button>
     </div>
 {/if}
@@ -36,7 +36,7 @@
     <QueueEntryHeaderSoundCloud {entry} {isPlaying} {mode} />
 {:else if entry.hasDocumentData()}
     <QueueEntryHeaderDocument {entry} {isPlaying} {mode} />
-{:else if entry.hasConcealedData()}
+{:else if "hasConcealedData" in entry && entry.hasConcealedData()}
     <QueueEntryHeaderConcealed {entry} {isPlaying} {mode} />
 {:else}
     <p style="height: 90px">Unknown queue entry type</p>
