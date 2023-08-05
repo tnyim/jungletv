@@ -250,7 +250,7 @@
         <iframe
             bind:this={iframe}
             on:load={onIframeLoaded}
-            class="w-full"
+            class="w-full {fixedHeight == 0 ? "min-h-full" : ""}"
             title={response.getPageTitle()}
             src="/assets/app/{applicationID}/{applicationVersion.getTime() + ''}/*{pageID}"
             scrolling="no"
