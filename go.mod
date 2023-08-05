@@ -108,6 +108,7 @@ require (
 	github.com/rickb777/plural v1.4.1 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/rs/cors v1.9.0 // indirect
+	github.com/samber/lo v1.38.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

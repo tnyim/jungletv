@@ -12,6 +12,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/hectorchu/gonano/util"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
@@ -64,6 +65,7 @@ func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 		m.exports = module.Get("exports").(*goja.Object)
 		m.exports.Set("createTransaction", m.createTransaction)
 		m.exports.Set("getBalance", m.getBalance)
+		m.exports.Set("getNiceSubscription", m.getNiceSubscription)
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 
@@ -117,6 +119,10 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 	user := auth.NewAddressOnlyUser(userAddress)
 
 	description := call.Argument(1).String()
+	if description == "" {
+		panic(m.runtime.NewTypeError("Transaction description is empty"))
+	}
+
 	var value int
 	err = m.runtime.ExportTo(call.Argument(2), &value)
 	if err != nil || value == 0 {
@@ -188,4 +194,42 @@ func (m *pointsModule) getBalance(call goja.FunctionCall) goja.Value {
 	}
 
 	return m.runtime.ToValue(balance.Balance)
+}
+
+func (m *pointsModule) getNiceSubscription(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	userValue := call.Argument(0)
+	userAddress := userValue.String()
+
+	_, err := util.AddressToPubkey(userAddress)
+	if err != nil || userAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
+		panic(m.runtime.NewTypeError("Invalid user address"))
+	}
+
+	subscription, err := m.pointsManager.GetCurrentUserSubscription(m.executionContext, auth.NewAddressOnlyUser(userAddress))
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	if subscription == nil {
+		return goja.Null()
+	}
+
+	return m.runtime.ToValue(serializeSubscriptionForJS(subscription, m.dateSerializer))
+}
+
+func serializeSubscriptionForJS(subscription *types.Subscription, dateSerializer func(time.Time) interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"address":  subscription.RewardsAddress,
+		"startsAt": dateSerializer(subscription.StartsAt),
+		"endsAt":   dateSerializer(subscription.EndsAt),
+
+		// JS deals poorly with int64
+		"paymentTransactions": lo.Map(subscription.PaymentTxs, func(item int64, index int) string {
+			return fmt.Sprint(item)
+		}),
+	}
 }

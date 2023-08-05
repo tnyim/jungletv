@@ -654,6 +654,28 @@ declare module "jungletv:points" {
      */
     export function getBalance(address: string): number;
 
+    /**
+     * Returns the current JungleTV Nice subscription of a user.
+     * @param address The reward address of the account for which to get the subscription.
+     * @returns The currently active {@link NiceSubscription} for the specified user, or null if the user is not currently subscribed to JungleTV Nice.
+     */
+    export function getNiceSubscription(address: string): NiceSubscription;
+
+    /** Represents a JungleTV Nice subscription. */
+    export interface NiceSubscription {
+        /** The reward address of the subscriber. */
+        address: string;
+
+        /** When the user subscribed. */
+        startsAt: Date;
+
+        /** When the subscription will expire. */
+        endsAt: Date;
+
+        /** The unique IDs of the points transactions used to pay for the subscription. */
+        paymentTransactions: string[];
+    }
+
     /** Represents a points transaction. */
     export interface PointsTransaction<K extends keyof PointsTransactionTypeMap> {
         /** The unique ID of the transaction. */
