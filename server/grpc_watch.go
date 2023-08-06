@@ -18,7 +18,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	user := authinterceptor.UserClaimsFromContext(stream.Context())
 
 	var initialActivityChallenge *rewards.ActivityChallenge
-	if user != nil {
+	if user != nil && !user.IsUnknown() {
 		spectator, err := s.rewardsHandler.RegisterSpectator(stream.Context(), user)
 		if err != nil {
 			return stacktrace.Propagate(err, "")

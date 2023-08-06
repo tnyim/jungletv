@@ -310,7 +310,7 @@ var numbersOnly = regexp.MustCompile("^[0-9]+$")
 func (s *grpcServer) MonitorMediaEnqueuingPermission(r *proto.MonitorMediaEnqueuingPermissionRequest, stream proto.JungleTV_MonitorMediaEnqueuingPermissionServer) error {
 	user := authinterceptor.UserClaimsFromContext(stream.Context())
 	isBanned := false
-	if user != nil {
+	if user != nil && !user.IsUnknown() {
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(stream.Context(), user.Address()); err == nil && banned {
 			isBanned = true
 		}

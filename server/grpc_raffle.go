@@ -122,7 +122,7 @@ func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingR
 		PeriodEnd:    timestamppb.New(periodEnd),
 		TotalTickets: uint32(totalTickets),
 	}
-	if user != nil {
+	if user != nil && !user.IsUnknown() {
 		userTickets, err := types.CountMediaRaffleEntriesRequestedByBetween(ctx, periodStart, periodEnd, user.Address())
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
