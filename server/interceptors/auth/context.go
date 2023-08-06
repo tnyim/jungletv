@@ -11,7 +11,7 @@ type userClaimsContextKey struct{}
 func UserClaimsFromContext(ctx context.Context) auth.User {
 	v := ctx.Value(userClaimsContextKey{})
 	if v == nil {
-		return nil
+		return auth.UnknownUser
 	}
 	return v.(*auth.UserClaims)
 }
