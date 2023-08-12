@@ -1,6 +1,6 @@
 module github.com/tnyim/jungletv
 
-go 1.20
+go 1.21
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.4
@@ -10,13 +10,13 @@ require (
 	github.com/anthonynsimon/bild v0.13.0
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/bytedance/sonic v1.10.0-rc3
+	github.com/bytedance/sonic v1.10.0
 	github.com/clarkmcc/go-typescript v0.7.0
-	github.com/deepmap/oapi-codegen v1.13.0
+	github.com/deepmap/oapi-codegen v1.13.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20230707174833-636fdf960de1
-	github.com/dop251/goja_nodejs v0.0.0-20230727164059-07887644b3d4
+	github.com/dop251/goja v0.0.0-20230806174421-c933cf95e127
+	github.com/dop251/goja_nodejs v0.0.0-20230731184339-9ba67d720a81
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
 	github.com/gabriel-vasile/mimetype v1.4.2
@@ -41,6 +41,7 @@ require (
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rickb777/date v1.20.2
+	github.com/samber/lo v1.38.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sethvargo/go-limiter v0.7.2
 	github.com/shopspring/decimal v1.3.1
@@ -48,12 +49,12 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
-	golang.org/x/crypto v0.11.0
-	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691
-	golang.org/x/image v0.9.0
-	golang.org/x/oauth2 v0.10.0
+	golang.org/x/crypto v0.12.0
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
+	golang.org/x/image v0.11.0
+	golang.org/x/oauth2 v0.11.0
 	golang.org/x/sync v0.3.0
-	google.golang.org/api v0.134.0
+	google.golang.org/api v0.136.0
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0
@@ -80,14 +81,14 @@ require (
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.14.1 // indirect
+	github.com/go-playground/validator/v10 v10.15.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/pprof v0.0.0-20230728192033-2ba5b33183c6 // indirect
-	github.com/google/s2a-go v0.1.4 // indirect
+	github.com/google/pprof v0.0.0-20230811205829-9131a7e9cc17 // indirect
+	github.com/google/s2a-go v0.1.5 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
@@ -108,7 +109,6 @@ require (
 	github.com/rickb777/plural v1.4.1 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/rs/cors v1.9.0 // indirect
-	github.com/samber/lo v1.38.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
@@ -116,11 +116,11 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230726155614-23370e0ffb3e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
