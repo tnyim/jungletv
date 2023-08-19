@@ -13,6 +13,7 @@ import (
 
 	"github.com/DisgoOrg/disgohook"
 	"github.com/DisgoOrg/disgohook/api"
+	goaway "github.com/TwiN/go-away"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/bwmarrin/snowflake"
 	"github.com/hectorchu/gonano/rpc"
@@ -539,6 +540,9 @@ func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
 
 func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string) (string, error) {
 	name := address[:14]
+	if goaway.IsProfane(name) {
+		name = "Someone"
+	}
 	chatBanned, err := s.moderationStore.LoadUserBannedFromChat(ctx, address, "")
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")
