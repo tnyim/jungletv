@@ -388,6 +388,13 @@ func main() {
 		AppRunner:                     apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
 	}
 
+	if buildconfig.LAB {
+		options.PrivilegedLabUserSecretKey, present = secrets.Get("privilegedLabUserSecretKey")
+		if !present {
+			mainLog.Fatalln("Privileged lab user secret key not present in keybox")
+		}
+	}
+
 	apiServer, err := server.NewServer(ctx, options)
 	if err != nil {
 		mainLog.Fatalln(err)

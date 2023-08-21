@@ -12,6 +12,11 @@ export class SignInRequest extends jspb.Message {
   getRewardsAddress(): string;
   setRewardsAddress(value: string): void;
 
+  hasLabSignInOptions(): boolean;
+  clearLabSignInOptions(): void;
+  getLabSignInOptions(): LabSignInOptions | undefined;
+  setLabSignInOptions(value?: LabSignInOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SignInRequest.AsObject;
   static toObject(includeInstance: boolean, msg: SignInRequest): SignInRequest.AsObject;
@@ -25,6 +30,33 @@ export class SignInRequest extends jspb.Message {
 export namespace SignInRequest {
   export type AsObject = {
     rewardsAddress: string,
+    labSignInOptions?: LabSignInOptions.AsObject,
+  }
+}
+
+export class LabSignInOptions extends jspb.Message {
+  getDesiredPermissionLevel(): PermissionLevelMap[keyof PermissionLevelMap];
+  setDesiredPermissionLevel(value: PermissionLevelMap[keyof PermissionLevelMap]): void;
+
+  hasCredential(): boolean;
+  clearCredential(): void;
+  getCredential(): string;
+  setCredential(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LabSignInOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: LabSignInOptions): LabSignInOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LabSignInOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LabSignInOptions;
+  static deserializeBinaryFromReader(message: LabSignInOptions, reader: jspb.BinaryReader): LabSignInOptions;
+}
+
+export namespace LabSignInOptions {
+  export type AsObject = {
+    desiredPermissionLevel: PermissionLevelMap[keyof PermissionLevelMap],
+    credential: string,
   }
 }
 

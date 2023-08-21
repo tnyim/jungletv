@@ -12,8 +12,9 @@
 
     export let failureReason: string = "";
     let successful = false;
-    let rewardsAddress: string = "";
-    let rewardsBalance: string = "";
+    let rewardsAddress = "";
+    let rewardsBalance = "";
+    let privilegedLabUserCredential = "";
 
     let rewardInfoPromise = (async function () {
         try {
@@ -46,7 +47,7 @@
             return;
         }
 
-        dispatch("addressInput", rewardsAddress);
+        dispatch("addressInput", [rewardsAddress, privilegedLabUserCredential]);
     }
 
     function cancel() {
@@ -118,6 +119,29 @@
             <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">
                 Setting an address will also allow you to chat with other users.
             </p>
+
+            {#if globalThis.LAB_BUILD}
+                <label for="lab_credential" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
+                    Credential for lab environment (leave blank to sign in with regular permissions)
+                </label>
+                <div class="mt-1 flex rounded-md shadow-sm">
+                    <input
+                        on:input={() => {
+                            failureReason = "";
+                            successful = false;
+                        }}
+                        on:keydown={handleEnter}
+                        type="password"
+                        name="lab_credential"
+                        id="lab_credential"
+                        class="dark:bg-gray-950 focus:ring-yellow-500 focus:outline-none focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
+                        ''
+                            ? 'border-red-600'
+                            : 'border-gray-300'} p-2"
+                        bind:value={privilegedLabUserCredential}
+                    />
+                </div>
+            {/if}
         {/await}
     </div>
     <div slot="extra_1">

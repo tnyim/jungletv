@@ -147,6 +147,8 @@ type grpcServer struct {
 	rewardHistoryMutex *nsync.NamedMutex
 
 	typeScriptTypeDefinitionsFile string
+
+	privilegedLabUserSecretKey string
 }
 
 // Options contains the required options to start the server
@@ -188,6 +190,8 @@ type Options struct {
 	NanswapAPIKey string
 
 	TurnstileSecretKey string
+
+	PrivilegedLabUserSecretKey string
 }
 
 // NewServer returns a new JungleTVServer
@@ -359,6 +363,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		rewardHistoryMutex: nsync.NewNamedMutex(),
 
 		typeScriptTypeDefinitionsFile: options.TypeScriptTypeDefinitionsFile,
+
+		privilegedLabUserSecretKey: options.PrivilegedLabUserSecretKey,
 	}
 	s.thirdPartyAuthorizer = auth.NewThirdPartyAuthorizer(s.jwtManager)
 	s.appEditor = appeditor.New(s.log, s.appRunner)

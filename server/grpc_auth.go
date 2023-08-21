@@ -41,15 +41,40 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 		return status.Errorf(codes.InvalidArgument, "invalid reward address")
 	}
 
-	user := authinterceptor.UserClaimsFromContext(ctx)
-	var jwtToken string
-	var tokenExpiry time.Time
-	if user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) {
-		// keep permissions of authenticated user
-		jwtToken, tokenExpiry, err = s.jwtManager.Generate(ctx, r.RewardsAddress, user.PermissionLevel(), user.ModeratorName())
-	} else {
-		jwtToken, tokenExpiry, err = s.jwtManager.Generate(ctx, r.RewardsAddress, auth.UserPermissionLevel, "")
+	finalPermissionLevel := auth.UserPermissionLevel
+	overridingPermissionLevelForLab := false
+	var moderatorName string
+	if buildconfig.LAB {
+		if r.LabSignInOptions == nil {
+			return status.Errorf(codes.InvalidArgument, "missing lab sign in options in lab environment")
+		}
+
+		desiredLevel := auth.ParseAPIPermissionLevel(r.LabSignInOptions.DesiredPermissionLevel)
+		if auth.PermissionLevelOrder[desiredLevel] < auth.PermissionLevelOrder[auth.UserPermissionLevel] {
+			return status.Errorf(codes.InvalidArgument, "invalid desired permission level")
+		}
+
+		if auth.PermissionLevelOrder[desiredLevel] > auth.PermissionLevelOrder[auth.UserPermissionLevel] {
+			if r.LabSignInOptions.Credential == nil || *r.LabSignInOptions.Credential != s.privilegedLabUserSecretKey {
+				return status.Errorf(codes.PermissionDenied, "incorrect credential")
+			}
+
+			finalPermissionLevel = desiredLevel
+			moderatorName = r.RewardsAddress[:14]
+			overridingPermissionLevelForLab = true
+		}
+	} else if r.LabSignInOptions != nil {
+		return status.Errorf(codes.InvalidArgument, "lab sign in options specified in non-lab environment")
 	}
+
+	user := authinterceptor.UserClaimsFromContext(ctx)
+	if user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) && !overridingPermissionLevelForLab {
+		// keep permissions of authenticated user
+		finalPermissionLevel = user.PermissionLevel()
+		moderatorName = user.ModeratorName()
+	}
+
+	jwtToken, tokenExpiry, err := s.jwtManager.Generate(ctx, r.RewardsAddress, finalPermissionLevel, moderatorName)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

@@ -4,7 +4,7 @@
 
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
     import { onDestroy } from "svelte";
-    import type { SignInProgress, SignInVerification } from "./proto/jungletv_pb";
+    import { LabSignInOptions, PermissionLevel, type SignInProgress, type SignInVerification } from "./proto/jungletv_pb";
     import SetRewardsAddressAddressInput from "./SetRewardsAddressAddressInput.svelte";
     import SetRewardsAddressFailure from "./SetRewardsAddressFailure.svelte";
     import SetRewardsAddressSuccess from "./SetRewardsAddressSuccess.svelte";
@@ -14,10 +14,12 @@
 
     let step = 0;
     let rewardsAddress = "";
+    let privilegedLabUserCredential = "";
     let failureReason = "";
     export let verification: SignInVerification;
-    function onAddressInput(event: CustomEvent<string>) {
-        rewardsAddress = event.detail;
+    function onAddressInput(event: CustomEvent<[string, string]>) {
+        rewardsAddress = event.detail[0];
+        privilegedLabUserCredential = event.detail[1];
         monitorVerification();
     }
     function onUserCanceled() {
@@ -53,7 +55,21 @@
             } else {
                 failureReason = "Failed to save address due to internal error. Code: " + code + " Message: " + msg;
             }
-        });
+        }, buildLabSignInOptions());
+    }
+
+    function buildLabSignInOptions(): LabSignInOptions {
+        if (!globalThis.LAB_BUILD) {
+            return undefined;
+        }
+
+        const options = new LabSignInOptions();
+        options.setDesiredPermissionLevel(PermissionLevel.USER);
+        if (privilegedLabUserCredential) {
+            options.setDesiredPermissionLevel(PermissionLevel.ADMIN);
+            options.setCredential(privilegedLabUserCredential);
+        }
+        return options;
     }
 
     function handleUpdate(p: SignInProgress) {

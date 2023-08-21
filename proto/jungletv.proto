@@ -137,6 +137,12 @@ service JungleTV {
 
 message SignInRequest {
     string rewards_address = 1;
+    optional LabSignInOptions lab_sign_in_options = 2;
+}
+
+message LabSignInOptions {
+    PermissionLevel desired_permission_level = 1;
+    optional string credential = 2;
 }
 
 message SignInProgress {

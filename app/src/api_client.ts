@@ -21,6 +21,7 @@ import {
     EnqueueMediaTicket, EnqueueSoundCloudTrackData, EnqueueYouTubeVideoData,
     ForciblyEnqueueTicketRequest,
     ForciblyEnqueueTicketResponse, GetDocumentRequest, IncreaseOrReduceSkipThresholdRequest, IncreaseOrReduceSkipThresholdResponse, InvalidateAuthTokensRequest, InvalidateAuthTokensResponse, InvalidateUserAuthTokensRequest, InvalidateUserAuthTokensResponse,
+    LabSignInOptions,
     LeaderboardsRequest, LeaderboardsResponse, MarkAsActivelyModeratingRequest,
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, MediaEnqueuingPermissionStatus, ModerationStatusOverview,
     MonitorMediaEnqueuingPermissionRequest,
@@ -174,9 +175,12 @@ class APIClient {
         });
     }
 
-    signIn(address: string, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    signIn(address: string, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void, labOptions?: LabSignInOptions): Request {
         const request = new SignInRequest();
         request.setRewardsAddress(address);
+        if (typeof labOptions !== "undefined") {
+            request.setLabSignInOptions(labOptions);
+        }
         return this.serverStreamingRPC(
             JungleTV.SignIn,
             request,
