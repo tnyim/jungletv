@@ -93,7 +93,8 @@
 
     <PaginatedTable
         title={"Applications"}
-        column_count={6}
+        column_count={4}
+        per_page={6}
         error_message={"Error loading applications"}
         no_items_message={"No applications"}
         data_promise_factory={getPage}
@@ -112,7 +113,6 @@
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
                 <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Properties</th>
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
             </tr>
         </svelte:fragment>
 

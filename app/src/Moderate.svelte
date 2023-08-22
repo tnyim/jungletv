@@ -9,7 +9,7 @@
         AllowedMediaEnqueuingType,
         ForcedTicketEnqueueType,
         VipUserAppearance,
-        VipUserAppearanceMap,
+        type VipUserAppearanceMap,
     } from "./proto/jungletv_pb";
     import ButtonButton from "./uielements/ButtonButton.svelte";
 

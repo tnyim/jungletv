@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
     import type { Application } from "../proto/application_editor_pb";
+    import DetailsButton from "../uielements/DetailsButton.svelte";
     import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
@@ -79,65 +80,50 @@
     }
 </script>
 
-<tr>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-mono"
-    >
-        {application.getId()}
+<tr class="border-t border-gray-200 dark:border-gray-700 align-middle whitespace-nowrap text-gray-700 dark:text-white">
+    <td class="px-6 pt-4 font-mono">
+        <a href={"/moderate/applications/" + application.getId()} use:link class="text-gray-700 dark:text-white">
+            {application.getId()}
+        </a>
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 pt-4 text-xs">
         <UserCellRepresentation user={application.getUpdatedBy()} />
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 pt-4 text-xs">
         <span class="font-semibold">{application.getEditMessage()}</span><br />
         {formatDateForModeration(application.getUpdatedAt().toDate())}
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 pt-4 text-xs">
         {properties}
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
-        <a href={"/moderate/applications/" + application.getId()} use:link>Edit</a><br />
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={cloneApplication}
-        >
-            Duplicate
-        </button><br />
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={deleteApplication}
-        >
-            Delete
-        </button>
-        {#if application.getAllowLaunching() && !launched}
-            <br /><button
-                type="button"
-                class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                on:click={launchApplication}
-            >
-                Launch
-            </button>
-        {/if}
-        {#if launched}
-            <br /><button
-                type="button"
-                class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                on:click={stopApplication}
-            >
-                Stop
-            </button>
-            <br />
-            <a href={"/moderate/applications/" + application.getId() + "/console"} use:link>Console</a>
-        {/if}
+</tr>
+<tr class="border-t-0 px-6 align-middle whitespace-nowrap">
+    <td colspan="4" class="p-4 pt-0">
+        <div class="flex flex-row">
+            <DetailsButton
+                label="Edit"
+                iconClasses="fas fa-edit"
+                on:click={() => navigate("/moderate/applications/" + application.getId())}
+            />
+            <DetailsButton label="Duplicate" iconClasses="fas fa-copy" on:click={cloneApplication} />
+            <DetailsButton
+                label="Delete"
+                iconClasses="fas fa-trash"
+                colorClasses="text-red-700 dark:text-red-500"
+                on:click={deleteApplication}
+            />
+            <div class="flex-grow" />
+            {#if application.getAllowLaunching() && !launched}
+                <DetailsButton label="Launch" iconClasses="fas fa-play" colorClasses="text-green-700 dark:text-green-500" on:click={launchApplication} />
+            {/if}
+            {#if launched}
+                <DetailsButton
+                    label="Console"
+                    iconClasses="fas fa-terminal"
+                    on:click={() => navigate("/moderate/applications/" + application.getId() + "/console")}
+                />
+                <DetailsButton label="Stop" iconClasses="fas fa-stop" colorClasses="text-yellow-700 dark:text-yellow-500" on:click={stopApplication} />
+            {/if}
+        </div>
     </td>
 </tr>

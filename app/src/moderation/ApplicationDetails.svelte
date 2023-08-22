@@ -145,7 +145,7 @@
 
     {#if typeof application !== "undefined"}
         <p class="font-semibold text-xl mb-4">Application <span class="font-mono">{application.getId()}</span></p>
-        <div class="mb-4">
+        <div class="mb-4 ml-6">
             <p>
                 <input
                     id="allowEditing"
@@ -180,21 +180,36 @@
                 <ButtonButton on:click={updateProperties}>Update properties</ButtonButton>
             </p>
         </div>
-        <p class="font-semibold text-lg">Files</p>
-        <p>
-            <input type="file" bind:files={uploadFiles} bind:this={fileInput} />
-            <ButtonButton
-                on:click={uploadFile}
-                disabled={!(uploadFiles && uploadFiles[0])}
-                color={!(uploadFiles && uploadFiles[0]) ? "gray" : "yellow"}
-            >
-                Upload file
-            </ButtonButton>
-        </p>
-        <div class="h-6" />
+        <div class="mb-6">
+            <p class="font-semibold text-lg mb-4">Backup and restore</p>
+            <p class="mt-4 ml-6">
+                <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
+            </p>
+            <p class="ml-6">
+                <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip" />
+                <input
+                    id="importAppendOnly"
+                    name="importAppendOnly"
+                    type="checkbox"
+                    bind:checked={importAppendOnly}
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                />
+                <label for="publicFile" class="font-medium text-gray-700 dark:text-gray-300">
+                    Append only (keep files not present in archive)
+                </label>
+                <ButtonButton
+                    on:click={importApplication}
+                    disabled={!(importFiles && importFiles[0])}
+                    color={!(importFiles && importFiles[0]) ? "gray" : "yellow"}
+                >
+                    Import application
+                </ButtonButton>
+            </p>
+        </div>
         <PaginatedTable
             title={"Files"}
-            column_count={6}
+            per_page={6}
+            column_count={5}
             error_message={"Error loading files"}
             no_items_message={"No files"}
             data_promise_factory={getPage}
@@ -214,7 +229,6 @@
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
                     <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Public</th>
-                    <th class="px-4 sm:px-6 align-middle py-3 font-semibold" />
                 </tr>
             </svelte:fragment>
 
@@ -222,29 +236,15 @@
                 <ApplicationFileTableItem {application} file={item} {updateDataCallback} />
             </tbody>
         </PaginatedTable>
-        <p class="font-semibold text-lg">Backup and restore</p>
-        <p>
-            <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
-        </p>
-        <p>
-            <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip" />
-            <input
-                id="importAppendOnly"
-                name="importAppendOnly"
-                type="checkbox"
-                bind:checked={importAppendOnly}
-                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-            />
-            <label for="publicFile" class="font-medium text-gray-700 dark:text-gray-300">
-                Append only (keep files not present in archive)
-            </label>
+        <div class="mt-4">
+            <input type="file" bind:files={uploadFiles} bind:this={fileInput} />
             <ButtonButton
-                on:click={importApplication}
-                disabled={!(importFiles && importFiles[0])}
-                color={!(importFiles && importFiles[0]) ? "gray" : "yellow"}
+                on:click={uploadFile}
+                disabled={!(uploadFiles && uploadFiles[0])}
+                color={!(uploadFiles && uploadFiles[0]) ? "gray" : "yellow"}
             >
-                Import application
+                Upload file
             </ButtonButton>
-        </p>
+        </div>
     {/if}
 </div>

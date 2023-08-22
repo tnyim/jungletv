@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { getModalResult, modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
     import ApplicationFileDetails from "../moderation/ApplicationFileDetails.svelte";
     import { mimeTypeIsEditable } from "../moderation/codeEditor";
     import type { Application, ApplicationFile } from "../proto/application_editor_pb";
+    import DetailsButton from "../uielements/DetailsButton.svelte";
     import { formatDateForModeration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
 
@@ -121,68 +122,56 @@
                 return "fas fa-file";
         }
     }
+
+    $: fileEditable = application.getAllowFileEditing() && mimeTypeIsEditable(file.getType());
+
+    function fileClick() {
+        if (fileEditable) {
+            navigate("/moderate/applications/" + application.getId() + "/files/" + file.getName());
+        } else {
+            updateFileProperties();
+        }
+    }
 </script>
 
-<tr>
-    <td class="border-t-0 pl-6 align-middle border-l-0 border-r-0 whitespace-nowrap text-gray-700 dark:text-white">
-        <i class={getIconForType(file.getType())} />
+<tr class="border-t border-gray-200 dark:border-gray-700 align-middle whitespace-nowrap text-gray-700 dark:text-white">
+    <td class="pl-6 pt-4 text-gray-700 dark:text-white">
+        <button type="button" on:click={fileClick}>
+            <i class={getIconForType(file.getType())} />
+        </button>
     </td>
-    <td
-        class="border-t-0 px-6 pl-2 align-middle border-l-0 border-r-0 whitespace-nowrap p-4 text-gray-700 dark:text-white font-bold"
-    >
-        {file.getName()}
+    <td class="px-6 pl-2 pt-4 font-bold">
+        <button type="button" on:click={fileClick}>
+            {file.getName()}
+        </button>
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 text-xs pt-4">
         <UserCellRepresentation user={file.getUpdatedBy()} />
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 text-xs pt-4">
         <span class="font-semibold">{file.getEditMessage()}</span><br />
         {formatDateForModeration(file.getUpdatedAt().toDate())}
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
+    <td class="px-6 text-xs pt-4">
         {file.getPublic() ? "Public" : "Internal"}
     </td>
-    <td
-        class="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-gray-700 dark:text-white"
-    >
-        {#if application.getAllowFileEditing() && mimeTypeIsEditable(file.getType())}
-            <a href={"/moderate/applications/" + application.getId() + "/files/" + file.getName()} use:link>
-                Edit
-            </a><br />
-        {/if}
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={cloneFileSameApp}
-        >
-            Duplicate
-        </button><br />
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={cloneFileOtherApp}
-        >
-            Duplicate to another
-        </button><br />
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={updateFileProperties}
-        >
-            Details
-        </button><br />
-        <button
-            type="button"
-            class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            on:click={deleteFile}
-        >
-            Delete
-        </button>
+</tr>
+<tr class="border-t-0 px-6 align-middle whitespace-nowrap">
+    <td colspan="5" class="p-4 pt-0">
+        <div class="flex flex-row">
+            <DetailsButton label="Details" iconClasses="fas fa-info-circle" on:click={updateFileProperties} />
+            {#if fileEditable}
+                <DetailsButton label="Edit" iconClasses="fas fa-edit" on:click={fileClick} />
+            {/if}
+            <div class="flex-grow" />
+            <DetailsButton label="Duplicate" iconClasses="fas fa-copy" on:click={cloneFileSameApp} />
+            <DetailsButton label="Duplicate to another" iconClasses="far fa-copy" on:click={cloneFileOtherApp} />
+            <DetailsButton
+                label="Delete"
+                iconClasses="fas fa-trash"
+                colorClasses="text-red-700 dark:text-red-500"
+                on:click={deleteFile}
+            />
+        </div>
     </td>
 </tr>
