@@ -44,10 +44,9 @@
     <hr class="mt-3" />
     <h3 class="mt-3 text-large font-semibold">Get in touch</h3>
     <p>
-        JungleTV is a non-profit hobby project operated by
-        <a href="https://twitter.com/gbl08ma/" target="_blank" rel="noopener">gbl08ma</a> (Discord tag: gbl08ma#3988),
-        who you can find on the
-        <a href="https://chat.banano.cc/" target="_blank" rel="noopener"> Banano Discord</a>.
+        JungleTV is a non-profit hobby project operated by Banano community members. You can discuss JungleTV in its
+        dedicated
+        <a href="https://chat.banano.cc/" target="_blank" rel="noopener">Banano Discord</a> channel.
     </p>
     <h3 class="mt-3 text-large font-semibold">Contribute</h3>
     <p>
