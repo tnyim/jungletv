@@ -3,13 +3,15 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
+    import QrCode from "svelte-qrcode";
     import { apiClient } from "./api_client";
     import type { SignInMessageToSign } from "./proto/jungletv_pb";
+    import { darkMode } from "./stores";
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import TabButton from "./uielements/TabButton.svelte";
     import Wizard from "./uielements/Wizard.svelte";
-    import { copyToClipboard } from "./utils";
+    import { copyToClipboard, hrefButtonStyleClasses } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -18,7 +20,7 @@
 
     let ticketTimeRemainingFormatted = "";
     let updateTicketTimeRemainingTimeout = 0;
-    let usingTheBananoStand = true;
+    let usingSoftware: "thebananostand" | "qrcode" | "other" = "thebananostand";
     let failureReason = "";
     let messageSignature = "";
 
@@ -38,17 +40,13 @@
         dispatch("userCanceled");
     }
 
-    function signWithTheBananoStand() {
-        const message = messageToSign.getMessage();
-        const url = messageToSign.getSubmissionUrl();
-        window.open(
-            `https://thebananostand.com/sign-message#message=${encodeURIComponent(message)}&url=${encodeURIComponent(
-                url
-            )}&address=${encodeURIComponent(rewardsAddress)}`,
-            "",
-            "noopener"
-        );
-    }
+    $: signingURL = `https://thebananostand.com/sign-message#message=${encodeURIComponent(
+        messageToSign.getMessage()
+    )}&url=${encodeURIComponent(messageToSign.getSubmissionUrl())}&address=${encodeURIComponent(rewardsAddress)}`;
+
+    $: qrValue = `bansign:?message=${encodeURIComponent(messageToSign.getMessage())}&url=${encodeURIComponent(
+        messageToSign.getSubmissionUrl()
+    )}&address=${encodeURIComponent(rewardsAddress)}`;
 
     async function handleEnter(event: KeyboardEvent) {
         if (event.key === "Enter") {
@@ -97,28 +95,46 @@
             <div class="text-lg py-1 px-1.5">Sign with</div>
             <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={usingTheBananoStand}
+                selected={usingSoftware == "thebananostand"}
                 on:click={() => {
-                    usingTheBananoStand = true;
+                    usingSoftware = "thebananostand";
                 }}
             >
                 The Banano Stand
             </TabButton>
             <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={!usingTheBananoStand}
+                selected={usingSoftware == "qrcode"}
                 on:click={() => {
-                    usingTheBananoStand = false;
+                    usingSoftware = "qrcode";
+                }}
+            >
+                QR code
+            </TabButton>
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={usingSoftware == "other"}
+                on:click={() => {
+                    usingSoftware = "other";
                 }}
             >
                 Other software
             </TabButton>
         </div>
-        {#if usingTheBananoStand}
+        {#if usingSoftware == "thebananostand"}
             <div class="mt-2 flex flex-row justify-center">
-                <ButtonButton color="green" on:click={signWithTheBananoStand}>
+                <a href={signingURL} target="_blank" rel="noopener" class={hrefButtonStyleClasses("green")}>
                     Sign message with The Banano Stand
-                </ButtonButton>
+                </a>
+            </div>
+        {:else if usingSoftware == "qrcode"}
+            <div class="mt-2 flex flex-row justify-center">
+                <QrCode
+                    value={qrValue}
+                    size="400"
+                    background={$darkMode ? "#1F2937" : "#FFFFFF"}
+                    color={$darkMode ? "#FFFFFF" : "#000000"}
+                />
             </div>
         {:else}
             <div class="mt-2">
@@ -165,7 +181,7 @@
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
         <div class="grow" />
-        {#if usingTheBananoStand}
+        {#if usingSoftware != "other"}
             <ButtonButton disabled colorClasses="bg-gray-300">
                 <span class="mr-1"><Moon size="20" color="#FFFFFF" unit="px" duration="2s" /></span>
                 Awaiting message signature
