@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JungleTVClient interface {
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error)
+	VerifySignInSignature(ctx context.Context, in *VerifySignInSignatureRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error)
 	RemoveOwnQueueEntry(ctx context.Context, in *RemoveOwnQueueEntryRequest, opts ...grpc.CallOption) (*RemoveOwnQueueEntryResponse, error)
 	MoveQueueEntry(ctx context.Context, in *MoveQueueEntryRequest, opts ...grpc.CallOption) (*MoveQueueEntryResponse, error)
@@ -177,6 +178,15 @@ func (x *jungleTVSignInClient) Recv() (*SignInProgress, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *jungleTVClient) VerifySignInSignature(ctx context.Context, in *VerifySignInSignatureRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
+	out := new(SignInResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/VerifySignInSignature", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *jungleTVClient) EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error) {
@@ -1495,6 +1505,7 @@ func (c *jungleTVClient) TriggerApplicationEvent(ctx context.Context, in *Trigge
 // for forward compatibility
 type JungleTVServer interface {
 	SignIn(*SignInRequest, JungleTV_SignInServer) error
+	VerifySignInSignature(context.Context, *VerifySignInSignatureRequest) (*SignInResponse, error)
 	EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error)
 	RemoveOwnQueueEntry(context.Context, *RemoveOwnQueueEntryRequest) (*RemoveOwnQueueEntryResponse, error)
 	MoveQueueEntry(context.Context, *MoveQueueEntryRequest) (*MoveQueueEntryResponse, error)
@@ -1622,6 +1633,9 @@ type UnimplementedJungleTVServer struct {
 
 func (UnimplementedJungleTVServer) SignIn(*SignInRequest, JungleTV_SignInServer) error {
 	return status.Errorf(codes.Unimplemented, "method SignIn not implemented")
+}
+func (UnimplementedJungleTVServer) VerifySignInSignature(context.Context, *VerifySignInSignatureRequest) (*SignInResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifySignInSignature not implemented")
 }
 func (UnimplementedJungleTVServer) EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnqueueMedia not implemented")
@@ -2000,6 +2014,24 @@ type jungleTVSignInServer struct {
 
 func (x *jungleTVSignInServer) Send(m *SignInProgress) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _JungleTV_VerifySignInSignature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifySignInSignatureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).VerifySignInSignature(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/VerifySignInSignature",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).VerifySignInSignature(ctx, req.(*VerifySignInSignatureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _JungleTV_EnqueueMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -4115,6 +4147,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "jungletv.JungleTV",
 	HandlerType: (*JungleTVServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "VerifySignInSignature",
+			Handler:    _JungleTV_VerifySignInSignature_Handler,
+		},
 		{
 			MethodName: "EnqueueMedia",
 			Handler:    _JungleTV_EnqueueMedia_Handler,

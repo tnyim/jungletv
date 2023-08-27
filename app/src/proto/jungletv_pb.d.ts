@@ -12,6 +12,14 @@ export class SignInRequest extends jspb.Message {
   getRewardsAddress(): string;
   setRewardsAddress(value: string): void;
 
+  getViaSignature(): boolean;
+  setViaSignature(value: boolean): void;
+
+  hasOngoingProcessId(): boolean;
+  clearOngoingProcessId(): void;
+  getOngoingProcessId(): string;
+  setOngoingProcessId(value: string): void;
+
   hasLabSignInOptions(): boolean;
   clearLabSignInOptions(): void;
   getLabSignInOptions(): LabSignInOptions | undefined;
@@ -30,6 +38,8 @@ export class SignInRequest extends jspb.Message {
 export namespace SignInRequest {
   export type AsObject = {
     rewardsAddress: string,
+    viaSignature: boolean,
+    ongoingProcessId: string,
     labSignInOptions?: LabSignInOptions.AsObject,
   }
 }
@@ -81,6 +91,11 @@ export class SignInProgress extends jspb.Message {
   getAccountUnopened(): SignInAccountUnopened | undefined;
   setAccountUnopened(value?: SignInAccountUnopened): void;
 
+  hasMessageToSign(): boolean;
+  clearMessageToSign(): void;
+  getMessageToSign(): SignInMessageToSign | undefined;
+  setMessageToSign(value?: SignInMessageToSign): void;
+
   getStepCase(): SignInProgress.StepCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SignInProgress.AsObject;
@@ -98,6 +113,7 @@ export namespace SignInProgress {
     response?: SignInResponse.AsObject,
     expired?: SignInVerificationExpired.AsObject,
     accountUnopened?: SignInAccountUnopened.AsObject,
+    messageToSign?: SignInMessageToSign.AsObject,
   }
 
   export enum StepCase {
@@ -106,10 +122,14 @@ export namespace SignInProgress {
     RESPONSE = 2,
     EXPIRED = 3,
     ACCOUNT_UNOPENED = 4,
+    MESSAGE_TO_SIGN = 5,
   }
 }
 
 export class SignInVerification extends jspb.Message {
+  getProcessId(): string;
+  setProcessId(value: string): void;
+
   getVerificationRepresentativeAddress(): string;
   setVerificationRepresentativeAddress(value: string): void;
 
@@ -130,6 +150,7 @@ export class SignInVerification extends jspb.Message {
 
 export namespace SignInVerification {
   export type AsObject = {
+    processId: string,
     verificationRepresentativeAddress: string,
     expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
@@ -190,6 +211,64 @@ export class SignInVerificationExpired extends jspb.Message {
 
 export namespace SignInVerificationExpired {
   export type AsObject = {
+  }
+}
+
+export class SignInMessageToSign extends jspb.Message {
+  getProcessId(): string;
+  setProcessId(value: string): void;
+
+  getSubmissionUrl(): string;
+  setSubmissionUrl(value: string): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  hasExpiration(): boolean;
+  clearExpiration(): void;
+  getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignInMessageToSign.AsObject;
+  static toObject(includeInstance: boolean, msg: SignInMessageToSign): SignInMessageToSign.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignInMessageToSign, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignInMessageToSign;
+  static deserializeBinaryFromReader(message: SignInMessageToSign, reader: jspb.BinaryReader): SignInMessageToSign;
+}
+
+export namespace SignInMessageToSign {
+  export type AsObject = {
+    processId: string,
+    submissionUrl: string,
+    message: string,
+    expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class VerifySignInSignatureRequest extends jspb.Message {
+  getProcessId(): string;
+  setProcessId(value: string): void;
+
+  getSignatureHex(): string;
+  setSignatureHex(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VerifySignInSignatureRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: VerifySignInSignatureRequest): VerifySignInSignatureRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VerifySignInSignatureRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VerifySignInSignatureRequest;
+  static deserializeBinaryFromReader(message: VerifySignInSignatureRequest, reader: jspb.BinaryReader): VerifySignInSignatureRequest;
+}
+
+export namespace VerifySignInSignatureRequest {
+  export type AsObject = {
+    processId: string,
+    signatureHex: string,
   }
 }
 

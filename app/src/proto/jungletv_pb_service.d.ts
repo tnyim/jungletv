@@ -15,6 +15,15 @@ type JungleTVSignIn = {
   readonly responseType: typeof jungletv_pb.SignInProgress;
 };
 
+type JungleTVVerifySignInSignature = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.VerifySignInSignatureRequest;
+  readonly responseType: typeof jungletv_pb.SignInResponse;
+};
+
 type JungleTVEnqueueMedia = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1053,6 +1062,7 @@ type JungleTVTriggerApplicationEvent = {
 export class JungleTV {
   static readonly serviceName: string;
   static readonly SignIn: JungleTVSignIn;
+  static readonly VerifySignInSignature: JungleTVVerifySignInSignature;
   static readonly EnqueueMedia: JungleTVEnqueueMedia;
   static readonly RemoveOwnQueueEntry: JungleTVRemoveOwnQueueEntry;
   static readonly MoveQueueEntry: JungleTVMoveQueueEntry;
@@ -1203,6 +1213,15 @@ export class JungleTVClient {
 
   constructor(serviceHost: string, options?: grpc.RpcOptions);
   signIn(requestMessage: jungletv_pb.SignInRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.SignInProgress>;
+  verifySignInSignature(
+    requestMessage: jungletv_pb.VerifySignInSignatureRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SignInResponse|null) => void
+  ): UnaryResponse;
+  verifySignInSignature(
+    requestMessage: jungletv_pb.VerifySignInSignatureRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SignInResponse|null) => void
+  ): UnaryResponse;
   enqueueMedia(
     requestMessage: jungletv_pb.EnqueueMediaRequest,
     metadata: grpc.Metadata,

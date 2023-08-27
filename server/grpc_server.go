@@ -108,7 +108,7 @@ type grpcServer struct {
 	autoEnqueueVideoListFile            string
 	ticketCheckPeriod                   time.Duration
 
-	verificationProcesses     *cache.Cache[string, *addressVerificationProcess]
+	signInProcesses           *cache.Cache[string, *signInProcess]
 	delegatorCountsPerRep     *cache.Cache[string, uint64]
 	addressesWithGoodRepCache *cache.Cache[string, struct{}]
 
@@ -322,7 +322,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		wallet:                     options.Wallet,
 		statsClient:                options.StatsClient,
 		jwtManager:                 options.JWTManager,
-		verificationProcesses:      cache.New[string, *addressVerificationProcess](5*time.Minute, 1*time.Minute),
+		signInProcesses:            cache.New[string, *signInProcess](5*time.Minute, 1*time.Minute),
 		delegatorCountsPerRep:      cache.New[string, uint64](1*time.Hour, 5*time.Minute),
 		addressesWithGoodRepCache:  cache.New[string, struct{}](6*time.Hour, 5*time.Minute),
 		mediaQueue:                 mediaQueue,

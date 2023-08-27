@@ -33,13 +33,13 @@
 
     async function handleEnter(event: KeyboardEvent) {
         if (event.key === "Enter") {
-            await submit();
+            await submit(false);
             return false;
         }
         return true;
     }
 
-    async function submit() {
+    async function submit(viaSignature: boolean) {
         if (rewardsAddress === "") {
             apiClient.signOut();
             successful = true;
@@ -47,7 +47,7 @@
             return;
         }
 
-        dispatch("addressInput", [rewardsAddress, privilegedLabUserCredential]);
+        dispatch("addressInput", [rewardsAddress, privilegedLabUserCredential, viaSignature]);
     }
 
     function cancel() {
@@ -111,13 +111,16 @@
                 </div>
             {:else if successful}
                 {#if rewardsAddress == ""}
-                    <SuccessMessage>
-                        Successfully removed rewards address. You won't receive rewards anymore.
-                    </SuccessMessage>
+                    <div class="mt-3">
+                        <SuccessMessage>
+                            Successfully removed rewards address. You won't receive rewards anymore.
+                        </SuccessMessage>
+                    </div>
                 {/if}
             {/if}
             <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">
-                Setting an address will also allow you to chat with other users.
+                Setting an address will also allow you to chat with other users. This address will be used to publicly
+                identify you on JungleTV.
             </p>
 
             {#if globalThis.LAB_BUILD}
@@ -189,6 +192,14 @@
     <div slot="buttons" class="flex items-center flex-wrap">
         <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
         <div class="grow" />
-        <ButtonButton type="submit" on:click={submit}>Next</ButtonButton>
+        <button
+            type="submit"
+            on:click={() => submit(true)}
+            class="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline mr-1 text-right"
+        >
+            Use message signing<br />
+            (experimental, advanced users only)
+        </button>
+        <ButtonButton type="submit" on:click={() => submit(false)}>Next</ButtonButton>
     </div>
 </Wizard>

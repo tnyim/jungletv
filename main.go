@@ -411,7 +411,7 @@ func main() {
 		listenAddr = buildconfig.ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, listenAddr, certFile, keyFile, options)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, apiServer, listenAddr, certFile, keyFile, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -472,7 +472,7 @@ func versionHashBuilder() string {
 	return v
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
 	versionInterceptor := version.New(&versionHash)
 
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
@@ -493,7 +493,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
 
-	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, versionHashBuilder)
+	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, versionHashBuilder, signatureVerifier)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"log"
 	"net/http"
@@ -19,9 +20,14 @@ type HTTPServer struct {
 	oauthManager       *oauth.Manager
 	appRunner          *apprunner.AppRunner
 	versionHashBuilder func() string
+	signatureVerifier  SignatureVerifier
 }
 
-func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string, versionHashBuilder func() string) error {
+type SignatureVerifier interface {
+	VerifySignature(ctx context.Context, processID string, signature []byte) error
+}
+
+func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string, versionHashBuilder func() string, signatureVerifier SignatureVerifier) error {
 	key, err := raffle.DecodeSecretKey(raffleSecretKey)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -33,8 +39,10 @@ func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRu
 		oauthManager:       oauthManager,
 		appRunner:          appRunner,
 		versionHashBuilder: versionHashBuilder,
+		signatureVerifier:  signatureVerifier,
 	}
 
+	router.HandleFunc("/verifysignature/{processID}", s.wrapHTTPHandler(s.VerifySignature)).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets", s.wrapHTTPHandler(s.RaffleTickets))
 	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/", s.wrapHTTPHandler(s.RaffleInfo))
 	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))

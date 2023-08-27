@@ -41,12 +41,16 @@ import {
     SetSkipPriceMultiplierResponse,
     SetSkippingEnabledRequest, SetSkippingEnabledResponse,
     SetUserChatNicknameRequest,
-    SetUserChatNicknameResponse, SignInProgress, SignInRequest, SkipAndTipStatus, SoundCloudTrackDetailsRequest, SoundCloudTrackDetailsResponse, Spectator,
+    SetUserChatNicknameResponse, SignInProgress, SignInRequest,
+    SignInResponse,
+    SkipAndTipStatus, SoundCloudTrackDetailsRequest, SoundCloudTrackDetailsResponse, Spectator,
     SpectatorInfoRequest, StartOrExtendSubscriptionRequest, StartOrExtendSubscriptionResponse, StopActivelyModeratingRequest,
     StopActivelyModeratingResponse, SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse, TriggerAnnouncementsNotificationRequest,
     TriggerAnnouncementsNotificationResponse, TriggerClientReloadRequest, TriggerClientReloadResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
-    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse, VerifyUserRequest, VerifyUserResponse,
+    UserProfileResponse, UserStatsRequest, UserStatsResponse, UserVerificationsRequest, UserVerificationsResponse,
+    VerifySignInSignatureRequest,
+    VerifyUserRequest, VerifyUserResponse,
     WithdrawRequest, WithdrawResponse,
     WithdrawalHistoryRequest, WithdrawalHistoryResponse,
     type AllowedMediaEnqueuingTypeMap,
@@ -175,9 +179,13 @@ class APIClient {
         });
     }
 
-    signIn(address: string, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void, labOptions?: LabSignInOptions): Request {
+    signIn(address: string, viaSignature: boolean, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void, ongoingProcessID?: string, labOptions?: LabSignInOptions): Request {
         const request = new SignInRequest();
         request.setRewardsAddress(address);
+        request.setViaSignature(viaSignature);
+        if (typeof ongoingProcessID !== "undefined") {
+            request.setOngoingProcessId(ongoingProcessID);
+        }
         if (typeof labOptions !== "undefined") {
             request.setLabSignInOptions(labOptions);
         }
@@ -186,6 +194,13 @@ class APIClient {
             request,
             onProgress,
             onEnd);
+    }
+
+    verifySignInSignature(processID: string, signatureHex: string): Promise<SignInResponse> {
+        const request = new VerifySignInSignatureRequest();
+        request.setProcessId(processID);
+        request.setSignatureHex(signatureHex);
+        return this.unaryRPC(JungleTV.VerifySignInSignature, request);
     }
 
     signOut() {

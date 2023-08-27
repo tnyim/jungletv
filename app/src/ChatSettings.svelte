@@ -2,7 +2,7 @@
     import { openUserProfile } from "./profile_utils";
 
     import {
-    autoCloseBrackets,
+        autoCloseBrackets,
         autoCloseMediaPickerOnInsert,
         autoCloseMediaPickerOnSend,
         collapseGifs,
@@ -104,8 +104,7 @@
         <button
             type="button"
             class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-            on:click={() => openUserProfile($rewardAddress)}
-            on:keydown={(ev) => ev.key == "Enter" && openUserProfile($rewardAddress)}>your profile</button
+            on:click={() => openUserProfile($rewardAddress)}>your profile</button
         >.
     </div>
 </div>

@@ -12,6 +12,7 @@ package jungletv;
 
 service JungleTV {
     rpc SignIn (SignInRequest) returns (stream SignInProgress) {}
+    rpc VerifySignInSignature(VerifySignInSignatureRequest) returns (SignInResponse) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
     rpc RemoveOwnQueueEntry (RemoveOwnQueueEntryRequest) returns (RemoveOwnQueueEntryResponse) {}
     rpc MoveQueueEntry (MoveQueueEntryRequest) returns (MoveQueueEntryResponse) {}
@@ -137,7 +138,9 @@ service JungleTV {
 
 message SignInRequest {
     string rewards_address = 1;
-    optional LabSignInOptions lab_sign_in_options = 2;
+    bool via_signature = 2;
+    optional string ongoing_process_id = 3;
+    optional LabSignInOptions lab_sign_in_options = 4;
 }
 
 message LabSignInOptions {
@@ -151,12 +154,14 @@ message SignInProgress {
         SignInResponse response = 2;
         SignInVerificationExpired expired = 3;
         SignInAccountUnopened account_unopened = 4;
+        SignInMessageToSign message_to_sign = 5;
     }
 }
 
 message SignInVerification {
-    string verification_representative_address = 1;
-    google.protobuf.Timestamp expiration = 2;
+    string process_id = 1;
+    string verification_representative_address = 2;
+    google.protobuf.Timestamp expiration = 3;
 }
 
 message SignInAccountUnopened {}
@@ -167,6 +172,18 @@ message SignInResponse {
 }
 
 message SignInVerificationExpired {}
+
+message SignInMessageToSign {
+    string process_id = 1;
+    string submission_url = 2;
+    string message = 3;
+    google.protobuf.Timestamp expiration = 4;
+}
+
+message VerifySignInSignatureRequest {
+    string process_id = 1;
+    string signature_hex = 2;
+}
 
 message EnqueueYouTubeVideoData {
     string id = 1;
