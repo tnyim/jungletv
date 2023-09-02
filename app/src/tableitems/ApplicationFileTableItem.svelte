@@ -156,8 +156,8 @@
         {file.getPublic() ? "Public" : "Internal"}
     </td>
 </tr>
-<tr class="border-t-0 px-6 align-middle whitespace-nowrap">
-    <td colspan="5" class="p-4 pt-0">
+<tr class="border-t-0 align-middle whitespace-nowrap">
+    <td colspan="5" class="px-6 pb-4 pt-0">
         <div class="flex flex-row">
             <DetailsButton label="Details" iconClasses="fas fa-info-circle" on:click={updateFileProperties} />
             {#if fileEditable}

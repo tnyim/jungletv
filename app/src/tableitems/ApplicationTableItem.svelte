@@ -97,8 +97,8 @@
         {properties}
     </td>
 </tr>
-<tr class="border-t-0 px-6 align-middle whitespace-nowrap">
-    <td colspan="4" class="p-4 pt-0">
+<tr class="border-t-0 align-middle whitespace-nowrap">
+    <td colspan="4" class="px-6 pb-4 pt-0">
         <div class="flex flex-row">
             <DetailsButton
                 label="Edit"
