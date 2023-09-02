@@ -17,11 +17,13 @@
     import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
-    import { ApplicationFile } from "../proto/application_editor_pb";
+    import { ApplicationFile, RunningApplication } from "../proto/application_editor_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import { darkMode } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import { hrefButtonStyleClasses } from "../utils";
     import ApplicationConsole from "./ApplicationConsole.svelte";
+    import RunningApplications from "./RunningApplications.svelte";
     import { editorHighlightStyle, editorTheme } from "./codeEditor";
 
     export let applicationID: string;
@@ -30,6 +32,25 @@
     let editing = false;
     let fileType: string;
     let publicFile = false;
+
+    //#region application execution status monitoring
+    let runningApplications: RunningApplication[] = [];
+    $: launched = typeof runningApplications?.find((a) => a.getApplicationId() === applicationID) !== "undefined";
+
+    consumeStreamRPCFromSvelteComponent(
+        20000,
+        5000,
+        apiClient.monitorRunningApplications.bind(apiClient),
+        handleRunningApplicationsUpdated
+    );
+
+    function handleRunningApplicationsUpdated(applications: RunningApplications) {
+        if (!applications.getIsHeartbeat()) {
+            runningApplications = applications.getRunningApplicationsList();
+        }
+    }
+
+    //#endregion
 
     async function fetchFile(): Promise<ApplicationFile> {
         try {
@@ -85,6 +106,11 @@
             await modalAlert("An error occurred when saving the file: " + e);
             return;
         }
+        editing = true;
+        if (!launched) {
+            await modalAlert("File updated");
+            return;
+        }
         if (await modalConfirm("File updated. Restart application?")) {
             try {
                 await apiClient.stopApplication(applicationID);
@@ -98,7 +124,6 @@
                 await modalAlert("An error occurred when launching the application: " + e);
             }
         }
-        editing = true;
     }
 
     let editorContainer: HTMLElement;
