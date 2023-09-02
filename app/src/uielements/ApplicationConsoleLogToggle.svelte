@@ -4,7 +4,7 @@
     export let checked: boolean = false;
 </script>
 
-<div class="flex flex-row">
+<div class="flex flex-row items-center">
     <div class="flex items-center">
         <input
             {id}

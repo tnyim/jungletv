@@ -114,7 +114,12 @@
             />
             <div class="flex-grow" />
             {#if application.getAllowLaunching() && !launched}
-                <DetailsButton label="Launch" iconClasses="fas fa-play" colorClasses="text-green-700 dark:text-green-500" on:click={launchApplication} />
+                <DetailsButton
+                    label="Launch"
+                    iconClasses="fas fa-play"
+                    colorClasses="text-green-700 dark:text-green-500"
+                    on:click={launchApplication}
+                />
             {/if}
             {#if launched}
                 <DetailsButton
@@ -122,7 +127,12 @@
                     iconClasses="fas fa-terminal"
                     on:click={() => navigate("/moderate/applications/" + application.getId() + "/console")}
                 />
-                <DetailsButton label="Stop" iconClasses="fas fa-stop" colorClasses="text-yellow-700 dark:text-yellow-500" on:click={stopApplication} />
+                <DetailsButton
+                    label="Stop"
+                    iconClasses="fas fa-stop"
+                    colorClasses="text-yellow-700 dark:text-yellow-500"
+                    on:click={stopApplication}
+                />
             {/if}
         </div>
     </td>

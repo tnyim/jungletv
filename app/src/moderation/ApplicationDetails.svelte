@@ -1,13 +1,16 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
-    import { Application, ApplicationFile } from "../proto/application_editor_pb";
+    import { Application, ApplicationFile, RunningApplication } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
+    import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import ApplicationFileTableItem from "../tableitems/ApplicationFileTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
+    import DetailsButton from "../uielements/DetailsButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import { hrefButtonStyleClasses } from "../utils";
+    import RunningApplications from "./RunningApplications.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -136,6 +139,49 @@
             await modalAlert("An error occurred when importing the application: " + e);
         }
     }
+
+    let runningApplications: RunningApplication[] = [];
+    $: launched =
+        typeof runningApplications?.find((a) => a.getApplicationId() === application?.getId()) !== "undefined";
+
+    consumeStreamRPCFromSvelteComponent(
+        20000,
+        5000,
+        apiClient.monitorRunningApplications.bind(apiClient),
+        handleRunningApplicationsUpdated
+    );
+
+    function handleRunningApplicationsUpdated(applications: RunningApplications) {
+        if (!applications.getIsHeartbeat()) {
+            runningApplications = applications.getRunningApplicationsList();
+        }
+    }
+
+    async function launchApplication() {
+        try {
+            await apiClient.launchApplication(application.getId());
+        } catch (e) {
+            await modalAlert("An error occurred when launching the application: " + e);
+        }
+    }
+
+    async function stopApplication() {
+        try {
+            await apiClient.stopApplication(application.getId());
+        } catch (e) {
+            await modalAlert("An error occurred when stopping the application: " + e);
+        }
+    }
+
+    async function restartApplication() {
+        try {
+            await apiClient.stopApplication(application.getId());
+        } catch (e) {
+            await modalAlert("An error occurred when stopping the application: " + e);
+            return;
+        }
+        await launchApplication();
+    }
 </script>
 
 <div class="m-6 grow container mx-auto max-w-screen-lg p-2">
@@ -144,7 +190,37 @@
     </p>
 
     {#if typeof application !== "undefined"}
-        <p class="font-semibold text-xl mb-4">Application <span class="font-mono">{application.getId()}</span></p>
+        <div class="flex flex-row mb-4">
+            <p class="font-semibold text-xl mr-4">Application <span class="font-mono">{application.getId()}</span></p>
+            {#if application.getAllowLaunching() && !launched}
+                <DetailsButton
+                    label="Launch"
+                    iconClasses="fas fa-play"
+                    colorClasses="text-green-700 dark:text-green-500"
+                    on:click={launchApplication}
+                />
+            {/if}
+            {#if launched}
+                <DetailsButton
+                    label="Stop"
+                    iconClasses="fas fa-stop"
+                    colorClasses="text-yellow-700 dark:text-yellow-500"
+                    on:click={stopApplication}
+                />
+                <DetailsButton
+                    label="Restart"
+                    iconClasses="fas fa-redo"
+                    colorClasses="text-blue-700 dark:text-blue-500"
+                    on:click={restartApplication}
+                />
+                <DetailsButton
+                    label="Console"
+                    iconClasses="fas fa-terminal"
+                    on:click={() => navigate("/moderate/applications/" + application.getId() + "/console")}
+                />
+            {/if}
+        </div>
+        <p class="font-semibold text-lg mb-2">Properties</p>
         <div class="mb-4 ml-6">
             <p>
                 <input
@@ -181,8 +257,8 @@
             </p>
         </div>
         <div class="mb-6">
-            <p class="font-semibold text-lg mb-4">Backup and restore</p>
-            <p class="mt-4 ml-6">
+            <p class="font-semibold text-lg mb-2">Backup and restore</p>
+            <p class="ml-6">
                 <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
             </p>
             <p class="ml-6">

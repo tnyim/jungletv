@@ -16,7 +16,7 @@
     import { link } from "svelte-navigator";
     import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
-    import { modalAlert, modalPrompt } from "../modal/modal";
+    import { modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
     import { ApplicationFile } from "../proto/application_editor_pb";
     import { darkMode } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
@@ -79,8 +79,25 @@
         }
         file.setType(fileType);
         file.setPublic(publicFile);
-        await apiClient.updateApplicationFile(file);
-        await modalAlert("File updated");
+        try {
+            await apiClient.updateApplicationFile(file);
+        } catch (e) {
+            await modalAlert("An error occurred when saving the file: " + e);
+            return;
+        }
+        if (await modalConfirm("File updated. Restart application?")) {
+            try {
+                await apiClient.stopApplication(applicationID);
+            } catch (e) {
+                await modalAlert("An error occurred when stopping the application: " + e);
+                return;
+            }
+            try {
+                await apiClient.launchApplication(applicationID);
+            } catch (e) {
+                await modalAlert("An error occurred when launching the application: " + e);
+            }
+        }
         editing = true;
     }
 

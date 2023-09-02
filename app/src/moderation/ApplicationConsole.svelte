@@ -4,6 +4,7 @@
     import type { Duration as ProtoDuration } from "google-protobuf/google/protobuf/duration_pb";
     import { DateTime, Duration } from "luxon";
     import { afterUpdate, onMount } from "svelte";
+    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert } from "../modal/modal";
     import {
@@ -16,6 +17,7 @@
     import { JungleTV } from "../proto/jungletv_pb_service";
     import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import ApplicationConsoleLogToggle from "../uielements/ApplicationConsoleLogToggle.svelte";
+    import { hrefButtonStyleClasses } from "../utils";
     import ApplicationConsoleCommandEditor from "./ApplicationConsoleCommandEditor.svelte";
 
     export let applicationID: string;
@@ -323,6 +325,11 @@
         : 'console-container'}"
 >
     <div class="flex flex-row gap-4 py-1 px-2 border-b border-gray-200 dark:border-gray-800">
+        {#if !embedded}
+            <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
+                <i class="fas fa-arrow-left" />
+            </a>
+        {/if}
         <ApplicationConsoleLogToggle bind:checked={showRuntimeErrors} id="showRuntimeErrors" label="Runtime Errors" />
         <ApplicationConsoleLogToggle bind:checked={showRuntimeLogs} id="showRuntimeLogs" label="Runtime Logs" />
         <ApplicationConsoleLogToggle bind:checked={showJSErrors} id="showJSErrors" label="JS Errors" />
