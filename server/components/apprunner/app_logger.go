@@ -16,7 +16,13 @@ import (
 
 // ApplicationLog represents the log of a single application
 type ApplicationLog interface {
+	// LogEntries returns log entries older than offset, sorted from newest to oldest
 	LogEntries(offset ulid.ULID, maxCount int, levels []ApplicationLogLevel) ([]ApplicationLogEntry, bool)
+
+	// LogEntriesSince returns log entries newer than offset, sorted from oldest to newest
+	LogEntriesSince(offset ulid.ULID, levels []ApplicationLogLevel) []ApplicationLogEntry
+
+	// LogEntryAdded is notified when a new log entry is added
 	LogEntryAdded() event.Event[ApplicationLogEntry]
 }
 
@@ -94,6 +100,7 @@ func (p *appLogger) LogEntries(offset ulid.ULID, maxCount int, levels []Applicat
 	}
 	p.entries.DescendLessOrEqual(cursor, func(entry appLogEntry) bool {
 		if entry.sortKey.Compare(offset) == 0 {
+			// skip first entry because the semantics are entries < offset, not entries <= offset
 			return true
 		}
 		if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
@@ -106,6 +113,28 @@ func (p *appLogger) LogEntries(offset ulid.ULID, maxCount int, levels []Applicat
 		entries = entries[:maxCount]
 	}
 	return entries, hasMore
+}
+
+func (p *appLogger) LogEntriesSince(offset ulid.ULID, levels []ApplicationLogLevel) []ApplicationLogEntry {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	entries := []ApplicationLogEntry{}
+	levelsSet := utils.SliceToSet(levels)
+	cursor := appLogEntry{
+		sortKey: offset,
+	}
+	p.entries.AscendGreaterOrEqual(cursor, func(entry appLogEntry) bool {
+		if entry.sortKey.Compare(offset) == 0 {
+			// skip first entry because the semantics are entries > offset, not entries >= offset
+			return true
+		}
+		if _, ok := levelsSet[entry.LogLevel()]; ok || len(levels) == 0 {
+			entries = append(entries, entry)
+		}
+		return true
+	})
+	return entries
 }
 
 func (p *appLogger) LogEntryAdded() event.Event[ApplicationLogEntry] {

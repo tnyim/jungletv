@@ -647,6 +647,14 @@ export class ConsumeApplicationLogRequest extends jspb.Message {
   setLevelsList(value: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>): void;
   addLevels(value: ApplicationLogLevelMap[keyof ApplicationLogLevelMap], index?: number): ApplicationLogLevelMap[keyof ApplicationLogLevelMap];
 
+  getStayConnectedOnTermination(): boolean;
+  setStayConnectedOnTermination(value: boolean): void;
+
+  hasIncludeLogsSinceOffset(): boolean;
+  clearIncludeLogsSinceOffset(): void;
+  getIncludeLogsSinceOffset(): string;
+  setIncludeLogsSinceOffset(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConsumeApplicationLogRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ConsumeApplicationLogRequest): ConsumeApplicationLogRequest.AsObject;
@@ -661,6 +669,8 @@ export namespace ConsumeApplicationLogRequest {
   export type AsObject = {
     applicationId: string,
     levelsList: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>,
+    stayConnectedOnTermination: boolean,
+    includeLogsSinceOffset: string,
   }
 }
 

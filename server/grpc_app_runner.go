@@ -117,14 +117,44 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 		return stacktrace.Propagate(err, "")
 	}
 
-	onLogEntryAdded, logEntryAddedU := appLog.LogEntryAdded().Subscribe(event.BufferAll)
-	defer logEntryAddedU()
-
 	levels, err := convertApplicationLogLevelsFromProto(r.Levels)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	levelsSet := utils.SliceToSet(levels)
+
+	onLogEntryAdded, logEntryAddedU := appLog.LogEntryAdded().Subscribe(event.BufferAll)
+	unsubscribeFromLog := func() {
+		logEntryAddedU()
+	}
+	defer unsubscribeFromLog() // done this way because logEntryAddedU changes over time
+
+	onApplicationLaunched, applicationLaunchedU := s.appRunner.ApplicationLaunched().Subscribe(event.BufferAll)
+	defer applicationLaunchedU()
+
+	if r.IncludeLogsSinceOffset != nil {
+		offset := ulid.Make()
+		if *r.IncludeLogsSinceOffset != "" {
+			offset, err = ulid.Parse(*r.IncludeLogsSinceOffset)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		} else {
+			err = offset.SetTime(0)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
+		for _, entry := range appLog.LogEntriesSince(offset, levels) {
+			err = stream.Send(&proto.ApplicationLogEntryContainer{
+				IsHeartbeat: false,
+				Entry:       convertApplicationLogEntry(entry),
+			})
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
+	}
 
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
@@ -146,7 +176,7 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 					Entry:       convertApplicationLogEntry(entry),
 				})
 			}
-			if entry.LogLevel() == apprunner.ApplicationLogLevelRuntimeLog && strings.HasPrefix(entry.Message(), "application instance terminated with") {
+			if entry.LogLevel() == apprunner.ApplicationLogLevelRuntimeLog && strings.HasPrefix(entry.Message(), "application instance terminated with") && !r.StayConnectedOnTermination {
 				return nil
 			}
 		case <-heartbeat.C:
@@ -155,6 +185,24 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 			})
 		case <-stream.Context().Done():
 			return nil
+		case a := <-onApplicationLaunched:
+			if a.ApplicationID == r.ApplicationId && r.StayConnectedOnTermination {
+				appLog, err = s.appRunner.ApplicationLog(a.ApplicationID)
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				onLogEntryAdded, logEntryAddedU = appLog.LogEntryAdded().Subscribe(event.BufferAll)
+				// send initial logs we always miss since they are sent to the log before the launched event is fired
+				for _, entry := range appLog.LogEntriesSince(ulid.MustNew(0, ulid.DefaultEntropy()), levels) {
+					err = stream.Send(&proto.ApplicationLogEntryContainer{
+						IsHeartbeat: false,
+						Entry:       convertApplicationLogEntry(entry),
+					})
+					if err != nil {
+						return stacktrace.Propagate(err, "")
+					}
+				}
+			}
 		}
 		if err != nil {
 			return stacktrace.Propagate(err, "failed to send log update")

@@ -138,6 +138,8 @@ message ApplicationLogResponse {
 message ConsumeApplicationLogRequest {
     string application_id = 1;
     repeated ApplicationLogLevel levels = 2;
+    bool stay_connected_on_termination = 3;
+    optional string include_logs_since_offset = 4;
 }
 
 message ApplicationLogEntryContainer {

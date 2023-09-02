@@ -57,12 +57,13 @@
     // application log monitoring:
     let historicalLogCursor: string;
     let historicalLogHasMore = false;
+    let latestLogCursor: string;
 
     function consumeApplicationLogRequestBuilder(
         onUpdate: (update: ApplicationLogEntryContainer) => void,
         onEnd: (code: grpc.Code, msg: string) => void
     ): Request {
-        return apiClient.consumeApplicationLog(applicationID, logLevels, onUpdate, onEnd);
+        return apiClient.consumeApplicationLog(applicationID, logLevels, true, latestLogCursor, onUpdate, onEnd);
     }
 
     let applicationLogRequestManager = consumeStreamRPCFromSvelteComponent(
@@ -145,6 +146,7 @@
         if (entryContainer.getIsHeartbeat()) {
             return;
         }
+        latestLogCursor = entryContainer.getEntry().getCursor();
         let bottomWasVisible = bottomVisible;
         consoleEntries = [
             ...consoleEntries,
@@ -326,7 +328,7 @@
 >
     <div class="flex flex-row gap-4 py-1 px-2 border-b border-gray-200 dark:border-gray-800">
         {#if !embedded}
-            <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
+            <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()} -my-1">
                 <i class="fas fa-arrow-left" />
             </a>
         {/if}

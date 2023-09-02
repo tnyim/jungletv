@@ -5267,7 +5267,9 @@ proto.jungletv.ConsumeApplicationLogRequest.prototype.toObject = function(opt_in
 proto.jungletv.ConsumeApplicationLogRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     applicationId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    levelsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
+    levelsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
+    stayConnectedOnTermination: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    includeLogsSinceOffset: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5314,6 +5316,14 @@ proto.jungletv.ConsumeApplicationLogRequest.deserializeBinaryFromReader = functi
         msg.addLevels(values[i]);
       }
       break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setStayConnectedOnTermination(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIncludeLogsSinceOffset(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5354,6 +5364,20 @@ proto.jungletv.ConsumeApplicationLogRequest.serializeBinaryToWriter = function(m
   if (f.length > 0) {
     writer.writePackedEnum(
       2,
+      f
+    );
+  }
+  f = message.getStayConnectedOnTermination();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -5412,6 +5436,60 @@ proto.jungletv.ConsumeApplicationLogRequest.prototype.addLevels = function(value
  */
 proto.jungletv.ConsumeApplicationLogRequest.prototype.clearLevelsList = function() {
   return this.setLevelsList([]);
+};
+
+
+/**
+ * optional bool stay_connected_on_termination = 3;
+ * @return {boolean}
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.getStayConnectedOnTermination = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.ConsumeApplicationLogRequest} returns this
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.setStayConnectedOnTermination = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional string include_logs_since_offset = 4;
+ * @return {string}
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.getIncludeLogsSinceOffset = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.ConsumeApplicationLogRequest} returns this
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.setIncludeLogsSinceOffset = function(value) {
+  return jspb.Message.setField(this, 4, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.ConsumeApplicationLogRequest} returns this
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.clearIncludeLogsSinceOffset = function() {
+  return jspb.Message.setField(this, 4, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ConsumeApplicationLogRequest.prototype.hasIncludeLogsSinceOffset = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

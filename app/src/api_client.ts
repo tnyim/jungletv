@@ -969,10 +969,14 @@ class APIClient {
         return this.unaryRPC(JungleTV.ImportApplication, request);
     }
 
-    consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, stayConnectedOnTermination: boolean, includeLogsSinceOffset: string | undefined, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
         const request = new ConsumeApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
+        request.setStayConnectedOnTermination(stayConnectedOnTermination);
+        if (typeof includeLogsSinceOffset !== "undefined") {
+            request.setIncludeLogsSinceOffset(includeLogsSinceOffset);
+        }
         return this.serverStreamingRPC(
             JungleTV.ConsumeApplicationLog,
             request,
