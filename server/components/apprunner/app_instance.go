@@ -921,13 +921,7 @@ func (a *appInstance) ServeFile(ctxCtx context.Context, fileName string, w http.
 	return nil
 }
 
-const runtimeBaseCode = `String.prototype.replaceAll = function (search, replacement) {
-    var target = this;
-    return target.replace(
-        search instanceof RegExp ?
-            search :
-            new RegExp(search, 'g'), replacement);
-};`
+const runtimeBaseCode = `true;` // no-op at the moment
 
 //go:embed tslib.js
 var tslibCode []byte

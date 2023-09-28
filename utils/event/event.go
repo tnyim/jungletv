@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"sync"
 
 	"github.com/smallnest/chanx"
@@ -76,6 +77,8 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
+	ctx, cancelCtx := context.WithCancel(context.Background())
+
 	var subID int
 	var retChan <-chan T
 	switch bufferStrategy {
@@ -92,7 +95,7 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 		subID = e.bufferLatestSubs.Insert(nonBlockingSub[T](subChan))
 		retChan = subChan
 	case BufferAll:
-		subChan := chanx.NewUnboundedChan[T](1)
+		subChan := chanx.NewUnboundedChan[T](ctx, 1)
 		subID = e.bufferAllSubs.Insert(subChan)
 		retChan = subChan.Out
 	default:
@@ -106,7 +109,10 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 		}
 		e.pendingNotifications = nil
 	}
-	return retChan, func() { e.unsubscribe(subID, bufferStrategy, &unsubscribed) }
+	return retChan, func() {
+		e.unsubscribe(subID, bufferStrategy, &unsubscribed)
+		cancelCtx()
+	}
 }
 
 // SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
