@@ -14,7 +14,6 @@ require (
 	github.com/bytedance/sonic v1.10.1
 	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.15.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/dop251/goja v0.0.0-20230919151941-fc55792775de
 	github.com/dop251/goja_nodejs v0.0.0-20230914102007-198ba9a8b098
@@ -24,6 +23,7 @@ require (
 	github.com/gbl08ma/keybox v0.0.0-20180718235424-285a9d753c87
 	github.com/gbl08ma/sqalx v0.5.3
 	github.com/gbl08ma/ssoclient v0.0.0-20180119211306-11586264f66c
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/btree v1.1.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/mux v1.8.0
