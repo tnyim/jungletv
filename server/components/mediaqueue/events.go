@@ -22,15 +22,25 @@ const (
 
 // EntryAddedEventArg is the argument of the event for when a queue entry is added
 type EntryAddedEventArg struct {
+	Index   int
 	AddType EntryAddedPlacement
 	Entry   media.QueueEntry
 }
 
+// EntryRemovedEventArg is the argument of the event for when a queue entry is removed
+type EntryRemovedEventArg struct {
+	Index       int
+	Entry       media.QueueEntry
+	SelfRemoval bool
+}
+
 // EntryMovedEventArg is the argument of the event for when a queue entry is moved
 type EntryMovedEventArg struct {
-	User  auth.User
-	Entry media.QueueEntry
-	Up    bool
+	PreviousIndex int
+	CurrentIndex  int
+	User          auth.User
+	Entry         media.QueueEntry
+	Up            bool
 }
 
 // QueueUpdated is the event that is fired when the queue is updated in any way
@@ -55,18 +65,8 @@ func (q *MediaQueue) EntryAdded() event.Event[EntryAddedEventArg] {
 
 // EntryRemoved is the event that is fired when an entry is removed by any means: because it finished playing,
 // because it was skipped, or because it was removed from the queue before it could begin playing
-func (q *MediaQueue) EntryRemoved() event.Event[media.QueueEntry] {
+func (q *MediaQueue) EntryRemoved() event.Event[EntryRemovedEventArg] {
 	return q.entryRemoved
-}
-
-// NonPlayingEntryRemoved is the event that is fired when an entry is removed before it began playing
-func (q *MediaQueue) NonPlayingEntryRemoved() event.Event[media.QueueEntry] {
-	return q.nonPlayingEntryRemoved
-}
-
-// OwnEntryRemoved is the event that is fired when a user removes one of their own queue entries
-func (q *MediaQueue) OwnEntryRemoved() event.Event[media.QueueEntry] {
-	return q.ownEntryRemoved
 }
 
 // EntryMoved is the event that is fired when a queue entry is moved up or down

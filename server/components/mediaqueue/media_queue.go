@@ -53,16 +53,11 @@ type MediaQueue struct {
 	skippingAllowedUpdated event.NoArgEvent
 	mediaChanged           event.Event[media.QueueEntry]
 	entryAdded             event.Event[EntryAddedEventArg]
+	entryMoved             event.Event[EntryMovedEventArg]
 
 	// fired when an entry is removed by any means: because it finished playing,
 	// because it was skipped, or because it was removed from the queue before it could begin playing
-	entryRemoved event.Event[media.QueueEntry]
-
-	// fired when an entry is removed from the queue before it began playing
-	// receives the removed entry as an argument
-	nonPlayingEntryRemoved event.Event[media.QueueEntry]
-	ownEntryRemoved        event.Event[media.QueueEntry] // receives the removed entry as an argument
-	entryMoved             event.Event[EntryMovedEventArg]
+	entryRemoved event.Event[EntryRemovedEventArg]
 }
 
 // ErrInsufficientPermissionsToRemoveEntry indicates the user has insufficient permissions to remove an entry
@@ -78,9 +73,7 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 		mediaChanged:                    event.New[media.QueueEntry](),
 		skippingAllowedUpdated:          event.NewNoArg(),
 		entryAdded:                      event.New[EntryAddedEventArg](),
-		entryRemoved:                    event.New[media.QueueEntry](),
-		nonPlayingEntryRemoved:          event.New[media.QueueEntry](),
-		ownEntryRemoved:                 event.New[media.QueueEntry](),
+		entryRemoved:                    event.New[EntryRemovedEventArg](),
 		entryMoved:                      event.New[EntryMovedEventArg](),
 		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
 		removalOfOwnEntriesAllowed:      true,
@@ -224,6 +217,7 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 	defer q.queueMutex.Unlock()
 
 	insertedAtCursor := false
+	insertionIndex := 0
 	if q.insertCursor != "" {
 		for i, entry := range q.queue {
 			if i == 0 {
@@ -234,6 +228,7 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 				q.queue = append(q.queue[:i+1], q.queue[i:]...)
 				q.queue[i] = newEntry
 				insertedAtCursor = true
+				insertionIndex = i
 				break
 			}
 		}
@@ -241,30 +236,32 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 	if !insertedAtCursor {
 		q.insertCursor = "" // if we had a cursor, it has clearly become invalid, so clear it
 		q.queue = append(q.queue, newEntry)
+		insertionIndex = len(q.queue) - 1
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{EntryAddedPlacementEnqueue, newEntry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{insertionIndex, EntryAddedPlacementEnqueue, newEntry}, false)
 }
 
-func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) {
+func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) int {
 	if len(q.queue) < 2 {
 		q.queue = append(q.queue, entry)
-	} else {
-		q.queue = append(q.queue, nil)
-		copy(q.queue[2:], q.queue[1:])
-		q.queue[1] = entry
+		return len(q.queue) - 1
 	}
+	q.queue = append(q.queue, nil)
+	copy(q.queue[2:], q.queue[1:])
+	q.queue[1] = entry
+	return 1
 }
 
 func (q *MediaQueue) PlayAfterNext(entry media.QueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	q.playAfterNextNoMutex(entry)
+	insertionIndex := q.playAfterNextNoMutex(entry)
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{EntryAddedPlacementPlayNext, entry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{insertionIndex, EntryAddedPlacementPlayNext, entry}, false)
 }
 
 func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
@@ -283,7 +280,7 @@ func (q *MediaQueue) PlayNow(entry media.QueueEntry) {
 
 	go q.statsClient.Gauge("queue_length", len(q.queue))
 	q.queueUpdated.Notify(false)
-	q.entryAdded.Notify(EntryAddedEventArg{placement, entry}, false)
+	q.entryAdded.Notify(EntryAddedEventArg{0, placement, entry}, false)
 }
 
 func (q *MediaQueue) SkipCurrentEntry() {
@@ -302,7 +299,7 @@ func (q *MediaQueue) RemoveEntry(entryID string) (media.QueueEntry, error) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	entry, err := q.removeEntryInMutex(entryID)
+	entry, err := q.removeEntryInMutex(entryID, false)
 	return entry, stacktrace.Propagate(err, "")
 }
 
@@ -328,11 +325,10 @@ func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user au
 				return status.Errorf(codes.ResourceExhausted, "rate limit reached")
 			}
 
-			entry, err := q.removeEntryInMutex(entryID)
+			_, err = q.removeEntryInMutex(entryID, true)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-			q.ownEntryRemoved.Notify(entry, false)
 			return nil
 		}
 	}
@@ -340,22 +336,21 @@ func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user au
 	return stacktrace.NewError("queue entry not found")
 }
 
-func (q *MediaQueue) removeEntryInMutex(entryID string) (media.QueueEntry, error) {
+func (q *MediaQueue) removeEntryInMutex(entryID string, selfRemoval bool) (media.QueueEntry, error) {
 	if len(q.queue) == 0 {
 		return nil, stacktrace.NewError("the queue is empty")
 	}
 
 	if entryID == q.queue[0].QueueID() {
 		q.queue[0].Stop()
-		q.entryRemoved.Notify(q.queue[0], false)
+		// ProcessQueueWorker will take care of firing entryRemoved
 		return q.queue[0], nil
 	}
 
 	for i, entry := range q.queue {
 		if entryID == entry.QueueID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
-			q.entryRemoved.Notify(entry, false)
-			q.nonPlayingEntryRemoved.Notify(entry, true)
+			q.entryRemoved.Notify(EntryRemovedEventArg{i, entry, selfRemoval}, false)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify(false)
 			return entry, nil
@@ -383,16 +378,18 @@ func (q *MediaQueue) MoveEntry(entryID string, user auth.User, up bool) error {
 
 		entry.SetAsMovedBy(user)
 
+		newIndex := i + 1
 		if up {
-			q.queue[i-1], q.queue[i] = q.queue[i], q.queue[i-1]
-		} else {
-			q.queue[i+1], q.queue[i] = q.queue[i], q.queue[i+1]
+			newIndex = i - 1
 		}
+		q.queue[newIndex], q.queue[i] = q.queue[i], q.queue[newIndex]
 		q.queueUpdated.Notify(false)
 		q.entryMoved.Notify(EntryMovedEventArg{
-			User:  user,
-			Entry: entry,
-			Up:    up,
+			PreviousIndex: i,
+			CurrentIndex:  newIndex,
+			User:          user,
+			Entry:         entry,
+			Up:            up,
 		}, false)
 
 		return nil
@@ -469,7 +466,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 			prevQueueEntry = currentQueueEntry
 			q.mediaChanged.Notify(currentQueueEntry, false)
 			if prevQueueEntry != nil {
-				q.entryRemoved.Notify(prevQueueEntry, false)
+				q.entryRemoved.Notify(EntryRemovedEventArg{0, prevQueueEntry, false}, false)
 			}
 		}
 

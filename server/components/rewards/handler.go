@@ -383,8 +383,8 @@ func (r *Handler) Worker(ctx context.Context) error {
 	onMediaChanged, mediaChangedU := r.mediaQueue.MediaChanged().Subscribe(event.BufferAll)
 	defer mediaChangedU()
 
-	onEntryRemoved, deepEntryRemovedU := r.mediaQueue.NonPlayingEntryRemoved().Subscribe(event.BufferAll)
-	defer deepEntryRemovedU()
+	onEntryRemoved, entryRemovedU := r.mediaQueue.EntryRemoved().Subscribe(event.BufferAll)
+	defer entryRemovedU()
 
 	onPendingWithdrawalsCreated, pendingWithdrawalsCreatedU := r.withdrawalHandler.PendingWithdrawalsCreated().Subscribe(event.BufferFirst)
 	defer pendingWithdrawalsCreatedU()
@@ -412,10 +412,12 @@ func (r *Handler) Worker(ctx context.Context) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-		case v := <-onEntryRemoved:
-			err := r.onMediaRemoved(ctx, v)
-			if err != nil {
-				return stacktrace.Propagate(err, "")
+		case args := <-onEntryRemoved:
+			if args.Index != 0 {
+				err := r.onMediaRemoved(ctx, args.Entry)
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
 			}
 		case pendingWithdrawals := <-onPendingWithdrawalsCreated:
 			r.onPendingWithdrawalCreated(ctx, pendingWithdrawals)

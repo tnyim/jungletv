@@ -160,8 +160,8 @@ func (m *queueModule) monitorForPageQueueEntry(ctx context.Context, entryID, pag
 
 	for {
 		select {
-		case removedEntry := <-onQueueEntryRemoved:
-			if removedEntry.QueueID() == entryID {
+		case args := <-onQueueEntryRemoved:
+			if args.Entry.QueueID() == entryID {
 				// this monitor outlived its usefulness
 				return
 			}

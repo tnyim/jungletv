@@ -24,8 +24,8 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	entryAddedC, entryAddedU := s.mediaQueue.EntryAdded().Subscribe(event.BufferAll)
 	defer entryAddedU()
 
-	ownEntryRemovedC, ownEntryRemovedU := s.mediaQueue.OwnEntryRemoved().Subscribe(event.BufferAll)
-	defer ownEntryRemovedU()
+	entryRemovedC, entryRemovedU := s.mediaQueue.EntryRemoved().Subscribe(event.BufferAll)
+	defer entryRemovedU()
 
 	entryMovedC, entryMovedU := s.mediaQueue.EntryMoved().Subscribe(event.BufferAll)
 	defer entryMovedU()
@@ -116,22 +116,24 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 					return stacktrace.Propagate(err, "")
 				}
 			}
-		case entry := <-ownEntryRemovedC:
-			name, err := s.getChatFriendlyUserName(ctx, entry.RequestedBy().Address())
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-			name = escape.MarkdownCharacters(name)
-			if entry.Concealed() {
-				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-					"_%s just removed one of their own queue entries_", name))
-			} else {
-				title := escape.MarkdownCharacters(entry.MediaInfo().Title())
-				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
-					"_%s just removed their own queue entry_ %s", name, title))
-			}
-			if err != nil {
-				return stacktrace.Propagate(err, "")
+		case args := <-entryRemovedC:
+			if args.SelfRemoval {
+				name, err := s.getChatFriendlyUserName(ctx, args.Entry.RequestedBy().Address())
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
+				name = escape.MarkdownCharacters(name)
+				if args.Entry.Concealed() {
+					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+						"_%s just removed one of their own queue entries_", name))
+				} else {
+					title := escape.MarkdownCharacters(args.Entry.MediaInfo().Title())
+					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
+						"_%s just removed their own queue entry_ %s", name, title))
+				}
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
 			}
 		case args := <-entryMovedC:
 			name, err := s.getChatFriendlyUserName(ctx, args.User.Address())
