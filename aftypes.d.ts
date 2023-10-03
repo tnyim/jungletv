@@ -140,6 +140,13 @@ declare module "jungletv:chat" {
     export function getMessages(since: Date, until: Date): Promise<ChatMessage[]>;
 
     /**
+     * Deletes a chat message.
+     * @param messageID The ID of the message to delete.
+     * @returns The deleted {@link ChatMessage}.
+     */
+    export function removeMessage(messageID: string): ChatMessage;
+
+    /**
      * This writable property indicates whether the chat is enabled.
      * When the chat is disabled, users are not able to send messages.
      * Users may still be able to see recent chat history up to the point when the chat was disabled.

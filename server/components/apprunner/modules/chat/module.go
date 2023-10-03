@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -60,6 +61,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("createMessage", m.createMessage)
 		m.exports.Set("createMessageWithPageAttachment", m.createMessageWithPageAttachment)
 		m.exports.Set("getMessages", m.getMessages)
+		m.exports.Set("removeMessage", m.removeMessage)
 
 		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appContext.ApplicationUser()))
@@ -271,6 +273,36 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 			return jsMessages
 		}
 	})
+}
+
+func (m *chatModule) removeMessage(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	id, err := snowflake.ParseString(call.Argument(0).String())
+	if err != nil {
+		panic(m.runtime.NewTypeError("First argument to getMessages must be a message ID"))
+	}
+
+	message, err := m.chatManager.DeleteMessage(m.executionContext, id)
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	attachments := ""
+	if len(message.AttachmentsView) > 0 {
+		attachments = "\n\nAttachments:\n"
+		for _, a := range message.AttachmentsView {
+			attachments += "- " + a.SerializeForModLog(m.executionContext) + "\n"
+		}
+	}
+
+	content := "> " + strings.Join(strings.Split(message.Content, "\n"), "\n> ")
+
+	m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("deleted chat message from %s:\n\n%s%s", message.Author.Address()[:14], content, attachments))
+
+	return m.serializeMessage(m.executionContext, message)
 }
 
 func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {
