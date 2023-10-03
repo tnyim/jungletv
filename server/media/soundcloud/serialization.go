@@ -72,11 +72,11 @@ func (s *TrackProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 	}, nil
 }
 
-func (s *TrackProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, error) {
+func (s *TrackProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, bool, error) {
 	v := &queueEntrySoundCloudTrack{}
 	err := sonic.Unmarshal(b, &v)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, false, stacktrace.Propagate(err, "")
 	}
-	return v, nil
+	return v, true, nil
 }

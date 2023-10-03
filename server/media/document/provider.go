@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -14,12 +15,15 @@ import (
 
 // DocumentProvider provides document-based media
 type DocumentProvider struct {
-	mediaQueue media.MediaQueueStub
+	queueContext context.Context
+	mediaQueue   media.MediaQueueStub
 }
 
 // NewProvider returns a new document provider
-func NewProvider() media.Provider {
-	return &DocumentProvider{}
+func NewProvider(ctx context.Context) media.Provider {
+	return &DocumentProvider{
+		queueContext: ctx,
+	}
 }
 
 func (c *DocumentProvider) SetMediaQueue(mediaQueue media.MediaQueueStub) {
@@ -99,7 +103,7 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 
 	request := &queueEntryDocument{
 		document:          preInfo.document,
-		backgroundContext: c.mediaQueue.LongRunningContext(),
+		backgroundContext: c.queueContext,
 	}
 	request.InitializeBase(request)
 	request.SetTitle(preInfo.parameters.DocumentData.Title)

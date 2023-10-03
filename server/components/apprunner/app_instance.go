@@ -77,9 +77,9 @@ type appInstance struct {
 	// It's similar to what Deno and Node do.
 	promisesWithoutRejectionHandler map[*goja.Promise]struct{}
 
-	// context for this instance's current execution: derives from the context passed in Start(), lives as long as each execution of this instance does
+	// context for this instance's current execution: derives from the context passed in StartOrResume(), lives as long as each execution of this instance does
 	ctx              context.Context
-	ctxCancel        func()
+	ctxCancel        context.CancelCauseFunc
 	stopWatchdog     func()
 	feedWatchdog     func()
 	vmInterrupt      func(v any)
@@ -125,41 +125,14 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	}
 	instance.applicationUser = auth.NewApplicationUser(account.Address(), instance.applicationID)
 
-	scheduleFunctionNoError := func(f func(vm *goja.Runtime)) {
-		instance.runOnLoopWithInterruption(instance.ctx, f, func(x panicResult) {
-			instance.appLogger.RuntimeError(fmt.Sprint(x))
-		})
-	}
-
-	instance.modules.RegisterNativeModule(keyvalue.New(instance.applicationID))
-	instance.modules.RegisterNativeModule(process.New(instance, instance))
-	instance.modules.RegisterNativeModule(
-		points.New(d.PointsManager,
-			instance.runOnLoopLogError,
-			scheduleFunctionNoError,
-			instance.applicationID,
-			instance.applicationVersion))
-	instance.modules.RegisterNativeModule(db.New(scheduleFunctionNoError))
+	instance.modules.RegisterNativeModule(keyvalue.New(instance))
+	instance.modules.RegisterNativeModule(process.New(instance))
+	instance.modules.RegisterNativeModule(points.New(instance, d.PointsManager))
+	instance.modules.RegisterNativeModule(db.New(instance))
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
-	instance.modules.RegisterNativeModule(
-		chat.New(
-			instance.appLogger,
-			instance,
-			d.ChatManager,
-			instance.pagesModule,
-			instance.applicationUser,
-			instance.runOnLoopLogError,
-			scheduleFunctionNoError))
-	instance.modules.RegisterNativeModule(
-		queue.New(
-			instance.appLogger,
-			instance,
-			d.MediaQueue,
-			instance.pagesModule,
-			instance.applicationUser,
-			instance.runOnLoopLogError,
-			scheduleFunctionNoError))
+	instance.modules.RegisterNativeModule(chat.New(instance, d.ChatManager, instance.pagesModule))
+	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.OtherMediaQueueMethods, instance.pagesModule))
 	instance.rpcModule = rpc.New()
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))
@@ -222,7 +195,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyRunning, "")
 	}
 
-	a.ctx, a.ctxCancel = context.WithCancel(ctx)
+	a.ctx, a.ctxCancel = context.WithCancelCause(ctx)
 
 	a.loop.Start()
 	a.running = true
@@ -255,7 +228,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 		mainSource := string(mainFile.Content)
 		if isTypeScript {
-			a.runOnLoopLogError(func(vm *goja.Runtime) error {
+			a.Schedule(func(vm *goja.Runtime) error {
 				mainSourceBytes, err := a.transpileTS(mainFile.Name, mainFile.Content, false)
 				if err != nil {
 					return err
@@ -269,7 +242,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			})
 		}
 
-		a.runOnLoopLogError(func(vm *goja.Runtime) error {
+		a.Schedule(func(vm *goja.Runtime) error {
 			_, err = vm.RunScript(MainFileName, mainSource)
 			return err // do not propagate, user code, there's no need to make the stack trace more confusing
 		})
@@ -332,7 +305,7 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (fu
 	}, feedWatchdog
 }
 
-func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
+func (a *appInstance) Schedule(f func(vm *goja.Runtime) error) {
 	a.runOnLoopWithInterruption(a.ctx, func(vm *goja.Runtime) {
 		err := f(vm)
 		if err != nil {
@@ -340,6 +313,12 @@ func (a *appInstance) runOnLoopLogError(f func(vm *goja.Runtime) error) {
 		}
 	}, func(p panicResult) {
 		a.appLogger.RuntimeError(p.String())
+	})
+}
+
+func (a *appInstance) ScheduleNoError(f func(vm *goja.Runtime)) {
+	a.runOnLoopWithInterruption(a.ctx, f, func(x panicResult) {
+		a.appLogger.RuntimeError(fmt.Sprint(x))
 	})
 }
 
@@ -472,8 +451,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 		interruptTimer.Stop()
 	}
 	a.modules.ExecutionPaused()
-	a.ctxCancel()
-	a.ctx, a.ctxCancel = nil, nil
+	a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 	a.running = false
 	a.startedOrStoppedAt = time.Now()
 	a.vmClearInterrupt()
@@ -755,6 +733,10 @@ func (a *appInstance) ApplicationStartTime() time.Time {
 func (a *appInstance) RuntimeVersion() int {
 	return RuntimeVersion
 }
+
+func (a *appInstance) LifecycleManager() modules.LifecycleManager {
+	return a
+}
 func (a *appInstance) AbortProcess() {
 	_ = a.Terminate(true, 0, false)
 }
@@ -762,6 +744,15 @@ func (a *appInstance) ExitProcess(exitCode int) {
 	a.exitCode = exitCode
 	_ = a.Terminate(true, 0, false)
 }
+
+func (a *appInstance) ApplicationUser() auth.User {
+	return a.applicationUser
+}
+
+func (a *appInstance) Logger() modules.ApplicationLogger {
+	return a.appLogger
+}
+
 func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.ApplicationVersion, bool) {
 	a.mu.RLock()
 	r := a.running
@@ -814,7 +805,7 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 	}
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
-	a.runOnLoopLogError(func(vm *goja.Runtime) error {
+	a.Schedule(func(vm *goja.Runtime) error {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
 		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
 			return nil

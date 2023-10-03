@@ -48,6 +48,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/media/applicationpage"
 	"github.com/tnyim/jungletv/server/media/document"
 	"github.com/tnyim/jungletv/server/media/soundcloud"
 	"github.com/tnyim/jungletv/server/media/youtube"
@@ -304,7 +305,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	mediaProviders := map[types.MediaType]media.Provider{
 		types.MediaTypeYouTubeVideo:    ytProvider,
 		types.MediaTypeSoundCloudTrack: soundCloudProvider,
-		types.MediaTypeDocument:        document.NewProvider(),
+		types.MediaTypeDocument:        document.NewProvider(ctx),
+		types.MediaTypeApplicationPage: applicationpage.NewProvider(),
 	}
 
 	mediaQueue, err := mediaqueue.New(ctx, options.Log, options.StatsClient, options.QueueFile, mediaProviders)
@@ -498,10 +500,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.raffleSecretKey = sk.ToECDSA()
 
 	s.appRunner.SetModuleDependencies(modules.Dependencies{
-		ModLogWebhook: s.modLogWebhook,
-		ChatManager:   s.chat,
-		PointsManager: s.pointsManager,
-		MediaQueue:    s.mediaQueue,
+		ModLogWebhook:          s.modLogWebhook,
+		ChatManager:            s.chat,
+		PointsManager:          s.pointsManager,
+		MediaQueue:             s.mediaQueue,
+		OtherMediaQueueMethods: &appRuntimeMiscMethods{s: s},
 	})
 
 	return s, nil

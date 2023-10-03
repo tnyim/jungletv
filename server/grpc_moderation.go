@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
@@ -139,6 +140,30 @@ func (s *grpcServer) SetChatSettings(ctx context.Context, r *proto.SetChatSettin
 	return &proto.SetChatSettingsResponse{}, nil
 }
 
+func (s *grpcServer) getAllowMediaEnqueuing() proto.AllowedMediaEnqueuingType {
+	s.allowMediaEnqueuingMutex.RLock()
+	defer s.allowMediaEnqueuingMutex.RUnlock()
+	return s.allowMediaEnqueuing
+}
+
+func (s *grpcServer) setAllowMediaEnqueuing(allowed proto.AllowedMediaEnqueuingType, password string) {
+	s.allowMediaEnqueuingMutex.Lock()
+	defer s.allowMediaEnqueuingMutex.Unlock()
+	s.allowMediaEnqueuing = allowed
+	if allowed == proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED {
+		s.enqueuingPassword = password
+		s.enqueuingPasswordEdition = uuid.NewV4().String()
+	} else {
+		s.enqueuingPassword = ""
+		s.enqueuingPasswordEdition = ""
+	}
+	s.allowMediaEnqueuingChanged.Notify(allowedMediaEnqueuingChangedEventArgs{
+		allowedMediaEnqueuing: allowed,
+		passwordEdition:       s.enqueuingPasswordEdition,
+		passwordIsNumeric:     numbersOnly.MatchString(s.enqueuingPassword),
+	}, false)
+}
+
 func (s *grpcServer) SetMediaEnqueuingEnabled(ctx context.Context, r *proto.SetMediaEnqueuingEnabledRequest) (*proto.SetMediaEnqueuingEnabledResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
 	if user == nil {
@@ -150,25 +175,11 @@ func (s *grpcServer) SetMediaEnqueuingEnabled(ctx context.Context, r *proto.SetM
 		return nil, status.Error(codes.InvalidArgument, "missing enqueuing password")
 	}
 
-	s.allowMediaEnqueuingMutex.Lock()
-	defer s.allowMediaEnqueuingMutex.Unlock()
-	s.allowMediaEnqueuing = r.Allowed
-	if r.Allowed == proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED {
-		s.enqueuingPassword = *r.EnqueuingPassword
-		s.enqueuingPasswordEdition = uuid.NewV4().String()
-	} else {
-		s.enqueuingPassword = ""
-		s.enqueuingPasswordEdition = ""
-	}
-	s.allowMediaEnqueuingChanged.Notify(allowedMediaEnqueuingChangedEventArgs{
-		allowedMediaEnqueuing: r.Allowed,
-		passwordEdition:       s.enqueuingPasswordEdition,
-		passwordIsNumeric:     numbersOnly.MatchString(s.enqueuingPassword),
-	}, false)
+	s.setAllowMediaEnqueuing(r.Allowed, lo.FromPtrOr(r.EnqueuingPassword, ""))
 
 	if s.modLogWebhook != nil {
 		_, err := s.modLogWebhook.SendContent(
-			fmt.Sprintf("Moderator %s (%s) changed video enqueuing to %s",
+			fmt.Sprintf("Moderator %s (%s) changed media enqueuing to %s",
 				user.Address()[:14], user.ModeratorName(), r.Allowed.String()))
 		if err != nil {
 			s.log.Println("Failed to send mod log webhook:", err)

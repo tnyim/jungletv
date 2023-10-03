@@ -16,15 +16,15 @@ import (
 const ModuleName = "jungletv:keyvalue"
 
 type keyValueModule struct {
-	runtime       *goja.Runtime
-	ctx           context.Context // just to pass the sqalx node around...
-	applicationID string
+	runtime    *goja.Runtime
+	ctx        context.Context // just to pass the sqalx node around...
+	appContext modules.ApplicationContext
 }
 
 // New returns a new keyvalue module
-func New(applicationID string) modules.NativeModule {
+func New(appContext modules.ApplicationContext) modules.NativeModule {
 	return &keyValueModule{
-		applicationID: applicationID,
+		appContext: appContext,
 	}
 }
 
@@ -74,7 +74,7 @@ func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
 	}
 	defer ctx.Commit() // read-only tx
 
-	value, err := types.GetApplicationValueByIndex(ctx, m.applicationID, index)
+	value, err := types.GetApplicationValueByIndex(ctx, m.appContext.ApplicationID(), index)
 	if errors.Is(err, types.ErrApplicationValueNotFound) {
 		return goja.Null()
 	} else if err != nil {
@@ -103,7 +103,7 @@ func (m *keyValueModule) getItem(call goja.FunctionCall) goja.Value {
 	}
 	defer ctx.Commit() // read-only tx
 
-	value, err := types.GetApplicationValue(ctx, m.applicationID, key)
+	value, err := types.GetApplicationValue(ctx, m.appContext.ApplicationID(), key)
 	if errors.Is(err, types.ErrApplicationValueNotFound) {
 		return goja.Null()
 	} else if err != nil {
@@ -139,7 +139,7 @@ func (m *keyValueModule) setItem(call goja.FunctionCall) goja.Value {
 	defer ctx.Rollback()
 
 	v := &types.ApplicationValue{
-		ApplicationID: m.applicationID,
+		ApplicationID: m.appContext.ApplicationID(),
 		Key:           key,
 		Value:         value,
 	}
@@ -178,7 +178,7 @@ func (m *keyValueModule) removeItem(call goja.FunctionCall) goja.Value {
 	defer ctx.Rollback()
 
 	v := &types.ApplicationValue{
-		ApplicationID: m.applicationID,
+		ApplicationID: m.appContext.ApplicationID(),
 		Key:           key,
 	}
 
@@ -201,7 +201,7 @@ func (m *keyValueModule) clear(call goja.FunctionCall) goja.Value {
 	}
 	defer ctx.Rollback()
 
-	err = types.ClearApplicationValuesForApplication(ctx, m.applicationID)
+	err = types.ClearApplicationValuesForApplication(ctx, m.appContext.ApplicationID())
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -220,7 +220,7 @@ func (m *keyValueModule) length() goja.Value {
 	}
 	defer ctx.Commit() // read-only tx
 
-	count, err := types.CountApplicationValuesForApplication(ctx, m.applicationID)
+	count, err := types.CountApplicationValuesForApplication(ctx, m.appContext.ApplicationID())
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}

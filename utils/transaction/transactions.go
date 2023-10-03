@@ -21,6 +21,9 @@ type sqalxBaseNodeKey struct{}
 // The caller must use the returned context in subsequent function calls that are meant
 // to happen within the transaction.
 func Begin(ctx context.Context) (*WrappingContext, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, stacktrace.Propagate(err, "refusing to begin transaction in context that is done")
+	}
 	n, ok := ctx.Value(sqalxNodeKey{}).(sqalx.Node)
 	if !ok || n == nil {
 		return nil, stacktrace.NewError("sqalx node not present in context")

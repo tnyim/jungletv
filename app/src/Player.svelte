@@ -2,12 +2,13 @@
     import { onDestroy, onMount } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
-    import { apiClient } from "./api_client";
-    import { processConfigurationChanges, resetConfigurationChanges } from "./configurationStores";
-    import { pageTitleMedia } from "./pageTitleStores";
+    import PlayerApplicationPage from "./PlayerApplicationPage.svelte";
     import PlayerDocument from "./PlayerDocument.svelte";
     import PlayerSoundCloud from "./PlayerSoundCloud.svelte";
     import PlayerYouTube from "./PlayerYouTube.svelte";
+    import { apiClient } from "./api_client";
+    import { processConfigurationChanges, resetConfigurationChanges } from "./configurationStores";
+    import { pageTitleMedia } from "./pageTitleStores";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
     import {
@@ -125,6 +126,8 @@
         <PlayerSoundCloud {checkpoint} {fullSize} {bigMinimizedPlayer} />
     {:else if checkpoint.hasDocumentData()}
         <PlayerDocument {checkpoint} />
+    {:else if checkpoint.hasApplicationPageData()}
+        <PlayerApplicationPage {checkpoint} />
     {:else}
         <div class="flex h-full w-full justify-center items-center text-xl">
             <div class="text-center">

@@ -27,7 +27,7 @@
     export let applicationID: string;
     export let pageID: string;
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
-    export let mode: "sidebar" | "page" | "chatattachment" = "page";
+    export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" = "page";
     export let fixedHeight: number = 0;
     let unpublished = false;
     let applicationVersion: Date;

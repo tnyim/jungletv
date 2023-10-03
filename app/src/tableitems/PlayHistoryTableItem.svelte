@@ -2,7 +2,6 @@
     import { DateTime } from "luxon";
     import { link } from "svelte-navigator";
     import { formatBANPriceFixed } from "../currency_utils";
-    import { openUserProfile } from "../profile_utils";
     import { PlayedMedia } from "../proto/jungletv_pb";
     import { formatQueueEntryThumbnailDuration } from "../utils";
     import UserCellRepresentation from "./UserCellRepresentation.svelte";
@@ -19,10 +18,6 @@
                 .replace(", ", ',</span><br><span class="whitespace-nowrap font-semibold">') +
             "</span>"
         );
-    }
-
-    function openProfile() {
-        openUserProfile(media.getRequestedBy().getAddress());
     }
 </script>
 
@@ -41,6 +36,8 @@
             <i class="fab fa-soundcloud" />
         {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.DOCUMENT_DATA}
             <i class="fas fa-file-alt" />
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.APPLICATION_PAGE_DATA}
+            <i class="fas fa-cube" />
         {/if}
     </td>
     <td
@@ -65,6 +62,8 @@
             <a use:link href="/documents/{media.getDocumentData().getId()}">
                 {media.getDocumentData().getTitle()}
             </a>
+        {:else if media.getMediaInfoCase() == PlayedMedia.MediaInfoCase.APPLICATION_PAGE_DATA}
+            {media.getApplicationPageData().getTitle()}
         {/if}
         {#if media.getEndedAt().toDate().getTime() - media.getStartedAt().toDate().getTime() < media
                 .getLength()

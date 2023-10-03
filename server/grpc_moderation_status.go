@@ -43,14 +43,8 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			return protoVipUsers[i].Address < *protoVipUsers[j].Nickname
 		})
 
-		allowMediaEnqueuing := func() proto.AllowedMediaEnqueuingType {
-			s.allowMediaEnqueuingMutex.RLock()
-			defer s.allowMediaEnqueuingMutex.RUnlock()
-			return s.allowMediaEnqueuing
-		}()
-
 		overview := &proto.ModerationStatusOverview{
-			AllowedMediaEnqueuing:               allowMediaEnqueuing,
+			AllowedMediaEnqueuing:               s.getAllowMediaEnqueuing(),
 			EnqueuingPricesMultiplier:           int32(s.pricer.FinalPricesMultiplier()),
 			CrowdfundedSkippingEnabled:          s.skipManager.CrowdfundedSkippingEnabled(),
 			CrowdfundedSkippingPricesMultiplier: int32(s.pricer.SkipPriceMultiplier()),

@@ -310,6 +310,12 @@ message NowPlayingDocumentData {
     optional Document document = 3;
 }
 
+message NowPlayingApplicationPageData {
+    string application_id = 1;
+    string page_id = 2;
+    ResolveApplicationPageResponse page_info = 3;
+}
+
 message MediaConsumptionCheckpoint {
     bool media_present = 1;
     google.protobuf.Duration current_position = 2;
@@ -325,11 +331,12 @@ message MediaConsumptionCheckpoint {
         NowPlayingYouTubeVideoData youtube_video_data = 11;
         NowPlayingSoundCloudTrackData soundcloud_track_data = 12;
         NowPlayingDocumentData document_data = 13;
+        NowPlayingApplicationPageData application_page_data = 14;
     }
-    optional uint32 latest_announcement = 14;
-    optional bool has_chat_mention = 15;
-    optional string media_title = 16;
-    repeated ConfigurationChange configuration_changes = 17;
+    optional uint32 latest_announcement = 15;
+    optional bool has_chat_mention = 16;
+    optional string media_title = 17;
+    repeated ConfigurationChange configuration_changes = 18;
 }
 
 message ActivityChallenge {
@@ -388,6 +395,14 @@ message QueueDocumentData {
     string title = 2;
 }
 
+message QueueApplicationPageData {
+    string application_id = 1;
+    google.protobuf.Timestamp application_version = 2;
+    string page_id = 3;
+    string title = 4;
+    string thumbnail_file_name = 5;
+}
+
 message QueueConcealedData {}
 
 message QueueEntry {
@@ -405,7 +420,8 @@ message QueueEntry {
         QueueYouTubeVideoData youtube_video_data = 11;
         QueueSoundCloudTrackData soundcloud_track_data = 12;
         QueueDocumentData document_data = 13;
-        QueueConcealedData concealed_data = 14;
+        QueueApplicationPageData application_page_data = 14;
+        QueueConcealedData concealed_data = 15;
     }
 }
 
@@ -914,6 +930,7 @@ message ReceivedReward {
         QueueYouTubeVideoData youtube_video_data = 6;
         QueueSoundCloudTrackData soundcloud_track_data = 7;
         QueueDocumentData document_data = 8;
+        QueueApplicationPageData application_page_data = 9;
     }
 }
 
@@ -1199,6 +1216,7 @@ message PlayedMedia {
         QueueYouTubeVideoData youtube_video_data = 10;
         QueueSoundCloudTrackData soundcloud_track_data = 11;
         QueueDocumentData document_data = 12;
+        QueueApplicationPageData application_page_data = 13;
     }
 }
 

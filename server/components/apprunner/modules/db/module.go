@@ -18,14 +18,14 @@ import (
 const ModuleName = "jungletv:db"
 
 type dbModule struct {
-	runtime   *goja.Runtime
-	runOnLoop gojautil.ScheduleFunctionNoError
-	ctx       context.Context // just to pass the sqalx node around...
+	runtime    *goja.Runtime
+	appContext modules.ApplicationContext
+	ctx        context.Context // just to pass the sqalx node around...
 }
 
 // New returns a new db module
-func New(runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
-	return &dbModule{runOnLoop: runOnLoop}
+func New(appContext modules.ApplicationContext) modules.NativeModule {
+	return &dbModule{appContext: appContext}
 }
 
 func (m *dbModule) IsNodeBuiltin() bool {
@@ -71,7 +71,7 @@ func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func(actx gojautil.AsyncContext) ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
 		ctx, err := transaction.Begin(m.ctx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))

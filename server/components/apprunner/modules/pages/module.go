@@ -27,17 +27,11 @@ type PagesModule interface {
 	OnPageUnpublished() event.Event[string]
 }
 
-// ProcessInformationProvider can get information about the process
-type ProcessInformationProvider interface {
-	ApplicationID() string
-	ApplicationVersion() types.ApplicationVersion
-}
-
 type pagesModule struct {
 	runtime           *goja.Runtime
 	exports           *goja.Object
 	onPageUnpublished event.Event[string]
-	infoProvider      ProcessInformationProvider
+	appContext        modules.ApplicationContext
 	pages             map[string]PageInfo
 	mu                sync.RWMutex
 	ctx               context.Context // just to pass the sqalx node around...
@@ -50,10 +44,10 @@ type PageInfo struct {
 }
 
 // New returns a new pages module
-func New(infoProvider ProcessInformationProvider) PagesModule {
+func New(appContext modules.ApplicationContext) PagesModule {
 	return &pagesModule{
 		onPageUnpublished: event.New[string](),
-		infoProvider:      infoProvider,
+		appContext:        appContext,
 		pages:             make(map[string]PageInfo),
 	}
 }
@@ -130,8 +124,8 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 
 	files, err := types.GetApplicationFilesWithNamesForApplicationAtVersion(
 		ctx,
-		m.infoProvider.ApplicationID(),
-		m.infoProvider.ApplicationVersion(),
+		m.appContext.ApplicationID(),
+		m.appContext.ApplicationVersion(),
 		[]string{fileName})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))

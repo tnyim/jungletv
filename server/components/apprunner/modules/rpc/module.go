@@ -77,7 +77,7 @@ type eventListener struct {
 	callable goja.Callable
 }
 
-// New returns a new pages module
+// New returns a new RPC module
 func New() RPCModule {
 	return &rpcModule{
 		handlers:       make(map[string]handler),

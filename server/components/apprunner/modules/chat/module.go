@@ -11,13 +11,11 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
-	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/stores/chat"
-	"github.com/tnyim/jungletv/types"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -26,35 +24,21 @@ const ModuleName = "jungletv:chat"
 type chatModule struct {
 	runtime        *goja.Runtime
 	exports        *goja.Object
-	infoProvider   ProcessInformationProvider
+	appContext     modules.ApplicationContext
 	pagesModule    pages.PagesModule
 	chatManager    *chatmanager.Manager
-	schedule       gojautil.ScheduleFunction
-	runOnLoop      gojautil.ScheduleFunctionNoError
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
-	logger         modules.ApplicationLogger
-	appUser        auth.User
 
 	executionContext context.Context
 }
 
-// ProcessInformationProvider can get information about the process
-type ProcessInformationProvider interface {
-	ApplicationID() string
-	ApplicationVersion() types.ApplicationVersion
-}
-
 // New returns a new chat module
-func New(logger modules.ApplicationLogger, infoProvider ProcessInformationProvider, chatManager *chatmanager.Manager, pagesModule pages.PagesModule, appUser auth.User, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError) modules.NativeModule {
+func New(appContext modules.ApplicationContext, chatManager *chatmanager.Manager, pagesModule pages.PagesModule) modules.NativeModule {
 	return &chatModule{
-		infoProvider: infoProvider,
-		pagesModule:  pagesModule,
-		logger:       logger,
-		chatManager:  chatManager,
-		schedule:     schedule,
-		runOnLoop:    runOnLoop,
-		appUser:      appUser,
+		appContext:  appContext,
+		pagesModule: pagesModule,
+		chatManager: chatManager,
 	}
 }
 
@@ -65,7 +49,7 @@ func (m *chatModule) IsNodeBuiltin() bool {
 func (m *chatModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
-		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.schedule)
+		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.SerializeTime(runtime, t)
 		}
@@ -78,7 +62,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("getMessages", m.getMessages)
 
 		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appUser))
+			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appContext.ApplicationUser()))
 		}), m.runtime.ToValue(m.setApplicationNickname), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.DefineAccessorProperty("enabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
@@ -127,7 +111,6 @@ func (m *chatModule) ExecutionPaused() {
 	if m.eventAdapter != nil {
 		m.eventAdapter.Pause()
 	}
-	m.executionContext = nil
 }
 
 func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message) goja.Value {
@@ -193,7 +176,7 @@ func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Message content is empty"))
 	}
 
-	message, err := m.chatManager.CreateMessage(m.executionContext, m.appUser, content, reference, []chat.MessageAttachmentStorage{})
+	message, err := m.chatManager.CreateMessage(m.executionContext, m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -224,8 +207,8 @@ func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goj
 	}
 
 	attachment := &MessageAttachmentApplicationPageStorage{
-		ApplicationID:      m.infoProvider.ApplicationID(),
-		ApplicationVersion: m.infoProvider.ApplicationVersion(),
+		ApplicationID:      m.appContext.ApplicationID(),
+		ApplicationVersion: m.appContext.ApplicationVersion(),
 		PageID:             pageID,
 		Height:             height,
 	}
@@ -251,7 +234,7 @@ func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goj
 		content = strings.TrimSpace(contentValue.String())
 	}
 
-	message, err := m.chatManager.CreateMessage(m.executionContext, m.appUser, content, reference, []chat.MessageAttachmentStorage{attachment})
+	message, err := m.chatManager.CreateMessage(m.executionContext, m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{attachment})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -274,7 +257,7 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to getMessages must be a Date"))
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.runOnLoop, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
 		messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
@@ -313,7 +296,7 @@ func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {
 		nickname = &nicknameString
 	}
 
-	err := m.chatManager.SetNickname(m.executionContext, m.appUser, nickname, true)
+	err := m.chatManager.SetNickname(m.executionContext, m.appContext.ApplicationUser(), nickname, true)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -334,10 +317,10 @@ func (m *chatModule) setEnabled(call goja.FunctionCall) goja.Value {
 
 	if enabled {
 		m.chatManager.EnableChat()
-		m.logger.RuntimeAuditLog("enabled chat")
+		m.appContext.Logger().RuntimeAuditLog("enabled chat")
 	} else {
 		m.chatManager.DisableChat(chatmanager.DisabledReasonUnspecified)
-		m.logger.RuntimeAuditLog("disabled chat")
+		m.appContext.Logger().RuntimeAuditLog("disabled chat")
 	}
 
 	return goja.Undefined()
@@ -356,9 +339,9 @@ func (m *chatModule) setSlowModeEnabled(call goja.FunctionCall) goja.Value {
 
 	m.chatManager.SetSlowModeEnabled(enabled)
 	if enabled {
-		m.logger.RuntimeAuditLog("enabled chat slowmode")
+		m.appContext.Logger().RuntimeAuditLog("enabled chat slowmode")
 	} else {
-		m.logger.RuntimeAuditLog("disabled chat slowmode")
+		m.appContext.Logger().RuntimeAuditLog("disabled chat slowmode")
 	}
 
 	return goja.Undefined()

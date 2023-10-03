@@ -852,6 +852,36 @@ export namespace NowPlayingDocumentData {
   }
 }
 
+export class NowPlayingApplicationPageData extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getPageId(): string;
+  setPageId(value: string): void;
+
+  hasPageInfo(): boolean;
+  clearPageInfo(): void;
+  getPageInfo(): application_runtime_pb.ResolveApplicationPageResponse | undefined;
+  setPageInfo(value?: application_runtime_pb.ResolveApplicationPageResponse): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NowPlayingApplicationPageData.AsObject;
+  static toObject(includeInstance: boolean, msg: NowPlayingApplicationPageData): NowPlayingApplicationPageData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NowPlayingApplicationPageData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NowPlayingApplicationPageData;
+  static deserializeBinaryFromReader(message: NowPlayingApplicationPageData, reader: jspb.BinaryReader): NowPlayingApplicationPageData;
+}
+
+export namespace NowPlayingApplicationPageData {
+  export type AsObject = {
+    applicationId: string,
+    pageId: string,
+    pageInfo?: application_runtime_pb.ResolveApplicationPageResponse.AsObject,
+  }
+}
+
 export class MediaConsumptionCheckpoint extends jspb.Message {
   getMediaPresent(): boolean;
   setMediaPresent(value: boolean): void;
@@ -910,6 +940,11 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getDocumentData(): NowPlayingDocumentData | undefined;
   setDocumentData(value?: NowPlayingDocumentData): void;
 
+  hasApplicationPageData(): boolean;
+  clearApplicationPageData(): void;
+  getApplicationPageData(): NowPlayingApplicationPageData | undefined;
+  setApplicationPageData(value?: NowPlayingApplicationPageData): void;
+
   hasLatestAnnouncement(): boolean;
   clearLatestAnnouncement(): void;
   getLatestAnnouncement(): number;
@@ -956,6 +991,7 @@ export namespace MediaConsumptionCheckpoint {
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
     soundcloudTrackData?: NowPlayingSoundCloudTrackData.AsObject,
     documentData?: NowPlayingDocumentData.AsObject,
+    applicationPageData?: NowPlayingApplicationPageData.AsObject,
     latestAnnouncement: number,
     hasChatMention: boolean,
     mediaTitle: string,
@@ -968,6 +1004,7 @@ export namespace MediaConsumptionCheckpoint {
     YOUTUBE_VIDEO_DATA = 11,
     SOUNDCLOUD_TRACK_DATA = 12,
     DOCUMENT_DATA = 13,
+    APPLICATION_PAGE_DATA = 14,
   }
 }
 
@@ -1253,6 +1290,44 @@ export namespace QueueDocumentData {
   }
 }
 
+export class QueueApplicationPageData extends jspb.Message {
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  hasApplicationVersion(): boolean;
+  clearApplicationVersion(): void;
+  getApplicationVersion(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setApplicationVersion(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getPageId(): string;
+  setPageId(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getThumbnailFileName(): string;
+  setThumbnailFileName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueueApplicationPageData.AsObject;
+  static toObject(includeInstance: boolean, msg: QueueApplicationPageData): QueueApplicationPageData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: QueueApplicationPageData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueueApplicationPageData;
+  static deserializeBinaryFromReader(message: QueueApplicationPageData, reader: jspb.BinaryReader): QueueApplicationPageData;
+}
+
+export namespace QueueApplicationPageData {
+  export type AsObject = {
+    applicationId: string,
+    applicationVersion?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    pageId: string,
+    title: string,
+    thumbnailFileName: string,
+  }
+}
+
 export class QueueConcealedData extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueueConcealedData.AsObject;
@@ -1323,6 +1398,11 @@ export class QueueEntry extends jspb.Message {
   getDocumentData(): QueueDocumentData | undefined;
   setDocumentData(value?: QueueDocumentData): void;
 
+  hasApplicationPageData(): boolean;
+  clearApplicationPageData(): void;
+  getApplicationPageData(): QueueApplicationPageData | undefined;
+  setApplicationPageData(value?: QueueApplicationPageData): void;
+
   hasConcealedData(): boolean;
   clearConcealedData(): void;
   getConcealedData(): QueueConcealedData | undefined;
@@ -1354,6 +1434,7 @@ export namespace QueueEntry {
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
+    applicationPageData?: QueueApplicationPageData.AsObject,
     concealedData?: QueueConcealedData.AsObject,
   }
 
@@ -1362,7 +1443,8 @@ export namespace QueueEntry {
     YOUTUBE_VIDEO_DATA = 11,
     SOUNDCLOUD_TRACK_DATA = 12,
     DOCUMENT_DATA = 13,
-    CONCEALED_DATA = 14,
+    APPLICATION_PAGE_DATA = 14,
+    CONCEALED_DATA = 15,
   }
 }
 
@@ -3714,6 +3796,11 @@ export class ReceivedReward extends jspb.Message {
   getDocumentData(): QueueDocumentData | undefined;
   setDocumentData(value?: QueueDocumentData): void;
 
+  hasApplicationPageData(): boolean;
+  clearApplicationPageData(): void;
+  getApplicationPageData(): QueueApplicationPageData | undefined;
+  setApplicationPageData(value?: QueueApplicationPageData): void;
+
   getMediaInfoCase(): ReceivedReward.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ReceivedReward.AsObject;
@@ -3735,6 +3822,7 @@ export namespace ReceivedReward {
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
+    applicationPageData?: QueueApplicationPageData.AsObject,
   }
 
   export enum MediaInfoCase {
@@ -3742,6 +3830,7 @@ export namespace ReceivedReward {
     YOUTUBE_VIDEO_DATA = 6,
     SOUNDCLOUD_TRACK_DATA = 7,
     DOCUMENT_DATA = 8,
+    APPLICATION_PAGE_DATA = 9,
   }
 }
 
@@ -5198,6 +5287,11 @@ export class PlayedMedia extends jspb.Message {
   getDocumentData(): QueueDocumentData | undefined;
   setDocumentData(value?: QueueDocumentData): void;
 
+  hasApplicationPageData(): boolean;
+  clearApplicationPageData(): void;
+  getApplicationPageData(): QueueApplicationPageData | undefined;
+  setApplicationPageData(value?: QueueApplicationPageData): void;
+
   getMediaInfoCase(): PlayedMedia.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PlayedMedia.AsObject;
@@ -5223,6 +5317,7 @@ export namespace PlayedMedia {
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
+    applicationPageData?: QueueApplicationPageData.AsObject,
   }
 
   export enum MediaInfoCase {
@@ -5230,6 +5325,7 @@ export namespace PlayedMedia {
     YOUTUBE_VIDEO_DATA = 10,
     SOUNDCLOUD_TRACK_DATA = 11,
     DOCUMENT_DATA = 12,
+    APPLICATION_PAGE_DATA = 13,
   }
 }
 

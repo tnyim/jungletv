@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import QueueEntryHeaderApplicationPage from "./QueueEntryHeaderApplicationPage.svelte";
     import QueueEntryHeaderConcealed from "./QueueEntryHeaderConcealed.svelte";
     import QueueEntryHeaderDocument from "./QueueEntryHeaderDocument.svelte";
     import QueueEntryHeaderSoundCloud from "./QueueEntryHeaderSoundCloud.svelte";
@@ -36,6 +37,8 @@
     <QueueEntryHeaderSoundCloud {entry} {isPlaying} {mode} />
 {:else if entry.hasDocumentData()}
     <QueueEntryHeaderDocument {entry} {isPlaying} {mode} />
+{:else if "hasApplicationPageData" in entry && entry.hasApplicationPageData()}
+    <QueueEntryHeaderApplicationPage {entry} {isPlaying} {mode} />
 {:else if "hasConcealedData" in entry && entry.hasConcealedData()}
     <QueueEntryHeaderConcealed {entry} {isPlaying} {mode} />
 {:else}

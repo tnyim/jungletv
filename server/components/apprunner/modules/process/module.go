@@ -8,38 +8,21 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
-	"github.com/tnyim/jungletv/types"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
 const ModuleName = "process"
 
-// ProcessInformationProvider can get information about the process
-type ProcessInformationProvider interface {
-	ApplicationID() string
-	ApplicationVersion() types.ApplicationVersion
-	ApplicationStartTime() time.Time
-	RuntimeVersion() int
-}
-
-// ProcessLifecycleManager can manage the process' lifecycle
-type ProcessLifecycleManager interface {
-	AbortProcess()
-	ExitProcess(exitCode int)
-}
-
 type processModule struct {
-	runtime          *goja.Runtime
-	exports          *goja.Object
-	infoProvider     ProcessInformationProvider
-	lifecycleManager ProcessLifecycleManager
+	runtime    *goja.Runtime
+	exports    *goja.Object
+	appContext modules.ApplicationContext
 }
 
 // New returns a new process module
-func New(infoProvider ProcessInformationProvider, lifecycleManager ProcessLifecycleManager) modules.NativeModule {
+func New(appContext modules.ApplicationContext) modules.NativeModule {
 	return &processModule{
-		infoProvider:     infoProvider,
-		lifecycleManager: lifecycleManager,
+		appContext: appContext,
 	}
 }
 
@@ -53,7 +36,7 @@ func (m *processModule) ModuleLoader() require.ModuleLoader {
 		m.exports = module.Get("exports").(*goja.Object)
 
 		m.exports.DefineAccessorProperty("title", m.runtime.ToValue(func() string {
-			return m.infoProvider.ApplicationID()
+			return m.appContext.ApplicationID()
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.DefineAccessorProperty("platform", m.runtime.ToValue(func() string {
@@ -61,13 +44,13 @@ func (m *processModule) ModuleLoader() require.ModuleLoader {
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.DefineAccessorProperty("version", m.runtime.ToValue(func() string {
-			return fmt.Sprint(m.infoProvider.RuntimeVersion())
+			return fmt.Sprint(m.appContext.RuntimeVersion())
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 		m.exports.DefineAccessorProperty("versions", m.runtime.ToValue(func() map[string]string {
 			return map[string]string{
-				"jungletv":    fmt.Sprint(m.infoProvider.RuntimeVersion()),
-				"application": fmt.Sprint(time.Time(m.infoProvider.ApplicationVersion()).UnixMilli()),
+				"jungletv":    fmt.Sprint(m.appContext.RuntimeVersion()),
+				"application": fmt.Sprint(time.Time(m.appContext.ApplicationVersion()).UnixMilli()),
 			}
 		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
 
@@ -88,7 +71,7 @@ func (m *processModule) ExecutionPaused()                     {}
 
 func (m *processModule) abort(call goja.FunctionCall) goja.Value {
 	m.runtime.Interrupt("process aborted")
-	m.lifecycleManager.AbortProcess()
+	m.appContext.LifecycleManager().AbortProcess()
 	return goja.Undefined()
 }
 
@@ -105,10 +88,10 @@ func (m *processModule) exit(call goja.FunctionCall) goja.Value {
 			exitCode = c
 		}
 	}
-	m.lifecycleManager.ExitProcess(exitCode)
+	m.appContext.LifecycleManager().ExitProcess(exitCode)
 	return goja.Undefined()
 }
 
 func (m *processModule) uptime(call goja.FunctionCall) goja.Value {
-	return m.runtime.ToValue(time.Since(m.infoProvider.ApplicationStartTime()).Seconds())
+	return m.runtime.ToValue(time.Since(m.appContext.ApplicationStartTime()).Seconds())
 }

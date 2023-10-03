@@ -53,7 +53,13 @@ func (q *MediaQueue) EntryAdded() event.Event[EntryAddedEventArg] {
 	return q.entryAdded
 }
 
-// NonPlayingEntryRemoved is the event that is fired when an entry other than the currently playing one is removed from the queue
+// EntryRemoved is the event that is fired when an entry is removed by any means: because it finished playing,
+// because it was skipped, or because it was removed from the queue before it could begin playing
+func (q *MediaQueue) EntryRemoved() event.Event[media.QueueEntry] {
+	return q.entryRemoved
+}
+
+// NonPlayingEntryRemoved is the event that is fired when an entry is removed before it began playing
 func (q *MediaQueue) NonPlayingEntryRemoved() event.Event[media.QueueEntry] {
 	return q.nonPlayingEntryRemoved
 }

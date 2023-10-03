@@ -63,11 +63,11 @@ func (s *VideoProvider) SerializeUserProfileResponseFeaturedMedia(playedMedia *t
 	}, nil
 }
 
-func (s *VideoProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, error) {
+func (s *VideoProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (media.QueueEntry, bool, error) {
 	v := &queueEntryYouTubeVideo{}
 	err := sonic.Unmarshal(b, &v)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, false, stacktrace.Propagate(err, "")
 	}
-	return v, nil
+	return v, true, nil
 }

@@ -38,6 +38,9 @@
             <a use:link href="/documents/{reward.getDocumentData().getId()}">
                 {reward.getDocumentData().getTitle()}
             </a>
+        {:else if reward.hasApplicationPageData()}
+            {reward.getApplicationPageData().getTitle()} <span class="font-thin">from</span>
+            <span class="font-extralight mono">{reward.getApplicationPageData().getApplicationId()}</span>
         {/if}
     </td>
 </tr>

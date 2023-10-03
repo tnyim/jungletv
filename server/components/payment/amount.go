@@ -3,6 +3,7 @@ package payment
 import (
 	"math/big"
 
+	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
 )
 
@@ -20,6 +21,14 @@ func NewAmount(numbersToAdd ...*big.Int) Amount {
 
 func NewAmountFromDecimal(d decimal.Decimal) Amount {
 	return Amount{d.BigInt()}
+}
+
+func NewAmountFromAPIString(s string) (Amount, error) {
+	bigint, ok := big.NewInt(0).SetString(s, 10)
+	if !ok {
+		return Amount{}, stacktrace.NewError("invalid Amount value %s", s)
+	}
+	return Amount{bigint}, nil
 }
 
 func (a Amount) Decimal() decimal.Decimal {

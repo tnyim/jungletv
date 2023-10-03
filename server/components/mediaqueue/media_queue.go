@@ -44,7 +44,6 @@ type MediaQueue struct {
 	skippingEnabled                 bool // all entries will behave as unskippable when false
 	insertCursor                    string
 	playingSince                    time.Time
-	longRunningContextForProviders  context.Context
 
 	mediaProviders map[types.MediaType]media.Provider
 
@@ -55,7 +54,11 @@ type MediaQueue struct {
 	mediaChanged           event.Event[media.QueueEntry]
 	entryAdded             event.Event[EntryAddedEventArg]
 
-	// fired when an entry that is not at the top of the queue is removed prematurely
+	// fired when an entry is removed by any means: because it finished playing,
+	// because it was skipped, or because it was removed from the queue before it could begin playing
+	entryRemoved event.Event[media.QueueEntry]
+
+	// fired when an entry is removed from the queue before it began playing
 	// receives the removed entry as an argument
 	nonPlayingEntryRemoved event.Event[media.QueueEntry]
 	ownEntryRemoved        event.Event[media.QueueEntry] // receives the removed entry as an argument
@@ -75,6 +78,7 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 		mediaChanged:                    event.New[media.QueueEntry](),
 		skippingAllowedUpdated:          event.NewNoArg(),
 		entryAdded:                      event.New[EntryAddedEventArg](),
+		entryRemoved:                    event.New[media.QueueEntry](),
 		nonPlayingEntryRemoved:          event.New[media.QueueEntry](),
 		ownEntryRemoved:                 event.New[media.QueueEntry](),
 		entryMoved:                      event.New[EntryMovedEventArg](),
@@ -83,7 +87,6 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 		entryReorderingAllowed:          true,
 		skippingEnabled:                 true,
 		mediaProviders:                  mediaProviders,
-		longRunningContextForProviders:  ctx,
 	}
 	for _, provider := range mediaProviders {
 		provider.SetMediaQueue(q)
@@ -109,10 +112,6 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 		go q.persistenceWorker(ctx, persistenceFile)
 	}
 	return q, nil
-}
-
-func (q *MediaQueue) LongRunningContext() context.Context {
-	return q.longRunningContextForProviders
 }
 
 func (q *MediaQueue) EntryReorderingAllowed() bool {
@@ -348,12 +347,14 @@ func (q *MediaQueue) removeEntryInMutex(entryID string) (media.QueueEntry, error
 
 	if entryID == q.queue[0].QueueID() {
 		q.queue[0].Stop()
+		q.entryRemoved.Notify(q.queue[0], false)
 		return q.queue[0], nil
 	}
 
 	for i, entry := range q.queue {
 		if entryID == entry.QueueID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
+			q.entryRemoved.Notify(entry, false)
 			q.nonPlayingEntryRemoved.Notify(entry, true)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify(false)
@@ -467,6 +468,9 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 			}
 			prevQueueEntry = currentQueueEntry
 			q.mediaChanged.Notify(currentQueueEntry, false)
+			if prevQueueEntry != nil {
+				q.entryRemoved.Notify(prevQueueEntry, false)
+			}
 		}
 
 		if currentQueueEntry != nil {
@@ -586,7 +590,7 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 
-	q.queue = make([]media.QueueEntry, len(entries))
+	q.queue = make([]media.QueueEntry, 0, len(entries))
 	for i := range entries {
 		unknownEntry := unknownTypeEntry{}
 		err := sonic.Unmarshal(entries[i], &unknownEntry)
@@ -599,9 +603,13 @@ func (q *MediaQueue) restoreQueueFromFile(ctx context.Context, file string) erro
 			return stacktrace.NewError("unknown media queue entry type %s in persisted queue", unknownEntry.Type)
 		}
 
-		q.queue[i], err = provider.UnmarshalQueueEntryJSON(ctx, entries[i])
+		entry, keepInQueue, err := provider.UnmarshalQueueEntryJSON(ctx, entries[i])
 		if err != nil {
 			return stacktrace.Propagate(err, "")
+		}
+
+		if entry != nil && keepInQueue {
+			q.queue = append(q.queue, entry)
 		}
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))

@@ -66,6 +66,10 @@ func (e *CommonQueueEntry) Play() {
 	}()
 }
 
+func (e *CommonQueueEntry) SetStartedPlaying(t time.Time) {
+	e.startedPlaying = t
+}
+
 // Played implements the QueueEntry interface
 func (e *CommonQueueEntry) Played() bool {
 	return e.played

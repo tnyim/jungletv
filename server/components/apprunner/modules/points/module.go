@@ -29,25 +29,19 @@ type pointsModule struct {
 	runtime        *goja.Runtime
 	exports        *goja.Object
 	pointsManager  *pointsmanager.Manager
-	schedule       gojautil.ScheduleFunction
-	runOnLoop      gojautil.ScheduleFunctionNoError
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
 
-	applicationID      string
-	applicationVersion types.ApplicationVersion
+	appContext modules.ApplicationContext
 
 	executionContext context.Context
 }
 
 // New returns a new points module
-func New(pointsManager *pointsmanager.Manager, schedule gojautil.ScheduleFunction, runOnLoop gojautil.ScheduleFunctionNoError, applicationID string, applicationVersion types.ApplicationVersion) modules.NativeModule {
+func New(appContext modules.ApplicationContext, pointsManager *pointsmanager.Manager) modules.NativeModule {
 	return &pointsModule{
-		pointsManager:      pointsManager,
-		schedule:           schedule,
-		runOnLoop:          runOnLoop,
-		applicationID:      applicationID,
-		applicationVersion: applicationVersion,
+		pointsManager: pointsManager,
+		appContext:    appContext,
 	}
 }
 
@@ -58,7 +52,7 @@ func (m *pointsModule) IsNodeBuiltin() bool {
 func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
-		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.schedule)
+		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.SerializeTime(runtime, t)
 		}
@@ -101,7 +95,6 @@ func (m *pointsModule) ExecutionPaused() {
 	if m.eventAdapter != nil {
 		m.eventAdapter.Pause()
 	}
-	m.executionContext = nil
 }
 
 func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
@@ -131,10 +124,10 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 
 	tx, err := m.pointsManager.CreateTransaction(m.executionContext, user, types.PointsTxTypeApplicationDefined, value, pointsmanager.TxExtraField{
 		Key:   "application_id",
-		Value: m.applicationID,
+		Value: m.appContext.ApplicationID(),
 	}, pointsmanager.TxExtraField{
 		Key:   "application_version",
-		Value: m.applicationVersion,
+		Value: m.appContext.ApplicationVersion(),
 	}, pointsmanager.TxExtraField{
 		Key:   "description",
 		Value: description,

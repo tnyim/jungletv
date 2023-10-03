@@ -16,7 +16,6 @@ import (
 // QueueEntry represents one entry in the media queue
 type QueueEntry interface {
 	json.Marshaler
-	json.Unmarshaler
 	RequestedBy() auth.User
 	RequestCost() payment.Amount
 	RequestedAt() time.Time
@@ -70,7 +69,7 @@ type Provider interface {
 	ContinueEnqueueRequest(ctx *transaction.WrappingContext, info InitialInfo, unskippable, concealed, anonymous,
 		allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (EnqueueRequest, EnqueueRequestCreationResult, error)
 
-	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, error)
+	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, bool, error)
 
 	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
 	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)
@@ -80,5 +79,4 @@ type Provider interface {
 // MediaQueueStub contains a subset of the methods implemented by the media queue which are useful to media providers
 type MediaQueueStub interface {
 	Entries() []QueueEntry
-	LongRunningContext() context.Context
 }
