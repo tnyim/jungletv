@@ -67,13 +67,8 @@ func (manager *JWTManager) Verify(ctx context.Context, accessToken string) (*Use
 		accessToken,
 		&UserClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-			_, ok := token.Method.(*jwt.SigningMethodHMAC)
-			if !ok {
-				return nil, stacktrace.NewError("unexpected token signing method")
-			}
-
 			return []byte(manager.secretKey), nil
-		})
+		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "invalid token")
 	}
