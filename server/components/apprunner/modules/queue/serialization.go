@@ -28,7 +28,7 @@ func serializeQueueEntry(vm *goja.Runtime, entry media.QueueEntry) goja.Value {
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("playedFor", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.PlayedFor()) // TODO check if duration is serialized properly
+		return vm.ToValue(entry.PlayedFor().Milliseconds())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("playing", vm.ToValue(func(call goja.FunctionCall) goja.Value {
@@ -65,11 +65,11 @@ func serializeMediaInfo(vm *goja.Runtime, info media.Info) goja.Value {
 		if info.Length() == math.MaxInt64 {
 			return goja.PositiveInf()
 		}
-		return vm.ToValue(info.Length()) // TODO check if duration is serialized properly
+		return vm.ToValue(info.Length().Milliseconds())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("offset", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(info.Offset()) // TODO check if duration is serialized properly
+		return vm.ToValue(info.Offset().Milliseconds())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("title", vm.ToValue(func(call goja.FunctionCall) goja.Value {
