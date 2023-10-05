@@ -11,7 +11,7 @@ func (m *queueModule) configureEvents() {
 	gojautil.AdaptNoArgEvent(m.eventAdapter, m.mediaQueue.QueueUpdated(), "queueupdated", nil)
 	gojautil.AdaptEvent(m.eventAdapter, m.mediaQueue.EntryAdded(), "entryadded", func(vm *goja.Runtime, arg mediaqueue.EntryAddedEventArg) map[string]interface{} {
 		return map[string]interface{}{
-			"entry": serializeQueueEntry(vm, arg.Entry),
+			"entry": m.serializeQueueEntry(vm, arg.Entry),
 			"index": arg.Index,
 			"placement": func(placement mediaqueue.EntryAddedPlacement) string {
 				switch placement {
@@ -32,7 +32,7 @@ func (m *queueModule) configureEvents() {
 			"previousIndex": arg.PreviousIndex,
 			"currentIndex":  arg.CurrentIndex,
 			"user":          gojautil.SerializeUser(vm, arg.User),
-			"entry":         serializeQueueEntry(vm, arg.Entry),
+			"entry":         m.serializeQueueEntry(vm, arg.Entry),
 			"direction": func(up bool) string {
 				if up {
 					return "up"
@@ -45,12 +45,12 @@ func (m *queueModule) configureEvents() {
 		return map[string]interface{}{
 			"index":       arg.Index,
 			"selfRemoval": arg.SelfRemoval,
-			"entry":       serializeQueueEntry(vm, arg.Entry),
+			"entry":       m.serializeQueueEntry(vm, arg.Entry),
 		}
 	})
 	gojautil.AdaptEvent(m.eventAdapter, m.mediaQueue.MediaChanged(), "mediachanged", func(vm *goja.Runtime, arg media.QueueEntry) map[string]interface{} {
 		return map[string]interface{}{
-			"playingEntry": serializeQueueEntry(vm, arg),
+			"playingEntry": m.serializeQueueEntry(vm, arg),
 		}
 	})
 	gojautil.AdaptNoArgEvent(m.eventAdapter, m.mediaQueue.SkippingAllowedUpdated(), "skippingallowedchanged", nil)

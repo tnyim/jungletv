@@ -8,7 +8,7 @@ import (
 	"github.com/tnyim/jungletv/server/media"
 )
 
-func serializeQueueEntry(vm *goja.Runtime, entry media.QueueEntry) goja.Value {
+func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEntry) goja.Value {
 	result := vm.NewObject()
 
 	result.DefineAccessorProperty("concealed", vm.ToValue(func(call goja.FunctionCall) goja.Value {
@@ -54,6 +54,11 @@ func serializeQueueEntry(vm *goja.Runtime, entry media.QueueEntry) goja.Value {
 	result.DefineAccessorProperty("unskippable", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(entry.Unskippable())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.Set("remove", func() goja.Value {
+		removed := m.removeEntryAndLog(entry.QueueID())
+		return m.serializeQueueEntry(vm, removed)
+	})
 
 	return result
 }

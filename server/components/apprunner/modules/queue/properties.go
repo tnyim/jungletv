@@ -29,7 +29,7 @@ func (m *queueModule) setPropertyExports() {
 		entries := m.mediaQueue.Entries()
 		result := make([]goja.Value, len(entries))
 		for i := range entries {
-			result[i] = serializeQueueEntry(m.runtime, entries[i])
+			result[i] = m.serializeQueueEntry(m.runtime, entries[i])
 		}
 		return m.runtime.ToValue(result)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
@@ -39,7 +39,7 @@ func (m *queueModule) setPropertyExports() {
 		if !playing {
 			return goja.Undefined()
 		}
-		return serializeQueueEntry(m.runtime, entry)
+		return m.serializeQueueEntry(m.runtime, entry)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 	m.exports.DefineAccessorProperty("length", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {

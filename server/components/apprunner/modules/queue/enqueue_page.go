@@ -119,7 +119,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		playFn(entry)
 
 		return entry, func(vm *goja.Runtime, entry media.QueueEntry) interface{} {
-			return serializeQueueEntry(vm, entry)
+			return m.serializeQueueEntry(vm, entry)
 		}
 	})
 }

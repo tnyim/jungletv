@@ -134,6 +134,11 @@ func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message
 	}
 	result["attachments"] = attachments
 
+	result["remove"] = func() goja.Value {
+		message := m.removeMessageAndLog(message.ID)
+		return m.serializeMessage(m.executionContext, message)
+	}
+
 	return m.runtime.ToValue(result)
 }
 
@@ -285,6 +290,12 @@ func (m *chatModule) removeMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("First argument to getMessages must be a message ID"))
 	}
 
+	message := m.removeMessageAndLog(id)
+
+	return m.serializeMessage(m.executionContext, message)
+}
+
+func (m *chatModule) removeMessageAndLog(id snowflake.ID) *chat.Message {
 	message, err := m.chatManager.DeleteMessage(m.executionContext, id)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
@@ -302,7 +313,7 @@ func (m *chatModule) removeMessage(call goja.FunctionCall) goja.Value {
 
 	m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("deleted chat message from %s:\n\n%s%s", message.Author.Address()[:14], content, attachments))
 
-	return m.serializeMessage(m.executionContext, message)
+	return message
 }
 
 func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {

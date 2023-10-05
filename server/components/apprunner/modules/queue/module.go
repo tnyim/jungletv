@@ -13,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/media"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -122,10 +123,22 @@ func (m *queueModule) removeEntry(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	entry, err := m.mediaQueue.RemoveEntry(call.Argument(0).String())
+	entry := m.removeEntryAndLog(call.Argument(0).String())
+
+	return m.serializeQueueEntry(m.runtime, entry)
+}
+
+func (m *queueModule) removeEntryAndLog(entryID string) media.QueueEntry {
+	entry, err := m.mediaQueue.RemoveEntry(entryID)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return serializeQueueEntry(m.runtime, entry)
+	// do not warn about removal of queue entries enqueued by JungleTV itself or by this application
+	if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() && entry.RequestedBy().Address() == m.appContext.ApplicationUser().Address() {
+		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("removed queue entry requested by %s with title \"%s\"",
+			entry.RequestedBy(), entry.MediaInfo().Title()))
+	}
+
+	return entry
 }
