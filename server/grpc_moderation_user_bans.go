@@ -60,7 +60,7 @@ func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer 
 	b := &proto.UserBan{
 		BanId:           orig.BanID,
 		BannedAt:        timestamppb.New(orig.BannedAt),
-		Address:         orig.Address,
+		User:            userSerializer(ctx, auth.NewAddressOnlyUser(orig.Address)),
 		RemoteAddress:   orig.RemoteAddress,
 		ChatBanned:      orig.FromChat,
 		EnqueuingBanned: orig.FromEnqueuing,

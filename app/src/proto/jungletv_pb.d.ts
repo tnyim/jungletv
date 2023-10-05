@@ -2453,8 +2453,10 @@ export class UserBan extends jspb.Message {
   getBannedUntil(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setBannedUntil(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  getAddress(): string;
-  setAddress(value: string): void;
+  hasUser(): boolean;
+  clearUser(): void;
+  getUser(): common_pb.User | undefined;
+  setUser(value?: common_pb.User): void;
 
   getRemoteAddress(): string;
   setRemoteAddress(value: string): void;
@@ -2496,7 +2498,7 @@ export namespace UserBan {
     banId: string,
     bannedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     bannedUntil?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    address: string,
+    user?: common_pb.User.AsObject,
     remoteAddress: string,
     chatBanned: boolean,
     enqueuingBanned: boolean,
@@ -2672,8 +2674,10 @@ export class UserVerification extends jspb.Message {
   getCreatedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setCreatedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  getAddress(): string;
-  setAddress(value: string): void;
+  hasUser(): boolean;
+  clearUser(): void;
+  getUser(): common_pb.User | undefined;
+  setUser(value?: common_pb.User): void;
 
   getSkipClientIntegrityChecks(): boolean;
   setSkipClientIntegrityChecks(value: boolean): void;
@@ -2706,7 +2710,7 @@ export namespace UserVerification {
   export type AsObject = {
     id: string,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    address: string,
+    user?: common_pb.User.AsObject,
     skipClientIntegrityChecks: boolean,
     skipIpAddressReputationChecks: boolean,
     reduceHardChallengeFrequency: boolean,
@@ -3680,13 +3684,10 @@ export class LeaderboardRow extends jspb.Message {
   getPosition(): number;
   setPosition(value: number): void;
 
-  getAddress(): string;
-  setAddress(value: string): void;
-
-  hasNickname(): boolean;
-  clearNickname(): void;
-  getNickname(): string;
-  setNickname(value: string): void;
+  hasUser(): boolean;
+  clearUser(): void;
+  getUser(): common_pb.User | undefined;
+  setUser(value?: common_pb.User): void;
 
   clearValuesList(): void;
   getValuesList(): Array<LeaderboardValue>;
@@ -3707,8 +3708,7 @@ export namespace LeaderboardRow {
   export type AsObject = {
     rowNum: number,
     position: number,
-    address: string,
-    nickname: string,
+    user?: common_pb.User.AsObject,
     valuesList: Array<LeaderboardValue.AsObject>,
   }
 }

@@ -22476,7 +22476,7 @@ proto.jungletv.UserBan.toObject = function(includeInstance, msg) {
     banId: jspb.Message.getFieldWithDefault(msg, 1, ""),
     bannedAt: (f = msg.getBannedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     bannedUntil: (f = msg.getBannedUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    address: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    user: (f = msg.getUser()) && common_pb.User.toObject(includeInstance, f),
     remoteAddress: jspb.Message.getFieldWithDefault(msg, 5, ""),
     chatBanned: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
     enqueuingBanned: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
@@ -22535,8 +22535,9 @@ proto.jungletv.UserBan.deserializeBinaryFromReader = function(msg, reader) {
       msg.setBannedUntil(value);
       break;
     case 4:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setAddress(value);
+      var value = new common_pb.User;
+      reader.readMessage(value,common_pb.User.deserializeBinaryFromReader);
+      msg.setUser(value);
       break;
     case 5:
       var value = /** @type {string} */ (reader.readString());
@@ -22619,11 +22620,12 @@ proto.jungletv.UserBan.serializeBinaryToWriter = function(message, writer) {
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getAddress();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getUser();
+  if (f != null) {
+    writer.writeMessage(
       4,
-      f
+      f,
+      common_pb.User.serializeBinaryToWriter
     );
   }
   f = message.getRemoteAddress();
@@ -22772,20 +22774,39 @@ proto.jungletv.UserBan.prototype.hasBannedUntil = function() {
 
 
 /**
- * optional string address = 4;
- * @return {string}
+ * optional User user = 4;
+ * @return {?proto.jungletv.User}
  */
-proto.jungletv.UserBan.prototype.getAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+proto.jungletv.UserBan.prototype.getUser = function() {
+  return /** @type{?proto.jungletv.User} */ (
+    jspb.Message.getWrapperField(this, common_pb.User, 4));
 };
 
 
 /**
- * @param {string} value
+ * @param {?proto.jungletv.User|undefined} value
+ * @return {!proto.jungletv.UserBan} returns this
+*/
+proto.jungletv.UserBan.prototype.setUser = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
  * @return {!proto.jungletv.UserBan} returns this
  */
-proto.jungletv.UserBan.prototype.setAddress = function(value) {
-  return jspb.Message.setProto3StringField(this, 4, value);
+proto.jungletv.UserBan.prototype.clearUser = function() {
+  return this.setUser(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.UserBan.prototype.hasUser = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -24058,7 +24079,7 @@ proto.jungletv.UserVerification.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, ""),
     createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    address: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    user: (f = msg.getUser()) && common_pb.User.toObject(includeInstance, f),
     skipClientIntegrityChecks: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
     skipIpAddressReputationChecks: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
     reduceHardChallengeFrequency: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
@@ -24110,8 +24131,9 @@ proto.jungletv.UserVerification.deserializeBinaryFromReader = function(msg, read
       msg.setCreatedAt(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setAddress(value);
+      var value = new common_pb.User;
+      reader.readMessage(value,common_pb.User.deserializeBinaryFromReader);
+      msg.setUser(value);
       break;
     case 4:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -24178,11 +24200,12 @@ proto.jungletv.UserVerification.serializeBinaryToWriter = function(message, writ
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getAddress();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getUser();
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      common_pb.User.serializeBinaryToWriter
     );
   }
   f = message.getSkipClientIntegrityChecks();
@@ -24280,20 +24303,39 @@ proto.jungletv.UserVerification.prototype.hasCreatedAt = function() {
 
 
 /**
- * optional string address = 3;
- * @return {string}
+ * optional User user = 3;
+ * @return {?proto.jungletv.User}
  */
-proto.jungletv.UserVerification.prototype.getAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.jungletv.UserVerification.prototype.getUser = function() {
+  return /** @type{?proto.jungletv.User} */ (
+    jspb.Message.getWrapperField(this, common_pb.User, 3));
 };
 
 
 /**
- * @param {string} value
+ * @param {?proto.jungletv.User|undefined} value
+ * @return {!proto.jungletv.UserVerification} returns this
+*/
+proto.jungletv.UserVerification.prototype.setUser = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
  * @return {!proto.jungletv.UserVerification} returns this
  */
-proto.jungletv.UserVerification.prototype.setAddress = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
+proto.jungletv.UserVerification.prototype.clearUser = function() {
+  return this.setUser(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.UserVerification.prototype.hasUser = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -30989,7 +31031,7 @@ proto.jungletv.Leaderboard.prototype.clearRowsList = function() {
  * @private {!Array<number>}
  * @const
  */
-proto.jungletv.LeaderboardRow.repeatedFields_ = [5];
+proto.jungletv.LeaderboardRow.repeatedFields_ = [4];
 
 
 
@@ -31024,8 +31066,7 @@ proto.jungletv.LeaderboardRow.toObject = function(includeInstance, msg) {
   var f, obj = {
     rowNum: jspb.Message.getFieldWithDefault(msg, 1, 0),
     position: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    address: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    nickname: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    user: (f = msg.getUser()) && common_pb.User.toObject(includeInstance, f),
     valuesList: jspb.Message.toObjectList(msg.getValuesList(),
     proto.jungletv.LeaderboardValue.toObject, includeInstance)
   };
@@ -31073,14 +31114,11 @@ proto.jungletv.LeaderboardRow.deserializeBinaryFromReader = function(msg, reader
       msg.setPosition(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setAddress(value);
+      var value = new common_pb.User;
+      reader.readMessage(value,common_pb.User.deserializeBinaryFromReader);
+      msg.setUser(value);
       break;
     case 4:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setNickname(value);
-      break;
-    case 5:
       var value = new proto.jungletv.LeaderboardValue;
       reader.readMessage(value,proto.jungletv.LeaderboardValue.deserializeBinaryFromReader);
       msg.addValues(value);
@@ -31128,24 +31166,18 @@ proto.jungletv.LeaderboardRow.serializeBinaryToWriter = function(message, writer
       f
     );
   }
-  f = message.getAddress();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
-  f = /** @type {string} */ (jspb.Message.getField(message, 4));
+  f = message.getUser();
   if (f != null) {
-    writer.writeString(
-      4,
-      f
+    writer.writeMessage(
+      3,
+      f,
+      common_pb.User.serializeBinaryToWriter
     );
   }
   f = message.getValuesList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      5,
+      4,
       f,
       proto.jungletv.LeaderboardValue.serializeBinaryToWriter
     );
@@ -31190,47 +31222,30 @@ proto.jungletv.LeaderboardRow.prototype.setPosition = function(value) {
 
 
 /**
- * optional string address = 3;
- * @return {string}
+ * optional User user = 3;
+ * @return {?proto.jungletv.User}
  */
-proto.jungletv.LeaderboardRow.prototype.getAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.jungletv.LeaderboardRow.prototype.getUser = function() {
+  return /** @type{?proto.jungletv.User} */ (
+    jspb.Message.getWrapperField(this, common_pb.User, 3));
 };
 
 
 /**
- * @param {string} value
+ * @param {?proto.jungletv.User|undefined} value
+ * @return {!proto.jungletv.LeaderboardRow} returns this
+*/
+proto.jungletv.LeaderboardRow.prototype.setUser = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
  * @return {!proto.jungletv.LeaderboardRow} returns this
  */
-proto.jungletv.LeaderboardRow.prototype.setAddress = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
- * optional string nickname = 4;
- * @return {string}
- */
-proto.jungletv.LeaderboardRow.prototype.getNickname = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.jungletv.LeaderboardRow} returns this
- */
-proto.jungletv.LeaderboardRow.prototype.setNickname = function(value) {
-  return jspb.Message.setField(this, 4, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.jungletv.LeaderboardRow} returns this
- */
-proto.jungletv.LeaderboardRow.prototype.clearNickname = function() {
-  return jspb.Message.setField(this, 4, undefined);
+proto.jungletv.LeaderboardRow.prototype.clearUser = function() {
+  return this.setUser(undefined);
 };
 
 
@@ -31238,18 +31253,18 @@ proto.jungletv.LeaderboardRow.prototype.clearNickname = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.jungletv.LeaderboardRow.prototype.hasNickname = function() {
-  return jspb.Message.getField(this, 4) != null;
+proto.jungletv.LeaderboardRow.prototype.hasUser = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * repeated LeaderboardValue values = 5;
+ * repeated LeaderboardValue values = 4;
  * @return {!Array<!proto.jungletv.LeaderboardValue>}
  */
 proto.jungletv.LeaderboardRow.prototype.getValuesList = function() {
   return /** @type{!Array<!proto.jungletv.LeaderboardValue>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.jungletv.LeaderboardValue, 5));
+    jspb.Message.getRepeatedWrapperField(this, proto.jungletv.LeaderboardValue, 4));
 };
 
 
@@ -31258,7 +31273,7 @@ proto.jungletv.LeaderboardRow.prototype.getValuesList = function() {
  * @return {!proto.jungletv.LeaderboardRow} returns this
 */
 proto.jungletv.LeaderboardRow.prototype.setValuesList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 5, value);
+  return jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
 
@@ -31268,7 +31283,7 @@ proto.jungletv.LeaderboardRow.prototype.setValuesList = function(value) {
  * @return {!proto.jungletv.LeaderboardValue}
  */
 proto.jungletv.LeaderboardRow.prototype.addValues = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.jungletv.LeaderboardValue, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.jungletv.LeaderboardValue, opt_index);
 };
 
 

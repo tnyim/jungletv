@@ -16,7 +16,7 @@
     <td
         class="border-t-0 px-2 sm:px-6 align-middle border-l-0 border-r-0 whitespace-nowrap p-2 text-gray-700 dark:text-white"
     >
-        <UserCellRepresentation user={row} />
+        <UserCellRepresentation user={row.getUser()} />
     </td>
     {#each row.getValuesList() as value}
         {#if value.hasAmount()}

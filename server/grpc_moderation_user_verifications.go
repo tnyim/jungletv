@@ -52,7 +52,7 @@ func convertUserVerification(ctx context.Context, orig *types.VerifiedUser, user
 	return &proto.UserVerification{
 		Id:                            orig.ID,
 		CreatedAt:                     timestamppb.New(orig.CreatedAt),
-		Address:                       orig.Address,
+		User:                          userSerializer(ctx, auth.NewAddressOnlyUser(orig.Address)),
 		SkipClientIntegrityChecks:     orig.SkipClientIntegrityChecks,
 		SkipIpAddressReputationChecks: orig.SkipIPAddressReputationChecks,
 		ReduceHardChallengeFrequency:  orig.ReduceHardChallengeFrequency,

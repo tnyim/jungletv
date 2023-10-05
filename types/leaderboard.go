@@ -7,16 +7,18 @@ import (
 	"github.com/gbl08ma/sqalx"
 	"github.com/jmoiron/sqlx"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 )
 
 // SpendingLeaderboardEntry represents a enqueue leaderboard entry
 type SpendingLeaderboardEntry struct {
-	RowNum     int
-	Position   int
-	Address    string
-	Nickname   string
-	TotalSpent decimal.Decimal
+	RowNum        int
+	Position      int
+	Address       string
+	Nickname      string
+	ApplicationID string
+	TotalSpent    decimal.Decimal
 }
 
 // EnqueueLeaderboardBetween returns the enqueue leaderboard for the specified period
@@ -40,7 +42,7 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 	mi AS (
 		SELECT DISTINCT rownum AS mirn FROM lb WHERE requested_by IN (?)
 	)
-	SELECT requested_by, nickname, s, position, rownum
+	SELECT requested_by, nickname, application_id, s, position, rownum
 	FROM lb
 	LEFT JOIN chat_user ON lb.requested_by = chat_user.address
 	WHERE rownum <= ?`
@@ -68,14 +70,13 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 	entries := []SpendingLeaderboardEntry{}
 	for rows.Next() {
 		entry := SpendingLeaderboardEntry{}
-		var nickname *string
-		err := rows.Scan(&entry.Address, &nickname, &entry.TotalSpent, &entry.Position, &entry.RowNum)
+		var nickname, applicationID *string
+		err := rows.Scan(&entry.Address, &nickname, &applicationID, &entry.TotalSpent, &entry.Position, &entry.RowNum)
 		if err != nil {
 			return entries, stacktrace.Propagate(err, "")
 		}
-		if nickname != nil {
-			entry.Nickname = *nickname
-		}
+		entry.Nickname = lo.FromPtr(nickname)
+		entry.ApplicationID = lo.FromPtr(applicationID)
 		entries = append(entries, entry)
 	}
 	return entries, stacktrace.Propagate(rows.Err(), "")
@@ -102,7 +103,7 @@ func CrowdfundedTransactionLeaderboardBetween(node sqalx.Node, start, end time.T
 	mi AS (
 		SELECT DISTINCT rownum AS mirn FROM lb WHERE from_address IN (?)
 	)
-	SELECT from_address, nickname, s, position, rownum
+	SELECT from_address, nickname, application_id, s, position, rownum
 	FROM lb
 	LEFT JOIN chat_user ON lb.from_address = chat_user.address
 	WHERE rownum <= ?`
@@ -130,14 +131,13 @@ func CrowdfundedTransactionLeaderboardBetween(node sqalx.Node, start, end time.T
 	entries := []SpendingLeaderboardEntry{}
 	for rows.Next() {
 		entry := SpendingLeaderboardEntry{}
-		var nickname *string
-		err := rows.Scan(&entry.Address, &nickname, &entry.TotalSpent, &entry.Position, &entry.RowNum)
+		var nickname, applicationID *string
+		err := rows.Scan(&entry.Address, &nickname, &applicationID, &entry.TotalSpent, &entry.Position, &entry.RowNum)
 		if err != nil {
 			return entries, stacktrace.Propagate(err, "")
 		}
-		if nickname != nil {
-			entry.Nickname = *nickname
-		}
+		entry.Nickname = lo.FromPtr(nickname)
+		entry.ApplicationID = lo.FromPtr(applicationID)
 		entries = append(entries, entry)
 	}
 	return entries, stacktrace.Propagate(rows.Err(), "")
@@ -175,7 +175,7 @@ func GlobalSpendingLeaderboardBetween(node sqalx.Node, start, end time.Time, siz
 	mi AS (
 		SELECT DISTINCT rownum AS mirn FROM lb WHERE user_address IN (?)
 	)
-	SELECT user_address, nickname, s, position, rownum
+	SELECT user_address, nickname, application_id, s, position, rownum
 	FROM lb
 	LEFT JOIN chat_user ON lb.user_address = chat_user.address
 	WHERE rownum <= ?`
@@ -203,14 +203,13 @@ func GlobalSpendingLeaderboardBetween(node sqalx.Node, start, end time.Time, siz
 	entries := []SpendingLeaderboardEntry{}
 	for rows.Next() {
 		entry := SpendingLeaderboardEntry{}
-		var nickname *string
-		err := rows.Scan(&entry.Address, &nickname, &entry.TotalSpent, &entry.Position, &entry.RowNum)
+		var nickname, applicationID *string
+		err := rows.Scan(&entry.Address, &nickname, &applicationID, &entry.TotalSpent, &entry.Position, &entry.RowNum)
 		if err != nil {
 			return entries, stacktrace.Propagate(err, "")
 		}
-		if nickname != nil {
-			entry.Nickname = *nickname
-		}
+		entry.Nickname = lo.FromPtr(nickname)
+		entry.ApplicationID = lo.FromPtr(applicationID)
 		entries = append(entries, entry)
 	}
 	return entries, stacktrace.Propagate(rows.Err(), "")

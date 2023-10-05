@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
@@ -69,7 +70,6 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 			protoRows[i] = &proto.LeaderboardRow{
 				RowNum:   uint32(row.RowNum),
 				Position: uint32(row.Position),
-				Address:  row.Address,
 				Values: []*proto.LeaderboardValue{
 					{
 						Value: &proto.LeaderboardValue_Amount{
@@ -78,14 +78,23 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 					},
 				},
 			}
+
+			// we don't use userSerializer here so it's not as heavy
+			// (we don't need all the roles, nor online status here)
 			bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, row.Address, "")
 			if err != nil {
 				continue
 			}
-			if row.Nickname != "" && (!bannedFromChat || row.Address == userAddress) {
-				n := row.Nickname
-				protoRows[i].Nickname = &n
+			user := &proto.User{
+				Address: row.Address,
 			}
+			if row.Nickname != "" && (!bannedFromChat || row.Address == userAddress) {
+				user.Nickname = lo.ToPtr(row.Nickname)
+			} else if row.ApplicationID != "" {
+				user.Nickname = lo.ToPtr(row.ApplicationID)
+				user.Roles = append(user.Roles, proto.UserRole_APPLICATION)
+			}
+			protoRows[i].User = user
 		}
 		return protoRows
 	}

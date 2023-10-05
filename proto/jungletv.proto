@@ -639,7 +639,7 @@ message UserBan {
     string ban_id = 1;
     google.protobuf.Timestamp banned_at = 2;
     optional google.protobuf.Timestamp banned_until = 3;
-    string address = 4;
+    User user = 4;
     string remote_address = 5;
     bool chat_banned = 6;
     bool enqueuing_banned = 7;
@@ -683,7 +683,7 @@ message RemoveUserVerificationResponse {}
 message UserVerification {
     string id = 1;
     google.protobuf.Timestamp created_at = 2;
-    string address = 3;
+    User user = 3;
     bool skip_client_integrity_checks = 4;
     bool skip_ip_address_reputation_checks = 5;
     bool reduce_hard_challenge_frequency = 6;
@@ -905,9 +905,8 @@ message Leaderboard {
 message LeaderboardRow {
     uint32 row_num = 1;
     uint32 position = 2;
-    string address = 3;
-    optional string nickname = 4;
-    repeated LeaderboardValue values = 5;
+    User user = 3;
+    repeated LeaderboardValue values = 4;
 }
 
 message LeaderboardValue {

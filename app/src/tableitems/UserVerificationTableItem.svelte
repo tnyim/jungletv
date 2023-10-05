@@ -21,19 +21,13 @@
 </script>
 
 <tr class="border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-white">
-    <td
-        class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1 font-mono"
-    >
+    <td class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1 font-mono">
         {verification.getId()}
     </td>
-    <td
-        class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1"
-    >
+    <td class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1">
         {formatDateForModeration(verification.getCreatedAt().toDate())}
     </td>
-    <td
-        class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1"
-    >
+    <td class="px-6 align-middle text-xs whitespace-nowrap pt-4 pb-1">
         <UserCellRepresentation user={verification.getVerifiedBy()} />
     </td>
 </tr>
@@ -41,15 +35,10 @@
     <td class="px-6 align-middle text-sm pb-4 pt-1">
         {formatScope()}
     </td>
-    <td
-        class="px-6 align-middle text-xs whitespace-nowrap pb-4 pt-1 font-mono cursor-pointer"
-    >
-        <UserCellRepresentation user={verification} />
+    <td class="px-6 align-middle text-xs whitespace-nowrap pb-4 pt-1 cursor-pointer">
+        <UserCellRepresentation user={verification.getUser()} alwaysShowAddress={true} />
     </td>
-    <td
-        colspan="2"
-        class="px-6 align-middle text-sm pb-4 pt-1"
-    >
+    <td colspan="2" class="px-6 align-middle text-sm pb-4 pt-1">
         {verification.getReason()}
     </td>
 </tr>
