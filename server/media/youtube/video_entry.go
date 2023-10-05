@@ -94,7 +94,7 @@ func (e *queueEntryYouTubeVideo) UnmarshalJSON(b []byte) error {
 		return stacktrace.Propagate(err, "error deserializing queue entry")
 	}
 
-	e.InitializeBase(e)
+	e.InitializeBase(e, e)
 	e.SetQueueID(t.QueueID)
 	e.id = t.ID
 	e.SetTitle(t.Title)

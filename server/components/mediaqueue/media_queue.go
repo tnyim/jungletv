@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math"
 	"os"
 	"sync"
 	"time"
@@ -463,11 +464,11 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 			if err != nil {
 				q.log.Println("Error logging played media:", stacktrace.Propagate(err, ""))
 			}
-			prevQueueEntry = currentQueueEntry
-			q.mediaChanged.Notify(currentQueueEntry, false)
 			if prevQueueEntry != nil {
 				q.entryRemoved.Notify(EntryRemovedEventArg{0, prevQueueEntry, false}, false)
 			}
+			prevQueueEntry = currentQueueEntry
+			q.mediaChanged.Notify(currentQueueEntry, false)
 		}
 
 		if currentQueueEntry != nil {
@@ -480,7 +481,12 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 			}
 			ev := currentQueueEntry.DonePlaying()
 			onNextMedia, unsubscribe = ev.Subscribe(event.BufferFirst)
-			q.log.Printf("Current queue entry: \"%s\" with length %s", currentQueueEntry.MediaInfo().Title(), currentQueueEntry.MediaInfo().Length())
+			length := currentQueueEntry.MediaInfo().Length()
+			lengthStr := "infinite"
+			if length == math.MaxInt64 {
+				lengthStr = currentQueueEntry.MediaInfo().Length().String()
+			}
+			q.log.Printf("Current queue entry: \"%s\" with length %s", currentQueueEntry.MediaInfo().Title(), lengthStr)
 		} else {
 			q.log.Println("No current queue entry")
 		}
@@ -662,6 +668,9 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 		prevPlayedMedia.EndedAt = sql.NullTime{
 			Time:  now,
 			Valid: true,
+		}
+		if prevPlayedMedia.MediaLength == 0 { // e.g. application pages with "undefined" duration
+			prevPlayedMedia.MediaLength = types.Duration(now.Sub(prevPlayedMedia.StartedAt))
 		}
 		err = prevPlayedMedia.Update(ctx)
 		if err != nil {

@@ -34,7 +34,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 	title := info.Title
 	thumbnailFileName := ""
 	length := time.Duration(math.MaxInt64)
-	requestCost := payment.Amount{}
+	requestCost := payment.NewAmount()
 	unskippable, concealed := false, false
 
 	// second argument: queue placement
@@ -51,11 +51,19 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 	}
 
 	// third argument: length, in milliseconds
-	if !goja.IsUndefined(call.Argument(2)) {
+	if !goja.IsUndefined(call.Argument(2)) && !goja.IsInfinity(call.Argument(2)) {
 		var lengthms int64
 		err := m.runtime.ExportTo(call.Argument(2), &lengthms)
 		if err != nil {
 			panic(m.runtime.NewTypeError("Third argument is not an integer or undefined"))
+		}
+
+		if lengthms < 1 {
+			panic(m.runtime.NewTypeError("Application pages may only be enqueued for a positive duration"))
+		}
+
+		if lengthms > 1000*60*24 {
+			panic(m.runtime.NewTypeError("Enqueued application pages with specific length must not be longer than one hour"))
 		}
 
 		length = time.Duration(lengthms) * time.Millisecond
@@ -90,7 +98,9 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 	}
 
 	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (media.QueueEntry, gojautil.PromiseResultTransformer[media.QueueEntry]) {
-		m.validateThumbnailFileName(actx, thumbnailFileName)
+		if thumbnailFileName != "" {
+			m.validateThumbnailFileName(actx, thumbnailFileName)
+		}
 
 		// TODO validate that the application has enough funds to cover the requestCost, and move the requestCost to the main collector address
 

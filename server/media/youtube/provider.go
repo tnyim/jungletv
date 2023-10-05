@@ -206,7 +206,7 @@ func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 		liveBroadcast: preInfo.videoItem.Snippet.LiveBroadcastContent == "live",
 		thumbnailURL:  preInfo.videoItem.Snippet.Thumbnails.Default.Url,
 	}
-	request.InitializeBase(request)
+	request.InitializeBase(request, request)
 	request.SetTitle(preInfo.videoItem.Snippet.Title)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)

@@ -410,7 +410,7 @@ message QueueEntry {
     User requested_by = 2;
     string request_cost = 3;
     google.protobuf.Timestamp requested_at = 4;
-    google.protobuf.Duration length = 5;
+    optional google.protobuf.Duration length = 5;
     google.protobuf.Duration offset = 6;
     bool unskippable = 7;
     bool concealed = 8;

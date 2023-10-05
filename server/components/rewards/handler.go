@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 	"sync"
 	"time"
@@ -528,7 +529,7 @@ func (r *Handler) markAddressAsMentionedInChat(ctx context.Context, address stri
 
 func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
 	requestedBy := m.RequestedBy()
-	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() {
+	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() || requestedBy.ApplicationID() != "" {
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
@@ -545,6 +546,9 @@ func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry)
 }
 
 func (r *Handler) getPointsRewardForMedia(m media.QueueEntry) int {
+	if m.MediaInfo().Length() == math.MaxInt64 {
+		return 0
+	}
 	return int(m.MediaInfo().Length().Seconds())/10 + 1
 }
 

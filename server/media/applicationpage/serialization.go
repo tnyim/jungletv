@@ -2,6 +2,7 @@ package applicationpage
 
 import (
 	"context"
+	"math"
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
@@ -18,6 +19,9 @@ func (e *queueEntryApplicationPage) ProducePlayedMedia() (*types.PlayedMedia, er
 		Title:              e.Title(),
 		ThumbnailFile:      e.thumbnailFileName,
 	})
+	if e.Length() == math.MaxInt64 {
+		playedMedia.MediaLength = 0
+	}
 	return playedMedia, stacktrace.Propagate(err, "")
 }
 

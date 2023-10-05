@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"math"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -49,7 +50,6 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		for i, entry := range entries {
 			queue.Entries[i] = &proto.QueueEntry{
 				Id:          entry.QueueID(),
-				Length:      durationpb.New(entry.MediaInfo().Length()),
 				Offset:      durationpb.New(entry.MediaInfo().Offset()),
 				Unskippable: entry.Unskippable(),
 				Concealed:   entry.Concealed() && i > 0,
@@ -57,6 +57,9 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 				RequestedAt: timestamppb.New(entry.RequestedAt()),
 				CanMoveUp:   s.mediaQueue.CanMoveEntryByIndex(i, user, true),
 				CanMoveDown: s.mediaQueue.CanMoveEntryByIndex(i, user, false),
+			}
+			if entry.MediaInfo().Length() != math.MaxInt64 {
+				queue.Entries[i].Length = durationpb.New(entry.MediaInfo().Length())
 			}
 			requestedBy := entry.RequestedBy()
 			if i == 0 || !entry.Concealed() || isAdmin ||

@@ -64,11 +64,22 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		nickname = &id
 	}
 
+	var status proto.UserStatus
+	if appID := user.ApplicationID(); appID != "" {
+		isRunning, _, _ := s.appRunner.IsRunning(appID)
+		status = proto.UserStatus_USER_STATUS_OFFLINE
+		if isRunning {
+			status = proto.UserStatus_USER_STATUS_WATCHING
+		}
+	} else {
+		status = s.rewardsHandler.GetSpectatorActivityStatus(userAddress)
+	}
+
 	return &proto.User{
 		Address:  userAddress,
 		Roles:    roles,
 		Nickname: nickname,
-		Status:   s.rewardsHandler.GetSpectatorActivityStatus(userAddress),
+		Status:   status,
 	}
 }
 

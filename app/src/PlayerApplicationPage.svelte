@@ -29,6 +29,8 @@
     }
 </script>
 
-{#key forceUpdateCount}
-    <ApplicationPage {applicationID} {pageID} {preloadedPageInfo} />
-{/key}
+<div class="h-full w-full max-h-full max-w-full overflow-auto">
+    {#key forceUpdateCount}
+        <ApplicationPage {applicationID} {pageID} {preloadedPageInfo} />
+    {/key}
+</div>

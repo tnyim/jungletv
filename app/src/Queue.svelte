@@ -62,9 +62,11 @@
             currentEntryOffset = Duration.fromMillis(0);
         }
         for (let entry of queueEntries) {
-            tl = tl.plus(
-                Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
-            );
+            if (entry.hasLength()) {
+                tl = tl.plus(
+                    Duration.fromMillis(entry.getLength().getSeconds() * 1000 + entry.getLength().getNanos() / 1000000)
+                );
+            }
             tv += BigInt(entry.getRequestCost());
             if (entry.hasRequestedBy()) {
                 participantsSet.add(entry.getRequestedBy().getAddress());
@@ -119,6 +121,10 @@
             if (insertCursor == otherEntry.getId()) {
                 // the passed entry is after the insert cursor, therefore there's no point in providing an estimate as it'll
                 // surely be wrong
+                return Duration.fromMillis(-1);
+            }
+            if (!otherEntry.hasLength()) {
+                // this entry is after an entry with "infinite" (undefined) length, we can't estimate
                 return Duration.fromMillis(-1);
             }
             tl = tl.plus(

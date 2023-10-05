@@ -175,7 +175,7 @@ func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 		permalink:    preInfo.response.PermalinkURL,
 		thumbnailURL: preInfo.response.ArtworkURL,
 	}
-	request.InitializeBase(request)
+	request.InitializeBase(request, request)
 	request.SetTitle(preInfo.response.Title)
 	request.SetLength(playFor)
 	request.SetOffset(startOffsetDuration)

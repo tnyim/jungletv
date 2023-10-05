@@ -14,7 +14,8 @@ import (
 
 // CommonQueueEntry contains the common implementation of some QueueEntry functionality
 type CommonQueueEntry struct {
-	queueID string
+	overrider QueueEntry
+	queueID   string
 
 	unskippable bool
 	concealed   bool
@@ -33,7 +34,8 @@ type CommonQueueEntry struct {
 	mediaInfo Info
 }
 
-func (e *CommonQueueEntry) InitializeBase(mediaInfo Info) {
+func (e *CommonQueueEntry) InitializeBase(mediaInfo Info, overrider QueueEntry) {
+	e.overrider = overrider
 	e.donePlaying = event.NewNoArg()
 	e.movedBy = make(map[string]struct{})
 	e.mediaInfo = mediaInfo
@@ -58,11 +60,15 @@ func (e *CommonQueueEntry) Play() {
 	e.startedPlaying = time.Now()
 	c := time.NewTimer(e.mediaInfo.Length()).C
 	go func() {
-		<-c
-		if e.Playing() {
-			e.played = true
-			e.donePlaying.Notify(true)
+		donePlaying, donePlayingU := e.overrider.DonePlaying().Subscribe(event.BufferFirst)
+		defer donePlayingU()
+		select {
+		case <-donePlaying:
+			return
+		case <-c:
+			e.overrider.Stop()
 		}
+
 	}()
 }
 
@@ -77,12 +83,12 @@ func (e *CommonQueueEntry) Played() bool {
 
 // Stop implements the QueueEntry interface
 func (e *CommonQueueEntry) Stop() {
-	if !e.Playing() {
+	if !e.overrider.Playing() {
 		return
 	}
 	e.played = true
 	e.stoppedPlaying = time.Now()
-	e.donePlaying.Notify(true)
+	e.overrider.DonePlaying().Notify(true)
 }
 
 // Playing implements the QueueEntry interface
@@ -92,7 +98,7 @@ func (e *CommonQueueEntry) Playing() bool {
 
 // PlayedFor implements the QueueEntry interface
 func (e *CommonQueueEntry) PlayedFor() time.Duration {
-	if !e.Playing() {
+	if !e.overrider.Playing() {
 		return e.stoppedPlaying.Sub(e.startedPlaying)
 	}
 	return time.Since(e.startedPlaying)
@@ -171,13 +177,13 @@ func (e *CommonQueueEntry) MovedBy() []string {
 
 func (e *CommonQueueEntry) BaseProducePlayedMedia(mediaType types.MediaType, mediaID string, mediaInfo interface{}) (*types.PlayedMedia, error) {
 	playedMedia := &types.PlayedMedia{
-		ID:          e.QueueID(),
-		EnqueuedAt:  e.RequestedAt(),
+		ID:          e.overrider.QueueID(),
+		EnqueuedAt:  e.overrider.RequestedAt(),
 		MediaLength: types.Duration(e.mediaInfo.Length()),
 		MediaOffset: types.Duration(e.mediaInfo.Offset()),
-		RequestedBy: e.RequestedBy().Address(),
-		RequestCost: e.RequestCost().Decimal(),
-		Unskippable: e.Unskippable(),
+		RequestedBy: e.overrider.RequestedBy().Address(),
+		RequestCost: e.overrider.RequestCost().Decimal(),
+		Unskippable: e.overrider.Unskippable(),
 		MediaType:   mediaType,
 		MediaID:     mediaID,
 	}

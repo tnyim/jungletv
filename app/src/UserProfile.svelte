@@ -38,6 +38,8 @@
     $: editedNickname = nickname;
     $: isSelf = userAddress == $rewardAddress;
 
+    $: isApplication = rolesList.includes(UserRole.APPLICATION);
+
     let nicknameInput: HTMLInputElement;
 
     onMount(async () => {
@@ -131,24 +133,37 @@
 <div class="flex flex-col justify-center bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded-t-lg">
     <div class="flex flex-row p-2 pr-12 overflow-x-hidden">
         <div class="relative h-28">
-            <img
-                src={buildMonKeyURL(userAddress)}
-                alt="&nbsp;"
-                title="monKey for this user's address"
-                class="h-28 w-28"
-            />
-            <div class="absolute bottom-1 right-1/4">
-                {#if userStatus == UserStatus.USER_STATUS_OFFLINE}
-                    <i class="fas fa-dot-circle text-gray-600 dark:text-gray-500" title="Disconnected" />
-                {:else if userStatus == UserStatus.USER_STATUS_AWAY}
-                    <i
-                        class="fas fa-moon text-yellow-600 dark:text-yellow-500"
-                        title="Connected but not actively watching"
-                    />
-                {:else if userStatus == UserStatus.USER_STATUS_WATCHING}
-                    <i class="fas fa-play-circle text-green-600 dark:text-green-500" title="Actively watching" />
-                {/if}
-            </div>
+            {#if isApplication}
+                <div class="flex justify-center h-28 w-28 text-6xl">
+                    <i class="self-center fas fa-robot text-gray-700 dark:text-gray-400" title="" />
+                </div>
+                <div class="absolute bottom-2 right-4">
+                    {#if userStatus == UserStatus.USER_STATUS_OFFLINE}
+                        <i class="fas fa-stop text-gray-600 dark:text-gray-500" title="Not running" />
+                    {:else if userStatus == UserStatus.USER_STATUS_WATCHING}
+                        <i class="fas fa-play-circle text-green-600 dark:text-green-500" title="Running" />
+                    {/if}
+                </div>
+            {:else}
+                <img
+                    src={buildMonKeyURL(userAddress)}
+                    alt="&nbsp;"
+                    title="monKey for this user's address"
+                    class="h-28 w-28"
+                />
+                <div class="absolute bottom-1 right-1/4">
+                    {#if userStatus == UserStatus.USER_STATUS_OFFLINE}
+                        <i class="fas fa-dot-circle text-gray-600 dark:text-gray-500" title="Disconnected" />
+                    {:else if userStatus == UserStatus.USER_STATUS_AWAY}
+                        <i
+                            class="fas fa-moon text-yellow-600 dark:text-yellow-500"
+                            title="Connected but not actively watching"
+                        />
+                    {:else if userStatus == UserStatus.USER_STATUS_WATCHING}
+                        <i class="fas fa-play-circle text-green-600 dark:text-green-500" title="Actively watching" />
+                    {/if}
+                </div>
+            {/if}
         </div>
         <div class="grow overflow-x-hidden pt-4">
             {#if nickname != "" || isSelf}
@@ -180,19 +195,21 @@
                     <div class="font-semibold text-lg whitespace-nowrap">{nickname}</div>
                 {/if}
             {/if}
-            <span class="font-mono {nickname != '' ? 'text-base' : 'text-lg'}">
-                {userAddress.substring(0, 14)}
-            </span>
-            <button
-                type="button"
-                title="Copy address"
-                on:click={copyAddress}
-                class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
-            >
-                <i class="fas fa-copy" />
-            </button>
-            {#if copiedAddress}
-                <i class="fas fa-check" />
+            {#if !isApplication}
+                <span class="font-mono {nickname != '' ? 'text-base' : 'text-lg'}">
+                    {userAddress.substring(0, 14)}
+                </span>
+                <button
+                    type="button"
+                    title="Copy address"
+                    on:click={copyAddress}
+                    class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-500"
+                >
+                    <i class="fas fa-copy" />
+                </button>
+                {#if copiedAddress}
+                    <i class="fas fa-check" />
+                {/if}
             {/if}
             {#if rolesList.includes(UserRole.MODERATOR)}
                 <br />
@@ -215,7 +232,13 @@
                     Requester of currently playing queue entry
                 </span>
             {/if}
-            {#if rolesList.includes(UserRole.TIER_1_REQUESTER)}
+            {#if isApplication}
+                <br />
+                <span class="text-sm">
+                    <i class="fas fa-robot text-red-700 dark:text-red-500" title="" />
+                    Application
+                </span>
+            {:else if rolesList.includes(UserRole.TIER_1_REQUESTER)}
                 <br />
                 <span class="text-sm text-blue-600 dark:text-blue-400">Tier 1 media requester</span>
                 <span class="text-xs">- between 1 and 4 queue entries recently played or currently enqueued</span>
@@ -241,7 +264,7 @@
                 </span>
             {/if}
         </div>
-        {#if !isSelf && $rewardAddress}
+        {#if !isSelf && $rewardAddress && !isApplication}
             {#if $blockedUsers.has(userAddress)}
                 <div class="flex flex-col justify-center">
                     <ButtonButton color="purple" on:click={unblockUser}>Unblock</ButtonButton>
@@ -255,101 +278,116 @@
     </div>
 </div>
 <div class="flex flex-col justify-center bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-b-lg">
-    <div class="flex flex-row px-2 py-0.5 overflow-x-auto disable-scrollbars">
-        {#if hasFeaturedMedia}
-            <TabButton
-                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={selectedTab == "featuredMedia"}
-                on:click={() => (selectedTab = "featuredMedia")}
-            >
-                Featured media
-                {#if hasFeaturedMedia && isSelf}
-                    <button
-                        class="hover:text-yellow-700 dark:hover:text-yellow-500"
-                        on:click|stopPropagation={clearFeaturedMedia}
-                    >
-                        <i class="fas fa-trash" />
-                    </button>
-                {/if}
-            </TabButton>
-        {/if}
-        {#if biography != "" || isSelf}
-            <TabButton
-                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={selectedTab == "info"}
-                on:click={() => (selectedTab = "info")}
-            >
-                User info
-            </TabButton>
-        {/if}
-        <TabButton
-            bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-            selected={selectedTab == "tip"}
-            on:click={() => (selectedTab = "tip")}
-        >
-            Tip user
-        </TabButton>
-        {#if recentRequests.length > 0}
-            <TabButton
-                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={selectedTab == "recents"}
-                on:click={() => (selectedTab = "recents")}
-            >
-                Last requests
-            </TabButton>
-        {/if}
-        <TabButton
-            bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-            selected={selectedTab == "stats"}
-            on:click={() => (selectedTab = "stats")}
-        >
-            Stats
-        </TabButton>
-        {#if $permissionLevel == PermissionLevel.ADMIN}
-            <TabButton
-                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                selected={selectedTab == "moderation"}
-                on:click={() => (selectedTab = "moderation")}
-            >
-                Moderation
-            </TabButton>
-        {/if}
-    </div>
-    <div class="h-80 overflow-y-auto">
-        {#if selectedTab == "featuredMedia"}
-            {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
-                <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
-            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
-                <UserProfileFeaturedMediaSoundCloud data={userProfile.getSoundcloudTrackData()} />
-            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.DOCUMENT_DATA}
-                <Document mode="player" documentID={userProfile.getDocumentData().getId()} />
+    {#if isApplication}
+        <div class="p-2 px-4">
+            <p class="font-semibold">
+                This is an application running on the
+                <a href="https://docs.jungletv.live" target="_blank" rel="noopener">JungleTV Application Framework</a>.
+            </p>
+            <p>
+                Applications are able to add new pages to the JungleTV website, as well as interact with JungleTV
+                features such as the queue and chat, much like regular users can. Applications can display their pages
+                as additional sidebar tabs, or enqueue them as if they were any other form of media, as well as attach
+                them to chat messages.
+            </p>
+        </div>
+    {:else}
+        <div class="flex flex-row px-2 py-0.5 overflow-x-auto disable-scrollbars">
+            {#if hasFeaturedMedia}
+                <TabButton
+                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                    selected={selectedTab == "featuredMedia"}
+                    on:click={() => (selectedTab = "featuredMedia")}
+                >
+                    Featured media
+                    {#if hasFeaturedMedia && isSelf}
+                        <button
+                            class="hover:text-yellow-700 dark:hover:text-yellow-500"
+                            on:click|stopPropagation={clearFeaturedMedia}
+                        >
+                            <i class="fas fa-trash" />
+                        </button>
+                    {/if}
+                </TabButton>
             {/if}
-        {:else if selectedTab == "info"}
-            <div class="p-2 px-4">
-                <UserProfileInfo bind:biography {isSelf} />
-            </div>
-        {:else if selectedTab == "recents"}
-            <UserRecentRequests {recentRequests} {isSelf} on:featured={refreshProfile} />
-        {:else if selectedTab == "tip"}
-            <div class="flex flex-col p-2 px-4">
-                <AddressBox
-                    address={userAddress}
-                    showQR={true}
-                    showWebWalletLink={true}
-                    qrCodeBackground={$darkMode ? "#1F2937" : "#E5E7EB"}
-                    qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
-                />
-            </div>
-        {:else if selectedTab == "stats"}
-            <div class="p-2 px-4">
-                <UserStats {userAddress} userIsStaff={rolesList.includes(UserRole.MODERATOR)} />
-            </div>
-        {:else if selectedTab == "moderation"}
-            <div class="p-2 px-4">
-                <UserModerationInfo {userAddress} on:cleared={refreshProfile} />
-            </div>
-        {/if}
-    </div>
+            {#if biography != "" || isSelf}
+                <TabButton
+                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                    selected={selectedTab == "info"}
+                    on:click={() => (selectedTab = "info")}
+                >
+                    User info
+                </TabButton>
+            {/if}
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedTab == "tip"}
+                on:click={() => (selectedTab = "tip")}
+            >
+                Tip user
+            </TabButton>
+            {#if recentRequests.length > 0}
+                <TabButton
+                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                    selected={selectedTab == "recents"}
+                    on:click={() => (selectedTab = "recents")}
+                >
+                    Last requests
+                </TabButton>
+            {/if}
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedTab == "stats"}
+                on:click={() => (selectedTab = "stats")}
+            >
+                Stats
+            </TabButton>
+            {#if $permissionLevel == PermissionLevel.ADMIN}
+                <TabButton
+                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                    selected={selectedTab == "moderation"}
+                    on:click={() => (selectedTab = "moderation")}
+                >
+                    Moderation
+                </TabButton>
+            {/if}
+        </div>
+        <div class="h-80 overflow-y-auto">
+            {#if selectedTab == "featuredMedia"}
+                {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
+                    <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
+                {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
+                    <UserProfileFeaturedMediaSoundCloud data={userProfile.getSoundcloudTrackData()} />
+                {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.DOCUMENT_DATA}
+                    <Document mode="player" documentID={userProfile.getDocumentData().getId()} />
+                {/if}
+            {:else if selectedTab == "info"}
+                <div class="p-2 px-4">
+                    <UserProfileInfo bind:biography {isSelf} />
+                </div>
+            {:else if selectedTab == "recents"}
+                <UserRecentRequests {recentRequests} {isSelf} on:featured={refreshProfile} />
+            {:else if selectedTab == "tip"}
+                <div class="flex flex-col p-2 px-4">
+                    <AddressBox
+                        address={userAddress}
+                        showQR={true}
+                        showWebWalletLink={true}
+                        qrCodeBackground={$darkMode ? "#1F2937" : "#E5E7EB"}
+                        qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+                    />
+                </div>
+            {:else if selectedTab == "stats"}
+                <div class="p-2 px-4">
+                    <UserStats {userAddress} userIsStaff={rolesList.includes(UserRole.MODERATOR)} />
+                </div>
+            {:else if selectedTab == "moderation"}
+                <div class="p-2 px-4">
+                    <UserModerationInfo {userAddress} on:cleared={refreshProfile} />
+                </div>
+            {/if}
+        </div>
+    {/if}
 </div>
 
 <style>

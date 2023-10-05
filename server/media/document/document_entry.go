@@ -104,7 +104,7 @@ func (e *queueEntryDocument) UnmarshalJSON(b []byte) error {
 		return stacktrace.NewError("document in queue not found in database")
 	}
 
-	e.InitializeBase(e)
+	e.InitializeBase(e, e)
 	e.SetQueueID(t.QueueID)
 	e.SetTitle(t.Title)
 	e.document = document

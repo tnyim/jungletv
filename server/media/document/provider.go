@@ -105,7 +105,7 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 		document:          preInfo.document,
 		backgroundContext: c.queueContext,
 	}
-	request.InitializeBase(request)
+	request.InitializeBase(request, request)
 	request.SetTitle(preInfo.parameters.DocumentData.Title)
 	request.SetLength(duration)
 	request.SetOffset(0)

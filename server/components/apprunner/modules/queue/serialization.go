@@ -1,6 +1,8 @@
 package queue
 
 import (
+	"math"
+
 	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/media"
@@ -60,6 +62,9 @@ func serializeMediaInfo(vm *goja.Runtime, info media.Info) goja.Value {
 	result := vm.NewObject()
 
 	result.DefineAccessorProperty("length", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		if info.Length() == math.MaxInt64 {
+			return goja.PositiveInf()
+		}
 		return vm.ToValue(info.Length()) // TODO check if duration is serialized properly
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 

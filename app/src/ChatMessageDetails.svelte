@@ -20,7 +20,9 @@
 
     let clientHeight = 168;
 
-    $: messageFromApplication = (msg?.getUserMessage()?.getAuthor()?.getRolesList() ?? []).includes(UserRole.APPLICATION);
+    $: messageFromApplication = (msg?.getUserMessage()?.getAuthor()?.getRolesList() ?? []).includes(
+        UserRole.APPLICATION
+    );
 
     function openProfile() {
         openUserProfile(msg.getUserMessage().getAuthor().getAddress());
@@ -80,14 +82,12 @@
                     on:click={() => dispatch("changeNickname")}
                 />
             {/if}
-            {#if !messageFromApplication}
-                <DetailsButton
-                    extraClasses={isChatModerator ? "col-span-3" : "col-span-6"}
-                    iconClasses="fas fa-id-card"
-                    label="Profile"
-                    on:click={openProfile}
-                />
-            {/if}
+            <DetailsButton
+                extraClasses={isChatModerator ? "col-span-3" : "col-span-6"}
+                iconClasses="fas fa-id-card"
+                label="Profile"
+                on:click={openProfile}
+            />
             {#if isChatModerator}
                 <DetailsButton
                     extraClasses="col-span-3"

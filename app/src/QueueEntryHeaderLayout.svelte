@@ -28,18 +28,20 @@
         </div>
     {/if}
     <div class="thumbnail-length-overlay text-white">
-        <div class="thumbnail-length right-0.5">
-            {formatQueueEntryThumbnailDuration(
-                !isPlaying || !isLive
-                    ? entry.getLength()
-                    : (() => {
-                          let d = new Duration();
-                          d.setSeconds(Math.max(entry.getLength().getSeconds() - $playerCurrentTime, 0));
-                          return d;
-                      })(),
-                entry.getOffset()
-            )}
-        </div>
+        {#if entry.hasLength()}
+            <div class="thumbnail-length right-0.5">
+                {formatQueueEntryThumbnailDuration(
+                    !isPlaying || !isLive
+                        ? entry.getLength()
+                        : (() => {
+                              let d = new Duration();
+                              d.setSeconds(Math.max(entry.getLength().getSeconds() - $playerCurrentTime, 0));
+                              return d;
+                          })(),
+                    entry.getOffset()
+                )}
+            </div>
+        {/if}
         {#if isLive}
             <div class="thumbnail-length left-0.5 border border-red-500 text-red-500">LIVE</div>
         {/if}

@@ -40,7 +40,7 @@ func NewApplicationPageQueueEntry(applicationID string, applicationVersion types
 		pageID:             pageID,
 		thumbnailFileName:  thumbnailFileName,
 	}
-	e.InitializeBase(e)
+	e.InitializeBase(e, e)
 	e.SetTitle(title)
 	e.SetLength(length)
 
