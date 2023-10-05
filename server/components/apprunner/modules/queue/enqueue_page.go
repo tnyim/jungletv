@@ -62,7 +62,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 			panic(m.runtime.NewTypeError("Application pages may only be enqueued for a positive duration"))
 		}
 
-		if lengthms > 1000*60*24 {
+		if lengthms > 1000*60*60 {
 			panic(m.runtime.NewTypeError("Enqueued application pages with specific length must not be longer than one hour"))
 		}
 
