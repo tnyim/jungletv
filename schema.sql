@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS "chat_message" (
     attachments TEXT[] NOT NULL
 );
 CREATE INDEX index_created_at_on_chat_message ON chat_message USING BTREE (created_at);
+CREATE INDEX index_reference_on_chat_message ON chat_message USING HASH (reference);
 
 CREATE TABLE IF NOT EXISTS "received_reward" (
     id VARCHAR(36) PRIMARY KEY,
