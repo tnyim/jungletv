@@ -17,6 +17,7 @@ import (
 
 	"regexp"
 
+	disgohookapi "github.com/DisgoOrg/disgohook/api"
 	"github.com/bytedance/sonic"
 	"github.com/clarkmcc/go-typescript"
 	"github.com/dop251/goja"
@@ -72,6 +73,9 @@ type appInstance struct {
 	transpiledFiles    map[transpiledFilesMapKey][]byte
 	transpiledFilesMu  sync.Mutex
 
+	modLogWebhook    disgohookapi.WebhookClient
+	auditEntryAddedU func()
+
 	// promisesWithoutRejectionHandler are rejected promises with no handler,
 	// if there is something in this map at an end of an event loop then it will exit with an error.
 	// It's similar to what Deno and Node do.
@@ -113,9 +117,10 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		onTerminated:                    event.NewNoArg(),
 		runner:                          r,
 		modules:                         &modules.Collection{},
-		appLogger:                       NewAppLogger(d.ModLogWebhook, applicationID),
+		appLogger:                       NewAppLogger(applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
 		transpiledFiles:                 make(map[transpiledFilesMapKey][]byte),
+		modLogWebhook:                   d.ModLogWebhook,
 	}
 
 	accountIndex := uint32(0)
@@ -246,10 +251,23 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			_, err = vm.RunScript(MainFileName, mainSource)
 			return err // do not propagate, user code, there's no need to make the stack trace more confusing
 		})
+
+		if a.modLogWebhook != nil {
+			a.auditEntryAddedU = a.appLogger.AuditEntryAdded().SubscribeUsingCallback(event.BufferAll, a.sendLogEntryToModLog)
+		}
 		a.startedOnce = true
 	}
 
 	return nil
+}
+
+func (a *appInstance) sendLogEntryToModLog(entry ApplicationLogEntry) {
+	_, err := a.modLogWebhook.SendContent(
+		fmt.Sprintf("Application `%s` %s",
+			a.applicationID, entry.Message()))
+	if err != nil {
+		a.appLogger.RuntimeError(fmt.Sprint("Failed to send mod log webhook:", err))
+	}
 }
 
 func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (func(), func()) {
@@ -402,6 +420,10 @@ func (a *appInstance) Terminate(force bool, after time.Duration, waitUntilTermin
 
 		a.terminated = true
 		a.onTerminated.Notify(true)
+
+		if a.auditEntryAddedU != nil {
+			a.auditEntryAddedU()
+		}
 
 		return nil
 	}

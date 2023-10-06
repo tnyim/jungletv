@@ -1,12 +1,10 @@
 package apprunner
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/DisgoOrg/disgohook/api"
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/btree"
 	"github.com/oklog/ulid/v2"
@@ -68,24 +66,24 @@ const (
 )
 
 type appLogger struct {
-	entries       *btree.BTreeG[appLogEntry]
-	mu            sync.RWMutex
-	onEntryAdded  event.Event[ApplicationLogEntry]
-	snowflakeNode *snowflake.Node
-	modLogWebhook api.WebhookClient
-	applicationID string
+	entries         *btree.BTreeG[appLogEntry]
+	mu              sync.RWMutex
+	onEntryAdded    event.Event[ApplicationLogEntry]
+	snowflakeNode   *snowflake.Node
+	onModLogMessage event.Event[ApplicationLogEntry]
+	applicationID   string
 }
 
-func NewAppLogger(modLogWebhook api.WebhookClient, applicationID string) *appLogger {
+func NewAppLogger(applicationID string) *appLogger {
 	node, _ := snowflake.NewNode(rand.Int63n(1000))
 	return &appLogger{
 		entries: btree.NewG(32, func(a, b appLogEntry) bool {
 			return a.sortKey.Compare(b.sortKey) < 0
 		}),
-		onEntryAdded:  event.New[ApplicationLogEntry](),
-		snowflakeNode: node,
-		modLogWebhook: modLogWebhook,
-		applicationID: applicationID,
+		onEntryAdded:    event.New[ApplicationLogEntry](),
+		snowflakeNode:   node,
+		onModLogMessage: event.New[ApplicationLogEntry](),
+		applicationID:   applicationID,
 	}
 }
 
@@ -141,7 +139,11 @@ func (p *appLogger) LogEntryAdded() event.Event[ApplicationLogEntry] {
 	return p.onEntryAdded
 }
 
-func (p *appLogger) addLogEntry(message string, logLevel ApplicationLogLevel) {
+func (p *appLogger) AuditEntryAdded() event.Event[ApplicationLogEntry] {
+	return p.onModLogMessage
+}
+
+func (p *appLogger) addLogEntry(message string, logLevel ApplicationLogLevel) ApplicationLogEntry {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	entry := appLogEntry{
@@ -151,6 +153,7 @@ func (p *appLogger) addLogEntry(message string, logLevel ApplicationLogLevel) {
 	}
 	p.entries.ReplaceOrInsert(entry)
 	p.onEntryAdded.Notify(entry, false)
+	return entry
 }
 
 func (p *appLogger) Log(s string) {
@@ -170,15 +173,8 @@ func (p *appLogger) RuntimeLog(s string) {
 }
 
 func (p *appLogger) RuntimeAuditLog(s string) {
-	p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
-	if p.modLogWebhook != nil {
-		_, err := p.modLogWebhook.SendContent(
-			fmt.Sprintf("Application `%s` %s",
-				p.applicationID, s))
-		if err != nil {
-			p.RuntimeError(fmt.Sprint("Failed to send mod log webhook:", err))
-		}
-	}
+	entry := p.addLogEntry(s, ApplicationLogLevelRuntimeLog)
+	p.onModLogMessage.Notify(entry, false)
 }
 
 func (p *appLogger) RuntimeError(s string) {
