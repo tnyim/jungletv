@@ -10,9 +10,9 @@ import (
 )
 
 func (m *queueModule) setPropertyExports() {
-	m.exports.DefineAccessorProperty("enqueuingRestriction", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-		restriction := m.queueMisc.MediaEnqueuingRestriction()
-		switch restriction {
+	m.exports.DefineAccessorProperty("enqueuingPermission", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		permission := m.queueMisc.MediaEnqueuingPermission()
+		switch permission {
 		case proto.AllowedMediaEnqueuingType_ENABLED:
 			return m.runtime.ToValue("enabled")
 		case proto.AllowedMediaEnqueuingType_STAFF_ONLY:
@@ -22,7 +22,7 @@ func (m *queueModule) setPropertyExports() {
 		case proto.AllowedMediaEnqueuingType_DISABLED:
 			return m.runtime.ToValue("disabled")
 		}
-		panic(m.runtime.NewGoError(stacktrace.NewError("unknown enqueuing restriction type %v", restriction)))
+		panic(m.runtime.NewGoError(stacktrace.NewError("unknown enqueuing permission type %v", permission)))
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 	m.exports.DefineAccessorProperty("entries", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {

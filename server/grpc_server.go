@@ -548,10 +548,11 @@ func (s *grpcServer) setupSpecialAccounts(repAddress string) error {
 }
 
 func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string) (string, error) {
-	name := address[:14]
-	if goaway.IsProfane(name) {
-		name = "Someone"
+	name := "Someone"
+	if len(address) > 14 && !goaway.IsProfane(address[:14]) {
+		name = address[:14]
 	}
+
 	chatBanned, err := s.moderationStore.LoadUserBannedFromChat(ctx, address, "")
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")

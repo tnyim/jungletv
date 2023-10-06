@@ -136,6 +136,9 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				}
 			}
 		case args := <-entryMovedC:
+			if args.User.IsUnknown() {
+				continue
+			}
 			name, err := s.getChatFriendlyUserName(ctx, args.User.Address())
 			if err != nil {
 				return stacktrace.Propagate(err, "")

@@ -9,6 +9,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
@@ -56,8 +57,10 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		m.exports = module.Get("exports").(*goja.Object)
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
-		m.exports.Set("setEnqueuingRestriction", m.setEnqueuingRestriction)
+		m.exports.Set("setEnqueuingPermission", m.setEnqueuingPermission)
 		m.exports.Set("removeEntry", m.removeEntry)
+		m.exports.Set("moveEntry", m.moveEntryJS)
+		m.exports.Set("moveEntryWithCost", m.moveEntryWithCostJS)
 		m.exports.Set("enqueuePage", m.enqueuePage)
 
 		m.setPropertyExports()
@@ -85,35 +88,35 @@ func (m *queueModule) ExecutionPaused() {
 	}
 }
 
-func (m *queueModule) setEnqueuingRestriction(call goja.FunctionCall) goja.Value {
+func (m *queueModule) setEnqueuingPermission(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	restrictionString := call.Argument(0).String()
+	permissionString := call.Argument(0).String()
 
-	if restrictionString == "enabled_password_required" && len(call.Arguments) < 2 {
+	if permissionString == "enabled_password_required" && len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
 
-	var restriction proto.AllowedMediaEnqueuingType
+	var permission proto.AllowedMediaEnqueuingType
 	password := ""
 	switch call.Argument(0).String() {
 	case "enabled":
-		restriction = proto.AllowedMediaEnqueuingType_ENABLED
+		permission = proto.AllowedMediaEnqueuingType_ENABLED
 	case "enabled_staff_only":
-		restriction = proto.AllowedMediaEnqueuingType_STAFF_ONLY
+		permission = proto.AllowedMediaEnqueuingType_STAFF_ONLY
 	case "enabled_password_required":
-		restriction = proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED
+		permission = proto.AllowedMediaEnqueuingType_PASSWORD_REQUIRED
 	case "disabled":
-		restriction = proto.AllowedMediaEnqueuingType_DISABLED
+		permission = proto.AllowedMediaEnqueuingType_DISABLED
 	default:
-		panic(m.runtime.NewTypeError("First argument to setEnqueuingRestriction must be one of 'enabled', 'enabled_staff_only', 'enabled_password_required', 'disabled'"))
+		panic(m.runtime.NewTypeError("First argument to setEnqueuingPermission must be one of 'enabled', 'enabled_staff_only', 'enabled_password_required', 'disabled'"))
 	}
 
-	m.queueMisc.SetMediaEnqueuingRestriction(restriction, password)
+	m.queueMisc.SetMediaEnqueuingPermission(permission, password)
 
-	m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("changed media enqueuing to %s", restriction.String()))
+	m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("changed media enqueuing to %s", permission.String()))
 
 	return goja.Undefined()
 }
@@ -141,4 +144,50 @@ func (m *queueModule) removeEntryAndLog(entryID string) media.QueueEntry {
 	}
 
 	return entry
+}
+
+func (m *queueModule) moveEntryWithCostJS(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 2 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	m.moveEntry(call.Argument(0).String(), call.Argument(1).String(), "Second", "moveEntryWithCost", true)
+	return goja.Undefined()
+}
+
+func (m *queueModule) moveEntryJS(call goja.FunctionCall) goja.Value { // move without cost
+	if len(call.Arguments) < 2 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	m.moveEntry(call.Argument(0).String(), call.Argument(1).String(), "Second", "moveEntry", false)
+	return goja.Undefined()
+}
+
+func (m *queueModule) moveEntry(entryID, direction, argPos, callerName string, withCost bool) {
+	up := m.parseMovementDirectionArgument(direction, argPos, callerName)
+
+	if withCost {
+		err := m.queueMisc.MoveQueueEntryWithCost(m.executionContext, entryID, up, m.appContext.ApplicationUser())
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+	} else {
+		// use unknown user because we want the inability to move an entry more than once to be considered part of the "cost" that we're avoiding here
+		err := m.mediaQueue.MoveEntry(entryID, auth.UnknownUser, up)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+	}
+}
+
+func (m *queueModule) parseMovementDirectionArgument(direction, argPos, callerName string) bool {
+	switch direction {
+	case "up":
+		return true
+	case "down":
+		return false
+	default:
+		panic(m.runtime.NewTypeError("%s argument to %s must be one of 'up', 'down'.", argPos, callerName))
+	}
 }

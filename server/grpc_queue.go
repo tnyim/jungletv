@@ -150,25 +150,35 @@ func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEn
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
+	var up bool
+	if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN {
+		up = false
+	} else if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_UP {
+		up = true
+	} else {
+		return nil, stacktrace.NewError("unknown direction")
+	}
+
+	err := s.moveQueueEntryWithCost(ctxCtx, r.Id, up, user)
+	return &proto.MoveQueueEntryResponse{}, stacktrace.Propagate(err, "")
+}
+
+func (s *grpcServer) moveQueueEntryWithCost(ctxCtx context.Context, entryID string, up bool, user auth.User) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
-	direction := ""
-	if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_DOWN {
-		direction = "down"
-	} else if r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_UP {
+	direction := "down"
+	if up {
 		direction = "up"
-	} else {
-		return nil, stacktrace.NewError("unknown direction")
 	}
 
 	cost := 119
 	subscribed, err := s.pointsManager.IsUserCurrentlySubscribed(ctx, user)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 	if subscribed {
 		cost = 69
@@ -177,21 +187,21 @@ func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEn
 	// begin by deducting the points as this is what we can rollback if the queue movement fails, unlike the queue changes
 	_, err = s.pointsManager.CreateTransaction(ctx, user, types.PointsTxTypeQueueEntryReordering, -cost, pointsmanager.TxExtraField{
 		Key:   "media",
-		Value: r.Id,
+		Value: entryID,
 	}, pointsmanager.TxExtraField{
 		Key:   "direction",
 		Value: direction,
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
 	// now attempt the queue movement
-	err = s.mediaQueue.MoveEntry(r.Id, user, r.Direction == proto.QueueEntryMovementDirection_QUEUE_ENTRY_MOVEMENT_DIRECTION_UP)
+	err = s.mediaQueue.MoveEntry(entryID, user, up)
 	if err != nil {
 		// this rolls back the points deduction
-		return nil, stacktrace.Propagate(err, "")
+		return stacktrace.Propagate(err, "")
 	}
 
-	return &proto.MoveQueueEntryResponse{}, stacktrace.Propagate(ctx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }

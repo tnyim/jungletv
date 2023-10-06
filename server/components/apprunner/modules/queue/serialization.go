@@ -60,6 +60,22 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 		return m.serializeQueueEntry(vm, removed)
 	})
 
+	result.Set("move", func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 1 {
+			panic(m.runtime.NewTypeError("Missing argument"))
+		}
+		m.moveEntry(entry.QueueID(), call.Argument(0).String(), "First", "move", false)
+		return goja.Undefined()
+	})
+
+	result.Set("moveWithCost", func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 1 {
+			panic(m.runtime.NewTypeError("Missing argument"))
+		}
+		m.moveEntry(entry.QueueID(), call.Argument(0).String(), "First", "moveWithCost", true)
+		return goja.Undefined()
+	})
+
 	return result
 }
 

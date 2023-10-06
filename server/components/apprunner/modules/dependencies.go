@@ -1,8 +1,11 @@
 package modules
 
 import (
+	"context"
+
 	"github.com/DisgoOrg/disgohook/api"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
@@ -18,8 +21,9 @@ type Dependencies struct {
 }
 
 type OtherMediaQueueMethods interface {
-	MediaEnqueuingRestriction() proto.AllowedMediaEnqueuingType
-	SetMediaEnqueuingRestriction(restriction proto.AllowedMediaEnqueuingType, password string)
+	MediaEnqueuingPermission() proto.AllowedMediaEnqueuingType
+	SetMediaEnqueuingPermission(permission proto.AllowedMediaEnqueuingType, password string)
 	NewQueueEntriesAllUnskippable() bool
 	SetNewQueueEntriesAllUnskippable(bool)
+	MoveQueueEntryWithCost(ctx context.Context, entryID string, up bool, user auth.User) error
 }
