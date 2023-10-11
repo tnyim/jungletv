@@ -14,6 +14,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/media"
 )
 
@@ -26,6 +28,8 @@ type queueModule struct {
 	appContext     modules.ApplicationContext
 	pagesModule    pages.PagesModule
 	mediaQueue     *mediaqueue.MediaQueue
+	pricer         *pricer.Pricer
+	skipManager    *skipmanager.Manager
 	queueMisc      modules.OtherMediaQueueMethods
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
@@ -34,11 +38,13 @@ type queueModule struct {
 }
 
 // New returns a new queue module
-func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule) modules.NativeModule {
+func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule) modules.NativeModule {
 	return &queueModule{
 		appContext:  appContext,
 		pagesModule: pagesModule,
 		mediaQueue:  mediaQueue,
+		pricer:      pricer,
+		skipManager: skipManager,
 		queueMisc:   queueMisc,
 	}
 }
@@ -64,6 +70,12 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("enqueuePage", m.enqueuePage)
 
 		m.setPropertyExports()
+
+		pricing := runtime.NewObject()
+		m.exports.Set("pricing", pricing)
+		pricing.Set("computeEnqueuePricing", m.computeEnqueuePricing)
+		m.setPricingPropertyExports(pricing)
+
 		m.configureEvents()
 		m.eventAdapter.StartOrResume()
 	}
@@ -190,4 +202,42 @@ func (m *queueModule) parseMovementDirectionArgument(direction, argPos, callerNa
 	default:
 		panic(m.runtime.NewTypeError("%s argument to %s must be one of 'up', 'down'.", argPos, callerName))
 	}
+}
+
+func (m *queueModule) computeEnqueuePricing(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 3 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	var lengthms int64
+	err := m.runtime.ExportTo(call.Argument(0), &lengthms)
+	if err != nil {
+		panic(m.runtime.NewTypeError("First argument must be an integer"))
+	}
+
+	if lengthms < 1000 {
+		panic(m.runtime.NewTypeError("Duration must be longer than one second"))
+	}
+
+	length := time.Duration(lengthms) * time.Millisecond
+
+	var unskippable bool
+	err = m.runtime.ExportTo(call.Argument(1), &unskippable)
+	if err != nil {
+		panic(m.runtime.NewTypeError("Second argument must be a boolean"))
+	}
+
+	var concealed bool
+	err = m.runtime.ExportTo(call.Argument(2), &concealed)
+	if err != nil {
+		panic(m.runtime.NewTypeError("Third argument must be a boolean"))
+	}
+
+	pricing := m.pricer.ComputeEnqueuePricing(length, unskippable, concealed)
+
+	return m.runtime.ToValue(map[string]interface{}{
+		"later":        pricing.EnqueuePrice.SerializeForAPI(),
+		"aftercurrent": pricing.PlayAfterCurrentPrice.SerializeForAPI(),
+		"now":          pricing.PlayAfterCurrentPrice.SerializeForAPI(),
+	})
 }

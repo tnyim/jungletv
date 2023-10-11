@@ -47,7 +47,7 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			AllowedMediaEnqueuing:               s.getAllowMediaEnqueuing(),
 			EnqueuingPricesMultiplier:           int32(s.pricer.FinalPricesMultiplier()),
 			CrowdfundedSkippingEnabled:          s.skipManager.CrowdfundedSkippingEnabled(),
-			CrowdfundedSkippingPricesMultiplier: int32(s.pricer.SkipPriceMultiplier()),
+			CrowdfundedSkippingPricesMultiplier: int32(s.pricer.CrowdfundedSkipPriceMultiplier()),
 			NewEntriesAlwaysUnskippable:         s.enqueueManager.NewEntriesAlwaysUnskippableForFree(),
 			OwnEntryRemovalEnabled:              s.mediaQueue.RemovalOfOwnEntriesAllowed(),
 			AllSkippingEnabled:                  s.mediaQueue.SkippingEnabled(),

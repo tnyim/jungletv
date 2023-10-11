@@ -504,6 +504,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		ChatManager:            s.chat,
 		PointsManager:          s.pointsManager,
 		MediaQueue:             s.mediaQueue,
+		Pricer:                 s.pricer,
+		SkipManager:            s.skipManager,
 		OtherMediaQueueMethods: &appRuntimeMiscMethods{s: s},
 	})
 

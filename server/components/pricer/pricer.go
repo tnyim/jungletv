@@ -1,15 +1,29 @@
 package pricer
 
 import (
+	"errors"
 	"log"
 	"math"
 	"math/big"
 	"time"
 
+	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/stats"
 )
+
+// MinimumMinimumPricesMultiplier is the minimum value of the minimum prices multiplier
+const MinimumMinimumPricesMultiplier = 20
+
+// MinimumFinalPricesMultiplier is the minimum value of the final prices multiplier
+const MinimumFinalPricesMultiplier = 1
+
+// MinimumCrowdfundedSkipPricesMultiplier is the minimum value of the crowdfunded skip price multiplier
+const MinimumCrowdfundedSkipPricesMultiplier = 1
+
+// ErrMultiplierOutOfBounds is returned when attempting to set a multiplier to an out of bounds value
+var ErrMultiplierOutOfBounds = errors.New("multiplier out of bounds")
 
 // Pricer manages pricing
 type Pricer struct {
@@ -48,40 +62,43 @@ func (p *Pricer) FinalPricesMultiplier() int {
 	return p.finalPricesMultiplier
 }
 
-func (p *Pricer) SetFinalPricesMultiplier(m int) {
-	if m < 1 {
-		return
+func (p *Pricer) SetFinalPricesMultiplier(m int) error {
+	if m < MinimumFinalPricesMultiplier {
+		return stacktrace.Propagate(ErrMultiplierOutOfBounds, "")
 	}
 	p.finalPricesMultiplier = m
+	return nil
 }
 
-func (p *Pricer) SkipPriceMultiplier() int {
+func (p *Pricer) CrowdfundedSkipPriceMultiplier() int {
 	return p.crowdfundedSkipMultiplier
 }
 
-func (p *Pricer) SetSkipPriceMultiplier(m int) {
-	if m < 1 {
-		return
+func (p *Pricer) SetCrowdfundedSkipPriceMultiplier(m int) error {
+	if m < MinimumCrowdfundedSkipPricesMultiplier {
+		return stacktrace.Propagate(ErrMultiplierOutOfBounds, "")
 	}
 	p.crowdfundedSkipMultiplier = m
+	return nil
 }
 
 func (p *Pricer) MinimumPricesMultiplier() int {
 	return p.minimumPricesMultiplier
 }
 
-func (p *Pricer) SetMinimumPricesMultiplier(m int) {
-	if m < 1 {
-		return
+func (p *Pricer) SetMinimumPricesMultiplier(m int) error {
+	if m < MinimumMinimumPricesMultiplier {
+		return stacktrace.Propagate(ErrMultiplierOutOfBounds, "")
 	}
 	p.minimumPricesMultiplier = m
+	return nil
 }
 
 // EnqueuePricing contains the price for different enqueuing modes
 type EnqueuePricing struct {
-	EnqueuePrice  payment.Amount
-	PlayNextPrice payment.Amount
-	PlayNowPrice  payment.Amount
+	EnqueuePrice          payment.Amount
+	PlayAfterCurrentPrice payment.Amount
+	PlayNowPrice          payment.Amount
 }
 
 // ComputeEnqueuePricing calculates the prices to charge for a new queue entry considering the current queue conditions
@@ -143,8 +160,8 @@ func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable,
 	pricing.EnqueuePrice.Div(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 	pricing.EnqueuePrice.Mul(pricing.EnqueuePrice.Int, PriceRoundingFactor)
 
-	pricing.PlayNextPrice = payment.NewAmount(pricing.EnqueuePrice.Int)
-	pricing.PlayNextPrice.Mul(pricing.PlayNextPrice.Int, big.NewInt(3))
+	pricing.PlayAfterCurrentPrice = payment.NewAmount(pricing.EnqueuePrice.Int)
+	pricing.PlayAfterCurrentPrice.Mul(pricing.PlayAfterCurrentPrice.Int, big.NewInt(3))
 
 	pricing.PlayNowPrice = payment.NewAmount(pricing.EnqueuePrice.Int)
 	pricing.PlayNowPrice.Mul(pricing.PlayNowPrice.Int, big.NewInt(8+int64(queueLength/8)))

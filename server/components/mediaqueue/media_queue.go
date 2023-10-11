@@ -255,7 +255,7 @@ func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) int {
 	return 1
 }
 
-func (q *MediaQueue) PlayAfterNext(entry media.QueueEntry) {
+func (q *MediaQueue) PlayAfterCurrent(entry media.QueueEntry) {
 	q.queueMutex.Lock()
 	defer q.queueMutex.Unlock()
 

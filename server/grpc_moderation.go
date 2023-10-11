@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
+	"github.com/tnyim/jungletv/server/components/pricer"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -254,11 +256,12 @@ func (s *grpcServer) SetPricesMultiplier(ctx context.Context, r *proto.SetPrices
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if r.Multiplier < 1 {
-		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 1")
+	err := s.pricer.SetFinalPricesMultiplier(int(r.Multiplier))
+	if errors.Is(err, pricer.ErrMultiplierOutOfBounds) {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("the multiplier can't be lower than %d", pricer.MinimumFinalPricesMultiplier))
+	} else if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
-
-	s.pricer.SetFinalPricesMultiplier(int(r.Multiplier))
 
 	s.log.Printf("Prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
@@ -283,11 +286,12 @@ func (s *grpcServer) SetMinimumPricesMultiplier(ctx context.Context, r *proto.Se
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if r.Multiplier < 20 {
-		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 20")
+	err := s.pricer.SetMinimumPricesMultiplier(int(r.Multiplier))
+	if errors.Is(err, pricer.ErrMultiplierOutOfBounds) {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("the multiplier can't be lower than %d", pricer.MinimumMinimumPricesMultiplier))
+	} else if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
-
-	s.pricer.SetMinimumPricesMultiplier(int(r.Multiplier))
 
 	s.log.Printf("Minimum prices multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 
@@ -337,11 +341,12 @@ func (s *grpcServer) SetSkipPriceMultiplier(ctx context.Context, r *proto.SetSki
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if r.Multiplier < 1 {
-		return nil, status.Error(codes.InvalidArgument, "the multiplier can't be lower than 1")
+	err := s.pricer.SetCrowdfundedSkipPriceMultiplier(int(r.Multiplier))
+	if errors.Is(err, pricer.ErrMultiplierOutOfBounds) {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("the multiplier can't be lower than %d", pricer.MinimumCrowdfundedSkipPricesMultiplier))
+	} else if err != nil {
+		return nil, stacktrace.Propagate(err, "")
 	}
-
-	s.pricer.SetSkipPriceMultiplier(int(r.Multiplier))
 
 	s.log.Printf("Skip price multiplier set to %d by %s (remote address %s)", r.Multiplier, moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 

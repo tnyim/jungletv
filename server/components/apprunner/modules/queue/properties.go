@@ -1,12 +1,14 @@
 package queue
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dop251/goja"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
+	"github.com/tnyim/jungletv/server/components/pricer"
 )
 
 func (m *queueModule) setPropertyExports() {
@@ -180,4 +182,50 @@ func (m *queueModule) setPropertyExports() {
 	m.exports.DefineAccessorProperty("playingSince", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return gojautil.SerializeTime(m.runtime, m.mediaQueue.PlayingSince())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+}
+
+func (m *queueModule) setPricingPropertyExports(pricing *goja.Object) {
+	setPricingProperty := func(propName string, getFn func() int, setFn func(int) error, minimum int, modLogFormat string) {
+		pricing.DefineAccessorProperty(propName, m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			return m.runtime.ToValue(getFn())
+		}), m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			if len(call.Arguments) < 1 {
+				panic(m.runtime.NewTypeError("Missing argument"))
+			}
+
+			var multiplier int
+			err := m.runtime.ExportTo(call.Argument(0), &multiplier)
+			if err != nil {
+				panic(m.runtime.NewTypeError("First argument must be an integer"))
+			}
+
+			err = setFn(multiplier)
+			if errors.Is(err, pricer.ErrMultiplierOutOfBounds) {
+				panic(m.runtime.NewTypeError("First argument must not be lower than %d", minimum))
+			} else if err != nil {
+				panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+			}
+
+			m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf(modLogFormat, multiplier))
+			return goja.Undefined()
+		}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}
+
+	setPricingProperty("finalMultiplier",
+		m.pricer.FinalPricesMultiplier,
+		m.pricer.SetFinalPricesMultiplier,
+		pricer.MinimumFinalPricesMultiplier,
+		"set prices multiplier to %d")
+
+	setPricingProperty("minimumMultiplier",
+		m.pricer.MinimumPricesMultiplier,
+		m.pricer.SetMinimumPricesMultiplier,
+		pricer.MinimumMinimumPricesMultiplier,
+		"set minimum prices multiplier to %d")
+
+	setPricingProperty("crowdfundedSkipMultiplier",
+		m.pricer.CrowdfundedSkipPriceMultiplier,
+		m.pricer.SetCrowdfundedSkipPriceMultiplier,
+		pricer.MinimumCrowdfundedSkipPricesMultiplier,
+		"set crowdfunded skip prices multiplier to %d")
 }

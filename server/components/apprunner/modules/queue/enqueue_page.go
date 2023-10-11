@@ -43,7 +43,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 	case "later":
 		playFn = m.mediaQueue.Enqueue
 	case "aftercurrent":
-		playFn = m.mediaQueue.PlayAfterNext
+		playFn = m.mediaQueue.PlayAfterCurrent
 	case "now":
 		playFn = m.mediaQueue.PlayNow
 	default:
@@ -55,15 +55,15 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		var lengthms int64
 		err := m.runtime.ExportTo(call.Argument(2), &lengthms)
 		if err != nil {
-			panic(m.runtime.NewTypeError("Third argument is not an integer or undefined"))
+			panic(m.runtime.NewTypeError("Third argument must be an integer or undefined"))
 		}
 
-		if lengthms < 1 {
-			panic(m.runtime.NewTypeError("Application pages may only be enqueued for a positive duration"))
+		if lengthms < 1000 {
+			panic(m.runtime.NewTypeError("Application pages may only be enqueued with a specified length longer than one second"))
 		}
 
 		if lengthms > 1000*60*60 {
-			panic(m.runtime.NewTypeError("Enqueued application pages with specific length must not be longer than one hour"))
+			panic(m.runtime.NewTypeError("Application pages may only be enqueued with a specified length shorter than one hour"))
 		}
 
 		length = time.Duration(lengthms) * time.Millisecond

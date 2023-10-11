@@ -108,7 +108,7 @@ func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequ
 
 	amounts := []payment.Amount{
 		pricing.EnqueuePrice,
-		pricing.PlayNextPrice,
+		pricing.PlayAfterCurrentPrice,
 		pricing.PlayNowPrice,
 	}
 
@@ -178,10 +178,10 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 		(mcpd != nil && mcpd.ExpectedAmounts[2].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[2].Int) >= 0) ||
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NOW) {
 		playFn = e.mediaQueue.PlayNow
-	} else if balance.Cmp(pricing.PlayNextPrice.Int) >= 0 ||
+	} else if balance.Cmp(pricing.PlayAfterCurrentPrice.Int) >= 0 ||
 		(mcpd != nil && mcpd.ExpectedAmounts[1].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[1].Int) >= 0) ||
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_PLAY_NEXT) {
-		playFn = e.mediaQueue.PlayAfterNext
+		playFn = e.mediaQueue.PlayAfterCurrent
 	} else if balance.Cmp(pricing.EnqueuePrice.Int) >= 0 ||
 		(mcpd != nil && mcpd.ExpectedAmounts[0].Cmp(big.NewInt(0)) > 0 && senderAmount.Cmp(mcpd.ExpectedAmounts[0].Int) >= 0) ||
 		(forceEnqueuing && forcedEnqueuingType == proto.ForcedTicketEnqueueType_ENQUEUE) {
@@ -378,7 +378,7 @@ func (t *ticket) SerializeForAPI() *proto.EnqueueMediaTicket {
 		Status:         t.Status(),
 		PaymentAddress: t.PaymentAddress(),
 		EnqueuePrice:   t.pricing.EnqueuePrice.SerializeForAPI(),
-		PlayNextPrice:  t.pricing.PlayNextPrice.SerializeForAPI(),
+		PlayNextPrice:  t.pricing.PlayAfterCurrentPrice.SerializeForAPI(),
 		PlayNowPrice:   t.pricing.PlayNowPrice.SerializeForAPI(),
 		Expiration:     timestamppb.New(t.CreatedAt().Add(TicketExpiration)),
 		Unskippable:    t.unskippable,
