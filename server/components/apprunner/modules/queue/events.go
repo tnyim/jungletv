@@ -4,7 +4,10 @@ import (
 	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/payment"
+	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/types"
 )
 
 func (m *queueModule) configureEvents() {
@@ -54,4 +57,42 @@ func (m *queueModule) configureEvents() {
 		}
 	})
 	gojautil.AdaptNoArgEvent(m.eventAdapter, m.mediaQueue.SkippingAllowedUpdated(), "skippingallowedchanged", nil)
+}
+
+func (m *queueModule) configureCrowdfundingEvents() {
+	gojautil.AdaptEvent(m.crowdfundingEventAdapter, m.skipManager.StatusUpdated(), "statusupdated", func(vm *goja.Runtime, arg skipmanager.SkipStatusUpdatedEventArgs) map[string]interface{} {
+		return map[string]interface{}{
+			"skipping": m.serializeSkipAccount(m.runtime, arg.SkipAccountStatus),
+			"tipping":  m.serializeRainAccount(m.runtime, arg.RainAccountStatus),
+		}
+	})
+
+	gojautil.AdaptEvent(m.crowdfundingEventAdapter, m.skipManager.SkipThresholdReductionMilestoneReached(), "skipthresholdreductionmilestonereached", func(vm *goja.Runtime, arg float64) map[string]interface{} {
+		return map[string]interface{}{
+			"ratioOfOriginal": arg,
+		}
+	})
+
+	gojautil.AdaptEvent(m.crowdfundingEventAdapter, m.skipManager.CrowdfundedSkip(), "skipped", func(vm *goja.Runtime, arg payment.Amount) map[string]interface{} {
+		return map[string]interface{}{
+			"balance": arg.SerializeForAPI(),
+		}
+	})
+
+	gojautil.AdaptEvent(m.crowdfundingEventAdapter, m.skipManager.CrowdfundedTransactionReceived(), "transactionreceived", func(vm *goja.Runtime, arg *types.CrowdfundedTransaction) map[string]interface{} {
+		r := map[string]interface{}{
+			"txHash":      arg.TxHash,
+			"fromAddress": arg.FromAddress,
+			"amount":      payment.NewAmountFromDecimal(arg.Amount).SerializeForAPI(),
+			"receivedAt":  gojautil.SerializeTime(vm, arg.ReceivedAt),
+			"type": map[types.CrowdfundedTransactionType]string{
+				types.CrowdfundedTransactionTypeRain: "tip",
+				types.CrowdfundedTransactionTypeSkip: "skip",
+			}[arg.TransactionType],
+		}
+		if arg.ForMedia != nil {
+			r["forMedia"] = *arg.ForMedia
+		}
+		return r
+	})
 }

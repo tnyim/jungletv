@@ -229,3 +229,38 @@ func (m *queueModule) setPricingPropertyExports(pricing *goja.Object) {
 		pricer.MinimumCrowdfundedSkipPricesMultiplier,
 		"set crowdfunded skip prices multiplier to %d")
 }
+
+func (m *queueModule) setCrowdfundingPropertyExports(pricing *goja.Object) {
+	pricing.DefineAccessorProperty("skippingEnabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		return m.runtime.ToValue(m.skipManager.CrowdfundedSkippingEnabled())
+	}), m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		if len(call.Arguments) < 1 {
+			panic(m.runtime.NewTypeError("Missing argument"))
+		}
+
+		var allowed bool
+		err := m.runtime.ExportTo(call.Argument(0), &allowed)
+		if err != nil {
+			panic(m.runtime.NewTypeError("First argument must be a boolean"))
+		}
+
+		m.skipManager.SetCrowdfundedSkippingEnabled(allowed)
+
+		action := "disabled"
+		if allowed {
+			action = "enabled"
+		}
+		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s crowdfunded skipping", action))
+		return goja.Undefined()
+	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+	pricing.DefineAccessorProperty("skipping", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		status := m.skipManager.SkipAccountStatus()
+		return m.serializeSkipAccount(m.runtime, status)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+
+	pricing.DefineAccessorProperty("tipping", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		status := m.skipManager.RainAccountStatus()
+		return m.serializeRainAccount(m.runtime, status)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+}

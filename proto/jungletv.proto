@@ -442,7 +442,7 @@ message SkipAndTipStatus {
     string skip_address = 2;
     string skip_balance = 3;
     string skip_threshold = 4;
-    bool skip_threshold_reducible = 5;
+    bool skip_threshold_lowerable = 5;
     string rain_address = 6;
     string rain_balance = 7;
 }

@@ -23,16 +23,17 @@ import (
 const ModuleName = "jungletv:queue"
 
 type queueModule struct {
-	runtime        *goja.Runtime
-	exports        *goja.Object
-	appContext     modules.ApplicationContext
-	pagesModule    pages.PagesModule
-	mediaQueue     *mediaqueue.MediaQueue
-	pricer         *pricer.Pricer
-	skipManager    *skipmanager.Manager
-	queueMisc      modules.OtherMediaQueueMethods
-	dateSerializer func(time.Time) interface{}
-	eventAdapter   *gojautil.EventAdapter
+	runtime                  *goja.Runtime
+	exports                  *goja.Object
+	appContext               modules.ApplicationContext
+	pagesModule              pages.PagesModule
+	mediaQueue               *mediaqueue.MediaQueue
+	pricer                   *pricer.Pricer
+	skipManager              *skipmanager.Manager
+	queueMisc                modules.OtherMediaQueueMethods
+	dateSerializer           func(time.Time) interface{}
+	eventAdapter             *gojautil.EventAdapter
+	crowdfundingEventAdapter *gojautil.EventAdapter
 
 	executionContext context.Context
 }
@@ -76,8 +77,17 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		pricing.Set("computeEnqueuePricing", m.computeEnqueuePricing)
 		m.setPricingPropertyExports(pricing)
 
+		m.crowdfundingEventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
+		crowdfunding := runtime.NewObject()
+		m.exports.Set("crowdfunding", crowdfunding)
+		crowdfunding.Set("addEventListener", m.crowdfundingEventAdapter.AddEventListener)
+		crowdfunding.Set("removeEventListener", m.crowdfundingEventAdapter.RemoveEventListener)
+		m.setCrowdfundingPropertyExports(crowdfunding)
+
 		m.configureEvents()
+		m.configureCrowdfundingEvents()
 		m.eventAdapter.StartOrResume()
+		m.crowdfundingEventAdapter.StartOrResume()
 	}
 }
 func (m *queueModule) ModuleName() string {
@@ -92,11 +102,17 @@ func (m *queueModule) ExecutionResumed(ctx context.Context) {
 	if m.eventAdapter != nil {
 		m.eventAdapter.StartOrResume()
 	}
+	if m.crowdfundingEventAdapter != nil {
+		m.crowdfundingEventAdapter.StartOrResume()
+	}
 }
 
 func (m *queueModule) ExecutionPaused() {
 	if m.eventAdapter != nil {
 		m.eventAdapter.Pause()
+	}
+	if m.crowdfundingEventAdapter != nil {
+		m.crowdfundingEventAdapter.Pause()
 	}
 }
 

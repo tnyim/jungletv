@@ -40,7 +40,7 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 			SkipAddress:            latestSkipStatus.Address,
 			SkipBalance:            latestSkipStatus.Balance.SerializeForAPI(),
 			SkipThreshold:          latestSkipStatus.Threshold.SerializeForAPI(),
-			SkipThresholdReducible: latestSkipStatus.ThresholdReducible,
+			SkipThresholdLowerable: latestSkipStatus.ThresholdLowerable,
 			RainAddress:            latestRainStatus.Address,
 			RainBalance:            latestRainStatus.Balance.SerializeForAPI(),
 		}

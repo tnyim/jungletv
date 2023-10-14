@@ -14,6 +14,7 @@ type EventAdapter struct {
 	runtime     *goja.Runtime
 	schedule    ScheduleFunction
 	this        struct{}
+	running     bool
 	unsubCh     chan bool
 	mu          sync.RWMutex
 	knownEvents map[string]*knownEvent
@@ -25,7 +26,7 @@ func NewEventAdapter(runtime *goja.Runtime, schedule ScheduleFunction) *EventAda
 		runtime:     runtime,
 		schedule:    schedule,
 		this:        struct{}{},
-		unsubCh:     make(chan bool),
+		unsubCh:     make(chan bool, 1),
 		knownEvents: make(map[string]*knownEvent),
 	}
 }
@@ -97,7 +98,14 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 }
 
 // StartOrResume should be called when the owner module is imported AND when execution resumes with a different context
+// StartOrResume may be safely called multiple times in a row
 func (a *EventAdapter) StartOrResume() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.running {
+		return
+	}
+	a.running = true
 	go func() {
 		for {
 			breakLoop := false
@@ -113,6 +121,9 @@ func (a *EventAdapter) StartOrResume() {
 			}()
 
 			if breakLoop {
+				a.mu.Lock()
+				defer a.mu.Unlock()
+				a.running = false
 				return
 			}
 		}
@@ -120,8 +131,12 @@ func (a *EventAdapter) StartOrResume() {
 }
 
 // Pause should be called when the execution context terminates
+// Pause may be safely called multiple times in a row
 func (a *EventAdapter) Pause() {
-	a.unsubCh <- true
+	select {
+	case a.unsubCh <- true:
+	default:
+	}
 }
 
 // AdaptEvent sets an EventAdapter to adapt an event.Event, exposing an event of type `eventType` to the scripting runtime

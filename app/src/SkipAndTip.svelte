@@ -120,7 +120,7 @@
                 </div>
                 {#if $rewardAddress}
                     <div class="flex flex-row space-x-2 justify-center">
-                        {#if skipAndTipStatus.getSkipThresholdReducible()}
+                        {#if skipAndTipStatus.getSkipThresholdLowerable()}
                             <button
                                 title="Reduce skip target for {skipTargetChangeCost} JP"
                                 class="flex flex-col mb-1 p-1 rounded hover:shadow-sm

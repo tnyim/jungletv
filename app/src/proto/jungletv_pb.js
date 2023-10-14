@@ -15824,7 +15824,7 @@ proto.jungletv.SkipAndTipStatus.toObject = function(includeInstance, msg) {
     skipAddress: jspb.Message.getFieldWithDefault(msg, 2, ""),
     skipBalance: jspb.Message.getFieldWithDefault(msg, 3, ""),
     skipThreshold: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    skipThresholdReducible: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
+    skipThresholdLowerable: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
     rainAddress: jspb.Message.getFieldWithDefault(msg, 6, ""),
     rainBalance: jspb.Message.getFieldWithDefault(msg, 7, "")
   };
@@ -15881,7 +15881,7 @@ proto.jungletv.SkipAndTipStatus.deserializeBinaryFromReader = function(msg, read
       break;
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setSkipThresholdReducible(value);
+      msg.setSkipThresholdLowerable(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
@@ -15948,7 +15948,7 @@ proto.jungletv.SkipAndTipStatus.serializeBinaryToWriter = function(message, writ
       f
     );
   }
-  f = message.getSkipThresholdReducible();
+  f = message.getSkipThresholdLowerable();
   if (f) {
     writer.writeBool(
       5,
@@ -16045,10 +16045,10 @@ proto.jungletv.SkipAndTipStatus.prototype.setSkipThreshold = function(value) {
 
 
 /**
- * optional bool skip_threshold_reducible = 5;
+ * optional bool skip_threshold_lowerable = 5;
  * @return {boolean}
  */
-proto.jungletv.SkipAndTipStatus.prototype.getSkipThresholdReducible = function() {
+proto.jungletv.SkipAndTipStatus.prototype.getSkipThresholdLowerable = function() {
   return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
 };
 
@@ -16057,7 +16057,7 @@ proto.jungletv.SkipAndTipStatus.prototype.getSkipThresholdReducible = function()
  * @param {boolean} value
  * @return {!proto.jungletv.SkipAndTipStatus} returns this
  */
-proto.jungletv.SkipAndTipStatus.prototype.setSkipThresholdReducible = function(value) {
+proto.jungletv.SkipAndTipStatus.prototype.setSkipThresholdLowerable = function(value) {
   return jspb.Message.setProto3BooleanField(this, 5, value);
 };
 

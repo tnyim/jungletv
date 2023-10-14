@@ -1477,8 +1477,8 @@ export class SkipAndTipStatus extends jspb.Message {
   getSkipThreshold(): string;
   setSkipThreshold(value: string): void;
 
-  getSkipThresholdReducible(): boolean;
-  setSkipThresholdReducible(value: boolean): void;
+  getSkipThresholdLowerable(): boolean;
+  setSkipThresholdLowerable(value: boolean): void;
 
   getRainAddress(): string;
   setRainAddress(value: string): void;
@@ -1502,7 +1502,7 @@ export namespace SkipAndTipStatus {
     skipAddress: string,
     skipBalance: string,
     skipThreshold: string,
-    skipThresholdReducible: boolean,
+    skipThresholdLowerable: boolean,
     rainAddress: string,
     rainBalance: string,
   }

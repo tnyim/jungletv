@@ -44,7 +44,7 @@ type Manager struct {
 	currentSkipThreshold   payment.Amount
 	minSkipThreshold       payment.Amount
 	skipThresholdChangedBy payment.Amount
-	skipThresholdReducible bool
+	skipThresholdLowerable bool
 
 	rainedByRequester          payment.Amount
 	currentMediaID             *string
@@ -383,7 +383,7 @@ type SkipAccountStatus struct {
 	Address            string
 	Balance            payment.Amount
 	Threshold          payment.Amount
-	ThresholdReducible bool
+	ThresholdLowerable bool
 }
 
 func (s *Manager) SkipAccountStatus() *SkipAccountStatus {
@@ -394,7 +394,7 @@ func (s *Manager) SkipAccountStatus() *SkipAccountStatus {
 		Address:            s.skipAccount.Address(),
 		Balance:            s.cachedSkipBalance,
 		Threshold:          s.currentSkipThreshold,
-		ThresholdReducible: s.skipThresholdReducible,
+		ThresholdLowerable: s.skipThresholdLowerable,
 	}
 }
 
@@ -447,7 +447,7 @@ func (s *Manager) UpdateSkipThreshold(resetChange bool) {
 
 	s.currentSkipThreshold = payment.NewAmount(finalPrice)
 	s.minSkipThreshold = payment.NewAmount(minPrice)
-	s.skipThresholdReducible = finalPrice.Cmp(minPrice) > 0
+	s.skipThresholdLowerable = finalPrice.Cmp(minPrice) > 0
 }
 
 func (s *Manager) CrowdfundedSkippingEnabled() bool {
@@ -487,7 +487,7 @@ func (s *Manager) ChangeSkipThreshold(desiredChange payment.Amount) payment.Amou
 	if diff < 0 {
 		change = payment.NewAmount(big.NewInt(0).Neg(big.NewInt(0).Sub(s.currentSkipThreshold.Int, s.minSkipThreshold.Int)))
 	}
-	s.skipThresholdReducible = diff > 0
+	s.skipThresholdLowerable = diff > 0
 
 	if change.Cmp(big.NewInt(0)) == 0 {
 		return payment.NewAmount()
