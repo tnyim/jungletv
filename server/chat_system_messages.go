@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/JohannesKaufmann/html-to-markdown/escape"
 	"github.com/palantir/stacktrace"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -14,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -68,7 +68,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			if v == nil || v == (media.QueueEntry)(nil) {
 				_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
 			} else {
-				title := escape.MarkdownCharacters(v.MediaInfo().Title())
+				title := utils.EscapeMarkdownCharacters(v.MediaInfo().Title())
 				_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf("_Now playing:_ %s", title))
 			}
 			if err != nil {
@@ -87,8 +87,8 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}
-				name = escape.MarkdownCharacters(name)
-				title := escape.MarkdownCharacters(entry.MediaInfo().Title())
+				name = utils.EscapeMarkdownCharacters(name)
+				title := utils.EscapeMarkdownCharacters(entry.MediaInfo().Title())
 				switch t {
 				case mediaqueue.EntryAddedPlacementEnqueue:
 					if entry.Concealed() {
@@ -122,12 +122,12 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}
-				name = escape.MarkdownCharacters(name)
+				name = utils.EscapeMarkdownCharacters(name)
 				if args.Entry.Concealed() {
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 						"_%s just removed one of their own queue entries_", name))
 				} else {
-					title := escape.MarkdownCharacters(args.Entry.MediaInfo().Title())
+					title := utils.EscapeMarkdownCharacters(args.Entry.MediaInfo().Title())
 					_, err = s.chat.CreateSystemMessage(ctx, fmt.Sprintf(
 						"_%s just removed their own queue entry_ %s", name, title))
 				}
@@ -143,8 +143,8 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
-			name = escape.MarkdownCharacters(name)
-			title := escape.MarkdownCharacters(args.Entry.MediaInfo().Title())
+			name = utils.EscapeMarkdownCharacters(name)
+			title := utils.EscapeMarkdownCharacters(args.Entry.MediaInfo().Title())
 			direction := "down"
 			if args.Up {
 				direction = "up"
@@ -174,7 +174,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 					return stacktrace.Propagate(err, "")
 				}
 				tipBanStr := new(big.Rat).SetFrac(enqueuerTip.Int, exp).FloatString(2)
-				name = escape.MarkdownCharacters(name)
+				name = utils.EscapeMarkdownCharacters(name)
 				message = fmt.Sprintf(
 					"_**%s BAN** distributed among %d spectators and **%s BAN** tipped to %s._", banStr, eligibleCount, tipBanStr, name)
 			} else {
@@ -261,7 +261,7 @@ func (s *grpcServer) handleCrowdfundedTransactionSystemMessage(ctx context.Conte
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	name = escape.MarkdownCharacters(name)
+	name = utils.EscapeMarkdownCharacters(name)
 
 	banStr := new(big.Rat).SetFrac(amount, pricer.BananoUnit).FloatString(2)
 

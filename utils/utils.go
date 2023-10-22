@@ -3,6 +3,9 @@ package utils
 import (
 	"net/netip"
 	"regexp"
+	"strings"
+
+	"github.com/JohannesKaufmann/html-to-markdown/escape"
 )
 
 // GetUniquifiedIP returns a uniquified version of an IP address
@@ -79,4 +82,19 @@ func SliceToSet[T comparable](s []T) map[T]struct{} {
 		set[item] = struct{}{}
 	}
 	return set
+}
+
+var replacer = strings.NewReplacer(
+	`~`, `\~`,
+)
+
+// EscapeMarkdown is like escape.MarkdownCharacters but aware of JungleTV-specific chat markdown extensions
+func EscapeMarkdownCharacters(s string) string {
+	s = escape.MarkdownCharacters(s)
+
+	s = replacer.Replace(s)
+
+	// TODO do something about emotes and timestamps
+
+	return s
 }

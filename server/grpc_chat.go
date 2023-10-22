@@ -9,7 +9,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/JohannesKaufmann/html-to-markdown/escape"
 	"github.com/bwmarrin/snowflake"
 	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
@@ -19,6 +18,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/stats"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -211,7 +211,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 					},
 				}}})
 		case newNickname := <-onChangedOwnNickname:
-			newNickname = escape.MarkdownCharacters(newNickname)
+			newNickname = utils.EscapeMarkdownCharacters(newNickname)
 			msgContent := fmt.Sprintf("_You changed your nickname to_ **%s**", newNickname)
 			if newNickname == "" {
 				msgContent = "_You cleared your nickname_"
