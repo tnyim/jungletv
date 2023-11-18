@@ -311,7 +311,11 @@ func (m *chatModule) removeMessageAndLog(id snowflake.ID) *chat.Message {
 
 	content := "> " + strings.Join(strings.Split(message.Content, "\n"), "\n> ")
 
-	m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("deleted chat message from %s:\n\n%s%s", message.Author.Address()[:14], content, attachments))
+	if message.Author != nil && !message.Author.IsUnknown() && len(message.Author.Address()) >= 14 {
+		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("deleted chat message from %s:\n\n%s%s", message.Author.Address()[:14], content, attachments))
+	} else {
+		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("deleted system chat message:\n\n%s%s", content, attachments))
+	}
 
 	return message
 }

@@ -3,6 +3,7 @@ interface Require {
     (id: "jungletv:chat"): typeof import("jungletv:chat");
     (id: "jungletv:pages"): typeof import("jungletv:pages");
     (id: "jungletv:points"): typeof import("jungletv:points");
+    (id: "jungletv:queue"): typeof import("jungletv:queue");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
     (id: "node:console" | "console"): typeof import("node:console");
     (id: "node:process" | "process"): typeof import("node:process");
@@ -81,9 +82,9 @@ declare module "jungletv:chat" {
     export function addEventListener<K extends keyof ChatEventMap>(eventType: K, listener: (this: unknown, args: ChatEventMap[K]) => void): void;
 
     /**
-     * Ceases calling a function previously registered with {@link Chat.addEventListener} whenever the specified event occurs.
+     * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
      * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
-     * @param listener The function previously passed to {@link Chat.addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+     * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
      */
     export function removeEventListener<K extends keyof ChatEventMap>(eventType: K, listener: (this: unknown, args: ChatEventMap[K]) => void): void;
 
@@ -195,6 +196,12 @@ declare module "jungletv:chat" {
 
         /** The list of message attachments. */
         attachments: (TenorGifAttachment | AppPageAttachment)[];
+
+        /**
+         * Removes the chat message.
+         * Equivalent to calling {@link removeMessage} with the {@link id} of this message.
+         */
+        remove: () => ChatMessage;
     }
 
     /** Represents the author of a {@link ChatMessage} */
@@ -349,7 +356,7 @@ declare module "jungletv:keyvalue" {
 /**
  * Allows for communication between the client-side pages, configured using the {@link "jungletv:pages"} module, and the server-side application logic.
  * RPC stands for {@link https://en.wikipedia.org/wiki/Remote_procedure_call | Remote procedure call}.
- * Keep in mind this page documents just the module that is available to the server scripts.
+ * Keep in mind this corresponds to just the module that is available to the server scripts.
  * It should be used to define how to handle method calls and events originating from the client-side pages.
  */
 declare module "jungletv:rpc" {
@@ -457,6 +464,7 @@ declare module "jungletv:rpc" {
         Admin = "admin",
     }
 
+    /** The permission levels a user can have */
     export type PermissionLevel = `${PermissionLevelEnum}`;
 
     export type MethodRequiredPermissionLevel = PermissionLevel | "";
@@ -639,9 +647,9 @@ declare module "jungletv:points" {
     export function addEventListener<K extends keyof PointsEventMap>(eventType: K, listener: (this: unknown, args: PointsEventMap[K]) => void): void;
 
     /**
-     * Ceases calling a function previously registered with {@link Points.addEventListener} whenever the specified event occurs.
+     * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
      * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
-     * @param listener The function previously passed to {@link Points.addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+     * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
      */
     export function removeEventListener<K extends keyof PointsEventMap>(eventType: K, listener: (this: unknown, args: PointsEventMap[K]) => void): void;
 
@@ -838,6 +846,616 @@ declare module "jungletv:configuration" {
      * @returns true in circumstances where the AF runtime is working as expected.
      */
     export function setSidebarTab(pageID?: string, beforeTabID?: string);
+}
+
+/** Allows for interaction with the JungleTV queue subsystem. */
+declare module "jungletv:queue" {
+    /** Arguments to a chat event */
+    export interface EventArgs {
+        type: keyof QueueEventMap;
+    }
+
+    /** Arguments to the 'queueupdated' event */
+    export interface QueueUpdatedEventArgs extends EventArgs {
+        /** Guaranteed to be `queueupdated`. */
+        type: "queueupdated";
+    }
+
+    /** Arguments to the 'entryadded' event */
+    export interface EntryAddedEventArgs extends EventArgs {
+        /** Guaranteed to be `entryadded`. */
+        type: "entryadded";
+
+        /** The added entry. */
+        entry: QueueEntry;
+
+        /** The position of the added entry in the queue. */
+        index: number;
+
+        /** The requested type of queue placement. */
+        placement: EnqueuePlacement;
+    }
+
+    /** Arguments to the 'entrymoved' event */
+    export interface EntryMovedEventArgs extends EventArgs {
+        /** Guaranteed to be `entrymoved`. */
+        type: "entrymoved";
+
+        /** The queue position occupied by the entry prior to being moved. */
+        previousIndex: number;
+
+        /** The queue position presently occupied by the entry, after being moved. */
+        currentIndex: number;
+
+        /** The user who moved the queue entry. */
+        user: User;
+
+        /** The moved entry. */
+        entry: QueueEntry;
+
+        /** Whether the entry was moved up (closer to the currently playing entry) or down (to be played later in the queue). */
+        direction: "up" | "down";
+    }
+
+    /** Arguments to the 'entryremoved' event */
+    export interface EntryRemovedEventArgs extends EventArgs {
+        /** Guaranteed to be `entryremoved`. */
+        type: "entryremoved";
+
+        /** The queue position occupied by the entry prior to being removed. */
+        index: number;
+
+        /** Whether the removal of the entry was requested by the user who enqueued it. */
+        selfRemoval: boolean;
+
+        /** The removed entry. */
+        entry: QueueEntry;
+    }
+
+    /** Arguments to the 'mediachanged' event */
+    export interface MediaChangedEventArgs extends EventArgs {
+        /** Guaranteed to be `mediachanged`. */
+        type: "mediachanged";
+
+        /** The queue entry which just started playing. */
+        playingEntry: QueueEntry;
+    }
+
+    /** Arguments to the 'skippingallowedchanged' event */
+    export interface SkippingAllowedChangedEventArgs extends EventArgs {
+        /** Guaranteed to be `skippingallowedchanged`. */
+        type: "skippingallowedchanged";
+    }
+
+
+    /** A relation between event types and the arguments passed to the respective listeners */
+    export interface QueueEventMap {
+        /** This event is fired when the queue or some of its associated settings are updated. */
+        "queueupdated": QueueUpdatedEventArgs;
+
+        /** This event is fired when an entry is added to the queue. */
+        "entryadded": EntryAddedEventArgs;
+
+        /** This event is fired when an entry is moved in the queue. */
+        "entrymoved": EntryMovedEventArgs;
+
+        /** This event is fired when an entry is removed from the queue. */
+        "entryremoved": EntryRemovedEventArgs;
+
+        /** This event is fired when the currently playing media changes. */
+        "mediachanged": MediaChangedEventArgs;
+
+        /** This event is fired when the ability to skip entries is enabled or disabled. */
+        "skippingallowedchanged": SkippingAllowedChangedEventArgs;
+    }
+
+    /**
+     * Registers a function to be called whenever the specified event occurs.
+     * Depending on the event, the function may be invoked with arguments containing information about the event.
+     * Refer to the documentation about each event type for details.
+     * @param eventType A case-sensitive string representing the event to listen for.
+     * @param listener A function that will be called when an event of the specified type occurs.
+     */
+    export function addEventListener<K extends keyof QueueEventMap>(eventType: K, listener: (this: unknown, args: QueueEventMap[K]) => void): void;
+
+    /**
+     * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
+     * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
+     * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+     */
+    export function removeEventListener<K extends keyof QueueEventMap>(eventType: K, listener: (this: unknown, args: QueueEventMap[K]) => void): void;
+
+    /**
+     * Sets what users can add new entries to the media queue.
+     * Applications may be able to enqueue media regardless of this setting.
+     * To read the current value of this setting, use {@link enqueuingPermission}.
+     * @param permission The restriction applied to human-initiated enqueuing.
+     */
+    export function setEnqueuingPermission(permission: Exclude<EnqueuingPermission, "enabled_password_required">): void;
+
+    /**
+     * Sets who is able to add new entries to the queue.
+     * @param permission The restriction applied to human-initiated enqueuing.
+     * @param password The password users will need to provide in order to be able to enqueue.
+     */
+    export function setEnqueuingPermission(permission: `${EnqueuingPermissionEnum.EnabledPasswordRequired}`, password: string): void;
+
+    /**
+     * Removes an entry from the queue.
+     * @param entryID The ID of the queue entry to remove.
+     * @returns The removed queue entry.
+     */
+    export function removeEntry(entryID: string): QueueEntry;
+
+    /**
+     * Moves a queue entry to an adjacent position without costing the application JP.
+     * Entries cannot be moved up when they are adjacent to the currently playing entry, or to the queue insert cursor if it is set.
+     * Entries cannot be moved down when they are the last of the queue, or when they are adjacent to the queue insert cursor.
+     * @param entryID The ID of the queue entry to move.
+     * @param direction Whether to move the queue entry closer to the currently playing entry ("up") or further away ("down").
+     */
+    export function moveEntry(entryID: string, direction: "up" | "down"): void;
+
+    /**
+     * Equivalent to {@link moveEntry}, but will deduct from the application JP balance and fail if the application does not have sufficient JP.
+     * @param entryID The ID of the queue entry to move.
+     * @param direction Whether to move the queue entry closer to the currently playing entry ("up") or further away ("down").
+     */
+    export function moveEntryWithCost(entryID: string, direction: "up" | "down"): void;
+
+    /**
+     * Enqueues an application page, to be "played" as if it were any other form of media.
+     *
+     * The title of the created queue entry will default to the one passed to {@link "jungletv:pages".publishFile}, unless overridden via the {@link options} object.
+     * The thumbnail of the created queue entry will default to a generic one, unless overridden via the {@link options} object.
+     *
+     * Once the created queue entry reaches the top of the queue and begins "playing", the specified application page will be displayed on JungleTV clients in the same place where a media player normally goes.
+     * The page will display alongside other homepage UI elements, including the sidebar (where an application page may also be displaying as a sidebar tab).
+     * The page may also be displayed in a very small size, namely, whenever the user browses to other pages of the JungleTV SPA, as the media player will collapse to the bottom right corner of the screen until closed by the user or until the user returns to the homepage.
+     * Regardless of the size and placement of the application page, users will be able to interact with it, as they normally would if they had navigated to it.
+     *
+     * Application page queue entries, if not set to unskippable (which can be achieved using the {@link options} object), may be skipped as any other queue entry would - assuming skipping is enabled at the time the corresponding queue entry is playing.
+     * @param pageID The ID of the application page to enqueue.
+     * @param placement The desired placement of the new queue entry.
+     * @param length An optional number indicating the desired length, in milliseconds, for the new queue entry.
+     *
+     * If not specified or if set to infinity, once the corresponding queue entry begins playing, it will only stop once skipped/removed.
+     * A length for such queue entries will not be visible in the user interface.
+     *
+     * If a length is specified, it must be between one second and one hour, the period after which the media queue will automatically move to the next queue entry.
+     * @param options An optional object containing additional options for the queue entry.
+     * @returns The newly-created queue entry.
+     */
+    export function enqueuePage(pageID: string, placement: EnqueuePlacement, length?: number, options?: PageEnqueueOptions): Promise<QueueEntry>;
+
+    /**
+     * This read-only property indicates which users can add new entries to the media queue.
+     * Applications may be able to enqueue media regardless of this setting.
+     * To modify this setting, use {@link setEnqueuingPermission} (a setter function is necessary because some modes require extra arguments).
+     */
+    export let enqueuingPermission: EnqueuingPermission;
+
+    /**
+     * This read-only property represents the entries currently in the media queue.
+     */
+    export let entries: QueueEntry[];
+
+    /**
+     * This read-only property represents the currently playing queue entry.
+     * It is undefined when no queue entry is currently playing.
+     */
+    export let playing: QueueEntry;
+
+    /**
+     * This read-only property represents the number of entries in the media queue.
+     */
+    export let length: number;
+
+    /**
+     * This read-only property represents the number of entries in the queue up to the insert cursor.
+     * If no cursor is set, this property returns the same value as {@link length}.
+     */
+    export let lengthUpToCursor: number;
+
+    /**
+     * This writable property controls whether those who added an entry to the queue may remove it.
+     * Does not apply to staff or applications.
+     */
+    export let removalOfOwnEntriesAllowed: boolean;
+
+    /**
+     * This writable property controls whether new queue entries are made unskippable at no additional cost,
+     * regardless of whether users request for them to be unskippable.
+     */
+    export let newQueueEntriesAllUnskippable: boolean;
+
+    /**
+     * This writable property controls whether unprivileged users can use any forms of media skipping.
+     * Does not apply to entry self-removal, which is controlled by {@link removalOfOwnEntriesAllowed}.
+     */
+    export let skippingAllowed: boolean;
+
+    /**
+     * This writable property controls whether users are able to reorder queue entries in exchange for JP.
+     */
+    export let reorderingAllowed: boolean;
+
+    /**
+     * This writable property allows for defining the queue insert cursor,
+     * i.e. the position at which entries are inserted in the queue when adding entries with placement {@link EnqueuePlacementEnum.Later}.
+     * Set to `null` or `undefined` to clear the cursor, causing new entries to be added to the end of the queue.
+     */
+    export let insertCursor: string;
+
+    /**
+     * This read-only property indicates since when the media queue has been playing non-stop.
+     * It is `undefined` when no queue entry is currently playing.
+     */
+    export let playingSince: Date;
+
+    /** Object containing properties and methods related to queue entry pricing. */
+    export let pricing: Pricing;
+
+    /** Object containing properties and methods related to crowdfunded transactions ("Skip & Tip"). */
+    export let crowdfunding: Crowdfunding;
+
+
+    /** Properties and methods related to queue entry pricing. */
+    export interface Pricing {
+        /**
+         * Compute the current pricing for a new queue entry, which would be requested to the user as a requirement for enqueuing at different placements.
+         * @param length Length of the media section in milliseconds.
+         * @param unskippable Whether the entry is to be unskippable.
+         * @param concealed Whether media information should be concealed until the media starts playing.
+         */
+        computeEnqueuePricing: (length: number, unskippable: boolean, concealed: boolean) => EnqueuePricing;
+
+        /**
+         * Writable integer property representing the general multiplier applied to the cost of enqueuing.
+         * Cannot be set lower than 1.
+         */
+        finalMultiplier: number;
+
+        /**
+         * Writable integer property representing the minimum prices multiplier,
+         * which sets a lower bound on the prices, in an attempt to ensure that all users get some reward
+         * regardless of the conditions at the time an entry plays.
+         * Cannot be set lower than 20.
+         */
+        minimumMultiplier: number;
+
+        /**
+         * Writable integer property representing the multiplier applied to the cost of crowdfunded skipping.
+         * Cannot be set lower than 1.
+         */
+        crowdfundedSkipMultiplier: number;
+    }
+
+    /** Contains minimum prices to enqueue an entry using different placement types. */
+    export interface EnqueuePricing {
+        // TODO convert to uniform TS type for amounts?
+
+        /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.Later} placement. */
+        later: string;
+
+        /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.AfterCurrent} placement. */
+        aftercurrent: string;
+
+        /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.Now} placement, effectively skipping the currently playing entry (if skipping is allowed and the entry is skippable). */
+        now: string;
+    }
+
+    /** Properties and methods related to crowdfunded transactions ("Skip & Tip"). */
+    export interface Crowdfunding {
+        /**
+         * Registers a function to be called whenever the specified event occurs.
+         * Depending on the event, the function may be invoked with arguments containing information about the event.
+         * Refer to the documentation about each event type for details.
+         * @param eventType A case-sensitive string representing the event to listen for.
+         * @param listener A function that will be called when an event of the specified type occurs.
+         */
+        addEventListener: <K extends keyof CrowdfundingEventMap>(eventType: K, listener: (this: unknown, args: CrowdfundingEventMap[K]) => void) => void;
+
+        /**
+         * Ceases calling a function previously registered with {@link Crowdfunding.addEventListener} whenever the specified event occurs.
+         * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
+         * @param listener The function previously passed to {@link Crowdfunding.addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+         */
+        removeEventListener: <K extends keyof CrowdfundingEventMap>(eventType: K, listener: (this: unknown, args: CrowdfundingEventMap[K]) => void) => void;
+
+        /** Writable property controlling whether crowdfunded skipping is enabled. */
+        skippingEnabled: boolean;
+
+        /** Read-only property containing the status of crowdfunded skipping. */
+        skipping: CrowdfundedSkippingStatus;
+
+        /** Read-only property containing the status of crowdfunded tipping. */
+        tipping: CrowdfundedTippingStatus;
+    }
+
+    /** Status of the crowdfunded skipping feature */
+    export interface CrowdfundedSkippingStatus {
+        /** State of the crowdfunded skipping feature, indicating whether it is presently possible for the community to skip, or the reason why not. */
+        status: CrowdfundedSkippingState;
+
+        /** Address of the crowdfunded skipping account. */
+        address: string;
+
+        /** Balance, in raw Banano units, of the crowdfunded skipping account. */
+        balance: string;
+
+        /**
+         * Balance of the crowdfunded skipping account at which skipping will occur.
+         * In raw Banano units.
+         */
+        threshold: string;
+
+        /** Whether users are able to spend JP in order to decrease the {@link threshold}. */
+        thresholdLowerable: boolean;
+    }
+
+    /** Represents the state of the crowdfunded skipping feature. */
+    export enum CrowdfundedSkippingStateEnum {
+        /** Crowdfunded skipping is possible: the currently playing entry will be skipped as soon as the balance of the crowdfunded skipping account reaches the {@link CrowdfundedSkippingStatus.threshold}. */
+        Possible = "possible",
+
+        /** Crowdfunded skipping is impossible because the currently playing queue entry is unskippable. */
+        ImpossibleUnskippable = "impossible_unskippable",
+
+        /** Crowdfunded skipping is impossible because we are near the end of the currently playing queue entry. */
+        ImpossibleEndOfMediaPeriod = "impossible_end_of_media_period",
+
+        /** Crowdfunded skipping is impossible because there is no currently playing queue entry. */
+        ImpossibleNoMedia = "impossible_no_media",
+
+        /** Crowdfunded skipping is unavailable for technical reasons. */
+        ImpossibleUnavailable = "impossible_unavailable",
+
+        /** The crowdfunded skipping feature is disabled (e.g. via {@link Crowdfunding.skippingEnabled}). */
+        ImpossibleDisabled = "impossible_disabled",
+
+        /** Crowdfunded sikping is impossible because we are at the beginning of the currently playing queue entry. */
+        ImpossibleStartOfMediaPeriod = "impossible_start_of_media_period",
+    }
+
+    /** Represents the state of the crowdfunded skipping feature. */
+    export type CrowdfundedSkippingState = `${CrowdfundedSkippingStateEnum}`;
+
+    /** Status of the crowdfunded tipping feature */
+    export interface CrowdfundedTippingStatus {
+        /** Address of the crowdfunded tipping account. */
+        address: string;
+
+        /** Balance, in raw Banano units, of the crowdfunded tipping account. */
+        balance: string;
+    }
+
+    /** A relation between event types and the arguments passed to the respective listeners */
+    export interface CrowdfundingEventMap {
+        /** This event is fired when the skipping or tipping statuses are updated. */
+        "statusupdated": CrowdfundingStatusUpdatedEventArgs;
+
+        /** This event is fired when a skip threshold reduction milestone is reached. */
+        "skipthresholdreductionmilestonereached": CrowdfundingSkipThresholdReductionMilestoneReachedEventArgs;
+
+        /** This event is fired when currently playing entry is skipped via crowdfunding. */
+        "skipped": CrowdfundingSkippedEventArgs;
+
+        /** This event is fired when a transaction is received in the crowdfunded skipping or tipping accounts. */
+        "transactionreceived": CrowdfundingTransactionReceivedEventArgs;
+    }
+
+    /** Arguments to the 'statusupdated' crowdfunding event */
+    export interface CrowdfundingStatusUpdatedEventArgs {
+        /** The current status of the crowdfunded skipping feature. */
+        skipping: CrowdfundedSkippingStatus;
+
+        /** The current status of the crowdfunded tipping feature. */
+        tipping: CrowdfundedTippingStatus;
+    }
+
+    /** Arguments to the 'skipthresholdreductionmilestonereached' crowdfunding event */
+    export interface CrowdfundingSkipThresholdReductionMilestoneReachedEventArgs {
+        /** Fraction of the original skip threshold that has been reached in this milestone. */
+        ratioOfOriginal: number;
+    }
+
+    /** Arguments to the 'skipped' crowdfunding event */
+    export interface CrowdfundingSkippedEventArgs {
+        /** Amount, in raw Banano units, that the community paid to skip the playing entry. */
+        balance: string;
+    }
+
+    /** Arguments to the 'transactionreceived' crowdfunding event */
+    export interface CrowdfundingTransactionReceivedEventArgs {
+        /** Block hash of the received transaction. */
+        txHash: string;
+
+        /** Address of the sender of the received transaction. */
+        fromAddress: string;
+
+        /** Amount, in raw Banano units, that was received in this transaction. */
+        amount: string;
+
+        /** Time at which this transaction was received. */
+        receivedAt: Date;
+
+        /** Whether this was a crowdfunded skipping or a crowdfunded tipping transaction. */
+        type: "skip" | "tip";
+
+        /** Unique {@link QueueEntry.id} of the media that was playing at the time of the transaction. */
+        forMedia?: string;
+    }
+
+    /** Contains additional options for application page enqueuing */
+    export interface EnqueueOptions {
+        /**
+         * Whether the resulting queue entry may be skipped by the users.
+         * If set to true, the queue entry may only be skipped if it is removed by JungleTV staff or by an application.
+         */
+        unskippable?: boolean;
+
+        /**
+         * Whether the resulting queue entry will hide its details before it begins playing.
+         * If set to true, the title, thumbnail and other information about the queue entry will not be revealed until it begins playing.
+         */
+        concealed?: boolean;
+    }
+
+    /** Contains additional options for media enqueuing */
+    export interface PageEnqueueOptions extends EnqueueOptions {
+        /**
+         * When present, will override the title of the resulting queue entry.
+         * If not present, the title of the created queue entry will be the one passed to {@link "jungletv:pages".publishFile}.
+         */
+        title?: string;
+
+        /**
+         * The name of an application file which, when present, will override the thumbnail of the resulting queue entry.
+         * The file must be set to public and have an image file type.
+         * On the JungleTV clients, the image will be resized to fit the thumbnail area.
+         * Still, developers should be mindful not to provide images with unnecessarily large resolutions.
+         * If not present, a generic thumbnail will be used.
+         */
+        thumbnail?: string;
+    }
+
+    /** Represents an entry in the media queue. */
+    export interface QueueEntry {
+        /** Whether the media information will only be visible to unprivileged users once this entry begins playing. */
+        concealed: boolean;
+
+        /** Information about the media of this queue entry. */
+        media: MediaInfo;
+
+        /** List of the addresses of the users who moved this queue entry. */
+        movedBy: string[];
+
+        /** Whether this queue entry has finished playing. */
+        played: boolean;
+
+        /** Duration in milliseconds corresponding to how long this queue entry has played. */
+        playedFor: number;
+
+        /** Whether this queue entry is currently playing. */
+        playing: boolean;
+
+        /**
+         * The globally unique identifier of this queue entry.
+         * Can be used to refer to this queue entry even after it has been removed from the queue.
+         */
+        id: string;
+
+        /** String representing how much the requester of this entry spent to enqueue this entry, in raw Banano units. */
+        // TODO convert to uniform TS type for amounts?
+        requestCost: string;
+
+        /** Moment when this entry was added to the queue. */
+        requestedAt: Date;
+
+        /**
+         * The user who added this entry to the queue.
+         * May be `undefined` in the case of entries automatically enqueued by JungleTV or by staff
+         */
+        requestedBy: User;
+
+        /** Whether this queue entry may be skipped by unprivileged users or through community skipping. */
+        unskippable: boolean;
+
+        /**
+         * Remove this queue entry from the queue.
+         * Equivalent to calling {@link removeEntry} with the {@link id} of this entry.
+         * */
+        remove: () => QueueEntry;
+
+        /**
+         * Moves this queue entry to an adjacent position without costing the application JP.
+         * Equivalent to calling {@link moveEntry} with this entry's {@link id}.
+         * @param direction Whether to move the queue entry closer to the currently playing entry ("up") or further away ("down").
+         */
+        move: (direction: "up" | "down") => void;
+
+        /**
+         * Equivalent to {@link move}, but will deduct from the application JP balance and fail if the application does not have sufficient JP.
+         * Equivalent to calling {@link moveEntryWithCost} with this entry's {@link id}.
+         * @param direction Whether to move the queue entry closer to the currently playing entry ("up") or further away ("down").
+         */
+        moveWithCost: (direction: "up" | "down") => void;
+    }
+
+    // Information about the media associated with a queue entry.
+    export interface MediaInfo {
+        /** Length of the media in milliseconds - just the duration that is meant to play on the service. */
+        length: number;
+
+        /**
+         * Offset from the start of the media, in milliseconds, at which playback should start.
+         * For an underlying media with a total duration of 10 minutes and where the requester wishes to play from 5:00 to 7:00,
+         * {@link offset} will be 300000 and {@link length} will be 120000.
+         */
+        offset: number;
+
+        /** Title of the media. */
+        title: string;
+
+        /** Provider-specific unique identifier for the underlying media. */
+        id: string;
+
+        /** Type of the media. */
+        type: "yt_video" | "sc_track" | "document" | "app_page";
+    }
+
+    /** Represents the desired placement of a queue entry when it is being enqueued. */
+    export enum EnqueuePlacementEnum {
+        /** Used when the newly added queue entry is to be placed at the end of the queue, or wherever the insert cursor is placed. */
+        Later = "later",
+
+        /** Used when the newly added queue entry is to be placed after the currently playing entry. */
+        AfterCurrent = "aftercurrent",
+
+        /** Used when the newly added queue entry should replace any currently playing entry, skipping it. */
+        Now = "now",
+    }
+
+    /** Represents the desired placement of a queue entry when it is being enqueued. */
+    export type EnqueuePlacement = `${EnqueuePlacementEnum}`;
+
+    /** Represents the restriction in who is able to add entries to the queue. */
+    export enum EnqueuingPermissionEnum {
+        /** Everyone can add entries to the queue. */
+        Enabled = "enabled",
+
+        /** Only JungleTV staff, and users who staff have marked as VIP, can add entries to the queue. */
+        EnabledStaffOnly = "enabled_staff_only",
+
+        /** Only JungleTV staff, users who staff have marked as VIP, and users with knowledge of a password can add entries to the queue. */
+        EnabledPasswordRequired = "enabled_password_required",
+
+        /** Nobody can add entries to the queue. */
+        Disabled = "disabled",
+    }
+
+    /** Represents the restriction in who is able to add entries to the queue. */
+    export type EnqueuingPermission = `${EnqueuingPermissionEnum}`;
+
+    /** Represents a user or application within the JungleTV service */
+    // TODO merge with chat Author and RPC Sender objects
+    export interface User {
+        /** Reward address of the message author. */
+        address: string;
+
+        /** Application ID responsible for this user, may be empty if this user is not controlled by an application. */
+        applicationID: string;
+
+        /** Whether the {@link address} is from a currency system that is not the one native to JungleTV. */
+        isFromAlienChain: false;
+
+        /** Nickname of the message author, may be empty if the user does not have a nickname set. */
+        nickname: string;
+
+        /** Permission level of the user, may not be accurate in all contexts: may report a lower permission level than that which user can achieve in different contexts. */
+        permissionLevel: UserPermissionLevel;
+    }
 }
 
 /**

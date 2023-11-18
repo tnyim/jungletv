@@ -180,7 +180,11 @@ func (m *queueModule) setPropertyExports() {
 	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
 
 	m.exports.DefineAccessorProperty("playingSince", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-		return gojautil.SerializeTime(m.runtime, m.mediaQueue.PlayingSince())
+		playingSince := m.mediaQueue.PlayingSince()
+		if playingSince.IsZero() {
+			return goja.Undefined()
+		}
+		return gojautil.SerializeTime(m.runtime, playingSince)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
 }
 

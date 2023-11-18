@@ -19,11 +19,11 @@ func (m *queueModule) configureEvents() {
 			"placement": func(placement mediaqueue.EntryAddedPlacement) string {
 				switch placement {
 				case mediaqueue.EntryAddedPlacementEnqueue:
-					return "enqueue"
+					return "later"
 				case mediaqueue.EntryAddedPlacementPlayNext:
-					return "playnext"
+					return "aftercurrent"
 				case mediaqueue.EntryAddedPlacementPlayNow:
-					return "playnow"
+					return "now"
 				default:
 					return ""
 				}
