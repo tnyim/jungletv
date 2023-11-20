@@ -930,7 +930,7 @@ declare module "jungletv:queue" {
 
     /** A relation between event types and the arguments passed to the respective listeners */
     export interface QueueEventMap {
-        /** This event is fired when the queue or some of its associated settings are updated. */
+        /** This event is fired when the list of entries in the queue, or some of its associated settings, are updated. */
         "queueupdated": QueueUpdatedEventArgs;
 
         /** This event is fired when an entry is added to the queue. */
@@ -1009,10 +1009,12 @@ declare module "jungletv:queue" {
      * The title of the created queue entry will default to the one passed to {@link "jungletv:pages".publishFile}, unless overridden via the {@link options} object.
      * The thumbnail of the created queue entry will default to a generic one, unless overridden via the {@link options} object.
      *
-     * Once the created queue entry reaches the top of the queue and begins "playing", the specified application page will be displayed on JungleTV clients in the same place where a media player normally goes.
+     * Once the created queue entry reaches the top of the queue and begins "playing," the specified application page will be displayed on JungleTV clients in the same place where a media player normally goes.
      * The page will display alongside other homepage UI elements, including the sidebar (where an application page may also be displaying as a sidebar tab).
-     * The page may also be displayed in a very small size, namely, whenever the user browses to other pages of the JungleTV SPA, as the media player will collapse to the bottom right corner of the screen until closed by the user or until the user returns to the homepage.
+     * The page may also be displayed in a very small size, namely, whenever the user browses to other pages of the JungleTV SPA, as the media player will collapse to the bottom right corner of the screen until closed by the user, or until the user returns to the homepage.
      * Regardless of the size and placement of the application page, users will be able to interact with it, as they normally would if they had navigated to it.
+     *
+     * If the application page is unpublished or the application is terminated, the queue entry will be removed.
      *
      * Application page queue entries, if not set to unskippable (which can be achieved using the {@link options} object), may be skipped as any other queue entry would - assuming skipping is enabled at the time the corresponding queue entry is playing.
      * @param pageID The ID of the application page to enqueue.
@@ -1036,13 +1038,14 @@ declare module "jungletv:queue" {
     export let enqueuingPermission: EnqueuingPermission;
 
     /**
-     * This read-only property represents the entries currently in the media queue.
+     * This read-only property represents the entries currently in the media queue, sorted in their current order.
+     * The first entry is the currently playing entry.
      */
     export let entries: QueueEntry[];
 
     /**
      * This read-only property represents the currently playing queue entry.
-     * It is undefined when no queue entry is currently playing.
+     * It is `undefined` when no queue entry is currently playing.
      */
     export let playing: QueueEntry;
 
@@ -1058,7 +1061,8 @@ declare module "jungletv:queue" {
     export let lengthUpToCursor: number;
 
     /**
-     * This writable property controls whether those who added an entry to the queue may remove it.
+     * This writable property controls whether the user who added a given entry to the queue is allowed to remove it.
+     * Users are still subject to rate limits when removing their own entries, even when this setting is set to `true`.
      * Does not apply to staff or applications.
      */
     export let removalOfOwnEntriesAllowed: boolean;
@@ -1071,18 +1075,19 @@ declare module "jungletv:queue" {
 
     /**
      * This writable property controls whether unprivileged users can use any forms of media skipping.
-     * Does not apply to entry self-removal, which is controlled by {@link removalOfOwnEntriesAllowed}.
+     * Does not affect entry self-removal, which is controlled by {@link removalOfOwnEntriesAllowed}.
      */
     export let skippingAllowed: boolean;
 
     /**
-     * This writable property controls whether users are able to reorder queue entries in exchange for JP.
+     * This writable property controls whether users are able to reorder queue entries by spending JP.
      */
     export let reorderingAllowed: boolean;
 
     /**
      * This writable property allows for defining the queue insert cursor,
      * i.e. the position at which entries are inserted in the queue when adding entries with placement {@link EnqueuePlacementEnum.Later}.
+     * The property should be set to the ID of the media queue entry _below_ (i.e. at an higher index in `entries`) that where the cursor should appear.
      * Set to `null` or `undefined` to clear the cursor, causing new entries to be added to the end of the queue.
      */
     export let insertCursor: string;
@@ -1297,7 +1302,7 @@ declare module "jungletv:queue" {
 
         /**
          * Whether the resulting queue entry will hide its details before it begins playing.
-         * If set to true, the title, thumbnail and other information about the queue entry will not be revealed until it begins playing.
+         * If set to true, the title, thumbnail and other information about the queue entry will not be revealed to unprivileged users, until it begins playing.
          */
         concealed?: boolean;
     }
