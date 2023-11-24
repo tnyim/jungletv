@@ -12,6 +12,9 @@ import (
 )
 
 func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEntry) goja.Value {
+	if entry == nil || entry == media.QueueEntry(nil) {
+		return goja.Undefined()
+	}
 	result := vm.NewObject()
 
 	result.DefineAccessorProperty("concealed", vm.ToValue(func(call goja.FunctionCall) goja.Value {

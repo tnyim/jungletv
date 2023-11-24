@@ -85,7 +85,7 @@ func (m *queueModule) configureCrowdfundingEvents() {
 			"fromAddress": arg.FromAddress,
 			"amount":      payment.NewAmountFromDecimal(arg.Amount).SerializeForAPI(),
 			"receivedAt":  gojautil.SerializeTime(vm, arg.ReceivedAt),
-			"type": map[types.CrowdfundedTransactionType]string{
+			"txType": map[types.CrowdfundedTransactionType]string{
 				types.CrowdfundedTransactionTypeRain: "tip",
 				types.CrowdfundedTransactionTypeSkip: "skip",
 			}[arg.TransactionType],

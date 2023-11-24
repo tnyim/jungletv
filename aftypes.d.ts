@@ -168,7 +168,7 @@ declare module "jungletv:chat" {
      * When set to `null`, `undefined` or the empty string, the application will appear in chat using its ID.
      * The nickname is subject to similar restrictions as nicknames set by users.
      */
-    export let nickname: string;
+    export let nickname: string | null | undefined;
 
     /** Represents a message sent in the JungleTV chat. */
     export interface ChatMessage {
@@ -433,7 +433,7 @@ declare module "jungletv:rpc" {
      * This method does not wait for event delivery before returning.
      * Using this method alone, it is not possible to know which, if any, clients received the event.
      * @param user A string representing the reward address of the user to target.
-     * Pass the empty string, or null or undefined, to target exclusively unauthenticated users.
+     * Pass the empty string, or `null` or `undefined`, to target exclusively unauthenticated users.
      * @param eventName A case-sensitive string identifying the event type.
      * @param serverParams An indefinite number of additional parameters of arbitrary types, that will be serialized using JSON and transmitted to the clients.
      */
@@ -446,11 +446,11 @@ declare module "jungletv:rpc" {
      * @param pageID A case-sensitive string representing the ID of the page to target.
      * This must match the ID passed to {@link "jungletv:pages".publishFile}.
      * @param user A string representing the reward address of the user to target.
-     * Pass the empty string, or null or undefined, to target exclusively unauthenticated users.
+     * Pass the empty string, or `null` or `undefined`, to target exclusively unauthenticated users.
      * @param eventName A case-sensitive string identifying the event type.
      * @param serverParams An indefinite number of additional parameters of arbitrary types, that will be serialized using JSON and transmitted to the clients.
      */
-    export function emitToPageUser(pageID: string, user: string, eventName: string, ...serverParams: any[]): void;
+    export function emitToPageUser(pageID: string, user: string | null | undefined, eventName: string, ...serverParams: any[]): void;
 
     /** The permission levels a user can have */
     export enum PermissionLevelEnum {
@@ -917,8 +917,8 @@ declare module "jungletv:queue" {
         /** Guaranteed to be `mediachanged`. */
         type: "mediachanged";
 
-        /** The queue entry which just started playing. */
-        playingEntry: QueueEntry;
+        /** The queue entry which just started playing, or `undefined` if the queue became empty. */
+        playingEntry?: QueueEntry;
     }
 
     /** Arguments to the 'skippingallowedchanged' event */
@@ -1047,7 +1047,7 @@ declare module "jungletv:queue" {
      * This read-only property represents the currently playing queue entry.
      * It is `undefined` when no queue entry is currently playing.
      */
-    export let playing: QueueEntry;
+    export let playing: QueueEntry | undefined;
 
     /**
      * This read-only property represents the number of entries in the media queue.
@@ -1090,13 +1090,13 @@ declare module "jungletv:queue" {
      * The property should be set to the ID of the media queue entry _below_ (i.e. at an higher index in `entries`) that where the cursor should appear.
      * Set to `null` or `undefined` to clear the cursor, causing new entries to be added to the end of the queue.
      */
-    export let insertCursor: string;
+    export let insertCursor: string | null | undefined;
 
     /**
      * This read-only property indicates since when the media queue has been playing non-stop.
      * It is `undefined` when no queue entry is currently playing.
      */
-    export let playingSince: Date;
+    export let playingSince: Date | undefined;
 
     /** Object containing properties and methods related to queue entry pricing. */
     export let pricing: Pricing;
@@ -1108,7 +1108,7 @@ declare module "jungletv:queue" {
     /** Properties and methods related to queue entry pricing. */
     export interface Pricing {
         /**
-         * Compute the current pricing for a new queue entry, which would be requested to the user as a requirement for enqueuing at different placements.
+         * Compute the current pricing for a new queue entry, which would be requested to a user as a requirement for enqueuing at different placements.
          * @param length Length of the media section in milliseconds.
          * @param unskippable Whether the entry is to be unskippable.
          * @param concealed Whether media information should be concealed until the media starts playing.
@@ -1123,7 +1123,7 @@ declare module "jungletv:queue" {
 
         /**
          * Writable integer property representing the minimum prices multiplier,
-         * which sets a lower bound on the prices, in an attempt to ensure that all users get some reward
+         * which sets a lower bound on the cost of enqueuing, in an attempt to ensure that all users get some reward
          * regardless of the conditions at the time an entry plays.
          * Cannot be set lower than 20.
          */
@@ -1178,7 +1178,7 @@ declare module "jungletv:queue" {
         tipping: CrowdfundedTippingStatus;
     }
 
-    /** Status of the crowdfunded skipping feature */
+    /** Status of the crowdfunded skipping feature. */
     export interface CrowdfundedSkippingStatus {
         /** State of the crowdfunded skipping feature, indicating whether it is presently possible for the community to skip, or the reason why not. */
         status: CrowdfundedSkippingState;
@@ -1219,7 +1219,7 @@ declare module "jungletv:queue" {
         /** The crowdfunded skipping feature is disabled (e.g. via {@link Crowdfunding.skippingEnabled}). */
         ImpossibleDisabled = "impossible_disabled",
 
-        /** Crowdfunded sikping is impossible because we are at the beginning of the currently playing queue entry. */
+        /** Crowdfunded skipping is impossible because we are at the beginning of the currently playing queue entry. */
         ImpossibleStartOfMediaPeriod = "impossible_start_of_media_period",
     }
 
@@ -1252,6 +1252,9 @@ declare module "jungletv:queue" {
 
     /** Arguments to the 'statusupdated' crowdfunding event */
     export interface CrowdfundingStatusUpdatedEventArgs {
+        /** Guaranteed to be `statusupdated`. */
+        type: `statusupdated`;
+
         /** The current status of the crowdfunded skipping feature. */
         skipping: CrowdfundedSkippingStatus;
 
@@ -1261,18 +1264,27 @@ declare module "jungletv:queue" {
 
     /** Arguments to the 'skipthresholdreductionmilestonereached' crowdfunding event */
     export interface CrowdfundingSkipThresholdReductionMilestoneReachedEventArgs {
+        /** Guaranteed to be `skipthresholdreductionmilestonereached`. */
+        type: `skipthresholdreductionmilestonereached`;
+
         /** Fraction of the original skip threshold that has been reached in this milestone. */
         ratioOfOriginal: number;
     }
 
     /** Arguments to the 'skipped' crowdfunding event */
     export interface CrowdfundingSkippedEventArgs {
+        /** Guaranteed to be `skipped`. */
+        type: `skipped`;
+
         /** Amount, in raw Banano units, that the community paid to skip the playing entry. */
         balance: string;
     }
 
     /** Arguments to the 'transactionreceived' crowdfunding event */
     export interface CrowdfundingTransactionReceivedEventArgs {
+        /** Guaranteed to be `transactionreceived`. */
+        type: `transactionreceived`;
+
         /** Block hash of the received transaction. */
         txHash: string;
 
@@ -1286,9 +1298,9 @@ declare module "jungletv:queue" {
         receivedAt: Date;
 
         /** Whether this was a crowdfunded skipping or a crowdfunded tipping transaction. */
-        type: "skip" | "tip";
+        txType: "skip" | "tip";
 
-        /** Unique {@link QueueEntry.id} of the media that was playing at the time of the transaction. */
+        /** Unique {@link QueueEntry.id} of the queue entry that was playing at the time of the transaction. */
         forMedia?: string;
     }
 
@@ -1325,7 +1337,7 @@ declare module "jungletv:queue" {
         thumbnail?: string;
     }
 
-    /** Represents an entry in the media queue. */
+    /** Represents an entry that is, will be or has been in the media queue. */
     export interface QueueEntry {
         /** Whether the media information will only be visible to unprivileged users once this entry begins playing. */
         concealed: boolean;
@@ -1336,7 +1348,7 @@ declare module "jungletv:queue" {
         /** List of the addresses of the users who moved this queue entry. */
         movedBy: string[];
 
-        /** Whether this queue entry has finished playing. */
+        /** Whether this queue entry has finished playing, in which case {@link playedFor} will not increase further. */
         played: boolean;
 
         /** Duration in milliseconds corresponding to how long this queue entry has played. */
@@ -1360,9 +1372,9 @@ declare module "jungletv:queue" {
 
         /**
          * The user who added this entry to the queue.
-         * May be `undefined` in the case of entries automatically enqueued by JungleTV or by staff
+         * May be `undefined` in the case of entries automatically enqueued by JungleTV or by staff.
          */
-        requestedBy: User;
+        requestedBy: User | undefined;
 
         /** Whether this queue entry may be skipped by unprivileged users or through community skipping. */
         unskippable: boolean;
@@ -1388,7 +1400,7 @@ declare module "jungletv:queue" {
         moveWithCost: (direction: "up" | "down") => void;
     }
 
-    // Information about the media associated with a queue entry.
+    /** Information about the media associated with a queue entry. */
     export interface MediaInfo {
         /** Length of the media in milliseconds - just the duration that is meant to play on the service. */
         length: number;
@@ -1403,10 +1415,10 @@ declare module "jungletv:queue" {
         /** Title of the media. */
         title: string;
 
-        /** Provider-specific unique identifier for the underlying media. */
+        /** Media provider-specific unique identifier for the underlying media. */
         id: string;
 
-        /** Type of the media. */
+        /** Type (media provider) of the media. */
         type: "yt_video" | "sc_track" | "document" | "app_page";
     }
 
@@ -1552,7 +1564,7 @@ interface AppBridge {
      * @param fileName The name of the file to resolve.
      * @returns The resolved URL, or undefined if the connection between the page and the host JungleTV page has not been established yet.
      */
-    resolveApplicationFileURL: (fileName: string) => Promise<string>;
+    resolveApplicationFileURL: (fileName: string) => Promise<string | undefined>;
 
     /**
      * Resolves the ID of the application to which the page being executed belongs.
