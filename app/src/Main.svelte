@@ -128,7 +128,7 @@
 			});
 		}, 1000);
 
-		if (globalThis.PRODUCTION_BUILD) {
+		if (globalThis.PRODUCTION_BUILD && !globalThis.LAB_BUILD) {
 			selfXSSWarning();
 			setInterval(selfXSSWarning, 20000);
 		}
