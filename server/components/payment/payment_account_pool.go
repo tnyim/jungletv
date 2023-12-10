@@ -27,7 +27,7 @@ type PaymentAccountPool struct {
 	repAddress                              string
 	modLogWebhook                           api.WebhookClient
 	dustThreshold                           Amount
-	collectorAccountAddress                 string
+	defaultCollectorAccountAddress          string
 	nanswapClient                           *nanswapclient.Client
 	enableMulticurrencyPayments             bool
 
@@ -36,7 +36,7 @@ type PaymentAccountPool struct {
 }
 
 func New(log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet, repAddress string, modLogWebhook api.WebhookClient,
-	dustThreshold Amount, collectorAccountAddress string, nanswapClient *nanswapclient.Client) *PaymentAccountPool {
+	dustThreshold Amount, defaultCollectorAccountAddress string, nanswapClient *nanswapclient.Client) *PaymentAccountPool {
 	return &PaymentAccountPool{
 		log:                                     log,
 		statsClient:                             statsClient,
@@ -45,12 +45,16 @@ func New(log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet, repAddre
 		repAddress:                              repAddress,
 		modLogWebhook:                           modLogWebhook,
 		dustThreshold:                           dustThreshold,
-		collectorAccountAddress:                 collectorAccountAddress,
+		defaultCollectorAccountAddress:          defaultCollectorAccountAddress,
 		collectorAccountPendingBalanceWaitGroup: new(sync.WaitGroup),
 		monitoredAccounts:                       make(map[string]*monitoredAccount),
 		nanswapClient:                           nanswapClient,
 		enableMulticurrencyPayments:             true,
 	}
+}
+
+func (p *PaymentAccountPool) DefaultCollectorAccountAddress() string {
+	return p.defaultCollectorAccountAddress
 }
 
 func (p *PaymentAccountPool) SetMulticurrencyPaymentsEnabled(enabled bool) {
@@ -146,10 +150,14 @@ type PaymentReceivedEventArgs struct {
 }
 
 func (p *PaymentAccountPool) ReceivePayment() (PaymentReceiver, error) {
-	return p.receivePaymentImpl()
+	return p.receivePaymentImpl(p.defaultCollectorAccountAddress)
 }
 
-func (p *PaymentAccountPool) receivePaymentImpl() (*monitoredAccount, error) {
+func (p *PaymentAccountPool) ReceivePaymentIntoCollectorAccount(collectorAccountAddress string) (PaymentReceiver, error) {
+	return p.receivePaymentImpl(collectorAccountAddress)
+}
+
+func (p *PaymentAccountPool) receivePaymentImpl(collectorAccountAddress string) (*monitoredAccount, error) {
 	account, err := p.RequestAccount()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -162,6 +170,7 @@ func (p *PaymentAccountPool) receivePaymentImpl() (*monitoredAccount, error) {
 		onMulticurrencyPaymentDataAvailable: event.New[[]MulticurrencyPaymentData](),
 		receivableBalance:                   NewAmount(),
 		seenPendings:                        make(map[string]struct{}),
+		collectorAccountAddress:             collectorAccountAddress,
 	}
 
 	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(subscriberCount int) {
@@ -243,7 +252,7 @@ func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount)
 			continue
 		}
 		if m.receivableBalance.Cmp(big.NewInt(0)) > 0 {
-			_, err = m.account.Send(p.collectorAccountAddress, m.receivableBalance.Int)
+			_, err = m.account.Send(m.collectorAccountAddress, m.receivableBalance.Int)
 			if err != nil {
 				p.log.Printf("failed to send balance in account %v to the collector account: %v", m.account.Address(), err)
 				time.Sleep(5 * time.Second)

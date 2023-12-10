@@ -151,6 +151,25 @@ func (r *AppRunner) SetModuleDependencies(d modules.Dependencies) {
 	r.moduleDependencies.ChatManager.SetAttachmentLoaderForType("apppage", r.pageAttachmentLoader)
 }
 
+func (r *AppRunner) BuildApplicationWallet(ctxCtx context.Context, applicationID string) (*wallet.Wallet, error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	defer ctx.Commit() // read-only tx
+
+	earliestVersion, err := types.GetEarliestVersionOfApplication(ctx, applicationID)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	w, err := r.walletBuilder.BuildApplicationWallet(applicationID, earliestVersion)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return w, nil
+}
+
 // RunningApplicationsUpdated is the event that is fired when the list of running applications changes
 func (r *AppRunner) RunningApplicationsUpdated() event.Event[[]RunningApplication] {
 	return r.onRunningApplicationsUpdated
@@ -234,12 +253,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		return stacktrace.NewError("an instance of this application already exists")
 	}
 
-	earliestVersion, err := types.GetEarliestVersionOfApplication(ctx, application.ID)
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
-
-	wallet, err := r.walletBuilder.BuildApplicationWallet(application.ID, earliestVersion)
+	wallet, err := r.BuildApplicationWallet(ctx, application.ID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

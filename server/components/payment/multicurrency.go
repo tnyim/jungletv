@@ -20,7 +20,7 @@ type MulticurrencyPaymentData struct {
 var homeCurrency = nanswapclient.TickerBanano
 
 func (p *PaymentAccountPool) ReceiveMulticurrencyPayment(ctx context.Context, expectedAmounts []Amount, extraCurrencies []nanswapclient.Ticker, swapTimeout time.Duration) (PaymentReceiver, error) {
-	receiver, err := p.receivePaymentImpl()
+	receiver, err := p.receivePaymentImpl(p.defaultCollectorAccountAddress)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

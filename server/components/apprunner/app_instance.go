@@ -24,7 +24,7 @@ import (
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/eventloop"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/hectorchu/gonano/wallet"
+	gonano_wallet "github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
@@ -37,6 +37,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/process"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/queue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/wallet"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
@@ -55,7 +56,7 @@ type appInstance struct {
 	applicationID      string
 	applicationVersion types.ApplicationVersion
 	applicationUser    auth.User
-	applicationWallet  *wallet.Wallet
+	applicationWallet  *gonano_wallet.Wallet
 	mu                 sync.RWMutex
 	running            bool
 	startedOnce        bool
@@ -108,7 +109,7 @@ var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application
 // ErrApplicationInstanceNotRunning is returned when the specified application is not running
 var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
 
-func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *wallet.Wallet, d modules.Dependencies) (*appInstance, error) {
+func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *gonano_wallet.Wallet, d modules.Dependencies) (*appInstance, error) {
 	instance := &appInstance{
 		applicationID:                   applicationID,
 		applicationVersion:              applicationVersion,
@@ -134,10 +135,12 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(process.New(instance))
 	instance.modules.RegisterNativeModule(points.New(instance, d.PointsManager))
 	instance.modules.RegisterNativeModule(db.New(instance))
+	walletModule := wallet.New(instance, applicationWallet, d.PaymentAccountPool, d.DefaultAccountRepresentative)
+	instance.modules.RegisterNativeModule(walletModule)
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
 	instance.modules.RegisterNativeModule(chat.New(instance, d.ChatManager, instance.pagesModule))
-	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule))
+	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule))
 	instance.rpcModule = rpc.New()
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))

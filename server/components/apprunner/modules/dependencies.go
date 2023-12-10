@@ -8,6 +8,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
@@ -15,13 +16,15 @@ import (
 
 // Dependencies is a "everything and the kitchen sink" struct used for injection of singleton dependencies in modules
 type Dependencies struct {
-	ModLogWebhook          api.WebhookClient
-	ChatManager            *chatmanager.Manager
-	PointsManager          *pointsmanager.Manager
-	MediaQueue             *mediaqueue.MediaQueue
-	Pricer                 *pricer.Pricer
-	SkipManager            *skipmanager.Manager
-	OtherMediaQueueMethods OtherMediaQueueMethods
+	ModLogWebhook                api.WebhookClient
+	ChatManager                  *chatmanager.Manager
+	PointsManager                *pointsmanager.Manager
+	MediaQueue                   *mediaqueue.MediaQueue
+	Pricer                       *pricer.Pricer
+	SkipManager                  *skipmanager.Manager
+	OtherMediaQueueMethods       OtherMediaQueueMethods
+	PaymentAccountPool           *payment.PaymentAccountPool
+	DefaultAccountRepresentative string
 }
 
 type OtherMediaQueueMethods interface {

@@ -13,6 +13,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/wallet"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
@@ -27,6 +28,7 @@ type queueModule struct {
 	exports                  *goja.Object
 	appContext               modules.ApplicationContext
 	pagesModule              pages.PagesModule
+	paymentsModule           wallet.WalletModule
 	mediaQueue               *mediaqueue.MediaQueue
 	pricer                   *pricer.Pricer
 	skipManager              *skipmanager.Manager
@@ -39,14 +41,15 @@ type queueModule struct {
 }
 
 // New returns a new queue module
-func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule) modules.NativeModule {
+func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule) modules.NativeModule {
 	return &queueModule{
-		appContext:  appContext,
-		pagesModule: pagesModule,
-		mediaQueue:  mediaQueue,
-		pricer:      pricer,
-		skipManager: skipManager,
-		queueMisc:   queueMisc,
+		appContext:     appContext,
+		pagesModule:    pagesModule,
+		paymentsModule: paymentsModule,
+		mediaQueue:     mediaQueue,
+		pricer:         pricer,
+		skipManager:    skipManager,
+		queueMisc:      queueMisc,
 	}
 }
 

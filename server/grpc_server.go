@@ -369,7 +369,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		privilegedLabUserSecretKey: options.PrivilegedLabUserSecretKey,
 	}
 	s.thirdPartyAuthorizer = auth.NewThirdPartyAuthorizer(s.jwtManager)
-	s.appEditor = appeditor.New(s.log, s.appRunner)
 	s.userSerializer = s.serializeUserForAPI
 
 	s.snowflakeNode, err = snowflake.NewNode(1)
@@ -456,6 +455,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
 		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address(), nanswapClient)
 
+	s.appEditor = appeditor.New(s.log, s.appRunner, s.paymentAccountPool)
+
 	s.pointsManager = pointsmanager.New(ctx, s.log, s.snowflakeNode, s.paymentAccountPool)
 
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
@@ -500,13 +501,15 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.raffleSecretKey = sk.ToECDSA()
 
 	s.appRunner.SetModuleDependencies(modules.Dependencies{
-		ModLogWebhook:          s.modLogWebhook,
-		ChatManager:            s.chat,
-		PointsManager:          s.pointsManager,
-		MediaQueue:             s.mediaQueue,
-		Pricer:                 s.pricer,
-		SkipManager:            s.skipManager,
-		OtherMediaQueueMethods: &appRuntimeMiscMethods{s: s},
+		ModLogWebhook:                s.modLogWebhook,
+		ChatManager:                  s.chat,
+		PointsManager:                s.pointsManager,
+		MediaQueue:                   s.mediaQueue,
+		Pricer:                       s.pricer,
+		SkipManager:                  s.skipManager,
+		OtherMediaQueueMethods:       &appRuntimeMiscMethods{s: s},
+		PaymentAccountPool:           s.paymentAccountPool,
+		DefaultAccountRepresentative: options.RepresentativeAddress,
 	})
 
 	return s, nil

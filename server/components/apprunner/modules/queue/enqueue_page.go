@@ -102,7 +102,10 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 			m.validateThumbnailFileName(actx, thumbnailFileName)
 		}
 
-		// TODO validate that the application has enough funds to cover the requestCost, and move the requestCost to the main collector address
+		err := m.paymentsModule.DebitFromApplicationWallet(requestCost)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
 
 		entry := applicationpage.NewApplicationPageQueueEntry(applicationID, applicationVersion, pageID, title, thumbnailFileName, length, m.appContext.ApplicationUser(), requestCost, unskippable, concealed)
 

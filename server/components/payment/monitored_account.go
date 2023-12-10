@@ -25,6 +25,7 @@ type monitoredAccount struct {
 	receivableBalance                   Amount // this is the balance excluding dust. it is updated as we detect new receivables
 	incrementedWaitingGroup             bool
 	multicurrencyPaymentData            []MulticurrencyPaymentData
+	collectorAccountAddress             string
 }
 
 func (m *monitoredAccount) Address() string {

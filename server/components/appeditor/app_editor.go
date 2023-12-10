@@ -11,20 +11,24 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/wallet"
+	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 type AppEditor struct {
-	log    *log.Logger
-	runner *apprunner.AppRunner
+	log                *log.Logger
+	runner             *apprunner.AppRunner
+	paymentAccountPool *payment.PaymentAccountPool
 }
 
 // New returns a new initialized AppEditor
-func New(log *log.Logger, appRunner *apprunner.AppRunner) *AppEditor {
+func New(log *log.Logger, appRunner *apprunner.AppRunner, paymentAccountPool *payment.PaymentAccountPool) *AppEditor {
 	return &AppEditor{
-		log:    log,
-		runner: appRunner,
+		log:                log,
+		runner:             appRunner,
+		paymentAccountPool: paymentAccountPool,
 	}
 }
 
@@ -359,6 +363,16 @@ func (e *AppEditor) DeleteApplication(ctxCtx context.Context, applicationID stri
 	application, ok := applications[applicationID]
 	if !ok {
 		return stacktrace.NewError("application not found")
+	}
+
+	appWallet, err := e.runner.BuildApplicationWallet(ctx, application.ID)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = wallet.EmptyApplicationWallet(appWallet, e.paymentAccountPool)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to empty application wallet")
 	}
 
 	err = application.Delete(ctx) // this takes care of deleting all application files too
