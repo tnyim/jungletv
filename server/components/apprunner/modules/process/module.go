@@ -37,22 +37,22 @@ func (m *processModule) ModuleLoader() require.ModuleLoader {
 
 		m.exports.DefineAccessorProperty("title", m.runtime.ToValue(func() string {
 			return m.appContext.ApplicationID()
-		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("platform", m.runtime.ToValue(func() string {
 			return "jungletv"
-		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("version", m.runtime.ToValue(func() string {
 			return fmt.Sprint(m.appContext.RuntimeVersion())
-		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("versions", m.runtime.ToValue(func() map[string]string {
 			return map[string]string{
 				"jungletv":    fmt.Sprint(m.appContext.RuntimeVersion()),
 				"application": fmt.Sprint(time.Time(m.appContext.ApplicationVersion()).UnixMilli()),
 			}
-		}), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.Set("abort", m.abort)
 		m.exports.Set("exit", m.exit)

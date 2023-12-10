@@ -61,7 +61,7 @@ func (m *walletModule) ModuleLoader() require.ModuleLoader {
 
 		exports.DefineAccessorProperty("applicationAddress", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.applicationAccount.Address())
-		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 	}
 }
 func (m *walletModule) ModuleName() string {

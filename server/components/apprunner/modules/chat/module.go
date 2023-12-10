@@ -65,16 +65,16 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 
 		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appContext.ApplicationUser()))
-		}), m.runtime.ToValue(m.setApplicationNickname), goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), m.runtime.ToValue(m.setApplicationNickname), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("enabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			enabled, _ := m.chatManager.Enabled()
 			return m.runtime.ToValue(enabled)
-		}), m.runtime.ToValue(m.setEnabled), goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), m.runtime.ToValue(m.setEnabled), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("slowMode", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.chatManager.SlowModeEnabled())
-		}), m.runtime.ToValue(m.setSlowModeEnabled), goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), m.runtime.ToValue(m.setSlowModeEnabled), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		gojautil.AdaptNoArgEvent(m.eventAdapter, m.chatManager.OnChatEnabled(), "chatenabled", nil)
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) map[string]interface{} {

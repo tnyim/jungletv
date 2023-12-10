@@ -25,7 +25,7 @@ func (m *queueModule) setPropertyExports() {
 			return m.runtime.ToValue("disabled")
 		}
 		panic(m.runtime.NewGoError(stacktrace.NewError("unknown enqueuing permission type %v", permission)))
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("entries", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		entries := m.mediaQueue.Entries()
@@ -34,7 +34,7 @@ func (m *queueModule) setPropertyExports() {
 			result[i] = m.serializeQueueEntry(m.runtime, entries[i])
 		}
 		return m.runtime.ToValue(result)
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("playing", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		entry, playing := m.mediaQueue.CurrentlyPlaying()
@@ -42,15 +42,15 @@ func (m *queueModule) setPropertyExports() {
 			return goja.Undefined()
 		}
 		return m.serializeQueueEntry(m.runtime, entry)
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("length", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.mediaQueue.Length())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("lengthUpToCursor", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.mediaQueue.LengthUpToCursor())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("removalOfOwnEntriesAllowed", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.mediaQueue.RemovalOfOwnEntriesAllowed())
@@ -73,7 +73,7 @@ func (m *queueModule) setPropertyExports() {
 		}
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s removal of own queue entries", action))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("newQueueEntriesAllUnskippable", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.queueMisc.NewQueueEntriesAllUnskippable())
@@ -96,7 +96,7 @@ func (m *queueModule) setPropertyExports() {
 		}
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s forced unskippability of new queue entries", action))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("skippingAllowed", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.mediaQueue.SkippingEnabled())
@@ -119,7 +119,7 @@ func (m *queueModule) setPropertyExports() {
 		}
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s skipping in general", action))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("reorderingAllowed", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(m.mediaQueue.EntryReorderingAllowed())
@@ -142,7 +142,7 @@ func (m *queueModule) setPropertyExports() {
 		}
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s reordering of queue entries", action))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("insertCursor", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		insertCursor, hasCursor := m.mediaQueue.InsertCursor()
@@ -177,7 +177,7 @@ func (m *queueModule) setPropertyExports() {
 
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("set queue insert cursor to %s", entryID))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	m.exports.DefineAccessorProperty("playingSince", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		playingSince := m.mediaQueue.PlayingSince()
@@ -185,7 +185,7 @@ func (m *queueModule) setPropertyExports() {
 			return goja.Undefined()
 		}
 		return gojautil.SerializeTime(m.runtime, playingSince)
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 }
 
 func (m *queueModule) setPricingPropertyExports(pricing *goja.Object) {
@@ -212,7 +212,7 @@ func (m *queueModule) setPricingPropertyExports(pricing *goja.Object) {
 
 			m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf(modLogFormat, multiplier))
 			return goja.Undefined()
-		}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+		}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 	}
 
 	setPricingProperty("finalMultiplier",
@@ -256,15 +256,15 @@ func (m *queueModule) setCrowdfundingPropertyExports(pricing *goja.Object) {
 		}
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("%s crowdfunded skipping", action))
 		return goja.Undefined()
-	}), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	pricing.DefineAccessorProperty("skipping", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		status := m.skipManager.SkipAccountStatus()
 		return m.serializeSkipAccount(m.runtime, status)
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	pricing.DefineAccessorProperty("tipping", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 		status := m.skipManager.RainAccountStatus()
 		return m.serializeRainAccount(m.runtime, status)
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_FALSE)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 }

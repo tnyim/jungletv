@@ -41,7 +41,7 @@ func (m *keyValueModule) ModuleLoader() require.ModuleLoader {
 		exports.Set("setItem", m.setItem)
 		exports.Set("removeItem", m.removeItem)
 		exports.Set("clear", m.clear)
-		exports.DefineAccessorProperty("length", m.runtime.ToValue(m.length), nil, goja.FLAG_FALSE, goja.FLAG_FALSE)
+		exports.DefineAccessorProperty("length", m.runtime.ToValue(m.length), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 	}
 }
 func (m *keyValueModule) ModuleName() string {
