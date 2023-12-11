@@ -15,7 +15,6 @@ type EventAdapter struct {
 	schedule    ScheduleFunction
 	this        struct{}
 	running     bool
-	unsubCh     chan bool
 	mu          sync.RWMutex
 	knownEvents map[string]*knownEvent
 }
@@ -26,14 +25,21 @@ func NewEventAdapter(runtime *goja.Runtime, schedule ScheduleFunction) *EventAda
 		runtime:     runtime,
 		schedule:    schedule,
 		this:        struct{}{},
-		unsubCh:     make(chan bool, 1),
 		knownEvents: make(map[string]*knownEvent),
 	}
 }
 
 type knownEvent struct {
+	// subscribeFn is built by AdaptEvent/AdaptNoArgEvent.
+	// it will be called when the first listener is added to the event, and unsubFn will be set to the function it'll return.
+	// subscribeFn will also be called when resuming execution with a different context, for events that already had listeners attached
 	subscribeFn func() func()
-	listeners   []eventListener
+	// in addition to being called when the last listener is removed from the event by RemoveEventListener,
+	// unsubFn will also be called when pausing execution, i.e. terminating an execution context
+	unsubFn func()
+
+	// listeners are added/removed from the goja runtime, in AddEventListener/RemoveEventListener
+	listeners []eventListener
 }
 
 type eventListener struct {
@@ -60,6 +66,9 @@ func (a *EventAdapter) AddEventListener(call goja.FunctionCall) goja.Value {
 	defer a.mu.Unlock()
 
 	if e, ok := a.knownEvents[event]; ok {
+		if len(e.listeners) == 0 {
+			e.unsubFn = e.subscribeFn()
+		}
 		e.listeners = append(e.listeners, eventListener{
 			value:    listenerValue,
 			callable: callback,
@@ -88,6 +97,9 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 		for i, listener := range e.listeners {
 			if listener.value.SameAs(listenerValue) {
 				e.listeners = slices.Delete(e.listeners, i, i+1)
+				if len(e.listeners) == 0 {
+					e.unsubFn()
+				}
 				break
 			}
 		}
@@ -102,40 +114,39 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 func (a *EventAdapter) StartOrResume() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+
 	if a.running {
 		return
 	}
 	a.running = true
-	go func() {
-		for {
-			breakLoop := false
-			func() {
-				a.mu.Lock()
-				events := maps.Values(a.knownEvents)
-				a.mu.Unlock()
-				for _, e := range events {
-					defer e.subscribeFn()()
-				}
 
-				breakLoop = <-a.unsubCh
-			}()
-
-			if breakLoop {
-				a.mu.Lock()
-				defer a.mu.Unlock()
-				a.running = false
-				return
-			}
+	events := maps.Values(a.knownEvents)
+	for _, e := range events {
+		// resume adapters for events that have listeners attached
+		if len(e.listeners) > 0 {
+			e.unsubFn = e.subscribeFn()
 		}
-	}()
+	}
 }
 
 // Pause should be called when the execution context terminates
 // Pause may be safely called multiple times in a row
 func (a *EventAdapter) Pause() {
-	select {
-	case a.unsubCh <- true:
-	default:
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if !a.running {
+		return
+	}
+	a.running = false
+
+	events := maps.Values(a.knownEvents)
+	for _, e := range events {
+		// if a knownEvent has listeners, it's guaranteed that its subscribeFn has been called and
+		// that its unsubFn has been set to the return value of the subscribeFn
+		if len(e.listeners) > 0 {
+			e.unsubFn()
+		}
 	}
 }
 
@@ -151,13 +162,9 @@ func AdaptEvent[T any](a *EventAdapter, ev event.Event[T], eventType string, tra
 	a.knownEvents[eventType] = &knownEvent{
 		subscribeFn: func() func() { return eventSubscribeFunction(a, ev, eventType, transformArgFn) },
 	}
-	select {
-	case a.unsubCh <- false:
-	default:
-	}
 }
 
-// AdaptEvent sets an EventAdapter to adapt an event.NoArgEvent, exposing an event of type `eventType` to the scripting runtime
+// AdaptNoArgEvent sets an EventAdapter to adapt an event.NoArgEvent, exposing an event of type `eventType` to the scripting runtime
 func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) map[string]interface{}) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -168,10 +175,6 @@ func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, tra
 
 	a.knownEvents[eventType] = &knownEvent{
 		subscribeFn: func() func() { return noArgEventSubscribeFunction(a, ev, eventType, transformArgFn) },
-	}
-	select {
-	case a.unsubCh <- false:
-	default:
 	}
 }
 

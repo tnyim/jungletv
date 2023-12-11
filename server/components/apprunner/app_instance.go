@@ -638,19 +638,24 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 		return *new(T), 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
-	resultChan := make(chan T, 1)
-	errChan := make(chan error, 1)
+	type result[T any] struct {
+		value         T
+		err           error
+		executionTime time.Duration
+	}
+	resultChan := make(chan result[T], 1)
 	panicChan := make(chan panicResult, 1)
-	var executionTime time.Duration
 	couldHavePaused := &atomic.Int32{}
 	couldHavePaused.Store(1)
 	a.runOnLoopWithInterruption(ctx, func(vm *goja.Runtime) {
 		couldHavePaused.Store(0)
 		start := time.Now()
-		result, err := cb(vm)
-		executionTime = time.Since(start)
-		resultChan <- result
-		errChan <- err
+		value, err := cb(vm)
+		resultChan <- result[T]{
+			value:         value,
+			err:           err,
+			executionTime: time.Since(start),
+		}
 	}, func(p panicResult) {
 		panicChan <- p
 	})
@@ -661,15 +666,14 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 	for {
 		select {
 		case result := <-resultChan:
-			err := <-errChan
-			return result, executionTime, stacktrace.Propagate(err, "")
+			return result.value, result.executionTime, stacktrace.Propagate(result.err, "")
 		case reason := <-panicChan:
 			var z T
-			return z, executionTime, stacktrace.NewError(reason.String())
+			return z, 0, stacktrace.NewError(reason.String())
 		case <-onPaused:
 			if couldHavePaused.Load() == 1 {
 				// application paused before our loop function could run / before our expression returned
-				return *new(T), executionTime, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+				return *new(T), 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 			}
 			// otherwise: application paused but we are still going to get a result
 			// (even if it's an error due to the interrupt still being set)
