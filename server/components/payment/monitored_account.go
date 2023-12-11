@@ -87,6 +87,7 @@ func (m *monitoredAccount) abort() {
 	if m, ok := m.p.monitoredAccounts[m.Address()]; ok {
 		delete(m.p.monitoredAccounts, m.Address())
 		m.onPaymentReceived.Close()
+		m.onMulticurrencyPaymentDataAvailable.Close()
 		m.onUnsubscribedUnsubFn()
 		go m.p.freePreviouslyMonitoredAccount(m)
 	}

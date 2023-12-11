@@ -485,15 +485,17 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 		select {
 		case <-expirationTimer.C:
 			t.statusChanged.Notify(false)
-		case data := <-onMulticurrencyPaymentDataAvailable:
-			t.statusChanged.Notify(false)
-			for _, cData := range data {
-				e.log.Printf("Ticket %s (p.a. %s) has Nanswap order ID %s for currency %s with payment address %s",
-					t.ID(),
-					t.PaymentAddress(),
-					cData.OrderID,
-					cData.Currency,
-					cData.PaymentAddress)
+		case data, ok := <-onMulticurrencyPaymentDataAvailable:
+			if ok {
+				t.statusChanged.Notify(false)
+				for _, cData := range data {
+					e.log.Printf("Ticket %s (p.a. %s) has Nanswap order ID %s for currency %s with payment address %s",
+						t.ID(),
+						t.PaymentAddress(),
+						cData.OrderID,
+						cData.Currency,
+						cData.PaymentAddress)
+				}
 			}
 		case <-actualExpirationTimer.C:
 			return
@@ -503,7 +505,10 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 			}
 		case <-ctx.Done():
 			return
-		case paymentArgs := <-onPaymentReceived:
+		case paymentArgs, ok := <-onPaymentReceived:
+			if !ok {
+				return
+			}
 			if (t.requestedBy == nil || t.requestedBy.IsUnknown()) && !t.forceAnonymous {
 				t.requestedBy = auth.NewAddressOnlyUser(paymentArgs.From)
 			}

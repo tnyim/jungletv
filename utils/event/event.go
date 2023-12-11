@@ -102,15 +102,24 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 		panic("invalid buffer strategy")
 	}
 
-	var unsubscribed bool
 	if !e.closed && e.pendingNotifications != nil {
 		for _, pending := range e.pendingNotifications {
 			e.notifyNowWithinMutex(pending)
 		}
 		e.pendingNotifications = nil
 	}
-	return retChan, func() {
-		e.unsubscribe(subID, bufferStrategy, &unsubscribed)
+
+	return retChan, buildUnsubscribeOnceClosure(subID, bufferStrategy, e.unsubscribe, cancelCtx)
+}
+
+func buildUnsubscribeOnceClosure(
+	subID int,
+	bufferStrategy BufferStrategy,
+	unsubscribe func(subID int, bufferStrategy BufferStrategy, unsubscribed *bool),
+	cancelCtx context.CancelFunc) func() {
+	unsubscribed := false
+	return func() {
+		unsubscribe(subID, bufferStrategy, &unsubscribed)
 		cancelCtx()
 	}
 }
@@ -148,13 +157,19 @@ func (e *event[T]) unsubscribe(subID int, bufferStrategy BufferStrategy, unsubsc
 		fallthrough
 	case BufferFirst:
 		sub := e.bufferFirstOrNoneSubs.Delete(subID)
-		close(sub)
+		if !e.closed {
+			close(sub)
+		}
 	case BufferLatest:
 		sub := e.bufferLatestSubs.Delete(subID)
-		close(sub)
+		if !e.closed {
+			close(sub)
+		}
 	case BufferAll:
 		subChan := e.bufferAllSubs.Delete(subID)
-		close(subChan.In) // this is important, to destroy the internal goroutine of the UnboundedChan
+		if !e.closed {
+			close(subChan.In) // this is important, to destroy the internal goroutine of the UnboundedChan
+		}
 	default:
 		panic("invalid buffer strategy")
 	}
@@ -172,33 +187,37 @@ func (e *event[T]) len() int {
 // deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
 // (subject to the chosen BufferStrategy on the subscription side)
 func (e *event[T]) Notify(param T, deferNotification bool) {
-	e.mu.RLock()
+	shouldReturn := func() bool {
+		e.mu.RLock()
+		defer e.mu.RUnlock()
 
-	if e.closed {
-		e.mu.RUnlock()
-		return
-	}
-
-	if deferNotification && e.len() == 0 {
-		e.mu.RUnlock()
-
-		e.mu.Lock()
-		defer e.mu.Unlock()
-		// must do checks again since conditions may have changed while we reacquired the lock
 		if e.closed {
-			return
+			return true
 		}
-		if e.len() > 0 {
-			// we have a subscriber now, notify as normal and quit
+
+		if !(deferNotification && e.len() == 0) {
 			e.notifyNowWithinMutex(param)
-			return
+			return true
 		}
-		e.pendingNotifications = append(e.pendingNotifications, param)
+		return false
+	}()
+
+	if shouldReturn {
 		return
 	}
 
-	e.notifyNowWithinMutex(param)
-	e.mu.RUnlock()
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	// must do checks again since conditions may have changed while we reacquired the lock
+	if e.closed {
+		return
+	}
+	if e.len() > 0 {
+		// we have a subscriber now, notify as normal and quit
+		e.notifyNowWithinMutex(param)
+		return
+	}
+	e.pendingNotifications = append(e.pendingNotifications, param)
 }
 
 func (e *event[T]) notifyNowWithinMutex(param T) {
@@ -235,22 +254,24 @@ func (e *event[T]) Close() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	if !e.closed {
-		e.closed = true
-		for _, entry := range e.bufferFirstOrNoneSubs.UnsafeBackingArray {
-			if entry.NextDeleteIdx == -2 {
-				close(entry.Content)
-			}
+	if e.closed {
+		return
+	}
+	e.closed = true
+
+	for _, entry := range e.bufferFirstOrNoneSubs.UnsafeBackingArray {
+		if entry.NextDeleteIdx < 0 {
+			close(entry.Content)
 		}
-		for _, entry := range e.bufferLatestSubs.UnsafeBackingArray {
-			if entry.NextDeleteIdx == -2 {
-				close(entry.Content)
-			}
+	}
+	for _, entry := range e.bufferLatestSubs.UnsafeBackingArray {
+		if entry.NextDeleteIdx < 0 {
+			close(entry.Content)
 		}
-		for _, entry := range e.bufferAllSubs.UnsafeBackingArray {
-			if entry.NextDeleteIdx == -2 {
-				close(entry.Content.In)
-			}
+	}
+	for _, entry := range e.bufferAllSubs.UnsafeBackingArray {
+		if entry.NextDeleteIdx < 0 {
+			close(entry.Content.In)
 		}
 	}
 }

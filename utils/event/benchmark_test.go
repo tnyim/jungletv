@@ -2,8 +2,11 @@ package event_test
 
 import (
 	"math/rand"
+	"runtime"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -129,5 +132,31 @@ func BenchmarkNotifyAtLeastOnce(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		e.Notify(i, false)
+	}
+}
+
+func TestDestructionOnClose(t *testing.T) {
+	doneCh := make(chan struct{})
+	func() {
+		e := event.New[int]()
+
+		e.SubscribeUsingCallback(event.BufferNone, func(i int) {
+			require.Fail(t, "should never be called")
+		})
+
+		e.Close()
+
+		runtime.SetFinalizer(e, func(_ event.Event[int]) {
+			doneCh <- struct{}{}
+		})
+	}()
+
+	for {
+		runtime.GC()
+		select {
+		case <-doneCh:
+			return
+		case <-time.After(1 * time.Second):
+		}
 	}
 }
