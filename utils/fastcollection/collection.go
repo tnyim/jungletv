@@ -1,5 +1,7 @@
 package fastcollection
 
+import "github.com/tnyim/jungletv/buildconfig"
+
 // FastCollection is an array-backed unordered collection with the goal of having fast insertions, fast deletions and fast iterations
 // (without as much of a spatial locality penalty as iterations over a linked list would incur)
 // FastCollection is not thread safe (analogous to Go's built-in slices and maps)
@@ -40,7 +42,7 @@ func (c *FastCollection[T]) Insert(item T) int {
 // Each item must be deleted only once
 // Deleting items does not reduce the memory used by this FastCollection, whose capacity can only grow
 func (c *FastCollection[T]) Delete(removeIdx int) T {
-	if c.UnsafeBackingArray[removeIdx].NextDeleteIdx >= 0 {
+	if buildconfig.DEBUG && c.UnsafeBackingArray[removeIdx].NextDeleteIdx >= 0 {
 		// since we reuse IDs returned by insert, this is not meant to be an exhaustive error callers can rely on
 		// this is more of a warning that the code must be fixed because it is attempting to delete the same entries twice
 		panic("delete of deleted entry")

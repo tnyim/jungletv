@@ -109,17 +109,9 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 		e.pendingNotifications = nil
 	}
 
-	return retChan, buildUnsubscribeOnceClosure(subID, bufferStrategy, e.unsubscribe, cancelCtx)
-}
-
-func buildUnsubscribeOnceClosure(
-	subID int,
-	bufferStrategy BufferStrategy,
-	unsubscribe func(subID int, bufferStrategy BufferStrategy, unsubscribed *bool),
-	cancelCtx context.CancelFunc) func() {
-	unsubscribed := false
-	return func() {
-		unsubscribe(subID, bufferStrategy, &unsubscribed)
+	var unsubscribed bool
+	return retChan, func() {
+		e.unsubscribe(subID, bufferStrategy, &unsubscribed)
 		cancelCtx()
 	}
 }
