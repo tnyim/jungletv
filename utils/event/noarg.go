@@ -1,5 +1,7 @@
 package event
 
+import "context"
+
 // NoArgEvent is an Event without arguments
 type NoArgEvent interface {
 	// Subscribe returns a channel that will receive notification events.
@@ -9,6 +11,10 @@ type NoArgEvent interface {
 	// SubscribeUsingCallback subscribes to an event by calling the provided function with the argument passed on Notify
 	// The returned function should be called when one wishes to unsubscribe
 	SubscribeUsingCallback(guaranteeType BufferStrategy, cbFunction func()) func()
+
+	// SubscribeUsingCallbackContext subscribes to an event by calling the provided function with the argument passed on Notify
+	// Unsubscription happens when either the provided context is cancelled or the returned function is called
+	SubscribeUsingCallbackContext(ctx context.Context, bufferStrategy BufferStrategy, cbFunction func()) func()
 
 	// Notify notifies subscribers that the event has occurred.
 	// deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
@@ -37,11 +43,20 @@ func NewNoArg() NoArgEvent {
 
 // SubscribeUsingCallback is a convenience wrapper around the underlying event SubscribeUsingCallback
 // so that callback functions do not need to accept a useless empty parameter
-func (e *noArgEvent) SubscribeUsingCallback(guaranteeType BufferStrategy, cbFunction func()) func() {
+func (e *noArgEvent) SubscribeUsingCallback(bufferStrategy BufferStrategy, cbFunction func()) func() {
 	cbFn := func(_ struct{}) {
 		cbFunction()
 	}
-	return e.Event.SubscribeUsingCallback(guaranteeType, cbFn)
+	return e.Event.SubscribeUsingCallback(bufferStrategy, cbFn)
+}
+
+// SubscribeUsingCallbackContext subscribes to an event by calling the provided function with the argument passed on Notify
+// Unsubscription happens when either the provided context is cancelled or the returned function is called
+func (e *noArgEvent) SubscribeUsingCallbackContext(ctx context.Context, bufferStrategy BufferStrategy, cbFunction func()) func() {
+	cbFn := func(_ struct{}) {
+		cbFunction()
+	}
+	return e.Event.SubscribeUsingCallbackContext(ctx, bufferStrategy, cbFn)
 }
 
 // Notify is a convenience wrapper around the underlying event Notify

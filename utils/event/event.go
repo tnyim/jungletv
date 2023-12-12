@@ -18,6 +18,10 @@ type Event[T any] interface {
 	// The returned function should be called when one wishes to unsubscribe
 	SubscribeUsingCallback(bufferStrategy BufferStrategy, cbFunction func(arg T)) func()
 
+	// SubscribeUsingCallbackContext subscribes to an event by calling the provided function with the argument passed on Notify
+	// Unsubscription happens when either the provided context is cancelled or the returned function is called
+	SubscribeUsingCallbackContext(ctx context.Context, bufferStrategy BufferStrategy, cbFunction func(arg T)) func()
+
 	// Notify notifies subscribers that the event has occurred.
 	// deferNotification controls whether an attempt will be made at late delivery if there are no subscribers to this event at the time of notification
 	// (subject to the buffer strategy chosen on the subscription side)
@@ -128,6 +132,28 @@ func (e *event[T]) SubscribeUsingCallback(bufferStrategy BufferStrategy, cbFunct
 				return
 			}
 			cbFunction(param)
+		}
+	}()
+	return unsub
+}
+
+// SubscribeUsingCallbackContext subscribes to an event by calling the provided function with the argument passed on Notify
+// Unsubscription happens when either the provided context is cancelled or the returned function is called
+func (e *event[T]) SubscribeUsingCallbackContext(ctx context.Context, bufferStrategy BufferStrategy, cbFunction func(arg T)) func() {
+	ch, unsub := e.Subscribe(bufferStrategy)
+	go func() {
+		defer unsub()
+		for {
+			select {
+			case param, ok := <-ch:
+				if !ok {
+					return
+				}
+				cbFunction(param)
+			case <-ctx.Done():
+				return
+			}
+
 		}
 	}()
 	return unsub

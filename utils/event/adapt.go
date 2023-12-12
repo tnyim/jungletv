@@ -1,5 +1,7 @@
 package event
 
+import "context"
+
 // Adapt converts one event with a given argument type to one with a different argument type
 func Adapt[OrigArgType any, DestArgType any](origEvent Event[OrigArgType], origToDestMapper func(OrigArgType) DestArgType, destToOrigMapper func(DestArgType) OrigArgType) Event[DestArgType] {
 	return &adaptedEvent[OrigArgType, DestArgType]{
@@ -25,6 +27,12 @@ func (a *adaptedEvent[OrigArgType, T]) Subscribe(bufferStrategy BufferStrategy) 
 
 func (a *adaptedEvent[OrigArgType, T]) SubscribeUsingCallback(bufferStrategy BufferStrategy, cbFunction func(arg T)) func() {
 	return a.origEvent.SubscribeUsingCallback(bufferStrategy, func(arg OrigArgType) {
+		cbFunction(a.origToDestMapper(arg))
+	})
+}
+
+func (a *adaptedEvent[OrigArgType, T]) SubscribeUsingCallbackContext(ctx context.Context, bufferStrategy BufferStrategy, cbFunction func(arg T)) func() {
+	return a.origEvent.SubscribeUsingCallbackContext(ctx, bufferStrategy, func(arg OrigArgType) {
 		cbFunction(a.origToDestMapper(arg))
 	})
 }
