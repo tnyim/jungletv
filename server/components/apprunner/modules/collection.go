@@ -2,6 +2,7 @@ package modules
 
 import (
 	"context"
+	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -29,15 +30,9 @@ func (c *Collection) EnableModules(runtime *goja.Runtime) {
 	}
 }
 
-func (c *Collection) ExecutionResumed(ctx context.Context) {
+func (c *Collection) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	for _, c := range c.modules {
-		c.ExecutionResumed(ctx)
-	}
-}
-
-func (c *Collection) ExecutionPaused() {
-	for _, c := range c.modules {
-		c.ExecutionPaused()
+		c.ExecutionResumed(ctx, wg)
 	}
 }
 

@@ -3,6 +3,7 @@ package keyvalue
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -50,11 +51,8 @@ func (m *keyValueModule) ModuleName() string {
 func (m *keyValueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *keyValueModule) ExecutionResumed(ctx context.Context) {
+func (m *keyValueModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
 	m.ctx = ctx
-}
-func (m *keyValueModule) ExecutionPaused() {
-	m.ctx = nil
 }
 
 func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {

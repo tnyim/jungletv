@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 	"strings"
+	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -70,11 +71,8 @@ func (m *walletModule) ModuleName() string {
 func (m *walletModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *walletModule) ExecutionResumed(ctx context.Context) {
+func (m *walletModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
 	m.ctx = ctx
-}
-func (m *walletModule) ExecutionPaused() {
-	m.ctx = nil
 }
 
 func (m *walletModule) DebitFromApplicationWallet(amount payment.Amount) error {

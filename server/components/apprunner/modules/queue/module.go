@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -43,13 +44,15 @@ type queueModule struct {
 // New returns a new queue module
 func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule) modules.NativeModule {
 	return &queueModule{
-		appContext:     appContext,
-		pagesModule:    pagesModule,
-		paymentsModule: paymentsModule,
-		mediaQueue:     mediaQueue,
-		pricer:         pricer,
-		skipManager:    skipManager,
-		queueMisc:      queueMisc,
+		appContext:               appContext,
+		pagesModule:              pagesModule,
+		paymentsModule:           paymentsModule,
+		mediaQueue:               mediaQueue,
+		pricer:                   pricer,
+		skipManager:              skipManager,
+		queueMisc:                queueMisc,
+		eventAdapter:             gojautil.NewEventAdapter(appContext.Schedule),
+		crowdfundingEventAdapter: gojautil.NewEventAdapter(appContext.Schedule),
 	}
 }
 
@@ -60,7 +63,6 @@ func (m *queueModule) IsNodeBuiltin() bool {
 func (m *queueModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
-		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.SerializeTime(runtime, t)
 		}
@@ -80,7 +82,6 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		pricing.Set("computeEnqueuePricing", m.computeEnqueuePricing)
 		m.setPricingPropertyExports(pricing)
 
-		m.crowdfundingEventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		crowdfunding := runtime.NewObject()
 		m.exports.Set("crowdfunding", crowdfunding)
 		crowdfunding.Set("addEventListener", m.crowdfundingEventAdapter.AddEventListener)
@@ -89,8 +90,6 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 
 		m.configureEvents()
 		m.configureCrowdfundingEvents()
-		m.eventAdapter.StartOrResume()
-		m.crowdfundingEventAdapter.StartOrResume()
 	}
 }
 func (m *queueModule) ModuleName() string {
@@ -100,23 +99,10 @@ func (m *queueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *queueModule) ExecutionResumed(ctx context.Context) {
+func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.executionContext = ctx
-	if m.eventAdapter != nil {
-		m.eventAdapter.StartOrResume()
-	}
-	if m.crowdfundingEventAdapter != nil {
-		m.crowdfundingEventAdapter.StartOrResume()
-	}
-}
-
-func (m *queueModule) ExecutionPaused() {
-	if m.eventAdapter != nil {
-		m.eventAdapter.Pause()
-	}
-	if m.crowdfundingEventAdapter != nil {
-		m.crowdfundingEventAdapter.Pause()
-	}
+	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
+	m.crowdfundingEventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
 func (m *queueModule) setEnqueuingPermission(call goja.FunctionCall) goja.Value {

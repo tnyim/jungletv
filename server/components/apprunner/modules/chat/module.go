@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -37,9 +38,10 @@ type chatModule struct {
 // New returns a new chat module
 func New(appContext modules.ApplicationContext, chatManager *chatmanager.Manager, pagesModule pages.PagesModule) modules.NativeModule {
 	return &chatModule{
-		appContext:  appContext,
-		pagesModule: pagesModule,
-		chatManager: chatManager,
+		appContext:   appContext,
+		pagesModule:  pagesModule,
+		chatManager:  chatManager,
+		eventAdapter: gojautil.NewEventAdapter(appContext.Schedule),
 	}
 }
 
@@ -50,7 +52,6 @@ func (m *chatModule) IsNodeBuiltin() bool {
 func (m *chatModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
-		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.SerializeTime(runtime, t)
 		}
@@ -92,7 +93,6 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 				"messageID": arg.String(),
 			}
 		})
-		m.eventAdapter.StartOrResume()
 	}
 }
 func (m *chatModule) ModuleName() string {
@@ -102,17 +102,9 @@ func (m *chatModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *chatModule) ExecutionResumed(ctx context.Context) {
+func (m *chatModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.executionContext = ctx
-	if m.eventAdapter != nil {
-		m.eventAdapter.StartOrResume()
-	}
-}
-
-func (m *chatModule) ExecutionPaused() {
-	if m.eventAdapter != nil {
-		m.eventAdapter.Pause()
-	}
+	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
 func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message) goja.Value {

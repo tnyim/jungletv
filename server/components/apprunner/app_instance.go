@@ -83,12 +83,13 @@ type appInstance struct {
 	promisesWithoutRejectionHandler map[*goja.Promise]struct{}
 
 	// context for this instance's current execution: derives from the context passed in StartOrResume(), lives as long as each execution of this instance does
-	ctx              context.Context
-	ctxCancel        context.CancelCauseFunc
-	stopWatchdog     func()
-	feedWatchdog     func()
-	vmInterrupt      func(v any)
-	vmClearInterrupt func()
+	ctx                context.Context
+	ctxCancel          context.CancelCauseFunc
+	executionWaitGroup sync.WaitGroup
+	stopWatchdog       func()
+	feedWatchdog       func()
+	vmInterrupt        func(v any)
+	vmClearInterrupt   func()
 }
 
 type panicResult struct {
@@ -210,7 +211,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.startedOrStoppedAt = time.Now()
 	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
 
-	a.modules.ExecutionResumed(a.ctx)
+	a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
 
 	if !a.startedOnce {
 		mainFile, isTypeScript, err := a.getMainFile()
@@ -475,8 +476,8 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	if interruptTimer != nil {
 		interruptTimer.Stop()
 	}
-	a.modules.ExecutionPaused()
 	a.ctxCancel(stacktrace.NewError("application execution interrupted"))
+	a.executionWaitGroup.Wait()
 	a.running = false
 	a.startedOrStoppedAt = time.Now()
 	a.vmClearInterrupt()

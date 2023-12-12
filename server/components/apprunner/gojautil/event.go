@@ -1,6 +1,7 @@
 package gojautil
 
 import (
+	"context"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -20,9 +21,8 @@ type EventAdapter struct {
 }
 
 // NewEventAdapter returns a new EventAdapter
-func NewEventAdapter(runtime *goja.Runtime, schedule ScheduleFunction) *EventAdapter {
+func NewEventAdapter(schedule ScheduleFunction) *EventAdapter {
 	return &EventAdapter{
-		runtime:     runtime,
 		schedule:    schedule,
 		this:        struct{}{},
 		knownEvents: make(map[string]*knownEvent),
@@ -109,9 +109,11 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 	panic(a.runtime.NewTypeError("Unknown event '%s'", event))
 }
 
-// StartOrResume should be called when the owner module is imported AND when execution resumes with a different context
+// StartOrResume should be called when execution starts/resumes with a different context
 // StartOrResume may be safely called multiple times in a row
-func (a *EventAdapter) StartOrResume() {
+func (a *EventAdapter) StartOrResume(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
+	a.runtime = runtime
+
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -127,11 +129,15 @@ func (a *EventAdapter) StartOrResume() {
 			e.unsubFn = e.subscribeFn()
 		}
 	}
+
+	wg.Add(1)
+	go a.pauseLater(ctx, wg)
 }
 
-// Pause should be called when the execution context terminates
-// Pause may be safely called multiple times in a row
-func (a *EventAdapter) Pause() {
+func (a *EventAdapter) pauseLater(ctx context.Context, wg *sync.WaitGroup) {
+	<-ctx.Done()
+	defer wg.Done()
+
 	a.mu.Lock()
 	defer a.mu.Unlock()
 

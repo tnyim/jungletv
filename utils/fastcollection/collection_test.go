@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tnyim/jungletv/utils/fastcollection"
@@ -85,8 +84,6 @@ func TestLargeCollection(t *testing.T) {
 	for i := 0; i < numEntries; i++ {
 		ids[i] = c.Insert(fmt.Sprint(i))
 	}
-
-	rand.Seed(time.Now().Unix())
 
 	rand.Shuffle(numEntries, func(i, j int) {
 		ids[i], ids[j] = ids[j], ids[i]

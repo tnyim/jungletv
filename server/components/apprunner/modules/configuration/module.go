@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -27,7 +28,6 @@ type configurationModule struct {
 	appContext           modules.ApplicationContext
 	configManager        *configurationmanager.Manager
 	pagesModule          pages.PagesModule
-	pageUnpublishedUnsub func()
 	currentSidebarPageID string
 
 	executionContext context.Context
@@ -64,14 +64,17 @@ func (m *configurationModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *configurationModule) ExecutionResumed(ctx context.Context) {
+func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.executionContext = ctx
 
-	m.pageUnpublishedUnsub = m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
-}
+	unsub := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 
-func (m *configurationModule) ExecutionPaused() {
-	m.pageUnpublishedUnsub()
+	wg.Add(1)
+	go func() {
+		<-ctx.Done()
+		unsub()
+		wg.Done()
+	}()
 }
 
 func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(unpublishedPageID string) {

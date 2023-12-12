@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -42,6 +43,7 @@ func New(appContext modules.ApplicationContext, pointsManager *pointsmanager.Man
 	return &pointsModule{
 		pointsManager: pointsManager,
 		appContext:    appContext,
+		eventAdapter:  gojautil.NewEventAdapter(appContext.Schedule),
 	}
 }
 
@@ -52,7 +54,6 @@ func (m *pointsModule) IsNodeBuiltin() bool {
 func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
-		m.eventAdapter = gojautil.NewEventAdapter(runtime, m.appContext.Schedule)
 		m.dateSerializer = func(t time.Time) interface{} {
 			return gojautil.SerializeTime(runtime, t)
 		}
@@ -74,7 +75,6 @@ func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 			t["pointsAdjustment"] = arg.AdjustmentValue
 			return t
 		})
-		m.eventAdapter.StartOrResume()
 	}
 }
 func (m *pointsModule) ModuleName() string {
@@ -84,17 +84,9 @@ func (m *pointsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *pointsModule) ExecutionResumed(ctx context.Context) {
+func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.executionContext = ctx
-	if m.eventAdapter != nil {
-		m.eventAdapter.StartOrResume()
-	}
-}
-
-func (m *pointsModule) ExecutionPaused() {
-	if m.eventAdapter != nil {
-		m.eventAdapter.Pause()
-	}
+	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
 func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {

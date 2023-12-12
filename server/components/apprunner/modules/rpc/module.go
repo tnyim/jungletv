@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -135,8 +136,8 @@ func (m *rpcModule) ModuleName() string {
 func (m *rpcModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *rpcModule) ExecutionResumed(ctx context.Context) {}
-func (m *rpcModule) ExecutionPaused()                     {}
+func (m *rpcModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {}
+func (m *rpcModule) ExecutionPaused()                                        {}
 
 // to be called inside the loop
 func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) InvocationResult {

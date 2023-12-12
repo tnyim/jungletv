@@ -70,11 +70,8 @@ func (m *pagesModule) ModuleName() string {
 func (m *pagesModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *pagesModule) ExecutionResumed(ctx context.Context) {
+func (m *pagesModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
 	m.ctx = ctx
-}
-func (m *pagesModule) ExecutionPaused() {
-	m.ctx = nil
 }
 
 func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {
