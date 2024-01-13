@@ -510,6 +510,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		OtherMediaQueueMethods:       &appRuntimeMiscMethods{s: s},
 		PaymentAccountPool:           s.paymentAccountPool,
 		DefaultAccountRepresentative: options.RepresentativeAddress,
+		UserCache:                    s.nicknameCache,
 	})
 
 	return s, nil

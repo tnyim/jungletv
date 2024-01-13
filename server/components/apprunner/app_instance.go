@@ -797,6 +797,10 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
+	fetchedUser, err := a.runner.moduleDependencies.UserCache.GetOrFetchUser(ctx, user.Address())
+	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+		user = fetchedUser
+	}
 	invResult, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (rpc.InvocationResult, error) {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
 		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
@@ -835,6 +839,11 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 	}
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
+	fetchedUser, err := a.runner.moduleDependencies.UserCache.GetOrFetchUser(ctx, user.Address())
+	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+		user = fetchedUser
+	}
+
 	a.Schedule(func(vm *goja.Runtime) error {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
 		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {

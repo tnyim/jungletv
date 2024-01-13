@@ -12,6 +12,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
+	"github.com/tnyim/jungletv/server/usercache"
 )
 
 // Dependencies is a "everything and the kitchen sink" struct used for injection of singleton dependencies in modules
@@ -25,6 +26,7 @@ type Dependencies struct {
 	OtherMediaQueueMethods       OtherMediaQueueMethods
 	PaymentAccountPool           *payment.PaymentAccountPool
 	DefaultAccountRepresentative string
+	UserCache                    usercache.UserCache
 }
 
 type OtherMediaQueueMethods interface {
