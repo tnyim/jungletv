@@ -315,7 +315,7 @@ const configureMarked = function () {
         marked.setOptions({
             gfm: true,
             breaks: true,
-            mangle: false,
+            async: true,
         });
         marked.use(gfmHeadingId());
         marked.use({
@@ -331,16 +331,16 @@ const configureMarked = function () {
     }
 }
 
-export const parseSystemMessageMarkdown = function (markdown: string): string {
+export const parseSystemMessageMarkdown = async function (markdown: string): Promise<string> {
     configureMarked();
     let t = new marked.Tokenizer();
     // avoid links in queue entry titles becoming clickable
     t.autolink = () => undefined;
     t.url = () => undefined;
-    return configuredMarked.parseInline(markdown, { tokenizer: t });
+    return await configuredMarked.parseInline(markdown, { tokenizer: t });
 }
 
-export const parseUserMessageMarkdown = function (markdown: string, isModerator: boolean): [string, boolean] {
+export const parseUserMessageMarkdown = async function (markdown: string, isModerator: boolean): Promise<[string, boolean]> {
     configureMarked();
     let onlyEmotes = markdown.trim().length > 0;
     let emoteCount = 0;
@@ -357,16 +357,16 @@ export const parseUserMessageMarkdown = function (markdown: string, isModerator:
     };
     let rendered = "";
     if (isModerator) {
-        rendered = configuredMarked.parseInline(markdown, { tokenizer: undefined, walkTokens })
+        rendered = await configuredMarked.parseInline(markdown, { tokenizer: undefined, walkTokens })
     } else {
-        rendered = configuredMarked.parseInline(markdown, { walkTokens })
+        rendered = await configuredMarked.parseInline(markdown, { walkTokens })
     }
     return [rendered, onlyEmotes && emoteCount < 7];
 }
 
-export const parseCompleteMarkdown = function (markdown: string): string {
+export const parseCompleteMarkdown = async function (markdown: string): Promise<string> {
     configureMarked();
-    return configuredMarked.parse(markdown, { tokenizer: undefined });
+    return await configuredMarked.parse(markdown, { tokenizer: undefined });
 }
 
 export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension {

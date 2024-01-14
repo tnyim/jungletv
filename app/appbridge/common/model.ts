@@ -14,7 +14,7 @@ export type ParentMethods = {
     prompt: (question: string, title: string, placeholder: string, initialValue: string, positiveAnswerLabel: string, negativeAnswerLabel: string) => Promise<string>;
     userAddress: () => Promise<string>;
     userPermissionLevel: () => Promise<string>;
-    parseMarkdown: (markdown: string) => string;
+    parseMarkdown: (markdown: string) => Promise<string>;
     showUserProfile: (userAddress: string) => void;
 }
 

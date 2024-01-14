@@ -63,7 +63,9 @@
         {:then d}
             {#if d.getFormat() == "markdown"}
                 <div class="markdown-document {mode == 'sidebar' ? 'sidebar-document' : ''}">
-                    {@html parseCompleteMarkdown(d.getContent())}
+                    {#await parseCompleteMarkdown(d.getContent()) then content}
+                        {@html content}
+                    {/await}
                 </div>
             {:else if d.getFormat() == "html"}
                 {@html d.getContent()}

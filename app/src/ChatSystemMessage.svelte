@@ -8,7 +8,9 @@
 <div class="mt-1 flex flex-row text-xs justify-center items-center text-center">
     <div class="flex-1" />
     <div class="px-2 py-0.5 bg-gray-400 dark:bg-gray-600 text-white rounded text-center break-words max-w-full">
-        {@html parseSystemMessageMarkdown(message.getSystemMessage().getContent())}
+        {#await parseSystemMessageMarkdown(message.getSystemMessage().getContent()) then content}
+            {@html content}
+        {/await}
     </div>
     <div class="flex-1" />
 </div>

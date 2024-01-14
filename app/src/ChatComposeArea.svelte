@@ -5,16 +5,15 @@
     import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
     import { HighlightStyle, bracketMatching, syntaxHighlighting, syntaxTree } from "@codemirror/language";
     import {
-        type ChangeSpec,
         Compartment,
         EditorSelection,
         EditorState,
-        type Extension,
         RangeSet,
+        type ChangeSpec,
+        type Extension,
     } from "@codemirror/state";
     import {
         Decoration,
-        type DecorationSet,
         EditorView,
         ViewPlugin,
         ViewUpdate,
@@ -24,9 +23,10 @@
         highlightSpecialChars,
         keymap,
         placeholder,
+        type DecorationSet,
     } from "@codemirror/view";
     import { tags } from "@lezer/highlight";
-    import { type MarkdownConfig, Emoji as MarkdownEmoji, Strikethrough } from "@lezer/markdown";
+    import { Emoji as MarkdownEmoji, Strikethrough, type MarkdownConfig } from "@lezer/markdown";
     import type { CustomEmoji, Emoji, EmojiClickEvent } from "emoji-picker-element/shared";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { Moon } from "svelte-loading-spinners";
@@ -102,7 +102,7 @@
         if (typeof editorView !== "undefined") {
             editorView.dispatch({
                 effects: highlightCompartment.reconfigure(
-                    highlightStyle(permLevel == PermissionLevel.ADMIN, $darkMode)
+                    highlightStyle(permLevel == PermissionLevel.ADMIN, $darkMode),
                 ),
             });
         }
@@ -400,7 +400,7 @@
             readonly originalText: string,
             readonly id: string,
             readonly shortcode: string,
-            readonly animated: boolean
+            readonly animated: boolean,
         ) {
             super();
         }
@@ -455,7 +455,7 @@
                                         match[0],
                                         match[3],
                                         match[2]?.substring(1),
-                                        match[1] == "a"
+                                        match[1] == "a",
                                     ),
                                 });
                                 widgets.push(deco.range(node.from, node.to));
@@ -478,7 +478,7 @@
                     let value = view.plugin(plugin);
                     return value ? value.decorations : Decoration.none;
                 }),
-        }
+        },
     );
 
     function theme(darkMode: boolean): Extension {
@@ -555,7 +555,7 @@
             },
             {
                 dark: darkMode,
-            }
+            },
         );
     }
 
@@ -571,7 +571,7 @@
                 { tag: tags.strikethrough, textDecoration: "line-through" },
                 { tag: tags.monospace, fontFamily: "monospace", fontSize: "110%" },
                 { tag: tags.character, color: "#a11" }, // Used by emoji shortcodes that aren't matched
-            ])
+            ]),
         );
     }
 
@@ -803,7 +803,7 @@
             editorView.dispatch(editorView.state.replaceSelection(event.detail.unicode + " "));
         } else {
             editorView.dispatch(
-                editorView.state.replaceSelection(emoteStringFromCustomEmoji(event.detail.emoji as CustomEmoji) + " ")
+                editorView.state.replaceSelection(emoteStringFromCustomEmoji(event.detail.emoji as CustomEmoji) + " "),
             );
         }
         editorView.focus();
@@ -898,7 +898,9 @@
         }}
     >
         <svelte:fragment slot="message-content">
-            {@html parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false)[0]}
+            {#await parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false)[0] then content}
+                {@html content}
+            {/await}
         </svelte:fragment>
     </ChatReplyingBanner>
 {/if}

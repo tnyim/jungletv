@@ -48,12 +48,12 @@
         await apiClient.removeChatMessage(message.getId());
     }
 
-    function renderMessage(msg: ChatMessage): [string, boolean] {
+    async function renderMessage(msg: ChatMessage): Promise<[string, boolean]> {
         let result = "";
         let emotesOnly = false;
-        [result, emotesOnly] = parseUserMessageMarkdown(
+        [result, emotesOnly] = await parseUserMessageMarkdown(
             msg.getUserMessage().getContent(),
-            msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR)
+            msg.getUserMessage().getAuthor().getRolesList().includes(UserRole.MODERATOR),
         );
         return [result.replaceAll("<a ", '<a target="_blank" rel="noopener" '), emotesOnly];
     }
@@ -62,7 +62,10 @@
 
     let renderedMessage = "";
     let emotesOnly = false;
-    $: [renderedMessage, emotesOnly] = renderMessage(message);
+    async function updateRenderedMessage(message: ChatMessage) {
+        [renderedMessage, emotesOnly] = await renderMessage(message);
+    }
+    $: updateRenderedMessage(message);
     let dragging = false;
 </script>
 
@@ -89,7 +92,12 @@
             <span class={getClassForMessageAuthor(message.getReference())}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
-            {@html parseUserMessageMarkdown(message.getReference().getUserMessage().getContent(), false)[0]}
+            {#await parseUserMessageMarkdown(message
+                    .getReference()
+                    .getUserMessage()
+                    .getContent(), false)[0] then content}
+                {@html content}
+            {/await}
         </button>
     {/if}
 {/if}
@@ -97,8 +105,8 @@
     class="{additionalPadding && !message.hasReference()
         ? 'mt-1.5'
         : message.hasReference()
-        ? ''
-        : 'mt-0.5'} break-words relative
+          ? ''
+          : 'mt-0.5'} break-words relative
     {getBackgroundColorForMessage(highlighted)}"
     on:pointerleave={(ev) => {
         if (ev.pointerType != "touch") {

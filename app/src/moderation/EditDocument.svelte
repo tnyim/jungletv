@@ -199,7 +199,9 @@
             <HSplitPane {leftPaneSize} {rightPaneSize}>
                 <div slot="left" class="h-full max-h-full relative" bind:this={editorContainer} />
                 <div slot="right" class="h-full max-h-full px-6 pb-6 overflow-auto markdown-document">
-                    {@html parseCompleteMarkdown(content)}
+                    {#await parseCompleteMarkdown(content) then c}
+                        {@html c}
+                    {/await}
                 </div>
             </HSplitPane>
         {/await}
