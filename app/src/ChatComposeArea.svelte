@@ -898,8 +898,8 @@
         }}
     >
         <svelte:fragment slot="message-content">
-            {#await parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false)[0] then content}
-                {@html content}
+            {#await parseUserMessageMarkdown(replyingToMessage.getUserMessage().getContent(), false) then parseResult}
+                {@html parseResult[0]}
             {/await}
         </svelte:fragment>
     </ChatReplyingBanner>

@@ -162,6 +162,7 @@
 
     let lastSeenScrollTop: number;
     let onScrollCheckTimeout: number;
+    let consecutiveWaitForSmoothScrollChecks = 0;
     function ensureScrollToBottom() {
         let curTop = chatContainer.scrollTop;
         if (lastSeenScrollTop != curTop) {
@@ -174,14 +175,15 @@
             }
             // still has not stopped scrolling
             lastSeenScrollTop = curTop;
-            onScrollCheckTimeout = setTimeout(ensureScrollToBottom, 100);
+            onScrollCheckTimeout = setTimeout(ensureScrollToBottom, 50);
         } else {
             clearTimeout(onScrollCheckTimeout);
             lastSeenScrollTop = undefined;
             if (!bottomVisible) {
-                scrollToBottom(true);
+                scrollToBottom(consecutiveWaitForSmoothScrollChecks++ > 20);
             } else {
                 autoscrollStatus = "at-bottom";
+                consecutiveWaitForSmoothScrollChecks = 0;
             }
         }
     }

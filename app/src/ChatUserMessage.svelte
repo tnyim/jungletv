@@ -62,8 +62,15 @@
 
     let renderedMessage = "";
     let emotesOnly = false;
+    let renderedReply = "";
     async function updateRenderedMessage(message: ChatMessage) {
         [renderedMessage, emotesOnly] = await renderMessage(message);
+
+        if (message.hasReference()) {
+            renderedReply = (
+                await parseUserMessageMarkdown(message.getReference().getUserMessage().getContent(), false)
+            )[0];
+        }
     }
     $: updateRenderedMessage(message);
     let dragging = false;
@@ -92,12 +99,7 @@
             <span class={getClassForMessageAuthor(message.getReference())}
                 >{getReadableMessageAuthor(message.getReference())}</span
             >:
-            {#await parseUserMessageMarkdown(message
-                    .getReference()
-                    .getUserMessage()
-                    .getContent(), false)[0] then content}
-                {@html content}
-            {/await}
+            {@html renderedReply}
         </button>
     {/if}
 {/if}
