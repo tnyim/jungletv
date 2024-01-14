@@ -7,12 +7,11 @@
     import {
         closeSidebarTab,
         defaultSidebarTabIDs,
-        openAndSwitchToSidebarTab,
         setSidebarTabHighlighted,
-        setSidebarTabTitle,
         sidebarTabs,
         type SidebarTab,
     } from "./tabStores";
+    import SidebarTabContainer from "./uielements/SidebarTabContainer.svelte";
     import TabButton from "./uielements/TabButton.svelte";
     import { openPopout } from "./utils";
 
@@ -44,7 +43,6 @@
 
     let tabInX = 384;
     const SLIDE_DURATION = 200;
-    let flipFlop = false;
     sidebarMode.subscribe((mode) => {
         if (tabs.findIndex((t) => selectedTabID == t.id) < tabs.findIndex((t) => mode == t.id)) {
             // new tab is to the right
@@ -55,7 +53,6 @@
         }
         selectedTabID = mode;
         selectedTab = tabs.find((t) => selectedTabID == t.id);
-        flipFlop = !flipFlop;
         if (defaultSidebarTabIDs.includes(mode)) {
             localStorage.setItem("sidebarMode", mode);
         }
@@ -201,37 +198,15 @@
     </div>
 </div>
 <div class="h-full lg:overflow-y-auto transition-container">
-    <!-- these two are identical. This is to work around the way the svelte transitions system behaves -->
-    <!-- (no, #key does not have the same behavior here) -->
-    {#if flipFlop}
+    {#key selectedTab}
         <div
             class="h-full lg:overflow-y-auto"
             in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
             out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
         >
-            <svelte:component
-                this={selectedTab.component}
-                {...selectedTab.props}
-                on:openSidebarTab={(e) => openAndSwitchToSidebarTab(e.detail, selectedTab.id)}
-                on:closeTab={() => closeSidebarTab(selectedTab.id)}
-                on:setTabTitle={(e) => setSidebarTabTitle(selectedTab.id, e.detail)}
-            />
+            <SidebarTabContainer {selectedTab} />
         </div>
-    {:else}
-        <div
-            class="h-full lg:overflow-y-auto"
-            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
-            out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
-        >
-            <svelte:component
-                this={selectedTab.component}
-                {...selectedTab.props}
-                on:openSidebarTab={(e) => openAndSwitchToSidebarTab(e.detail, selectedTab.id)}
-                on:closeTab={() => closeSidebarTab(selectedTab.id)}
-                on:setTabTitle={(e) => setSidebarTabTitle(selectedTab.id, e.detail)}
-            />
-        </div>
-    {/if}
+    {/key}
 </div>
 
 <style>
