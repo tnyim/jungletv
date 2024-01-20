@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS "auth_event";
 DROP TABLE IF EXISTS "auth_event_method";
 DROP TABLE IF EXISTS "auth_event_reason";
-DORP TABLE IF EXISTS "user_jwt_claim_season";
+DROP TABLE IF EXISTS "user_jwt_claim_season";
 DROP TABLE IF EXISTS "application_value";
 DROP TABLE IF EXISTS "application_file";
 DROP TABLE IF EXISTS "application";
