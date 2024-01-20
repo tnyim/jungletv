@@ -54,7 +54,7 @@ func (s *HTTPServer) VerifySignature(w http.ResponseWriter, r *http.Request) err
 		return stacktrace.Propagate(err, "")
 	}
 
-	err = s.signatureVerifier.VerifySignature(r.Context(), processID, signatureBytes)
+	err = s.signatureVerifier.VerifySignature(r.Context(), processID, signatureBytes, "http_callback")
 	if err != nil {
 		err = sendResponse(response{
 			Message: "Failed to verify signature! Confirm that the authentication process did not expire.",

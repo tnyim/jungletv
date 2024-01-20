@@ -17,6 +17,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/bananomessagesigning"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
@@ -33,6 +34,7 @@ type signInProcess struct {
 	completed      bool
 	jwtToken       string
 	tokenExpiry    time.Time
+	tokenSeason    int
 
 	// used exclusively in rep changing flow:
 	accountIndex uint32
@@ -55,12 +57,12 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	if process.signatureBased {
 		err = s.signInViaSignature(r, stream, process, processExpiry)
 	} else {
-		err = s.signInViaRepresentativeChange(r, stream, process, processExpiry)
+		err = s.signInViaRepresentativeChange(ctx, r, stream, process, processExpiry)
 	}
 	return stacktrace.Propagate(err, "")
 }
 
-func (s *grpcServer) signInViaRepresentativeChange(r *proto.SignInRequest, stream proto.JungleTV_SignInServer, process *signInProcess, processExpiry time.Time) error {
+func (s *grpcServer) signInViaRepresentativeChange(ctx context.Context, r *proto.SignInRequest, stream proto.JungleTV_SignInServer, process *signInProcess, processExpiry time.Time) error {
 	verifRep, err := s.wallet.NewAccount(&process.accountIndex)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -135,6 +137,23 @@ func (s *grpcServer) signInViaRepresentativeChange(r *proto.SignInRequest, strea
 		}
 
 		if representative == verifRep.Address() {
+			err = auth.RecordAuthEvent(ctx, process.rewardsAddress, types.AuthReasonSignIn, struct {
+				ProcessID     string `json:"process_id"`
+				RemoteAddress string `json:"remote_address"`
+				ClaimsSeason  int    `json:"claims_season"`
+			}{
+				ProcessID:     process.id,
+				RemoteAddress: process.remoteAddress,
+				ClaimsSeason:  process.tokenSeason,
+			}, types.AuthMethodRepresentativeChange, struct {
+				Representative string `json:"representative"`
+			}{
+				Representative: verifRep.Address(),
+			})
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+
 			process.completed = true
 			// verified!
 			s.log.Println(r.RewardsAddress, "completed SignIn process via representative change with remote address", process.remoteAddress)
@@ -229,7 +248,7 @@ func (s *grpcServer) VerifySignInSignature(ctx context.Context, r *proto.VerifyS
 		return nil, status.Error(codes.NotFound, "process not found")
 	}
 
-	err = s.verifySignature(ctx, process, signatureBytes)
+	err = s.verifySignature(ctx, process, signatureBytes, "grpc_method")
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -240,23 +259,44 @@ func (s *grpcServer) VerifySignInSignature(ctx context.Context, r *proto.VerifyS
 	}, nil
 }
 
-func (s *grpcServer) VerifySignature(ctx context.Context, processID string, signature []byte) error {
+func (s *grpcServer) VerifySignature(ctx context.Context, processID string, signature []byte, submissionMethod string) error {
 	process, ok := s.signInProcesses.Get(processID)
 	if !ok {
 		return stacktrace.NewError("process not found")
 	}
 
-	err := s.verifySignature(ctx, process, signature)
+	err := s.verifySignature(ctx, process, signature, submissionMethod)
 	return stacktrace.Propagate(err, "")
 }
 
-func (s *grpcServer) verifySignature(ctx context.Context, process *signInProcess, signature []byte) error {
+func (s *grpcServer) verifySignature(ctxCtx context.Context, process *signInProcess, signature []byte, submissionMethod string) error {
 	valid, err := bananomessagesigning.VerifyMessage(process.rewardsAddress, []byte(process.messageToSign), signature)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	if !valid {
 		return stacktrace.NewError("invalid signature")
+	}
+
+	err = auth.RecordAuthEvent(ctxCtx, process.rewardsAddress, types.AuthReasonSignIn, struct {
+		ProcessID     string `json:"process_id"`
+		RemoteAddress string `json:"remote_address"`
+		ClaimsSeason  int    `json:"claims_season"`
+	}{
+		ProcessID:     process.id,
+		RemoteAddress: process.remoteAddress,
+		ClaimsSeason:  process.tokenSeason,
+	}, types.AuthMethodAccountSignature, struct {
+		SignedMessage    string `json:"signed_message"`
+		Signature        string `json:"signature"`
+		SubmissionMethod string `json:"submission_method"`
+	}{
+		SignedMessage:    process.messageToSign,
+		Signature:        hex.EncodeToString(signature),
+		SubmissionMethod: submissionMethod,
+	})
+	if err != nil {
+		return stacktrace.Propagate(err, "")
 	}
 
 	process.completed = true
@@ -330,7 +370,7 @@ func (s *grpcServer) getProcessForSignInRequest(ctx context.Context, r *proto.Si
 		moderatorName = user.ModeratorName()
 	}
 
-	process.jwtToken, process.tokenExpiry, err = s.jwtManager.Generate(ctx, r.RewardsAddress, finalPermissionLevel, moderatorName)
+	process.jwtToken, process.tokenExpiry, process.tokenSeason, err = s.jwtManager.Generate(ctx, r.RewardsAddress, finalPermissionLevel, moderatorName)
 	if err != nil {
 		return nil, time.Time{}, stacktrace.Propagate(err, "")
 	}
@@ -509,7 +549,7 @@ func (s *grpcServer) ConsentOrDissentToAuthorization(ctx context.Context, r *pro
 	}
 
 	if r.Consent {
-		err := process.Consent(ctx, user)
+		err := process.Consent(ctx, user, authinterceptor.RemoteAddressFromContext(ctx))
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

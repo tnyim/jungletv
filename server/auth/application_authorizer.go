@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -73,7 +74,7 @@ func (authorizer *ThirdPartyAuthorizer) GetProcess(id string) (*ThirdPartyAuthor
 	return authorizer.processes.Get(id)
 }
 
-func (process *ThirdPartyAuthorizationProcess) Consent(ctx context.Context, user User) error {
+func (process *ThirdPartyAuthorizationProcess) Consent(ctx context.Context, user User, remoteAddress string) error {
 	defer process.authorizer.processes.Delete(process.ID)
 	process.mu.Lock()
 	defer process.mu.Unlock()
@@ -86,7 +87,28 @@ func (process *ThirdPartyAuthorizationProcess) Consent(ctx context.Context, user
 	if user.Nickname() != nil && *user.Nickname() != "" {
 		username = *user.Nickname()
 	}
-	token, expiry, err := process.authorizer.jwtManager.Generate(ctx, user.Address(), process.PermissionLevel, username)
+	token, expiry, season, err := process.authorizer.jwtManager.Generate(ctx, user.Address(), process.PermissionLevel, username)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	err = RecordAuthEvent(ctx, user.Address(), types.AuthReasonAuthorizeThirdParty, struct {
+		ProcessID       string          `json:"process_id"`
+		ClaimsSeason    int             `json:"claims_season"`
+		PermissionLevel PermissionLevel `json:"permission_level"`
+		ApplicationName string          `json:"application_name"`
+		Reason          string          `json:"reason"`
+	}{
+		ProcessID:       process.ID,
+		ClaimsSeason:    season,
+		PermissionLevel: process.PermissionLevel,
+		ApplicationName: process.ApplicationName,
+		Reason:          process.Reason,
+	}, types.AuthMethodInteractiveConsent, struct {
+		RemoteAddress string `json:"remote_address"`
+	}{
+		RemoteAddress: remoteAddress,
+	})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

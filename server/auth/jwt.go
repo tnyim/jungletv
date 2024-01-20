@@ -36,7 +36,7 @@ func (manager *JWTManager) IsTokenAboutToExpire(claims *UserClaims) bool {
 }
 
 // Generate generates a JWT for a user
-func (manager *JWTManager) Generate(ctx context.Context, rewardAddress string, permissionLevel PermissionLevel, username string) (string, time.Time, error) {
+func (manager *JWTManager) Generate(ctx context.Context, rewardAddress string, permissionLevel PermissionLevel, username string) (string, time.Time, int, error) {
 	expiration := time.Now().Add(manager.tokenLifetimes[permissionLevel])
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
@@ -53,12 +53,12 @@ func (manager *JWTManager) Generate(ctx context.Context, rewardAddress string, p
 	var err error
 	claims.Season, err = manager.currentUserSeason(ctx, &claims)
 	if err != nil {
-		return "", time.Time{}, stacktrace.Propagate(err, "")
+		return "", time.Time{}, claims.Season, stacktrace.Propagate(err, "")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString(manager.secretKey)
-	return signed, expiration, stacktrace.Propagate(err, "")
+	return signed, expiration, claims.Season, stacktrace.Propagate(err, "")
 }
 
 // Verify verifies a JWT

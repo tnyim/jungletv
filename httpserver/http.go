@@ -24,7 +24,7 @@ type HTTPServer struct {
 }
 
 type SignatureVerifier interface {
-	VerifySignature(ctx context.Context, processID string, signature []byte) error
+	VerifySignature(ctx context.Context, processID string, signature []byte, submissionMethod string) error
 }
 
 func New(router *mux.Router, log *log.Logger, oauthManager *oauth.Manager, appRunner *apprunner.AppRunner, websiteURL, raffleSecretKey string, versionHashBuilder func() string, signatureVerifier SignatureVerifier) error {

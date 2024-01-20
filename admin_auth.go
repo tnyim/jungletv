@@ -10,6 +10,7 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 )
 
@@ -22,9 +23,24 @@ var (
 
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
 func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	adminToken, expiration, err := jwtManager.Generate(r.Context(), "DEBUG_USER", auth.AdminPermissionLevel, "")
+	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), "DEBUG_USER", auth.AdminPermissionLevel, "")
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = auth.RecordAuthEvent(r.Context(), "DEBUG_USER", types.AuthReasonSpecialSignIn, struct {
+		ClaimsSeason int `json:"claims_season"`
+	}{
+		ClaimsSeason: season,
+	}, types.AuthMethodExternal, struct {
+		Method string `json:"method"`
+	}{
+		Method: "direct_unsafe_auth_handler",
+	})
+	if err != nil {
+		authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -69,9 +85,28 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	adminToken, expiration, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
+	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = auth.RecordAuthEvent(r.Context(), rewardAddress, types.AuthReasonSpecialSignIn, struct {
+		ClaimsSeason int `json:"claims_season"`
+	}{
+		ClaimsSeason: season,
+	}, types.AuthMethodExternal, struct {
+		RemoteAddress string `json:"remote_address"`
+		Method        string `json:"method"`
+		Username      string `json:"username"`
+	}{
+		RemoteAddress: ip,
+		Method:        "basic_auth_handler",
+		Username:      username,
+	})
+	if err != nil {
+		authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -171,9 +206,41 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	if v, ok := session.Values["rewardAddress"]; ok {
 		rewardAddress = v.(string)
 	}
-	adminToken, expiration, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, login.UserID)
+	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, login.UserID)
 	if err != nil {
 		authLog.Println("Error generating admin JWT:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		authLog.Println(stacktrace.Propagate(err, ""))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if cfIP := r.Header.Get("cf-connecting-ip"); cfIP != "" {
+		ip = cfIP
+	}
+	ip = utils.GetUniquifiedIP(ip)
+
+	err = auth.RecordAuthEvent(r.Context(), rewardAddress, types.AuthReasonSpecialSignIn, struct {
+		ClaimsSeason int `json:"claims_season"`
+	}{
+		ClaimsSeason: season,
+	}, types.AuthMethodExternal, struct {
+		RemoteAddress string `json:"remote_address"`
+		Method        string `json:"method"`
+		SSOID         string `json:"sso_id"`
+		UserID        string `json:"user_id"`
+	}{
+		RemoteAddress: ip,
+		Method:        "sso_auth_handler",
+		SSOID:         ssoID,
+		UserID:        login.UserID,
+	})
+	if err != nil {
+		authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS "auth_event";
+DROP TABLE IF EXISTS "auth_event_method";
+DROP TABLE IF EXISTS "auth_event_reason";
+DORP TABLE IF EXISTS "user_jwt_claim_season";
 DROP TABLE IF EXISTS "application_value";
 DROP TABLE IF EXISTS "application_file";
 DROP TABLE IF EXISTS "application";
@@ -386,4 +390,24 @@ CREATE TABLE IF NOT EXISTS "user_jwt_claim_season" (
     "address" VARCHAR(64) PRIMARY KEY,
     season INTEGER NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "auth_event_reason" (
+    auth_event_reason VARCHAR(36) PRIMARY KEY
+);
+INSERT INTO "auth_event_reason" VALUES ('sign_in'), ('special_sign_in'), ('authorize_third_party');
+
+CREATE TABLE IF NOT EXISTS "auth_event_method" (
+    auth_event_method VARCHAR(36) PRIMARY KEY
+);
+INSERT INTO "auth_event_method" VALUES ('account_representative_change'), ('account_public_key_signature'), ('interactive_consent'), ('external');
+
+CREATE TABLE IF NOT EXISTS "auth_event" (
+    "address" VARCHAR(64) NOT NULL,
+    authenticated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    reason VARCHAR(36) NOT NULL REFERENCES auth_event_reason (auth_event_reason),
+    reason_info JSONB NOT NULL,
+    method VARCHAR(36) NOT NULL REFERENCES auth_event_method (auth_event_method),
+    method_info JSONB NOT NULL,
+    PRIMARY KEY ("address", authenticated_at)
 );
