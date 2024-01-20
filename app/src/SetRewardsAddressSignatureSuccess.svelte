@@ -27,7 +27,8 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            At the end of every video, the amount paid to enqueue the video is distributed evenly among eligible users.
+            When a queue entry finishes playing, the amount someone paid to enqueue it, is distributed evenly among
+            eligible users.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Now that you have set an address for rewards, you can be one of these users too! Fraud prevention measures
@@ -35,9 +36,7 @@
         </p>
     </div>
     <div slot="main-content">
-        <SuccessMessage>
-            Successfully updated rewards address.
-        </SuccessMessage>
+        <SuccessMessage>Successfully updated rewards address.</SuccessMessage>
         <span class="font-mono text-sm">{rewardsAddress}</span>
         <p class="mt-8">You can now receive rewards for watching, participate in chat and other JungleTV features.</p>
         <p class="mt-8">

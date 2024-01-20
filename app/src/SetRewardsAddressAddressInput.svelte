@@ -41,9 +41,12 @@
 
     async function submit(viaSignature: boolean) {
         if (rewardsAddress === "") {
-            apiClient.signOut();
-            successful = true;
-            rewardAddress.update((_) => rewardsAddress);
+            failureReason = "A Banano address must be provided";
+            if ($rewardAddress != "") {
+                failureReason +=
+                    ". If you wish to sign out, you can do so using the button at the bottom of the Rewards page.";
+            }
+            successful = false;
             return;
         }
 
@@ -59,8 +62,8 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible
-            users.
+            When a queue entry finishes playing, the amount someone paid to enqueue it, is distributed evenly among
+            eligible users.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Some content has e.g. regional restrictions and may not display for you. You will still be rewarded as long
@@ -83,9 +86,6 @@
             {/if}
             <label for="rewards_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Banano address for rewards
-                {#if rewardsAddress != ""}
-                    (leave blank to stop receiving rewards)
-                {/if}
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
                 <input
@@ -118,9 +118,9 @@
                     </div>
                 {/if}
             {/if}
-            <p class="text-sm text-gray-700 dark:text-gray-300 mt-2">
+            <p class="mt-2 text-sm text-gray-500">
                 Setting an address will also allow you to chat with other users. This address will be used to publicly
-                identify you on JungleTV.
+                identify you on JungleTV. This must be an address you control - one of the addresses of your wallet(s).
             </p>
 
             {#if globalThis.LAB_BUILD}
@@ -145,7 +145,45 @@
                     />
                 </div>
             {/if}
+
+            <p class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
+                Select the wallet software you use
+            </p>
+            <div class="grid grid-cols-1 gap-2 mt-1">
+                <ButtonButton
+                    baseClasses="text-left p-1 px-2 border shadow-sm rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg"
+                    colorClasses="border-yellow-600 hover:border-yellow-700 focus:ring-yellow-500 hover:bg-yellow-200 focus:bg-yellow-200 dark:hover:bg-yellow-900 dark:focus:bg-yellow-900"
+                    textColorClasses="text-black dark:text-white"
+                    on:click={() => submit(true)}
+                >
+                    <p class="text-sm">
+                        <span class="text-base font-semibold">The Banano Stand</span>, the wallet that runs in your
+                        browser
+                    </p>
+                    <p class="text-xs text-gray-500">or other wallet that supports message signing</p>
+                </ButtonButton>
+                <ButtonButton
+                    baseClasses="text-left p-1 px-2 border shadow-sm rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-lg"
+                    colorClasses="border-yellow-600 hover:border-yellow-700 focus:ring-yellow-500 hover:bg-yellow-200 focus:bg-yellow-200 dark:hover:bg-yellow-900 dark:focus:bg-yellow-900"
+                    textColorClasses="text-black dark:text-white"
+                    on:click={() => submit(false)}
+                >
+                    <p class="text-sm">
+                        <span class="text-base font-semibold">Kalium</span>, the mobile wallet for Android and iOS
+                    </p>
+                    <p class="text-xs">
+                        <span class="text-gray-500">or other Banano wallet.</span> Select this option if unsure
+                    </p>
+                </ButtonButton>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">
+                Support for certain operations varies depending on wallet software. By choosing the correct option,
+                we'll use the best authentication mechanism that is compatible with your wallet.
+            </p>
         {/await}
+    </div>
+    <div slot="buttons" class="flex items-center flex-wrap">
+        <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
     </div>
     <div slot="extra_1">
         <div class="shadow sm:rounded-md sm:overflow-hidden">
@@ -188,18 +226,5 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div slot="buttons" class="flex items-center flex-wrap">
-        <ButtonButton color="purple" on:click={cancel}>Cancel</ButtonButton>
-        <div class="grow" />
-        <button
-            type="submit"
-            on:click={() => submit(true)}
-            class="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline mr-1 text-right"
-        >
-            Use message signing<br />
-            (experimental, advanced users only)
-        </button>
-        <ButtonButton type="submit" on:click={() => submit(false)}>Next</ButtonButton>
     </div>
 </Wizard>

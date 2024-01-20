@@ -172,7 +172,7 @@
         {/if}
         <p class="mt-4">
             If you run into problems, please ask for help in the
-            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a> (not affiliated with JungleTV).
+            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a>, where you can find a channel dedicated to JungleTV.
         </p>
         <p class="mt-2">
             This verification process will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.

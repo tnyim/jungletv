@@ -106,7 +106,7 @@
                 "You will stop receiving rewards for watching and you will no longer be able to participate in chat, until you authenticate with your Banano address again. Continue?",
                 "Sign out?",
                 "Sign out",
-                "Cancel"
+                "Cancel",
             )
         ) {
             apiClient.signOut();
@@ -123,7 +123,7 @@
                     "You should use this option if you forgot to sign out of JungleTV on a shared device, or if you believe you've been a victim of cookie stealing/session hijacking.",
                 "Sign out everywhere?",
                 "Sign out everywhere",
-                "Cancel"
+                "Cancel",
             )
         ) {
             apiClient.invalidateAuthTokens();
@@ -138,9 +138,10 @@
     <div slot="step-info">
         <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-200">Receive rewards</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            When a queue entry finishes playing, the amount it cost to enqueue is distributed evenly among eligible
-            users. To minimize the number of Banano transactions caused by JungleTV, rewards are added to a balance
-            before they are sent to you. You can wait for an automated withdrawal or withdraw manually at any time.
+            When a queue entry finishes playing, the amount someone paid to enqueue it, is distributed evenly among
+            eligible users. To minimize the number of Banano transactions caused by JungleTV, rewards are added to a
+            balance before they are sent to you. You can wait for an automated withdrawal or withdraw manually at any
+            time.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Some content has e.g. regional restrictions and may not display for you. You will still be rewarded as long

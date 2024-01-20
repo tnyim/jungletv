@@ -45,11 +45,8 @@
             the Banano Discord.
         </p>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            For now, a few hints:<br />
             To do this in <strong>Kalium</strong>, start by selecting the right account, then open the side bar and
             select <strong>Change Representative</strong>.<br />
-            To do this in <strong>BananoVault</strong>, choose <strong>Settings</strong> in the side bar and select
-            <strong>Representatives</strong>.
         </p>
     </div>
     <div slot="main-content">
@@ -87,7 +84,7 @@
         {/if}
         <p class="mt-2">
             If in doubt, please ask for help in the
-            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a> (not affiliated with JungleTV).
+            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a>, where you can find a channel dedicated to JungleTV.
         </p>
         <p class="mt-2">
             This verification process will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
