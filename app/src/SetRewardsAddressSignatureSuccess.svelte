@@ -38,7 +38,9 @@
     <div slot="main-content">
         <SuccessMessage>Successfully updated rewards address.</SuccessMessage>
         <span class="font-mono text-sm">{rewardsAddress}</span>
-        <p class="mt-8">You can now receive rewards for watching, participate in chat and other JungleTV features.</p>
+        <p class="mt-8">
+            You can now receive rewards for watching, participate in chat and use other JungleTV features.
+        </p>
         <p class="mt-8">
             If you are watching JungleTV in another window or tab, please refresh it to ensure you'll be rewarded.
         </p>
