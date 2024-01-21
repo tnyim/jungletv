@@ -970,6 +970,48 @@ export namespace TypeScriptTypeDefinitionsResponse {
   }
 }
 
+export class CreateApplicationWithWalletPrefixRequest extends jspb.Message {
+  hasApplication(): boolean;
+  clearApplication(): void;
+  getApplication(): Application | undefined;
+  setApplication(value?: Application): void;
+
+  getPrefix(): string;
+  setPrefix(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateApplicationWithWalletPrefixRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateApplicationWithWalletPrefixRequest): CreateApplicationWithWalletPrefixRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateApplicationWithWalletPrefixRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateApplicationWithWalletPrefixRequest;
+  static deserializeBinaryFromReader(message: CreateApplicationWithWalletPrefixRequest, reader: jspb.BinaryReader): CreateApplicationWithWalletPrefixRequest;
+}
+
+export namespace CreateApplicationWithWalletPrefixRequest {
+  export type AsObject = {
+    application?: Application.AsObject,
+    prefix: string,
+  }
+}
+
+export class CreateApplicationWithWalletPrefixResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateApplicationWithWalletPrefixResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateApplicationWithWalletPrefixResponse): CreateApplicationWithWalletPrefixResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateApplicationWithWalletPrefixResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateApplicationWithWalletPrefixResponse;
+  static deserializeBinaryFromReader(message: CreateApplicationWithWalletPrefixResponse, reader: jspb.BinaryReader): CreateApplicationWithWalletPrefixResponse;
+}
+
+export namespace CreateApplicationWithWalletPrefixResponse {
+  export type AsObject = {
+  }
+}
+
 export interface ApplicationLogLevelMap {
   UNKNOWN_APPLICATION_LOG_LEVEL: 0;
   APPLICATION_LOG_LEVEL_JS_LOG: 1;

@@ -21,18 +21,25 @@ type AppEditor struct {
 	log                *log.Logger
 	runner             *apprunner.AppRunner
 	paymentAccountPool *payment.PaymentAccountPool
+	walletMiner        WalletPrefixMiner
 }
 
 // New returns a new initialized AppEditor
-func New(log *log.Logger, appRunner *apprunner.AppRunner, paymentAccountPool *payment.PaymentAccountPool) *AppEditor {
+func New(log *log.Logger, appRunner *apprunner.AppRunner, paymentAccountPool *payment.PaymentAccountPool, walletMiner WalletPrefixMiner) *AppEditor {
 	return &AppEditor{
 		log:                log,
 		runner:             appRunner,
 		paymentAccountPool: paymentAccountPool,
+		walletMiner:        walletMiner,
 	}
 }
 
-func (*AppEditor) UpdateApplication(ctxCtx context.Context, applicationID string, updatedBy auth.User, editMessage string, allowLaunching, allowFileEditing, autorun bool) error {
+// WalletPrefixMiner helps to build an application wallet with a specific prefix
+type WalletPrefixMiner interface {
+	GetApplicationVersionForWalletWithPrefix(applicationID string, prefix string, timeout time.Duration) (types.ApplicationVersion, error)
+}
+
+func (e *AppEditor) UpdateApplication(ctxCtx context.Context, applicationID string, updatedBy auth.User, editMessage string, allowLaunching, allowFileEditing, autorun bool, desiredWalletPrefix string) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -45,9 +52,17 @@ func (*AppEditor) UpdateApplication(ctxCtx context.Context, applicationID string
 	}
 	_, existed := applications[applicationID]
 
+	updatedAt := types.ApplicationVersion(time.Now())
+	if !existed && desiredWalletPrefix != "" {
+		updatedAt, err = e.walletMiner.GetApplicationVersionForWalletWithPrefix(applicationID, desiredWalletPrefix, 20*time.Second)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
 	application := &types.Application{
 		ID:               applicationID,
-		UpdatedAt:        types.ApplicationVersion(time.Now()),
+		UpdatedAt:        updatedAt,
 		UpdatedBy:        updatedBy.Address(),
 		EditMessage:      editMessage,
 		AllowLaunching:   allowLaunching,

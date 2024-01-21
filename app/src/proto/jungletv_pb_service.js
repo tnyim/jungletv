@@ -885,6 +885,15 @@ JungleTV.UpdateApplication = {
   responseType: application_editor_pb.UpdateApplicationResponse
 };
 
+JungleTV.CreateApplicationWithWalletPrefix = {
+  methodName: "CreateApplicationWithWalletPrefix",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: application_editor_pb.CreateApplicationWithWalletPrefixRequest,
+  responseType: application_editor_pb.CreateApplicationWithWalletPrefixResponse
+};
+
 JungleTV.CloneApplication = {
   methodName: "CloneApplication",
   service: JungleTV,
@@ -4133,6 +4142,37 @@ JungleTVClient.prototype.updateApplication = function updateApplication(requestM
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.UpdateApplication, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.createApplicationWithWalletPrefix = function createApplicationWithWalletPrefix(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.CreateApplicationWithWalletPrefix, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

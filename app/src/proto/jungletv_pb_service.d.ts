@@ -879,6 +879,15 @@ type JungleTVUpdateApplication = {
   readonly responseType: typeof application_editor_pb.UpdateApplicationResponse;
 };
 
+type JungleTVCreateApplicationWithWalletPrefix = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof application_editor_pb.CreateApplicationWithWalletPrefixRequest;
+  readonly responseType: typeof application_editor_pb.CreateApplicationWithWalletPrefixResponse;
+};
+
 type JungleTVCloneApplication = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1158,6 +1167,7 @@ export class JungleTV {
   static readonly Applications: JungleTVApplications;
   static readonly GetApplication: JungleTVGetApplication;
   static readonly UpdateApplication: JungleTVUpdateApplication;
+  static readonly CreateApplicationWithWalletPrefix: JungleTVCreateApplicationWithWalletPrefix;
   static readonly CloneApplication: JungleTVCloneApplication;
   static readonly DeleteApplication: JungleTVDeleteApplication;
   static readonly ApplicationFiles: JungleTVApplicationFiles;
@@ -2004,6 +2014,15 @@ export class JungleTVClient {
   updateApplication(
     requestMessage: application_editor_pb.Application,
     callback: (error: ServiceError|null, responseMessage: application_editor_pb.UpdateApplicationResponse|null) => void
+  ): UnaryResponse;
+  createApplicationWithWalletPrefix(
+    requestMessage: application_editor_pb.CreateApplicationWithWalletPrefixRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CreateApplicationWithWalletPrefixResponse|null) => void
+  ): UnaryResponse;
+  createApplicationWithWalletPrefix(
+    requestMessage: application_editor_pb.CreateApplicationWithWalletPrefixRequest,
+    callback: (error: ServiceError|null, responseMessage: application_editor_pb.CreateApplicationWithWalletPrefixResponse|null) => void
   ): UnaryResponse;
   cloneApplication(
     requestMessage: application_editor_pb.CloneApplicationRequest,

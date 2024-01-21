@@ -196,3 +196,10 @@ message TypeScriptTypeDefinitionsResponse {
     string typescript_version = 1;
     bytes type_definitions_file = 2;
 }
+
+message CreateApplicationWithWalletPrefixRequest {
+    Application application = 1;
+    string prefix = 2;
+}
+
+message CreateApplicationWithWalletPrefixResponse {}

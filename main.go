@@ -386,6 +386,7 @@ func main() {
 		TurnstileSecretKey:            turnstileSecretKey,
 		ConfigManager:                 configManager,
 		AppRunner:                     apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
+		WalletPrefixMiner:             appWalletBuilder,
 	}
 
 	if buildconfig.LAB {

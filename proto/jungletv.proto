@@ -112,6 +112,7 @@ service JungleTV {
     rpc Applications(ApplicationsRequest) returns (ApplicationsResponse) {}
     rpc GetApplication(GetApplicationRequest) returns (Application) {}
     rpc UpdateApplication(Application) returns (UpdateApplicationResponse) {}
+    rpc CreateApplicationWithWalletPrefix(CreateApplicationWithWalletPrefixRequest) returns (CreateApplicationWithWalletPrefixResponse) {}
     rpc CloneApplication(CloneApplicationRequest) returns (CloneApplicationResponse) {}
     rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse) {}
     rpc ApplicationFiles(ApplicationFilesRequest) returns (ApplicationFilesResponse) {}

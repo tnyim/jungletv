@@ -89,12 +89,27 @@ func (s *grpcServer) UpdateApplication(ctx context.Context, r *proto.Application
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	err := s.appEditor.UpdateApplication(ctx, r.Id, moderator, r.EditMessage, r.AllowLaunching, r.AllowFileEditing, r.Autorun)
+	err := s.appEditor.UpdateApplication(ctx, r.Id, moderator, r.EditMessage, r.AllowLaunching, r.AllowFileEditing, r.Autorun, "")
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
 	return &proto.UpdateApplicationResponse{}, nil
+}
+
+func (s *grpcServer) CreateApplicationWithWalletPrefix(ctx context.Context, r *proto.CreateApplicationWithWalletPrefixRequest) (*proto.CreateApplicationWithWalletPrefixResponse, error) {
+	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	if moderator == nil {
+		// this should never happen, as the auth interceptors should have taken care of this for us
+		return nil, status.Error(codes.Unauthenticated, "missing user claims")
+	}
+
+	err := s.appEditor.UpdateApplication(ctx, r.Application.Id, moderator, r.Application.EditMessage, r.Application.AllowLaunching, r.Application.AllowFileEditing, r.Application.Autorun, r.Prefix)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	return &proto.CreateApplicationWithWalletPrefixResponse{}, nil
 }
 
 func (s *grpcServer) CloneApplication(ctx context.Context, r *proto.CloneApplicationRequest) (*proto.CloneApplicationResponse, error) {

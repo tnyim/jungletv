@@ -117,6 +117,7 @@ type JungleTVClient interface {
 	Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error)
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	UpdateApplication(ctx context.Context, in *Application, opts ...grpc.CallOption) (*UpdateApplicationResponse, error)
+	CreateApplicationWithWalletPrefix(ctx context.Context, in *CreateApplicationWithWalletPrefixRequest, opts ...grpc.CallOption) (*CreateApplicationWithWalletPrefixResponse, error)
 	CloneApplication(ctx context.Context, in *CloneApplicationRequest, opts ...grpc.CallOption) (*CloneApplicationResponse, error)
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationResponse, error)
 	ApplicationFiles(ctx context.Context, in *ApplicationFilesRequest, opts ...grpc.CallOption) (*ApplicationFilesResponse, error)
@@ -1251,6 +1252,15 @@ func (c *jungleTVClient) UpdateApplication(ctx context.Context, in *Application,
 	return out, nil
 }
 
+func (c *jungleTVClient) CreateApplicationWithWalletPrefix(ctx context.Context, in *CreateApplicationWithWalletPrefixRequest, opts ...grpc.CallOption) (*CreateApplicationWithWalletPrefixResponse, error) {
+	out := new(CreateApplicationWithWalletPrefixResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CreateApplicationWithWalletPrefix", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) CloneApplication(ctx context.Context, in *CloneApplicationRequest, opts ...grpc.CallOption) (*CloneApplicationResponse, error) {
 	out := new(CloneApplicationResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/CloneApplication", in, out, opts...)
@@ -1603,6 +1613,7 @@ type JungleTVServer interface {
 	Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error)
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
 	UpdateApplication(context.Context, *Application) (*UpdateApplicationResponse, error)
+	CreateApplicationWithWalletPrefix(context.Context, *CreateApplicationWithWalletPrefixRequest) (*CreateApplicationWithWalletPrefixResponse, error)
 	CloneApplication(context.Context, *CloneApplicationRequest) (*CloneApplicationResponse, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error)
 	ApplicationFiles(context.Context, *ApplicationFilesRequest) (*ApplicationFilesResponse, error)
@@ -1921,6 +1932,9 @@ func (UnimplementedJungleTVServer) GetApplication(context.Context, *GetApplicati
 }
 func (UnimplementedJungleTVServer) UpdateApplication(context.Context, *Application) (*UpdateApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplication not implemented")
+}
+func (UnimplementedJungleTVServer) CreateApplicationWithWalletPrefix(context.Context, *CreateApplicationWithWalletPrefixRequest) (*CreateApplicationWithWalletPrefixResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateApplicationWithWalletPrefix not implemented")
 }
 func (UnimplementedJungleTVServer) CloneApplication(context.Context, *CloneApplicationRequest) (*CloneApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloneApplication not implemented")
@@ -3771,6 +3785,24 @@ func _JungleTV_UpdateApplication_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_CreateApplicationWithWalletPrefix_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApplicationWithWalletPrefixRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).CreateApplicationWithWalletPrefix(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/CreateApplicationWithWalletPrefix",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).CreateApplicationWithWalletPrefix(ctx, req.(*CreateApplicationWithWalletPrefixRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_CloneApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloneApplicationRequest)
 	if err := dec(in); err != nil {
@@ -4494,6 +4526,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateApplication",
 			Handler:    _JungleTV_UpdateApplication_Handler,
+		},
+		{
+			MethodName: "CreateApplicationWithWalletPrefix",
+			Handler:    _JungleTV_CreateApplicationWithWalletPrefix_Handler,
 		},
 		{
 			MethodName: "CloneApplication",

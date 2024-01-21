@@ -175,8 +175,9 @@ type Options struct {
 	CaptchaImageDB  *segcha.ImageDatabase
 	CaptchaFontPath string
 
-	AppRunner     *apprunner.AppRunner
-	ConfigManager *configurationmanager.Manager
+	AppRunner         *apprunner.AppRunner
+	WalletPrefixMiner appeditor.WalletPrefixMiner
+	ConfigManager     *configurationmanager.Manager
 
 	AutoEnqueueVideoListFile string
 	QueueFile                string
@@ -273,6 +274,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Applications", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/GetApplication", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/UpdateApplication", auth.AppEditorPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CreateApplicationWithWalletPrefix", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/CloneApplication", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/DeleteApplication", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/ApplicationFiles", auth.AppEditorPermissionLevel)
@@ -455,7 +457,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.paymentAccountPool = payment.New(s.log, s.statsClient, options.Wallet, options.RepresentativeAddress, s.modLogWebhook,
 		payment.NewAmount(pricer.DustThreshold), s.collectorAccount.Address(), nanswapClient)
 
-	s.appEditor = appeditor.New(s.log, s.appRunner, s.paymentAccountPool)
+	s.appEditor = appeditor.New(s.log, s.appRunner, s.paymentAccountPool, options.WalletPrefixMiner)
 
 	s.pointsManager = pointsmanager.New(ctx, s.log, s.snowflakeNode, s.paymentAccountPool)
 

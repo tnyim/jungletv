@@ -2,7 +2,7 @@
     import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
-    import { Application, RunningApplication } from "../proto/application_editor_pb";
+    import { Application, CreateApplicationWithWalletPrefixRequest, RunningApplication } from "../proto/application_editor_pb";
     import type { PaginationParameters } from "../proto/common_pb";
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
@@ -65,12 +65,62 @@
             await modalAlert("An error occurred when creating the application: " + e);
         }
     }
+
+    async function createWithWalletPrefix() {
+        let id = await modalPrompt(
+            "Enter the ID for the new application:",
+            "Create application",
+            "",
+            "",
+            "Create",
+            "Cancel"
+        );
+        if (id === null) {
+            return;
+        }
+
+        try {
+            await apiClient.getApplication(id);
+            await modalAlert("An application with the same ID already exists");
+            return;
+        } catch {}
+
+        let prefix = await modalPrompt(
+            "Enter the desired prefix for the wallet, must start with 1 or 3:",
+            "Create application",
+            "",
+            "",
+            "Create",
+            "Cancel"
+        );
+        if (prefix === null || prefix === "") {
+            return;
+        }
+
+        let application = new Application();
+        application.setId(id);
+        application.setAllowFileEditing(true);
+        let r = new CreateApplicationWithWalletPrefixRequest();
+        r.setApplication(application);
+        r.setPrefix(prefix);
+        try {
+            await apiClient.createApplicationWithWalletPrefix(r);
+            cur_page = -1;
+        } catch (e) {
+            if (e.includes("timed out bruteforcing desired wallet prefix")) {
+                await modalAlert("Bruteforcing of desired wallet prefix timed out. Try entering a shorter prefix.");
+                return;
+            }
+            await modalAlert("An error occurred when creating the application: " + e);
+        }
+    }
 </script>
 
 <div class="m-6 grow container mx-auto max-w-screen-lg p-2">
     <p class="mb-6">
         <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
         <ButtonButton on:click={create}>Create application</ButtonButton>
+        <ButtonButton on:click={createWithWalletPrefix}>...with specific wallet prefix</ButtonButton>
     </p>
 
     <div class="text-2xl flex flex-row items-center">
