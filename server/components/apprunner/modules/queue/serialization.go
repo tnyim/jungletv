@@ -17,52 +17,18 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 	}
 	result := vm.NewObject()
 
+	serializePerformance(vm, result, entry)
+
 	result.DefineAccessorProperty("concealed", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(entry.Concealed())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("media", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return serializeMediaInfo(vm, entry.MediaInfo())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("movedBy", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(entry.MovedBy())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
-	result.DefineAccessorProperty("played", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.Played())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("playedFor", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.PlayedFor().Milliseconds())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("playing", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.Playing())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("id", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.QueueID())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("requestCost", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.RequestCost().SerializeForAPI())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("requestedAt", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return gojautil.SerializeTime(vm, entry.RequestedAt())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("requestedBy", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return gojautil.SerializeUser(vm, entry.RequestedBy())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
-	result.DefineAccessorProperty("unskippable", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return vm.ToValue(entry.Unskippable())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
-
 	result.Set("remove", func() goja.Value {
-		removed := m.removeEntryAndLog(entry.QueueID())
+		removed := m.removeEntryAndLog(entry.PerformanceID())
 		return m.serializeQueueEntry(vm, removed)
 	})
 
@@ -70,7 +36,7 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 		if len(call.Arguments) < 1 {
 			panic(m.runtime.NewTypeError("Missing argument"))
 		}
-		m.moveEntry(entry.QueueID(), call.Argument(0).String(), "First", "move", false)
+		m.moveEntry(entry.PerformanceID(), call.Argument(0).String(), "First", "move", false)
 		return goja.Undefined()
 	})
 
@@ -78,14 +44,62 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 		if len(call.Arguments) < 1 {
 			panic(m.runtime.NewTypeError("Missing argument"))
 		}
-		m.moveEntry(entry.QueueID(), call.Argument(0).String(), "First", "moveWithCost", true)
+		m.moveEntry(entry.PerformanceID(), call.Argument(0).String(), "First", "moveWithCost", true)
 		return goja.Undefined()
 	})
 
 	return result
 }
 
-func serializeMediaInfo(vm *goja.Runtime, info media.Info) goja.Value {
+func serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance media.Performance) goja.Value {
+	if performance == nil || performance == media.Performance(nil) {
+		return goja.Undefined()
+	}
+	result := onObject
+	if result == nil {
+		result = vm.NewObject()
+	}
+
+	result.DefineAccessorProperty("media", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return serializeMediaInfo(vm, performance.MediaInfo())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("played", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.Played())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("playedFor", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.PlayedFor().Milliseconds())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("playing", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.Playing())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("id", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.PerformanceID())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("requestCost", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.RequestCost().SerializeForAPI())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("requestedAt", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return gojautil.SerializeTime(vm, performance.RequestedAt())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("requestedBy", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return gojautil.SerializeUser(vm, performance.RequestedBy())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	result.DefineAccessorProperty("unskippable", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		return vm.ToValue(performance.Unskippable())
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+	return result
+}
+
+func serializeMediaInfo(vm *goja.Runtime, info media.BasicInfo) goja.Value {
 	result := vm.NewObject()
 
 	result.DefineAccessorProperty("length", vm.ToValue(func(call goja.FunctionCall) goja.Value {

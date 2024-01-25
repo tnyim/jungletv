@@ -16,38 +16,53 @@ import (
 // QueueEntry represents one entry in the media queue
 type QueueEntry interface {
 	json.Marshaler
-	RequestedBy() auth.User
-	RequestCost() payment.Amount
-	RequestedAt() time.Time
-	Unskippable() bool
+	Performance
+
+	ActionableMediaInfo() ActionableInfo
 	Concealed() bool
-	MediaInfo() Info
 	ProduceCheckpointForAPI(ctx context.Context) *proto.MediaConsumptionCheckpoint
 	ProducePlayedMedia() (*types.PlayedMedia, error)
 	Play()
 	Stop()
-	Played() bool
-	Playing() bool
-	PlayedFor() time.Duration
 	DonePlaying() event.NoArgEvent
 
 	WasMovedBy(user auth.User) bool
 	SetAsMovedBy(user auth.User)
 	MovedBy() []string
-
-	QueueID() string
 }
 
-// Info provides information about a media
-type Info interface {
-	Title() string
-	MediaID() (types.MediaType, string)
-	Offset() time.Duration
-	Length() time.Duration
+// ActionableInfo provides information about a media and is able to turn it into a QueueEntry, when given extra information
+type ActionableInfo interface {
+	BasicInfo
 	ProduceMediaQueueEntry(requestedBy auth.User, requestCost payment.Amount, unskippable bool, concealed bool, queueID string) QueueEntry
 	FillAPITicketMediaInfo(ticket *proto.EnqueueMediaTicket)
 	SerializeForAPIQueue(ctx context.Context) proto.IsQueueEntry_MediaInfo
 }
+
+// BasicInfo provides information about a media
+type BasicInfo interface {
+	Title() string
+	MediaID() (types.MediaType, string)
+	Offset() time.Duration
+	Length() time.Duration
+}
+
+// Performance represents one performance of a media
+type Performance interface {
+	RequestedBy() auth.User
+	RequestCost() payment.Amount
+	RequestedAt() time.Time
+	Unskippable() bool
+
+	Played() bool
+	Playing() bool
+	StartedAt() time.Time
+	PlayedFor() time.Duration
+
+	MediaInfo() BasicInfo
+	PerformanceID() string
+}
+
 type CollectionKey struct {
 	Type  types.MediaCollectionType
 	ID    string
@@ -71,6 +86,7 @@ type Provider interface {
 
 	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, bool, error)
 
+	BasicMediaInfoFromPlayedMedia(playedMedia *types.PlayedMedia) (BasicInfo, error)
 	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
 	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)
 	SerializeUserProfileResponseFeaturedMedia(playedMedia *types.PlayedMedia) (proto.IsUserProfileResponse_FeaturedMedia, error)

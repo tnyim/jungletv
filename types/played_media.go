@@ -27,26 +27,46 @@ type PlayedMedia struct {
 	MediaInfo   types.JSONText
 }
 
+// GetPlayedMediaFilters contains the filters to pass to GetPlayedMedia. Different conditions are ANDed together
+type GetPlayedMediaFilters struct {
+	ExcludeDisallowed       bool
+	ExcludeCurrentlyPlaying bool
+	StartedSince            time.Time
+	StartedUntil            time.Time
+	EnqueuedSince           time.Time
+	EnqueuedUntil           time.Time
+	TextFilter              string
+}
+
 // GetPlayedMedia returns all played media in the database according to the given filters
-func GetPlayedMedia(node sqalx.Node, excludeDisallowed, excludeCurrentlyPlaying bool, startedSince time.Time, filter string, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
+func GetPlayedMedia(node sqalx.Node, filters GetPlayedMediaFilters, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
 	s := sdb.Select().
 		OrderBy("played_media.started_at DESC")
-	if excludeDisallowed {
+	if filters.ExcludeDisallowed {
 		s = s.LeftJoin(`disallowed_media ON
 				disallowed_media.media_type = played_media.media_type AND
 				disallowed_media.media_id = played_media.media_id`).
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}
-	if excludeCurrentlyPlaying {
+	if filters.ExcludeCurrentlyPlaying {
 		s = s.Where(sq.NotEq{"played_media.ended_at": nil})
 	}
-	if !startedSince.IsZero() {
-		s = s.Where(sq.Gt{"played_media.started_at": startedSince})
+	if !filters.StartedSince.IsZero() {
+		s = s.Where(sq.Gt{"played_media.started_at": filters.StartedSince})
 	}
-	if filter != "" {
+	if !filters.StartedUntil.IsZero() {
+		s = s.Where(sq.LtOrEq{"played_media.started_at": filters.StartedUntil})
+	}
+	if !filters.EnqueuedSince.IsZero() {
+		s = s.Where(sq.Gt{"played_media.enqueued_at": filters.EnqueuedSince})
+	}
+	if !filters.EnqueuedUntil.IsZero() {
+		s = s.Where(sq.LtOrEq{"played_media.enqueued_at": filters.EnqueuedUntil})
+	}
+	if filters.TextFilter != "" {
 		s = s.Where(sq.Or{
-			sq.Eq{"played_media.media_id": filter},
-			sq.Expr("UPPER(played_media.media_info->>'title') LIKE UPPER(?)", "%"+filter+"%"),
+			sq.Eq{"played_media.media_id": filters.TextFilter},
+			sq.Expr("UPPER(played_media.media_info->>'title') LIKE UPPER(?)", "%"+filters.TextFilter+"%"),
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)

@@ -65,7 +65,7 @@ type queueEntryDocumentJsonRepresentation struct {
 
 func (e *queueEntryDocument) MarshalJSON() ([]byte, error) {
 	j, err := sonic.Marshal(queueEntryDocumentJsonRepresentation{
-		QueueID:     e.QueueID(),
+		QueueID:     e.PerformanceID(),
 		Type:        string(types.MediaTypeDocument),
 		ID:          e.document.ID,
 		Title:       e.Title(),
@@ -78,7 +78,7 @@ func (e *queueEntryDocument) MarshalJSON() ([]byte, error) {
 		MovedBy:     e.MovedBy(),
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.QueueID())
+		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.PerformanceID())
 	}
 	return j, nil
 }

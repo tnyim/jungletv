@@ -19,6 +19,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
 	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/types"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -31,6 +32,7 @@ type queueModule struct {
 	pagesModule              pages.PagesModule
 	paymentsModule           wallet.WalletModule
 	mediaQueue               *mediaqueue.MediaQueue
+	mediaProviders           map[types.MediaType]media.Provider
 	pricer                   *pricer.Pricer
 	skipManager              *skipmanager.Manager
 	queueMisc                modules.OtherMediaQueueMethods
@@ -42,12 +44,13 @@ type queueModule struct {
 }
 
 // New returns a new queue module
-func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule) modules.NativeModule {
+func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, mediaProviders map[types.MediaType]media.Provider, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule) modules.NativeModule {
 	return &queueModule{
 		appContext:               appContext,
 		pagesModule:              pagesModule,
 		paymentsModule:           paymentsModule,
 		mediaQueue:               mediaQueue,
+		mediaProviders:           mediaProviders,
 		pricer:                   pricer,
 		skipManager:              skipManager,
 		queueMisc:                queueMisc,
@@ -74,6 +77,8 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("moveEntry", m.moveEntryJS)
 		m.exports.Set("moveEntryWithCost", m.moveEntryWithCostJS)
 		m.exports.Set("enqueuePage", m.enqueuePage)
+		m.exports.Set("getPlayHistoryByPerformanceTime", m.getPlayHistoryByPerformanceTime)
+		m.exports.Set("getPlayHistoryByRequestTime", m.getPlayHistoryByRequestTime)
 
 		m.setPropertyExports()
 

@@ -119,7 +119,7 @@ func (s *Manager) Worker(ctx context.Context) error {
 				mediaStartTimer.Reset(time.Duration(math.MaxInt64))
 			} else {
 				mediaStartTimer.Reset(10 * time.Second)
-				id := entry.QueueID()
+				id := entry.PerformanceID()
 				s.currentMediaID = &id
 				if entry.RequestedBy() != nil && !entry.RequestedBy().IsUnknown() {
 					req := entry.RequestedBy().Address()

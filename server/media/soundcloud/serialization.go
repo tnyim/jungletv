@@ -80,3 +80,26 @@ func (s *TrackProvider) UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (
 	}
 	return v, true, nil
 }
+
+func (s *TrackProvider) BasicMediaInfoFromPlayedMedia(playedMedia *types.PlayedMedia) (media.BasicInfo, error) {
+
+	var info dbMediaInfo
+	err := playedMedia.MediaInfo.Unmarshal(&info)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	// let's just reuse existing types, it's safe because we return a media.BasicInfo,
+	// so we are sure that the methods that depend on the fields don't fill won't be called
+	// (well, ideally - unless someone messes up and decides to cast the interface improperly)
+
+	v := &queueEntrySoundCloudTrack{
+		CommonInfo: media.CommonMediaInfoFromPlayedMedia(playedMedia, info.Title),
+		id:         playedMedia.MediaID,
+		artist:     info.Artist,
+		permalink:  info.Permalink,
+		uploader:   info.Uploader,
+	}
+
+	return v, nil
+}

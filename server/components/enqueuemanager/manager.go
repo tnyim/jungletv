@@ -104,7 +104,7 @@ func (e *Manager) SetNewQueueEntriesAlwaysUnskippableForFree(enabled bool) {
 }
 
 func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequest, forceAnonymous bool) (EnqueueTicket, error) {
-	pricing := e.pricer.ComputeEnqueuePricing(request.MediaInfo().Length(), request.Unskippable(), request.Concealed())
+	pricing := e.pricer.ComputeEnqueuePricing(request.ActionableMediaInfo().Length(), request.Unskippable(), request.Concealed())
 
 	amounts := []payment.Amount{
 		pricing.EnqueuePrice,
@@ -125,7 +125,7 @@ func (e *Manager) RegisterRequest(ctx context.Context, request media.EnqueueRequ
 		id:              uuid.NewV4().String(),
 		createdAt:       time.Now(),
 		requestedBy:     request.RequestedBy(),
-		mediaInfo:       request.MediaInfo(),
+		mediaInfo:       request.ActionableMediaInfo(),
 		unskippable:     request.Unskippable(),
 		concealed:       request.Concealed(),
 		forceAnonymous:  forceAnonymous,
@@ -233,7 +233,7 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 		}
 	}
 
-	mi := ticket.MediaInfo()
+	mi := ticket.ActionableMediaInfo()
 	playFn(mi.ProduceMediaQueueEntry(requestedBy, balance,
 		ticket.Unskippable() || e.newEntriesAlwaysUnskippableForFree,
 		ticket.Concealed(), ticket.ID()))
@@ -337,7 +337,7 @@ type ticket struct {
 	forceAnonymous           bool
 	requestedBy              auth.User
 	createdAt                time.Time
-	mediaInfo                media.Info
+	mediaInfo                media.ActionableInfo
 	paymentReceiver          payment.PaymentReceiver
 	pricing                  pricer.EnqueuePricing
 	statusChanged            event.NoArgEvent
@@ -352,7 +352,7 @@ func (t *ticket) Concealed() bool {
 	return t.concealed
 }
 
-func (t *ticket) MediaInfo() media.Info {
+func (t *ticket) ActionableMediaInfo() media.ActionableInfo {
 	return t.mediaInfo
 }
 

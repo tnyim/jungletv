@@ -472,7 +472,7 @@ func (r *Handler) onMediaChanged(ctx context.Context, newMedia media.QueueEntry)
 }
 
 func (r *Handler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) error {
-	r.log.Printf("Media with ID %s removed from queue", removed.QueueID())
+	r.log.Printf("Media with ID %s removed from queue", removed.PerformanceID())
 	amountToReimburse := removed.RequestCost()
 	if amountToReimburse.Cmp(big.NewInt(0)) == 0 {
 		r.log.Println("Request cost was 0, nothing to reimburse")
@@ -488,7 +488,7 @@ func (r *Handler) onMediaRemoved(ctx context.Context, removed media.QueueEntry) 
 	_, err := r.pointsManager.CreateTransaction(ctx, removed.RequestedBy(), types.PointsTxTypeMediaEnqueuedRewardReversal,
 		-pointsReward, pointsmanager.TxExtraField{
 			Key:   "media",
-			Value: removed.QueueID()})
+			Value: removed.PerformanceID()})
 	if err != nil {
 		if errors.Is(err, types.ErrInsufficientPointsBalance) {
 			// user already spent the reward, let's deduct it from the refunded amount as if this was a points purchase
@@ -537,7 +537,7 @@ func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry)
 		r.getPointsRewardForMedia(m),
 		pointsmanager.TxExtraField{
 			Key:   "media",
-			Value: m.QueueID(),
+			Value: m.PerformanceID(),
 		})
 	if err != nil {
 		return stacktrace.Propagate(err, "")

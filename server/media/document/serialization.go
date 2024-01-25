@@ -74,3 +74,22 @@ func (s *DocumentProvider) UnmarshalQueueEntryJSON(ctxCtx context.Context, b []b
 
 	return v, true, nil
 }
+
+func (s *DocumentProvider) BasicMediaInfoFromPlayedMedia(playedMedia *types.PlayedMedia) (media.BasicInfo, error) {
+	var info dbMediaInfo
+	err := playedMedia.MediaInfo.Unmarshal(&info)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	// let's just reuse existing types, it's safe because we return a media.BasicInfo,
+	// so we are sure that the methods that depend on the fields don't fill won't be called
+	// (well, ideally - unless someone messes up and decides to cast the interface improperly)
+
+	v := &queueEntryDocument{
+		CommonInfo: media.CommonMediaInfoFromPlayedMedia(playedMedia, info.Title),
+		document:   &types.Document{ID: playedMedia.MediaID},
+	}
+
+	return v, nil
+}

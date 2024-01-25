@@ -157,7 +157,7 @@ func (q *MediaQueue) SetInsertCursor(entryID string) error {
 
 	for i, entry := range q.queue {
 		// never allow for setting the cursor to the currently playing entry
-		if i != 0 && entryID == entry.QueueID() {
+		if i != 0 && entryID == entry.PerformanceID() {
 			q.insertCursor = entryID
 			q.queueUpdated.Notify(false)
 			return nil
@@ -193,7 +193,7 @@ func (q *MediaQueue) LengthUpToCursor() int {
 
 	l := 0
 	for _, entry := range q.queue {
-		if q.insertCursor == entry.QueueID() {
+		if q.insertCursor == entry.PerformanceID() {
 			return l
 		}
 		l++
@@ -225,7 +225,7 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 				// never insert at the beginning (skip) even if that's where the cursor is
 				continue
 			}
-			if q.insertCursor == entry.QueueID() {
+			if q.insertCursor == entry.PerformanceID() {
 				q.queue = append(q.queue[:i+1], q.queue[i:]...)
 				q.queue[i] = newEntry
 				insertedAtCursor = true
@@ -312,7 +312,7 @@ func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user au
 	defer q.queueMutex.Unlock()
 
 	for _, entry := range q.queue {
-		if entryID == entry.QueueID() {
+		if entryID == entry.PerformanceID() {
 			reqBy := entry.RequestedBy()
 			if reqBy == nil || reqBy.IsUnknown() || (reqBy != nil && reqBy.Address() != user.Address()) {
 				return ErrInsufficientPermissionsToRemoveEntry
@@ -342,14 +342,14 @@ func (q *MediaQueue) removeEntryInMutex(entryID string, selfRemoval bool) (media
 		return nil, stacktrace.NewError("the queue is empty")
 	}
 
-	if entryID == q.queue[0].QueueID() {
+	if entryID == q.queue[0].PerformanceID() {
 		q.queue[0].Stop()
 		// ProcessQueueWorker will take care of firing entryRemoved
 		return q.queue[0], nil
 	}
 
 	for i, entry := range q.queue {
-		if entryID == entry.QueueID() {
+		if entryID == entry.PerformanceID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
 			q.entryRemoved.Notify(EntryRemovedEventArg{i, entry, selfRemoval}, false)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
@@ -368,7 +368,7 @@ func (q *MediaQueue) MoveEntry(entryID string, user auth.User, up bool) error {
 	defer q.queueMutex.Unlock()
 
 	for i, entry := range q.queue {
-		if entryID != entry.QueueID() {
+		if entryID != entry.PerformanceID() {
 			continue
 		}
 
@@ -421,9 +421,9 @@ func (q *MediaQueue) canMoveEntryInMutex(i int, user auth.User, up bool) error {
 	}
 
 	if q.insertCursor != "" &&
-		(q.insertCursor == q.queue[i].QueueID() ||
-			(up && q.insertCursor == q.queue[i-1].QueueID()) ||
-			(!up && q.insertCursor == q.queue[i+1].QueueID())) {
+		(q.insertCursor == q.queue[i].PerformanceID() ||
+			(up && q.insertCursor == q.queue[i-1].PerformanceID()) ||
+			(!up && q.insertCursor == q.queue[i+1].PerformanceID())) {
 		return stacktrace.NewError("this entry is not in a position where it can be moved")
 	}
 
@@ -447,7 +447,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 
 			if len(q.queue) > 0 {
 				currentQueueEntry = q.queue[0]
-				if currentQueueEntry.QueueID() == q.insertCursor {
+				if currentQueueEntry.PerformanceID() == q.insertCursor {
 					q.insertCursor = ""
 				}
 				if q.playingSince.IsZero() {
@@ -656,12 +656,12 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 
 	now := time.Now()
 	if prevMedia != nil {
-		medias, err := types.GetPlayedMediaWithIDs(ctx, []string{prevMedia.QueueID()})
+		medias, err := types.GetPlayedMediaWithIDs(ctx, []string{prevMedia.PerformanceID()})
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
 
-		prevPlayedMedia, ok := medias[prevMedia.QueueID()]
+		prevPlayedMedia, ok := medias[prevMedia.PerformanceID()]
 		if !ok {
 			return stacktrace.NewError("previous media not returned from database")
 		}

@@ -14,8 +14,8 @@ import (
 
 // CommonQueueEntry contains the common implementation of some QueueEntry functionality
 type CommonQueueEntry struct {
-	overrider QueueEntry
-	queueID   string
+	overrider     QueueEntry
+	performanceID string
 
 	unskippable bool
 	concealed   bool
@@ -31,10 +31,10 @@ type CommonQueueEntry struct {
 
 	movedBy map[string]struct{}
 
-	mediaInfo Info
+	mediaInfo ActionableInfo
 }
 
-func (e *CommonQueueEntry) InitializeBase(mediaInfo Info, overrider QueueEntry) {
+func (e *CommonQueueEntry) InitializeBase(mediaInfo ActionableInfo, overrider QueueEntry) {
 	e.overrider = overrider
 	e.donePlaying = event.NewNoArg()
 	e.movedBy = make(map[string]struct{})
@@ -42,17 +42,21 @@ func (e *CommonQueueEntry) InitializeBase(mediaInfo Info, overrider QueueEntry) 
 	e.requestedBy = auth.UnknownUser
 }
 
-// QueueID implements the QueueEntry interface
-func (e *CommonQueueEntry) QueueID() string {
-	return e.queueID
+// PerformanceID implements the Performance interface
+func (e *CommonQueueEntry) PerformanceID() string {
+	return e.performanceID
 }
 
-func (e *CommonQueueEntry) MediaInfo() Info {
+func (e *CommonQueueEntry) MediaInfo() BasicInfo {
+	return e.mediaInfo
+}
+
+func (e *CommonQueueEntry) ActionableMediaInfo() ActionableInfo {
 	return e.mediaInfo
 }
 
 func (e *CommonQueueEntry) SetQueueID(queueID string) {
-	e.queueID = queueID
+	e.performanceID = queueID
 }
 
 // Play implements the QueueEntry interface
@@ -70,10 +74,6 @@ func (e *CommonQueueEntry) Play() {
 		}
 
 	}()
-}
-
-func (e *CommonQueueEntry) SetStartedPlaying(t time.Time) {
-	e.startedPlaying = t
 }
 
 // Played implements the QueueEntry interface
@@ -109,7 +109,7 @@ func (e *CommonQueueEntry) DonePlaying() event.NoArgEvent {
 	return e.donePlaying
 }
 
-// RequestedBy implements the QueueEntry interface
+// RequestedBy implements the Performance interface
 func (e *CommonQueueEntry) RequestedBy() auth.User {
 	return e.requestedBy
 }
@@ -118,7 +118,7 @@ func (e *CommonQueueEntry) SetRequestedBy(user auth.User) {
 	e.requestedBy = user
 }
 
-// RequestCost implements the QueueEntry interface
+// RequestCost implements the Performance interface
 func (e *CommonQueueEntry) RequestCost() payment.Amount {
 	return e.requestCost
 }
@@ -127,7 +127,7 @@ func (e *CommonQueueEntry) SetRequestCost(amount payment.Amount) {
 	e.requestCost = amount
 }
 
-// RequestedAt implements the QueueEntry interface
+// RequestedAt implements the Performance interface
 func (e *CommonQueueEntry) RequestedAt() time.Time {
 	return e.requestedAt
 }
@@ -136,13 +136,18 @@ func (e *CommonQueueEntry) SetRequestedAt(requestedAt time.Time) {
 	e.requestedAt = requestedAt
 }
 
-// Unskippable implements the QueueEntry interface
+// Unskippable implements the Performance interface
 func (e *CommonQueueEntry) Unskippable() bool {
 	return e.unskippable
 }
 
 func (e *CommonQueueEntry) SetUnskippable(unskippable bool) {
 	e.unskippable = unskippable
+}
+
+// StartedAt implements the Performance interface
+func (e *CommonQueueEntry) StartedAt() time.Time {
+	return e.startedPlaying
 }
 
 // Concealed implements the QueueEntry interface
@@ -177,7 +182,7 @@ func (e *CommonQueueEntry) MovedBy() []string {
 
 func (e *CommonQueueEntry) BaseProducePlayedMedia(mediaType types.MediaType, mediaID string, mediaInfo interface{}) (*types.PlayedMedia, error) {
 	playedMedia := &types.PlayedMedia{
-		ID:          e.overrider.QueueID(),
+		ID:          e.overrider.PerformanceID(),
 		EnqueuedAt:  e.overrider.RequestedAt(),
 		MediaLength: types.Duration(e.mediaInfo.Length()),
 		MediaOffset: types.Duration(e.mediaInfo.Offset()),

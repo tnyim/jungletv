@@ -7,7 +7,7 @@ type EnqueueRequest interface {
 	RequestedBy() auth.User
 	Unskippable() bool
 	Concealed() bool
-	MediaInfo() Info
+	ActionableMediaInfo() ActionableInfo
 }
 
 // EnqueueRequestCreationResult contains the result of creating a media enqueue request

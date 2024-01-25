@@ -42,7 +42,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 		requestedBy = &address
 	}
 
-	skipBudget, rainBudget, rainedByRequester, err := r.skipManager.EmptySkipAndRainAccounts(ctx, media.QueueID(), requestedBy)
+	skipBudget, rainBudget, rainedByRequester, err := r.skipManager.EmptySkipAndRainAccounts(ctx, media.PerformanceID(), requestedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -74,7 +74,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 			rainBudget.Sub(rainBudget.Int, requesterReward.Int)
 
 			if requesterReward.Cmp(big.NewInt(0)) > 0 {
-				err = r.rewardRequester(ctx, media.QueueID(), requesterSpectator, requesterReward)
+				err = r.rewardRequester(ctx, media.PerformanceID(), requesterSpectator, requesterReward)
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}
@@ -109,7 +109,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	if amountForEach.Int.Cmp(big.NewInt(0)) <= 0 {
 		r.log.Printf("Not rewarding because the amount for each user would be zero")
 	} else {
-		err = r.rewardEligible(ctx, media.QueueID(), eligible, rewardBudget, amountForEach)
+		err = r.rewardEligible(ctx, media.PerformanceID(), eligible, rewardBudget, amountForEach)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}

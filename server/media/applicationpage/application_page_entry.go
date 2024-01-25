@@ -105,7 +105,7 @@ type queueEntryApplicationPageJsonRepresentation struct {
 func (e *queueEntryApplicationPage) MarshalJSON() ([]byte, error) {
 	_, mediaID := e.MediaID()
 	j, err := sonic.Marshal(queueEntryApplicationPageJsonRepresentation{
-		QueueID:            e.QueueID(),
+		QueueID:            e.PerformanceID(),
 		Type:               string(types.MediaTypeApplicationPage),
 		ApplicationID:      e.applicationID,
 		ApplicationVersion: e.applicationVersion,
@@ -121,7 +121,7 @@ func (e *queueEntryApplicationPage) MarshalJSON() ([]byte, error) {
 		MovedBy:            e.MovedBy(),
 	})
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.QueueID())
+		return nil, stacktrace.Propagate(err, "error serializing queue entry %s", e.PerformanceID())
 	}
 	return j, nil
 }

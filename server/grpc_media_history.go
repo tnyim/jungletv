@@ -25,7 +25,12 @@ func (s *grpcServer) PlayedMediaHistory(ctxCtx context.Context, r *proto.PlayedM
 		r.SearchQuery = ""
 	}
 	since := time.Now().AddDate(0, -2, 0)
-	playedMedia, total, err := types.GetPlayedMedia(ctx, true, true, since, r.SearchQuery, readPaginationParameters(r))
+	playedMedia, total, err := types.GetPlayedMedia(ctx, types.GetPlayedMediaFilters{
+		ExcludeDisallowed:       true,
+		ExcludeCurrentlyPlaying: true,
+		StartedSince:            since,
+		TextFilter:              r.SearchQuery,
+	}, readPaginationParameters(r))
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

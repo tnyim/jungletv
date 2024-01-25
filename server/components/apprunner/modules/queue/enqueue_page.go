@@ -110,7 +110,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		entry := applicationpage.NewApplicationPageQueueEntry(applicationID, applicationVersion, pageID, title, thumbnailFileName, length, m.appContext.ApplicationUser(), requestCost, unskippable, concealed)
 
 		ready := make(chan bool)
-		go m.monitorForPageQueueEntry(m.executionContext, entry.QueueID(), pageID, ready)
+		go m.monitorForPageQueueEntry(m.executionContext, entry.PerformanceID(), pageID, ready)
 		pageStillPublished := <-ready
 		if !pageStillPublished {
 			panic(m.runtime.NewTypeError("First argument to enqueuePage must be the ID of a published page"))
@@ -174,7 +174,7 @@ func (m *queueModule) monitorForPageQueueEntry(ctx context.Context, entryID, pag
 	for {
 		select {
 		case args := <-onQueueEntryRemoved:
-			if args.Entry.QueueID() == entryID {
+			if args.Entry.PerformanceID() == entryID {
 				// this monitor outlived its usefulness
 				return
 			}

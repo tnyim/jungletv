@@ -49,7 +49,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 		queue.Entries = make([]*proto.QueueEntry, len(entries))
 		for i, entry := range entries {
 			queue.Entries[i] = &proto.QueueEntry{
-				Id:          entry.QueueID(),
+				Id:          entry.PerformanceID(),
 				Offset:      durationpb.New(entry.MediaInfo().Offset()),
 				Unskippable: entry.Unskippable(),
 				Concealed:   entry.Concealed() && i > 0,
@@ -64,7 +64,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 			requestedBy := entry.RequestedBy()
 			if i == 0 || !entry.Concealed() || isAdmin ||
 				(!user.IsUnknown() && !entry.RequestedBy().IsUnknown() && requestedBy.Address() == user.Address()) {
-				queue.Entries[i].MediaInfo = entry.MediaInfo().SerializeForAPIQueue(ctx)
+				queue.Entries[i].MediaInfo = entry.ActionableMediaInfo().SerializeForAPIQueue(ctx)
 			} else {
 				queue.Entries[i].MediaInfo = &proto.QueueEntry_ConcealedData{}
 			}

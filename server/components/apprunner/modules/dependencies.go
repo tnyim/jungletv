@@ -12,7 +12,9 @@ import (
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
+	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/usercache"
+	"github.com/tnyim/jungletv/types"
 )
 
 // Dependencies is a "everything and the kitchen sink" struct used for injection of singleton dependencies in modules
@@ -21,6 +23,7 @@ type Dependencies struct {
 	ChatManager                  *chatmanager.Manager
 	PointsManager                *pointsmanager.Manager
 	MediaQueue                   *mediaqueue.MediaQueue
+	MediaProviders               map[types.MediaType]media.Provider
 	Pricer                       *pricer.Pricer
 	SkipManager                  *skipmanager.Manager
 	OtherMediaQueueMethods       OtherMediaQueueMethods
