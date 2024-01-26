@@ -989,20 +989,20 @@ declare module "jungletv:queue" {
     export function enqueuePage(pageID: string, placement: EnqueuePlacement, length?: number, options?: PageEnqueueOptions): Promise<QueueEntry>;
 
     /**
-     * Gets the play history for the time period specified between {@link since} and {@link until}, with results sorted by the order in which they played.
+     * Retrieves the play history for the time period specified between {@link since} and {@link until}, with results sorted by the order in which they played.
      *
-     * @param since The start of the time period to get play history for.
-     * @param until The end of the time period to get play history for.
+     * @param since The start of the time period to retrieve play history for.
+     * @param until The end of the time period to retrieve play history for.
      * @param options An optional object containing additional options for the play history request.
-     * @returns An array of {@link MediaPerformance} objects representing the play history sorted by play time.
+     * @returns An array of {@link MediaPerformance} objects representing the play history sorted by the time of the performances.
      */
     export function getPlayHistory(since: Date, until: Date, options?: GetPlayHistoryOptions): Promise<MediaPerformance[]>;
 
     /**
-     * Gets the enqueuing history for entries enqueued in the time period specified between {@link since} and {@link until}, with results sorted by the time at which they were enqueued.
+     * Retrieves the enqueuing history for entries enqueued in the time period specified between {@link since} and {@link until}, with results sorted by the time at which they were enqueued.
      *
-     * @param since The start of the time period to get enqueue history for.
-     * @param until The end of the time period to get enqueue history for.
+     * @param since The start of the time period to retrieve enqueue history for.
+     * @param until The end of the time period to retrieve enqueue history for.
      * @param options An optional object containing additional options for the history request.
      * @returns An array of {@link MediaPerformance} objects representing the enqueuing history sorted by request time.
      */
@@ -1319,7 +1319,7 @@ declare module "jungletv:queue" {
     export interface GetPlayHistoryOptions {
         /**
          * Filter results by inexact title match or exact performance ID match.
-         * The inexact matching algorithm is implementation-specific.
+         * The inexact matching algorithm is implementation-specific - not documented and subject to change.
          * This field powers the "search" function in the user-facing Play History page.
          */
         filter?: string;
@@ -1379,7 +1379,7 @@ declare module "jungletv:queue" {
         moveWithCost: (direction: "up" | "down") => void;
     }
 
-    // Represents one performance of a media on the service, which is or has been associated with a queue entry.
+    /** Represents one performance of a media on the service, which is or has been associated with a queue entry. */
     export interface MediaPerformance {
         /** Information about the media of this queue entry. */
         media: MediaInfo;
@@ -1401,7 +1401,7 @@ declare module "jungletv:queue" {
 
         /**
          * The globally unique identifier of this queue entry.
-         * Can be used to refer to this queue entry even after it has been removed from the queue.
+         * Can be used to refer to this queue entry even after it is done playing.
          */
         id: string;
 
@@ -1496,7 +1496,7 @@ export enum PermissionLevelEnum {
 /** The permission levels a user can have */
 export type PermissionLevel = `${PermissionLevelEnum}`;
 
-/** Represents a user or application within the JungleTV service */
+/** Represents a user or application within the JungleTV service. */
 export interface User {
     /** Reward address of the user. */
     address: string;
@@ -1510,7 +1510,7 @@ export interface User {
     /** Nickname of the user, may be undefined if the user does not have a nickname set. */
     nickname: string | undefined;
 
-    /** Permission level of the user, may not be accurate in all contexts: may report a lower permission level than that which the user may achieve in a different context. */
+    /** Permission level of the user, may not be accurate in all contexts: may report a lower permission level than that which the user is able to achieve in a different context. */
     permissionLevel: PermissionLevel;
 }
 

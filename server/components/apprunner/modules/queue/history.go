@@ -56,6 +56,9 @@ func (m *queueModule) parseDatesForGetPlayHistory(call goja.FunctionCall, fnName
 	if err != nil {
 		panic(m.runtime.NewTypeError("Second argument to %s must be a Date", fnName))
 	}
+	if since.After(until) {
+		panic(m.runtime.NewTypeError("First argument to %s must correspond to a Date prior to that of the second argument", fnName))
+	}
 	return since, until
 }
 

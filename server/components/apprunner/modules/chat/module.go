@@ -255,6 +255,9 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 	if err != nil {
 		panic(m.runtime.NewTypeError("Second argument to getMessages must be a Date"))
 	}
+	if since.After(until) {
+		panic(m.runtime.NewTypeError("First argument to getMessages must correspond to a Date prior to that of the second argument"))
+	}
 
 	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
 		messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
