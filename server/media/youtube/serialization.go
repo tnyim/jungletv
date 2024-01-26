@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
@@ -84,8 +85,9 @@ func (s *VideoProvider) BasicMediaInfoFromPlayedMedia(playedMedia *types.PlayedM
 	// (well, ideally - unless someone messes up and decides to cast the interface improperly)
 
 	v := &queueEntryYouTubeVideo{
-		CommonInfo: media.CommonMediaInfoFromPlayedMedia(playedMedia, info.Title),
-		id:         playedMedia.MediaID,
+		CommonInfo:   media.CommonMediaInfoFromPlayedMedia(playedMedia, info.Title),
+		id:           playedMedia.MediaID,
+		thumbnailURL: fmt.Sprintf("https://i.ytimg.com/vi/%s/default.jpg", playedMedia.MediaID),
 	}
 
 	return v, nil

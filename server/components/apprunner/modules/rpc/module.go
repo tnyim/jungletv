@@ -153,8 +153,8 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 
 	callContext := map[string]interface{}{
 		"page":    pageID,
-		"trusted": false,
 		"sender":  gojautil.SerializeUser(vm, user),
+		"trusted": false,
 	}
 
 	// unmarshal args
@@ -228,15 +228,8 @@ func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, 
 	for _, h := range handlers {
 		eventContext := map[string]interface{}{
 			"page":    pageID,
-			"sender":  goja.Undefined(),
+			"sender":  gojautil.SerializeUser(vm, user),
 			"trusted": trusted,
-		}
-		if user != nil && !user.IsUnknown() {
-			eventContext["sender"] = map[string]interface{}{
-				"address":         user.Address(),
-				"nickname":        user.Nickname(),
-				"permissionLevel": user.PermissionLevel(),
-			}
 		}
 
 		// unmarshal args

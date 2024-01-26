@@ -2,6 +2,7 @@ package queue
 
 import (
 	"math"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/palantir/stacktrace"
@@ -72,6 +73,14 @@ func serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance m
 		return vm.ToValue(performance.PlayedFor().Milliseconds())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
+	result.DefineAccessorProperty("startedAt", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+		startedAt := performance.StartedAt()
+		if startedAt.IsZero() {
+			return goja.Undefined()
+		}
+		return gojautil.SerializeTime(vm, startedAt)
+	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
 	result.DefineAccessorProperty("playing", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(performance.Playing())
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
@@ -85,7 +94,11 @@ func serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance m
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("requestedAt", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return gojautil.SerializeTime(vm, performance.RequestedAt())
+		requestedAt := performance.RequestedAt()
+		if requestedAt.IsZero() || requestedAt.Equal(time.Unix(0, 0)) {
+			return goja.Undefined()
+		}
+		return gojautil.SerializeTime(vm, requestedAt)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("requestedBy", vm.ToValue(func(call goja.FunctionCall) goja.Value {

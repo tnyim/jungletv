@@ -77,8 +77,8 @@ func (m *queueModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("moveEntry", m.moveEntryJS)
 		m.exports.Set("moveEntryWithCost", m.moveEntryWithCostJS)
 		m.exports.Set("enqueuePage", m.enqueuePage)
-		m.exports.Set("getPlayHistoryByPerformanceTime", m.getPlayHistoryByPerformanceTime)
-		m.exports.Set("getPlayHistoryByRequestTime", m.getPlayHistoryByRequestTime)
+		m.exports.Set("getPlayHistory", m.getPlayHistory)
+		m.exports.Set("getEnqueueHistory", m.getEnqueueHistory)
 
 		m.setPropertyExports()
 

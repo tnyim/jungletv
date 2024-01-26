@@ -36,12 +36,32 @@ type GetPlayedMediaFilters struct {
 	EnqueuedSince           time.Time
 	EnqueuedUntil           time.Time
 	TextFilter              string
+	OrderBy                 GetPlayedMediaOrderBy
 }
+
+// GetPlayedMediaOrderBy specifies how to order the results of GetPlayedMedia
+type GetPlayedMediaOrderBy string
+
+// GetPlayedMediaOrderByStartedAtAsc sorts the results of GetPlayedMedia by StartedAt in ascending order
+var GetPlayedMediaOrderByStartedAtAsc GetPlayedMediaOrderBy = "played_media.started_at ASC"
+
+// GetPlayedMediaOrderByStartedAtDesc sorts the results of GetPlayedMedia by StartedAt in descending order
+var GetPlayedMediaOrderByStartedAtDesc GetPlayedMediaOrderBy = "played_media.started_at DESC"
+
+// GetPlayedMediaOrderByEnqueuedAtAsc sorts the results of GetPlayedMedia by EnqueuedAt in ascending order
+var GetPlayedMediaOrderByEnqueuedAtAsc GetPlayedMediaOrderBy = "played_media.enqueued_at ASC"
+
+// GetPlayedMediaOrderByEnqueuedAtDesc sorts the results of GetPlayedMedia by EnqueuedAt in descending order
+var GetPlayedMediaOrderByEnqueuedAtDesc GetPlayedMediaOrderBy = "played_media.enqueued_at DESC"
 
 // GetPlayedMedia returns all played media in the database according to the given filters
 func GetPlayedMedia(node sqalx.Node, filters GetPlayedMediaFilters, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
+	orderBy := "played_media.started_at DESC"
+	if filters.OrderBy != "" {
+		orderBy = string(filters.OrderBy)
+	}
 	s := sdb.Select().
-		OrderBy("played_media.started_at DESC")
+		OrderBy(orderBy)
 	if filters.ExcludeDisallowed {
 		s = s.LeftJoin(`disallowed_media ON
 				disallowed_media.media_type = played_media.media_type AND

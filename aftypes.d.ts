@@ -185,7 +185,7 @@ declare module "jungletv:chat" {
         shadowbanned: boolean;
 
         /** The author of the message, only present if the message has an author. Messages without an author are considered system messages. */
-        author?: Author;
+        author?: User;
 
         /**
          * A partial representation of the message to which this message is a reply.
@@ -202,21 +202,6 @@ declare module "jungletv:chat" {
          * Equivalent to calling {@link removeMessage} with the {@link id} of this message.
          */
         remove: () => ChatMessage;
-    }
-
-    /** Represents the author of a {@link ChatMessage} */
-    export interface Author {
-        /** Reward address of the message author. */
-        address: string;
-
-        /** Application ID responsible for this user, may be empty if this user is not controlled by an application. */
-        applicationID: string;
-
-        /** Whether the {@link address} is from a currency system that is not the one native to JungleTV. Currently guaranteed to be false in the context of the chat system. */
-        isFromAlienChain: false;
-
-        /** Nickname of the message author, may be empty if the user does not have a nickname set. */
-        nickname: string;
     }
 
     /** Represents an attachment of a {@link ChatMessage}. Each type of attachment has its own interface. */
@@ -452,21 +437,6 @@ declare module "jungletv:rpc" {
      */
     export function emitToPageUser(pageID: string, user: string | null | undefined, eventName: string, ...serverParams: any[]): void;
 
-    /** The permission levels a user can have */
-    export enum PermissionLevelEnum {
-        /** The method can be called by any user, even unauthenticated ones. */
-        Unauthenticated = "unauthenticated",
-
-        /** The method can only be called by authenticated users (users registered to receive rewards). */
-        User = "user",
-
-        /** The method can only be called by JungleTV staff. */
-        Admin = "admin",
-    }
-
-    /** The permission levels a user can have */
-    export type PermissionLevel = `${PermissionLevelEnum}`;
-
     export type MethodRequiredPermissionLevel = PermissionLevel | "";
 
     /** The type of function that handles RPC method calls on the server */
@@ -484,7 +454,7 @@ declare module "jungletv:rpc" {
         page: string;
 
         /** The authenticated user originating this event or invocation, will be undefined if the operation originates from an unauthenticated visitor. */
-        sender?: Sender;
+        sender?: User;
 
         /** Whether this event is from a trusted origin. `true` on events emitted by the JungleTV AF itself. Guaranteed to be `false` on method invocations. */
         trusted: boolean;
@@ -499,18 +469,6 @@ declare module "jungletv:rpc" {
     /** The context of a trusted (runtime-originated) remote method invocation */
     export interface TrustedRemoteContext extends RemoteContext {
         trusted: true;
-    }
-
-    /** Represents the authenticated sender of a remote event or remote method invocation. */
-    export interface Sender {
-        /* Reward address of the user. */
-        address: string;
-
-        /** Nickname of the user, may be empty if the user does not have a nickname set. */
-        nickname: string;
-
-        /** Either `admin` or `user` depending on whether the user is a JungleTV staff member. */
-        permissionLevel: Exclude<PermissionLevel, "unauthenticated">;
     }
 }
 
@@ -1031,6 +989,26 @@ declare module "jungletv:queue" {
     export function enqueuePage(pageID: string, placement: EnqueuePlacement, length?: number, options?: PageEnqueueOptions): Promise<QueueEntry>;
 
     /**
+     * Gets the play history for the time period specified between {@link since} and {@link until}, with results sorted by the order in which they played.
+     *
+     * @param since The start of the time period to get play history for.
+     * @param until The end of the time period to get play history for.
+     * @param options An optional object containing additional options for the play history request.
+     * @returns An array of {@link MediaPerformance} objects representing the play history sorted by play time.
+     */
+    export function getPlayHistory(since: Date, until: Date, options?: GetPlayHistoryOptions): Promise<MediaPerformance[]>;
+
+    /**
+     * Gets the enqueuing history for entries enqueued in the time period specified between {@link since} and {@link until}, with results sorted by the time at which they were enqueued.
+     *
+     * @param since The start of the time period to get enqueue history for.
+     * @param until The end of the time period to get enqueue history for.
+     * @param options An optional object containing additional options for the history request.
+     * @returns An array of {@link MediaPerformance} objects representing the enqueuing history sorted by request time.
+     */
+    export function getEnqueueHistory(since: Date, until: Date, options?: GetPlayHistoryOptions): Promise<MediaPerformance[]>;
+
+    /**
      * This read-only property indicates which users can add new entries to the media queue.
      * Applications may be able to enqueue media regardless of this setting.
      * To modify this setting, use {@link setEnqueuingPermission} (a setter function is necessary because some modes require extra arguments).
@@ -1337,47 +1315,48 @@ declare module "jungletv:queue" {
         thumbnail?: string;
     }
 
-    /** Represents an entry that is, will be or has been in the media queue. */
-    export interface QueueEntry {
+    /** Contains additional options for fetching play history */
+    export interface GetPlayHistoryOptions {
+        /**
+         * Filter results by inexact title match or exact performance ID match.
+         * The inexact matching algorithm is implementation-specific.
+         * This field powers the "search" function in the user-facing Play History page.
+         */
+        filter?: string;
+
+        /**
+         * When set to true, results will be sorted in descending order instead of ascending order.
+         */
+        descending?: boolean;
+
+        /**
+         * When set to true, history results will include media that is presently disallowed on the service.
+         */
+        includeDisallowed?: boolean;
+
+        /**
+         * When set to true, history results will include the currently playing media.
+         */
+        includePlaying?: boolean;
+
+        /**
+         * When specified, will set a maximum number of results to return.
+         */
+        limit?: number;
+
+        /**
+         * When specified, will set a zero-based offset from the start of the results, to then return up to {@link limit} results.
+         */
+        offset?: number;
+    }
+
+    /** Represents an entry that is in the media queue. */
+    export interface QueueEntry extends MediaPerformance {
         /** Whether the media information will only be visible to unprivileged users once this entry begins playing. */
         concealed: boolean;
 
-        /** Information about the media of this queue entry. */
-        media: MediaInfo;
-
         /** List of the addresses of the users who moved this queue entry. */
         movedBy: string[];
-
-        /** Whether this queue entry has finished playing, in which case {@link playedFor} will not increase further. */
-        played: boolean;
-
-        /** Duration in milliseconds corresponding to how long this queue entry has played. */
-        playedFor: number;
-
-        /** Whether this queue entry is currently playing. */
-        playing: boolean;
-
-        /**
-         * The globally unique identifier of this queue entry.
-         * Can be used to refer to this queue entry even after it has been removed from the queue.
-         */
-        id: string;
-
-        /** String representing how much the requester of this entry spent to enqueue this entry, in raw Banano units. */
-        // TODO convert to uniform TS type for amounts?
-        requestCost: string;
-
-        /** Moment when this entry was added to the queue. */
-        requestedAt: Date;
-
-        /**
-         * The user who added this entry to the queue.
-         * May be `undefined` in the case of entries automatically enqueued by JungleTV or by staff.
-         */
-        requestedBy: User | undefined;
-
-        /** Whether this queue entry may be skipped by unprivileged users or through community skipping. */
-        unskippable: boolean;
 
         /**
          * Remove this queue entry from the queue.
@@ -1398,6 +1377,52 @@ declare module "jungletv:queue" {
          * @param direction Whether to move the queue entry closer to the currently playing entry ("up") or further away ("down").
          */
         moveWithCost: (direction: "up" | "down") => void;
+    }
+
+    // Represents one performance of a media on the service, which is or has been associated with a queue entry.
+    export interface MediaPerformance {
+        /** Information about the media of this queue entry. */
+        media: MediaInfo;
+
+        /** Whether this queue entry has finished playing, in which case {@link playedFor} will not increase further. */
+        played: boolean;
+
+        /** Duration in milliseconds corresponding to how long this queue entry has played. */
+        playedFor: number;
+
+        /**
+         * Moment at which this queue entry began playing.
+         * May be undefined if this queue entry is yet to begin playing.
+         */
+        startedAt: Date | undefined;
+
+        /** Whether this queue entry is currently playing. */
+        playing: boolean;
+
+        /**
+         * The globally unique identifier of this queue entry.
+         * Can be used to refer to this queue entry even after it has been removed from the queue.
+         */
+        id: string;
+
+        /** String representing how much the requester of this entry spent to enqueue this entry, in raw Banano units. */
+        // TODO convert to uniform TS type for amounts?
+        requestCost: string;
+
+        /**
+         * Moment when this entry was added to the queue.
+         * May be undefined for queue entries which played early in the history of JungleTV.
+         */
+        requestedAt: Date | undefined;
+
+        /**
+         * The user who added this entry to the queue.
+         * May be `undefined` in the case of entries automatically enqueued by JungleTV or by staff.
+         */
+        requestedBy: User | undefined;
+
+        /** Whether this queue entry may be skipped by unprivileged users or through community skipping. */
+        unskippable: boolean;
     }
 
     /** Information about the media associated with a queue entry. */
@@ -1454,31 +1479,45 @@ declare module "jungletv:queue" {
 
     /** Represents the restriction in who is able to add entries to the queue. */
     export type EnqueuingPermission = `${EnqueuingPermissionEnum}`;
+}
 
-    /** Represents a user or application within the JungleTV service */
-    // TODO merge with chat Author and RPC Sender objects
-    export interface User {
-        /** Reward address of the message author. */
-        address: string;
+/** The permission levels a user can have */
+export enum PermissionLevelEnum {
+    /** The user is not identified. When used to restrict accessibility of remote calls, the resulting method can be called by any user, even unauthenticated ones. */
+    Unauthenticated = "unauthenticated",
 
-        /** Application ID responsible for this user, may be empty if this user is not controlled by an application. */
-        applicationID: string;
+    /** The user has regular access permissions. When used to restrict accessibility of remote calls, the resulting method can only be called by authenticated users (users registered to receive rewards). */
+    User = "user",
 
-        /** Whether the {@link address} is from a currency system that is not the one native to JungleTV. */
-        isFromAlienChain: false;
+    /** The user has administrator permisions. When used to restrict accessibility of remote calls, the method can only be called by JungleTV staff. */
+    Admin = "admin",
+}
 
-        /** Nickname of the message author, may be empty if the user does not have a nickname set. */
-        nickname: string;
+/** The permission levels a user can have */
+export type PermissionLevel = `${PermissionLevelEnum}`;
 
-        /** Permission level of the user, may not be accurate in all contexts: may report a lower permission level than that which user can achieve in different contexts. */
-        permissionLevel: UserPermissionLevel;
-    }
+/** Represents a user or application within the JungleTV service */
+export interface User {
+    /** Reward address of the user. */
+    address: string;
+
+    /** Application ID responsible for this user, may be undefined if this user is not controlled by an application. */
+    applicationID: string | undefined;
+
+    /** Whether the {@link address} is from a currency system that is not the one native to JungleTV. */
+    isFromAlienChain: false;
+
+    /** Nickname of the user, may be undefined if the user does not have a nickname set. */
+    nickname: string | undefined;
+
+    /** Permission level of the user, may not be accurate in all contexts: may report a lower permission level than that which the user may achieve in a different context. */
+    permissionLevel: PermissionLevel;
 }
 
 /**
  * Represents the permission level of the current user as provided by the client-side appbridge script.
  */
-type UserPermissionLevel = "unauthenticated" | "user" | "appeditor" | "admin";
+type ClientSideUserPermissionLevel = "unauthenticated" | "user" | "appeditor" | "admin";
 
 /**
  * Strongly-typed event targets
@@ -1630,7 +1669,7 @@ interface AppBridge {
      * Get the permission level of the current user.
      * @returns The permission level of the current user.
      */
-    getUserPermissionLevel: () => Promise<UserPermissionLevel>;
+    getUserPermissionLevel: () => Promise<ClientSideUserPermissionLevel>;
 
     /**
      * Shows a modal containing the profile of a user.
