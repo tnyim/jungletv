@@ -483,7 +483,7 @@ func (q *MediaQueue) ProcessQueueWorker(ctx context.Context) {
 			onNextMedia, unsubscribe = ev.Subscribe(event.BufferFirst)
 			length := currentQueueEntry.MediaInfo().Length()
 			lengthStr := "infinite"
-			if length == math.MaxInt64 {
+			if length != math.MaxInt64 {
 				lengthStr = currentQueueEntry.MediaInfo().Length().String()
 			}
 			q.log.Printf("Current queue entry: \"%s\" with length %s", currentQueueEntry.MediaInfo().Title(), lengthStr)
