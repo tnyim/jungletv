@@ -46,8 +46,9 @@ func (m *dbModule) ModuleName() string {
 func (m *dbModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *dbModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
+func (m *dbModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
 	m.ctx = ctx
+	m.runtime = runtime
 }
 
 func (m *dbModule) query(call goja.FunctionCall) goja.Value {

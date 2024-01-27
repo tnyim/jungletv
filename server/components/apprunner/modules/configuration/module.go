@@ -64,8 +64,9 @@ func (m *configurationModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
+func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
 	m.executionContext = ctx
+	m.runtime = runtime
 
 	unsub := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 

@@ -70,8 +70,9 @@ func (m *pagesModule) ModuleName() string {
 func (m *pagesModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *pagesModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
+func (m *pagesModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
 	m.ctx = ctx
+	m.runtime = runtime
 }
 
 func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {

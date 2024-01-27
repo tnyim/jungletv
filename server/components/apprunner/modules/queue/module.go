@@ -104,8 +104,9 @@ func (m *queueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
+func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
 	m.executionContext = ctx
+	m.runtime = runtime
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 	m.crowdfundingEventAdapter.StartOrResume(ctx, wg, m.runtime)
 }

@@ -71,7 +71,8 @@ func (m *walletModule) ModuleName() string {
 func (m *walletModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *walletModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
+func (m *walletModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
+	m.runtime = runtime
 	m.ctx = ctx
 }
 

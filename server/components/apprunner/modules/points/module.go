@@ -84,8 +84,9 @@ func (m *pointsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
+func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
 	m.executionContext = ctx
+	m.runtime = runtime
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 

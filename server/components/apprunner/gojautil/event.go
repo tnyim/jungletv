@@ -77,7 +77,6 @@ func (a *EventAdapter) AddEventListener(call goja.FunctionCall) goja.Value {
 		return goja.Undefined()
 	}
 	panic(a.runtime.NewTypeError("Unknown event '%s'", event))
-
 }
 
 // RemoveEventListener should be exposed to the goja runtime so scripts can detach event handlers

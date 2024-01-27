@@ -17,7 +17,7 @@ type NativeModule interface {
 	ModuleName() string
 	IsNodeBuiltin() bool
 	AutoRequire() (bool, string)
-	ExecutionResumed(context.Context, *sync.WaitGroup)
+	ExecutionResumed(context.Context, *sync.WaitGroup, *goja.Runtime)
 }
 
 // ApplicationLogger logs application actions

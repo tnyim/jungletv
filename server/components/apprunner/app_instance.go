@@ -211,8 +211,6 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.startedOrStoppedAt = time.Now()
 	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
 
-	a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
-
 	if !a.startedOnce {
 		mainFile, isTypeScript, err := a.getMainFile()
 		if err != nil {
@@ -231,6 +229,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 			_, err = r.RunScript("", runtimeBaseCode)
 
+			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup, r)
 			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
@@ -260,6 +259,10 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			a.auditEntryAddedU = a.appLogger.AuditEntryAdded().SubscribeUsingCallback(event.BufferAll, a.sendLogEntryToModLog)
 		}
 		a.startedOnce = true
+	} else {
+		a.loop.RunOnLoop(func(r *goja.Runtime) {
+			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup, r)
+		})
 	}
 
 	return nil

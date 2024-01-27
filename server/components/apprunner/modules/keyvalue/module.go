@@ -51,8 +51,9 @@ func (m *keyValueModule) ModuleName() string {
 func (m *keyValueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *keyValueModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
+func (m *keyValueModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
 	m.ctx = ctx
+	m.runtime = runtime
 }
 
 func (m *keyValueModule) key(call goja.FunctionCall) goja.Value {
