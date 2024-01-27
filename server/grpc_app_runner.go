@@ -191,6 +191,7 @@ func (s *grpcServer) ConsumeApplicationLog(r *proto.ConsumeApplicationLogRequest
 				if err != nil {
 					return stacktrace.Propagate(err, "")
 				}
+				logEntryAddedU()
 				onLogEntryAdded, logEntryAddedU = appLog.LogEntryAdded().Subscribe(event.BufferAll)
 				// send initial logs we always miss since they are sent to the log before the launched event is fired
 				for _, entry := range appLog.LogEntriesSince(ulid.MustNew(0, ulid.DefaultEntropy()), levels) {

@@ -2,11 +2,18 @@ package event
 
 import (
 	"context"
+	"fmt"
+	"runtime"
 	"sync"
 
+	pkgerrors "github.com/pkg/errors"
 	"github.com/smallnest/chanx"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/utils/fastcollection"
 )
+
+const detectSubscriptionLeaks = buildconfig.DEBUG || buildconfig.LAB
+const panicOnSubscriptionLeak = buildconfig.DEBUG
 
 // Event is an event including dispatching mechanism
 type Event[T any] interface {
@@ -76,6 +83,25 @@ func New[T any]() Event[T] {
 	return &event[T]{}
 }
 
+func makeFinalizer(errStack error) func(*bool) {
+	return func(hadUnsubscribed *bool) {
+		if !(*hadUnsubscribed) {
+			type stackTracer interface {
+				StackTrace() pkgerrors.StackTrace
+			}
+
+			err, ok := pkgerrors.Cause(errStack).(stackTracer)
+			if ok {
+				if panicOnSubscriptionLeak {
+					panic(fmt.Sprintf("%v, subscribed at: %+v\n", err, err.StackTrace()[1:]))
+				} else {
+					fmt.Printf("WARNING: %v, subscribed at: %+v\n", err, err.StackTrace()[1:])
+				}
+			}
+		}
+	}
+}
+
 // Subscribe returns a channel that will receive notification events.
 func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 	e.mu.Lock()
@@ -113,10 +139,35 @@ func (e *event[T]) Subscribe(bufferStrategy BufferStrategy) (<-chan T, func()) {
 		e.pendingNotifications = nil
 	}
 
+	if detectSubscriptionLeaks {
+		var unsubscribed bool
+		unsubscribedPointer := &unsubscribed
+		unsubFn := func() {
+			e.unsubscribe(subID, bufferStrategy, unsubscribedPointer)
+			cancelCtx()
+		}
+
+		errStack := pkgerrors.New("event unsubscribe function finalized without unsubscribing")
+		runtime.SetFinalizer(unsubscribedPointer, makeFinalizer(errStack))
+		return retChan, unsubFn
+	}
+
 	var unsubscribed bool
-	return retChan, func() {
+	unsubFn := func() {
 		e.unsubscribe(subID, bufferStrategy, &unsubscribed)
 		cancelCtx()
+	}
+	return retChan, unsubFn
+}
+
+func makeUnsubProxyWithCanary(baseUnsub func(), errStack error) func() {
+	var canary bool
+	canaryPointer := &canary
+	runtime.SetFinalizer(canaryPointer, makeFinalizer(errStack))
+
+	return func() {
+		*canaryPointer = true
+		baseUnsub()
 	}
 }
 
@@ -134,6 +185,10 @@ func (e *event[T]) SubscribeUsingCallback(bufferStrategy BufferStrategy, cbFunct
 			cbFunction(param)
 		}
 	}()
+	if detectSubscriptionLeaks {
+		errStack := pkgerrors.New("event unsubscribe function finalized without unsubscribing")
+		return makeUnsubProxyWithCanary(unsub, errStack)
+	}
 	return unsub
 }
 
@@ -156,6 +211,10 @@ func (e *event[T]) SubscribeUsingCallbackContext(ctx context.Context, bufferStra
 
 		}
 	}()
+	if detectSubscriptionLeaks {
+		errStack := pkgerrors.New("event unsubscribe function finalized without unsubscribing")
+		return makeUnsubProxyWithCanary(unsub, errStack)
+	}
 	return unsub
 }
 
