@@ -62,6 +62,8 @@ type rpcModule struct {
 	jsonUnmarshaller goja.Callable
 	jsonMarshaller   goja.Callable
 
+	userSerializer gojautil.UserSerializer
+
 	onGlobalEvent   event.Event[ClientEventData]
 	onPageEvent     event.Keyed[string, ClientEventData]
 	onUserEvent     event.Keyed[string, ClientEventData]
@@ -79,10 +81,12 @@ type eventListener struct {
 }
 
 // New returns a new RPC module
-func New() RPCModule {
+func New(userSerializer gojautil.UserSerializer) RPCModule {
 	return &rpcModule{
 		handlers:       make(map[string]handler),
 		eventListeners: make(map[string][]eventListener),
+
+		userSerializer: userSerializer,
 
 		onGlobalEvent:   event.New[ClientEventData](),
 		onPageEvent:     event.NewKeyed[string, ClientEventData](),
@@ -153,11 +157,10 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 		panic(vm.NewTypeError("Insufficient permissions"))
 	}
 
-	callContext := map[string]interface{}{
-		"page":    pageID,
-		"sender":  gojautil.SerializeUser(vm, user),
-		"trusted": false,
-	}
+	callContext := vm.NewObject()
+	callContext.Set("page", pageID)
+	callContext.Set("trusted", false)
+	callContext.DefineAccessorProperty("sender", m.userSerializer.BuildUserGetter(vm, user), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	// unmarshal args
 	callableArgs := make([]goja.Value, len(args)+1)
@@ -228,11 +231,10 @@ func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, 
 	handlers := m.eventListeners[event]
 
 	for _, h := range handlers {
-		eventContext := map[string]interface{}{
-			"page":    pageID,
-			"sender":  gojautil.SerializeUser(vm, user),
-			"trusted": trusted,
-		}
+		eventContext := vm.NewObject()
+		eventContext.Set("page", pageID)
+		eventContext.Set("trusted", trusted)
+		eventContext.DefineAccessorProperty("sender", m.userSerializer.BuildUserGetter(vm, user), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		// unmarshal args
 		callableArgs := make([]goja.Value, len(args)+1)

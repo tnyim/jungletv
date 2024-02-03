@@ -18,7 +18,7 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 	}
 	result := vm.NewObject()
 
-	serializePerformance(vm, result, entry)
+	m.serializePerformance(vm, result, entry)
 
 	result.DefineAccessorProperty("concealed", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(entry.Concealed())
@@ -52,7 +52,7 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 	return result
 }
 
-func serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance media.Performance) goja.Value {
+func (m *queueModule) serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance media.Performance) goja.Value {
 	if performance == nil || performance == media.Performance(nil) {
 		return goja.Undefined()
 	}
@@ -101,9 +101,7 @@ func serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance m
 		return gojautil.SerializeTime(vm, requestedAt)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
-	result.DefineAccessorProperty("requestedBy", vm.ToValue(func(call goja.FunctionCall) goja.Value {
-		return gojautil.SerializeUser(vm, performance.RequestedBy())
-	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+	result.DefineAccessorProperty("requestedBy", m.userSerializer.BuildUserGetter(m.runtime, performance.RequestedBy()), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("unskippable", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(performance.Unskippable())

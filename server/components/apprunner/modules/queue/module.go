@@ -31,6 +31,7 @@ type queueModule struct {
 	appContext               modules.ApplicationContext
 	pagesModule              pages.PagesModule
 	paymentsModule           wallet.WalletModule
+	userSerializer           gojautil.UserSerializer
 	mediaQueue               *mediaqueue.MediaQueue
 	mediaProviders           map[types.MediaType]media.Provider
 	pricer                   *pricer.Pricer
@@ -44,11 +45,12 @@ type queueModule struct {
 }
 
 // New returns a new queue module
-func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, mediaProviders map[types.MediaType]media.Provider, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule) modules.NativeModule {
+func New(appContext modules.ApplicationContext, mediaQueue *mediaqueue.MediaQueue, mediaProviders map[types.MediaType]media.Provider, pricer *pricer.Pricer, skipManager *skipmanager.Manager, queueMisc modules.OtherMediaQueueMethods, pagesModule pages.PagesModule, paymentsModule wallet.WalletModule, userSerializer gojautil.UserSerializer) modules.NativeModule {
 	return &queueModule{
 		appContext:               appContext,
 		pagesModule:              pagesModule,
 		paymentsModule:           paymentsModule,
+		userSerializer:           userSerializer,
 		mediaQueue:               mediaQueue,
 		mediaProviders:           mediaProviders,
 		pricer:                   pricer,

@@ -156,7 +156,7 @@ func (a *EventAdapter) pauseLater(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 // AdaptEvent sets an EventAdapter to adapt an event.Event, exposing an event of type `eventType` to the scripting runtime
-func AdaptEvent[T any](a *EventAdapter, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) map[string]interface{}) {
+func AdaptEvent[T any](a *EventAdapter, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) *goja.Object) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -170,7 +170,7 @@ func AdaptEvent[T any](a *EventAdapter, ev event.Event[T], eventType string, tra
 }
 
 // AdaptNoArgEvent sets an EventAdapter to adapt an event.NoArgEvent, exposing an event of type `eventType` to the scripting runtime
-func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) map[string]interface{}) {
+func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) *goja.Object) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -183,7 +183,7 @@ func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, tra
 	}
 }
 
-func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) map[string]interface{}) func() {
+func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) *goja.Object) func() {
 	return ev.SubscribeUsingCallback(event.BufferFirst, func(arg T) {
 		var listeners []eventListener
 		func() {
@@ -195,22 +195,22 @@ func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType
 		for _, listener := range listeners {
 			listenerCopy := listener
 			a.schedule(func(vm *goja.Runtime) error {
-				result := map[string]interface{}{}
+				result := vm.NewObject()
 				if transformArgFn != nil {
 					r := transformArgFn(vm, arg)
 					if r != nil {
 						result = r
 					}
 				}
-				result["type"] = eventType
-				_, err := listenerCopy.callable(vm.ToValue(a.this), vm.ToValue(result))
+				result.Set("type", eventType)
+				_, err := listenerCopy.callable(vm.ToValue(a.this), result)
 				return err
 			})
 		}
 	})
 }
 
-func noArgEventSubscribeFunction(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) map[string]interface{}) func() {
+func noArgEventSubscribeFunction(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) *goja.Object) func() {
 	return ev.SubscribeUsingCallback(event.BufferFirst, func() {
 		var listeners []eventListener
 		func() {
@@ -222,15 +222,15 @@ func noArgEventSubscribeFunction(a *EventAdapter, ev event.NoArgEvent, eventType
 		for _, listener := range listeners {
 			listenerCopy := listener
 			a.schedule(func(vm *goja.Runtime) error {
-				result := map[string]interface{}{}
+				result := vm.NewObject()
 				if transformArgFn != nil {
 					r := transformArgFn(vm)
 					if r != nil {
 						result = r
 					}
 				}
-				result["type"] = eventType
-				_, err := listenerCopy.callable(vm.ToValue(a.this), vm.ToValue(result))
+				result.Set("type", eventType)
+				_, err := listenerCopy.callable(vm.ToValue(a.this), result)
 				return err
 			})
 		}

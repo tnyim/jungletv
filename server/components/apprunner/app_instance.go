@@ -27,6 +27,7 @@ import (
 	gonano_wallet "github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/configuration"
@@ -71,6 +72,7 @@ type appInstance struct {
 	modules            *modules.Collection
 	pagesModule        pages.PagesModule
 	rpcModule          rpc.RPCModule
+	userSerializer     *gojautil.UserSerializerImplementation
 	transpiledFiles    map[transpiledFilesMapKey][]byte
 	transpiledFilesMu  sync.Mutex
 
@@ -121,6 +123,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 		modules:                         &modules.Collection{},
 		appLogger:                       NewAppLogger(applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
+		userSerializer:                  gojautil.NewUserSerializer(d.UserCache),
 		transpiledFiles:                 make(map[transpiledFilesMapKey][]byte),
 		modLogWebhook:                   d.ModLogWebhook,
 	}
@@ -140,9 +143,9 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(walletModule)
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
-	instance.modules.RegisterNativeModule(chat.New(instance, d.ChatManager, instance.pagesModule))
-	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.MediaProviders, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule))
-	instance.rpcModule = rpc.New()
+	instance.modules.RegisterNativeModule(chat.New(instance, d.ChatManager, instance.pagesModule, instance.userSerializer))
+	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.MediaProviders, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule, instance.userSerializer))
+	instance.rpcModule = rpc.New(instance.userSerializer)
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))
 
@@ -205,6 +208,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	}
 
 	a.ctx, a.ctxCancel = context.WithCancelCause(ctx)
+	a.userSerializer.SetContext(a.ctx)
 
 	a.loop.Start()
 	a.running = true
@@ -800,10 +804,6 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
-	fetchedUser, err := a.runner.moduleDependencies.UserCache.GetOrFetchUser(ctx, user.Address())
-	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
-		user = fetchedUser
-	}
 	invResult, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (rpc.InvocationResult, error) {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)
 		if _, ok := a.pagesModule.ResolvePage(pageID); !ok {
@@ -842,10 +842,6 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 	}
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
-	fetchedUser, err := a.runner.moduleDependencies.UserCache.GetOrFetchUser(ctx, user.Address())
-	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
-		user = fetchedUser
-	}
 
 	a.Schedule(func(vm *goja.Runtime) error {
 		// check page status when we're actually in the loop (to ensure the page was not unregistered between the check and us getting scheduled)

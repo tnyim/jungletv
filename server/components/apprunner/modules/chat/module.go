@@ -29,6 +29,7 @@ type chatModule struct {
 	appContext     modules.ApplicationContext
 	pagesModule    pages.PagesModule
 	chatManager    *chatmanager.Manager
+	userSerializer gojautil.UserSerializer
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
 
@@ -36,12 +37,13 @@ type chatModule struct {
 }
 
 // New returns a new chat module
-func New(appContext modules.ApplicationContext, chatManager *chatmanager.Manager, pagesModule pages.PagesModule) modules.NativeModule {
+func New(appContext modules.ApplicationContext, chatManager *chatmanager.Manager, pagesModule pages.PagesModule, userSerializer gojautil.UserSerializer) modules.NativeModule {
 	return &chatModule{
-		appContext:   appContext,
-		pagesModule:  pagesModule,
-		chatManager:  chatManager,
-		eventAdapter: gojautil.NewEventAdapter(appContext.Schedule),
+		appContext:     appContext,
+		pagesModule:    pagesModule,
+		chatManager:    chatManager,
+		eventAdapter:   gojautil.NewEventAdapter(appContext.Schedule),
+		userSerializer: userSerializer,
 	}
 }
 
@@ -78,20 +80,20 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		}), m.runtime.ToValue(m.setSlowModeEnabled), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		gojautil.AdaptNoArgEvent(m.eventAdapter, m.chatManager.OnChatEnabled(), "chatenabled", nil)
-		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) map[string]interface{} {
-			return map[string]interface{}{
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnChatDisabled(), "chatdisabled", func(vm *goja.Runtime, arg chatmanager.DisabledReason) *goja.Object {
+			return vm.ToValue(map[string]interface{}{
 				"reason": arg.SerializeForAPI(),
-			}
+			}).ToObject(vm)
 		})
-		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) map[string]interface{} {
-			return map[string]interface{}{
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) *goja.Object {
+			return vm.ToValue(map[string]interface{}{
 				"message": m.serializeMessage(m.executionContext, arg.Message),
-			}
+			}).ToObject(vm)
 		})
-		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) map[string]interface{} {
-			return map[string]interface{}{
+		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) *goja.Object {
+			return vm.ToValue(map[string]interface{}{
 				"messageID": arg.String(),
-			}
+			}).ToObject(vm)
 		})
 	}
 }
@@ -109,28 +111,27 @@ func (m *chatModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, r
 }
 
 func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message) goja.Value {
-	result := map[string]interface{}{
-		"id":           message.ID.String(),
-		"createdAt":    gojautil.SerializeTime(m.runtime, message.CreatedAt),
-		"content":      message.Content,
-		"shadowbanned": message.Shadowbanned,
-		"author":       gojautil.SerializeUser(m.runtime, message.Author),
+	if message == nil {
+		return goja.Undefined()
 	}
-
-	if message.Reference != nil {
-		result["reference"] = m.serializeMessage(ctx, message.Reference)
-	}
+	result := m.runtime.NewObject()
+	result.Set("id", message.ID.String())
+	result.Set("createdAt", gojautil.SerializeTime(m.runtime, message.CreatedAt))
+	result.Set("content", message.Content)
+	result.Set("shadowbanned", message.Shadowbanned)
+	result.DefineAccessorProperty("author", m.userSerializer.BuildUserGetter(m.runtime, message.Author), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
+	result.Set("reference", m.serializeMessage(ctx, message.Reference))
 
 	attachments := []map[string]interface{}{}
 	for _, a := range message.AttachmentsView {
 		attachments = append(attachments, a.SerializeForJS(ctx, m.runtime))
 	}
-	result["attachments"] = attachments
+	result.Set("attachments", attachments)
 
-	result["remove"] = func() goja.Value {
+	result.Set("remove", func() goja.Value {
 		message := m.removeMessageAndLog(message.ID)
 		return m.serializeMessage(m.executionContext, message)
-	}
+	})
 
 	return m.runtime.ToValue(result)
 }

@@ -64,16 +64,16 @@ func (m *pointsModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
 
-		gojautil.AdaptEvent(m.eventAdapter, m.pointsManager.OnTransactionCreated(), "transactioncreated", func(vm *goja.Runtime, arg *types.PointsTx) map[string]interface{} {
+		gojautil.AdaptEvent(m.eventAdapter, m.pointsManager.OnTransactionCreated(), "transactioncreated", func(vm *goja.Runtime, arg *types.PointsTx) *goja.Object {
 			t := map[string]interface{}{}
 			t["transaction"] = serializePointsTransactionForJS(arg, m.dateSerializer)
-			return t
+			return vm.ToValue(t).ToObject(vm)
 		})
-		gojautil.AdaptEvent(m.eventAdapter, m.pointsManager.OnTransactionUpdated(), "transactionupdated", func(vm *goja.Runtime, arg pointsmanager.TransactionUpdatedEventArgs) map[string]interface{} {
+		gojautil.AdaptEvent(m.eventAdapter, m.pointsManager.OnTransactionUpdated(), "transactionupdated", func(vm *goja.Runtime, arg pointsmanager.TransactionUpdatedEventArgs) *goja.Object {
 			t := map[string]interface{}{}
 			t["transaction"] = serializePointsTransactionForJS(arg.Transaction, m.dateSerializer)
 			t["pointsAdjustment"] = arg.AdjustmentValue
-			return t
+			return vm.ToValue(t).ToObject(vm)
 		})
 	}
 }

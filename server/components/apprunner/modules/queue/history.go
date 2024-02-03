@@ -137,7 +137,7 @@ func (m *queueModule) getPlayHistoryForFilters(filters types.GetPlayedMediaFilte
 					basicInfo:   mediaInfo,
 				}
 
-				jsMedia[i] = serializePerformance(vm, nil, performance)
+				jsMedia[i] = m.serializePerformance(vm, nil, performance)
 			}
 			return jsMedia
 		}
