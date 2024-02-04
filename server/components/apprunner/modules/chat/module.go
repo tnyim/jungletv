@@ -6,12 +6,10 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/icza/gox/stringsx"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
@@ -324,19 +322,7 @@ func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {
 	nicknameValue := call.Argument(0)
 	var nickname *string
 	if nicknameString := nicknameValue.String(); !goja.IsUndefined(nicknameValue) && !goja.IsNull(nicknameValue) && nicknameString != "" {
-		nicknameString = strings.TrimSpace(nicknameString)
-
-		nicknameString = stringsx.Clean(nicknameString)
-		if utf8.RuneCountInString(nicknameString) < 3 {
-			panic(m.runtime.NewTypeError("Nickname must be at least 3 characters long"))
-		}
-		if utf8.RuneCountInString(nicknameString) > 16 {
-			panic(m.runtime.NewTypeError("Nickname must be at most 16 characters long"))
-		}
-		if strings.HasPrefix(nicknameString, "ban_1") || strings.HasPrefix(nicknameString, "ban_3") {
-			panic(m.runtime.NewTypeError("Nickname must not look like a Banano address"))
-		}
-
+		nicknameString = gojautil.ValidateAndSanitizeNickname(m.runtime, nicknameString)
 		nickname = &nicknameString
 	}
 

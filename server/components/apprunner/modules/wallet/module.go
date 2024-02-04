@@ -8,7 +8,6 @@ import (
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/hectorchu/gonano/util"
 	"github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
@@ -57,10 +56,10 @@ func (m *walletModule) ModuleLoader() require.ModuleLoader {
 	return func(runtime *goja.Runtime, module *goja.Object) {
 		m.runtime = runtime
 		exports := module.Get("exports").(*goja.Object)
-		exports.Set("getApplicationBalance", m.getApplicationBalance)
+		exports.Set("getBalance", m.getBalance)
 		exports.Set("send", m.send)
 
-		exports.DefineAccessorProperty("applicationAddress", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		exports.DefineAccessorProperty("address", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.applicationAccount.Address())
 		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 	}
@@ -199,7 +198,7 @@ func (m *walletModule) receivePendingsAndGetSendableBalance() (payment.Amount, e
 	return payment.NewAmount(balance, toReceiveFromPendings), nil
 }
 
-func (m *walletModule) getApplicationBalance(call goja.FunctionCall) goja.Value {
+func (m *walletModule) getBalance(call goja.FunctionCall) goja.Value {
 	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) string {
 		balance, err := m.receivePendingsAndGetSendableBalance()
 		if err != nil {
@@ -215,10 +214,7 @@ func (m *walletModule) send(call goja.FunctionCall) goja.Value {
 	}
 
 	destinationAddress := call.Argument(0).String()
-	_, err := util.AddressToPubkey(destinationAddress)
-	if err != nil || destinationAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
-		panic(m.runtime.NewTypeError("Invalid destination address"))
-	}
+	gojautil.ValidateBananoAddress(m.runtime, destinationAddress, "Invalid destination address")
 
 	amount, err := payment.NewAmountFromAPIString(call.Argument(1).String())
 	if err != nil || amount.Cmp(big.NewInt(0)) <= 0 {
@@ -228,10 +224,7 @@ func (m *walletModule) send(call goja.FunctionCall) goja.Value {
 	var customRep *string
 	if len(call.Arguments) > 2 && !goja.IsUndefined(call.Argument(2)) && !goja.IsNull(call.Argument(2)) {
 		rep := call.Argument(2).String()
-		_, err := util.AddressToPubkey(rep)
-		if err != nil || rep[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
-			panic(m.runtime.NewTypeError("Invalid representative address"))
-		}
+		gojautil.ValidateBananoAddress(m.runtime, rep, "Invalid representative address")
 		customRep = &rep
 	}
 

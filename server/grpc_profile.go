@@ -139,7 +139,7 @@ func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetPro
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	if len(r.Biography) > 512 {
+	if len(r.Biography) > 512 { // if changing the limit, change also on JAF profile module. TODO extract into common constant
 		return nil, status.Error(codes.InvalidArgument, "biography too long")
 	}
 

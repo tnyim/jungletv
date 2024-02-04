@@ -2,11 +2,41 @@ package gojautil
 
 import (
 	"context"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/dop251/goja"
+	"github.com/hectorchu/gonano/util"
+	"github.com/icza/gox/stringsx"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/usercache"
 )
+
+// ValidateBananoAddress panics with a TypeError containing the given message, if the given address is not a valid Banano address
+func ValidateBananoAddress(vm *goja.Runtime, address string, errorMessage string) {
+	_, err := util.AddressToPubkey(address)
+	if err != nil || address[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
+		panic(vm.NewTypeError(errorMessage))
+	}
+}
+
+// ValidateAndSanitizeNickname validates and sanitizes the given nickname, returning the sanitized string.
+func ValidateAndSanitizeNickname(vm *goja.Runtime, nicknameString string) string {
+	nicknameString = strings.TrimSpace(nicknameString)
+
+	nicknameString = stringsx.Clean(nicknameString)
+	if utf8.RuneCountInString(nicknameString) < 3 {
+		panic(vm.NewTypeError("Nickname must be at least 3 characters long"))
+	}
+	if utf8.RuneCountInString(nicknameString) > 16 {
+		panic(vm.NewTypeError("Nickname must be at most 16 characters long"))
+	}
+	if strings.HasPrefix(nicknameString, "ban_1") || strings.HasPrefix(nicknameString, "ban_3") {
+		panic(vm.NewTypeError("Nickname must not look like a Banano address"))
+	}
+
+	return nicknameString
+}
 
 // UserSerializer serializes users in the JS context of a JAF application
 type UserSerializer interface {

@@ -11,7 +11,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/hectorchu/gonano/util"
 	"github.com/palantir/stacktrace"
 	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
@@ -97,10 +96,7 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 	userValue := call.Argument(0)
 	userAddress := userValue.String()
 
-	_, err := util.AddressToPubkey(userAddress)
-	if err != nil || userAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
-		panic(m.runtime.NewTypeError("Invalid user address"))
-	}
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	user := auth.NewAddressOnlyUser(userAddress)
 
@@ -110,7 +106,7 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 	}
 
 	var value int
-	err = m.runtime.ExportTo(call.Argument(2), &value)
+	err := m.runtime.ExportTo(call.Argument(2), &value)
 	if err != nil || value == 0 {
 		panic(m.runtime.NewTypeError("Third argument to createTransaction must be a non-zero integer"))
 	}
@@ -163,10 +159,7 @@ func (m *pointsModule) getBalance(call goja.FunctionCall) goja.Value {
 	userValue := call.Argument(0)
 	userAddress := userValue.String()
 
-	_, err := util.AddressToPubkey(userAddress)
-	if err != nil || userAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
-		panic(m.runtime.NewTypeError("Invalid user address"))
-	}
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	ctx, err := transaction.Begin(m.executionContext)
 	if err != nil {
@@ -190,10 +183,7 @@ func (m *pointsModule) getNiceSubscription(call goja.FunctionCall) goja.Value {
 	userValue := call.Argument(0)
 	userAddress := userValue.String()
 
-	_, err := util.AddressToPubkey(userAddress)
-	if err != nil || userAddress[:4] != "ban_" { // we must check for ban since AddressToPubkey accepts nano too
-		panic(m.runtime.NewTypeError("Invalid user address"))
-	}
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	subscription, err := m.pointsManager.GetCurrentUserSubscription(m.executionContext, auth.NewAddressOnlyUser(userAddress))
 	if err != nil {
