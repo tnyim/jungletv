@@ -14,7 +14,7 @@
     import { link } from "svelte-navigator";
     import { HSplitPane } from "svelte-split-pane";
     import { apiClient } from "../api_client";
-    import { modalAlert } from "../modal/modal";
+    import { modalAlert, modalConfirm } from "../modal/modal";
     import { Document } from "../proto/jungletv_pb";
     import { darkMode } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
@@ -23,12 +23,14 @@
 
     export let documentID = "";
     let content = "";
+    let versionBeingEdited = new Date();
     let editing = false;
 
     async function fetchDocument(): Promise<Document> {
         try {
             let response = await apiClient.getDocument(documentID);
             content = response.getContent();
+            versionBeingEdited = response.getUpdatedAt().toDate();
             editing = true;
             return response;
         } catch {
@@ -43,7 +45,24 @@
         document.setId(documentID);
         document.setContent(content);
         document.setFormat("markdown");
+        let hasConflict = false;
+        try {
+            let currentDocument = await apiClient.getDocument(documentID);
+            if (!editing) {
+                // if an exception wasn't thrown yet then the document already exists whereas it didn't before
+                hasConflict = true;
+            } else {
+                hasConflict = currentDocument.getUpdatedAt().toDate().getTime() !== versionBeingEdited.getTime();
+            }
+        } catch {}
+        if (hasConflict) {
+            if (!(await modalConfirm("The document has been edited in a different editor. Are you sure you want to save, potentially losing changes?"))) {
+                return;
+            }
+        }
         await apiClient.updateDocument(document);
+        let updatedDocument = await apiClient.getDocument(documentID);
+        versionBeingEdited = updatedDocument.getUpdatedAt().toDate();
         await modalAlert("Document updated");
         editing = true;
     }
