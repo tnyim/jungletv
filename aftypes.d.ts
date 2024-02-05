@@ -1481,6 +1481,102 @@ declare module "jungletv:queue" {
     export type EnqueuingPermission = `${EnqueuingPermissionEnum}`;
 }
 
+/** Allows for interaction with user profiles. */
+declare module "jungletv:profile" {
+    /**
+     * Gets the user information for an arbitrary user, including their nickname.
+     * @param address The rewards address of the user to fetch.
+     * @returns A {@link User} object containing the user information.
+     * Note that a valid {@link User} object will be returned for any valid Banano address, even those that have never signed in to the service.
+     */
+    export function getUser(address: string): User;
+
+    /**
+     * Gets the profile information for an arbitrary user.
+     * @param address The rewards address of the user whose profile should be fetched.
+     * @returns A {@link UserProfile} object containing the biography and featured media of the user.
+     * Note that an empty profile object will be returned for valid Banano addreses that have never signed in to the service.
+     */
+    export function getProfile(address: string): Promise<UserProfile>;
+
+    /**
+     * Sets the featured media for an arbitrary user.
+     * Note that this function will set the featured media of any valid Banano address, even those that are yet to sign in to the service.
+     * @param address The rewards address of the user whose profile should be updated.
+     * @param featuredMediaID The ID of the {@link "jungletv:queue".MediaPerformance} to set as the featured media, or `undefined` to clear the featured media.
+     */
+    export function setProfileFeaturedMedia(address: string, featuredMediaID: string | undefined): Promise<void>;
+
+    /**
+     * Sets the biography for an arbitrary user.
+     * Note that this function will set the biography of any valid Banano address, even those that are yet to sign in to the service.
+     * @param address The rewards address of the user whose profile should be updated.
+     * @param biography The new biography for the user, which can be up to 512 characters. May be an empty string to clear the biography.
+     */
+    export function setProfileBiography(address: string, biography: string): Promise<void>;
+
+    /**
+     * Clears the biography and featured media for an arbitrary user.
+     * @param address The rewards address of the user whose profile should be cleared.
+     */
+    export function clearProfile(address: string): Promise<void>;
+
+    /**
+     * Sets the nickname of an arbitrary user, visible in messages sent by the user in chat as well as in leaderboards and other contexts.
+     * The nickname is subject to similar restrictions as if it were set by the user.
+     * Note that this function will set the nickname associated with any valid Banano address, even those that are yet to sign in to the service.
+     * @param address The rewards address of the user whose nickname should be updated.
+     * @param nickname The new nickname for the user. When set to `null`, `undefined` or the empty string, the user will appear in chat using its rewards address.
+     */
+    export function setUserNickname(address: string, nickname: string | undefined): Promise<void>;
+
+    /**
+     * Fetches statistics about a user since a certain point in time.
+     * @param address The address of the user to fetch statistics for.
+     * @param since The point in time since which to fetch statistics for.
+     * @returns A {@link ProfileStatistics} object containing the user statistics since the specified point in time.
+     */
+    export function getStatistics(address: string, since: Date): Promise<ProfileStatistics>;
+
+    /** Contains extra fields about the user profile not present in the {@link User} type. */
+    export interface UserProfile {
+        /**
+         * The biography of the user, set by them or via the {@link setProfileBiography} method.
+         * May be the empty string if the user has not set a biography.
+         */
+        biography: string;
+
+        /**
+         * ID of the {@link "jungletv:queue".MediaPerformance} that is featured on the user profile, set by them or via the {@link setProfileFeaturedMedia} method.
+         * May be `undefined` if the profile does not have a featured media.
+         */
+        featuredMediaID?: string;
+    }
+
+    /** Contains statistics about the user relative to a certain period in time. */
+    export interface ProfileStatistics {
+        // TODO convert to uniform TS type for amounts?
+
+        /** The amount, in raw Banano units, spent by the user in requesting media entries which have started playing. */
+        spentRequesting: string;
+
+        /** The amount, in raw Banano units, spent by the user in crowdfunding transactions (skipping or tipping). */
+        spentCrowdfunding: string;
+
+        /** The sum, in raw Banano units, of {@link spentRequesting} and {@link spentCrowdfunding}. */
+        spent: string;
+
+        /** The amount, in raw Banano units, withdrawn by the user. */
+        withdrawn: string;
+
+        /** The number of media performances requested by the user. */
+        mediaRequestCount: number;
+
+        /** The total play duration of the {@link mediaRequestCount} media performances requested by the user. */
+        mediaRequestPlayTime: number;
+    }
+}
+
 /** The permission levels a user can have */
 export enum PermissionLevelEnum {
     /** The user is not identified. When used to restrict accessibility of remote calls, the resulting method can be called by any user, even unauthenticated ones. */
