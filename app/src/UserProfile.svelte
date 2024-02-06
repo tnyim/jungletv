@@ -47,7 +47,7 @@
 
         if (hasFeaturedMedia) {
             selectedTab = "featuredMedia";
-        } else if (biography != "" || isSelf) {
+        } else if (biography != "" || isSelf || isApplication) {
             selectedTab = "info";
         } else {
             selectedTab = "tip";
@@ -278,47 +278,38 @@
     </div>
 </div>
 <div class="flex flex-col justify-center bg-gray-200 dark:bg-gray-800 text-black dark:text-gray-100 rounded-b-lg">
-    {#if isApplication}
-        <div class="p-2 px-4">
-            <p class="font-semibold">
-                This is an application running on the
-                <a href="https://docs.jungletv.live" target="_blank" rel="noopener">JungleTV Application Framework</a>.
-            </p>
-            <p>
-                Applications are able to add new pages to the JungleTV website, as well as interact with JungleTV
-                features such as the queue and chat, much like regular users can. Applications can display their pages
-                as additional sidebar tabs, or enqueue them as if they were any other form of media, as well as attach
-                them to chat messages.
-            </p>
-        </div>
-    {:else}
-        <div class="flex flex-row px-2 py-0.5 overflow-x-auto disable-scrollbars">
-            {#if hasFeaturedMedia}
-                <TabButton
-                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                    selected={selectedTab == "featuredMedia"}
-                    on:click={() => (selectedTab = "featuredMedia")}
-                >
-                    Featured media
-                    {#if hasFeaturedMedia && isSelf}
-                        <button
-                            class="hover:text-yellow-700 dark:hover:text-yellow-500"
-                            on:click|stopPropagation={clearFeaturedMedia}
-                        >
-                            <i class="fas fa-trash" />
-                        </button>
-                    {/if}
-                </TabButton>
-            {/if}
-            {#if biography != "" || isSelf}
-                <TabButton
-                    bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
-                    selected={selectedTab == "info"}
-                    on:click={() => (selectedTab = "info")}
-                >
+    <div class="flex flex-row px-2 py-0.5 overflow-x-auto disable-scrollbars">
+        {#if hasFeaturedMedia}
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedTab == "featuredMedia"}
+                on:click={() => (selectedTab = "featuredMedia")}
+            >
+                Featured media
+                {#if hasFeaturedMedia && isSelf}
+                    <button
+                        class="hover:text-yellow-700 dark:hover:text-yellow-500"
+                        on:click|stopPropagation={clearFeaturedMedia}
+                    >
+                        <i class="fas fa-trash" />
+                    </button>
+                {/if}
+            </TabButton>
+        {/if}
+        {#if biography != "" || isSelf || isApplication}
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={selectedTab == "info"}
+                on:click={() => (selectedTab = "info")}
+            >
+                {#if isApplication}
+                    Application info
+                {:else}
                     User info
-                </TabButton>
-            {/if}
+                {/if}
+            </TabButton>
+        {/if}
+        {#if !isApplication}
             <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={selectedTab == "tip"}
@@ -351,43 +342,43 @@
                     Moderation
                 </TabButton>
             {/if}
-        </div>
-        <div class="h-80 overflow-y-auto">
-            {#if selectedTab == "featuredMedia"}
-                {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
-                    <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
-                {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
-                    <UserProfileFeaturedMediaSoundCloud data={userProfile.getSoundcloudTrackData()} />
-                {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.DOCUMENT_DATA}
-                    <Document mode="player" documentID={userProfile.getDocumentData().getId()} />
-                {/if}
-            {:else if selectedTab == "info"}
-                <div class="p-2 px-4">
-                    <UserProfileInfo bind:biography {isSelf} />
-                </div>
-            {:else if selectedTab == "recents"}
-                <UserRecentRequests {recentRequests} {isSelf} on:featured={refreshProfile} />
-            {:else if selectedTab == "tip"}
-                <div class="flex flex-col p-2 px-4">
-                    <AddressBox
-                        address={userAddress}
-                        showQR={true}
-                        showWebWalletLink={true}
-                        qrCodeBackground={$darkMode ? "#1F2937" : "#E5E7EB"}
-                        qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
-                    />
-                </div>
-            {:else if selectedTab == "stats"}
-                <div class="p-2 px-4">
-                    <UserStats {userAddress} userIsStaff={rolesList.includes(UserRole.MODERATOR)} />
-                </div>
-            {:else if selectedTab == "moderation"}
-                <div class="p-2 px-4">
-                    <UserModerationInfo {userAddress} on:cleared={refreshProfile} />
-                </div>
+        {/if}
+    </div>
+    <div class="h-80 overflow-y-auto">
+        {#if selectedTab == "featuredMedia"}
+            {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
+                <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
+            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
+                <UserProfileFeaturedMediaSoundCloud data={userProfile.getSoundcloudTrackData()} />
+            {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.DOCUMENT_DATA}
+                <Document mode="player" documentID={userProfile.getDocumentData().getId()} />
             {/if}
-        </div>
-    {/if}
+        {:else if selectedTab == "info"}
+            <div class="p-2 px-4">
+                <UserProfileInfo bind:biography {isSelf} {isApplication} />
+            </div>
+        {:else if selectedTab == "recents"}
+            <UserRecentRequests {recentRequests} {isSelf} on:featured={refreshProfile} />
+        {:else if selectedTab == "tip"}
+            <div class="flex flex-col p-2 px-4">
+                <AddressBox
+                    address={userAddress}
+                    showQR={true}
+                    showWebWalletLink={true}
+                    qrCodeBackground={$darkMode ? "#1F2937" : "#E5E7EB"}
+                    qrCodeForeground={$darkMode ? "#FFFFFF" : "#000000"}
+                />
+            </div>
+        {:else if selectedTab == "stats"}
+            <div class="p-2 px-4">
+                <UserStats {userAddress} userIsStaff={rolesList.includes(UserRole.MODERATOR)} />
+            </div>
+        {:else if selectedTab == "moderation"}
+            <div class="p-2 px-4">
+                <UserModerationInfo {userAddress} on:cleared={refreshProfile} />
+            </div>
+        {/if}
+    </div>
 </div>
 
 <style>

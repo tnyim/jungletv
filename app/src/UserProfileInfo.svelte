@@ -6,6 +6,7 @@
 
     export let biography: string;
     export let isSelf: boolean;
+    export let isApplication: boolean;
 
     let editedBiography = "";
     $: editedBiography = biography;
@@ -47,7 +48,23 @@
             <i class="fas fa-edit" />
         </button>
     {/if}
-    <span class="text-lg font-medium">About me</span>
+    {#if isApplication}
+        <p class="text-sm font-semibold">
+            This is an application running on the
+            <a href="https://docs.jungletv.live" target="_blank" rel="noopener">JungleTV Application Framework</a>.
+        </p>
+        <p class="text-xs mb-4">
+            Applications are able to add new pages to the JungleTV website, as well as interact with JungleTV features
+            such as the queue and chat, much like regular users can. Applications can display their pages as additional
+            sidebar tabs, or enqueue them as if they were any other form of media, as well as attach them to chat
+            messages.
+        </p>
+        {#if biography != ""}
+            <span class="text-lg font-medium">About this application</span>
+        {/if}
+    {:else}
+        <span class="text-lg font-medium">About me</span>
+    {/if}
 </div>
 {#if isSelf}
     <textarea
