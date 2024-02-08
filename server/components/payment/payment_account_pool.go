@@ -18,38 +18,40 @@ import (
 )
 
 type PaymentAccountPool struct {
-	log                                     *log.Logger
-	statsClient                             *statsd.Client
-	availableAccounts                       map[*wallet.Account]struct{}
-	wallet                                  *wallet.Wallet
-	collectorAccountPendingBalanceWaitGroup *sync.WaitGroup
-	accountsMutex                           sync.RWMutex
-	repAddress                              string
-	modLogWebhook                           api.WebhookClient
-	dustThreshold                           Amount
-	defaultCollectorAccountAddress          string
-	nanswapClient                           *nanswapclient.Client
-	enableMulticurrencyPayments             bool
+	log                            *log.Logger
+	statsClient                    *statsd.Client
+	availableAccounts              map[*wallet.Account]struct{}
+	wallet                         *wallet.Wallet
+	accountsMutex                  sync.RWMutex
+	repAddress                     string
+	modLogWebhook                  api.WebhookClient
+	dustThreshold                  Amount
+	defaultCollectorAccountAddress string
+	nanswapClient                  *nanswapclient.Client
+	enableMulticurrencyPayments    bool
 
 	monitoredAccounts     map[string]*monitoredAccount
 	monitoredAccountsLock sync.RWMutex
+
+	collectorAccountPendingBalanceWaitGroups     map[string]*sync.WaitGroup
+	collectorAccountPendingBalanceWaitGroupsLock sync.Mutex
 }
 
 func New(log *log.Logger, statsClient *statsd.Client, w *wallet.Wallet, repAddress string, modLogWebhook api.WebhookClient,
 	dustThreshold Amount, defaultCollectorAccountAddress string, nanswapClient *nanswapclient.Client) *PaymentAccountPool {
 	return &PaymentAccountPool{
-		log:                                     log,
-		statsClient:                             statsClient,
-		availableAccounts:                       make(map[*wallet.Account]struct{}),
-		wallet:                                  w,
-		repAddress:                              repAddress,
-		modLogWebhook:                           modLogWebhook,
-		dustThreshold:                           dustThreshold,
-		defaultCollectorAccountAddress:          defaultCollectorAccountAddress,
-		collectorAccountPendingBalanceWaitGroup: new(sync.WaitGroup),
-		monitoredAccounts:                       make(map[string]*monitoredAccount),
-		nanswapClient:                           nanswapClient,
-		enableMulticurrencyPayments:             true,
+		log:                                      log,
+		statsClient:                              statsClient,
+		availableAccounts:                        make(map[*wallet.Account]struct{}),
+		wallet:                                   w,
+		repAddress:                               repAddress,
+		modLogWebhook:                            modLogWebhook,
+		dustThreshold:                            dustThreshold,
+		defaultCollectorAccountAddress:           defaultCollectorAccountAddress,
+		monitoredAccounts:                        make(map[string]*monitoredAccount),
+		nanswapClient:                            nanswapClient,
+		enableMulticurrencyPayments:              true,
+		collectorAccountPendingBalanceWaitGroups: make(map[string]*sync.WaitGroup),
 	}
 }
 
@@ -129,14 +131,12 @@ type PaymentReceiver interface {
 	MulticurrencyPaymentDataAvailable() event.Event[[]MulticurrencyPaymentData]
 
 	// Revert should be called when one wants to return anything that was received
-	// Does not terminate the payment flow (to do so, completely unsubscribe from PaymentReceived)
+	// Does not terminate the payment flow (to do so, call Close)
 	Revert(refundAddress string) error
 
-	// abort is meant to be used when the event returned from ReceivePayment is never subscribed to, but the
-	// caller still wants to free the account from the list of accounts monitored by the PaymentAccountPool
-	// If the event is subscribed to, then the PaymentAccountPool will automatically stop monitoring it once its subscriber
-	// count goes to zero
-	abort()
+	// Close must be called to terminate the payment flow, asynchronously sending the funds in the payment account to the collector account for this flow
+	// It returns a channel that closes when the funds are done being sent to the collector account
+	Close() <-chan struct{}
 }
 
 // PaymentReceivedEventArgs contains the data associated with the event that is fired when a payment is received
@@ -163,6 +163,18 @@ func (p *PaymentAccountPool) receivePaymentImpl(collectorAccountAddress string) 
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	var wg *sync.WaitGroup
+	func() {
+		p.collectorAccountPendingBalanceWaitGroupsLock.Lock()
+		defer p.collectorAccountPendingBalanceWaitGroupsLock.Unlock()
+		var ok bool
+		wg, ok = p.collectorAccountPendingBalanceWaitGroups[collectorAccountAddress]
+		if !ok {
+			wg = &sync.WaitGroup{}
+			p.collectorAccountPendingBalanceWaitGroups[collectorAccountAddress] = wg
+		}
+	}()
+
 	m := &monitoredAccount{
 		p:                                   p,
 		account:                             account,
@@ -171,13 +183,8 @@ func (p *PaymentAccountPool) receivePaymentImpl(collectorAccountAddress string) 
 		receivableBalance:                   NewAmount(),
 		seenPendings:                        make(map[string]struct{}),
 		collectorAccountAddress:             collectorAccountAddress,
+		paymentWaitingGroup:                 wg,
 	}
-
-	m.onUnsubscribedUnsubFn = m.onPaymentReceived.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(subscriberCount int) {
-		if subscriberCount == 0 {
-			m.abort() // will call onUnsubscribedUnsubFn for us
-		}
-	})
 
 	p.monitoredAccountsLock.Lock()
 	defer p.monitoredAccountsLock.Unlock()
@@ -202,8 +209,17 @@ func (p *PaymentAccountPool) Worker(ctx context.Context, interval time.Duration)
 	}
 }
 
-func (p *PaymentAccountPool) AwaitConclusionOfInFlightPayments() {
-	p.collectorAccountPendingBalanceWaitGroup.Wait()
+func (p *PaymentAccountPool) AwaitConclusionOfInFlightPayments(collectorAccount string) {
+	var wg *sync.WaitGroup
+	var ok bool
+	func() {
+		p.collectorAccountPendingBalanceWaitGroupsLock.Lock()
+		defer p.collectorAccountPendingBalanceWaitGroupsLock.Unlock()
+		wg, ok = p.collectorAccountPendingBalanceWaitGroups[collectorAccount]
+	}()
+	if ok {
+		wg.Wait()
+	}
 }
 
 func (p *PaymentAccountPool) processPayments(ctx context.Context) error {
@@ -235,13 +251,16 @@ func (p *PaymentAccountPool) processPayments(ctx context.Context) error {
 	return nil
 }
 
-func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount) {
+func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount, done chan<- struct{}) {
 	t := p.statsClient.NewTiming()
 	defer t.Send("payment_account_final_operations")
 
-	if m.incrementedWaitingGroup {
-		defer p.collectorAccountPendingBalanceWaitGroup.Done()
-	}
+	defer func() {
+		close(done)
+		if m.incrementedWaitingGroup {
+			m.paymentWaitingGroup.Done()
+		}
+	}()
 
 	retry := 0
 	for ; retry < 5; retry++ {

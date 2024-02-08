@@ -211,7 +211,7 @@ func (r *Handler) receiveCollectorPending(minExpectedBalance payment.Amount) {
 			// we are probably yet to send money from the payment accounts to the collector account
 			// wait for those goroutines to finish
 			r.log.Println("Waiting for payment accounts to send their balance to the collector account")
-			r.paymentAccountPool.AwaitConclusionOfInFlightPayments()
+			r.paymentAccountPool.AwaitConclusionOfInFlightPayments(r.paymentAccountPool.DefaultCollectorAccountAddress())
 			r.log.Println("Payment accounts done sending their balance to the collector account")
 
 			for attempt := 0; attempt < 10 && balance.Cmp(minExpectedBalance.Int) < 0; attempt++ {

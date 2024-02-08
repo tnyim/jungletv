@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -14,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/utils/event"
 )
 
 // ModuleName is the name by which this module can be require()d in a script
@@ -32,7 +34,8 @@ type walletModule struct {
 	applicationAccount *wallet.Account
 	paymentAccountPool *payment.PaymentAccountPool
 	defaultRep         string
-	ctx                context.Context // just to pass the sqalx node around...
+	ctx                context.Context
+	executionWaitGroup *sync.WaitGroup
 }
 
 // New returns a new wallet module
@@ -58,6 +61,7 @@ func (m *walletModule) ModuleLoader() require.ModuleLoader {
 		exports := module.Get("exports").(*goja.Object)
 		exports.Set("getBalance", m.getBalance)
 		exports.Set("send", m.send)
+		exports.Set("receivePayment", m.receivePayment)
 
 		exports.DefineAccessorProperty("address", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.applicationAccount.Address())
@@ -70,9 +74,10 @@ func (m *walletModule) ModuleName() string {
 func (m *walletModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *walletModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
+func (m *walletModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
 	m.runtime = runtime
 	m.ctx = ctx
+	m.executionWaitGroup = wg
 }
 
 func (m *walletModule) DebitFromApplicationWallet(amount payment.Amount) error {
@@ -235,4 +240,105 @@ func (m *walletModule) send(call goja.FunctionCall) goja.Value {
 		}
 		return hashes[0]
 	})
+}
+
+func (m *walletModule) receivePayment(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	var timeoutms int64
+	err := m.runtime.ExportTo(call.Argument(0), &timeoutms)
+	if err != nil {
+		panic(m.runtime.NewTypeError("First argument must be an integer"))
+	}
+
+	if timeoutms < 0 {
+		panic(m.runtime.NewTypeError("Timeout argument must be positive and non-zero"))
+	}
+
+	timeout := time.Duration(timeoutms) * time.Millisecond
+
+	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (struct{}, gojautil.PromiseResultTransformer[struct{}]) {
+		return m.receivePaymentAsyncCb(actx, timeout)
+	})
+}
+
+func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout time.Duration) (struct{}, gojautil.PromiseResultTransformer[struct{}]) {
+	paymentReceiver, err := m.paymentAccountPool.ReceivePaymentIntoCollectorAccount(m.applicationAccount.Address())
+	if err != nil {
+		panic(actx.NewGoError(stacktrace.Propagate(err, "")))
+	}
+
+	eventAdapter := gojautil.NewEventAdapter(m.appContext.Schedule)
+
+	closed := event.NewNoArg()
+
+	gojautil.AdaptEvent(eventAdapter, paymentReceiver.PaymentReceived(), "paymentreceived", func(vm *goja.Runtime, arg payment.PaymentReceivedEventArgs) *goja.Object {
+		o := vm.NewObject()
+		o.Set("amount", arg.Amount.SerializeForAPI())
+		o.Set("senderAmount", arg.SenderAmount.SerializeForAPI())
+		o.Set("senderCurrency", arg.SenderCurrency)
+		o.Set("from", arg.From)
+		o.Set("blockHash", arg.BlockHash)
+		o.Set("balance", arg.Balance.SerializeForAPI())
+		return o
+	})
+	gojautil.AdaptNoArgEvent(eventAdapter, closed, "closed", nil)
+
+	workerCtx, workerCancelFn := context.WithDeadline(m.ctx, time.Now().Add(timeout))
+	workerDone := make(chan struct{})
+	adapterCtx, adapterCancelFn := context.WithCancel(m.ctx)
+	go receivePaymentWorker(workerCtx, paymentReceiver, closed, adapterCancelFn, workerDone)
+
+	return struct{}{}, func(vm *goja.Runtime, _ struct{}) interface{} {
+		// calling StartOrResume here instead of in the asynchronous code ensures that the Add call on the WaitGroup is not concurrent with the Wait call that happens after VM interruption
+		eventAdapter.StartOrResume(adapterCtx, m.executionWaitGroup, m.runtime)
+
+		paymentReceiverObject := vm.NewObject()
+		paymentReceiverObject.Set("addEventListener", eventAdapter.AddEventListener)
+		paymentReceiverObject.Set("removeEventListener", eventAdapter.RemoveEventListener)
+		paymentReceiverObject.Set("close", m.makeReceivePaymentCloseFn(vm, workerCancelFn, workerDone))
+		paymentReceiverObject.DefineAccessorProperty("address", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+			return m.runtime.ToValue(paymentReceiver.Address())
+		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+		return paymentReceiverObject
+	}
+}
+
+func (m *walletModule) makeReceivePaymentCloseFn(vm *goja.Runtime, workerCancelFn context.CancelFunc, workerDone <-chan struct{}) func(call goja.FunctionCall) goja.Value {
+	return func(call goja.FunctionCall) goja.Value {
+		return gojautil.DoAsync(vm, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
+			workerCancelFn()
+			<-workerDone
+			return goja.Undefined()
+		})
+	}
+}
+
+func receivePaymentWorker(ctx context.Context, paymentReceiver payment.PaymentReceiver, closed event.NoArgEvent, adapterCancelFn context.CancelFunc, workerDone chan<- struct{}) {
+	<-ctx.Done()
+	<-paymentReceiver.Close()
+
+	// kick off "closed" event, waiting for the event to finish propagating before shutting down the event adapter
+	// what follows is a bit of a hack that considers the implementation details of the event adapter
+	// the order of events here is carefully planned
+	var unsubbedU func()
+	unsubbedU = closed.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(activeSubs int) {
+		if activeSubs == 0 {
+			unsubbedU()
+			adapterCancelFn()
+			close(workerDone) // this unblocks any Promises returned by close()
+		}
+	})
+
+	closed.Notify(false)
+	closed.Close() // should it be running, this will cause the SubscribeWithCallback worker within the event adapter to return, unsubscribing and leading to our callback above
+
+	// because it is possible that no JS code had actually subscribed to the "closed" event,
+	// let's ensure our callback above runs at least once with activeSubs set to 0, by subscribing to the event and immediately unsubscribing
+	// we must do this only after we are subscribed to closed.Unsubscribed()
+	_, u := closed.Subscribe(event.BufferFirst)
+	u()
 }

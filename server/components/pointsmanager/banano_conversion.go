@@ -61,7 +61,7 @@ func (m *Manager) createBananoConversionFlow(user auth.User) (*BananoConversionF
 		converted:            event.New[BananoConvertedEventArgs](),
 		sessionBananoTotal:   payment.NewAmount(),
 	}
-	go flow.worker(m.workerContext, paymentReceiver.PaymentReceived(), m.convertBanano, func() {
+	go flow.worker(m.workerContext, paymentReceiver, m.convertBanano, func() {
 		m.bananoConversionFlowsLock.Lock()
 		defer m.bananoConversionFlowsLock.Unlock()
 		delete(m.bananoConversionFlows, flow.user.Address())
@@ -151,7 +151,7 @@ func (f *BananoConversionFlow) Converted() event.Event[BananoConvertedEventArgs]
 
 type convertPointsToBananoFunction func(ctx context.Context, user auth.User, pointsTotalSoFar int, paymentArgs payment.PaymentReceivedEventArgs) (int, error)
 
-func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent event.Event[payment.PaymentReceivedEventArgs], convertPointsFn convertPointsToBananoFunction, cleanupFn func()) {
+func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceiver payment.PaymentReceiver, convertPointsFn convertPointsToBananoFunction, cleanupFn func()) {
 	defer cleanupFn()
 	defer f.destroyed.Notify(true)
 
@@ -162,8 +162,10 @@ func (f *BananoConversionFlow) worker(ctx context.Context, paymentReceivedEvent 
 	actualExpirationTimer := time.NewTimer(flowExpiry + flowExpiryTolerance)
 	defer actualExpirationTimer.Stop()
 
-	onPaymentReceived, onPaymentReceivedUnsub := paymentReceivedEvent.Subscribe(event.BufferAll)
+	onPaymentReceived, onPaymentReceivedUnsub := paymentReceiver.PaymentReceived().Subscribe(event.BufferAll)
 	defer onPaymentReceivedUnsub()
+
+	defer paymentReceiver.Close()
 
 	onClientReconnected, onClientReconnectedUnsub := f.clientReconnected.Subscribe(event.BufferFirst)
 	defer onClientReconnectedUnsub()

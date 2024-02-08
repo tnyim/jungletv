@@ -145,6 +145,8 @@ func (m *rpcModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, run
 }
 func (m *rpcModule) ExecutionPaused() {}
 
+var gojaUndefined = goja.Undefined()
+
 // to be called inside the loop
 func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, method string, args []string) InvocationResult {
 	// no need to sync access to m.handlers as it can only be accessed inside the loop
@@ -164,23 +166,23 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 
 	// unmarshal args
 	callableArgs := make([]goja.Value, len(args)+1)
-	callableArgs[0] = vm.ToValue(callContext)
+	callableArgs[0] = callContext
 	for i, arg := range args {
 		var err error
-		callableArgs[i+1], err = m.jsonUnmarshaller(goja.Undefined(), vm.ToValue(arg))
+		callableArgs[i+1], err = m.jsonUnmarshaller(gojaUndefined, vm.ToValue(arg))
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	result, err := h.callable(goja.Undefined(), callableArgs...)
+	result, err := h.callable(gojaUndefined, callableArgs...)
 	if err != nil {
 		panic(err)
 	}
 
 	p, ok := result.Export().(*goja.Promise)
 	if !ok {
-		resultJSON, err := m.jsonMarshaller(goja.Undefined(), result)
+		resultJSON, err := m.jsonMarshaller(gojaUndefined, result)
 		if err != nil {
 			panic(err)
 		}
@@ -238,16 +240,16 @@ func (m *rpcModule) HandleEvent(vm *goja.Runtime, user auth.User, trusted bool, 
 
 		// unmarshal args
 		callableArgs := make([]goja.Value, len(args)+1)
-		callableArgs[0] = vm.ToValue(eventContext)
+		callableArgs[0] = eventContext
 		for i, arg := range args {
 			var err error
-			callableArgs[i+1], err = m.jsonUnmarshaller(goja.Undefined(), vm.ToValue(arg))
+			callableArgs[i+1], err = m.jsonUnmarshaller(gojaUndefined, vm.ToValue(arg))
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		_, _ = h.callable(goja.Undefined(), callableArgs...)
+		_, _ = h.callable(gojaUndefined, callableArgs...)
 	}
 }
 
@@ -272,7 +274,7 @@ func (m *rpcModule) registerMethod(call goja.FunctionCall) goja.Value {
 		minPermissionLevel: minPermissionLevel,
 	}
 
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) unregisterMethod(call goja.FunctionCall) goja.Value {
@@ -283,7 +285,7 @@ func (m *rpcModule) unregisterMethod(call goja.FunctionCall) goja.Value {
 	// no need to sync access to m.handlers as it can only be accessed inside the loop
 	delete(m.handlers, call.Argument(0).String())
 
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) addEventListener(call goja.FunctionCall) goja.Value {
@@ -304,7 +306,7 @@ func (m *rpcModule) addEventListener(call goja.FunctionCall) goja.Value {
 		value:    listenerValue,
 		callable: callback,
 	})
-	return goja.Undefined()
+	return gojaUndefined
 
 }
 
@@ -324,7 +326,7 @@ func (m *rpcModule) removeEventListener(call goja.FunctionCall) goja.Value {
 			break
 		}
 	}
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) buildEventData(call goja.FunctionCall, argOffset int) ClientEventData {
@@ -334,7 +336,7 @@ func (m *rpcModule) buildEventData(call goja.FunctionCall, argOffset int) Client
 	}
 
 	for i, arg := range call.Arguments[argOffset+1:] {
-		v, err := m.jsonMarshaller(goja.Undefined(), arg)
+		v, err := m.jsonMarshaller(gojaUndefined, arg)
 		if err != nil {
 			panic(err)
 		}
@@ -349,7 +351,7 @@ func (m *rpcModule) emitToAll(call goja.FunctionCall) goja.Value {
 	}
 
 	m.onGlobalEvent.Notify(m.buildEventData(call, 0), false)
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) emitToPage(call goja.FunctionCall) goja.Value {
@@ -359,7 +361,7 @@ func (m *rpcModule) emitToPage(call goja.FunctionCall) goja.Value {
 
 	pageID := call.Argument(0).String()
 	m.onPageEvent.Notify(pageID, m.buildEventData(call, 1), false)
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) emitToUser(call goja.FunctionCall) goja.Value {
@@ -375,7 +377,7 @@ func (m *rpcModule) emitToUser(call goja.FunctionCall) goja.Value {
 	}
 
 	m.onUserEvent.Notify(user, m.buildEventData(call, 1), false)
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) emitToPageUser(call goja.FunctionCall) goja.Value {
@@ -395,7 +397,7 @@ func (m *rpcModule) emitToPageUser(call goja.FunctionCall) goja.Value {
 		PageUserTuple{Page: pageID, User: user},
 		m.buildEventData(call, 2),
 		false)
-	return goja.Undefined()
+	return gojaUndefined
 }
 
 func (m *rpcModule) GlobalEventEmitted() event.Event[ClientEventData] {

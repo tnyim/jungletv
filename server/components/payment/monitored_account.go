@@ -20,10 +20,10 @@ type monitoredAccount struct {
 	account                             *wallet.Account
 	onPaymentReceived                   event.Event[PaymentReceivedEventArgs]
 	onMulticurrencyPaymentDataAvailable event.Event[[]MulticurrencyPaymentData]
-	onUnsubscribedUnsubFn               func()
 	seenPendings                        map[string]struct{}
 	receivableBalance                   Amount // this is the balance excluding dust. it is updated as we detect new receivables
 	incrementedWaitingGroup             bool
+	paymentWaitingGroup                 *sync.WaitGroup
 	multicurrencyPaymentData            []MulticurrencyPaymentData
 	collectorAccountAddress             string
 }
@@ -78,19 +78,23 @@ func (m *monitoredAccount) Revert(refundAddress string) error {
 	return nil
 }
 
-func (m *monitoredAccount) abort() {
+func (m *monitoredAccount) Close() <-chan struct{} {
 	m.p.monitoredAccountsLock.Lock()
 	defer m.p.monitoredAccountsLock.Unlock()
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	closed := make(chan struct{})
+
 	if m, ok := m.p.monitoredAccounts[m.Address()]; ok {
 		delete(m.p.monitoredAccounts, m.Address())
 		m.onPaymentReceived.Close()
 		m.onMulticurrencyPaymentDataAvailable.Close()
-		m.onUnsubscribedUnsubFn()
-		go m.p.freePreviouslyMonitoredAccount(m)
+		go m.p.freePreviouslyMonitoredAccount(m, closed)
+	} else {
+		close(closed)
 	}
+	return closed
 }
 
 func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
@@ -123,7 +127,7 @@ func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 		m.seenPendings[hash] = struct{}{}
 		m.receivableBalance.Add(m.receivableBalance.Int, &pending.Amount.Int)
 		if !m.incrementedWaitingGroup {
-			m.p.collectorAccountPendingBalanceWaitGroup.Add(1)
+			m.paymentWaitingGroup.Add(1)
 			m.incrementedWaitingGroup = true
 		}
 

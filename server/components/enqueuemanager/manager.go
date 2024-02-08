@@ -471,6 +471,8 @@ func (t *ticket) worker(ctx context.Context, e *Manager) {
 	onPaymentReceived, onPaymentReceivedUnsub := t.paymentReceiver.PaymentReceived().Subscribe(event.BufferAll)
 	defer onPaymentReceivedUnsub()
 
+	defer t.paymentReceiver.Close()
+
 	onMulticurrencyPaymentDataAvailable, onMulticurrencyPaymentDataAvailableUnsub := t.paymentReceiver.MulticurrencyPaymentDataAvailable().Subscribe(event.BufferAll)
 	defer onMulticurrencyPaymentDataAvailableUnsub()
 
