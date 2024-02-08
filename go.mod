@@ -1,6 +1,6 @@
 module github.com/tnyim/jungletv
 
-go 1.21
+go 1.22
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.4
@@ -11,7 +11,7 @@ require (
 	github.com/anthonynsimon/bild v0.13.0
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/bytedance/sonic v1.10.2
+	github.com/bytedance/sonic v1.11.0-rc.2.0.20240208030056-3f15f269ee8c
 	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/disintegration/imaging v1.6.2
