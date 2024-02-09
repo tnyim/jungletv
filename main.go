@@ -2,11 +2,8 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -45,7 +42,6 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/types"
-	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -71,9 +67,7 @@ var (
 	// BuildDate is provided by govvv at compile-time
 	BuildDate = "???"
 
-	forcedClientReloads = 0
-	baseVersionHash     = ""
-	versionHash         = ""
+	versionInterceptor *version.VersionInterceptor
 )
 
 func main() {
@@ -367,6 +361,7 @@ func main() {
 		RepresentativeAddress:         repAddress,
 		JWTManager:                    jwtManager,
 		AuthInterceptor:               authInterceptor,
+		VersionInterceptor:            versionInterceptor,
 		TicketCheckPeriod:             ticketCheckPeriod,
 		IPCheckEndpoint:               ipCheckEndpoint,
 		YoutubeAPIkey:                 youtubeAPIkey,
@@ -380,7 +375,6 @@ func main() {
 		TypeScriptTypeDefinitionsFile: tsTypesFile,
 		TenorAPIKey:                   tenorAPIKey,
 		WebsiteURL:                    websiteURL,
-		VersionHash:                   &versionHash,
 		OAuthManager:                  oauthManager,
 		NanswapAPIKey:                 nanswapAPIKey,
 		TurnstileSecretKey:            turnstileSecretKey,
@@ -400,18 +394,12 @@ func main() {
 		mainLog.Fatalln(err)
 	}
 
-	defer apiServer.ClientReloadTriggered().SubscribeUsingCallback(event.BufferFirst, func() {
-		forcedClientReloads++
-		versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
-		apiServer.NotifyVersionHashChanged()
-	})()
-
 	listenAddr, present := secrets.Get("listenAddress")
 	if !present {
 		listenAddr = buildconfig.ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, authInterceptor, apiServer, listenAddr, certFile, keyFile, options)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -433,10 +421,7 @@ func init() {
 	if !buildconfig.DEBUG {
 		grpcLog = log.New(io.Discard, "grpc ", log.Ldate|log.Ltime)
 	}
-	h := sha256.New()
-	h.Write([]byte(BuildDate + GitCommit))
-	baseVersionHash = base64.StdEncoding.EncodeToString(h.Sum(nil))[:10]
-	versionHash = fmt.Sprintf("%s-%d", baseVersionHash, forcedClientReloads)
+	versionInterceptor = version.New(BuildDate, GitCommit)
 	grpclog.SetLogger(grpcLog)
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 }
@@ -465,18 +450,16 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 }
 
 func versionHashBuilder() string {
-	v := versionHash
+	v := versionInterceptor.VersionHash()
 	if buildconfig.DEBUG {
 		v += "***" + uuid.NewV4().String()
 	}
 	return v
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, authInterceptor *authinterceptor.Interceptor, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
-	versionInterceptor := version.New(&versionHash)
-
-	unaryInterceptor := grpc_middleware.ChainUnaryServer(versionInterceptor.Unary(), authInterceptor.Unary())
-	streamInterceptor := grpc_middleware.ChainStreamServer(versionInterceptor.Stream(), authInterceptor.Stream())
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
+	unaryInterceptor := grpc_middleware.ChainUnaryServer(options.VersionInterceptor.Unary(), options.AuthInterceptor.Unary())
+	streamInterceptor := grpc_middleware.ChainStreamServer(options.VersionInterceptor.Stream(), options.AuthInterceptor.Stream())
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(unaryInterceptor),
 		grpc.StreamInterceptor(streamInterceptor))

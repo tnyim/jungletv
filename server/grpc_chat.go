@@ -38,7 +38,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	onMessageDeleted, messageDeletedU := s.chat.OnMessageDeleted().Subscribe(event.BufferFirst)
 	defer messageDeletedU()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
+	onVersionHashChanged, versionHashChangedU := s.versionInterceptor.VersionHashUpdated().Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	ctx := stream.Context()

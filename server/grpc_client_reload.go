@@ -6,18 +6,9 @@ import (
 
 	"github.com/tnyim/jungletv/proto"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
-	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-func (s *grpcServer) ClientReloadTriggered() event.NoArgEvent {
-	return s.clientReloadTriggered
-}
-
-func (s *grpcServer) NotifyVersionHashChanged() {
-	s.versionHashChanged.Notify(false)
-}
 
 func (s *grpcServer) TriggerClientReload(ctx context.Context, r *proto.TriggerClientReloadRequest) (*proto.TriggerClientReloadResponse, error) {
 	user := authinterceptor.UserClaimsFromContext(ctx)
@@ -26,7 +17,7 @@ func (s *grpcServer) TriggerClientReload(ctx context.Context, r *proto.TriggerCl
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
 	}
 
-	s.ClientReloadTriggered().Notify(false)
+	s.versionInterceptor.TriggerClientReload()
 
 	s.log.Printf("Client reload triggered by %s (remote address %s)", user.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 

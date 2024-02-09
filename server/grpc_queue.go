@@ -89,7 +89,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 	onQueueChanged, queueUpdatedU := s.mediaQueue.QueueUpdated().Subscribe(event.BufferFirst)
 	defer queueUpdatedU()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
+	onVersionHashChanged, versionHashChangedU := s.versionInterceptor.VersionHashUpdated().Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	err := send()

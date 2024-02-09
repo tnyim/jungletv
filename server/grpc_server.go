@@ -47,6 +47,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/turnstileclient"
 	"github.com/tnyim/jungletv/server/components/withdrawalhandler"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/media/applicationpage"
 	"github.com/tnyim/jungletv/server/media/document"
@@ -142,8 +143,7 @@ type grpcServer struct {
 	vipUsers      map[string]vipUserAppearance
 	vipUsersMutex sync.RWMutex
 
-	clientReloadTriggered event.NoArgEvent
-	versionHashChanged    event.NoArgEvent
+	versionInterceptor *version.VersionInterceptor
 
 	rewardHistoryMutex *nsync.NamedMutex
 
@@ -161,8 +161,9 @@ type Options struct {
 	OAuthManager          *oauth.Manager
 	RepresentativeAddress string
 
-	JWTManager      *auth.JWTManager
-	AuthInterceptor *authinterceptor.Interceptor
+	JWTManager         *auth.JWTManager
+	AuthInterceptor    *authinterceptor.Interceptor
+	VersionInterceptor *version.VersionInterceptor
 
 	TicketCheckPeriod time.Duration
 	IPCheckEndpoint   string
@@ -185,8 +186,7 @@ type Options struct {
 
 	TenorAPIKey string
 
-	WebsiteURL  string
-	VersionHash *string
+	WebsiteURL string
 
 	NanswapAPIKey string
 
@@ -339,6 +339,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		moderationStore:            modStore,
 		nicknameCache:              usercache.NewInMemory(),
 		websiteURL:                 options.WebsiteURL,
+		versionInterceptor:         options.VersionInterceptor,
 
 		appRunner:     options.AppRunner,
 		configManager: options.ConfigManager,
@@ -358,9 +359,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		announcementsUpdated: event.New[int](),
 
 		vipUsers: make(map[string]vipUserAppearance),
-
-		clientReloadTriggered: event.NewNoArg(),
-		versionHashChanged:    event.NewNoArg(),
 
 		rewardHistoryMutex: nsync.NewNamedMutex(),
 
@@ -476,7 +474,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	s.rewardsHandler, err = rewards.NewHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
 		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
-		s.staffActivityManager, challengeCheckers, options.VersionHash)
+		s.staffActivityManager, challengeCheckers, options.VersionInterceptor.VersionHash)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

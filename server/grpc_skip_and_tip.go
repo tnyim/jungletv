@@ -25,7 +25,7 @@ func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream
 	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.BufferFirst)
 	defer statusUpdatedU()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
+	onVersionHashChanged, versionHashChangedU := s.versionInterceptor.VersionHashUpdated().Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	unregister := s.statsRegistry.RegisterStreamSubscriber(stats.StatStreamConsumersCommunitySkipping, user != nil && !user.IsUnknown())

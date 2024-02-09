@@ -58,7 +58,7 @@ type Handler struct {
 	staffActivityManager  *staffactivitymanager.Manager
 	eligibleMovingAverage *movingaverage.MovingAverage
 	challengeCheckers     map[ActivityChallengeType]ChallengeCheckFunction
-	versionHash           *string
+	versionHashGetter     func() string
 	pointsManager         *pointsmanager.Manager
 
 	rewardsDistributed event.Event[RewardsDistributedEventArgs]
@@ -205,7 +205,7 @@ func NewHandler(log *log.Logger,
 	moderationStore moderation.Store,
 	staffActivityManager *staffactivitymanager.Manager,
 	challengeCheckers map[ActivityChallengeType]ChallengeCheckFunction,
-	versionHash *string) (*Handler, error) {
+	versionHashGetter func() string) (*Handler, error) {
 	return &Handler{
 		log:                   log,
 		statsClient:           statsClient,
@@ -229,7 +229,7 @@ func NewHandler(log *log.Logger,
 		spectatorsByRewardAddress:    make(map[string]*spectator),
 		spectatorByActivityChallenge: make(map[string]*spectator),
 
-		versionHash: versionHash,
+		versionHashGetter: versionHashGetter,
 
 		chatParticipation:             cache.New[string, struct{}](2*time.Minute+45*time.Second, 10*time.Minute),
 		chatLessFrequentParticipation: cache.New[string, struct{}](15*time.Minute, 10*time.Minute),

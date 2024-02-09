@@ -72,7 +72,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		cpChan <- cp
 	})()
 
-	onVersionHashChanged, versionHashChangedU := s.versionHashChanged.Subscribe(event.BufferFirst)
+	onVersionHashChanged, versionHashChangedU := s.versionInterceptor.VersionHashUpdated().Subscribe(event.BufferFirst)
 	defer versionHashChangedU()
 
 	defer s.mediaQueue.MediaChanged().SubscribeUsingCallback(event.BufferFirst, func(_ media.QueueEntry) {

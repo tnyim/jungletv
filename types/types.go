@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"reflect"
 	"strings"
@@ -21,7 +21,7 @@ const dbIgnoreTagName = "dbIgnore"
 const dbKeyTagName = "dbKey"
 const dbTypeTagName = "dbType"
 
-var logger = log.New(ioutil.Discard, "", log.LstdFlags)
+var logger = log.New(io.Discard, "", log.LstdFlags)
 
 var sdb sq.StatementBuilderType
 var dbTypes = make(map[string]reflect.Type)

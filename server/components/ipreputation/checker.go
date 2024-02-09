@@ -3,7 +3,7 @@ package ipreputation
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -176,7 +176,7 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 	if resp.StatusCode != http.StatusOK {
 		return stacktrace.NewError("non-200 status code when checking IP reputation")
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		c.log.Println("error reading response body:", stacktrace.Propagate(err, ""))
 		return stacktrace.Propagate(err, "")
