@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Yiling-J/theine-go"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/palantir/stacktrace"
-	"github.com/patrickmn/go-cache"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -18,16 +19,21 @@ const CurrentTokenVersion = 2
 type JWTManager struct {
 	secretKey      []byte
 	tokenLifetimes map[PermissionLevel]time.Duration
-	userSeasons    *cache.Cache[string, int]
+	userSeasons    *theine.LoadingCache[string, int]
 }
 
 // NewJWTManager returns a new JWTManager
-func NewJWTManager(secretKey []byte, tokenLifetimes map[PermissionLevel]time.Duration) *JWTManager {
-	return &JWTManager{
+func NewJWTManager(secretKey []byte, tokenLifetimes map[PermissionLevel]time.Duration) (*JWTManager, error) {
+	manager := &JWTManager{
 		secretKey:      secretKey,
 		tokenLifetimes: tokenLifetimes,
-		userSeasons:    cache.New[string, int](30*time.Minute, 5*time.Minute),
 	}
+	var err error
+	manager.userSeasons, err = theine.NewBuilder[string, int](buildconfig.ExpectedConcurrentUsers).Loading(seasonCacheLoader).Build()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return manager, nil
 }
 
 // IsTokenAboutToExpire returns whether the given token needs renewing ASAP
@@ -95,29 +101,35 @@ func (manager *JWTManager) Verify(ctx context.Context, accessToken string) (*Use
 }
 
 func (manager *JWTManager) currentUserSeason(ctxCtx context.Context, user User) (int, error) {
-	season, ok := manager.userSeasons.Get(user.Address())
-	if ok {
-		return season, nil
-	}
-
-	ctx, err := transaction.Begin(ctxCtx)
+	season, err := manager.userSeasons.Get(ctxCtx, user.Address())
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
+	return season, nil
+}
+
+func seasonCacheLoader(ctxCtx context.Context, address string) (theine.Loaded[int], error) {
+	ctx, err := transaction.Begin(ctxCtx)
+	if err != nil {
+		return theine.Loaded[int]{}, stacktrace.Propagate(err, "")
+	}
 	defer ctx.Commit() // read-only tx
 
-	s, err := types.GetUserJWTClaimSeason(ctx, user.Address())
+	var season int
+	s, err := types.GetUserJWTClaimSeason(ctx, address)
 	if err != nil && !errors.Is(err, types.ErrJWTClaimSeasonNotFound) {
-		return 0, stacktrace.Propagate(err, "")
+		return theine.Loaded[int]{}, stacktrace.Propagate(err, "")
 	} else if err != nil {
 		season = 0
 	} else {
 		season = s.Season
 	}
 
-	manager.userSeasons.SetDefault(user.Address(), season)
-
-	return season, nil
+	return theine.Loaded[int]{
+		Value: season,
+		Cost:  1,
+		TTL:   30 * time.Minute,
+	}, nil
 }
 
 // InvalidateUserAuthTokens invalidates all previously issued authentication tokens for the given user
@@ -145,7 +157,7 @@ func (manager *JWTManager) InvalidateUserAuthTokens(ctxCtx context.Context, user
 		return stacktrace.Propagate(err, "")
 	}
 
-	manager.userSeasons.SetDefault(user.Address(), season)
+	manager.userSeasons.SetWithTTL(user.Address(), season, 1, 30*time.Minute)
 
 	return stacktrace.Propagate(ctx.Commit(), "")
 }

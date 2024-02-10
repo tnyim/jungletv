@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/hex"
-	"html/template"
 	"io"
 	"log"
 	"mime"
@@ -27,7 +26,6 @@ import (
 	"github.com/klauspost/compress/gzhttp"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/httpserver"
@@ -66,8 +64,6 @@ var (
 	GitCommit = "???"
 	// BuildDate is provided by govvv at compile-time
 	BuildDate = "???"
-
-	versionInterceptor *version.VersionInterceptor
 )
 
 func main() {
@@ -333,12 +329,16 @@ func main() {
 		mainLog.Fatalln("Cloudflare Turnstile Secret key not present in keybox")
 	}
 
-	jwtManager = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
+	jwtManager, err = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
 		auth.UserPermissionLevel:      180 * 24 * time.Hour,
 		auth.AppEditorPermissionLevel: 7 * 24 * time.Hour,
 		auth.AdminPermissionLevel:     7 * 24 * time.Hour,
 	})
+	if err != nil {
+		mainLog.Fatalln("error building JWT manager:", err)
+	}
 	authInterceptor := authinterceptor.New(jwtManager, &authorizer{})
+	versionInterceptor := version.New(BuildDate, GitCommit)
 
 	oauthManager := oauth.NewManager()
 
@@ -399,7 +399,12 @@ func main() {
 		listenAddr = buildconfig.ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, options)
+	templateCache, err := newTemplateCache(versionInterceptor)
+	if err != nil {
+		mainLog.Fatalln(err)
+	}
+
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, templateCache, options)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -421,7 +426,6 @@ func init() {
 	if !buildconfig.DEBUG {
 		grpcLog = log.New(io.Discard, "grpc ", log.Ldate|log.Ltime)
 	}
-	versionInterceptor = version.New(BuildDate, GitCommit)
 	grpclog.SetLogger(grpcLog)
 	mime.AddExtensionType(".js", "text/javascript") // https://github.com/golang/go/issues/32350
 }
@@ -449,15 +453,7 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	s.handler.ServeHTTP(resp, req)
 }
 
-func versionHashBuilder() string {
-	v := versionInterceptor.VersionHash()
-	if buildconfig.DEBUG {
-		v += "***" + uuid.NewV4().String()
-	}
-	return v
-}
-
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, templateCache *templateCache, options server.Options) (*http.Server, error) {
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(options.VersionInterceptor.Unary(), options.AuthInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(options.VersionInterceptor.Stream(), options.AuthInterceptor.Stream())
 	grpcServer := grpc.NewServer(
@@ -476,12 +472,12 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 	})
 	httpServerSubrouter := router.NewRoute().Subrouter()
 
-	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, versionHashBuilder, signatureVerifier)
+	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, templateCache.VersionHashBuilder, signatureVerifier)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	configureRouter(router)
+	configureRouter(router, templateCache)
 
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
@@ -525,9 +521,7 @@ func serve(httpServer *http.Server, certFile string, keyFile string) {
 	}
 }
 
-func configureRouter(router *mux.Router) {
-	webtemplate := template.Must(template.New("index.html").ParseGlob("app/public/*.template"))
-
+func configureRouter(router *mux.Router, templateCache *templateCache) {
 	if buildconfig.DEBUG {
 		router.HandleFunc("/debug/pprof/", pprof.Index)
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
@@ -565,20 +559,8 @@ Disallow: /`))
 	router.PathPrefix("/banano.json").Handler(http.FileServer(http.Dir("app/public/")))
 	router.PathPrefix("/jungletv.webmanifest").Handler(http.FileServer(http.Dir("app/public/")))
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
-	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		templateData := struct {
-			VersionHash string
-			FullURL     string
-		}{
-			FullURL:     websiteURL + r.URL.Path,
-			VersionHash: versionHashBuilder(),
-		}
-		err := webtemplate.ExecuteTemplate(w, "index.template", templateData)
-		if err != nil {
-			webLog.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	}))
+	router.PathPrefix("/").Handler(templateCache)
+
 }
 
 func addServiceWorkerHeaders(fn http.Handler) http.HandlerFunc {

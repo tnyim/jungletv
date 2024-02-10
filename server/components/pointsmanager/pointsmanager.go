@@ -7,10 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Yiling-J/theine-go"
 	"github.com/bwmarrin/snowflake"
 	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
-	"github.com/patrickmn/go-cache"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/types"
@@ -28,24 +29,28 @@ type Manager struct {
 	bananoConversionFlows     map[string]*BananoConversionFlow
 	bananoConversionFlowsLock sync.RWMutex
 
-	subscriptionCache *cache.Cache[string, *types.Subscription]
+	subscriptionCache *theine.Cache[string, *types.Subscription]
 
 	transactionCreated event.Event[*types.PointsTx]
 	transactionUpdated event.Event[TransactionUpdatedEventArgs]
 }
 
 // New returns a new initialized Manager
-func New(workerContext context.Context, log *log.Logger, snowflakeNode *snowflake.Node, paymentAccountPool *payment.PaymentAccountPool) *Manager {
+func New(workerContext context.Context, log *log.Logger, snowflakeNode *snowflake.Node, paymentAccountPool *payment.PaymentAccountPool) (*Manager, error) {
+	c, err := theine.NewBuilder[string, *types.Subscription](buildconfig.ExpectedConcurrentUsers).Build()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	return &Manager{
 		log:                   log,
 		workerContext:         workerContext,
 		snowflakeNode:         snowflakeNode,
 		paymentAccountPool:    paymentAccountPool,
 		bananoConversionFlows: make(map[string]*BananoConversionFlow),
-		subscriptionCache:     cache.New[string, *types.Subscription](30*time.Minute, 10*time.Minute),
+		subscriptionCache:     c,
 		transactionCreated:    event.New[*types.PointsTx](),
 		transactionUpdated:    event.New[TransactionUpdatedEventArgs](),
-	}
+	}, nil
 }
 
 // TransactionUpdatedEventArgs are the arguments to the OnTransactionUpdated event

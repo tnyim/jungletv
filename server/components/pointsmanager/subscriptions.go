@@ -19,7 +19,7 @@ func (m *Manager) GetCurrentUserSubscription(ctxCtx context.Context, user auth.U
 	subscription, present := m.subscriptionCache.Get(user.Address())
 	if present {
 		if subscription != nil && time.Now().After(subscription.EndsAt) {
-			m.subscriptionCache.SetDefault(user.Address(), nil)
+			m.subscriptionCache.SetWithTTL(user.Address(), nil, 1, 30*time.Minute)
 			return nil, nil
 		}
 		return subscription, nil
@@ -35,7 +35,7 @@ func (m *Manager) GetCurrentUserSubscription(ctxCtx context.Context, user auth.U
 	if err != nil && !errors.Is(err, types.ErrNoSubscription) {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	m.subscriptionCache.SetDefault(user.Address(), subscription)
+	m.subscriptionCache.SetWithTTL(user.Address(), subscription, 1, 30*time.Minute)
 	return subscription, nil
 }
 
@@ -101,7 +101,7 @@ func (m *Manager) SubscribeOrExtendSubscription(ctxCtx context.Context, user aut
 	}
 
 	ctx.DeferToCommit(func() {
-		m.subscriptionCache.SetDefault(user.Address(), subscription)
+		m.subscriptionCache.SetWithTTL(user.Address(), subscription, 1, 30*time.Minute)
 	})
 
 	err = ctx.Commit()

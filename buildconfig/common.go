@@ -12,4 +12,7 @@ const (
 
 	// MaxDBconnectionPoolSize is the maximum number of simultaneous database connections in the connection pool
 	MaxDBconnectionPoolSize = 100
+
+	// ExpectedConcurrentUsers is used to adjust the maximum size of some caches
+	ExpectedConcurrentUsers = 2000
 )

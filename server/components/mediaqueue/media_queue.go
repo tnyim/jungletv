@@ -11,18 +11,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Yiling-J/theine-go"
 	"github.com/bytedance/sonic"
 	"github.com/palantir/stacktrace"
-	"github.com/patrickmn/go-cache"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
-	"github.com/vburenin/nsync"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,19 +32,18 @@ import (
 
 // MediaQueue queues media for synced broadcast
 type MediaQueue struct {
-	log                             *log.Logger
-	statsClient                     *statsd.Client
-	queue                           []media.QueueEntry
-	queueMutex                      sync.RWMutex
-	recentEntryCounts               map[string]int
-	recentEntryCountsMutex          sync.RWMutex
-	recentEntryCountsCache          *cache.Cache[string, recentEntryCountsValue]
-	recentEntryCountsCacheUserMutex *nsync.NamedMutex
-	removalOfOwnEntriesAllowed      bool
-	entryReorderingAllowed          bool
-	skippingEnabled                 bool // all entries will behave as unskippable when false
-	insertCursor                    string
-	playingSince                    time.Time
+	log                        *log.Logger
+	statsClient                *statsd.Client
+	queue                      []media.QueueEntry
+	queueMutex                 sync.RWMutex
+	recentEntryCounts          map[string]int
+	recentEntryCountsMutex     sync.RWMutex
+	recentEntryCountsCache     *theine.LoadingCache[string, recentEntryCountsValue]
+	removalOfOwnEntriesAllowed bool
+	entryReorderingAllowed     bool
+	skippingEnabled            bool // all entries will behave as unskippable when false
+	insertCursor               string
+	playingSince               time.Time
 
 	mediaProviders map[types.MediaType]media.Provider
 
@@ -66,26 +65,28 @@ var ErrInsufficientPermissionsToRemoveEntry = errors.New("insufficient permissio
 
 func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persistenceFile string, mediaProviders map[types.MediaType]media.Provider) (*MediaQueue, error) {
 	q := &MediaQueue{
-		log:                             log,
-		statsClient:                     statsClient,
-		recentEntryCounts:               make(map[string]int),
-		recentEntryCountsCacheUserMutex: nsync.NewNamedMutex(),
-		queueUpdated:                    event.NewNoArg(),
-		mediaChanged:                    event.New[media.QueueEntry](),
-		skippingAllowedUpdated:          event.NewNoArg(),
-		entryAdded:                      event.New[EntryAddedEventArg](),
-		entryRemoved:                    event.New[EntryRemovedEventArg](),
-		entryMoved:                      event.New[EntryMovedEventArg](),
-		recentEntryCountsCache:          cache.New[string, recentEntryCountsValue](10*time.Second, 30*time.Second),
-		removalOfOwnEntriesAllowed:      true,
-		entryReorderingAllowed:          true,
-		skippingEnabled:                 true,
-		mediaProviders:                  mediaProviders,
+		log:                        log,
+		statsClient:                statsClient,
+		recentEntryCounts:          make(map[string]int),
+		queueUpdated:               event.NewNoArg(),
+		mediaChanged:               event.New[media.QueueEntry](),
+		skippingAllowedUpdated:     event.NewNoArg(),
+		entryAdded:                 event.New[EntryAddedEventArg](),
+		entryRemoved:               event.New[EntryRemovedEventArg](),
+		entryMoved:                 event.New[EntryMovedEventArg](),
+		removalOfOwnEntriesAllowed: true,
+		entryReorderingAllowed:     true,
+		skippingEnabled:            true,
+		mediaProviders:             mediaProviders,
 	}
 	for _, provider := range mediaProviders {
 		provider.SetMediaQueue(q)
 	}
 	var err error
+	q.recentEntryCountsCache, err = theine.NewBuilder[string, recentEntryCountsValue](buildconfig.ExpectedConcurrentUsers).Loading(q.recentEntryCountsCacheLoader).Build()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	q.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
 		Tokens:   4,
 		Interval: 4 * time.Hour,
@@ -678,7 +679,9 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 		}
 		ctx.DeferToCommit(func() {
 			q.recentEntryCountsCache.Delete(prevPlayedMedia.RequestedBy)
-			go q.incrementRecentlyPlayedFor(prevMedia.RequestedBy(), recentPlayDuration)
+			if prevMedia.RequestedBy() != nil && !prevMedia.RequestedBy().IsUnknown() {
+				go q.incrementRecentlyPlayedFor(prevMedia.RequestedBy().Address(), recentPlayDuration)
+			}
 		})
 	}
 
@@ -737,58 +740,46 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 
 const recentPlayDuration = 4 * time.Hour
 
-func (q *MediaQueue) incrementRecentlyPlayedFor(requester auth.User, incrementFor time.Duration) {
-	if requester == nil || requester.IsUnknown() {
-		return
-	}
-
+func (q *MediaQueue) incrementRecentlyPlayedFor(requesterAddress string, incrementFor time.Duration) {
 	func() {
 		q.recentEntryCountsMutex.Lock()
 		defer q.recentEntryCountsMutex.Unlock()
-		q.recentEntryCounts[requester.Address()]++
+		q.recentEntryCounts[requesterAddress]++
 	}()
 
 	time.Sleep(incrementFor)
 
 	q.recentEntryCountsMutex.Lock()
 	defer q.recentEntryCountsMutex.Unlock()
-	q.recentEntryCounts[requester.Address()]--
+	q.recentEntryCounts[requesterAddress]--
 }
 
-func (q *MediaQueue) getRecentlyPlayedMediaRequestedBy(ctx context.Context, requester auth.User) (int, error) {
-	if requester == nil || requester.IsUnknown() {
-		return 0, nil
-	}
-
+func (q *MediaQueue) getRecentlyPlayedMediaRequestedBy(ctx context.Context, requesterAddress string) (int, error) {
 	var count int
 	var present bool
 	func() {
 		q.recentEntryCountsMutex.RLock()
 		defer q.recentEntryCountsMutex.RUnlock()
-		count, present = q.recentEntryCounts[requester.Address()]
+		count, present = q.recentEntryCounts[requesterAddress]
 	}()
 	if present {
 		return count, nil
 	}
-	count, err := q.fetchAndUpdateRecentlyPlayedMediaCount(ctx, requester)
+	count, err := q.fetchAndUpdateRecentlyPlayedMediaCount(ctx, requesterAddress)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
 	return count, nil
 }
 
-func (q *MediaQueue) fetchAndUpdateRecentlyPlayedMediaCount(ctxCtx context.Context, requester auth.User) (int, error) {
-	if requester == nil || requester.IsUnknown() {
-		return 0, nil
-	}
-
+func (q *MediaQueue) fetchAndUpdateRecentlyPlayedMediaCount(ctxCtx context.Context, requesterAddress string) (int, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
 	defer ctx.Commit() // read-only tx
 
-	playedMedia, err := types.GetPlayedMediaRequestedBySince(ctx, requester.Address(), time.Now().Add(-recentPlayDuration))
+	playedMedia, err := types.GetPlayedMediaRequestedBySince(ctx, requesterAddress, time.Now().Add(-recentPlayDuration))
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
@@ -802,7 +793,7 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedMediaCount(ctxCtx context.Conte
 			count--
 			continue
 		}
-		go q.incrementRecentlyPlayedFor(requester, recentPlayDuration-time.Since(m.EndedAt.Time))
+		go q.incrementRecentlyPlayedFor(requesterAddress, recentPlayDuration-time.Since(m.EndedAt.Time))
 	}
 
 	return count, nil
@@ -820,18 +811,15 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx context.C
 		return 0, false, nil
 	}
 
-	reqAddress := requester.Address()
-
-	// this is to ensure that we don't spawn concurrent cache filling processes for this user, even if this function is
-	// concurrently called with the same user as argument
-	q.recentEntryCountsCacheUserMutex.Lock(reqAddress)
-	defer q.recentEntryCountsCacheUserMutex.Unlock(reqAddress)
-
-	c, present := q.recentEntryCountsCache.Get(reqAddress)
-	if present {
-		return c.count, c.requestedCurrent, nil
+	cached, err := q.recentEntryCountsCache.Get(ctx, requester.Address())
+	if err != nil {
+		return 0, false, stacktrace.Propagate(err, "")
 	}
 
+	return cached.count, cached.requestedCurrent, nil
+}
+
+func (q *MediaQueue) recentEntryCountsCacheLoader(ctx context.Context, reqAddress string) (theine.Loaded[recentEntryCountsValue], error) {
 	count := 0
 	requestedCurrent := false
 	func() {
@@ -847,13 +835,17 @@ func (q *MediaQueue) CountEnqueuedOrRecentlyPlayedMediaRequestedBy(ctx context.C
 		}
 	}()
 
-	recentCount, err := q.getRecentlyPlayedMediaRequestedBy(ctx, requester)
+	recentCount, err := q.getRecentlyPlayedMediaRequestedBy(ctx, reqAddress)
 	if err != nil {
-		return 0, false, stacktrace.Propagate(err, "")
+		return theine.Loaded[recentEntryCountsValue]{}, stacktrace.Propagate(err, "")
 	}
-	q.recentEntryCountsCache.SetDefault(reqAddress, recentEntryCountsValue{
-		count:            count + recentCount,
-		requestedCurrent: requestedCurrent,
-	})
-	return count + recentCount, requestedCurrent, nil
+
+	return theine.Loaded[recentEntryCountsValue]{
+		Value: recentEntryCountsValue{
+			count:            count + recentCount,
+			requestedCurrent: requestedCurrent,
+		},
+		Cost: 1,
+		TTL:  10 * time.Minute,
+	}, nil
 }

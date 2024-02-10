@@ -11,19 +11,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Yiling-J/theine-go"
 	"github.com/bytedance/sonic"
 	"github.com/jamesog/iptoasn"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Checker checks the reputation of IP addresses
 type Checker struct {
-	log            *log.Logger
-	reputation     map[string]float32
-	reputationLock sync.RWMutex
-	httpClient     http.Client
+	log        *log.Logger
+	reputation *theine.Cache[string, float32]
+	httpClient http.Client
 
 	badASNs     map[int]struct{}
 	badASNsLock sync.RWMutex
@@ -34,11 +36,15 @@ type Checker struct {
 }
 
 // NewChecker initializes and returns a new Checker
-func NewChecker(ctx context.Context, log *log.Logger, endpoint string) *Checker {
+func NewChecker(ctx context.Context, log *log.Logger, endpoint string) (*Checker, error) {
+	cache, err := theine.NewBuilder[string, float32](buildconfig.ExpectedConcurrentUsers).Build()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 	c := &Checker{
 		log:        log,
-		reputation: make(map[string]float32),
-		checkQueue: make(chan string, 10000),
+		reputation: cache,
+		checkQueue: make(chan string, buildconfig.ExpectedConcurrentUsers),
 		httpClient: http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -50,13 +56,11 @@ func NewChecker(ctx context.Context, log *log.Logger, endpoint string) *Checker 
 
 	c.updateBadASNsFromDatabase(ctx)
 
-	return c
+	return c, nil
 }
 
 func (c *Checker) CanReceiveRewards(remoteAddress string) bool {
-	c.reputationLock.RLock()
-	defer c.reputationLock.RUnlock()
-	badActorConfidence, present := c.reputation[remoteAddress]
+	badActorConfidence, present := c.reputation.Get(remoteAddress)
 	if !present {
 		c.EnqueueAddressForChecking(remoteAddress)
 		return false // do not be generous and don't reward until they're checked
@@ -65,9 +69,7 @@ func (c *Checker) CanReceiveRewards(remoteAddress string) bool {
 }
 
 func (c *Checker) EnqueueAddressForChecking(remoteAddress string) {
-	c.reputationLock.RLock()
-	defer c.reputationLock.RUnlock()
-	if _, present := c.reputation[remoteAddress]; present || remoteAddress == "" {
+	if _, present := c.reputation.Get(remoteAddress); present || remoteAddress == "" {
 		return
 	}
 	// make this function never block by simply dropping the request if the queue is full
@@ -115,21 +117,14 @@ func (c *Checker) Worker(ctx context.Context) {
 }
 
 func (c *Checker) processQueueStep(ctx context.Context) {
-	addressesToCheck := []string{}
-	goingToCheck := make(map[string]struct{})
+	addressesToCheck := make(map[string]struct{})
 addLoop:
 	for {
 		select {
 		case addressToCheck := <-c.checkQueue:
-			addressAlreadyChecked := false
-			func() {
-				c.reputationLock.RLock()
-				defer c.reputationLock.RUnlock()
-				_, addressAlreadyChecked = c.reputation[addressToCheck]
-			}()
-			if _, present := goingToCheck[addressToCheck]; !present && !addressAlreadyChecked {
-				goingToCheck[addressToCheck] = struct{}{}
-				addressesToCheck = append(addressesToCheck, addressToCheck)
+			_, addressAlreadyChecked := c.reputation.Get(addressToCheck)
+			if !addressAlreadyChecked {
+				addressesToCheck[addressToCheck] = struct{}{}
 			}
 			if len(addressesToCheck) >= 99 {
 				break addLoop
@@ -140,10 +135,10 @@ addLoop:
 	}
 
 	if len(addressesToCheck) > 0 {
-		err := c.checkIPs(ctx, addressesToCheck)
+		err := c.checkIPs(ctx, lo.Keys(addressesToCheck))
 		if err != nil {
 			c.log.Println("error checking IP info:", stacktrace.Propagate(err, ""))
-			for _, ip := range addressesToCheck {
+			for ip := range addressesToCheck {
 				c.setAddressReputation(ip, 0.5)
 			}
 		}
@@ -151,9 +146,7 @@ addLoop:
 }
 
 func (c *Checker) setAddressReputation(address string, reputation float32) {
-	c.reputationLock.Lock()
-	defer c.reputationLock.Unlock()
-	c.reputation[address] = reputation
+	c.reputation.SetWithTTL(address, reputation, 1, 24*time.Hour)
 }
 
 var asRegexp = regexp.MustCompile(`AS([0-9]+)\s.*`)

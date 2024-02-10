@@ -319,6 +319,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
+	userCache, err := usercache.NewInMemory()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
 	s := &grpcServer{
 		log:                        options.Log,
 		wallet:                     options.Wallet,
@@ -333,11 +338,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		autoEnqueueVideos:          options.AutoEnqueueVideoListFile != "",
 		allowMediaEnqueuing:        proto.AllowedMediaEnqueuingType_ENABLED,
 		allowMediaEnqueuingChanged: event.New[allowedMediaEnqueuingChangedEventArgs](),
-		ipReputationChecker:        ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint),
 		ticketCheckPeriod:          options.TicketCheckPeriod,
 		staffActivityManager:       staffactivitymanager.New(options.StatsClient),
 		moderationStore:            modStore,
-		nicknameCache:              usercache.NewInMemory(),
+		nicknameCache:              userCache,
 		websiteURL:                 options.WebsiteURL,
 		versionInterceptor:         options.VersionInterceptor,
 
@@ -366,6 +370,11 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 		privilegedLabUserSecretKey: options.PrivilegedLabUserSecretKey,
 	}
+	s.ipReputationChecker, err = ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to create IP reputation checker")
+	}
+
 	s.thirdPartyAuthorizer = auth.NewThirdPartyAuthorizer(s.jwtManager)
 	s.userSerializer = s.serializeUserForAPI
 
@@ -455,7 +464,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 	s.appEditor = appeditor.New(s.log, s.appRunner, s.paymentAccountPool)
 
-	s.pointsManager = pointsmanager.New(ctx, s.log, s.snowflakeNode, s.paymentAccountPool)
+	s.pointsManager, err = pointsmanager.New(ctx, s.log, s.snowflakeNode, s.paymentAccountPool)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
 
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
 	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
