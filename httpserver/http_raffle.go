@@ -10,15 +10,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/raffle"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"github.com/uptrace/bunrouter"
 )
 
-func (s *HTTPServer) RaffleTickets(w http.ResponseWriter, r *http.Request) error {
-	year, week, err := extractWeeklyRaffleParametersFromMuxVars(r)
+func (s *HTTPServer) RaffleTickets(w http.ResponseWriter, r bunrouter.Request) error {
+	year, week, err := extractWeeklyRaffleParametersFromRouterParams(r)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -58,8 +58,8 @@ func (s *HTTPServer) RaffleTickets(w http.ResponseWriter, r *http.Request) error
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (s *HTTPServer) RaffleInfo(w http.ResponseWriter, r *http.Request) error {
-	year, week, err := extractWeeklyRaffleParametersFromMuxVars(r)
+func (s *HTTPServer) RaffleInfo(w http.ResponseWriter, r bunrouter.Request) error {
+	year, week, err := extractWeeklyRaffleParametersFromRouterParams(r)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -179,11 +179,9 @@ Raffle period: %s - %s
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func extractWeeklyRaffleParametersFromMuxVars(r *http.Request) (int, int, error) {
-	vars := mux.Vars(r)
-
-	yearStr := vars["year"]
-	weekStr := vars["week"]
+func extractWeeklyRaffleParametersFromRouterParams(r bunrouter.Request) (int, int, error) {
+	yearStr := r.Param("year")
+	weekStr := r.Param("week")
 
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {

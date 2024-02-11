@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/palantir/stacktrace"
+	"github.com/uptrace/bunrouter"
 )
 
-func (s *HTTPServer) VerifySignature(w http.ResponseWriter, r *http.Request) error {
+func (s *HTTPServer) VerifySignature(w http.ResponseWriter, r bunrouter.Request) error {
 	w.Header().Set("Access-Control-Allow-Origin", "https://thebananostand.com")
 	w.Header().Set("Access-Control-Allow-Methods", http.MethodPut)
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -34,8 +34,7 @@ func (s *HTTPServer) VerifySignature(w http.ResponseWriter, r *http.Request) err
 		return stacktrace.Propagate(err, "")
 	}
 
-	vars := mux.Vars(r)
-	processID, ok := vars["processID"]
+	processID, ok := r.Params().Get("processID")
 	if !ok || processID == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return stacktrace.Propagate(err, "")

@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/pprof"
+	"strings"
 
 	"github.com/gbl08ma/ssoclient"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/klauspost/compress/gzhttp"
 	"github.com/palantir/stacktrace"
@@ -18,6 +18,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/oauth"
 	"github.com/tnyim/jungletv/server/components/raffle"
 	"github.com/tnyim/jungletv/server/interceptors/version"
+	"github.com/uptrace/bunrouter"
 )
 
 type HTTPServer struct {
@@ -78,14 +79,17 @@ func New(
 		basicAuthChecker:   basicAuthChecker,
 	}
 
-	gzipWrapper, err := gzhttp.NewWrapper()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
+	router := bunrouter.New(
+		bunrouter.Use(s.errorHandler),
 
-	router := mux.NewRouter().StrictSlash(true)
-	router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Catch-all: Serve our JavaScript application's entry-point (rendered index.template)
+		bunrouter.WithNotFoundHandler(bunrouter.HTTPHandler(s.templateCache)),
+	)
+	s.configureRoutes(router)
+
+	handler := http.Handler(router)
+	handler = func(h http.Handler) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", s.websiteURL)
 			w.Header().Set("X-Frame-Options", "deny")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -95,78 +99,81 @@ func New(
 			w.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
 			w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000")
-			next.ServeHTTP(w, r)
-		})
-	})
-	router.Use(func(next http.Handler) http.Handler {
-		return gzipWrapper(next)
-	})
-
-	s.configureRouter(router)
+			h.ServeHTTP(w, r)
+		}
+	}(handler)
+	handler = gzhttp.GzipHandler(handler)
 	return router, nil
 }
 
-func (s *HTTPServer) wrapHTTPHandler(h func(w http.ResponseWriter, r *http.Request) error) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := h(w, r)
+func (s *HTTPServer) errorHandler(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
+	return func(w http.ResponseWriter, req bunrouter.Request) error {
+		err := next(w, req)
 		if err != nil {
 			s.log.Println("HTTP handler error:", err)
 		}
+		return err
 	}
 }
 
-func (s *HTTPServer) configureRouter(router *mux.Router) {
-	router.HandleFunc("/verifysignature/{processID}", s.wrapHTTPHandler(s.VerifySignature)).Methods(http.MethodPut, http.MethodOptions)
-	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/tickets", s.wrapHTTPHandler(s.RaffleTickets))
-	router.HandleFunc("/raffles/weekly/{year:[0-9]{4}}/{week:[0-9]{1,2}}/", s.wrapHTTPHandler(s.RaffleInfo))
-	router.HandleFunc("/oauth/callback", s.wrapHTTPHandler(s.OAuthCallback))
-	router.HandleFunc("/oauth/monkeyconnect/callback", s.wrapHTTPHandler(s.OAuthCallback))
-	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{file:[^*].*}", s.wrapHTTPHandler(s.ApplicationFile))
-	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/{page:[*][A-Za-z0-9_-]*}", s.wrapHTTPHandler(s.ApplicationPage))
-	router.HandleFunc("/assets/app/{app}/{ignoredVersionForCacheBusting}/**appbridge.js", s.wrapHTTPHandler(s.AppbridgeJS))
+func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
+	router.PUT("/verifysignature/:processID", s.VerifySignature)
+	router.OPTIONS("/verifysignature/:processID", s.VerifySignature)
+	router.GET("/raffles/weekly/:year/:week/tickets", s.RaffleTickets)
+	router.GET("/raffles/weekly/:year/:week", s.RaffleInfo)
+	router.GET("/oauth/callback", s.OAuthCallback)
+	router.GET("/oauth/monkeyconnect/callback", s.OAuthCallback)
+	router.GET("/assets/app/:app/:ignoredVersionForCacheBusting/:part", func(w http.ResponseWriter, r bunrouter.Request) error {
+		part := r.Param("part")
+		if part == "**appbridge.js" {
+			return stacktrace.Propagate(s.AppbridgeJS(w, r), "")
+		} else if strings.HasPrefix(part, "*") {
+			return stacktrace.Propagate(s.ApplicationPage(w, r), "")
+		} else {
+			return stacktrace.Propagate(s.ApplicationFile(w, r), "")
+		}
+	})
 
 	if buildconfig.DEBUG {
-		router.HandleFunc("/debug/pprof/", pprof.Index)
-		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		router.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		router.PathPrefix("/debug/pprof/").HandlerFunc(pprof.Index)
+		router.Compat().GET("/debug/pprof/cmdline", pprof.Cmdline)
+		router.Compat().GET("/debug/pprof/profile", pprof.Profile)
+		router.Compat().GET("/debug/pprof/symbol", pprof.Symbol)
+		router.Compat().GET("/debug/pprof/trace", pprof.Trace)
+		router.Compat().GET("/debug/pprof/*anything", pprof.Index)
 	}
 
 	if buildconfig.DEBUG && s.daClient == nil && s.basicAuthChecker == nil {
-		router.HandleFunc("/admin/signin", s.directUnsafeAuthHandler)
+		router.Compat().GET("/admin/signin", s.directUnsafeAuthHandler)
 		s.authLog.Println("using direct unsafe auth")
 	} else if s.daClient == nil && s.basicAuthChecker != nil {
-		router.HandleFunc("/admin/signin", s.basicAuthHandler)
+		router.Compat().GET("/admin/signin", s.basicAuthHandler)
 		s.authLog.Println("using basic auth")
 	} else {
-		router.HandleFunc("/admin/signin", s.authInitHandler)
+		router.Compat().GET("/admin/signin", s.authInitHandler)
 		s.authLog.Println("using SSO auth")
 	}
 	if buildconfig.LAB {
 		// avoid search engines indexing lab environments to avoid confusion among non-developers
-		router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte(`User-agent: *
+		router.GET("/robots.txt", func(w http.ResponseWriter, r bunrouter.Request) error {
+			_, err := w.Write([]byte(`User-agent: *
 Disallow: /`))
+			return stacktrace.Propagate(err, "")
 		})
 	}
 
 	appPublicFS := http.FileServer(http.Dir("app/public/"))
 	appPublicBuildFS := http.FileServer(http.Dir("app/public/build/"))
 
-	router.HandleFunc("/admin/auth", s.authHandler)
-	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
-	router.PathPrefix("/emotes").Handler(http.StripPrefix("/emotes", http.FileServer(http.Dir("app/public/emotes/"))))
-	router.PathPrefix("/build/swbundle.js").Handler(addServiceWorkerHeaders(http.StripPrefix("/build", appPublicBuildFS)))
-	router.PathPrefix("/build").Handler(http.StripPrefix("/build", appPublicBuildFS))
-	router.PathPrefix("/favicon.ico").Handler(appPublicFS)
-	router.PathPrefix("/favicon.png").Handler(appPublicFS)
-	router.PathPrefix("/apple-icon.png").Handler(appPublicFS)
-	router.PathPrefix("/banano.json").Handler(appPublicFS)
-	router.PathPrefix("/jungletv.webmanifest").Handler(appPublicFS)
-	// Catch-all: Serve our JavaScript application's entry-point (index.html).
-	router.PathPrefix("/").Handler(s.templateCache)
+	router.Compat().GET("/admin/auth", s.authHandler)
+	router.GET("/assets/*anything", bunrouter.HTTPHandler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/")))))
+	router.GET("/emotes/*anything", bunrouter.HTTPHandler(http.StripPrefix("/emotes", http.FileServer(http.Dir("app/public/emotes/")))))
+	router.GET("/build/swbundle.js", bunrouter.HTTPHandler(addServiceWorkerHeaders(http.StripPrefix("/build", appPublicBuildFS))))
+	router.GET("/build/*anything", bunrouter.HTTPHandler(http.StripPrefix("/build", appPublicBuildFS)))
+	router.GET("/favicon.ico", bunrouter.HTTPHandler(appPublicFS))
+	router.GET("/favicon.png", bunrouter.HTTPHandler(appPublicFS))
+	router.GET("/apple-icon.png", bunrouter.HTTPHandler(appPublicFS))
+	router.GET("/banano.json", bunrouter.HTTPHandler(appPublicFS))
+	router.GET("/jungletv.webmanifest", bunrouter.HTTPHandler(appPublicFS))
 }
 
 func addServiceWorkerHeaders(fn http.Handler) http.HandlerFunc {

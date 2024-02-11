@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/palantir/stacktrace"
+	"github.com/uptrace/bunrouter"
 )
 
-func (s *HTTPServer) OAuthCallback(w http.ResponseWriter, r *http.Request) error {
+func (s *HTTPServer) OAuthCallback(w http.ResponseWriter, r bunrouter.Request) error {
 	state := r.FormValue("state")
 	code := r.FormValue("code")
 
@@ -16,7 +17,7 @@ func (s *HTTPServer) OAuthCallback(w http.ResponseWriter, r *http.Request) error
 		return stacktrace.Propagate(err, "")
 	}
 
-	http.Redirect(w, r, s.websiteURL+"/rewards", http.StatusFound)
+	http.Redirect(w, r.Request, s.websiteURL+"/rewards", http.StatusFound)
 
 	return nil
 }

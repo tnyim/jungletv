@@ -27,7 +27,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/btree v1.1.2
 	github.com/google/go-querystring v1.1.0
-	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/sessions v1.2.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/hectorchu/gonano v0.1.17
@@ -50,6 +49,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/smallnest/chanx v1.2.0
 	github.com/stretchr/testify v1.8.4
+	github.com/uptrace/bunrouter v1.0.21
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
 	golang.org/x/crypto v0.18.0
