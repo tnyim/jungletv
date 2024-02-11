@@ -1,12 +1,10 @@
-package main
+package httpserver
 
 import (
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/gbl08ma/ssoclient"
-	"github.com/gorilla/sessions"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/server/auth"
@@ -14,18 +12,11 @@ import (
 	"github.com/tnyim/jungletv/utils"
 )
 
-var (
-	sessionStore     *sessions.CookieStore
-	daClient         *ssoclient.SSOClient
-	websiteURL       string
-	basicAuthChecker func(ip, username, password string) bool
-)
-
 // directUnsafeAuthHandler authenticates anyone who asks as admin and is only used for development
-func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), "DEBUG_USER", auth.AdminPermissionLevel, "")
+func (s *HTTPServer) directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
+	adminToken, expiration, season, err := s.jwtManager.Generate(r.Context(), "DEBUG_USER", auth.AdminPermissionLevel, "")
 	if err != nil {
-		authLog.Println("Error generating admin JWT:", err)
+		s.authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -40,7 +31,7 @@ func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 		Method: "direct_unsafe_auth_handler",
 	})
 	if err != nil {
-		authLog.Println("Error recording auth event:", err)
+		s.authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -58,8 +49,8 @@ func directUnsafeAuthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // basicAuthHandler authenticates users as admin based on basic auth
-func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
-	rewardAddress := getCurrentRewardAddress(r)
+func (s *HTTPServer) basicAuthHandler(w http.ResponseWriter, r *http.Request) {
+	rewardAddress := s.getCurrentRewardAddress(r)
 	if rewardAddress == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("You must register to receive rewards first"))
@@ -68,7 +59,7 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		authLog.Println(stacktrace.Propagate(err, ""))
+		s.authLog.Println(stacktrace.Propagate(err, ""))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -78,16 +69,16 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 	ip = utils.GetUniquifiedIP(ip)
 
 	username, password, ok := r.BasicAuth()
-	if !ok || !basicAuthChecker(ip, username, password) {
+	if !ok || !s.basicAuthChecker(ip, username, password) {
 		w.Header().Add("WWW-Authenticate", `Basic realm="Enter username and password"`)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`Incorrect credentials`))
 		return
 	}
 
-	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
+	adminToken, expiration, season, err := s.jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, rewardAddress[:14])
 	if err != nil {
-		authLog.Println("Error generating admin JWT:", err)
+		s.authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -106,7 +97,7 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 		Username:      username,
 	})
 	if err != nil {
-		authLog.Println("Error recording auth event:", err)
+		s.authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -124,19 +115,19 @@ func basicAuthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // authInitHandler serves the initial authentication request
-func authInitHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := sessionStore.Get(r, "sso_process")
+func (s *HTTPServer) authInitHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := s.ssoCookieStore.Get(r, "sso_process")
 
 	id := uuid.NewV4()
 	session.Values["id"] = id.String()
-	rewardAddress := getCurrentRewardAddress(r)
+	rewardAddress := s.getCurrentRewardAddress(r)
 	if rewardAddress != "" {
 		session.Values["rewardAddress"] = rewardAddress
 	}
 
-	url, rid, err := daClient.InitLogin(websiteURL+"/admin/auth", false, "", nil, id.String(), websiteURL)
+	url, rid, err := s.daClient.InitLogin(s.websiteURL+"/admin/auth", false, "", nil, id.String(), s.websiteURL)
 	if err != nil {
-		authLog.Println("Error initiating SSO login:", err)
+		s.authLog.Println("Error initiating SSO login:", err)
 	}
 
 	session.Values["rid"] = rid
@@ -145,13 +136,13 @@ func authInitHandler(w http.ResponseWriter, r *http.Request) {
 	session.Options.HttpOnly = true
 	err = session.Save(r, w)
 	if err != nil {
-		authLog.Println("Error saving session:", err)
+		s.authLog.Println("Error saving session:", err)
 	}
 
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
-func getCurrentRewardAddress(r *http.Request) string {
+func (s *HTTPServer) getCurrentRewardAddress(r *http.Request) string {
 	accessTokenCookie, err := r.Cookie("auth-token")
 	if err != nil {
 		return ""
@@ -161,7 +152,7 @@ func getCurrentRewardAddress(r *http.Request) string {
 		return ""
 	}
 
-	claims, err := jwtManager.Verify(r.Context(), accessToken)
+	claims, err := s.jwtManager.Verify(r.Context(), accessToken)
 	if err != nil {
 		return ""
 	}
@@ -170,13 +161,13 @@ func getCurrentRewardAddress(r *http.Request) string {
 }
 
 // authHandler serves requests from users that come from the SSO login page
-func authHandler(w http.ResponseWriter, r *http.Request) {
+func (s *HTTPServer) authHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("from_sso_server") != "1" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	session, _ := sessionStore.Get(r, "sso_process")
+	session, _ := s.ssoCookieStore.Get(r, "sso_process")
 	if session.IsNew || session.Values["id"] == nil || session.Values["rid"] == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -185,9 +176,9 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	ssoID := r.URL.Query().Get("sso_id")
 	ssoID2 := r.URL.Query().Get("sso_id2")
 	rid := session.Values["rid"].(string)
-	login, err := daClient.GetLogin(ssoID, 7*24*60*60, nil, ssoID2, rid)
+	login, err := s.daClient.GetLogin(ssoID, 7*24*60*60, nil, ssoID2, rid)
 	if err != nil {
-		authLog.Println("Error getting SSO login:", err)
+		s.authLog.Println("Error getting SSO login:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -206,16 +197,16 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	if v, ok := session.Values["rewardAddress"]; ok {
 		rewardAddress = v.(string)
 	}
-	adminToken, expiration, season, err := jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, login.UserID)
+	adminToken, expiration, season, err := s.jwtManager.Generate(r.Context(), rewardAddress, auth.AdminPermissionLevel, login.UserID)
 	if err != nil {
-		authLog.Println("Error generating admin JWT:", err)
+		s.authLog.Println("Error generating admin JWT:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		authLog.Println(stacktrace.Propagate(err, ""))
+		s.authLog.Println(stacktrace.Propagate(err, ""))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -240,7 +231,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		UserID:        login.UserID,
 	})
 	if err != nil {
-		authLog.Println("Error recording auth event:", err)
+		s.authLog.Println("Error recording auth event:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

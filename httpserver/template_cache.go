@@ -1,9 +1,10 @@
-package main
+package httpserver
 
 import (
 	"bytes"
 	"context"
 	"html/template"
+	"log"
 	"math"
 	"net/http"
 	"time"
@@ -17,14 +18,20 @@ import (
 )
 
 type templateCache struct {
+	log                *log.Logger
+	websiteURL         string
 	versionInterceptor *version.VersionInterceptor
 	template           *template.Template
 	cacheClient        *theine.LoadingCache[string, []byte]
 	cleanup            []func()
 }
 
-func newTemplateCache(versionInterceptor *version.VersionInterceptor) (*templateCache, error) {
-	c := &templateCache{versionInterceptor: versionInterceptor}
+func newTemplateCache(log *log.Logger, versionInterceptor *version.VersionInterceptor, websiteURL string) (*templateCache, error) {
+	c := &templateCache{
+		log:                log,
+		versionInterceptor: versionInterceptor,
+		websiteURL:         websiteURL,
+	}
 	c.reloadTemplate()
 
 	cacheClient, err := theine.NewBuilder[string, []byte](100).Loading(c.cacheLoader).Build()
@@ -65,12 +72,12 @@ func (c *templateCache) clearCache() {
 func (c *templateCache) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, err := c.cacheClient.Get(r.Context(), r.URL.Path)
 	if err != nil {
-		webLog.Println(stacktrace.Propagate(err, ""))
+		c.log.Println(stacktrace.Propagate(err, ""))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	_, err = w.Write(body)
 	if err != nil {
-		webLog.Println(stacktrace.Propagate(err, ""))
+		c.log.Println(stacktrace.Propagate(err, ""))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -91,7 +98,7 @@ func (c *templateCache) cacheLoader(ctx context.Context, path string) (theine.Lo
 		VersionHash string
 		FullURL     string
 	}{
-		FullURL:     websiteURL + path,
+		FullURL:     c.websiteURL + path,
 		VersionHash: c.VersionHashBuilder(),
 	}
 	buf := &bytes.Buffer{}

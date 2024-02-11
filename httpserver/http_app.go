@@ -59,6 +59,6 @@ func (s *HTTPServer) ApplicationPage(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *HTTPServer) AppbridgeJS(w http.ResponseWriter, r *http.Request) error {
-	http.Redirect(w, r, "/build/appbridge.js?v="+s.versionHashBuilder(), http.StatusFound)
+	http.Redirect(w, r, "/build/appbridge.js?v="+s.templateCache.VersionHashBuilder(), http.StatusFound)
 	return nil
 }

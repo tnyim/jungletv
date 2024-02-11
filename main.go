@@ -9,7 +9,6 @@ import (
 	"mime"
 	"net"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"strconv"
 	"time"
@@ -18,12 +17,10 @@ import (
 	"github.com/gbl08ma/keybox"
 	"github.com/gbl08ma/sqalx"
 	"github.com/gbl08ma/ssoclient"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/jmoiron/sqlx"
-	"github.com/klauspost/compress/gzhttp"
 	_ "github.com/lib/pq"
 	"github.com/palantir/stacktrace"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -57,8 +54,6 @@ var (
 	grpcLog = log.New(os.Stdout, "grpc ", log.Ldate|log.Ltime)
 	webLog  = log.New(os.Stdout, "web ", log.Ldate|log.Ltime)
 	authLog = log.New(os.Stdout, "auth ", log.Ldate|log.Ltime)
-
-	jwtManager *auth.JWTManager
 
 	// GitCommit is provided by govvv at compile-time
 	GitCommit = "???"
@@ -154,11 +149,14 @@ func main() {
 		mainLog.Println("Auto enqueue videos file path not present in keybox, will not auto enqueue videos")
 	}
 
-	websiteURL, present = secrets.Get("websiteURL")
+	websiteURL, present := secrets.Get("websiteURL")
 	if !present {
 		mainLog.Fatalln("Website URL not present in keybox")
 	}
 
+	var daClient *ssoclient.SSOClient
+	var ssoCookieStore *sessions.CookieStore
+	var basicAuthChecker func(ip, username, password string) bool
 	ssoKeybox, present := secrets.GetBox("sso")
 	if present {
 		ssoCookieAuthKey, present := ssoKeybox.Get("cookieAuthKey")
@@ -171,7 +169,7 @@ func main() {
 			mainLog.Fatalln("SSO cookie cipher key not present in keybox")
 		}
 
-		sessionStore = sessions.NewCookieStore(
+		ssoCookieStore = sessions.NewCookieStore(
 			[]byte(ssoCookieAuthKey),
 			[]byte(ssoCookieCipherKey))
 
@@ -329,7 +327,7 @@ func main() {
 		mainLog.Fatalln("Cloudflare Turnstile Secret key not present in keybox")
 	}
 
-	jwtManager, err = auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
+	jwtManager, err := auth.NewJWTManager(jwtKey, map[auth.PermissionLevel]time.Duration{
 		auth.UserPermissionLevel:      180 * 24 * time.Hour,
 		auth.AppEditorPermissionLevel: 7 * 24 * time.Hour,
 		auth.AdminPermissionLevel:     7 * 24 * time.Hour,
@@ -399,12 +397,7 @@ func main() {
 		listenAddr = buildconfig.ServerListenAddr
 	}
 
-	templateCache, err := newTemplateCache(versionInterceptor)
-	if err != nil {
-		mainLog.Fatalln(err)
-	}
-
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, templateCache, options)
+	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, options, daClient, ssoCookieStore, basicAuthChecker)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -433,6 +426,7 @@ func init() {
 type combinedServer struct {
 	wrappedServer *grpcweb.WrappedGrpcServer
 	handler       http.Handler
+	websiteURL    string
 }
 
 func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -440,20 +434,10 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 		s.wrappedServer.ServeHTTP(resp, req)
 		return
 	}
-
-	resp.Header().Set("Access-Control-Allow-Origin", websiteURL)
-	resp.Header().Set("X-Frame-Options", "deny")
-	resp.Header().Set("X-Content-Type-Options", "nosniff")
-	// remember to edit the CSP in index.template too
-	resp.Header().Set("Content-Security-Policy", "default-src https:; script-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; frame-src 'self' https://youtube.com https://www.youtube.com https://w.soundcloud.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src https: data:")
-	resp.Header().Set("Referrer-Policy", "strict-origin")
-	resp.Header().Set("Permissions-Policy", "accelerometer=*, autoplay=*, encrypted-media=*, fullscreen=*, gyroscope=*, picture-in-picture=*, clipboard-write=*")
-	resp.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	resp.Header().Set("Strict-Transport-Security", "max-age=31536000")
 	s.handler.ServeHTTP(resp, req)
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, templateCache *templateCache, options server.Options) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options, daClient *ssoclient.SSOClient, ssoCookieStore *sessions.CookieStore, basicAuthChecker func(ip, username, password string) bool) (*http.Server, error) {
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(options.VersionInterceptor.Unary(), options.AuthInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(options.VersionInterceptor.Stream(), options.AuthInterceptor.Stream())
 	grpcServer := grpc.NewServer(
@@ -461,23 +445,22 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		grpc.StreamInterceptor(streamInterceptor))
 	proto.RegisterJungleTVServer(grpcServer, apiServer)
 
-	gzipWrapper, err := gzhttp.NewWrapper()
+	httpHandler, err := httpserver.New(
+		webLog,
+		authLog,
+		options.JWTManager,
+		options.OAuthManager,
+		options.AppRunner,
+		options.WebsiteURL,
+		options.RaffleSecretKey,
+		options.VersionInterceptor,
+		signatureVerifier,
+		daClient,
+		ssoCookieStore,
+		basicAuthChecker)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-
-	router := mux.NewRouter().StrictSlash(true)
-	router.Use(func(next http.Handler) http.Handler {
-		return gzipWrapper(next)
-	})
-	httpServerSubrouter := router.NewRoute().Subrouter()
-
-	err = httpserver.New(httpServerSubrouter, webLog, options.OAuthManager, options.AppRunner, options.WebsiteURL, options.RaffleSecretKey, templateCache.VersionHashBuilder, signatureVerifier)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-
-	configureRouter(router, templateCache)
 
 	wrappedServer := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
@@ -485,7 +468,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 				return true
 				//return origin == websiteURL || origin == "vscode-file://vscode-app" || origin == "https://editor.jungletv.live"
 			}
-			return origin == websiteURL
+			return origin == options.WebsiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{
 			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "X-Grpc-Web",
 		}))
@@ -504,7 +487,8 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		Addr: listenAddr,
 		Handler: &combinedServer{
 			wrappedServer: wrappedServer,
-			handler:       router,
+			handler:       httpHandler,
+			websiteURL:    options.WebsiteURL,
 		},
 		TLSConfig: &tls.Config{
 			GetCertificate: cm.GetCertificate,
@@ -518,54 +502,5 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 func serve(httpServer *http.Server, certFile string, keyFile string) {
 	if err := httpServer.ListenAndServeTLS(certFile, keyFile); err != nil {
 		apiLog.Fatalf("failed starting http2 server: %v", err)
-	}
-}
-
-func configureRouter(router *mux.Router, templateCache *templateCache) {
-	if buildconfig.DEBUG {
-		router.HandleFunc("/debug/pprof/", pprof.Index)
-		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		router.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		router.PathPrefix("/debug/pprof/").HandlerFunc(pprof.Index)
-	}
-
-	if buildconfig.DEBUG && daClient == nil && basicAuthChecker == nil {
-		router.HandleFunc("/admin/signin", directUnsafeAuthHandler)
-		authLog.Println("using direct unsafe auth")
-	} else if daClient == nil && basicAuthChecker != nil {
-		router.HandleFunc("/admin/signin", basicAuthHandler)
-		authLog.Println("using basic auth")
-	} else {
-		router.HandleFunc("/admin/signin", authInitHandler)
-		authLog.Println("using SSO auth")
-	}
-	if buildconfig.LAB {
-		// avoid search engines indexing lab environments to avoid confusion among non-developers
-		router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte(`User-agent: *
-Disallow: /`))
-		})
-	}
-	router.HandleFunc("/admin/auth", authHandler)
-	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets", http.FileServer(http.Dir("app/public/assets/"))))
-	router.PathPrefix("/emotes").Handler(http.StripPrefix("/emotes", http.FileServer(http.Dir("app/public/emotes/"))))
-	router.PathPrefix("/build/swbundle.js").Handler(addServiceWorkerHeaders(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/")))))
-	router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("app/public/build/"))))
-	router.PathPrefix("/favicon.ico").Handler(http.FileServer(http.Dir("app/public/")))
-	router.PathPrefix("/favicon.png").Handler(http.FileServer(http.Dir("app/public/")))
-	router.PathPrefix("/apple-icon.png").Handler(http.FileServer(http.Dir("app/public/")))
-	router.PathPrefix("/banano.json").Handler(http.FileServer(http.Dir("app/public/")))
-	router.PathPrefix("/jungletv.webmanifest").Handler(http.FileServer(http.Dir("app/public/")))
-	// Catch-all: Serve our JavaScript application's entry-point (index.html).
-	router.PathPrefix("/").Handler(templateCache)
-
-}
-
-func addServiceWorkerHeaders(fn http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
-		fn.ServeHTTP(w, r)
 	}
 }
