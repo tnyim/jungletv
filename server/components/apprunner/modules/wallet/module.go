@@ -62,6 +62,11 @@ func (m *walletModule) ModuleLoader() require.ModuleLoader {
 		exports.Set("getBalance", m.getBalance)
 		exports.Set("send", m.send)
 		exports.Set("receivePayment", m.receivePayment)
+		exports.Set("compareAmounts", m.compareAmounts)
+		exports.Set("formatAmount", m.formatAmount)
+		exports.Set("parseAmount", m.parseAmount)
+		exports.Set("addAmounts", m.addAmounts)
+		exports.Set("negateAmount", m.negateAmount)
 
 		exports.DefineAccessorProperty("address", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.applicationAccount.Address())
