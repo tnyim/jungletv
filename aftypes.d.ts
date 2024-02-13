@@ -1594,7 +1594,7 @@ declare module "jungletv:wallet" {
     /**
      * Sends a Banano amount from the account associated with this application.
      * @param address The destination address to which to send Banano.
-     * @param amount The amount of Banano to send, which will be debited from the balance of the application account.
+     * @param amount The amount of Banano to send, in raw units, which will be debited from the balance of the application account.
      * @param representative An optional argument containing the representative address to use on the send block.
      * Can be used to include extra information as part of on-chain encoding schemes (e.g. Banano NFTs).
      * @returns The hash of the transaction send block.
@@ -1669,12 +1669,13 @@ declare module "jungletv:wallet" {
 
         /**
          * Prematurely closes the payment flow, sending any received amount to the application account.
-         * @returns A promise that returns when the funds have been sent to the application account.
+         * @returns A promise that resolves when the funds have been sent to the application account.
          */
         close(): Promise<void>;
 
         /**
-         * Read-only property containing the address of the Banano account into which Banano pertaining to this payment flow should be sent.
+         * Read-only property containing the address of the Banano account into which payments for this flow should be sent.
+         * After a payment flow is closed, this account should not be used to receive further funds.
          */
         address: string;
 
