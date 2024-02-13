@@ -97,6 +97,12 @@ func (m *monitoredAccount) Close() <-chan struct{} {
 	return closed
 }
 
+func (m *monitoredAccount) ReceivableBalance() Amount {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.receivableBalance
+}
+
 func (m *monitoredAccount) processPaymentsToAccount(ctx context.Context) error {
 	// note: both the RPC.Balance and RPC.AccountsPending calls return only confirmed blocks
 	// so the RPC.Balance call done after RPC.AccountsPending should account for all pending receives that we'll

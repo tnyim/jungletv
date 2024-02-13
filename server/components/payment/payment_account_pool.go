@@ -130,11 +130,15 @@ type PaymentReceiver interface {
 	PaymentReceived() event.Event[PaymentReceivedEventArgs]
 	MulticurrencyPaymentDataAvailable() event.Event[[]MulticurrencyPaymentData]
 
-	// Revert should be called when one wants to return anything that was received
+	// ReceivableBalance may block for a significant amount of time when receiving multicurrency payments
+	// (refactor the Nanswap order fetching code in processPaymentsToAccount to fix this)
+	ReceivableBalance() Amount
+
+	// Revert should be called when one wants to return anything that was received.
 	// Does not terminate the payment flow (to do so, call Close)
 	Revert(refundAddress string) error
 
-	// Close must be called to terminate the payment flow, asynchronously sending the funds in the payment account to the collector account for this flow
+	// Close must be called to terminate the payment flow, asynchronously sending the funds in the payment account to the collector account for this flow.
 	// It returns a channel that closes when the funds are done being sent to the collector account
 	Close() <-chan struct{}
 }

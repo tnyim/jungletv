@@ -255,11 +255,15 @@ func (m *walletModule) receivePayment(call goja.FunctionCall) goja.Value {
 	var timeoutms int64
 	err := m.runtime.ExportTo(call.Argument(0), &timeoutms)
 	if err != nil {
-		panic(m.runtime.NewTypeError("First argument must be an integer"))
+		panic(m.runtime.NewTypeError("First argument to receivePayment must be an integer"))
 	}
 
-	if timeoutms < 0 {
-		panic(m.runtime.NewTypeError("Timeout argument must be positive and non-zero"))
+	if timeoutms < 20*1000 {
+		panic(m.runtime.NewTypeError("First argument to receivePayment must not be shorter than twenty seconds"))
+	}
+
+	if timeoutms > 10*60*1000 {
+		panic(m.runtime.NewTypeError("First argument to receivePayment must not be longer than ten minutes"))
 	}
 
 	timeout := time.Duration(timeoutms) * time.Millisecond
@@ -294,7 +298,16 @@ func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout
 	workerCtx, workerCancelFn := context.WithDeadline(m.ctx, time.Now().Add(timeout))
 	workerDone := make(chan struct{})
 	adapterCtx, adapterCancelFn := context.WithCancel(m.ctx)
-	go receivePaymentWorker(workerCtx, paymentReceiver, closed, adapterCancelFn, workerDone)
+
+	jsPaymentReceiver := &jsPaymentReceiver{
+		m:               m,
+		paymentReceiver: paymentReceiver,
+		closed:          closed,
+		workerCancelFn:  workerCancelFn,
+		adapterCancelFn: adapterCancelFn,
+	}
+
+	go jsPaymentReceiver.worker(workerCtx, workerDone)
 
 	return struct{}{}, func(vm *goja.Runtime, _ struct{}) interface{} {
 		// calling StartOrResume here instead of in the asynchronous code ensures that the Add call on the WaitGroup is not concurrent with the Wait call that happens after VM interruption
@@ -303,47 +316,76 @@ func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout
 		paymentReceiverObject := vm.NewObject()
 		paymentReceiverObject.Set("addEventListener", eventAdapter.AddEventListener)
 		paymentReceiverObject.Set("removeEventListener", eventAdapter.RemoveEventListener)
-		paymentReceiverObject.Set("close", m.makeReceivePaymentCloseFn(vm, workerCancelFn, workerDone))
+		paymentReceiverObject.Set("close", jsPaymentReceiver.makeCloseFn(vm, workerDone))
+
 		paymentReceiverObject.DefineAccessorProperty("address", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(paymentReceiver.Address())
+		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+		paymentReceiverObject.DefineAccessorProperty("closed", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+			jsPaymentReceiver.isClosedMu.Lock()
+			defer jsPaymentReceiver.isClosedMu.Unlock()
+			return m.runtime.ToValue(jsPaymentReceiver.isClosed)
+		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+		paymentReceiverObject.DefineAccessorProperty("balance", vm.ToValue(func(call goja.FunctionCall) goja.Value {
+			return m.runtime.ToValue(paymentReceiver.ReceivableBalance().SerializeForAPI())
 		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		return paymentReceiverObject
 	}
 }
 
-func (m *walletModule) makeReceivePaymentCloseFn(vm *goja.Runtime, workerCancelFn context.CancelFunc, workerDone <-chan struct{}) func(call goja.FunctionCall) goja.Value {
+type jsPaymentReceiver struct {
+	m               *walletModule
+	paymentReceiver payment.PaymentReceiver
+	closed          event.NoArgEvent
+
+	isClosedMu sync.Mutex
+	isClosed   bool
+
+	workerCancelFn  context.CancelFunc
+	adapterCancelFn context.CancelFunc
+}
+
+func (r *jsPaymentReceiver) makeCloseFn(vm *goja.Runtime, workerDone <-chan struct{}) func(call goja.FunctionCall) goja.Value {
 	return func(call goja.FunctionCall) goja.Value {
-		return gojautil.DoAsync(vm, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
-			workerCancelFn()
+		return gojautil.DoAsync(vm, r.m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
+			r.workerCancelFn()
 			<-workerDone
 			return goja.Undefined()
 		})
 	}
 }
 
-func receivePaymentWorker(ctx context.Context, paymentReceiver payment.PaymentReceiver, closed event.NoArgEvent, adapterCancelFn context.CancelFunc, workerDone chan<- struct{}) {
+func (r *jsPaymentReceiver) worker(ctx context.Context, workerDone chan<- struct{}) {
 	<-ctx.Done()
-	<-paymentReceiver.Close()
+	<-r.paymentReceiver.Close()
 
 	// kick off "closed" event, waiting for the event to finish propagating before shutting down the event adapter
 	// what follows is a bit of a hack that considers the implementation details of the event adapter
 	// the order of events here is carefully planned
 	var unsubbedU func()
-	unsubbedU = closed.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(activeSubs int) {
+	unsubbedU = r.closed.Unsubscribed().SubscribeUsingCallback(event.BufferAll, func(activeSubs int) {
 		if activeSubs == 0 {
 			unsubbedU()
-			adapterCancelFn()
+			r.adapterCancelFn()
 			close(workerDone) // this unblocks any Promises returned by close()
 		}
 	})
 
-	closed.Notify(false)
-	closed.Close() // should it be running, this will cause the SubscribeWithCallback worker within the event adapter to return, unsubscribing and leading to our callback above
+	func() {
+		r.isClosedMu.Lock()
+		defer r.isClosedMu.Unlock()
+		r.isClosed = true
+		r.closed.Notify(false)
+	}()
+
+	r.closed.Close() // should it be running, this will cause the SubscribeWithCallback worker within the event adapter to return, unsubscribing and leading to our callback above
 
 	// because it is possible that no JS code had actually subscribed to the "closed" event,
 	// let's ensure our callback above runs at least once with activeSubs set to 0, by subscribing to the event and immediately unsubscribing
 	// we must do this only after we are subscribed to closed.Unsubscribed()
-	_, u := closed.Subscribe(event.BufferFirst)
+	_, u := r.closed.Subscribe(event.BufferFirst)
 	u()
 }
