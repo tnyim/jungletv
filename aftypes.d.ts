@@ -1116,16 +1116,14 @@ declare module "jungletv:queue" {
 
     /** Contains minimum prices to enqueue an entry using different placement types. */
     export interface EnqueuePricing {
-        // TODO convert to uniform TS type for amounts?
-
         /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.Later} placement. */
-        later: string;
+        later: Amount;
 
         /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.AfterCurrent} placement. */
-        aftercurrent: string;
+        aftercurrent: Amount;
 
         /** The minimum amount, in raw Banano units, required to enqueue the entry using {@link EnqueuePlacementEnum.Now} placement, effectively skipping the currently playing entry (if skipping is allowed and the entry is skippable). */
-        now: string;
+        now: Amount;
     }
 
     /** Properties and methods related to crowdfunded transactions ("Skip & Tip"). */
@@ -1282,7 +1280,7 @@ declare module "jungletv:queue" {
         forMedia?: string;
     }
 
-    /** Contains additional options for application page enqueuing */
+    /** Contains additional options for media enqueuing */
     export interface EnqueueOptions {
         /**
          * Whether the resulting queue entry may be skipped by the users.
@@ -1295,9 +1293,18 @@ declare module "jungletv:queue" {
          * If set to true, the title, thumbnail and other information about the queue entry will not be revealed to unprivileged users, until it begins playing.
          */
         concealed?: boolean;
+
+        /**
+         * The minimum reward, as a Banano raw amount string, that will be paid to active spectators by the time the resulting queue entry finishes playing.
+         * This reward may be increased by the community while the queue entry is playing, via the crowdfunded tipping feature.
+         * The specified amount is debited from the application's wallet. If the wallet has insufficient funds, enqueuing will fail.
+         * By default, enqueued media entries do not have a base reward.
+         * {@link Pricing.computeEnqueuePricing} can be used to compute a base reward amount that takes into account the current queue conditions.
+         */
+        baseReward?: Amount;
     }
 
-    /** Contains additional options for media enqueuing */
+    /** Contains additional options for application page enqueuing */
     export interface PageEnqueueOptions extends EnqueueOptions {
         /**
          * When present, will override the title of the resulting queue entry.
@@ -1406,8 +1413,7 @@ declare module "jungletv:queue" {
         id: string;
 
         /** String representing how much the requester of this entry spent to enqueue this entry, in raw Banano units. */
-        // TODO convert to uniform TS type for amounts?
-        requestCost: string;
+        requestCost: Amount;
 
         /**
          * Moment when this entry was added to the queue.
@@ -1556,19 +1562,17 @@ declare module "jungletv:profile" {
 
     /** Contains statistics about the user, relative to a certain period in time. */
     export interface ProfileStatistics {
-        // TODO convert to uniform TS type for amounts?
-
         /** The amount, in raw Banano units, spent by the user in requesting media entries which have started playing. */
-        spentRequesting: string;
+        spentRequesting: Amount;
 
         /** The amount, in raw Banano units, spent by the user in crowdfunding transactions (skipping or tipping). */
-        spentCrowdfunding: string;
+        spentCrowdfunding: Amount;
 
         /** The sum, in raw Banano units, of {@link spentRequesting} and {@link spentCrowdfunding}. */
-        spent: string;
+        spent: Amount;
 
         /** The amount, in raw Banano units, withdrawn by the user. */
-        withdrawn: string;
+        withdrawn: Amount;
 
         /** The number of media performances requested by the user, which have started playing. */
         mediaRequestCount: number;
@@ -1577,6 +1581,160 @@ declare module "jungletv:profile" {
         mediaRequestPlayTime: number;
     }
 }
+
+/** Allows for interaction with the application's own Banano account. */
+declare module "jungletv:wallet" {
+    /**
+     * Obtains the usable balance of the Banano account that is associated with this application.
+     * This is a sum of all the received balance and all non-dust receivable balance.
+     * @returns The raw Banano amount effectively usable by the application.
+     */
+    export function getBalance(): Promise<Amount>;
+
+    /**
+     * Sends a Banano amount from the account associated with this application.
+     * @param address The destination address to which to send Banano.
+     * @param amount The amount of Banano to send, which will be debited from the balance of the application account.
+     * @returns The hash of the transaction send block.
+     */
+    export function send(address: string, amount: Amount): Promise<string>;
+
+    /**
+     * Launches a new payment flow, allowing the application to receive Banano until a specific amount is received or other condition is met.
+     * This temporarily allocates a separate Banano account, into which users should send Banano, and issues events whenever it receives new non-dust transactions.
+     * This allows for building payment flows similar to those used for media enqueuing by JungleTV.
+     * @param timeout The duration, in milliseconds, for which to wait for a payment, after which the flow will close and any amount received will be sent to the application's {@link address}.
+     * Must be no shorter than 30 seconds and no longer than 10 minutes.
+     * @returns A {@link PaymentReceiver} that can be used to monitor and prematurely close the payment flow.
+     */
+    export function receivePayment(timeout: number): Promise<PaymentReceiver>;
+
+    /**
+     * Utility function that compares two raw Banano amounts.
+     * @param first The first amount to compare.
+     * @param second The second amount to compare.
+     * @returns -1 if the first amount is less than the second, 1 if the first amount is greater than the second, and 0 if the amounts are equal.
+     */
+    export function compareAmounts(first: Amount, second: Amount): 1 | 0 | -1;
+
+    /**
+     * Utility function that converts a raw Banano amount into a string containing its decimal representation, using a dot as decimal separator.
+     * For example, the raw amount "123000000000000000000000000000" will be converted to "1.23".
+     * @param amount The amount to format.
+     * @returns The formatted amount.
+     */
+    export function formatAmount(amount: Amount): string;
+
+    /**
+     * Utility function that converts a Banano amount, encoded as decimal with an optional dot as decimal separator (e.g. "123", "1.23"), to a raw amount.
+     * For example, the formatted amount "1.23" will be converted to the raw amount "123000000000000000000000000000".
+     * @param decimalAmount The amount to parse.
+     * @returns The parsed raw amount.
+     */
+    export function parseAmount(decimalAmount: string): Amount;
+
+    /**
+     * Utility function that adds together multiple raw amounts.
+     * @param amounts An arbitrary number of amounts to sum.
+     * @returns The sum of the specified amounts.
+     */
+    export function addAmounts(...amounts: Amount[]): Amount;
+
+    /**
+     * Utility function that calculates the negative of a raw amount.
+     * @param amount The raw amount to negate.
+     * @returns The specified amount, with its sign flipped.
+     */
+    export function negateAmount(amount: Amount): Amount;
+
+    /** Represents a payment flow that was initiated by {@link receivePayment}. */
+    export interface PaymentReceiver {
+        /**
+         * Registers a function to be called whenever the specified event occurs.
+         * Depending on the event, the function may be invoked with arguments containing information about the event.
+         * Refer to the documentation about each event type for details.
+         * @param eventType A case-sensitive string representing the event to listen for.
+         * @param listener A function that will be called when an event of the specified type occurs.
+         */
+        addEventListener<K extends keyof PaymentReceiverEventMap>(eventType: K, listener: (this: unknown, args: PaymentReceiverEventMap[K]) => void): void;
+
+        /**
+         * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
+         * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
+         * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+         */
+        removeEventListener<K extends keyof PaymentReceiverEventMap>(eventType: K, listener: (this: unknown, args: PaymentReceiverEventMap[K]) => void): void;
+
+        /**
+         * Prematurely closes the payment flow, sending any received amount to the application account.
+         * @returns A promise that returns when the funds have been sent to the application account.
+         */
+        close(): Promise<void>;
+
+        /**
+         * Read-only property containing the address of the Banano account into which Banano pertaining to this payment flow should be sent.
+         */
+        address: string;
+
+        /**
+         * Read-only property representing the amount, in raw Banano units, received in this payment flow so far.
+         * To monitor this amount, use {@link addEventListener} to attach a listener to the "paymentreceived" event.
+         */
+        balance: Amount;
+
+        /**
+         * Read-only property that indicates whether this payment flow has closed, either by being prematurely closed via {@link close}, or by reaching the timeout specified in the call to {@link receivePayment}.
+         * After a payment flow is closed, its {@link address} should not be used to receive further funds.
+         * To monitor this property, use {@link addEventListener} to attach a listener to the "closed" event.
+         */
+        closed: boolean;
+    }
+
+    /** A relation between event types and the arguments passed to the respective listeners */
+    interface PaymentReceiverEventMap {
+        /** This event is fired when a new transaction is received in a payment flow. */
+        "paymentreceived": PaymentReceivedEventArgs;
+
+        /** This event is fired when the payment flow stops being monitored, either because it was explicitly closed via {@link close} or because it reached the timeout specified in the call to {@link receivePayment}. */
+        "closed": ClosedEventArgs;
+    }
+
+    /** Arguments to a payment receiver event */
+    export interface PaymentReceiverEventArgs {
+        type: keyof PaymentReceiverEventMap;
+    }
+
+    /** Arguments to the 'paymentreceived' event */
+    export interface PaymentReceivedEventArgs extends PaymentReceiverEventArgs {
+        /** Guaranteed to be `paymentreceived`. */
+        type: "paymentreceived";
+
+        /** The amount, in raw Banano units, that was received in this transaction. */
+        amount: Amount;
+
+        /** The Banano account address of the sender of the transaction. */
+        from: string;
+
+        /** The block hash of the sending transaction. */
+        blockHash: string;
+
+        /** The amount, in raw Banano units, that was received in this payment flow so far. */
+        balance: Amount;
+    }
+
+    /** Arguments to the 'closed' event */
+    export interface ClosedEventArgs extends PaymentReceiverEventArgs {
+        /** Guaranteed to be `closed`. */
+        type: "closed";
+    }
+
+    /**
+     * Read-only property that corresponds to the address of the Banano account associated with this application.
+     */
+    export let address: string;
+}
+
+export type Amount = string;
 
 /** The permission levels a user can have */
 export enum PermissionLevelEnum {

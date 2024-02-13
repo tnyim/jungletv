@@ -184,7 +184,7 @@ func AdaptNoArgEvent(a *EventAdapter, ev event.NoArgEvent, eventType string, tra
 }
 
 func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType string, transformArgFn func(*goja.Runtime, T) *goja.Object) func() {
-	return ev.SubscribeUsingCallback(event.BufferFirst, func(arg T) {
+	return ev.SubscribeUsingCallback(event.BufferAll, func(arg T) {
 		var listeners []eventListener
 		func() {
 			a.mu.RLock()
@@ -211,7 +211,7 @@ func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType
 }
 
 func noArgEventSubscribeFunction(a *EventAdapter, ev event.NoArgEvent, eventType string, transformArgFn func(*goja.Runtime) *goja.Object) func() {
-	return ev.SubscribeUsingCallback(event.BufferFirst, func() {
+	return ev.SubscribeUsingCallback(event.BufferAll, func() {
 		var listeners []eventListener
 		func() {
 			a.mu.RLock()
