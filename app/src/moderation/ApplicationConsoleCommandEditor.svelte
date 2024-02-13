@@ -145,7 +145,9 @@
                                     return true;
                                 }
                                 dispatch("command", command);
-                                commandHistory = [command, ...commandHistory];
+                                if(commandHistory.length == 0 || commandHistory[0] != command) {
+                                    commandHistory = [command, ...commandHistory];
+                                }
                                 commandHistoryCursor = -1;
                                 view.dispatch({
                                     changes: { from: 0, to: view.state.doc.length, insert: "" },
