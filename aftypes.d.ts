@@ -1066,6 +1066,7 @@ declare module "jungletv:queue" {
      * This writable property allows for defining the queue insert cursor,
      * i.e. the position at which entries are inserted in the queue when adding entries with placement {@link EnqueuePlacementEnum.Later}.
      * The property should be set to the ID of the media queue entry _below_ (i.e. at an higher index in `entries`) that where the cursor should appear.
+     * The cursor cannot be set to the currently playing queue entry.
      * Set to `null` or `undefined` to clear the cursor, causing new entries to be added to the end of the queue.
      */
     export let insertCursor: string | null | undefined;

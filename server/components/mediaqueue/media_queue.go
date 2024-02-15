@@ -352,6 +352,9 @@ func (q *MediaQueue) removeEntryInMutex(entryID string, selfRemoval bool) (media
 	for i, entry := range q.queue {
 		if entryID == entry.PerformanceID() {
 			q.queue = append(q.queue[:i], q.queue[i+1:]...)
+			if entryID == q.insertCursor {
+				q.insertCursor = ""
+			}
 			q.entryRemoved.Notify(EntryRemovedEventArg{i, entry, selfRemoval}, false)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify(false)
