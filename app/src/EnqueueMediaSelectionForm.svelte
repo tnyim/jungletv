@@ -6,7 +6,7 @@
     import type { YouTubePlayer } from "youtube-player/dist/types";
     import YouTube, { PlayerState } from "./YouTube.svelte";
     import { apiClient } from "./api_client";
-    import { EnqueueMediaResponse, PermissionLevel } from "./proto/jungletv_pb";
+    import { EnqueueMediaRequest, EnqueueMediaResponse, PermissionLevel } from "./proto/jungletv_pb";
     import RangeSlider from "./slider/RangeSlider.svelte";
     import { currentSubscription, enqueuingPassword, permissionLevel } from "./stores";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
@@ -99,7 +99,7 @@
             return;
         }
 
-        let reqPromise: Promise<EnqueueMediaResponse>;
+        let request: EnqueueMediaRequest;
 
         if (enqueueRange && mediaRangeValuesFilled) {
             let startOffset = new PBDuration();
@@ -113,7 +113,7 @@
             }
 
             if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(
+                request = apiClient.buildEnqueueYouTubeVideoRequest(
                     parseResult.videoID,
                     unskippable,
                     concealed,
@@ -123,7 +123,7 @@
                     endOffset
                 );
             } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(
+                request = apiClient.buildEnqueueSoundCloudTrackRequest(
                     parseResult.trackURL,
                     unskippable,
                     concealed,
@@ -133,7 +133,7 @@
                     endOffset
                 );
             } else if (parseResult.type == "document") {
-                reqPromise = apiClient.enqueueDocument(
+                request = apiClient.buildEnqueueDocumentRequest(
                     parseResult.documentID,
                     parseResult.title,
                     unskippable,
@@ -146,7 +146,7 @@
             }
         } else {
             if (parseResult.type == "yt_video") {
-                reqPromise = apiClient.enqueueYouTubeVideo(
+                request = apiClient.buildEnqueueYouTubeVideoRequest(
                     parseResult.videoID,
                     unskippable,
                     concealed,
@@ -154,7 +154,7 @@
                     $enqueuingPassword
                 );
             } else if (parseResult.type == "sc_track") {
-                reqPromise = apiClient.enqueueSoundCloudTrack(
+                request = apiClient.buildEnqueueSoundCloudTrackRequest(
                     parseResult.trackURL,
                     unskippable,
                     concealed,
@@ -162,7 +162,7 @@
                     $enqueuingPassword
                 );
             } else if (parseResult.type == "document") {
-                reqPromise = apiClient.enqueueDocument(
+                request = apiClient.buildEnqueueDocumentRequest(
                     parseResult.documentID,
                     parseResult.title,
                     unskippable,
@@ -175,11 +175,11 @@
             }
         }
 
-        let response = await reqPromise;
+        let response = await apiClient.enqueueFromRequest(request);
         switch (response.getEnqueueResponseCase()) {
             case EnqueueMediaResponse.EnqueueResponseCase.TICKET:
                 failureReason = "";
-                dispatch("mediaSelected", response);
+                dispatch("mediaSelected", [request, response]);
                 break;
             case EnqueueMediaResponse.EnqueueResponseCase.FAILURE:
                 failureReason = response.getFailure().getFailureReason();

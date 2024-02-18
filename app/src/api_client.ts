@@ -238,7 +238,7 @@ class APIClient {
         return "";
     }
 
-    async enqueueYouTubeVideo(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    buildEnqueueYouTubeVideoRequest(id: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): EnqueueMediaRequest {
         const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
@@ -255,10 +255,10 @@ class APIClient {
             ytData.setEndOffset(endOffset);
         }
         request.setYoutubeVideoData(ytData);
-        return this.unaryRPC(JungleTV.EnqueueMedia, request);
+        return request;
     }
 
-    async enqueueSoundCloudTrack(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): Promise<EnqueueMediaResponse> {
+    buildEnqueueSoundCloudTrackRequest(url: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, startOffset?: Duration, endOffset?: Duration): EnqueueMediaRequest {
         const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
@@ -275,10 +275,10 @@ class APIClient {
             scData.setEndOffset(endOffset);
         }
         request.setSoundcloudTrackData(scData);
-        return this.unaryRPC(JungleTV.EnqueueMedia, request);
+        return request;
     }
 
-    async enqueueDocument(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): Promise<EnqueueMediaResponse> {
+    buildEnqueueDocumentRequest(id: string, title: string, unskippable: boolean, concealed: boolean, anonymous: boolean, password?: string, duration?: Duration, enqueueType?: ForcedTicketEnqueueTypeMap[keyof ForcedTicketEnqueueTypeMap]): EnqueueMediaRequest {
         const request = new EnqueueMediaRequest();
         request.setUnskippable(unskippable);
         request.setConcealed(concealed);
@@ -296,6 +296,10 @@ class APIClient {
             docData.setEnqueueType(enqueueType);
         }
         request.setDocumentData(docData);
+        return request;
+    }
+
+    async enqueueFromRequest(request: EnqueueMediaRequest): Promise<EnqueueMediaResponse> {
         return this.unaryRPC(JungleTV.EnqueueMedia, request);
     }
 

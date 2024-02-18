@@ -14,8 +14,8 @@
     export let mediaKind: MediaSelectionKind;
     export let connectionLost = false;
 
-    function enqueueAnother() {
-        dispatch("enqueueAnother");
+    function tryAgain() {
+        dispatch("tryAgain");
     }
 
     function closeEnqueue() {
@@ -56,7 +56,7 @@
         <span class="px-4 text-xs text-gray-400 grow">
             Ticket ID: <span class="font-mono">{ticket.getId()}</span>
         </span>
-        <ButtonButton type="submit" on:click={enqueueAnother}>Try again</ButtonButton>
+        <ButtonButton type="submit" on:click={tryAgain}>Try again</ButtonButton>
     </div>
     <div slot="extra_1">
         <slot name="raffle-info" />
