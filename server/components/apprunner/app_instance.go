@@ -218,6 +218,14 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
 
 	if !a.startedOnce {
+		// ensure that the nicknames table has the applicationID associated with this application,
+		// such that loading the application user (e.g. via UserCache) always returns an user associated with the ID of this application
+		nickname := a.runner.moduleDependencies.ChatManager.GetNickname(ctx, a.applicationUser)
+		err := a.runner.moduleDependencies.ChatManager.SetNickname(ctx, a.applicationUser, nickname, true)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
 		mainFile, isTypeScript, err := a.getMainFile()
 		if err != nil {
 			return stacktrace.Propagate(err, "")

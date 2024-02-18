@@ -144,6 +144,14 @@ func (m *profileModule) setProfileFeaturedMedia(call goja.FunctionCall) goja.Val
 				panic(actx.NewTypeError("Media not found"))
 			}
 
+			if playedMedia.MediaType == types.MediaTypeApplicationPage {
+				// maybe in the future, and only for pages belonging to this application
+				// there are some interesting use cases, like applications being able to show a detailed "documentation page" or a status page of sorts in their profile
+				// this is always tricky because the application needs to be running for the page to be displayed,
+				// and a page ID might refer to different pages depending on app version (which might make sense but needs to be documented nevertheless)
+				panic(actx.NewTypeError("Media type not allowed"))
+			}
+
 			allowed, err := types.IsMediaAllowed(ctx, playedMedia.MediaType, playedMedia.MediaID)
 			if err != nil {
 				panic(actx.NewGoError(stacktrace.Propagate(err, "")))
