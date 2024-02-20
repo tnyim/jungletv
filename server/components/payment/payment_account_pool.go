@@ -267,6 +267,7 @@ func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount,
 	}()
 
 	retry := 0
+	var hash rpc.BlockHash
 	for ; retry < 5; retry++ {
 		err := m.account.ReceivePendings(p.dustThreshold.Int)
 		if err != nil {
@@ -275,7 +276,7 @@ func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount,
 			continue
 		}
 		if m.receivableBalance.Cmp(big.NewInt(0)) > 0 {
-			_, err = m.account.Send(m.collectorAccountAddress, m.receivableBalance.Int)
+			hash, err = m.account.Send(m.collectorAccountAddress, m.receivableBalance.Int)
 			if err != nil {
 				p.log.Printf("failed to send balance in account %v to the collector account: %v", m.account.Address(), err)
 				time.Sleep(5 * time.Second)
@@ -284,8 +285,22 @@ func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount,
 		}
 		break
 	}
-
 	if retry < 5 {
+		// try to wait for send confirmation before closing done chan
+		// this is merely to make the order of events slightly more dependable for JAF applications (and for any logic waiting on paymentWaitingGroup)
+		// but we don't want this to truly block the account being marked as available and the done chan being closed
+		for confirmationCheckRetry := 0; confirmationCheckRetry < 5; confirmationCheckRetry++ {
+			time.Sleep(1 * time.Second)
+			info, err := m.p.wallet.RPC.BlockInfo(hash)
+			if err != nil {
+				p.log.Printf("failed to check whether block %v is confirmed: %v", hash, err)
+				continue
+			}
+			if info.Confirmed {
+				break
+			}
+		}
+
 		// only reuse the account if no funds got stuck there
 		p.ReturnAccount(m.account)
 	} else {
