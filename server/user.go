@@ -6,6 +6,7 @@ import (
 
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 )
 
@@ -16,22 +17,26 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 		user = fetchedUser
 	}
 
-	s.vipUsersMutex.RLock()
-	vipUserAppearance, isVip := s.vipUsers[userAddress]
-	s.vipUsersMutex.RUnlock()
+	vipUser, isVip, err := configurationmanager.GetConfigurableByKey[string, configurationmanager.VIPUser](
+		s.configManager, configurationmanager.VIPUsers, userAddress)
+	if err != nil {
+		isVip = false
+	}
 
 	roles := []proto.UserRole{}
-	if isVip {
-		switch vipUserAppearance {
-		case vipUserAppearanceModerator:
+
+	// application is checked for first, to avoid applications presenting themselves as VIPs/regular users
+	if user.ApplicationID() != "" {
+		roles = append(roles, proto.UserRole_APPLICATION)
+	} else if isVip {
+		switch vipUser.Appearance {
+		case configurationmanager.VIPUserAppearanceModerator:
 			roles = append(roles, proto.UserRole_MODERATOR)
-		case vipUserAppearanceVIP:
+		case configurationmanager.VIPUserAppearanceVIP:
 			roles = append(roles, proto.UserRole_VIP)
-		case vipUserAppearanceVIPModerator:
+		case configurationmanager.VIPUserAppearanceVIPModerator:
 			roles = append(roles, proto.UserRole_VIP, proto.UserRole_MODERATOR)
 		}
-	} else if user.ApplicationID() != "" {
-		roles = append(roles, proto.UserRole_APPLICATION)
 	} else if auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
 		roles = append(roles, proto.UserRole_MODERATOR)
 	}
@@ -83,21 +88,11 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 	}
 }
 
-type vipUserAppearance int
-
-const (
-	vipUserAppearanceNormal vipUserAppearance = iota
-	vipUserAppearanceModerator
-	vipUserAppearanceVIP
-	vipUserAppearanceVIPModerator
-)
-
 func (s *grpcServer) isVIPUser(user auth.User) bool {
-	s.vipUsersMutex.RLock()
-	defer s.vipUsersMutex.RUnlock()
-	if user != nil && !user.IsUnknown() {
-		_, present := s.vipUsers[user.Address()]
-		return present
+	_, ok, err := configurationmanager.GetConfigurableByKey[string, configurationmanager.VIPUser](s.configManager, configurationmanager.VIPUsers, user.Address())
+	if err != nil {
+		return false
 	}
-	return false
+
+	return ok
 }

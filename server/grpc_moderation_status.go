@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
@@ -28,19 +29,17 @@ func (s *grpcServer) MonitorModerationStatus(r *proto.MonitorModerationStatusReq
 			protoUsers[i] = s.userSerializer(stream.Context(), users[i])
 		}
 
-		var protoVipUsers []*proto.User
-		func() {
-			s.vipUsersMutex.RLock()
-			defer s.vipUsersMutex.RUnlock()
-			protoVipUsers := make([]*proto.User, len(s.vipUsers))
-			i := 0
-			for userAddress := range s.vipUsers {
-				protoVipUsers[i] = s.userSerializer(stream.Context(), auth.NewAddressOnlyUser(userAddress))
-				i++
-			}
-		}()
+		vipUsers, err := configurationmanager.GetCollectionConfigurable[configurationmanager.VIPUser](s.configManager, configurationmanager.VIPUsers)
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to get VIP users")
+		}
+
+		protoVipUsers := make([]*proto.User, len(vipUsers))
+		for i, vip := range vipUsers {
+			protoVipUsers[i] = s.userSerializer(stream.Context(), auth.NewAddressOnlyUser(vip.Address))
+		}
 		sort.Slice(protoVipUsers, func(i, j int) bool {
-			return protoVipUsers[i].Address < *protoVipUsers[j].Nickname
+			return protoVipUsers[i].Address < protoVipUsers[j].Address
 		})
 
 		overview := &proto.ModerationStatusOverview{

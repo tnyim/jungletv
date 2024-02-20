@@ -72,8 +72,8 @@ func (m *profileModule) getUser(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
-	userAddress := call.Argument(0).String()
 
+	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	return m.userSerializer.SerializeUser(m.runtime, auth.NewAddressOnlyUser(userAddress))
@@ -83,8 +83,8 @@ func (m *profileModule) getProfile(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
-	userAddress := call.Argument(0).String()
 
+	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) map[string]interface{} {
@@ -114,7 +114,10 @@ func (m *profileModule) setProfileFeaturedMedia(call goja.FunctionCall) goja.Val
 	if len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
+
 	userAddress := call.Argument(0).String()
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
+
 	var mediaID *string
 	mediaValue := call.Argument(1)
 	if !goja.IsUndefined(mediaValue) && !goja.IsNull(mediaValue) && mediaValue.String() != "" {
@@ -186,7 +189,9 @@ func (m *profileModule) setProfileBiography(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
+
 	userAddress := call.Argument(0).String()
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	biographyValue := call.Argument(1)
 	biography := ""
@@ -236,8 +241,8 @@ func (m *profileModule) clearProfile(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
-	userAddress := call.Argument(0).String()
 
+	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
@@ -272,8 +277,8 @@ func (m *profileModule) setUserNickname(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
-	userAddress := call.Argument(0).String()
 
+	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
 	nicknameValue := call.Argument(1)
@@ -301,7 +306,9 @@ func (m *profileModule) getStatistics(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 2 {
 		panic(m.runtime.NewTypeError("Missing argument"))
 	}
+
 	userAddress := call.Argument(0).String()
+	// do not validate user address to allow fetching stats for alien chain addresses
 
 	var since time.Time
 	err := m.runtime.ExportTo(call.Argument(1), &since)

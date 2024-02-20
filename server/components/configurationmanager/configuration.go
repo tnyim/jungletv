@@ -21,6 +21,8 @@ const (
 	FaviconURL
 	// SidebarTabs allows applications to present pages as sidebar tabs
 	SidebarTabs
+	// VIPUsers allows applications to configure the list of VIP users
+	VIPUsers
 )
 
 // Manager manages configuration set by the application framework
@@ -78,7 +80,11 @@ func New(ctx context.Context) *Manager {
 			}),
 	}
 
-	serverConfigs := map[ConfigurationKey]Configurable{}
+	serverConfigs := map[ConfigurationKey]Configurable{
+		VIPUsers: newServerUnionOfSetsConfigurable[string, VIPUser](func(v VIPUser) string {
+			return v.Address
+		}),
+	}
 
 	configs := map[ConfigurationKey]Configurable{}
 	for k, c := range clientConfigs {
@@ -114,7 +120,7 @@ func New(ctx context.Context) *Manager {
 // RemoveApplicationConfigs removes all configurations set by the specified application
 func (m *Manager) RemoveApplicationConfigs(applicationID string) {
 	for _, c := range m.configs {
-		c.Remove(applicationID)
+		c.UndoApplicationChanges(applicationID)
 	}
 }
 
@@ -132,18 +138,18 @@ func (m *Manager) ClientConfigurationChanged() event.Event[*proto.ConfigurationC
 	return m.onClientConfigurationChanged
 }
 
-// ResetConfigurable is called by an application environment to unset value for a configurable (as far as that application is concerned)
+// ResetConfigurable may be called by an application environment to unset value for a configurable (as far as that application is concerned)
 func (m *Manager) ResetConfigurable(key ConfigurationKey, applicationID string) error {
 	configurable, ok := m.configs[key]
 	if !ok {
 		return stacktrace.NewError("unknown configurable")
 	}
 
-	configurable.Remove(applicationID)
+	configurable.UndoApplicationChanges(applicationID)
 	return nil
 }
 
-// SetConfigurable is called by an application environment to set the value for a configurable
+// SetConfigurable may be called by an application environment to set the value for a configurable
 func SetConfigurable[T comparable](m *Manager, key ConfigurationKey, applicationID string, value T) (bool, error) {
 	configurableInterface, ok := m.configs[key]
 	if !ok {
@@ -156,4 +162,66 @@ func SetConfigurable[T comparable](m *Manager, key ConfigurationKey, application
 	}
 
 	return configurable.Set(applicationID, value), nil
+}
+
+// UnsetConfigurable may be called by an application environment to remove a specific value from a configurable
+// This mostly makes sense for collection configurables
+func UnsetConfigurable[T comparable](m *Manager, key ConfigurationKey, applicationID string, value T) (bool, error) {
+	configurableInterface, ok := m.configs[key]
+	if !ok {
+		return false, stacktrace.NewError("unknown configurable")
+	}
+
+	configurable, ok := configurableInterface.(UnsettableConfigurable[T])
+	if !ok {
+		return false, stacktrace.NewError("wrong value type for configurable")
+	}
+
+	return configurable.Unset(applicationID, value), nil
+}
+
+// GetConfigurable obtains the current effective value of a configurable
+func GetConfigurable[T comparable](m *Manager, key ConfigurationKey) (T, error) {
+	configurableInterface, ok := m.configs[key]
+	if !ok {
+		return *new(T), stacktrace.NewError("unknown configurable")
+	}
+
+	configurable, ok := configurableInterface.(GettableConfigurable[T])
+	if !ok {
+		return *new(T), stacktrace.NewError("wrong value type for configurable")
+	}
+
+	return configurable.Get(), nil
+}
+
+// GetCollectionConfigurable obtains the current effective value of a collection configurable
+func GetCollectionConfigurable[T comparable](m *Manager, key ConfigurationKey) ([]T, error) {
+	configurableInterface, ok := m.configs[key]
+	if !ok {
+		return nil, stacktrace.NewError("unknown configurable")
+	}
+
+	configurable, ok := configurableInterface.(GettableCollectionConfigurable[T])
+	if !ok {
+		return nil, stacktrace.NewError("wrong value type for configurable")
+	}
+
+	return configurable.Get(), nil
+}
+
+// GetConfigurableByKey obtains the current effective value of the given key in a key-addressable configurable
+func GetConfigurableByKey[K, V comparable](m *Manager, configKey ConfigurationKey, addressableKey K) (V, bool, error) {
+	configurableInterface, ok := m.configs[configKey]
+	if !ok {
+		return *new(V), false, stacktrace.NewError("unknown configurable")
+	}
+
+	configurable, ok := configurableInterface.(GettableByKeyConfigurable[K, V])
+	if !ok {
+		return *new(V), false, stacktrace.NewError("wrong value type for configurable")
+	}
+
+	v, ok := configurable.GetByKey(addressableKey)
+	return v, ok, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
@@ -54,6 +55,7 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setAppLogo", m.setAppLogo)
 		m.exports.Set("setAppFavicon", m.setAppFavicon)
 		m.exports.Set("setSidebarTab", m.setSidebarTab)
+		m.exports.Set("setUserVIPStatus", m.setUserVIPStatus)
 
 	}
 }
@@ -246,5 +248,56 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 		m.currentSidebarPageID = pageID
 	}
 
+	return m.runtime.ToValue(success)
+}
+
+func (m *configurationModule) setUserVIPStatus(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	applicationID := m.appContext.ApplicationID()
+	userAddress := call.Argument(0).String()
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
+
+	if len(call.Arguments) < 2 || goja.IsUndefined(call.Argument(1)) || goja.IsNull(call.Argument(1)) || call.Argument(1).String() == "" {
+		success, err := configurationmanager.UnsetConfigurable[configurationmanager.VIPUser](m.configManager, configurationmanager.VIPUsers, applicationID, configurationmanager.VIPUser{
+			Address: userAddress,
+		})
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+
+		if success {
+			m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("ceased making user %s a VIP", userAddress[:14]))
+		}
+
+		return m.runtime.ToValue(success)
+	}
+
+	var appearance configurationmanager.VIPUserAppearance
+	switch call.Argument(1).String() {
+	case "normal":
+		appearance = configurationmanager.VIPUserAppearanceNormal
+	case "vip":
+		appearance = configurationmanager.VIPUserAppearanceVIP
+	case "moderator":
+		appearance = configurationmanager.VIPUserAppearanceModerator
+	case "vipmoderator":
+		appearance = configurationmanager.VIPUserAppearanceVIPModerator
+	default:
+		panic(m.runtime.NewTypeError("Second argument to setUserVIPStatus must be undefined or one of 'normal', 'vip', 'moderator' or 'vipmoderator'"))
+	}
+
+	success, err := configurationmanager.SetConfigurable[configurationmanager.VIPUser](m.configManager, configurationmanager.VIPUsers, applicationID, configurationmanager.VIPUser{
+		Address:    userAddress,
+		Appearance: appearance,
+	})
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+	if success {
+		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("made user %s a VIP with appearance `%s`", userAddress[:14], call.Argument(1).String()))
+	}
 	return m.runtime.ToValue(success)
 }

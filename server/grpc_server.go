@@ -140,9 +140,6 @@ type grpcServer struct {
 
 	announcementsUpdated event.Event[int]
 
-	vipUsers      map[string]vipUserAppearance
-	vipUsersMutex sync.RWMutex
-
 	versionInterceptor *version.VersionInterceptor
 
 	rewardHistoryMutex *nsync.NamedMutex
@@ -361,8 +358,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		soundCloudProvider: soundCloudProvider.(*soundcloud.TrackProvider),
 
 		announcementsUpdated: event.New[int](),
-
-		vipUsers: make(map[string]vipUserAppearance),
 
 		rewardHistoryMutex: nsync.NewNamedMutex(),
 

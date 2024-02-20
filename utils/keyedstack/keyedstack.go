@@ -3,6 +3,7 @@ package keyedstack
 import (
 	"sync"
 
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/exp/slices"
 )
@@ -44,6 +45,19 @@ func (s *KeyedStack[K, V]) Get() V {
 	return s.get()
 }
 
+// GetOfKey returns the topmost value for the specified key
+func (s *KeyedStack[K, V]) GetOfKey(key K) V {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, e := range s.stack {
+		if e.key == key {
+			return e.value
+		}
+	}
+	return s.defaultValue
+}
+
 // GetAll returns the complete stack values
 func (s *KeyedStack[K, V]) GetAll(includeDefaultValue bool) []V {
 	s.mu.RLock()
@@ -57,6 +71,26 @@ func (s *KeyedStack[K, V]) GetAll(includeDefaultValue bool) []V {
 		es[i] = e.value
 	}
 	return es
+}
+
+// GetAllOfKey returns all values for the specified key
+func (s *KeyedStack[K, V]) GetAllOfKey(key K) []V {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return lo.FilterMap[entry[K, V], V](
+		s.stack,
+		func(e entry[K, V], _ int) (V, bool) {
+			return e.value, e.key == key
+		})
+}
+
+// Len returns the number of items in the stack
+func (s *KeyedStack[K, V]) Len() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return len(s.stack)
 }
 
 // Push updates the current value, replacing any value that the provided key has already set
