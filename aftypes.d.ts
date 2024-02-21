@@ -804,6 +804,42 @@ declare module "jungletv:configuration" {
      * @returns true in circumstances where the AF runtime is working as expected.
      */
     export function setSidebarTab(pageID?: string, beforeTabID?: string);
+
+    /**
+     * Requests that a user be considered VIP, or releases that request.
+     * VIP users are able to enqueue while enqueuing is restricted to {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledStaffOnly} or {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledPasswordRequired}, and optionally have special roles associated with them in chat.
+     * Multiple applications may request that the same user be considered VIP.
+     * In such cases, the most recently requested and not-yet-released appearance will be considered, and a user will not cease to be considered VIP until all applications have released their requests regarding that user.
+     * The resulting set of VIP users corresponds to the union of the requests made by all running JAF applications, plus the set of users manually defined on-demand by JungleTV staff.
+     * Applications do not have control over the entire set of VIP users, they can only affect the requests made by themselves.
+     * @param address Reward address of the user whose VIP status to affect.
+     * @param appearance The special appearance that the VIP user should have, or undefined to release this application's request for this user to be considered VIP.
+     */
+    export function setUserVIPStatus(address: string, appearance: VIPUserAppearance | undefined);
+
+    /** Represents the possible appearance styles of a user that has been made VIP. */
+    export enum VIPUserAppearanceEnum {
+        /** The user will appear as a user with no special privileges, even if they normally have elevated privileges. */
+        Normal = "normal",
+
+        /** The user will appear as a "VIP User" with a crown or similar icon next to their name in chat. */
+        VIP = "vip",
+
+        /**
+         * The user will appear as a "Chat moderator" with the icon associated with chat moderators next to their name in chat.
+         * They will not actually have any privileges other than the ones usually available to VIP users.
+         */
+        Moderator = "moderator",
+
+        /**
+         * The user will appear as a "VIP chat moderator" with a specially colored version of the icon associated with chat moderators next to their name in chat.
+         * They will not actually have any privileges other than the ones usually available to VIP users.
+         */
+        VIPModerator = "vipmoderator",
+    }
+
+    /** Represents the possible appearance styles of a user that has been made VIP. */
+    export type VIPUserAppearance = `${VIPUserAppearanceEnum}`;
 }
 
 /** Allows for interaction with the JungleTV queue subsystem. */
