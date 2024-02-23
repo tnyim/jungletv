@@ -26,6 +26,7 @@
 
     export let applicationID: string;
     export let pageID: string;
+    export let subpath = "";
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
     export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" = "page";
     export let fixedHeight: number = 0;
@@ -82,6 +83,21 @@
         },
         pageID() {
             return pageID;
+        },
+        pagePathname() {
+            return subpath;
+        },
+        pageSearch() {
+            if (mode !== "page") {
+                return "";
+            }
+            return window.location.search;
+        },
+        pageHash() {
+            if (mode !== "page") {
+                return "";
+            }
+            return window.location.hash;
         },
         async serverMethod(method, ...args): Promise<any> {
             const jsonArgs: string[] = [];

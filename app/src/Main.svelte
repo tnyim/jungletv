@@ -265,7 +265,7 @@
 				<Route path="/history" component={PlayedMediaHistory} />
 				<Route path="/apps/:applicationID/*" let:params>
 					<Route path="/" component={ApplicationPage} applicationID={params.applicationID} pageID="" />
-					<Route path=":pageID" component={ApplicationPage} applicationID={params.applicationID} />
+					<Route path=":pageID/*subpath" component={ApplicationPage} applicationID={params.applicationID} />
 				</Route>
 				<Route path="/moderate/*">
 					{#if isAdmin}

@@ -1920,6 +1920,24 @@ interface AppBridge {
     getApplicationPageID: () => Promise<string>;
 
     /**
+     * Resolves the path name of the application page being executed, if the page is being rendered in `standalone` mode.
+     * @returns The page path name, that is, the part of the containing page's path that follows the page ID.
+     */
+    getApplicationPagePathname: () => Promise<string>;
+
+    /**
+     * Resolves the "search" portion of the containing page's URL, if the page is being rendered in `standalone` mode.
+     * @returns The `window.location.search` of the containing page.
+     */
+    getApplicationPageSearch: () => Promise<string>;
+
+    /**
+     * Resolves the "hash" portion of the containing page's URL, if the page is being rendered in `standalone` mode.
+     * @returns The `window.location.hash` of the containing page.
+    */
+    getApplicationPageHash: () => Promise<string>;
+
+    /**
      * Shows an alert modal to the user.
      * @param message The message to show.
      * @param title The title of the modal.

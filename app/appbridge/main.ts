@@ -31,6 +31,7 @@ let cachedInfo = {
     applicationVersion: new URLSearchParams(document.location.search).get("v") ?? "",
     hostVersion: "",
     pageID: "",
+    pagePathname: "",
 };
 
 let resolveServerConnectionPromise: () => void;
@@ -52,6 +53,7 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
     cachedInfo.applicationVersion = await h.call("applicationVersion");
     cachedInfo.hostVersion = await h.call("hostVersion");
     cachedInfo.pageID = await h.call("pageID");
+    cachedInfo.pagePathname = await h.call("pagePathname");
     defineCustomElements(cachedInfo.hostVersion);
 
     h.addEventListener("eventForClient", (args) => {
@@ -183,6 +185,36 @@ export const getApplicationVersion = async function (): Promise<string> {
 export const getApplicationPageID = async function (): Promise<string> {
     await connectionPromise;
     return cachedInfo.pageID;
+}
+
+/**
+ * Resolves the path name of the application page being executed, if the page is being rendered in `standalone` mode.
+ * @returns The page path name, that is, the part of the containing page's path that follows the page ID.
+ * @public
+ */
+export const getApplicationPagePathname = async function (): Promise<string> {
+    await connectionPromise;
+    return "/" + cachedInfo.pagePathname;
+}
+
+/**
+ * Resolves the "search" portion of the containing page's URL, if the page is being rendered in `standalone` mode.
+ * @returns The `window.location.search` of the containing page.
+ * @public
+ */
+export const getApplicationPageSearch = async function (): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("pageSearch");
+}
+
+/**
+ * Resolves the "hash" portion of the containing page's URL, if the page is being rendered in `standalone` mode.
+ * @returns The `window.location.hash` of the containing page.
+ * @public
+ */
+export const getApplicationPageHash = async function (): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("pageHash");
 }
 
 /**
