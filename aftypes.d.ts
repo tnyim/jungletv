@@ -272,6 +272,7 @@ declare module "jungletv:pages" {
      * @param pageID A case-sensitive string representing the ID of the page, that will define part of its URL.
      * This ID is also used to reference the page in other methods, such as {@link unpublish}.
      * This ID must contain only characters in the set A-Z, a-z, 0-9, `-` and `_`.
+     * This ID may be the empty string, in which case the published page will be considered the "index page" of the application.
      * If a page with this ID is already published, it will be replaced.
      * @param fileName The name of the application file to serve as the contents for this page.
      * This file must have the Public property enabled.
