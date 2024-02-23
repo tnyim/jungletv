@@ -23,7 +23,13 @@
 	import Rewards from "./Rewards.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
 	import { apiClient } from "./api_client";
-	import { applicationName, faviconURL } from "./configurationStores";
+	import {
+		applicationName,
+		faviconURL,
+		processStateFromOtherTab,
+		produceConfigurableState,
+		type ConfigurableState,
+	} from "./configurationStores";
 	import { closeModal, modalSetContext, onModalClosed } from "./modal/modal";
 	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
@@ -83,9 +89,20 @@
 			"%cSTOP\n%cThis is a feature intended for developers. If you were told to paste something here, " +
 				"do not do it - they are trying to get access to your JungleTV account.",
 			"font-size: 100px; color: white; font-family: sans-serif; background: red",
-			"font-size: 20px; color: red; font-family: sans-serif"
+			"font-size: 20px; color: red; font-family: sans-serif",
 		);
 	}
+
+	const darkModeBroadcastChannel = new BroadcastChannel<boolean>("darkMode");
+
+	interface configurableStateBroadcastChannelMessage {
+		type: "request" | "response";
+		state?: ConfigurableState;
+	}
+	// this channel allows tabs to receive an initial configurable state even when they don't connect to the server via the player
+	const configurableStateBroadcastChannel = new BroadcastChannel<configurableStateBroadcastChannelMessage>(
+		"configurableState",
+	);
 
 	onMount(async () => {
 		// Use "Twemoji Mozilla" font-family name because emoji-picker-element places that first in the font-family list
@@ -110,13 +127,27 @@
 		}
 		refreshOnLineStatus();
 
-		const darkModeBroadcastChannel = new BroadcastChannel<boolean>("darkMode");
 		darkMode.subscribe((newSetting) => {
 			darkModeBroadcastChannel.postMessage(newSetting);
 		});
 		darkModeBroadcastChannel.addEventListener("message", (e) => {
 			$darkMode = e;
 		});
+
+		configurableStateBroadcastChannel.addEventListener("message", (e) => {
+			switch (e.type) {
+				case "request":
+					configurableStateBroadcastChannel.postMessage({
+						type: "response",
+						state: produceConfigurableState(),
+					});
+					break;
+				case "response":
+					processStateFromOtherTab(e.state);
+					break;
+			}
+		});
+		configurableStateBroadcastChannel.postMessage({ type: "request" });
 
 		setInterval(() => {
 			rootInsideShadowRoot.querySelectorAll(".markdown-timestamp.relative").forEach((e) => {
@@ -317,9 +348,22 @@
 	@layer base {
 		/* prefer Twemoji on Firefox - makes the rest of the page consistent with the emoji picker */
 		html {
-			font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-				"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Twemoji Mozilla", "Apple Color Emoji",
-				"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+			font-family:
+				ui-sans-serif,
+				system-ui,
+				-apple-system,
+				BlinkMacSystemFont,
+				"Segoe UI",
+				Roboto,
+				"Helvetica Neue",
+				Arial,
+				"Noto Sans",
+				sans-serif,
+				"Twemoji Mozilla",
+				"Apple Color Emoji",
+				"Segoe UI Emoji",
+				"Segoe UI Symbol",
+				"Noto Color Emoji";
 		}
 		a {
 			@apply text-blue-600 dark:text-blue-400 hover:underline cursor-pointer;

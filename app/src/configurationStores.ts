@@ -1,4 +1,4 @@
-import { writable, type StartStopNotifier, type Writable } from "svelte/store";
+import { get, writable, type StartStopNotifier, type Writable } from "svelte/store";
 import ApplicationPage from "./ApplicationPage.svelte";
 import { ConfigurationChange } from "./proto/jungletv_pb";
 import { sidebarMode } from "./stores";
@@ -8,6 +8,16 @@ export const applicationName = writableWithInitialValue(globalThis.OVERRIDE_APP_
 export const logoURL = writableWithInitialValue("/assets/brand/logo.svg");
 export const faviconURL = writableWithInitialValue("/favicon.png");
 
+export interface ConfigurableState {
+    stateVersion: Date,
+    applicationName: string,
+    logoURL: string,
+    faviconURL: string,
+}
+
+let processedStateFromOtherTabProducedAt: Date;
+let processedOnlineChangesAt: Date;
+
 export const resetConfigurationChanges = function () {
     applicationName.reset()
     logoURL.reset();
@@ -16,6 +26,7 @@ export const resetConfigurationChanges = function () {
 }
 
 export const processConfigurationChanges = function (changes: ConfigurationChange[]) {
+    processedOnlineChangesAt = new Date();
     for (let change of changes) {
         switch (change.getConfigurationChangeCase()) {
             case ConfigurationChange.ConfigurationChangeCase.APPLICATION_NAME:
@@ -50,6 +61,32 @@ export const processConfigurationChanges = function (changes: ConfigurationChang
                 break;
         }
     }
+}
+
+export const processStateFromOtherTab = function (state: ConfigurableState) {
+    if (processedOnlineChangesAt) {
+        return;
+    }
+    if (processedStateFromOtherTabProducedAt && state.stateVersion < processedStateFromOtherTabProducedAt) {
+        return;
+    }
+    processedStateFromOtherTabProducedAt = state.stateVersion;
+
+    applicationName.set(state.applicationName);
+    logoURL.set(state.logoURL);
+    faviconURL.set(state.faviconURL);
+}
+
+export const produceConfigurableState = function (): ConfigurableState | undefined {
+    if (!processedOnlineChangesAt) {
+        return undefined;
+    }
+    return {
+        stateVersion: processedOnlineChangesAt,
+        applicationName: get(applicationName),
+        logoURL: get(logoURL),
+        faviconURL: get(faviconURL),
+    };
 }
 
 function closeAllApplicationTabs() {
