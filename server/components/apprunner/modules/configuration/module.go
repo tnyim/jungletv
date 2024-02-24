@@ -26,11 +26,13 @@ import (
 const ModuleName = "jungletv:configuration"
 
 type configurationModule struct {
-	runtime                            *goja.Runtime
-	exports                            *goja.Object
-	appContext                         modules.ApplicationContext
-	configManager                      *configurationmanager.Manager
-	pagesModule                        pages.PagesModule
+	runtime       *goja.Runtime
+	exports       *goja.Object
+	appContext    modules.ApplicationContext
+	configManager *configurationmanager.Manager
+	pagesModule   pages.PagesModule
+
+	configurationAssociationLock       sync.Mutex
 	currentSidebarTab                  configurationmanager.SidebarTabData
 	currentNavigationDestination       configurationmanager.NavigationDestination
 	currentNavigationDestinationPageID string
@@ -87,6 +89,8 @@ func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.Wai
 }
 
 func (m *configurationModule) updatePageConfigurablesOnPagePublish(pageID string) {
+	m.configurationAssociationLock.Lock()
+	defer m.configurationAssociationLock.Unlock()
 	// update navbar buttons and tab titles when pages are republished with a different title
 	if pageID == m.currentSidebarTab.PageID && m.currentSidebarTab != (configurationmanager.SidebarTabData{}) {
 		info, ok := m.pagesModule.ResolvePage(pageID)
@@ -105,6 +109,9 @@ func (m *configurationModule) updatePageConfigurablesOnPagePublish(pageID string
 }
 
 func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(pageID string) {
+	m.configurationAssociationLock.Lock()
+	defer m.configurationAssociationLock.Unlock()
+
 	if pageID == m.currentSidebarTab.PageID && m.currentSidebarTab != (configurationmanager.SidebarTabData{}) {
 		_ = m.configManager.UndoApplicationChange(configurationmanager.SidebarTabs, m.appContext.ApplicationID())
 	}
@@ -253,6 +260,9 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
+
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
 		m.currentSidebarTab = configurationmanager.SidebarTabData{}
 		return m.runtime.ToValue(true)
 	}
@@ -286,6 +296,8 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	if success {
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
 		m.currentSidebarTab = data
 	}
 
@@ -362,6 +374,9 @@ func (m *configurationModule) setNavigationDestination(call goja.FunctionCall) g
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
+
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
 		m.currentNavigationDestination = configurationmanager.NavigationDestination{}
 		m.currentNavigationDestinationPageID = ""
 		return m.runtime.ToValue(true)
@@ -418,6 +433,8 @@ func (m *configurationModule) setNavigationDestination(call goja.FunctionCall) g
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	if success {
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
 		m.currentNavigationDestination = data
 		m.currentNavigationDestinationPageID = pageID
 	}
