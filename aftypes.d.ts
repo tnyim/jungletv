@@ -800,13 +800,40 @@ declare module "jungletv:configuration" {
      * When set to `null` or `undefined`, the sidebar tab slot for the JAF application will be removed.
      * Connected users with the application's tab active will see an immediate switch to another sidebar tab.
      * @param beforeTabID An optional string that allows for controlling the placement of the new sidebar tab relative to the built-in sidebar tabs.
-     * The application's tab will appear to the left of the specified built-in tab. The built-in tab IDs are: `queue`, `skipandtip`, `chat` and `announcements`.
+     * The application's tab will appear to the left of the specified built-in tab.
+     * The built-in tab IDs are: `queue`, `skipandtip`, `chat` and `announcements`.
      * If this argument is not specified, the tab will appear to the right of all the built-in tabs.
      * The application framework is not designed to let applications control the placement of their tab relative to the tabs of other JAF applications.
      * The placement of an application's tab relative to the tabs of other applications may change every time this function is invoked.
      * @returns true in circumstances where the AF runtime is working as expected.
      */
-    export function setSidebarTab(pageID?: string, beforeTabID?: string);
+    export function setSidebarTab(pageID?: string, beforeTabID?: string): boolean;
+
+    /**
+     * Sets a new navigation bar item, on the JungleTV client SPA, to link to an application page, registered with {@link "jungletv:pages".publishFile}.
+     * The item's label will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
+     * The new navigation destination becomes immediately available on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.
+     * Each JAF application can elect to show a single navigation destination for one of their application pages.
+     * If the same application invokes this function with different pages as the argument, the navigation bar slot available to that application will link to the page passed on the most recent invocation.
+     * @param pageID A case-sensitive string representing the ID of the page to use as the destination for the navigation bar item, as was specified when invoking {@link "jungletv:pages".publishFile}.
+     * When set to `null` or `undefined`, the navigation destination for the JAF application will be removed.
+     * @param iconClasses A FontAwesome v5 icon specified using its classes (e.g. "fas fa-home") that will be shown on the navigation bar item.
+     * Required only if {@link pageID} is specified.
+     * @param color An optional string containing a color for the navigation bar icon.
+     * The allowed color names are: `gray`, `red`, `yellow`, `green`, `blue`, `indigo`, `purple` and `pink`.
+     * If this parameter is not specified, the item will have the color `gray`.
+     * @param beforeDestinationID An optional string that allows for controlling the placement of the new navigation bar item relative to the built-in destinations.
+     * The application's destination will appear "before" the specified built-in destination.
+     * The meaning of "before" depends on the particular destination ID specified and the size of the screen displaying the JungleTV SPA.
+     * On certain screen sizes, some destination IDs cause the destination to appear directly on the bar while others place it under an overflow menu.
+     * The built-in destination IDs are: `enqueue`, `rewards`, `leaderboards`, `about`, `faq`, `guidelines` and `playhistory`.
+     * If this argument is not specified, the new item will appear after all the built-in ones.
+     * The application framework is not designed to let applications control the placement of their navigation destination relative to the ones of other JAF applications.
+     * The placement of an application's navigation destination relative to those of other applications may change every time this function is invoked.
+     * @returns true in circumstances where the AF runtime is working as expected.
+     */
+    export function setNavigationDestination(pageID: undefined | null): boolean;
+    export function setNavigationDestination(pageID: string, iconClasses: string, color?: string, beforeDestinationID?: string): boolean;
 
     /**
      * Requests that a user be considered VIP, or releases that request.
@@ -817,8 +844,9 @@ declare module "jungletv:configuration" {
      * Applications do not have control over the entire set of VIP users, they can only affect the requests made by themselves.
      * @param address Reward address of the user whose VIP status to affect.
      * @param appearance The special appearance that the VIP user should have, or undefined to release this application's request for this user to be considered VIP.
+     * @returns true in circumstances where the AF runtime is working as expected.
      */
-    export function setUserVIPStatus(address: string, appearance: VIPUserAppearance | undefined);
+    export function setUserVIPStatus(address: string, appearance: VIPUserAppearance | undefined): boolean;
 
     /** Represents the possible appearance styles of a user that has been made VIP. */
     export enum VIPUserAppearanceEnum {
