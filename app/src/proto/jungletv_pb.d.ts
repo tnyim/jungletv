@@ -1066,6 +1066,16 @@ export class ConfigurationChange extends jspb.Message {
   getCloseSidebarTab(): string;
   setCloseSidebarTab(value: string): void;
 
+  hasAddNavigationDestination(): boolean;
+  clearAddNavigationDestination(): void;
+  getAddNavigationDestination(): ConfigurationChangeAddNavigationDestination | undefined;
+  setAddNavigationDestination(value?: ConfigurationChangeAddNavigationDestination): void;
+
+  hasRemoveNavigationDestination(): boolean;
+  clearRemoveNavigationDestination(): void;
+  getRemoveNavigationDestination(): string;
+  setRemoveNavigationDestination(value: string): void;
+
   getConfigurationChangeCase(): ConfigurationChange.ConfigurationChangeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConfigurationChange.AsObject;
@@ -1084,6 +1094,8 @@ export namespace ConfigurationChange {
     faviconUrl: string,
     openSidebarTab?: ConfigurationChangeSidebarTabOpen.AsObject,
     closeSidebarTab: string,
+    addNavigationDestination?: ConfigurationChangeAddNavigationDestination.AsObject,
+    removeNavigationDestination: string,
   }
 
   export enum ConfigurationChangeCase {
@@ -1093,6 +1105,8 @@ export namespace ConfigurationChange {
     FAVICON_URL = 3,
     OPEN_SIDEBAR_TAB = 4,
     CLOSE_SIDEBAR_TAB = 5,
+    ADD_NAVIGATION_DESTINATION = 6,
+    REMOVE_NAVIGATION_DESTINATION = 7,
   }
 }
 
@@ -1129,6 +1143,46 @@ export namespace ConfigurationChangeSidebarTabOpen {
     pageId: string,
     tabTitle: string,
     beforeTabId: string,
+  }
+}
+
+export class ConfigurationChangeAddNavigationDestination extends jspb.Message {
+  getDestinationId(): string;
+  setDestinationId(value: string): void;
+
+  getLabel(): string;
+  setLabel(value: string): void;
+
+  getIcon(): string;
+  setIcon(value: string): void;
+
+  getHref(): string;
+  setHref(value: string): void;
+
+  getColor(): string;
+  setColor(value: string): void;
+
+  getBeforeDestinationId(): string;
+  setBeforeDestinationId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConfigurationChangeAddNavigationDestination.AsObject;
+  static toObject(includeInstance: boolean, msg: ConfigurationChangeAddNavigationDestination): ConfigurationChangeAddNavigationDestination.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConfigurationChangeAddNavigationDestination, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConfigurationChangeAddNavigationDestination;
+  static deserializeBinaryFromReader(message: ConfigurationChangeAddNavigationDestination, reader: jspb.BinaryReader): ConfigurationChangeAddNavigationDestination;
+}
+
+export namespace ConfigurationChangeAddNavigationDestination {
+  export type AsObject = {
+    destinationId: string,
+    label: string,
+    icon: string,
+    href: string,
+    color: string,
+    beforeDestinationId: string,
   }
 }
 

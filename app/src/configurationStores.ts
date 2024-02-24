@@ -1,8 +1,10 @@
 import { get, writable, type StartStopNotifier, type Writable } from "svelte/store";
 import ApplicationPage from "./ApplicationPage.svelte";
+import { addNavigationDestination, navigationDestinations, removeAllApplicationNavigationDestinations, removeNavigationDestination, type NavigationDestination } from "./navigationStores";
 import { ConfigurationChange } from "./proto/jungletv_pb";
 import { sidebarMode } from "./stores";
 import { closeSidebarTab, openSidebarTab, sidebarTabs, type SidebarTab } from "./tabStores";
+import type { ButtonColor } from "./utils";
 
 export const applicationName = writableWithInitialValue(globalThis.OVERRIDE_APP_NAME ? globalThis.OVERRIDE_APP_NAME : "JungleTV");
 export const logoURL = writableWithInitialValue("/assets/brand/logo.svg");
@@ -13,6 +15,12 @@ export interface ConfigurableState {
     applicationName: string,
     logoURL: string,
     faviconURL: string,
+    navigationDestinations: NavigationDestinationState[],
+}
+
+export interface NavigationDestinationState {
+    destination: NavigationDestination,
+    beforeDestinationID?: string,
 }
 
 let processedStateFromOtherTabProducedAt: Date;
@@ -23,6 +31,7 @@ export const resetConfigurationChanges = function () {
     logoURL.reset();
     faviconURL.reset();
     closeAllApplicationTabs();
+    removeAllApplicationNavigationDestinations();
 }
 
 export const processConfigurationChanges = function (changes: ConfigurationChange[]) {
@@ -59,6 +68,22 @@ export const processConfigurationChanges = function (changes: ConfigurationChang
             case ConfigurationChange.ConfigurationChangeCase.CLOSE_SIDEBAR_TAB:
                 closeSidebarTab(change.getCloseSidebarTab());
                 break;
+            case ConfigurationChange.ConfigurationChangeCase.ADD_NAVIGATION_DESTINATION:
+                let info = change.getAddNavigationDestination();
+                let newDestination: NavigationDestination = {
+                    builtIn: false,
+                    id: info.getDestinationId(),
+                    href: info.getHref(),
+                    icon: info.getIcon(),
+                    label: info.getLabel(),
+                    color: info.getColor() == "" ? undefined : info.getColor() as ButtonColor,
+                    highlighted: false,
+                };
+                addNavigationDestination(newDestination, info.getBeforeDestinationId());
+                break;
+            case ConfigurationChange.ConfigurationChangeCase.REMOVE_NAVIGATION_DESTINATION:
+                removeNavigationDestination(change.getRemoveNavigationDestination());
+                break;
         }
     }
 }
@@ -75,17 +100,32 @@ export const processStateFromOtherTab = function (state: ConfigurableState) {
     applicationName.set(state.applicationName);
     logoURL.set(state.logoURL);
     faviconURL.set(state.faviconURL);
+
+    removeAllApplicationNavigationDestinations();
+    for(const d of state.navigationDestinations.reverse()) {
+        addNavigationDestination(d.destination, d.beforeDestinationID);
+    }
 }
 
 export const produceConfigurableState = function (): ConfigurableState | undefined {
     if (!processedOnlineChangesAt) {
         return undefined;
     }
+
+    let destinationsState: NavigationDestinationState[] = [];
+    let destinations = get(navigationDestinations);
+    for (const [i, d] of destinations.entries()) {
+        if (d.builtIn) {
+            continue;
+        }
+        destinationsState.push({ destination: d, beforeDestinationID: i < destinations.length - 1 ? destinations[i + 1].id : undefined });
+    }
     return {
         stateVersion: processedOnlineChangesAt,
         applicationName: get(applicationName),
         logoURL: get(logoURL),
         faviconURL: get(faviconURL),
+        navigationDestinations: destinationsState,
     };
 }
 

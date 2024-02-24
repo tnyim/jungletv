@@ -23,6 +23,8 @@ const (
 	SidebarTabs
 	// VIPUsers allows applications to configure the list of VIP users
 	VIPUsers
+	// NavigationDestinations allows applications to present new navigation destinations in the navigation bar
+	NavigationDestinations
 )
 
 // Manager manages configuration set by the application framework
@@ -75,6 +77,28 @@ func New(ctx context.Context) *Manager {
 				return &proto.ConfigurationChange{
 					ConfigurationChange: &proto.ConfigurationChange_CloseSidebarTab{
 						CloseSidebarTab: v.TabID,
+					},
+				}
+			}),
+		NavigationDestinations: newClientCollectionConfigurable(
+			func(v NavigationDestination) *proto.ConfigurationChange {
+				return &proto.ConfigurationChange{
+					ConfigurationChange: &proto.ConfigurationChange_AddNavigationDestination{
+						AddNavigationDestination: &proto.ConfigurationChangeAddNavigationDestination{
+							DestinationId:       v.DestinationID,
+							Label:               v.Label,
+							Icon:                v.Icon,
+							Href:                v.Href,
+							Color:               v.Color,
+							BeforeDestinationId: v.BeforeDestinationID,
+						},
+					},
+				}
+			},
+			func(v NavigationDestination) *proto.ConfigurationChange {
+				return &proto.ConfigurationChange{
+					ConfigurationChange: &proto.ConfigurationChange_RemoveNavigationDestination{
+						RemoveNavigationDestination: v.DestinationID,
 					},
 				}
 			}),
@@ -138,8 +162,8 @@ func (m *Manager) ClientConfigurationChanged() event.Event[*proto.ConfigurationC
 	return m.onClientConfigurationChanged
 }
 
-// ResetConfigurable may be called by an application environment to unset value for a configurable (as far as that application is concerned)
-func (m *Manager) ResetConfigurable(key ConfigurationKey, applicationID string) error {
+// UndoApplicationChange may be called by an application environment to unset value for a configurable (as far as that application is concerned)
+func (m *Manager) UndoApplicationChange(key ConfigurationKey, applicationID string) error {
 	configurable, ok := m.configs[key]
 	if !ok {
 		return stacktrace.NewError("unknown configurable")

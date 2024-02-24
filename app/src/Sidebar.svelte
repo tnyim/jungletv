@@ -166,7 +166,11 @@
                             <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />
                         </div>
                     {/if}
-                    {tab.tabTitle}
+                    {#if tab.tabTitle}
+                        {tab.tabTitle}
+                    {:else}
+                        &nbsp;
+                    {/if}
                     {#if tab.closeable}
                         <button
                             type="button"

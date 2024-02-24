@@ -147,7 +147,7 @@
     }
 
     // avoid duplicate miniplayers on other tabs
-    $: if (fullSize) {
+    $: if (fullSize && playerOpen) {
         playerPresenceBroadcastChannel.postMessage(playerPongMessage);
     }
 

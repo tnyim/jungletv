@@ -3,8 +3,12 @@
     import { rewardAddress } from "./stores";
     import NavbarLink from "./uielements/NavbarLink.svelte";
     export let destination: NavigationDestination;
+    export let isHero = false;
+
+    // without the #key block we could see weird effects like lingering button color when destinations changed
 </script>
 
+{#key destination}
 <NavbarLink
     color={destination.color}
     iconClasses={destination.icon}
@@ -18,6 +22,7 @@
         : $rewardAddress
           ? destination.href[0]
           : destination.href[1]}
-    backgroundClasses={destination.background}
+    {isHero}
     highlighted={destination.highlighted}
 />
+{/key}

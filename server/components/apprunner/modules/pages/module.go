@@ -24,12 +24,14 @@ const ModuleName = "jungletv:pages"
 type PagesModule interface {
 	modules.NativeModule
 	ResolvePage(pageID string) (PageInfo, bool)
+	OnPagePublished() event.Event[string]
 	OnPageUnpublished() event.Event[string]
 }
 
 type pagesModule struct {
 	runtime           *goja.Runtime
 	exports           *goja.Object
+	onPagePublished   event.Event[string]
 	onPageUnpublished event.Event[string]
 	appContext        modules.ApplicationContext
 	pages             map[string]PageInfo
@@ -46,6 +48,7 @@ type PageInfo struct {
 // New returns a new pages module
 func New(appContext modules.ApplicationContext) PagesModule {
 	return &pagesModule{
+		onPagePublished:   event.New[string](),
 		onPageUnpublished: event.New[string](),
 		appContext:        appContext,
 		pages:             make(map[string]PageInfo),
@@ -81,6 +84,10 @@ func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {
 
 	page, ok := m.pages[pageID]
 	return page, ok
+}
+
+func (m *pagesModule) OnPagePublished() event.Event[string] {
+	return m.onPagePublished
 }
 
 func (m *pagesModule) OnPageUnpublished() event.Event[string] {
@@ -161,6 +168,8 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.pages[pageID] = page
+
+	m.onPagePublished.Notify(pageID, false)
 
 	return goja.Undefined()
 }

@@ -3,6 +3,8 @@ package configuration
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -24,12 +26,14 @@ import (
 const ModuleName = "jungletv:configuration"
 
 type configurationModule struct {
-	runtime              *goja.Runtime
-	exports              *goja.Object
-	appContext           modules.ApplicationContext
-	configManager        *configurationmanager.Manager
-	pagesModule          pages.PagesModule
-	currentSidebarPageID string
+	runtime                            *goja.Runtime
+	exports                            *goja.Object
+	appContext                         modules.ApplicationContext
+	configManager                      *configurationmanager.Manager
+	pagesModule                        pages.PagesModule
+	currentSidebarTab                  configurationmanager.SidebarTabData
+	currentNavigationDestination       configurationmanager.NavigationDestination
+	currentNavigationDestinationPageID string
 
 	executionContext context.Context
 }
@@ -56,7 +60,7 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setAppFavicon", m.setAppFavicon)
 		m.exports.Set("setSidebarTab", m.setSidebarTab)
 		m.exports.Set("setUserVIPStatus", m.setUserVIPStatus)
-
+		m.exports.Set("setNavigationDestination", m.setNavigationDestination)
 	}
 }
 func (m *configurationModule) ModuleName() string {
@@ -70,19 +74,42 @@ func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.Wai
 	m.executionContext = ctx
 	m.runtime = runtime
 
-	unsub := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
+	unsub := m.pagesModule.OnPagePublished().SubscribeUsingCallback(event.BufferAll, m.updatePageConfigurablesOnPagePublish)
+	unsub2 := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 
 	wg.Add(1)
 	go func() {
 		<-ctx.Done()
 		unsub()
+		unsub2()
 		wg.Done()
 	}()
 }
 
-func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(unpublishedPageID string) {
-	if unpublishedPageID == m.currentSidebarPageID {
-		_ = m.configManager.ResetConfigurable(configurationmanager.SidebarTabs, m.appContext.ApplicationID())
+func (m *configurationModule) updatePageConfigurablesOnPagePublish(pageID string) {
+	// update navbar buttons and tab titles when pages are republished with a different title
+	if pageID == m.currentSidebarTab.PageID && m.currentSidebarTab != (configurationmanager.SidebarTabData{}) {
+		info, ok := m.pagesModule.ResolvePage(pageID)
+		if ok {
+			m.currentSidebarTab.Title = info.Title
+			_, _ = configurationmanager.SetConfigurable(m.configManager, configurationmanager.SidebarTabs, m.currentSidebarTab.ApplicationID, m.currentSidebarTab)
+		}
+	}
+	if pageID == m.currentNavigationDestinationPageID && m.currentNavigationDestination != (configurationmanager.NavigationDestination{}) {
+		info, ok := m.pagesModule.ResolvePage(pageID)
+		if ok {
+			m.currentNavigationDestination.Label = info.Title
+			_, _ = configurationmanager.SetConfigurable(m.configManager, configurationmanager.NavigationDestinations, m.appContext.ApplicationID(), m.currentNavigationDestination)
+		}
+	}
+}
+
+func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(pageID string) {
+	if pageID == m.currentSidebarTab.PageID && m.currentSidebarTab != (configurationmanager.SidebarTabData{}) {
+		_ = m.configManager.UndoApplicationChange(configurationmanager.SidebarTabs, m.appContext.ApplicationID())
+	}
+	if pageID == m.currentNavigationDestinationPageID && m.currentNavigationDestination != (configurationmanager.NavigationDestination{}) {
+		_ = m.configManager.UndoApplicationChange(configurationmanager.NavigationDestinations, m.appContext.ApplicationID())
 	}
 }
 
@@ -97,7 +124,7 @@ func (m *configurationModule) setAppName(call goja.FunctionCall) goja.Value {
 	var err error
 	var success bool
 	if goja.IsUndefined(nameValue) || goja.IsNull(nameValue) || nameValue.String() == "" {
-		err = m.configManager.ResetConfigurable(configurable, applicationID)
+		err = m.configManager.UndoApplicationChange(configurable, applicationID)
 		success = true
 	} else {
 		success, err = configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, nameValue.String())
@@ -148,7 +175,7 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 	configurable := configurationmanager.LogoURL
 
 	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || fileName == "" {
-		err := m.configManager.ResetConfigurable(configurable, applicationID)
+		err := m.configManager.UndoApplicationChange(configurable, applicationID)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -182,7 +209,7 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 	configurable := configurationmanager.FaviconURL
 
 	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || fileName == "" {
-		err := m.configManager.ResetConfigurable(configurable, applicationID)
+		err := m.configManager.UndoApplicationChange(configurable, applicationID)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -215,37 +242,45 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 	pageID := call.Argument(0).String()
 	configurable := configurationmanager.SidebarTabs
 
-	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) || pageID == "" {
-		err := m.configManager.ResetConfigurable(configurable, applicationID)
+	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) {
+		err := m.configManager.UndoApplicationChange(configurable, applicationID)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
-		m.currentSidebarPageID = ""
+		m.currentSidebarTab = configurationmanager.SidebarTabData{}
 		return m.runtime.ToValue(true)
 	}
 
 	beforeTabID := ""
 	if !goja.IsUndefined(call.Argument(1)) && !goja.IsNull(call.Argument(1)) && call.Argument(1).String() != "" {
 		beforeTabID = call.Argument(1).String()
+		tabIDs := []string{"queue", "skipandtip", "chat", "announcements"}
+		if !slices.Contains(tabIDs, beforeTabID) {
+			panic(m.runtime.NewTypeError(
+				"Second argument to setSidebarTab must be undefined or one of '%s' or '%s'",
+				strings.Join(tabIDs[0:len(tabIDs)-1], "', '"),
+				tabIDs[len(tabIDs)-1]))
+		}
 	}
 
 	info, ok := m.pagesModule.ResolvePage(pageID)
 	if !ok {
-		panic(m.runtime.NewTypeError("First argument to createMessageWithPageAttachment must be the ID of a published page"))
+		panic(m.runtime.NewTypeError("First argument to setSidebarTab must be the ID of a published page"))
 	}
 
-	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, configurationmanager.SidebarTabData{
+	data := configurationmanager.SidebarTabData{
 		TabID:         uuid.NewV4().String(),
 		ApplicationID: applicationID,
 		PageID:        pageID,
 		Title:         info.Title,
 		BeforeTabID:   beforeTabID,
-	})
+	}
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, data)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 	if success {
-		m.currentSidebarPageID = pageID
+		m.currentSidebarTab = data
 	}
 
 	return m.runtime.ToValue(success)
@@ -299,5 +334,87 @@ func (m *configurationModule) setUserVIPStatus(call goja.FunctionCall) goja.Valu
 	if success {
 		m.appContext.Logger().RuntimeAuditLog(fmt.Sprintf("made user %s a VIP with appearance `%s`", userAddress[:14], call.Argument(1).String()))
 	}
+	return m.runtime.ToValue(success)
+}
+
+// the free version only has solid (fas), brand (fab) and some regular (far) icons
+// complete list of icons at https://fontawesome.com/v5/search?m=free + https://fontawesome.com/v5/search?f=brands
+// allow both e.g. "fas fa-vial" and "fa-vial fas"
+var fontAwesomeIconRegex = regexp.MustCompile("^((fas|far|fab) +(fa-[a-zA-Z0-9-]+)|(fa-[a-zA-Z0-9-]+) +(fas|far|fab))$")
+
+func (m *configurationModule) setNavigationDestination(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	applicationID := m.appContext.ApplicationID()
+	pageID := call.Argument(0).String()
+	configurable := configurationmanager.NavigationDestinations
+
+	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) {
+		err := m.configManager.UndoApplicationChange(configurable, applicationID)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+		m.currentNavigationDestination = configurationmanager.NavigationDestination{}
+		m.currentNavigationDestinationPageID = ""
+		return m.runtime.ToValue(true)
+	}
+
+	if len(call.Arguments) < 2 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	icon := call.Argument(1).String()
+	if !fontAwesomeIconRegex.MatchString(icon) {
+		panic(m.runtime.NewTypeError("Second argument to setNavigationDestination must be a FontAwesome icon specifier"))
+	}
+
+	color := ""
+	if !goja.IsUndefined(call.Argument(2)) && !goja.IsNull(call.Argument(2)) && call.Argument(2).String() != "" {
+		color = call.Argument(2).String()
+		colors := []string{"gray", "red", "yellow", "green", "blue", "indigo", "purple", "pink"}
+		if !slices.Contains(colors, color) {
+			panic(m.runtime.NewTypeError(
+				"Third argument to setNavigationDestination must be undefined or one of '%s' or '%s'",
+				strings.Join(colors[0:len(colors)-1], "', '"),
+				colors[len(colors)-1]))
+		}
+	}
+
+	beforeDestinationID := ""
+	if !goja.IsUndefined(call.Argument(3)) && !goja.IsNull(call.Argument(3)) && call.Argument(3).String() != "" {
+		beforeDestinationID = call.Argument(3).String()
+		destinationIDs := []string{"enqueue", "rewards", "leaderboards", "about", "faq", "guidelines", "playhistory"}
+		if !slices.Contains(destinationIDs, beforeDestinationID) && !strings.HasPrefix(beforeDestinationID, "application-") {
+			panic(m.runtime.NewTypeError(
+				"Fourth argument to setNavigationDestination must be undefined or one of '%s' or '%s'",
+				strings.Join(destinationIDs[0:len(destinationIDs)-1], "', '"),
+				destinationIDs[len(destinationIDs)-1]))
+		}
+	}
+
+	info, ok := m.pagesModule.ResolvePage(pageID)
+	if !ok {
+		panic(m.runtime.NewTypeError("First argument to setNavigationDestination must be the ID of a published page"))
+	}
+
+	data := configurationmanager.NavigationDestination{
+		DestinationID:       "application-" + applicationID,
+		Label:               info.Title,
+		Icon:                icon,
+		Href:                fmt.Sprintf("/apps/%s/%s", applicationID, pageID),
+		Color:               color,
+		BeforeDestinationID: beforeDestinationID,
+	}
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, data)
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+	if success {
+		m.currentNavigationDestination = data
+		m.currentNavigationDestinationPageID = pageID
+	}
+
 	return m.runtime.ToValue(success)
 }

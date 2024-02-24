@@ -15,13 +15,16 @@
 
     const media = watchMedia({
         large: "(min-width: 1024px)",
+        medium: "(min-width: 768px)",
     });
 
     let largeScreen = false;
+    let mediumScreen = false;
     let navbarOpen = false;
     let moreOpen = false;
     const mediaUnsubscribe = media.subscribe((obj: any) => {
         largeScreen = obj.large;
+        mediumScreen = obj.medium;
         if (obj.large) {
             navbarOpen = false;
         }
@@ -54,18 +57,53 @@
         }
     }
 
-    let overflowDestinations = $navigationDestinations.slice(0, -3);
-    let primaryDestinations = $navigationDestinations.slice(-3, -1);
-    let heroDestinations = $navigationDestinations.slice(-1);
+    $: heroDestinations = $navigationDestinations.slice(0, 1);
+    $: primaryDestinations = $navigationDestinations.slice(1, 3).reverse();
+    $: overflowDestinations = $navigationDestinations.slice(3);
     let overflowGridClasses = "grid-cols-3 min-w-96";
+    let heroClasses = "col-span-full";
     let moreButtonHighlighted = false;
     $: {
-        if (overflowDestinations.length % 3 != 0 && overflowDestinations.length % 2 == 0) {
+        if (
+            overflowDestinations.length % 3 != 0 &&
+            overflowDestinations.length % 2 == 0 &&
+            overflowDestinations.length < 9
+        ) {
             overflowGridClasses = "grid-cols-2 min-w-64";
+        } else {
+            overflowGridClasses = "grid-cols-3 min-w-96";
         }
         moreButtonHighlighted = overflowDestinations.some((d) => d.highlighted);
     }
+    $: {
+        let remainder = (overflowDestinations.length + primaryDestinations.length) % (mediumScreen ? 4 : 3);
+        switch (remainder) {
+            case 0:
+                heroClasses = "col-span-full";
+                break;
+            case 1:
+                heroClasses = mediumScreen ? "col-span-3" : "col-span-2";
+                break;
+            case 2:
+                heroClasses = mediumScreen ? "col-span-2" : "";
+                break;
+            case 3:
+                heroClasses = "";
+                break;
+        }
+    }
+
     let lastOutsideClickEvent: Event;
+    let moreButton: HTMLButtonElement;
+    function onMoreClicked(event: MouseEvent) {
+        if (event != lastOutsideClickEvent) {
+            moreOpen = !moreOpen;
+        }
+        if (!moreOpen) {
+            // if the button retains the focus after the overflow menu is closed, it looks weird
+            moreButton.blur();
+        }
+    }
 </script>
 
 <nav
@@ -94,8 +132,8 @@
                             href={rAddress ? "/rewards" : "/rewards/address"}
                         />
                         <NavbarLink
-                            color="white"
-                            backgroundClasses="dark:bg-yellow-600 bg-yellow-400 hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:bg-yellow-500 dark:focus:bg-yellow-500"
+                            color="yellow"
+                            isHero={true}
                             iconClasses="fas fa-plus"
                             label="Enqueue"
                             href="/enqueue"
@@ -158,7 +196,7 @@
                 </li>
             </ul>
             <ul
-                class="grid grid-cols-3 md:grid-cols-12 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
+                class="grid grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
             >
                 {#if !navbarOpen}
                     <li class="relative">
@@ -166,15 +204,12 @@
                             iconClasses="fas fa-ellipsis-h"
                             label="More"
                             highlighted={moreButtonHighlighted}
-                            on:click={(event) => {
-                                if (event != lastOutsideClickEvent) {
-                                    moreOpen = !moreOpen;
-                                }
-                            }}
+                            bind:button={moreButton}
+                            on:click={onMoreClicked}
                         />
                         {#if moreOpen}
                             <div
-                                class="absolute mt-2 left-1/2 mx-auto max-h-72 overflow-y-auto grid {overflowGridClasses} gap-3 p-3 bg-white dark:bg-gray-950 rounded-b-lg shadow"
+                                class="absolute left-1/2 mx-auto max-h-72 overflow-y-auto grid {overflowGridClasses} gap-3 p-3 bg-white dark:bg-gray-950 rounded-lg shadow"
                                 style="transform: translate(-50%, 0)"
                                 use:clickOutside
                                 on:clickoutside={(event) => {
@@ -191,19 +226,19 @@
                 {/if}
                 {#if navbarOpen}
                     {#each overflowDestinations as destination}
-                        <li class="md:col-span-3">
+                        <li>
                             <NavbarDestination {destination} />
                         </li>
                     {/each}
                 {/if}
                 {#each primaryDestinations as destination}
-                    <li class="md:col-span-4">
+                    <li>
                         <NavbarDestination {destination} />
                     </li>
                 {/each}
                 {#each heroDestinations as destination}
-                    <li class="col-span-3 md:col-span-4">
-                        <NavbarDestination {destination} />
+                    <li class={heroClasses}>
+                        <NavbarDestination {destination} isHero={true} />
                     </li>
                 {/each}
             </ul>

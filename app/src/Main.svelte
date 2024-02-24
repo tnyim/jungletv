@@ -137,10 +137,13 @@
 		configurableStateBroadcastChannel.addEventListener("message", (e) => {
 			switch (e.type) {
 				case "request":
-					configurableStateBroadcastChannel.postMessage({
-						type: "response",
-						state: produceConfigurableState(),
-					});
+					let state = produceConfigurableState();
+					if (state) {
+						configurableStateBroadcastChannel.postMessage({
+							type: "response",
+							state,
+						});
+					}
 					break;
 				case "response":
 					processStateFromOtherTab(e.state);

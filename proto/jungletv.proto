@@ -352,6 +352,8 @@ message ConfigurationChange {
         string favicon_url = 3;
         ConfigurationChangeSidebarTabOpen open_sidebar_tab = 4;
         string close_sidebar_tab = 5;
+        ConfigurationChangeAddNavigationDestination add_navigation_destination = 6;
+        string remove_navigation_destination = 7;
     }
 }
 
@@ -361,6 +363,15 @@ message ConfigurationChangeSidebarTabOpen {
     string page_id = 3;
     string tab_title = 4;
     string before_tab_id = 5;
+}
+
+message ConfigurationChangeAddNavigationDestination {
+    string destination_id = 1;
+    string label = 2;
+    string icon = 3;
+    string href = 4;
+    string color = 5;
+    string before_destination_id = 6;
 }
 
 message MonitorQueueRequest {}
