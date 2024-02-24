@@ -350,7 +350,7 @@
 
 	@layer base {
 		/* prefer Twemoji on Firefox - makes the rest of the page consistent with the emoji picker */
-		html {
+		html, :host {
 			font-family:
 				ui-sans-serif,
 				system-ui,

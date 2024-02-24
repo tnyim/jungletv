@@ -19,9 +19,9 @@
     ease-linear transition-all duration-150 {extraClasses} relative"
     on:click
 >
-    <div class="px-1.5"><i class={iconClasses} /></div>
+    <i class="px-1.5 {iconClasses}" />
     {#if label}
-        <div class="flex-grow flex items-center max-w-24 pt-0.5">
+        <div class="flex-grow flex items-center max-w-28 pt-0.5">
             <span class="text-xs font-bold uppercase line-clamp-2 overflow-ellipsis leading-none">{label}</span>
         </div>
     {/if}
