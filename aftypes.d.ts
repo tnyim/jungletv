@@ -2025,14 +2025,15 @@ interface AppBridge {
 
     /**
      * Parses JungleTV Flavored Markdown into HTML.
-     * @param markdown The markdown to parse.
+     * @param markdown The Markdown to parse.
      * @returns The resulting HTML.
      */
     markdownToHTML: (markdown: string) => Promise<string>;
 
     /**
      * Parses a limited subset of JungleTV Flavored Markdown into HTML.
-     * @param markdown The markdown to parse.
+     * This is the same subset available for regular users to use in their chat messages.
+     * @param markdown The Markdown to parse.
      * @returns The resulting HTML.
      */
     limitedMarkdownToHTML: (markdown: string) => Promise<string>;
