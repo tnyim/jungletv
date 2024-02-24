@@ -36,8 +36,8 @@
     import ChatMediaPicker from "./ChatMediaPicker.svelte";
     import ChatReplyingBanner from "./ChatReplyingBanner.svelte";
     import { apiClient } from "./api_client";
-    import { emojiDatabase } from "./chat_utils";
     import { closeBrackets, closeBracketsKeymap } from "./closebrackets";
+    import { emojiDatabase } from "./emoji_utils";
     import GifMessagePreview from "./gifpicker/GifMessagePreview.svelte";
     import { openModal } from "./modal/modal";
     import { ChatGifSearchResult, ChatMessage, PermissionLevel, PointsInfoResponse } from "./proto/jungletv_pb";

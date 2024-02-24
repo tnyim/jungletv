@@ -2,7 +2,8 @@
     import type { Picker } from "emoji-picker-element/svelte";
     import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
-    import { chatEmojiPickerCSS, emojiDatabase } from "./chat_utils";
+    import { chatEmojiPickerCSS } from "./chat_utils";
+    import { emojiDatabase } from "./emoji_utils";
     import { chatEmotesAsCustomEmoji, currentSubscription, darkMode } from "./stores";
 
     export let searchQuery = "";

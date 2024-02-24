@@ -9,6 +9,7 @@ import { gfmHeadingId } from "marked-gfm-heading-id";
 import type { Readable } from "svelte/store";
 import { get } from 'svelte/store';
 import { apiClient } from "./api_client";
+import { emojiDatabase } from "./emoji_utils";
 import { modalAlert, modalPrompt } from "./modal/modal";
 import type { User } from "./proto/common_pb";
 import { EnqueueMediaTicket, ForcedTicketEnqueueType, PermissionLevel, QueueEntry, QueueSoundCloudTrackData, SubscriptionDetails, type ForcedTicketEnqueueTypeMap } from "./proto/jungletv_pb";
@@ -259,11 +260,13 @@ const emojiTokenizerMarkedExtension = {
             return {
                 type: "emoji", // Should match "name" above
                 raw: match[0], // Text to consume from the source
+                shortcode: "", // to be filled later, asynchronously, in walkTokens
             };
         }
     },
     renderer(token) {
-        return `<span class="markdown-emoji">${token.raw}</span>`;
+        let alt = token.shortcode ? ":" + token.shortcode + ":" : "";
+        return `<span class="markdown-emoji" title="${alt}" alt="${alt}">${token.raw}</span>`;
     },
 }
 
@@ -331,20 +334,32 @@ const configureMarked = function () {
     }
 }
 
+// asynchronously fills the shortcodes used in the tooltips of native unicode emoji
+const emojiShortcodeFillerTokenWalker = async function(token) {
+    if (token.type === 'emoji') {
+        try {
+            const result = await emojiDatabase.getEmojiByUnicodeOrName(token.raw);
+            if (result.shortcodes && result.shortcodes.length > 0) {
+                token.shortcode = result.shortcodes[0];
+            }
+        } catch { }
+    }
+}
+
 export const parseSystemMessageMarkdown = async function (markdown: string): Promise<string> {
     configureMarked();
     let t = new marked.Tokenizer();
     // avoid links in queue entry titles becoming clickable
     t.autolink = () => undefined;
     t.url = () => undefined;
-    return await configuredMarked.parseInline(markdown, { tokenizer: t });
+    return await configuredMarked.parseInline(markdown, { tokenizer: t, walkTokens: emojiShortcodeFillerTokenWalker });
 }
 
 export const parseUserMessageMarkdown = async function (markdown: string, isModerator: boolean): Promise<[string, boolean]> {
     configureMarked();
     let onlyEmotes = markdown.trim().length > 0;
     let emoteCount = 0;
-    const walkTokens = (token) => {
+    const walkTokens = async (token) => {
         if (token.type === 'text' || token.type === 'codespan') {
             onlyEmotes = onlyEmotes && token.text.trim().length === 0;
         }
@@ -354,6 +369,7 @@ export const parseUserMessageMarkdown = async function (markdown: string, isMode
         if (token.type === 'emoji') {
             emoteCount++;
         }
+        await emojiShortcodeFillerTokenWalker(token);
     };
     let rendered = "";
     if (isModerator) {
@@ -366,7 +382,7 @@ export const parseUserMessageMarkdown = async function (markdown: string, isMode
 
 export const parseCompleteMarkdown = async function (markdown: string): Promise<string> {
     configureMarked();
-    return await configuredMarked.parse(markdown, { tokenizer: undefined });
+    return await configuredMarked.parse(markdown, { tokenizer: undefined, walkTokens: emojiShortcodeFillerTokenWalker });
 }
 
 export const codeMirrorHighlightStyle = function (darkMode: boolean): Extension {

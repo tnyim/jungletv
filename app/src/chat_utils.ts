@@ -1,13 +1,9 @@
-import { Database } from 'emoji-picker-element';
 import { UserRole } from "./proto/common_pb";
 import type { ChatMessage } from "./proto/jungletv_pb";
+import css from "./styles/chatEmojiPicker.css" assert { type: "css" };
 import { getReadableUserString } from "./utils";
-import css from "./styles/chatEmojiPicker.css" assert { type: "css" }
-
-export const emojiDatabase = new Database();
 
 export const chatEmojiPickerCSS = css;
-
 
 export function getReadableMessageAuthor(msg: ChatMessage): string {
     return getReadableUserString(msg.getUserMessage().getAuthor());
