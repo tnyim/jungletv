@@ -127,6 +127,12 @@ func (m *configurationModule) setAppName(call goja.FunctionCall) goja.Value {
 		err = m.configManager.UndoApplicationChange(configurable, applicationID)
 		success = true
 	} else {
+		// why would anyone want a title longer than the original length a tweet
+		// (prevents extremely large configuration change payloads, among other things)
+		if len(nameValue.String()) > 140 {
+			panic(m.runtime.NewTypeError("First argument to setAppName must not be longer than 140 bytes when encoded using UTF-8"))
+		}
+
 		success, err = configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, nameValue.String())
 	}
 

@@ -277,6 +277,7 @@ declare module "jungletv:pages" {
      * @param fileName The name of the application file to serve as the contents for this page.
      * This file must have the Public property enabled.
      * @param defaultTitle A default, or initial, title for the page.
+     * Must not be longer than 140 bytes when encoded using UTF-8.
      * This is the title that will be shown while the page is loading within the JungleTV application, or in other states where the final/current title of the application page can't be determined.
      * When the page makes use of the App bridge, its document title will be automatically synchronized, shadowing the value of this parameter.
      * @param headers An optional object containing a key-value set of strings representing HTTP headers and the respective values, that will be sent when the page is served.
@@ -754,6 +755,7 @@ declare module "jungletv:configuration" {
      * Multiple JAF applications can request to override this configuration.
      * In such cases, the reflected value will be that of the application that most recently requested to override the configuration, and which is yet to terminate or cease overriding the configuration value.
      * @param name The name to temporarily use for the JungleTV web application.
+     * Must not be longer than 140 bytes when encoded using UTF-8.
      * When set to `null`, `undefined` or the empty string, the AF application will stop overriding the JungleTV web application name.
      * @returns true in circumstances where the AF runtime is working as expected.
      */

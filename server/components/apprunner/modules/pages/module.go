@@ -150,6 +150,12 @@ func (m *pagesModule) publishFile(call goja.FunctionCall) goja.Value {
 		Title: call.Argument(2).String(),
 	}
 
+	// why would anyone want a title longer than the original length a tweet
+	// (prevents extremely large configuration change payloads, among other things)
+	if len(page.Title) > 140 {
+		panic(m.runtime.NewTypeError("Third argument to publishFile must not be longer than 140 bytes when encoded using UTF-8"))
+	}
+
 	if len(call.Arguments) > 3 {
 		page.Header = make(http.Header)
 		headersMap := map[string]goja.Value{}
