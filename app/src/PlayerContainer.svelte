@@ -135,10 +135,20 @@
     function onBroadcastChannelMessage(e: playerPresenceMessage) {
         if (e === playerPingMessage && playerOpen) {
             playerPresenceBroadcastChannel.postMessage(playerPongMessage);
-        } else if (e === playerPongMessage && typeof playerCheckTimeout !== "undefined") {
-            clearTimeout(playerCheckTimeout);
-            playerCheckTimeout = undefined;
+        } else if (e === playerPongMessage) {
+            if (!fullSize) {
+                playerOpen = false;
+            }
+            if (typeof playerCheckTimeout !== "undefined") {
+                clearTimeout(playerCheckTimeout);
+                playerCheckTimeout = undefined;
+            }
         }
+    }
+
+    // avoid duplicate miniplayers on other tabs
+    $: if (fullSize) {
+        playerPresenceBroadcastChannel.postMessage(playerPongMessage);
     }
 
     let rAddress = null;
@@ -152,7 +162,7 @@
             if (!playerWasClosedManuallyOnce) {
                 playerOpen = true;
             }
-        }, 500);
+        }, 100);
     });
     onDestroy(() => {
         if (typeof playerCheckTimeout !== "undefined") {
