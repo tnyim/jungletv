@@ -2022,4 +2022,18 @@ interface AppBridge {
      * @returns A promise that resolves as soon as the request to open the profile is acknowledged.
      */
     showUserProfile: (userAddress: string) => Promise<void>;
+
+    /**
+     * Parses JungleTV Flavored Markdown into HTML.
+     * @param markdown The markdown to parse.
+     * @returns The resulting HTML.
+     */
+    markdownToHTML: (markdown: string) => Promise<string>;
+
+    /**
+     * Parses a limited subset of JungleTV Flavored Markdown into HTML.
+     * @param markdown The markdown to parse.
+     * @returns The resulting HTML.
+     */
+    limitedMarkdownToHTML: (markdown: string) => Promise<string>;
 }

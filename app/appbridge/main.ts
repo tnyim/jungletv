@@ -73,11 +73,13 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
     h.addEventListener("mounted", (args) => {
         beginObservingPageTitle();
         beginObservingDocumentResizes();
+        beginUpdatingMarkdownTimestamps();
         page.dispatchEvent(new CustomEvent<MountEventArgs>("mounted", { detail: args }));
     });
     h.addEventListener("destroyed", () => {
         stopObservingPageTitle();
         stopObservingDocumentResizes();
+        stopUpdatingMarkdownTimestamps();
         page.dispatchEvent(new Event("destroyed"));
     });
     h.addEventListener("themeChanged", (args) => {
@@ -296,6 +298,28 @@ export const showUserProfile = async function (userAddress: string): Promise<voi
     return connection.remoteHandle().call("showUserProfile", userAddress);
 }
 
+/**
+ * Parses JungleTV Flavored Markdown into HTML.
+ * @param markdown The markdown to parse.
+ * @returns The resulting HTML.
+ * @public
+ */
+export const markdownToHTML = async function (markdown: string): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("parseMarkdown", markdown);
+}
+
+/**
+ * Parses a limited subset of JungleTV Flavored Markdown into HTML.
+ * @param markdown The markdown to parse.
+ * @returns The resulting HTML.
+ * @public
+ */
+export const limitedMarkdownToHTML = async function (markdown: string): Promise<string> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("parseLimitedMarkdown", markdown);
+}
+
 // #region Page title syncing
 
 let pageTitleObserver: MutationObserver;
@@ -347,6 +371,35 @@ function beginObservingDocumentResizes() {
 
 function stopObservingDocumentResizes() {
     pageResizeObserver?.disconnect();
+}
+
+// #endregion
+
+// #region Markdown timestamp updating
+
+let markdownTimestampUpdatingInterval: number;
+
+function beginUpdatingMarkdownTimestamps() {
+    if (typeof markdownTimestampUpdatingInterval !== "undefined") {
+        clearInterval(markdownTimestampUpdatingInterval);
+    }
+    markdownTimestampUpdatingInterval = setInterval(async () => {
+        let connection = await connectionPromise;
+        document.querySelectorAll(".markdown-timestamp.relative").forEach(async (e) => {
+            if (!(e instanceof HTMLElement)) {
+                return;
+            }
+            e.innerText = await connection.remoteHandle().call(
+                "formatTimestampFromDatasetData",
+                parseInt(e.dataset.timestamp),
+                e.dataset.timestampType);
+        });
+    }, 1000);
+}
+
+function stopUpdatingMarkdownTimestamps() {
+    clearInterval(markdownTimestampUpdatingInterval);
+    markdownTimestampUpdatingInterval = undefined;
 }
 
 // #endregion

@@ -18,6 +18,8 @@ export type ParentMethods = {
     userAddress: () => Promise<string>;
     userPermissionLevel: () => Promise<string>;
     parseMarkdown: (markdown: string) => Promise<string>;
+    parseLimitedMarkdown: (markdown: string) => Promise<string>;
+    formatTimestampFromDatasetData: (timestamp: number, timestampType: string) => Promise<string>;
     showUserProfile: (userAddress: string) => void;
 }
 

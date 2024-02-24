@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { grpc } from "@improbable-eng/grpc-web";
     import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
+    import { DateTime } from "luxon";
     import { ParentHandshake, WindowMessenger, type Connection } from "post-me";
     import { createEventDispatcher, onDestroy } from "svelte";
     import { navigate } from "svelte-navigator";
@@ -22,7 +23,12 @@
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { consumeStreamRPC, type StreamRequestController } from "./rpcUtils";
     import { darkMode, permissionLevel, rewardAddress } from "./stores";
-    import { awaitReadableValue, parseCompleteMarkdown } from "./utils";
+    import {
+        awaitReadableValue,
+        formatMarkdownTimestamp,
+        parseCompleteMarkdown,
+        parseUserMessageMarkdown,
+    } from "./utils";
 
     export let applicationID: string;
     export let pageID: string;
@@ -124,7 +130,15 @@
         userAddress: () => rewardAddressPromise,
         userPermissionLevel: () => permissionLevelPromise,
         parseMarkdown: parseCompleteMarkdown,
+        parseLimitedMarkdown: async (markdown): Promise<string> => {
+            let [parsed, _] = await parseUserMessageMarkdown(markdown, false);
+            return parsed;
+        },
         showUserProfile: openUserProfile,
+        formatTimestampFromDatasetData: async (timestamp: number, timestampType: string): Promise<string> => {
+            let date = DateTime.fromSeconds(timestamp);
+            return formatMarkdownTimestamp(date, timestampType);
+        },
     };
 
     let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);
@@ -144,7 +158,7 @@
 
     function consumeApplicationEventsRequestBuilder(
         onUpdate: (update: ApplicationEventUpdate) => void,
-        onEnd: (code: grpc.Code, msg: string) => void
+        onEnd: (code: grpc.Code, msg: string) => void,
     ): Request {
         return apiClient.consumeApplicationEvents(applicationID, pageID, onUpdate, onEnd);
     }
@@ -240,7 +254,7 @@
             5000,
             consumeApplicationEventsRequestBuilder,
             handleApplicationEventUpdate,
-            handleApplicationEventRequestStatusChanged
+            handleApplicationEventRequestStatusChanged,
         );
 
         eventsRequestController.rebuildAndReconnect();
@@ -266,7 +280,7 @@
         <iframe
             bind:this={iframe}
             on:load={onIframeLoaded}
-            class="w-full {fixedHeight == 0 ? "min-h-full" : ""}"
+            class="w-full {fixedHeight == 0 ? 'min-h-full' : ''}"
             title={response.getPageTitle()}
             src="/assets/app/{applicationID}/{applicationVersion.getTime() + ''}/*{pageID}"
             scrolling="no"
