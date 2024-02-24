@@ -757,3 +757,24 @@ export const awaitReadableValue = async function <T>(readable: Readable<T>, pred
 }
 
 export type PartialQueueEntryForHeader = QueueEntry | EnqueueMediaTicket;
+
+export function clickOutside(node) {
+    const handleClick = event => {
+        if (node && !node.contains(event.target) && !event.defaultPrevented) {
+            node.dispatchEvent(
+                new CustomEvent('clickoutside', {
+                    detail: event,
+                })
+            );
+        }
+    }
+
+    const root = node.getRootNode();
+    root.addEventListener('click', handleClick, true);
+
+    return {
+        destroy() {
+            root.removeEventListener('click', handleClick, true);
+        }
+    }
+}

@@ -4,12 +4,14 @@
     import { globalHistory, link, navigate } from "svelte-navigator";
     import Toggle from "svelte-toggle";
     import NavbarAlert from "./NavbarAlert.svelte";
+    import NavbarDestination from "./NavbarDestination.svelte";
     import { applicationName, logoURL } from "./configurationStores";
     import { formatBANPrice } from "./currency_utils";
+    import { navigationDestinations } from "./navigationStores";
     import { darkMode, rewardAddress, rewardBalance } from "./stores";
     import NavbarButton from "./uielements/NavbarButton.svelte";
     import NavbarLink from "./uielements/NavbarLink.svelte";
-    import { buildMonKeyURL } from "./utils";
+    import { buildMonKeyURL, clickOutside } from "./utils";
 
     const media = watchMedia({
         large: "(min-width: 1024px)",
@@ -46,20 +48,24 @@
     });
     onDestroy(historyStoreUnsubscribe);
 
-    let moreCloseTimeout: number;
     $: {
         if (navbarOpen) {
             moreOpen = false;
         }
-        if (moreOpen) {
-            if (typeof moreCloseTimeout != "undefined") {
-                clearTimeout(moreCloseTimeout);
-            }
-            moreCloseTimeout = setTimeout(() => {
-                moreOpen = false;
-            }, 20000);
-        }
     }
+
+    let overflowDestinations = $navigationDestinations.slice(0, -3);
+    let primaryDestinations = $navigationDestinations.slice(-3, -1);
+    let heroDestinations = $navigationDestinations.slice(-1);
+    let overflowGridClasses = "grid-cols-3 min-w-96";
+    let moreButtonHighlighted = false;
+    $: {
+        if (overflowDestinations.length % 3 != 0 && overflowDestinations.length % 2 == 0) {
+            overflowGridClasses = "grid-cols-2 min-w-64";
+        }
+        moreButtonHighlighted = overflowDestinations.some((d) => d.highlighted);
+    }
+    let lastOutsideClickEvent: Event;
 </script>
 
 <nav
@@ -154,66 +160,52 @@
             <ul
                 class="grid grid-cols-3 md:grid-cols-12 lg:flex lg:flex-row gap-3 content-center list-none lg:ml-4 mb-3 lg:mb-0"
             >
-                {#if moreOpen}
-                    <li style="margin-right:48px;">
+                {#if !navbarOpen}
+                    <li class="relative">
                         <NavbarButton
-                            iconClasses="fas fa-arrow-left"
-                            label="Back"
-                            on:click={() => (moreOpen = false)}
+                            iconClasses="fas fa-ellipsis-h"
+                            label="More"
+                            highlighted={moreButtonHighlighted}
+                            on:click={(event) => {
+                                if (event != lastOutsideClickEvent) {
+                                    moreOpen = !moreOpen;
+                                }
+                            }}
                         />
-                    </li>
-                {:else if !navbarOpen}
-                    <li>
-                        <NavbarButton iconClasses="fas fa-ellipsis-h" label="More" on:click={() => (moreOpen = true)} />
+                        {#if moreOpen}
+                            <div
+                                class="absolute mt-2 left-1/2 mx-auto max-h-72 overflow-y-auto grid {overflowGridClasses} gap-3 p-3 bg-white dark:bg-gray-950 rounded-b-lg shadow"
+                                style="transform: translate(-50%, 0)"
+                                use:clickOutside
+                                on:clickoutside={(event) => {
+                                    lastOutsideClickEvent = event.detail;
+                                    moreOpen = false;
+                                }}
+                            >
+                                {#each overflowDestinations as destination}
+                                    <NavbarDestination {destination} />
+                                {/each}
+                            </div>
+                        {/if}
                     </li>
                 {/if}
-                {#if navbarOpen || moreOpen}
-                    <li class="md:col-span-3">
-                        <NavbarLink iconClasses="fas fa-info" label="About" href="/about" />
-                    </li>
-
-                    <li class="md:col-span-3">
-                        <NavbarLink iconClasses="fas fa-question" label="FAQ" href="/faq" />
-                    </li>
-
-                    <li class="md:col-span-3">
-                        <NavbarLink iconClasses="fas fa-scroll" label="Rules" href="/guidelines" />
-                    </li>
-
-                    <li class="md:col-span-3">
-                        <NavbarLink iconClasses="fas fa-history" label="Play history" href="/history" />
-                    </li>
+                {#if navbarOpen}
+                    {#each overflowDestinations as destination}
+                        <li class="md:col-span-3">
+                            <NavbarDestination {destination} />
+                        </li>
+                    {/each}
                 {/if}
-
-                {#if !moreOpen}
+                {#each primaryDestinations as destination}
                     <li class="md:col-span-4">
-                        <NavbarLink
-                            color="green"
-                            iconClasses="fas fa-trophy"
-                            label="Leaderboards"
-                            href="/leaderboards"
-                        />
+                        <NavbarDestination {destination} />
                     </li>
-
-                    <li class="md:col-span-4">
-                        <NavbarLink
-                            color="purple"
-                            iconClasses="fas fa-coins"
-                            label={rAddress ? "Rewards" : "Earn rewards"}
-                            href={rAddress ? "/rewards" : "/rewards/address"}
-                        />
-                    </li>
-
+                {/each}
+                {#each heroDestinations as destination}
                     <li class="col-span-3 md:col-span-4">
-                        <NavbarLink
-                            color="white"
-                            backgroundClasses="dark:bg-yellow-600 bg-yellow-400 hover:bg-yellow-500 dark:hover:bg-yellow-500 focus:bg-yellow-500 dark:focus:bg-yellow-500"
-                            iconClasses="fas fa-plus"
-                            label="Enqueue media"
-                            href="/enqueue"
-                        />
+                        <NavbarDestination {destination} />
                     </li>
-                {/if}
+                {/each}
             </ul>
         </div>
     </div>

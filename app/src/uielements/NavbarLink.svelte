@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { DoubleBounce } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import type { ButtonColor } from "../utils";
 
@@ -7,6 +8,7 @@
     export let href: string;
     export let color: ButtonColor | "white" = "gray";
     export let backgroundClasses = "hover:bg-gray-200 dark:hover:bg-gray-800 focus:bg-gray-200 dark:focus:bg-gray-800";
+    export let highlighted = false;
 
     let colorClasses = "";
 
@@ -42,14 +44,19 @@
 </script>
 
 <a
-    class="p-1 lg:py-2 flex flex-col items-center rounded
+    class="text-center p-1 lg:py-2 flex flex-col items-center rounded
         hover:shadow-lg focus:shadow-lg
         outline-none focus:outline-none hover:no-underline
         ease-linear transition-all duration-150
-        {colorClasses} {backgroundClasses}"
+        {colorClasses} {backgroundClasses} relative"
     use:link
     {href}
 >
     <i class={iconClasses} />
     <div class="text-xs font-bold uppercase">{label}</div>
+    {#if highlighted}
+        <div class="absolute top-0 right-0 m-1 pointer-events-none">
+            <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />
+        </div>
+    {/if}
 </a>
