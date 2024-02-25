@@ -210,13 +210,19 @@ func (p *PlayedMediaRaffleEntry) tableName() string {
 	return "played_media"
 }
 
+var applicationsExcludedFromRaffleCutoff = time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+
 // GetPlayedMediaRaffleEntriesBetween returns the played media raffle entries in the specified time period
 func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before time.Time) ([]*PlayedMediaRaffleEntry, error) {
 	s := sdb.Select().
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
-		Where(sq.Like{"requested_by": "ban_%"}). // exclude entries without requester and with requesters from alien chains
+		Where(sq.Like{"played_media.requested_by": "ban_%"}). // exclude entries without requester and with requesters from alien chains
 		OrderBy("played_media.started_at")
+
+	if onOrAfter.After(applicationsExcludedFromRaffleCutoff) || before.After(applicationsExcludedFromRaffleCutoff) {
+		s = s.Where(sq.Expr("played_media.requested_by NOT IN (SELECT \"address\" FROM chat_user WHERE application_id IS NOT NULL)"))
+	}
 
 	values, err := GetWithSelect[*PlayedMediaRaffleEntry](node, s)
 	return values, stacktrace.Propagate(err, "")
@@ -234,7 +240,11 @@ func CountMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before
 		From("played_media").
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
-		Where(sq.Like{"requested_by": "ban_%"}) // exclude entries without requester and with requesters from alien chains
+		Where(sq.Like{"played_media.requested_by": "ban_%"}) // exclude entries without requester and with requesters from alien chains
+
+	if onOrAfter.After(applicationsExcludedFromRaffleCutoff) || before.After(applicationsExcludedFromRaffleCutoff) {
+		s = s.Where(sq.Expr("played_media.requested_by NOT IN (SELECT \"address\" FROM chat_user WHERE application_id IS NOT NULL)"))
+	}
 
 	var count int
 	err = s.RunWith(tx).QueryRow().Scan(&count)
@@ -253,7 +263,12 @@ func CountMediaRaffleEntriesRequestedByBetween(node sqalx.Node, onOrAfter time.T
 		From("played_media").
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
-		Where(sq.Eq{"requested_by": user})
+		Where(sq.Eq{"played_media.requested_by": user})
+
+	if onOrAfter.After(applicationsExcludedFromRaffleCutoff) || before.After(applicationsExcludedFromRaffleCutoff) {
+		// this shouldn't really matter because applications normally won't be requesting the count of their raffle entries, in any case:
+		s = s.Where(sq.Expr("played_media.requested_by NOT IN (SELECT \"address\" FROM chat_user WHERE application_id IS NOT NULL)"))
+	}
 
 	var count int
 	err = s.RunWith(tx).QueryRow().Scan(&count)
