@@ -180,7 +180,7 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 		panic(err)
 	}
 
-	p, ok := result.Export().(*goja.Promise)
+	gojaPromise, ok := result.Export().(*goja.Promise)
 	if !ok {
 		resultJSON, err := m.jsonMarshaller(gojaUndefined, result)
 		if err != nil {
@@ -193,11 +193,13 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 		}
 	}
 
+	promiseObject := result.ToObject(vm)
+
 	// await for resolution in a separate goroutine and return the value in a channel
 	resultChan := make(chan PromiseResult, 1)
 	// set up an empty catch function so we don't fall into the "Uncaught (in promise)" log message from our promise rejection tracker
 	// since we pass the exception to the client and through the appbridge, the "Uncaughtness" is up to the client side to decide
-	catch, ok := goja.AssertFunction(result.ToObject(vm).Get("catch"))
+	catch, ok := goja.AssertFunction(promiseObject.Get("catch"))
 	if !ok {
 		panic("could not get catch method from Promise")
 	}
@@ -209,14 +211,14 @@ func (m *rpcModule) HandleInvocation(vm *goja.Runtime, user auth.User, pageID, m
 	// and set up a finally function so we can return the result/exception to the client when the promise resolves
 	// make sure this finally is chained on the catch above, otherwise parallel resolution shenanigans come into play, and we still get the "Uncaught" messsage
 	// (explanation: https://stackoverflow.com/a/72302273)
-	finally, ok := goja.AssertFunction(result.ToObject(vm).Get("finally"))
+	finally, ok := goja.AssertFunction(promiseObject.Get("finally"))
 	if !ok {
 		panic("could not get finally method from Promise")
 	}
 	finally(result, vm.ToValue(func() {
 		resultChan <- PromiseResult{
-			Rejected:       p.State() != goja.PromiseStateFulfilled,
-			Value:          p.Result(),
+			Rejected:       gojaPromise.State() != goja.PromiseStateFulfilled,
+			Value:          gojaPromise.Result(),
 			JSONMarshaller: m.jsonMarshaller,
 		}
 	}))

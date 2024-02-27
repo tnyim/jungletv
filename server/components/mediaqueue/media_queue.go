@@ -36,7 +36,7 @@ type MediaQueue struct {
 	statsClient                *statsd.Client
 	queue                      []media.QueueEntry
 	queueMutex                 sync.RWMutex
-	recentEntryCounts          map[string]int
+	recentEntryCounts          map[string]map[string]struct{} // maps reward address to a set of media IDs
 	recentEntryCountsMutex     sync.RWMutex
 	recentEntryCountsCache     *theine.LoadingCache[string, recentEntryCountsValue]
 	removalOfOwnEntriesAllowed bool
@@ -67,7 +67,7 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 	q := &MediaQueue{
 		log:                        log,
 		statsClient:                statsClient,
-		recentEntryCounts:          make(map[string]int),
+		recentEntryCounts:          make(map[string]map[string]struct{}),
 		queueUpdated:               event.NewNoArg(),
 		mediaChanged:               event.New[media.QueueEntry](),
 		skippingAllowedUpdated:     event.NewNoArg(),
@@ -241,11 +241,20 @@ func (q *MediaQueue) Enqueue(newEntry media.QueueEntry) {
 		insertionIndex = len(q.queue) - 1
 	}
 	go q.statsClient.Gauge("queue_length", len(q.queue))
+	reqBy := newEntry.RequestedBy()
+	if reqBy != nil && !reqBy.IsUnknown() {
+		q.recentEntryCountsCache.Delete(reqBy.Address())
+	}
 	q.queueUpdated.Notify(false)
 	q.entryAdded.Notify(EntryAddedEventArg{insertionIndex, EntryAddedPlacementEnqueue, newEntry}, false)
 }
 
 func (q *MediaQueue) playAfterNextNoMutex(entry media.QueueEntry) int {
+	reqBy := entry.RequestedBy()
+	if reqBy != nil && !reqBy.IsUnknown() {
+		q.recentEntryCountsCache.Delete(reqBy.Address())
+	}
+
 	if len(q.queue) < 2 {
 		q.queue = append(q.queue, entry)
 		return len(q.queue) - 1
@@ -358,6 +367,10 @@ func (q *MediaQueue) removeEntryInMutex(entryID string, selfRemoval bool) (media
 			q.entryRemoved.Notify(EntryRemovedEventArg{i, entry, selfRemoval}, false)
 			go q.statsClient.Gauge("queue_length", len(q.queue))
 			q.queueUpdated.Notify(false)
+			reqBy := entry.RequestedBy()
+			if reqBy != nil && !reqBy.IsUnknown() {
+				q.recentEntryCountsCache.Delete(reqBy.Address())
+			}
 			return entry, nil
 		}
 	}
@@ -683,7 +696,7 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 		ctx.DeferToCommit(func() {
 			q.recentEntryCountsCache.Delete(prevPlayedMedia.RequestedBy)
 			if prevMedia.RequestedBy() != nil && !prevMedia.RequestedBy().IsUnknown() {
-				go q.incrementRecentlyPlayedFor(prevMedia.RequestedBy().Address(), recentPlayDuration)
+				go q.incrementRecentlyPlayedForPreviouslyPlayedMedia(prevPlayedMedia)
 			}
 		})
 	}
@@ -743,27 +756,48 @@ func (q *MediaQueue) logPlayedMedia(ctxCtx context.Context, prevMedia media.Queu
 
 const recentPlayDuration = 4 * time.Hour
 
-func (q *MediaQueue) incrementRecentlyPlayedFor(requesterAddress string, incrementFor time.Duration) {
-	func() {
-		q.recentEntryCountsMutex.Lock()
-		defer q.recentEntryCountsMutex.Unlock()
-		q.recentEntryCounts[requesterAddress]++
-	}()
-
-	time.Sleep(incrementFor)
+func (q *MediaQueue) incrementRecentlyPlayedForPreviouslyPlayedMedia(playedMedia ...*types.PlayedMedia) {
+	if len(playedMedia) == 0 || playedMedia[0].RequestedBy == "" {
+		return
+	}
+	requester := playedMedia[0].RequestedBy
 
 	q.recentEntryCountsMutex.Lock()
 	defer q.recentEntryCountsMutex.Unlock()
-	q.recentEntryCounts[requesterAddress]--
+
+	now := time.Now()
+
+	for _, media := range playedMedia {
+		_, present := q.recentEntryCounts[requester][media.ID]
+		if !media.EndedAt.Valid || now.Sub(media.EndedAt.Time) >= recentPlayDuration || present {
+			continue
+		}
+
+		if _, present := q.recentEntryCounts[requester]; !present {
+			q.recentEntryCounts[requester] = make(map[string]struct{})
+		}
+		q.recentEntryCounts[requester][media.ID] = struct{}{}
+
+		expiry := media.EndedAt.Time.Add(recentPlayDuration)
+		mediaID := media.ID
+		time.AfterFunc(expiry.Sub(now), func() {
+			q.recentEntryCountsMutex.Lock()
+			defer q.recentEntryCountsMutex.Unlock()
+			q.recentEntryCountsCache.Delete(requester)
+			delete(q.recentEntryCounts[requester], mediaID)
+			if len(q.recentEntryCounts[requester]) == 0 {
+				delete(q.recentEntryCounts, requester)
+			}
+		})
+	}
 }
 
 func (q *MediaQueue) getRecentlyPlayedMediaRequestedBy(ctx context.Context, requesterAddress string) (int, error) {
-	var count int
-	var present bool
-	func() {
+	count, present := func() (int, bool) {
 		q.recentEntryCountsMutex.RLock()
 		defer q.recentEntryCountsMutex.RUnlock()
-		count, present = q.recentEntryCounts[requesterAddress]
+		mediaIDs, p := q.recentEntryCounts[requesterAddress]
+		return len(mediaIDs), p
 	}()
 	if present {
 		return count, nil
@@ -788,15 +822,15 @@ func (q *MediaQueue) fetchAndUpdateRecentlyPlayedMediaCount(ctxCtx context.Conte
 	}
 
 	count := len(playedMedia)
+	q.incrementRecentlyPlayedForPreviouslyPlayedMedia(playedMedia...)
 	for _, m := range playedMedia {
 		if !m.EndedAt.Valid {
 			// we subtract one because this function should only return the count for entries that have already finished playing
 			// (we include the currently playing entry in the total that is computed from the current queue in
 			// CountEnqueuedOrRecentlyPlayedMediaRequestedBy)
 			count--
-			continue
+			break
 		}
-		go q.incrementRecentlyPlayedFor(requesterAddress, recentPlayDuration-time.Since(m.EndedAt.Time))
 	}
 
 	return count, nil
