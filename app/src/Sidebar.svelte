@@ -133,84 +133,87 @@
     });
 </script>
 
-<div class="px-2 pt-1 pb-2 cursor-default relative">
-    <button
-        use:registerFocus
-        type="button"
-        class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
-        on:click={() => dispatch("collapseSidebar")}
-    >
-        <i class="fas fa-angle-double-right" />
-    </button>
-    <div class="flex flex-row lg:ml-10">
-        <div
-            tabindex="-1"
-            class="flex-1 flex flex-row h-9 overflow-x-scroll disable-scrollbars relative"
-            on:mousemove={onTabBarMouseMove}
-            on:touchstart={() => (touchingTabBar = true)}
-            on:touchend={() => {
-                clearScrollInterval();
-                touchingTabBar = false;
-            }}
-            bind:this={tabBar}
-            bind:offsetWidth={blW}
+<div class="flex flex-col lg:flex-row h-full">
+    <div class="px-2 pt-1 pb-2 cursor-default relative lg:px-0 lg:pb-1">
+        <button
+            use:registerFocus
+            type="button"
+            class="hidden lg:flex flex-row left-0 absolute top-0 shadow-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+            on:click={() => dispatch("collapseSidebar")}
         >
-            {#each tabs as tab}
-                <TabButton
-                    selected={selectedTabID == tab.id}
-                    on:mousedown={(e) => onTabButtonMouseDown(tab.id, e)}
-                    on:click={() => sidebarMode.update((_) => tab.id)}
+            <i class="fas fa-angle-double-right" />
+        </button>
+        <div class="flex flex-row lg:pt-10 h-full vertical-tabs-on-large">
+            <div
+                tabindex="-1"
+                class="flex-1 flex flex-row h-9 lg:w-9 overflow-x-scroll disable-scrollbars relative"
+                on:mousemove={onTabBarMouseMove}
+                on:touchstart={() => (touchingTabBar = true)}
+                on:touchend={() => {
+                    clearScrollInterval();
+                    touchingTabBar = false;
+                }}
+                bind:this={tabBar}
+                bind:offsetWidth={blW}
+            >
+                {#each tabs as tab}
+                    <TabButton
+                        extraClasses="lg:rotate-180"
+                        selected={selectedTabID == tab.id}
+                        on:mousedown={(e) => onTabButtonMouseDown(tab.id, e)}
+                        on:click={() => sidebarMode.update((_) => tab.id)}
+                    >
+                        {#if tab.highlighted}
+                            <div class="inline-block">
+                                <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />
+                            </div>
+                        {/if}
+                        {#if tab.tabTitle}
+                            {tab.tabTitle}
+                        {:else}
+                            &nbsp;
+                        {/if}
+                        {#if tab.closeable}
+                            <button
+                                type="button"
+                                class="hover:text-yellow-700 dark:hover:text-yellow-500"
+                                on:click|stopPropagation={() => closeSidebarTab(tab.id)}
+                            >
+                                <i class="fas fa-times" />
+                            </button>
+                        {/if}
+                    </TabButton>
+                {/each}
+            </div>
+            {#if $playerConnected}
+                <div
+                    class="text-gray-500 pt-1 pl-2"
+                    title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
                 >
-                    {#if tab.highlighted}
-                        <div class="inline-block">
-                            <DoubleBounce size="14" color="#F59E0B" unit="px" duration="3s" />
-                        </div>
-                    {/if}
-                    {#if tab.tabTitle}
-                        {tab.tabTitle}
-                    {:else}
-                        &nbsp;
-                    {/if}
-                    {#if tab.closeable}
-                        <button
-                            type="button"
-                            class="hover:text-yellow-700 dark:hover:text-yellow-500"
-                            on:click|stopPropagation={() => closeSidebarTab(tab.id)}
-                        >
-                            <i class="fas fa-times" />
-                        </button>
-                    {/if}
-                </TabButton>
-            {/each}
+                    <i class="far fa-eye" />
+                    {currentlyWatchingCount}
+                </div>
+            {:else}
+                <div
+                    class="text-red-500 pt-1 pl-2"
+                    title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
+                >
+                    <i class="fas fa-low-vision" /> Disconnected
+                </div>
+            {/if}
         </div>
-        {#if $playerConnected}
-            <div
-                class="text-gray-500 pt-1 pl-2"
-                title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
-            >
-                <i class="far fa-eye" />
-                {currentlyWatchingCount}
-            </div>
-        {:else}
-            <div
-                class="text-red-500 pt-1 pl-2"
-                title="{currentlyWatchingCount} user{currentlyWatchingCount == 1 ? '' : 's'} watching"
-            >
-                <i class="fas fa-low-vision" /> Disconnected
-            </div>
-        {/if}
     </div>
-</div>
-<div class="h-full lg:overflow-y-auto transition-container">
-    {#key selectedTab}
-        <div
-            class="h-full lg:overflow-y-auto"
-            in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
-            out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
-        >
-            <SidebarTabContainer {selectedTab} />
-        </div>
-    {/key}
+    <div class="h-full w-full lg:overflow-y-auto transition-container">
+        {#key selectedTab}
+            <div
+                class="h-full lg:overflow-y-auto"
+                in:fly|local={{ duration: SLIDE_DURATION, x: tabInX }}
+                out:fly|local={{ duration: SLIDE_DURATION, x: -tabInX }}
+            >
+                <SidebarTabContainer {selectedTab} />
+            </div>
+        {/key}
+    </div>
 </div>
 
 <style>
@@ -236,5 +239,11 @@
     .disable-scrollbars {
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* IE 10+ */
+    }
+
+    @media (min-width: 1024px) {
+        .vertical-tabs-on-large {
+            writing-mode: vertical-lr;
+        }
     }
 </style>
