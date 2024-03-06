@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -111,7 +112,11 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	if !cachedGoodRepResult {
 		select {
 		case err := <-delegatorsErrChan:
-			s.log.Printf("Error checking delegators count for address %s: %v", userClaims.Address(), err)
+			if strings.Contains(err.Error(), "Account not found") {
+				s.addressesWithGoodRepCache.SetDefault(userClaims.Address(), struct{}{})
+			} else {
+				s.log.Printf("Error checking delegators count for address %s: %v", userClaims.Address(), err)
+			}
 		case c := <-delegatorsCountChan:
 			badRepresentative = c < 2
 			if !badRepresentative {
