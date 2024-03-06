@@ -231,6 +231,14 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 	c, unsub := ticket.StatusChanged().Subscribe(event.BufferFirst)
 	defer unsub()
 	for {
+		response := ticket.SerializeForAPI()
+		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
+		response.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
+
+		if err := stream.Send(response); err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+
 		select {
 		case <-onMediaChanged:
 			// unblock loop
@@ -240,14 +248,6 @@ func (s *grpcServer) MonitorTicket(r *proto.MonitorTicketRequest, stream proto.J
 			// unblock loop
 		case <-stream.Context().Done():
 			return nil
-		}
-
-		response := ticket.SerializeForAPI()
-		currentEntry, playing := s.mediaQueue.CurrentlyPlaying()
-		response.CurrentlyPlayingIsUnskippable = playing && (currentEntry.Unskippable() || !s.mediaQueue.SkippingEnabled())
-
-		if err := stream.Send(response); err != nil {
-			return stacktrace.Propagate(err, "")
 		}
 	}
 }
