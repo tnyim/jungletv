@@ -289,7 +289,7 @@ func (p *PaymentAccountPool) freePreviouslyMonitoredAccount(m *monitoredAccount,
 		// try to wait for send confirmation before closing done chan
 		// this is merely to make the order of events slightly more dependable for JAF applications (and for any logic waiting on paymentWaitingGroup)
 		// but we don't want this to truly block the account being marked as available and the done chan being closed
-		for confirmationCheckRetry := 0; confirmationCheckRetry < 5; confirmationCheckRetry++ {
+		for confirmationCheckRetry := 0; confirmationCheckRetry < 5 && len(hash) > 0; confirmationCheckRetry++ {
 			time.Sleep(1 * time.Second)
 			info, err := m.p.wallet.RPC.BlockInfo(hash)
 			if err != nil {
