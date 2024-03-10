@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy } from "svelte";
     import { Moon } from "svelte-loading-spinners";
     import { link } from "svelte-navigator";
     import PlayerApplicationPage from "./PlayerApplicationPage.svelte";
@@ -8,6 +8,7 @@
     import PlayerYouTube from "./PlayerYouTube.svelte";
     import { apiClient } from "./api_client";
     import { processConfigurationChanges, resetConfigurationChanges } from "./configurationStores";
+    import { processClearedNotifications, processNotifications } from "./notifications";
     import { pageTitleMedia } from "./pageTitleStores";
     import type { MediaConsumptionCheckpoint } from "./proto/jungletv_pb";
     import { consumeStreamRPCFromSvelteComponent } from "./rpcUtils";
@@ -15,16 +16,9 @@
         activityChallengeReceived,
         currentlyWatching,
         darkMode,
-        mostRecentAnnouncement,
         playerConnected,
         playerCurrentTime,
-        playerVolume,
-        rewardBalance,
-        rewardReceived,
-        unreadAnnouncement,
-        unreadChatMention,
     } from "./stores";
-    import { ttsAudioAlert } from "./utils";
 
     export let fullSize: boolean;
     export let bigMinimizedPlayer: boolean;
@@ -43,34 +37,12 @@
             } else {
                 activityChallengeReceived.update((_) => null);
             }
-        }
+        },
     );
 
     onDestroy(() => {
         activityChallengeReceived.update((_) => null);
         $pageTitleMedia = "";
-    });
-
-    let lastTTSAlertAt = 0;
-
-    function onVisibilityChange() {
-        if (document.hidden) {
-            lastTTSAlertAt = 0;
-        }
-    }
-
-    $: {
-        if (!fullSize) {
-            lastTTSAlertAt = 0;
-        }
-    }
-
-    onMount(() => {
-        document.addEventListener("visibilitychange", onVisibilityChange);
-    });
-
-    onDestroy(() => {
-        document.removeEventListener("visibilitychange", onVisibilityChange);
     });
 
     async function handleCheckpoint(cp: MediaConsumptionCheckpoint) {
@@ -82,35 +54,15 @@
             playerCurrentTime.set(0);
             $pageTitleMedia = "";
         }
-        rewardReceived.update((_) => checkpoint.getReward());
-        if (checkpoint.getRewardBalance() !== "") {
-            rewardBalance.update((_) => checkpoint.getRewardBalance());
-        }
         if (checkpoint.hasActivityChallenge()) {
             activityChallengeReceived.update((_) => checkpoint.getActivityChallenge());
-        }
-        if (checkpoint.hasLatestAnnouncement()) {
-            unreadAnnouncement.set(
-                parseInt(localStorage.getItem("lastSeenAnnouncement") ?? "-1") != checkpoint.getLatestAnnouncement()
-            );
-            mostRecentAnnouncement.set(checkpoint.getLatestAnnouncement());
-        }
-        if (checkpoint.hasHasChatMention() && checkpoint.getHasChatMention()) {
-            unreadChatMention.set(true);
-            let now = new Date().getTime();
-            if (
-                (document.hidden || document.fullscreenElement != null || !fullSize) &&
-                $playerVolume > 0 &&
-                now - lastTTSAlertAt > 30000
-            ) {
-                ttsAudioAlert("New Jungle TV chat reply");
-                lastTTSAlertAt = now;
-            }
         }
         if (checkpoint.hasMediaTitle()) {
             $pageTitleMedia = checkpoint.getMediaTitle();
         }
         processConfigurationChanges(checkpoint.getConfigurationChangesList());
+        processNotifications(checkpoint.getNotificationsList());
+        processClearedNotifications(checkpoint.getClearedNotificationsList());
         currentlyWatching.update((_) => checkpoint.getCurrentlyWatching());
     }
 </script>

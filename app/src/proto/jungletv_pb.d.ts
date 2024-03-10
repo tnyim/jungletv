@@ -905,16 +905,6 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getCurrentlyWatching(): number;
   setCurrentlyWatching(value: number): void;
 
-  hasReward(): boolean;
-  clearReward(): void;
-  getReward(): string;
-  setReward(value: string): void;
-
-  hasRewardBalance(): boolean;
-  clearRewardBalance(): void;
-  getRewardBalance(): string;
-  setRewardBalance(value: string): void;
-
   hasActivityChallenge(): boolean;
   clearActivityChallenge(): void;
   getActivityChallenge(): ActivityChallenge | undefined;
@@ -945,16 +935,6 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getApplicationPageData(): NowPlayingApplicationPageData | undefined;
   setApplicationPageData(value?: NowPlayingApplicationPageData): void;
 
-  hasLatestAnnouncement(): boolean;
-  clearLatestAnnouncement(): void;
-  getLatestAnnouncement(): number;
-  setLatestAnnouncement(value: number): void;
-
-  hasHasChatMention(): boolean;
-  clearHasChatMention(): void;
-  getHasChatMention(): boolean;
-  setHasChatMention(value: boolean): void;
-
   hasMediaTitle(): boolean;
   clearMediaTitle(): void;
   getMediaTitle(): string;
@@ -964,6 +944,16 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getConfigurationChangesList(): Array<ConfigurationChange>;
   setConfigurationChangesList(value: Array<ConfigurationChange>): void;
   addConfigurationChanges(value?: ConfigurationChange, index?: number): ConfigurationChange;
+
+  clearNotificationsList(): void;
+  getNotificationsList(): Array<Notification>;
+  setNotificationsList(value: Array<Notification>): void;
+  addNotifications(value?: Notification, index?: number): Notification;
+
+  clearClearedNotificationsList(): void;
+  getClearedNotificationsList(): Array<string>;
+  setClearedNotificationsList(value: Array<string>): void;
+  addClearedNotifications(value: string, index?: number): string;
 
   getMediaInfoCase(): MediaConsumptionCheckpoint.MediaInfoCase;
   serializeBinary(): Uint8Array;
@@ -984,27 +974,25 @@ export namespace MediaConsumptionCheckpoint {
     requestedBy?: common_pb.User.AsObject,
     requestCost: string,
     currentlyWatching: number,
-    reward: string,
-    rewardBalance: string,
     activityChallenge?: ActivityChallenge.AsObject,
     stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
     soundcloudTrackData?: NowPlayingSoundCloudTrackData.AsObject,
     documentData?: NowPlayingDocumentData.AsObject,
     applicationPageData?: NowPlayingApplicationPageData.AsObject,
-    latestAnnouncement: number,
-    hasChatMention: boolean,
     mediaTitle: string,
     configurationChangesList: Array<ConfigurationChange.AsObject>,
+    notificationsList: Array<Notification.AsObject>,
+    clearedNotificationsList: Array<string>,
   }
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 10,
-    YOUTUBE_VIDEO_DATA = 11,
-    SOUNDCLOUD_TRACK_DATA = 12,
-    DOCUMENT_DATA = 13,
-    APPLICATION_PAGE_DATA = 14,
+    STUB_DATA = 8,
+    YOUTUBE_VIDEO_DATA = 9,
+    SOUNDCLOUD_TRACK_DATA = 10,
+    DOCUMENT_DATA = 11,
+    APPLICATION_PAGE_DATA = 12,
   }
 }
 
@@ -1183,6 +1171,211 @@ export namespace ConfigurationChangeAddNavigationDestination {
     href: string,
     color: string,
     beforeDestinationId: string,
+  }
+}
+
+export class Notification extends jspb.Message {
+  getKey(): string;
+  setKey(value: string): void;
+
+  hasExpiration(): boolean;
+  clearExpiration(): void;
+  getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  hasChatMention(): boolean;
+  clearChatMention(): void;
+  getChatMention(): ChatMentionNotification | undefined;
+  setChatMention(value?: ChatMentionNotification): void;
+
+  hasAnnouncementsUpdated(): boolean;
+  clearAnnouncementsUpdated(): void;
+  getAnnouncementsUpdated(): AnnouncementsUpdatedNotification | undefined;
+  setAnnouncementsUpdated(value?: AnnouncementsUpdatedNotification): void;
+
+  hasRewardBalanceUpdated(): boolean;
+  clearRewardBalanceUpdated(): void;
+  getRewardBalanceUpdated(): RewardBalanceUpdatedNotification | undefined;
+  setRewardBalanceUpdated(value?: RewardBalanceUpdatedNotification): void;
+
+  hasSidebarTabHighlighted(): boolean;
+  clearSidebarTabHighlighted(): void;
+  getSidebarTabHighlighted(): SidebarTabHighlightedNotification | undefined;
+  setSidebarTabHighlighted(value?: SidebarTabHighlightedNotification): void;
+
+  hasNavigationDestinationHighlighted(): boolean;
+  clearNavigationDestinationHighlighted(): void;
+  getNavigationDestinationHighlighted(): NavigationDestinationHighlightedNotification | undefined;
+  setNavigationDestinationHighlighted(value?: NavigationDestinationHighlightedNotification): void;
+
+  hasToast(): boolean;
+  clearToast(): void;
+  getToast(): ToastNotification | undefined;
+  setToast(value?: ToastNotification): void;
+
+  getNotificationDataCase(): Notification.NotificationDataCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Notification.AsObject;
+  static toObject(includeInstance: boolean, msg: Notification): Notification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Notification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Notification;
+  static deserializeBinaryFromReader(message: Notification, reader: jspb.BinaryReader): Notification;
+}
+
+export namespace Notification {
+  export type AsObject = {
+    key: string,
+    expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    chatMention?: ChatMentionNotification.AsObject,
+    announcementsUpdated?: AnnouncementsUpdatedNotification.AsObject,
+    rewardBalanceUpdated?: RewardBalanceUpdatedNotification.AsObject,
+    sidebarTabHighlighted?: SidebarTabHighlightedNotification.AsObject,
+    navigationDestinationHighlighted?: NavigationDestinationHighlightedNotification.AsObject,
+    toast?: ToastNotification.AsObject,
+  }
+
+  export enum NotificationDataCase {
+    NOTIFICATION_DATA_NOT_SET = 0,
+    CHAT_MENTION = 3,
+    ANNOUNCEMENTS_UPDATED = 4,
+    REWARD_BALANCE_UPDATED = 5,
+    SIDEBAR_TAB_HIGHLIGHTED = 6,
+    NAVIGATION_DESTINATION_HIGHLIGHTED = 7,
+    TOAST = 8,
+  }
+}
+
+export class ChatMentionNotification extends jspb.Message {
+  getMessageId(): string;
+  setMessageId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ChatMentionNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: ChatMentionNotification): ChatMentionNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ChatMentionNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ChatMentionNotification;
+  static deserializeBinaryFromReader(message: ChatMentionNotification, reader: jspb.BinaryReader): ChatMentionNotification;
+}
+
+export namespace ChatMentionNotification {
+  export type AsObject = {
+    messageId: string,
+  }
+}
+
+export class AnnouncementsUpdatedNotification extends jspb.Message {
+  getNotificationCounter(): number;
+  setNotificationCounter(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AnnouncementsUpdatedNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: AnnouncementsUpdatedNotification): AnnouncementsUpdatedNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AnnouncementsUpdatedNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AnnouncementsUpdatedNotification;
+  static deserializeBinaryFromReader(message: AnnouncementsUpdatedNotification, reader: jspb.BinaryReader): AnnouncementsUpdatedNotification;
+}
+
+export namespace AnnouncementsUpdatedNotification {
+  export type AsObject = {
+    notificationCounter: number,
+  }
+}
+
+export class RewardBalanceUpdatedNotification extends jspb.Message {
+  getRewardBalance(): string;
+  setRewardBalance(value: string): void;
+
+  getDifference(): string;
+  setDifference(value: string): void;
+
+  getReason(): RewardBalanceUpdateReasonMap[keyof RewardBalanceUpdateReasonMap];
+  setReason(value: RewardBalanceUpdateReasonMap[keyof RewardBalanceUpdateReasonMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RewardBalanceUpdatedNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: RewardBalanceUpdatedNotification): RewardBalanceUpdatedNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RewardBalanceUpdatedNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RewardBalanceUpdatedNotification;
+  static deserializeBinaryFromReader(message: RewardBalanceUpdatedNotification, reader: jspb.BinaryReader): RewardBalanceUpdatedNotification;
+}
+
+export namespace RewardBalanceUpdatedNotification {
+  export type AsObject = {
+    rewardBalance: string,
+    difference: string,
+    reason: RewardBalanceUpdateReasonMap[keyof RewardBalanceUpdateReasonMap],
+  }
+}
+
+export class SidebarTabHighlightedNotification extends jspb.Message {
+  getTabId(): string;
+  setTabId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SidebarTabHighlightedNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: SidebarTabHighlightedNotification): SidebarTabHighlightedNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SidebarTabHighlightedNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SidebarTabHighlightedNotification;
+  static deserializeBinaryFromReader(message: SidebarTabHighlightedNotification, reader: jspb.BinaryReader): SidebarTabHighlightedNotification;
+}
+
+export namespace SidebarTabHighlightedNotification {
+  export type AsObject = {
+    tabId: string,
+  }
+}
+
+export class NavigationDestinationHighlightedNotification extends jspb.Message {
+  getDestinationId(): string;
+  setDestinationId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NavigationDestinationHighlightedNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: NavigationDestinationHighlightedNotification): NavigationDestinationHighlightedNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NavigationDestinationHighlightedNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NavigationDestinationHighlightedNotification;
+  static deserializeBinaryFromReader(message: NavigationDestinationHighlightedNotification, reader: jspb.BinaryReader): NavigationDestinationHighlightedNotification;
+}
+
+export namespace NavigationDestinationHighlightedNotification {
+  export type AsObject = {
+    destinationId: string,
+  }
+}
+
+export class ToastNotification extends jspb.Message {
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  getHref(): string;
+  setHref(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ToastNotification.AsObject;
+  static toObject(includeInstance: boolean, msg: ToastNotification): ToastNotification.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ToastNotification, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ToastNotification;
+  static deserializeBinaryFromReader(message: ToastNotification, reader: jspb.BinaryReader): ToastNotification;
+}
+
+export namespace ToastNotification {
+  export type AsObject = {
+    message: string,
+    href: string,
   }
 }
 
@@ -6803,6 +6996,14 @@ export interface QueueEntryMovementDirectionMap {
 }
 
 export const QueueEntryMovementDirection: QueueEntryMovementDirectionMap;
+
+export interface RewardBalanceUpdateReasonMap {
+  REWARD_BALANCE_UPDATE_REASON_UNKNOWN: 0;
+  REWARD_BALANCE_UPDATE_REASON_REWARD_RECEIVED: 1;
+  REWARD_BALANCE_UPDATE_REASON_WITHDRAW: 2;
+}
+
+export const RewardBalanceUpdateReason: RewardBalanceUpdateReasonMap;
 
 export interface SkipStatusMap {
   SKIP_STATUS_ALLOWED: 0;

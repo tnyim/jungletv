@@ -8,7 +8,7 @@ import (
 
 func UserPermissionLevelIsAtLeast(user User, level PermissionLevel) bool {
 	userLevel := UnauthenticatedPermissionLevel
-	if user != nil && user != User(nil) {
+	if user != nil {
 		userLevel = user.PermissionLevel()
 	}
 	return PermissionLevelOrder[userLevel] >= PermissionLevelOrder[level]

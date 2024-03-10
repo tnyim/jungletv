@@ -2,7 +2,7 @@
 	import { BroadcastChannel } from "broadcast-channel";
 	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 	import { DateTime } from "luxon";
-	import { afterUpdate, onMount } from "svelte";
+	import { afterUpdate, onDestroy, onMount } from "svelte";
 	import { Route, Router, globalHistory } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
 	import About from "./About.svelte";
@@ -57,9 +57,10 @@
 		playerVolume,
 		rewardAddress,
 		rewardBalance,
+		unreadChatMention,
 	} from "./stores";
 	import { sidebarTabs, type SidebarTab } from "./tabStores";
-	import { formatMarkdownTimestamp } from "./utils";
+	import { formatMarkdownTimestamp, ttsAudioAlert } from "./utils";
 
 	export let url = "";
 
@@ -251,6 +252,45 @@
 		let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
 		link.href = $faviconURL;
 	}
+
+	onMount(() => {
+		document.addEventListener("visibilitychange", onVisibilityChange);
+	});
+
+	onDestroy(() => {
+		document.removeEventListener("visibilitychange", onVisibilityChange);
+	});
+
+	let lastTTSAlertAt = 0;
+
+	function onVisibilityChange() {
+		if (document.hidden) {
+			lastTTSAlertAt = 0;
+		}
+	}
+
+	$: {
+        if (!isOnHomepage) {
+            lastTTSAlertAt = 0;
+        }
+    }
+
+	function chatMentionTTSAlert(m?: string) {
+		if (!m) {
+			return;
+		}
+		let now = new Date().getTime();
+		if (
+			(document.hidden || document.fullscreenElement != null || !isOnHomepage) &&
+			$playerVolume > 0 &&
+			now - lastTTSAlertAt > 30000
+		) {
+			ttsAudioAlert("New Jungle TV chat reply");
+			lastTTSAlertAt = now;
+		}
+	}
+
+	$: chatMentionTTSAlert($unreadChatMention);
 </script>
 
 <div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
@@ -350,7 +390,8 @@
 
 	@layer base {
 		/* prefer Twemoji on Firefox - makes the rest of the page consistent with the emoji picker */
-		html, :host {
+		html,
+		:host {
 			font-family:
 				ui-sans-serif,
 				system-ui,

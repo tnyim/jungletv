@@ -55,7 +55,7 @@ func (s *grpcServer) SignIn(r *proto.SignInRequest, stream proto.JungleTV_SignIn
 	}
 
 	if process.signatureBased {
-		err = s.signInViaSignature(r, stream, process, processExpiry)
+		err = s.signInViaSignature(stream, process, processExpiry)
 	} else {
 		err = s.signInViaRepresentativeChange(ctx, r, stream, process, processExpiry)
 	}
@@ -170,7 +170,7 @@ func (s *grpcServer) signInViaRepresentativeChange(ctx context.Context, r *proto
 	}
 }
 
-func (s *grpcServer) signInViaSignature(r *proto.SignInRequest, stream proto.JungleTV_SignInServer, process *signInProcess, processExpiry time.Time) error {
+func (s *grpcServer) signInViaSignature(stream proto.JungleTV_SignInServer, process *signInProcess, processExpiry time.Time) error {
 	sendMessageToSign := func() error {
 		return stream.Send(&proto.SignInProgress{Step: &proto.SignInProgress_MessageToSign{MessageToSign: &proto.SignInMessageToSign{
 			Message:       process.messageToSign,
@@ -377,7 +377,7 @@ func (s *grpcServer) getProcessForSignInRequest(ctx context.Context, r *proto.Si
 
 	if r.ViaSignature {
 		process.signatureBased = true
-		process.messageToSign, err = s.produceMessageToSignForAuth(ctx, process.id, r.RewardsAddress)
+		process.messageToSign, err = s.produceMessageToSignForAuth(process.id, r.RewardsAddress)
 		if err != nil {
 			return nil, time.Time{}, stacktrace.Propagate(err, "")
 		}
@@ -393,7 +393,7 @@ func (s *grpcServer) getProcessForSignInRequest(ctx context.Context, r *proto.Si
 
 var escaper = strings.NewReplacer("9", "99", "-", "90", "_", "91")
 
-func (s *grpcServer) produceMessageToSignForAuth(ctx context.Context, processID, rewardsAddress string) (string, error) {
+func (s *grpcServer) produceMessageToSignForAuth(processID, rewardsAddress string) (string, error) {
 	b := make([]byte, 16)
 	_, err := cryptorand.Read(b)
 	if err != nil {

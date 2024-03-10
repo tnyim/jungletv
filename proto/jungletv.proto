@@ -323,20 +323,18 @@ message MediaConsumptionCheckpoint {
     User requested_by = 4;
     string request_cost = 5;
     uint32 currently_watching = 6;
-    optional string reward = 7;
-    optional string reward_balance = 8;
-    optional ActivityChallenge activity_challenge = 9;
+    optional ActivityChallenge activity_challenge = 7;
     oneof media_info {
-        NowPlayingStubData stub_data = 10;
-        NowPlayingYouTubeVideoData youtube_video_data = 11;
-        NowPlayingSoundCloudTrackData soundcloud_track_data = 12;
-        NowPlayingDocumentData document_data = 13;
-        NowPlayingApplicationPageData application_page_data = 14;
+        NowPlayingStubData stub_data = 8;
+        NowPlayingYouTubeVideoData youtube_video_data = 9;
+        NowPlayingSoundCloudTrackData soundcloud_track_data = 10;
+        NowPlayingDocumentData document_data = 11;
+        NowPlayingApplicationPageData application_page_data = 12;
     }
-    optional uint32 latest_announcement = 15;
-    optional bool has_chat_mention = 16;
-    optional string media_title = 17;
-    repeated ConfigurationChange configuration_changes = 18;
+    optional string media_title = 13;
+    repeated ConfigurationChange configuration_changes = 14;
+    repeated Notification notifications = 15;
+    repeated string cleared_notifications = 16;
 }
 
 message ActivityChallenge {
@@ -372,6 +370,52 @@ message ConfigurationChangeAddNavigationDestination {
     string href = 4;
     string color = 5;
     string before_destination_id = 6;
+}
+
+message Notification {
+    string key = 1;
+    google.protobuf.Timestamp expiration = 2;
+    oneof notification_data {
+        ChatMentionNotification chat_mention = 3;
+        AnnouncementsUpdatedNotification announcements_updated = 4;
+        RewardBalanceUpdatedNotification reward_balance_updated = 5;
+        SidebarTabHighlightedNotification sidebar_tab_highlighted = 6;
+        NavigationDestinationHighlightedNotification navigation_destination_highlighted = 7;
+        ToastNotification toast = 8;
+    }
+}
+
+message ChatMentionNotification {
+    int64 message_id = 1 [jstype = JS_STRING];
+}
+
+message AnnouncementsUpdatedNotification {
+    uint32 notification_counter = 1;
+}
+
+message RewardBalanceUpdatedNotification {
+    string reward_balance = 1;
+    string difference = 2;
+    RewardBalanceUpdateReason reason = 3;
+}
+
+enum RewardBalanceUpdateReason {
+    REWARD_BALANCE_UPDATE_REASON_UNKNOWN = 0;
+    REWARD_BALANCE_UPDATE_REASON_REWARD_RECEIVED = 1;
+    REWARD_BALANCE_UPDATE_REASON_WITHDRAW = 2;
+}
+
+message SidebarTabHighlightedNotification {
+    string tab_id = 1;
+}
+
+message NavigationDestinationHighlightedNotification {
+    string destination_id = 1;
+}
+
+message ToastNotification {
+    string message = 1;
+    string href = 2;
 }
 
 message MonitorQueueRequest {}

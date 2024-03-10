@@ -5,11 +5,14 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/components/rewards"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/utils/event"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
@@ -24,24 +27,6 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			return stacktrace.Propagate(err, "")
 		}
 
-		// SubscribeUsingCallback returns a function that unsubscribes when called. That's the reason for the defers
-
-		defer spectator.OnRewarded().SubscribeUsingCallback(event.BufferFirst, func(args rewards.SpectatorRewardedEventArgs) {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-			s := args.Reward.String()
-			cp.Reward = &s
-			s2 := args.RewardBalance.String()
-			cp.RewardBalance = &s2
-			cpChan <- cp
-		})()
-
-		defer spectator.OnWithdrew().SubscribeUsingCallback(event.BufferFirst, func() {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-			s2 := "0"
-			cp.RewardBalance = &s2
-			cpChan <- cp
-		})()
-
 		initialActivityChallenge = spectator.CurrentActivityChallenge()
 		defer spectator.OnActivityChallenge().SubscribeUsingCallback(event.BufferFirst, func(challenge *rewards.ActivityChallenge) {
 			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
@@ -49,26 +34,45 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 			cpChan <- cp
 		})()
 
-		defer spectator.OnChatMentioned().SubscribeUsingCallback(event.BufferFirst, func() {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-			t := true
-			cp.HasChatMention = &t
-			cpChan <- cp
-		})()
-
 		defer s.rewardsHandler.UnregisterSpectator(stream.Context(), spectator)
 	}
-
-	defer s.announcementsUpdated.SubscribeUsingCallback(event.BufferFirst, func(counterValue int) {
-		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-		v := uint32(counterValue)
-		cp.LatestAnnouncement = &v
-		cpChan <- cp
-	})()
 
 	defer s.configManager.ClientConfigurationChanged().SubscribeUsingCallback(event.BufferAll, func(arg *proto.ConfigurationChange) {
 		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
 		cp.ConfigurationChanges = []*proto.ConfigurationChange{arg}
+		cpChan <- cp
+	})()
+
+	// debounce notification sends because all persisted ones will come one after the next
+	notificationsPendingSend := []*proto.Notification{}
+	notificationsPendingSendSynchronizer := lo.Synchronize()
+	notificationDebounce, cancel := lo.NewDebounce(100*time.Millisecond, func() {
+		notificationsPendingSendSynchronizer.Do(func() {
+			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
+			cp.Notifications = notificationsPendingSend
+			cpChan <- cp
+			notificationsPendingSend = []*proto.Notification{}
+		})
+	})
+	defer cancel()
+
+	defer s.notificationManager.SubscribeToNotificationsForUser(user, func(n notificationmanager.Notification) {
+		notificationsPendingSendSynchronizer.Do(func() {
+			protoNotification := &proto.Notification{
+				NotificationData: n.SerializeDataForAPI(),
+			}
+			if key, persistent := n.PersistencyKey(); persistent {
+				protoNotification.Key = string(key)
+				protoNotification.Expiration = timestamppb.New(n.Expiration())
+			}
+			notificationsPendingSend = append(notificationsPendingSend, protoNotification)
+			notificationDebounce()
+		})
+	})()
+
+	defer s.notificationManager.SubscribeToReadsForUser(user, func(key notificationmanager.PersistencyKey) {
+		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
+		cp.ClearedNotifications = append(cp.ClearedNotifications, string(key))
 		cpChan <- cp
 	})()
 
@@ -85,13 +89,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 	}
 	defer statsCleanup()
 
-	counter, err := s.getAnnouncementsCounter(stream.Context())
-	if err != nil {
-		return stacktrace.Propagate(err, "")
-	}
 	initialCp := s.produceMediaConsumptionCheckpoint(stream.Context(), true)
-	v := uint32(counter.CounterValue)
-	initialCp.LatestAnnouncement = &v
 	initialCp.ConfigurationChanges = s.configManager.AllClientConfigurationChanges()
 	if initialActivityChallenge != nil {
 		initialCp.ActivityChallenge = initialActivityChallenge.SerializeForAPI()

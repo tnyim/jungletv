@@ -54,7 +54,7 @@
 
     function buildConsumeChatRequest(
         onUpdate: (update: ChatUpdate) => void,
-        onEnd: (code: grpc.Code, msg: string) => void
+        onEnd: (code: grpc.Code, msg: string) => void,
     ): Request {
         return apiClient.consumeChat(50, onUpdate, onEnd);
     }
@@ -95,7 +95,7 @@
     });
     onMount(() => {
         document.addEventListener("visibilitychange", handleVisibilityChanged);
-        unreadChatMention.set(false);
+        unreadChatMention.set(null);
 
         return () => document.removeEventListener("visibilitychange", handleVisibilityChanged);
     });
@@ -296,7 +296,7 @@
         if (updatesRequired.messageCreated) {
             // this sort has millisecond precision. we can do nanosecond precision if we really need to, but this is easier
             chatMessages.sort(
-                (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime()
+                (first, second) => first.getCreatedAt().toDate().getTime() - second.getCreatedAt().toDate().getTime(),
             );
             if (autoscrollStatus != "scrolling") {
                 autoscrollStatus = sentMsgFlag ? "new-own-message" : "new-message";

@@ -8,6 +8,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -77,6 +78,10 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 	}
 	if !document.Public && (user == nil || !auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)) {
 		return nil, status.Error(codes.NotFound, "document not found")
+	}
+
+	if document.ID == "announcements" {
+		s.notificationManager.MarkAsRead(notifications.AnnouncementsKey, user)
 	}
 
 	return &proto.Document{
@@ -167,6 +172,8 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 
 	s.announcementsUpdated.Notify(counter.CounterValue, true)
+
+	s.notificationManager.Notify(notifications.NewAnnouncementsUpdatedNotification(counter.CounterValue))
 
 	s.log.Printf("Announcements notification triggered by %s (remote address %s)", moderator.ModeratorName(), authinterceptor.RemoteAddressFromContext(ctx))
 

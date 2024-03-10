@@ -9,7 +9,8 @@ import (
 	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
-	"github.com/tnyim/jungletv/server/media"
+	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -205,7 +206,7 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 		for {
 			select {
 			case v := <-mediaChangedC:
-				if v == nil || v == (media.QueueEntry)(nil) {
+				if v == nil {
 					wait = time.Duration(90+rand.Intn(180)) * time.Second
 					t.Reset(wait)
 				}
@@ -234,6 +235,15 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 			}
 		}
 	}()
+
+	defer s.chat.OnMessageCreated().SubscribeUsingCallback(event.BufferAll, func(evt chatmanager.MessageCreatedEventArgs) {
+		m := evt.Message
+		if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() &&
+			(m.Author == nil || m.Reference.Author.Address() != m.Author.Address()) &&
+			!s.chat.IsUserConnected(m.Reference.Author) {
+			s.notificationManager.Notify(notifications.NewChatMentionNotification(m.Reference.Author, m.ID))
+		}
+	})()
 
 	for {
 		select {

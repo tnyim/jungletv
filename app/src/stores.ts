@@ -19,7 +19,7 @@ export const badRepresentative = writable(false);
 export const activityChallengeReceived = writable(null as ActivityChallenge);
 export const currentlyWatching = writable(0);
 export const unreadAnnouncement = writable(false);
-export const unreadChatMention = writable(false);
+export const unreadChatMention = writable(null as string);
 export const mostRecentAnnouncement = writable((() => parseInt(localStorage.getItem("lastSeenAnnouncement") ?? "-1"))());
 export const sidebarMode = writable(((): string => {
     if (!('sidebarMode' in localStorage)) {

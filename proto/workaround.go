@@ -10,3 +10,4 @@ type IsPlayedMedia_MediaInfo = isPlayedMedia_MediaInfo
 type IsUserProfileResponse_FeaturedMedia = isUserProfileResponse_FeaturedMedia
 type IsQueueEntry_MediaInfo = isQueueEntry_MediaInfo
 type IsConfigurationChange_ConfigurationChange = isConfigurationChange_ConfigurationChange
+type IsNotification_NotificationData = isNotification_NotificationData

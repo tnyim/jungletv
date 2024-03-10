@@ -15,6 +15,7 @@ import (
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	"github.com/tnyim/jungletv/server/components/stats"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -135,12 +136,17 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 		})
 	}
 
+	unregister2 := s.chat.RegisterUserConnection(user)
+	defer unregister2()
+
 	err = stream.Send(&proto.ChatUpdate{
 		Events: initialEvents,
 	})
 	if err != nil {
 		return stacktrace.Propagate(err, "failed to send initial events")
 	}
+
+	s.notificationManager.MarkAsRead(notifications.ChatMentionKey(user), user)
 
 	for {
 		var err error

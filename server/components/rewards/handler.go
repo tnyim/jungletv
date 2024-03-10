@@ -20,6 +20,8 @@ import (
 	"github.com/tnyim/jungletv/server/components/chatmanager"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
@@ -60,6 +62,7 @@ type Handler struct {
 	challengeCheckers     map[ActivityChallengeType]ChallengeCheckFunction
 	versionHashGetter     func() string
 	pointsManager         *pointsmanager.Manager
+	notificationManager   *notificationmanager.Manager
 
 	rewardsDistributed event.Event[RewardsDistributedEventArgs]
 
@@ -76,9 +79,6 @@ type Handler struct {
 }
 
 type Spectator interface {
-	OnRewarded() event.Event[SpectatorRewardedEventArgs]
-	OnWithdrew() event.NoArgEvent
-	OnChatMentioned() event.NoArgEvent
 	OnActivityChallenge() event.Event[*ActivityChallenge]
 	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
@@ -101,11 +101,8 @@ type spectator struct {
 	stoppedWatching            time.Time
 	activityCheckTimer         *time.Timer
 	nextActivityCheckTime      time.Time
-	onRewarded                 event.Event[SpectatorRewardedEventArgs]
-	onWithdrew                 event.NoArgEvent
 	onDisconnected             event.NoArgEvent
 	onReconnected              event.NoArgEvent
-	onChatMentioned            event.NoArgEvent
 	onActivityChallenge        event.Event[*ActivityChallenge]
 	activityChallenge          *ActivityChallenge
 	lastHardChallengeSolvedAt  time.Time
@@ -140,18 +137,6 @@ func (a *ActivityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 		Types:        utils.CastStringLikeSlice[ActivityChallengeType, string](a.Types),
 		ChallengedAt: timestamppb.New(a.ChallengedAt),
 	}
-}
-
-func (s *spectator) OnRewarded() event.Event[SpectatorRewardedEventArgs] {
-	return s.onRewarded
-}
-
-func (s *spectator) OnWithdrew() event.NoArgEvent {
-	return s.onWithdrew
-}
-
-func (s *spectator) OnChatMentioned() event.NoArgEvent {
-	return s.onChatMentioned
 }
 
 func (s *spectator) OnActivityChallenge() event.Event[*ActivityChallenge] {
@@ -201,6 +186,7 @@ func NewHandler(log *log.Logger,
 	skipManager *skipmanager.Manager,
 	chatManager *chatmanager.Manager,
 	pointsManager *pointsmanager.Manager,
+	notificationManager *notificationmanager.Manager,
 	paymentAccountPool *payment.PaymentAccountPool,
 	moderationStore moderation.Store,
 	staffActivityManager *staffactivitymanager.Manager,
@@ -222,6 +208,7 @@ func NewHandler(log *log.Logger,
 		eligibleMovingAverage: movingaverage.New(3),
 		challengeCheckers:     maps.Clone(challengeCheckers),
 		pointsManager:         pointsManager,
+		notificationManager:   notificationManager,
 
 		rewardsDistributed: event.New[RewardsDistributedEventArgs](),
 
@@ -241,9 +228,6 @@ func (r *Handler) RegisterSpectator(ctx context.Context, user auth.User) (Specta
 	if ipCountry == "T1" {
 		return &spectator{
 			isDummy:             true,
-			onRewarded:          event.New[SpectatorRewardedEventArgs](),
-			onWithdrew:          event.NewNoArg(),
-			onChatMentioned:     event.NewNoArg(),
 			onActivityChallenge: event.New[*ActivityChallenge](),
 		}, nil
 	}
@@ -286,9 +270,6 @@ func (r *Handler) RegisterSpectator(ctx context.Context, user auth.User) (Specta
 			startedWatching:       now,
 			nextActivityCheckTime: now.Add(d),
 			activityCheckTimer:    time.NewTimer(d),
-			onRewarded:            event.New[SpectatorRewardedEventArgs](),
-			onWithdrew:            event.NewNoArg(),
-			onChatMentioned:       event.NewNoArg(),
 			onDisconnected:        event.NewNoArg(),
 			onReconnected:         event.NewNoArg(),
 			onActivityChallenge:   event.New[*ActivityChallenge](),
@@ -404,12 +385,7 @@ func (r *Handler) Worker(ctx context.Context) error {
 	for {
 		select {
 		case v := <-onMediaChanged:
-			var err error
-			if v == nil || v == (media.QueueEntry)(nil) {
-				err = r.onMediaChanged(ctx, nil)
-			} else {
-				err = r.onMediaChanged(ctx, v)
-			}
+			err := r.onMediaChanged(ctx, v)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -421,7 +397,7 @@ func (r *Handler) Worker(ctx context.Context) error {
 				}
 			}
 		case pendingWithdrawals := <-onPendingWithdrawalsCreated:
-			r.onPendingWithdrawalCreated(ctx, pendingWithdrawals)
+			r.onPendingWithdrawalCreated(pendingWithdrawals)
 		case <-purgeTicker.C:
 			r.purgeOldDisconnectedSpectators()
 		case entryAddedArgs := <-onEntryAdded:
@@ -440,14 +416,15 @@ func (r *Handler) Worker(ctx context.Context) error {
 	}
 }
 
-func (r *Handler) onPendingWithdrawalCreated(ctx context.Context, pending []*types.PendingWithdrawal) {
+func (r *Handler) onPendingWithdrawalCreated(pending []*types.PendingWithdrawal) {
 	r.spectatorsMutex.RLock()
 	defer r.spectatorsMutex.RUnlock()
 	for _, p := range pending {
-		spectator, ok := r.spectatorsByRewardAddress[p.RewardsAddress]
-		if ok {
-			spectator.onWithdrew.Notify(false)
-		}
+		r.notificationManager.Notify(
+			notifications.NewRewardBalanceUpdatedNotification(
+				auth.NewAddressOnlyUser(p.RewardsAddress),
+				payment.NewAmount(),
+				payment.NewAmountFromDecimal(p.Amount.Neg())))
 	}
 }
 
@@ -517,19 +494,9 @@ func (r *Handler) RemoteAddressesForRewardAddress(ctx context.Context, rewardAdd
 	return map[string]struct{}{}
 }
 
-func (r *Handler) markAddressAsMentionedInChat(ctx context.Context, address string) {
-	r.spectatorsMutex.RLock()
-	defer r.spectatorsMutex.RUnlock()
-
-	spectator, ok := r.spectatorsByRewardAddress[address]
-	if ok {
-		spectator.onChatMentioned.Notify(false)
-	}
-}
-
 func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry) error {
 	requestedBy := m.RequestedBy()
-	if requestedBy == nil || requestedBy == (auth.User)(nil) || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() || requestedBy.ApplicationID() != "" {
+	if requestedBy == nil || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() || requestedBy.ApplicationID() != "" {
 		return nil
 	}
 	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
@@ -578,9 +545,6 @@ func (r *Handler) handleNewChatMessage(ctx context.Context, m *chat.Message) err
 		}
 	}
 
-	if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() {
-		r.markAddressAsMentionedInChat(ctx, m.Reference.Author.Address())
-	}
 	return nil
 }
 

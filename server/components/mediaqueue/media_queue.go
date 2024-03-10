@@ -324,7 +324,7 @@ func (q *MediaQueue) RemoveOwnEntry(ctx context.Context, entryID string, user au
 	for _, entry := range q.queue {
 		if entryID == entry.PerformanceID() {
 			reqBy := entry.RequestedBy()
-			if reqBy == nil || reqBy.IsUnknown() || (reqBy != nil && reqBy.Address() != user.Address()) {
+			if reqBy == nil || reqBy.IsUnknown() || reqBy.Address() != user.Address() {
 				return ErrInsufficientPermissionsToRemoveEntry
 			}
 

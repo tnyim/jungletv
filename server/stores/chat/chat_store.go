@@ -184,7 +184,7 @@ func (s *ChatStoreDatabase) DeleteMessage(ctxCtx context.Context, id snowflake.I
 		loaded, err := s.LoadAttachment(ctx, a)
 		if err != nil {
 			log.Println(stacktrace.Propagate(err, ""))
-		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
+		} else if loaded != nil {
 			attachments = append(attachments, loaded)
 		}
 	}
@@ -436,7 +436,7 @@ func (s *ChatStoreDatabase) dbMsgWithReferenceToChatMessage(ctx context.Context,
 		loaded, err := s.LoadAttachment(ctx, a)
 		if err != nil {
 			log.Println(stacktrace.Propagate(err, ""))
-		} else if loaded != nil && loaded != (MessageAttachmentView)(nil) {
+		} else if loaded != nil {
 			chatMessage.AttachmentsView = append(chatMessage.AttachmentsView, loaded)
 		}
 	}

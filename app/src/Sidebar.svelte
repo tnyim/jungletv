@@ -29,11 +29,11 @@
     });
     onDestroy(unreadAnnouncementUnsubscribe);
 
-    const unreadChatMentionUnsubscribe = unreadChatMention.subscribe((hasUnread) => {
-        if (selectedTabID != "chat" || !hasUnread) {
-            setSidebarTabHighlighted("chat", hasUnread);
-        } else if (hasUnread) {
-            unreadChatMention.set(false);
+    const unreadChatMentionUnsubscribe = unreadChatMention.subscribe((unreadID) => {
+        if (selectedTabID != "chat" || !unreadID) {
+            setSidebarTabHighlighted("chat", !!unreadID);
+        } else if (unreadID) {
+            unreadChatMention.set(null);
         }
     });
     onDestroy(unreadChatMentionUnsubscribe);

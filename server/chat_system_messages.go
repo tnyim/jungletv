@@ -11,7 +11,6 @@ import (
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/pricer"
-	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
@@ -65,7 +64,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 		select {
 		case v := <-mediaChangedC:
 			var err error
-			if v == nil || v == (media.QueueEntry)(nil) {
+			if v == nil {
 				_, err = s.chat.CreateSystemMessage(ctx, "_The queue is now empty._")
 			} else {
 				title := utils.EscapeMarkdownCharacters(v.MediaInfo().Title())

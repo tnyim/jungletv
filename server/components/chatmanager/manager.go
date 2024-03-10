@@ -9,6 +9,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/palantir/stacktrace"
 	"github.com/patrickmn/go-cache"
+	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/tnyim/jungletv/server/auth"
@@ -54,6 +55,8 @@ type Manager struct {
 	userBlockedBy       event.Keyed[string, string]
 	userUnblockedBy     event.Keyed[string, string]
 	userChangedNickname event.Keyed[string, string]
+
+	userConnectionsCounts *xsync.MapOf[string, int]
 }
 
 // New returns an initialized chat Manager
@@ -132,6 +135,8 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		chatDisabled:   event.New[DisabledReason](),
 		messageCreated: event.New[MessageCreatedEventArgs](),
 		messageDeleted: event.New[snowflake.ID](),
+
+		userConnectionsCounts: xsync.NewMapOf[string, int](),
 	}
 
 	m.store.SetAttachmentLoaderForType(MessageAttachmentTypeTenorGif, m.getTenorGifInfo)
@@ -168,4 +173,29 @@ func (c *Manager) SetNickname(ctxCtx context.Context, user auth.User, nickname *
 
 func (c *Manager) GetNickname(ctxCtx context.Context, user auth.User) *string {
 	return c.store.GetUserNickname(ctxCtx, user)
+}
+
+func (c *Manager) RegisterUserConnection(user auth.User) func() {
+	if user == nil || user.IsUnknown() {
+		return func() {}
+	}
+
+	a := user.Address()
+	c.userConnectionsCounts.Compute(a, func(oldValue int, loaded bool) (newValue int, delete bool) {
+		return oldValue + 1, false
+	})
+
+	return func() {
+		c.userConnectionsCounts.Compute(a, func(oldValue int, loaded bool) (newValue int, delete bool) {
+			return oldValue - 1, oldValue == 1
+		})
+	}
+}
+
+func (c *Manager) IsUserConnected(user auth.User) bool {
+	if user == nil || user.IsUnknown() {
+		return false
+	}
+	count, _ := c.userConnectionsCounts.Load(user.Address())
+	return count > 0
 }

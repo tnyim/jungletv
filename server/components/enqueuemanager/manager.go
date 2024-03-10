@@ -197,7 +197,7 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 
 	requestedBy := ticket.RequestedBy()
 	requestedByStr := "unknown"
-	if requestedBy != nil && requestedBy != (auth.User)(nil) {
+	if requestedBy != nil {
 		requestedByStr = requestedBy.Address()
 
 		if banned, err := e.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(ctx, requestedByStr); err == nil && banned {

@@ -36,6 +36,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/mediaqueue"
 	"github.com/tnyim/jungletv/server/components/nanswapclient"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
@@ -124,6 +125,7 @@ type grpcServer struct {
 	chat                 *chatmanager.Manager
 	pointsManager        *pointsmanager.Manager
 	staffActivityManager *staffactivitymanager.Manager
+	notificationManager  *notificationmanager.Manager
 	moderationStore      moderation.Store
 	nicknameCache        usercache.UserCache
 	paymentAccountPool   *payment.PaymentAccountPool
@@ -341,6 +343,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		nicknameCache:              userCache,
 		websiteURL:                 options.WebsiteURL,
 		versionInterceptor:         options.VersionInterceptor,
+		notificationManager:        notificationmanager.NewManager(),
 
 		appRunner:     options.AppRunner,
 		configManager: options.ConfigManager,
@@ -480,8 +483,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 	s.rewardsHandler, err = rewards.NewHandler(
 		s.log, options.StatsClient, s.mediaQueue, s.ipReputationChecker, s.withdrawalHandler, options.Wallet,
-		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.paymentAccountPool, s.moderationStore,
-		s.staffActivityManager, challengeCheckers, options.VersionInterceptor.VersionHash)
+		s.collectorAccountQueue, s.skipManager, s.chat, s.pointsManager, s.notificationManager, s.paymentAccountPool,
+		s.moderationStore, s.staffActivityManager, challengeCheckers, options.VersionInterceptor.VersionHash)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -500,9 +503,6 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	}
 
 	sk, _ := btcec.PrivKeyFromBytes(btcec.S256(), skBytes)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
 	s.raffleSecretKey = sk.ToECDSA()
 
 	s.appRunner.SetModuleDependencies(modules.Dependencies{

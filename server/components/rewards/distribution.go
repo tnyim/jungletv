@@ -15,6 +15,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/server/components/ipreputation"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/media"
@@ -109,7 +110,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	if amountForEach.Int.Cmp(big.NewInt(0)) <= 0 {
 		r.log.Printf("Not rewarding because the amount for each user would be zero")
 	} else {
-		err = r.rewardEligible(ctx, media.PerformanceID(), eligible, rewardBudget, amountForEach)
+		err = r.rewardEligible(ctx, media.PerformanceID(), eligible, amountForEach)
 		if err != nil {
 			return stacktrace.Propagate(err, "")
 		}
@@ -245,7 +246,7 @@ func (r *Handler) receiveCollectorPending(minExpectedBalance payment.Amount) {
 	wg.Wait()
 }
 
-func (r *Handler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, requestCost payment.Amount, amountForEach payment.Amount) error {
+func (r *Handler) rewardEligible(ctxCtx context.Context, mediaID string, eligible map[string]*spectator, amountForEach payment.Amount) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -275,7 +276,11 @@ func (r *Handler) rewardEligible(ctxCtx context.Context, mediaID string, eligibl
 	for _, spectator := range eligible {
 		rewardBalance, ok := balancesByAddress[spectator.user.Address()]
 		if ok {
-			spectator.onRewarded.Notify(SpectatorRewardedEventArgs{amountForEach, payment.NewAmountFromDecimal(rewardBalance.Balance)}, false)
+			r.notificationManager.Notify(
+				notifications.NewRewardBalanceUpdatedNotification(
+					spectator.user,
+					payment.NewAmountFromDecimal(rewardBalance.Balance),
+					amountForEach))
 		}
 
 		rewards[rewardsIdx] = &types.ReceivedReward{
@@ -313,7 +318,11 @@ func (r *Handler) rewardRequester(ctxCtx context.Context, mediaID string, reques
 		balancesByAddress[balance.RewardsAddress] = balance
 	}
 
-	requester.onRewarded.Notify(SpectatorRewardedEventArgs{reward, payment.NewAmountFromDecimal(newBalances[0].Balance)}, false)
+	r.notificationManager.Notify(
+		notifications.NewRewardBalanceUpdatedNotification(
+			requester.user,
+			payment.NewAmountFromDecimal(newBalances[0].Balance),
+			reward))
 
 	err = types.InsertReceivedRewards(ctx, []*types.ReceivedReward{{
 		ID:             uuid.NewV4().String(),

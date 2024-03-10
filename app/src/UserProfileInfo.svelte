@@ -56,8 +56,7 @@
         <p class="text-xs mb-4">
             Applications are able to add new pages to the JungleTV website, as well as interact with JungleTV features
             such as the queue and chat, much like regular users can. Applications can display their pages as additional
-            sidebar tabs, or enqueue them as if they were any other form of media, as well as attach them to chat
-            messages.
+            sidebar tabs, enqueue them as if they were any other form of media, and even attach them to chat messages.
         </p>
         {#if biography != ""}
             <span class="text-lg font-medium">About this application</span>

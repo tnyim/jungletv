@@ -14,12 +14,6 @@ type RewardsDistributedEventArgs struct {
 	Media              media.QueueEntry
 }
 
-// SpectatorRewardedEventArgs are the arguments to the event that is fired when a spectator is rewarded
-type SpectatorRewardedEventArgs struct {
-	Reward        payment.Amount
-	RewardBalance payment.Amount
-}
-
 // RewardsDistributed is the event that is fired when rewards are distributed for a queue entry
 func (r *Handler) RewardsDistributed() event.Event[RewardsDistributedEventArgs] {
 	return r.rewardsDistributed
