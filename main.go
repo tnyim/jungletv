@@ -33,6 +33,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/components/oauth"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
@@ -352,6 +353,7 @@ func main() {
 	})
 
 	configManager := configurationmanager.New(ctx)
+	notifManager := notificationmanager.NewManager()
 	options := server.Options{
 		Log:                           apiLog,
 		StatsClient:                   statsClient,
@@ -377,7 +379,8 @@ func main() {
 		NanswapAPIKey:                 nanswapAPIKey,
 		TurnstileSecretKey:            turnstileSecretKey,
 		ConfigManager:                 configManager,
-		AppRunner:                     apprunner.New(ctx, apiLog, configManager, appWalletBuilder),
+		NotificationManager:           notifManager,
+		AppRunner:                     apprunner.New(ctx, apiLog, configManager, notifManager, appWalletBuilder),
 	}
 
 	if buildconfig.LAB {

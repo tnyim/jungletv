@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/types"
@@ -103,6 +104,7 @@ type AppRunner struct {
 	workerContext                  context.Context
 	log                            *log.Logger
 	configManager                  *configurationmanager.Manager
+	notifManager                   *notificationmanager.Manager
 	walletBuilder                  WalletBuilder
 	instances                      map[string]*appInstance
 	recentLogs                     *cache.Cache[string, ApplicationLog]
@@ -124,6 +126,7 @@ func New(
 	workerContext context.Context,
 	log *log.Logger,
 	configManager *configurationmanager.Manager,
+	notifManager *notificationmanager.Manager,
 	walletBuilder WalletBuilder) *AppRunner {
 	rateLimiter, err := memorystore.New(&memorystore.Config{
 		Tokens:   60,
@@ -135,6 +138,7 @@ func New(
 	return &AppRunner{
 		workerContext:                  workerContext,
 		configManager:                  configManager,
+		notifManager:                   notifManager,
 		walletBuilder:                  walletBuilder,
 		instances:                      make(map[string]*appInstance),
 		recentLogs:                     cache.New[string, ApplicationLog](1*time.Hour, 10*time.Minute),
@@ -258,7 +262,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 		return stacktrace.Propagate(err, "")
 	}
 
-	instance, err := newAppInstance(r, application.ID, specificVersion, wallet, r.moduleDependencies)
+	instance, err := r.newAppInstance(application.ID, specificVersion, wallet)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -272,6 +276,7 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 
 		delete(r.instances, applicationID)
 
+		r.notifManager.ClearPersistedNotificationsSentByApplication(applicationID)
 		r.configManager.RemoveApplicationConfigs(applicationID)
 
 		r.recentLogs.SetDefault(applicationID, instance.appLogger)

@@ -7,8 +7,9 @@ import (
 )
 
 type defaultNotificationImpl struct {
-	recipient Recipient
-	data      proto.IsNotification_NotificationData
+	senderApplicationID string
+	recipient           Recipient
+	data                proto.IsNotification_NotificationData
 }
 
 func (d defaultNotificationImpl) Recipient() Recipient {
@@ -23,14 +24,23 @@ func (d defaultNotificationImpl) PersistencyKey() (PersistencyKey, bool) {
 	return "", false
 }
 
+func (d defaultNotificationImpl) SenderApplicationID() string {
+	return d.senderApplicationID
+}
+
 func (d defaultNotificationImpl) SerializeDataForAPI() proto.IsNotification_NotificationData {
 	return d.data
 }
 
 func MakeNotification(recipient Recipient, data proto.IsNotification_NotificationData) Notification {
+	return MakeNotificationWithSenderApplication("", recipient, data)
+}
+
+func MakeNotificationWithSenderApplication(senderApplicationID string, recipient Recipient, data proto.IsNotification_NotificationData) Notification {
 	return defaultNotificationImpl{
-		recipient: recipient,
-		data:      data,
+		senderApplicationID: senderApplicationID,
+		recipient:           recipient,
+		data:                data,
 	}
 }
 
@@ -49,10 +59,15 @@ func (d defaultPersistentNotificationImpl) PersistencyKey() (PersistencyKey, boo
 }
 
 func MakePersistentNotification(persistencyKey PersistencyKey, recipient Recipient, expiration time.Time, data proto.IsNotification_NotificationData) Notification {
+	return MakePersistentNotificationWithSenderApplication("", persistencyKey, recipient, expiration, data)
+}
+
+func MakePersistentNotificationWithSenderApplication(senderApplicationID string, persistencyKey PersistencyKey, recipient Recipient, expiration time.Time, data proto.IsNotification_NotificationData) Notification {
 	return defaultPersistentNotificationImpl{
 		defaultNotificationImpl: defaultNotificationImpl{
-			recipient: recipient,
-			data:      data,
+			senderApplicationID: senderApplicationID,
+			recipient:           recipient,
+			data:                data,
 		},
 		persistencyKey: persistencyKey,
 		expiration:     expiration,

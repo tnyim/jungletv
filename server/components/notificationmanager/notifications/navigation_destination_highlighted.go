@@ -10,7 +10,7 @@ import (
 
 func NavigationDestinationHighlightedForUserKey(destinationID string, user auth.User) notificationmanager.PersistencyKey {
 	if user == nil || user.IsUnknown() {
-		return ""
+		return notificationmanager.PersistencyKey(NavigationDestinationHighlightedPrefix(destinationID))
 	}
 	return notificationmanager.PersistencyKey(NavigationDestinationHighlightedPrefix(destinationID) + user.Address())
 }
@@ -19,8 +19,9 @@ func NavigationDestinationHighlightedPrefix(destinationID string) string {
 	return "nav_hi_" + destinationID + "_"
 }
 
-func NewNavigationDestinationHighlightedForUserNotification(user auth.User, expiry time.Time, destinationID string) notificationmanager.Notification {
-	return notificationmanager.MakePersistentNotification(
+func NewNavigationDestinationHighlightedForUserNotification(applicationID string, user auth.User, expiry time.Time, destinationID string) notificationmanager.Notification {
+	return notificationmanager.MakePersistentNotificationWithSenderApplication(
+		applicationID,
 		NavigationDestinationHighlightedForUserKey(destinationID, user),
 		notificationmanager.MakeUserRecipient(user),
 		expiry,
@@ -32,8 +33,9 @@ func NewNavigationDestinationHighlightedForUserNotification(user auth.User, expi
 	)
 }
 
-func NewNavigationDestinationHighlightedForEveryoneNotification(expiry time.Time, destinationID string) notificationmanager.Notification {
-	return notificationmanager.MakePersistentNotification(
+func NewNavigationDestinationHighlightedForEveryoneNotification(applicationID string, expiry time.Time, destinationID string) notificationmanager.Notification {
+	return notificationmanager.MakePersistentNotificationWithSenderApplication(
+		applicationID,
 		NavigationDestinationHighlightedForUserKey(destinationID, auth.UnknownUser),
 		notificationmanager.RecipientEveryone,
 		expiry,

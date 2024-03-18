@@ -1,6 +1,7 @@
 package notificationmanager
 
 import (
+	"context"
 	"strings"
 	"sync"
 	"time"
@@ -149,14 +150,14 @@ func (m *Manager) SubscribeToReadsForUser(user auth.User, callback func(Persiste
 	}
 }
 
-func (m *Manager) Notify(notification Notification) {
-	m.maybePersistNotification(notification)
+func (m *Manager) Notify(notification Notification) func() {
+	clearFn := m.maybePersistNotification(notification)
 
 	recipient := notification.Recipient()
 
 	if userRecipient, ok := recipient.(UserRecipient); ok {
 		m.onSingleUser.Notify(buildDirectKeyForUser(userRecipient.ForUser()), notification, false)
-		return
+		return clearFn
 	}
 
 	m.recipientsMu.Lock()
@@ -183,12 +184,13 @@ func (m *Manager) Notify(notification Notification) {
 			delete(m.recipients, recipientID)
 		}
 	}
+	return clearFn
 }
 
-func (m *Manager) maybePersistNotification(notification Notification) {
+func (m *Manager) maybePersistNotification(notification Notification) func() {
 	key, persistent := notification.PersistencyKey()
 	if !persistent {
-		return
+		return func() {}
 	}
 
 	m.persistedNotificationsMu.Lock()
@@ -201,19 +203,21 @@ func (m *Manager) maybePersistNotification(notification Notification) {
 		close(existing.monitorAbortChan)
 	}
 	abortChan := make(chan struct{})
+	ctx, cancelFn := context.WithDeadline(context.Background(), notification.Expiration())
 	m.persistedNotifications[key] = persistedNotification{
 		notification:     notification,
 		monitorAbortChan: abortChan,
 	}
 	m.readNotifications[key] = map[string]struct{}{}
-	go m.notificationExpirationMonitor(abortChan, notification)
+	go m.notificationExpirationMonitor(ctx, abortChan, notification)
+	return cancelFn
 }
 
-func (m *Manager) notificationExpirationMonitor(abort <-chan struct{}, notification Notification) {
+func (m *Manager) notificationExpirationMonitor(ctx context.Context, abort <-chan struct{}, notification Notification) {
 	select {
 	case <-abort:
 		return
-	case <-time.After(time.Until(notification.Expiration())):
+	case <-ctx.Done():
 		key, _ := notification.PersistencyKey()
 		m.ClearPersistedNotification(key)
 	}
@@ -252,7 +256,17 @@ func (m *Manager) ClearPersistedNotification(key PersistencyKey) {
 	m.clearPersistedNotificationInsideMutex(key)
 }
 
-func (m *Manager) ClearPersistedNotificationsHavingKeyPrefix(prefix string) {
+func (m *Manager) ClearPersistedNotificationsSentByApplication(applicationID string) {
+	m.persistedNotificationsMu.Lock()
+	defer m.persistedNotificationsMu.Unlock()
+	for key, n := range m.persistedNotifications {
+		if n.notification.SenderApplicationID() == applicationID {
+			m.clearPersistedNotificationInsideMutex(key)
+		}
+	}
+}
+
+func (m *Manager) ClearPersistedNotificationsWithKeyPrefix(prefix string) {
 	m.persistedNotificationsMu.Lock()
 	defer m.persistedNotificationsMu.Unlock()
 	for key := range m.persistedNotifications {
@@ -282,6 +296,7 @@ func (m *Manager) CountRecipients() int {
 type PersistencyKey string
 
 type Notification interface {
+	SenderApplicationID() string
 	Recipient() Recipient
 	PersistencyKey() (PersistencyKey, bool)
 	Expiration() time.Time

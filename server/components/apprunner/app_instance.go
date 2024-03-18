@@ -113,7 +113,8 @@ var ErrApplicationFileTypeMismatch = errors.New("unexpected type for application
 // ErrApplicationInstanceNotRunning is returned when the specified application is not running
 var ErrApplicationInstanceNotRunning = errors.New("application instance not running")
 
-func newAppInstance(r *AppRunner, applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *gonano_wallet.Wallet, d modules.Dependencies) (*appInstance, error) {
+func (r *AppRunner) newAppInstance(applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *gonano_wallet.Wallet) (*appInstance, error) {
+	d := r.moduleDependencies
 	instance := &appInstance{
 		applicationID:                   applicationID,
 		applicationVersion:              applicationVersion,
@@ -148,7 +149,7 @@ func newAppInstance(r *AppRunner, applicationID string, applicationVersion types
 	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.MediaProviders, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule, instance.userSerializer))
 	instance.rpcModule = rpc.New(instance.userSerializer)
 	instance.modules.RegisterNativeModule(instance.rpcModule)
-	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, instance.pagesModule))
+	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, r.notifManager, instance.pagesModule))
 	instance.modules.RegisterNativeModule(profile.New(instance, instance.userSerializer, d.ChatManager))
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)

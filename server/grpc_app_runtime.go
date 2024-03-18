@@ -6,6 +6,10 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/notificationmanager"
+	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
+	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -53,6 +57,11 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 		seq++
 		return stacktrace.Propagate(err, "")
 	}
+
+	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	// mark both user-targeting and everyone-targeting notifications as read
+	s.notificationManager.MarkAsRead(notificationmanager.PersistencyKey(notifications.NavigationDestinationHighlightedForUserKey("application-"+r.ApplicationId, user)), user)
+	s.notificationManager.MarkAsRead(notificationmanager.PersistencyKey(notifications.NavigationDestinationHighlightedForUserKey("application-"+r.ApplicationId, auth.UnknownUser)), user)
 
 	// immediately send a heartbeat so the client knows it's connected
 	err = sendHeartbeat()
