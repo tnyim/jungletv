@@ -41,10 +41,6 @@ type configurationModule struct {
 	currentNavigationDestination       configurationmanager.NavigationDestination
 	currentNavigationDestinationPageID string
 
-	// these don't need a mutex because they're accessed only from within the synchronous JS context
-	clearNavigationDestinationHighlightFn        func()
-	perUserClearNavigationDestinationHighlightFn map[string]func()
-
 	executionContext context.Context
 }
 
@@ -55,7 +51,6 @@ func New(appContext modules.ApplicationContext, configManager *configurationmana
 		configManager: configManager,
 		notifManager:  notifManager,
 		pagesModule:   pagesModule,
-		perUserClearNavigationDestinationHighlightFn: make(map[string]func()),
 	}
 }
 
@@ -75,8 +70,6 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setNavigationDestination", m.setNavigationDestination)
 		m.exports.Set("highlightNavigationDestination", m.highlightNavigationDestination)
 		m.exports.Set("highlightNavigationDestinationForUser", m.highlightNavigationDestinationForUser)
-		m.exports.Set("clearNavigationDestinationHighlight", m.clearNavigationDestinationHighlight)
-		m.exports.Set("clearNavigationDestinationHighlightForUser", m.clearNavigationDestinationHighlightForUser)
 	}
 }
 func (m *configurationModule) ModuleName() string {
@@ -467,19 +460,12 @@ func (m *configurationModule) highlightNavigationDestination(call goja.FunctionC
 		panic(m.runtime.NewTypeError("No navigation destination set"))
 	}
 
-	// for simplicity and consistency, clear user-specific highlights when highlighting for everyone
-	for _, fn := range m.perUserClearNavigationDestinationHighlightFn {
-		fn()
-	}
-	m.perUserClearNavigationDestinationHighlightFn = make(map[string]func())
-
 	n := notifications.NewNavigationDestinationHighlightedForEveryoneNotification(
 		m.appContext.ApplicationID(),
 		time.Now().Add(48*time.Hour),
 		m.currentNavigationDestination.DestinationID,
 	)
-	m.clearNavigationDestinationHighlightFn = m.notifManager.Notify(n)
-	return goja.Undefined()
+	return m.runtime.ToValue(m.notifManager.Notify(n))
 }
 
 func (m *configurationModule) highlightNavigationDestinationForUser(call goja.FunctionCall) goja.Value {
@@ -500,30 +486,5 @@ func (m *configurationModule) highlightNavigationDestinationForUser(call goja.Fu
 		time.Now().Add(48*time.Hour),
 		m.currentNavigationDestination.DestinationID,
 	)
-	m.perUserClearNavigationDestinationHighlightFn[userAddress] = m.notifManager.Notify(n)
-	return goja.Undefined()
-}
-
-func (m *configurationModule) clearNavigationDestinationHighlight(call goja.FunctionCall) goja.Value {
-	if m.clearNavigationDestinationHighlightFn != nil {
-		m.clearNavigationDestinationHighlightFn()
-		m.clearNavigationDestinationHighlightFn = nil
-	}
-	return goja.Undefined()
-}
-
-func (m *configurationModule) clearNavigationDestinationHighlightForUser(call goja.FunctionCall) goja.Value {
-	if len(call.Arguments) < 1 {
-		panic(m.runtime.NewTypeError("Missing argument"))
-	}
-
-	userAddress := call.Argument(0).String()
-	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
-
-	if fn, ok := m.perUserClearNavigationDestinationHighlightFn[userAddress]; ok {
-		fn()
-		delete(m.perUserClearNavigationDestinationHighlightFn, userAddress)
-	}
-
-	return goja.Undefined()
+	return m.runtime.ToValue(m.notifManager.Notify(n))
 }
