@@ -416,6 +416,7 @@ message NavigationDestinationHighlightedNotification {
 message ToastNotification {
     string message = 1;
     string href = 2;
+    google.protobuf.Duration duration = 3;
 }
 
 message MonitorQueueRequest {}

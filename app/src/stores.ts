@@ -14,7 +14,6 @@ export const playerVolume = writable(((): number => {
 })());
 export const rewardAddress = writable(null as string);
 export const rewardBalance = writable("");
-export const rewardReceived = writable("");
 export const badRepresentative = writable(false);
 export const activityChallengeReceived = writable(null as ActivityChallenge);
 export const currentlyWatching = writable(0);

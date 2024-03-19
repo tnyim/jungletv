@@ -15166,7 +15166,8 @@ proto.jungletv.ToastNotification.prototype.toObject = function(opt_includeInstan
 proto.jungletv.ToastNotification.toObject = function(includeInstance, msg) {
   var f, obj = {
     message: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    href: jspb.Message.getFieldWithDefault(msg, 2, "")
+    href: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    duration: (f = msg.getDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -15211,6 +15212,11 @@ proto.jungletv.ToastNotification.deserializeBinaryFromReader = function(msg, rea
       var value = /** @type {string} */ (reader.readString());
       msg.setHref(value);
       break;
+    case 3:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDuration(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -15254,6 +15260,14 @@ proto.jungletv.ToastNotification.serializeBinaryToWriter = function(message, wri
       f
     );
   }
+  f = message.getDuration();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -15290,6 +15304,43 @@ proto.jungletv.ToastNotification.prototype.getHref = function() {
  */
 proto.jungletv.ToastNotification.prototype.setHref = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration duration = 3;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.jungletv.ToastNotification.prototype.getDuration = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 3));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Duration|undefined} value
+ * @return {!proto.jungletv.ToastNotification} returns this
+*/
+proto.jungletv.ToastNotification.prototype.setDuration = function(value) {
+  return jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.ToastNotification} returns this
+ */
+proto.jungletv.ToastNotification.prototype.clearDuration = function() {
+  return this.setDuration(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ToastNotification.prototype.hasDuration = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

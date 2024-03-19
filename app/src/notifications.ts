@@ -1,6 +1,7 @@
-import { setNavigationDestinationHighlighted } from "./navigationStores";
+import { formatBANPrice } from "./currency_utils";
+import { setNavigationDestinationHighlighted, showNavbarToast } from "./navigationStores";
 import { Notification } from "./proto/jungletv_pb";
-import { mostRecentAnnouncement, rewardBalance, rewardReceived, unreadAnnouncement, unreadChatMention } from "./stores";
+import { mostRecentAnnouncement, rewardBalance, unreadAnnouncement, unreadChatMention } from "./stores";
 import { setSidebarTabHighlighted } from "./tabStores";
 
 const persistedNotifications = new Map<string, Notification>();
@@ -59,7 +60,7 @@ function processNotificationData(notification: Notification) {
         case Notification.NotificationDataCase.REWARD_BALANCE_UPDATED:
             const difference = notification.getRewardBalanceUpdated().getDifference();
             if (difference != "" && !/^0+$/.test(difference) && !difference.startsWith("-")) {
-                rewardReceived.update((_) => difference);
+                showNavbarToast(`Received **${formatBANPrice(difference)} BAN**!`, 7000);
             }
             rewardBalance.update((_) => notification.getRewardBalanceUpdated().getRewardBalance());
             break;
@@ -70,7 +71,10 @@ function processNotificationData(notification: Notification) {
             setNavigationDestinationHighlighted(notification.getNavigationDestinationHighlighted().getDestinationId(), true);
             break;
         case Notification.NotificationDataCase.TOAST:
-            // TODO
+            const toast = notification.getToast();
+            showNavbarToast(toast.getMessage(),
+                toast.getDuration().getSeconds() * 1000 + toast.getDuration().getNanos() / 1000000,
+                toast.getHref());
             break;
     }
 }

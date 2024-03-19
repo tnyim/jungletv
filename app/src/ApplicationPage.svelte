@@ -17,6 +17,7 @@
     import NotFound from "./NotFound.svelte";
     import { apiClient } from "./api_client";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
+    import { showNavbarToast } from "./navigationStores";
     import { pageTitleApplicationPage } from "./pageTitleStores";
     import { openUserProfile } from "./profile_utils";
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
@@ -121,9 +122,7 @@
         navigateToApplicationPage(newPageID, newApplicationID) {
             navigate(`/apps/${newApplicationID ?? applicationID}/${newPageID}`);
         },
-        navigate(to) {
-            navigate(to);
-        },
+        navigate,
         alert: modalAlert,
         confirm: modalConfirm,
         prompt: modalPrompt,
@@ -139,6 +138,7 @@
             let date = DateTime.fromSeconds(timestamp);
             return formatMarkdownTimestamp(date, timestampType);
         },
+        showNavbarToast,
     };
 
     let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);

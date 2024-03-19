@@ -110,3 +110,21 @@ export const removeAllApplicationNavigationDestinations = function () {
         return destinations.filter(destination => destination.builtIn);
     });
 }
+
+export type NavbarToast = {
+    id: number;
+    content: string;
+    duration: number;
+    href?: string;
+};
+
+export const navbarToasts = writable([] as NavbarToast[]);
+
+export const showNavbarToast = function (content: string, duration: number, href?: string) {
+    navbarToasts.update((toasts) => [...toasts, {
+        id: Math.random(),
+        content,
+        duration,
+        href
+    }]);
+}

@@ -320,6 +320,19 @@ export const limitedMarkdownToHTML = async function (markdown: string): Promise<
     return connection.remoteHandle().call("parseLimitedMarkdown", markdown);
 }
 
+export const showNavigationBarNotification = async function(message: string, duration?: number, href?: string) {
+    if (typeof duration === "undefined") {
+        duration = 7000;
+    }
+    if (duration > 15000) {
+        throw new Error("Duration cannot be greater than 15000");
+    } else if (duration <= 0) {
+        throw new Error("Duration must be greater than 0");
+    }
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("showNavbarToast", message, duration, href);
+}
+
 // #region Page title syncing
 
 let pageTitleObserver: MutationObserver;

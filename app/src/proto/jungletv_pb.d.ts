@@ -1362,6 +1362,11 @@ export class ToastNotification extends jspb.Message {
   getHref(): string;
   setHref(value: string): void;
 
+  hasDuration(): boolean;
+  clearDuration(): void;
+  getDuration(): google_protobuf_duration_pb.Duration | undefined;
+  setDuration(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ToastNotification.AsObject;
   static toObject(includeInstance: boolean, msg: ToastNotification): ToastNotification.AsObject;
@@ -1376,6 +1381,7 @@ export namespace ToastNotification {
   export type AsObject = {
     message: string,
     href: string,
+    duration?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 

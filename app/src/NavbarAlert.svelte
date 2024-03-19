@@ -2,10 +2,10 @@
     import { onDestroy } from "svelte";
     import watchMedia from "svelte-media";
     import { link } from "svelte-navigator";
-    import { formatBANPrice } from "./currency_utils";
     import NavbarAlertFlyer from "./NavbarAlertFlyer.svelte";
-    import { badRepresentative, currentSubscription, rewardReceived } from "./stores";
-    import { isSubscriptionAboutToExpire } from "./utils";
+    import { navbarToasts } from "./navigationStores";
+    import { badRepresentative, currentSubscription } from "./stores";
+    import { isSubscriptionAboutToExpire, parseSystemMessageMarkdown } from "./utils";
 
     const media = watchMedia({
         large: "(min-width: 1500px)",
@@ -17,19 +17,10 @@
     });
 
     export let hasAlert = false;
-    $: hasAlert = $badRepresentative || lastReward != "" || showSubExpirationWarning;
-
-    let lastReward = "";
-
-    const rewardReceivedUnsubscribe = rewardReceived.subscribe((reward) => {
-        if (reward != "") {
-            lastReward = reward;
-        }
-    });
+    $: hasAlert = $badRepresentative || $navbarToasts.length > 0 || showSubExpirationWarning;
 
     onDestroy(() => {
         mediaUnsubscribe();
-        rewardReceivedUnsubscribe();
     });
 
     let showSubExpirationWarning = false;
@@ -48,16 +39,21 @@
     }
 </script>
 
-{#if lastReward !== ""}
-    <NavbarAlertFlyer
-        classes="text-gray-700 bg-yellow-200"
-        duration={7000}
-        on:done={() => {
-            lastReward = "";
-        }}
-    >
-        Received <span class="font-bold">{formatBANPrice(lastReward)} BAN</span>!
-    </NavbarAlertFlyer>
+{#if $navbarToasts.length > 0}
+    {#key $navbarToasts[0].id}
+        <NavbarAlertFlyer
+            classes="text-gray-700 bg-yellow-200"
+            duration={$navbarToasts[0].duration}
+            href={$navbarToasts[0].href}
+            on:done={() => {
+                navbarToasts.update((toasts) => toasts.slice(1));
+            }}
+        >
+            {#await parseSystemMessageMarkdown($navbarToasts[0].content) then content}
+                {@html content}
+            {/await}
+        </NavbarAlertFlyer>
+    {/key}
 {:else if showSubExpirationWarning}
     <NavbarAlertFlyer
         classes="text-gray-700 bg-gray-200"
