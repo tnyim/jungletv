@@ -91,18 +91,20 @@ func (k *keyed[KeyType, ArgType]) Notify(key KeyType, param ArgType, deferNotifi
 		}
 	}()
 
-	// do not use the `event` function as we do not want to create an event if one doesn't exist
+	// do not use the `getOrCreateEvent` function as we do not want to create an event if one doesn't exist
 	if e, ok := k.events[key]; ok {
 		e.Notify(param, deferNotification)
 	} else if deferNotification {
 		// event doesn't exist, store for later so we can notify the first subscriber for this key
-		e.mu.RUnlock()
+		k.mu.RUnlock()
 		rUnlock = false
 
-		e.mu.Lock()
-		defer e.mu.Unlock()
+		k.mu.Lock()
+		defer k.mu.Unlock()
 		// must do checks again since conditions may have changed while we reacquired the lock
-		if _, ok := k.events[key]; !ok {
+		if _, ok := k.events[key]; ok {
+			e.Notify(param, deferNotification)
+		} else {
 			k.pendingNotifications[key] = append(k.pendingNotifications[key], param)
 		}
 	}
@@ -113,7 +115,7 @@ func (k *keyed[KeyType, ArgType]) Close(key KeyType) {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
-	// do not use the `event` function as we do not want to create an event if one doesn't exist
+	// do not use the `getOrCreateEvent` function as we do not want to create an event if one doesn't exist
 	if e, ok := k.events[key]; ok {
 		e.Close()
 	}
