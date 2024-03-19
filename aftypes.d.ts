@@ -836,6 +836,31 @@ declare module "jungletv:configuration" {
     export function setNavigationDestination(pageID: string, iconClasses: string, color?: string, beforeDestinationID?: string): boolean;
 
     /**
+     * Highlights, on the JungleTV client SPA, the navigation bar item that was set up using {@link setNavigationDestination}, for all users.
+     * This typically manifests as a pulsating yellow dot on the navigation bar item.
+     * For each user, the highlight will be dismissed when they visit the highlighted page.
+     * The highlight will be cleared for all users, once 48 hours pass since its last request, or once the application requests its global dismissal by calling the returned function.
+     * The highlight will, naturally, also be cleared if the navigation bar item is removed, if its destination page is unpublished, or if the application is terminated.
+     * @returns A function that may be called in order to cancel this specific highlight request.
+     * If further requests are made, calling cancellation functions that were returned in past invocations will have no effect.
+     * Only the latest returned cancellation function will clear the highlight.
+     */
+    export function highlightNavigationDestination(): () => void;
+
+    /**
+     * Highlights, on the JungleTV client SPA, the navigation bar item that was set up using {@link setNavigationDestination}, for a single user.
+     * This typically manifests as a pulsating yellow dot on the navigation bar item.
+     * The highlight will be dismissed when the user visits the highlighted page.
+     * The highlight will also be cleared, once 48 hours pass since its last request, or once the application requests its dismissal by calling the returned function.
+     * The highlight will, naturally, also be cleared if the navigation bar item is removed, if its destination page is unpublished, or if the application is terminated.
+     * @param address The reward address of the user for whom the navigation bar item should be highlighted.
+     * @returns A function that may be called in order to cancel this specific highlight request.
+     * If further requests are made for the same user, calling cancellation functions that were returned in past invocations will have no effect.
+     * For each user, only the latest returned cancellation function will clear the highlight.
+     */
+    export function highlightNavigationDestinationForUser(address: string): () => void;
+
+    /**
      * Requests that a user be considered VIP, or releases that request.
      * VIP users are able to enqueue while enqueuing is restricted to {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledStaffOnly} or {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledPasswordRequired}, and optionally have special roles associated with them in chat.
      * Multiple applications may request that the same user be considered VIP.
