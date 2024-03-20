@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
-	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/components/rewards"
@@ -43,30 +42,14 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 		cpChan <- cp
 	})()
 
-	// debounce notification sends because all persisted ones will come one after the next
-	notificationsPendingSend := []*proto.Notification{}
-	notificationsPendingSendSynchronizer := lo.Synchronize()
-	notificationDebounce, cancel := lo.NewDebounce(100*time.Millisecond, func() {
-		notificationsPendingSendSynchronizer.Do(func() {
-			cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-			cp.Notifications = notificationsPendingSend
-			cpChan <- cp
-			notificationsPendingSend = []*proto.Notification{}
-		})
-	})
-	defer cancel()
-
-	defer s.notificationManager.SubscribeToNotificationsForUser(user, func(n notificationmanager.Notification) {
-		notificationsPendingSendSynchronizer.Do(func() {
-			protoNotification := serializeNotification(n)
-			notificationsPendingSend = append(notificationsPendingSend, protoNotification)
-			notificationDebounce()
-		})
-	})()
-
-	defer s.notificationManager.SubscribeToReadsForUser(user, func(key notificationmanager.PersistencyKey) {
+	defer s.notificationManager.SubscribeToEventsForUser(user, func(n notificationmanager.NotificationEvent) {
 		cp := s.produceMediaConsumptionCheckpoint(stream.Context(), false)
-		cp.ClearedNotifications = append(cp.ClearedNotifications, string(key))
+		for _, n := range n.NewNotifications {
+			cp.Notifications = append(cp.Notifications, serializeNotification(n))
+		}
+		if n.IsClear {
+			cp.ClearedNotifications = []string{string(n.ClearedKey)}
+		}
 		cpChan <- cp
 	})()
 

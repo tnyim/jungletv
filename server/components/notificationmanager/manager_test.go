@@ -47,11 +47,11 @@ func TestNotifySingleUser(t *testing.T) {
 	)
 	doneCh := make(chan struct{})
 
-	unsub1 := manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+	unsub1 := manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
 
-	unsub2 := manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+	unsub2 := manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
 
@@ -88,16 +88,16 @@ func TestNotifyEveryone(t *testing.T) {
 	)
 	doneCh := make(chan struct{})
 
-	unsub1 := manager.SubscribeToNotificationsForUser(user1, func(notification notificationmanager.Notification) {
+	unsub1 := manager.SubscribeToEventsForUser(user1, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
-	unsub2 := manager.SubscribeToNotificationsForUser(user2, func(notification notificationmanager.Notification) {
+	unsub2 := manager.SubscribeToEventsForUser(user2, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
-	unsub3 := manager.SubscribeToNotificationsForUser(user3, func(notification notificationmanager.Notification) {
+	unsub3 := manager.SubscribeToEventsForUser(user3, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
-	unsub4 := manager.SubscribeToNotificationsForUser(user3, func(notification notificationmanager.Notification) {
+	unsub4 := manager.SubscribeToEventsForUser(user3, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
 
@@ -141,7 +141,7 @@ func TestNotifyEveryoneImmediateResubscription(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		doneCh := make(chan struct{})
 
-		unsub := manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+		unsub := manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 			close(doneCh)
 		})
 
@@ -176,11 +176,11 @@ func TestNotifyEveryoneExceptOne(t *testing.T) {
 	)
 	doneCh := make(chan struct{})
 
-	unsub := manager.SubscribeToNotificationsForUser(user1, func(notification notificationmanager.Notification) {
+	unsub := manager.SubscribeToEventsForUser(user1, func(notification notificationmanager.NotificationEvent) {
 		t.Fail()
 	})
 
-	unsub2 := manager.SubscribeToNotificationsForUser(user2, func(notification notificationmanager.Notification) {
+	unsub2 := manager.SubscribeToEventsForUser(user2, func(notification notificationmanager.NotificationEvent) {
 		close(doneCh)
 	})
 
@@ -230,7 +230,7 @@ func TestManyUsersManyRecipientsManySubsManyNotifications(t *testing.T) {
 	wg := sync.WaitGroup{}
 	for _, user := range users {
 		wg.Add(len(users) - 1) // should be notified about every user except themselves
-		unsubFns = append(unsubFns, manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+		unsubFns = append(unsubFns, manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 			wg.Done()
 		}))
 	}
@@ -303,11 +303,11 @@ func TestPersistNotificationSingleUser(t *testing.T) {
 
 	doneCh := make(chan struct{})
 
-	unsub1 := manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+	unsub1 := manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
 
-	unsub2 := manager.SubscribeToNotificationsForUser(user, func(notification notificationmanager.Notification) {
+	unsub2 := manager.SubscribeToEventsForUser(user, func(notification notificationmanager.NotificationEvent) {
 		doneCh <- struct{}{}
 	})
 

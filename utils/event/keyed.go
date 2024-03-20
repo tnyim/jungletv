@@ -7,6 +7,7 @@ type Keyed[KeyType comparable, ArgType any] interface {
 	Subscribe(key KeyType, guaranteeType BufferStrategy) (<-chan ArgType, func())
 	SubscribeUsingCallback(key KeyType, guaranteeType BufferStrategy, cbFunction func(arg ArgType)) func()
 	Notify(key KeyType, param ArgType, deferNotification bool)
+	NotifyAll(param ArgType)
 	Close(key KeyType)
 	Unsubscribed(key KeyType) Event[int]
 }
@@ -107,6 +108,15 @@ func (k *keyed[KeyType, ArgType]) Notify(key KeyType, param ArgType, deferNotifi
 		} else {
 			k.pendingNotifications[key] = append(k.pendingNotifications[key], param)
 		}
+	}
+}
+
+// NotifyAll notifies all subscribers regardless of key with the same event argument
+func (k *keyed[KeyType, ArgType]) NotifyAll(param ArgType) {
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+	for _, e := range k.events {
+		e.Notify(param, false)
 	}
 }
 

@@ -44,14 +44,9 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 	}()
 
 	user := authinterceptor.UserClaimsFromContext(stream.Context())
-	notificationCh := make(chan notificationmanager.Notification, 5)
-	notificationClearCh := make(chan notificationmanager.PersistencyKey, 5)
-	defer s.notificationManager.SubscribeToNotificationsForUser(user, func(n notificationmanager.Notification) {
+	notificationCh := make(chan notificationmanager.NotificationEvent, 5)
+	defer s.notificationManager.SubscribeToEventsForUser(user, func(n notificationmanager.NotificationEvent) {
 		notificationCh <- n
-	})()
-
-	defer s.notificationManager.SubscribeToReadsForUser(user, func(key notificationmanager.PersistencyKey) {
-		notificationClearCh <- key
 	})()
 
 	configChangeCh, configChangedU := s.configManager.ClientConfigurationChanged().Subscribe(event.BufferAll)
@@ -104,19 +99,21 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 			})
 		case n, ok := <-notificationCh:
 			if ok {
-				err = stream.Send(&proto.ApplicationEventUpdate{
-					Type: &proto.ApplicationEventUpdate_Notification{
-						Notification: serializeNotification(n),
-					},
-				})
-			}
-		case c, ok := <-notificationClearCh:
-			if ok {
-				err = stream.Send(&proto.ApplicationEventUpdate{
-					Type: &proto.ApplicationEventUpdate_ClearedNotification{
-						ClearedNotification: string(c),
-					},
-				})
+				if n.IsClear {
+					err = stream.Send(&proto.ApplicationEventUpdate{
+						Type: &proto.ApplicationEventUpdate_ClearedNotification{
+							ClearedNotification: string(n.ClearedKey),
+						},
+					})
+				} else {
+					for _, notif := range n.NewNotifications {
+						err = stream.Send(&proto.ApplicationEventUpdate{
+							Type: &proto.ApplicationEventUpdate_Notification{
+								Notification: serializeNotification(notif),
+							},
+						})
+					}
+				}
 			}
 		case c, ok := <-configChangeCh:
 			if ok {

@@ -22,15 +22,18 @@ type Manager struct {
 	persistedNotifications   map[PersistencyKey]persistedNotification
 	readNotifications        map[PersistencyKey]map[string]struct{}
 
-	onSingleUser event.Keyed[string, Notification] // fired for notifications that have a single user as recipient
+	onSingleUser event.Keyed[string, NotificationEvent] // fired for notifications that have a single user as recipient
+}
 
-	onUserRead            event.Keyed[string, PersistencyKey] // fired when a user has read a notification
-	onNotificationCleared event.Event[PersistencyKey]         // fired when a persisted notification is cleared
+type NotificationEvent struct {
+	IsClear          bool
+	NewNotifications []Notification
+	ClearedKey       PersistencyKey
 }
 
 type recipientContainer struct {
 	recipient Recipient
-	event     event.Event[Notification]
+	event     event.Event[NotificationEvent]
 	subs      int
 }
 
@@ -45,17 +48,16 @@ func NewManager() *Manager {
 		recipientAddedCallbacks: map[uint64]func(RecipientID, *recipientContainer){},
 		persistedNotifications:  map[PersistencyKey]persistedNotification{},
 		readNotifications:       map[PersistencyKey]map[string]struct{}{},
-		onSingleUser:            event.NewKeyed[string, Notification](),
-		onUserRead:              event.NewKeyed[string, PersistencyKey](),
-		onNotificationCleared:   event.New[PersistencyKey](),
+		onSingleUser:            event.NewKeyed[string, NotificationEvent](),
 	}
 	return m
 }
 
-// SubscribeToNotificationsForUser subscribes to notifications that are relevant to the specified user and returns a function that must be called to unsubscribe.
-// The callback will be called for each notification that is relevant and may be called concurrently.
-// The callback may block without risk of losing notifications.
-func (m *Manager) SubscribeToNotificationsForUser(user auth.User, callback func(Notification)) func() {
+// SubscribeToEventsForUser subscribes to notifications events (new notifications and reads)
+// that are relevant to the specified user, returning a function that must be called to unsubscribe.
+// The callback will be called for each event that is relevant and may be called concurrently.
+// The callback may block without risk of losing events.
+func (m *Manager) SubscribeToEventsForUser(user auth.User, callback func(NotificationEvent)) func() {
 	// first subscribe so we don't miss anything
 	cleanup := m.monitor(user, callback)
 
@@ -65,18 +67,23 @@ func (m *Manager) SubscribeToNotificationsForUser(user auth.User, callback func(
 		go func() {
 			m.persistedNotificationsMu.RLock()
 			defer m.persistedNotificationsMu.RUnlock()
+			notifs := []Notification{}
 			for key, p := range m.persistedNotifications {
 				if !p.notification.Recipient().ContainsUser(user) {
 					continue
 				}
 				if _, read := m.readNotifications[key][user.Address()]; !read {
-					select {
-					case <-abortCh:
-						return
-					default:
-						go callback(p.notification)
-					}
+					notifs = append(notifs, p.notification)
 				}
+			}
+			select {
+			case <-abortCh:
+				// just in case the consumer has unsubscribed while we prepared the initial send of persisted notifications
+				return
+			default:
+				go callback(NotificationEvent{
+					NewNotifications: notifs,
+				})
 			}
 		}()
 	}
@@ -87,7 +94,7 @@ func (m *Manager) SubscribeToNotificationsForUser(user auth.User, callback func(
 	}
 }
 
-func (m *Manager) monitor(user auth.User, callback func(Notification)) func() {
+func (m *Manager) monitor(user auth.User, callback func(NotificationEvent)) func() {
 	m.recipientsMu.Lock()
 	defer m.recipientsMu.Unlock()
 
@@ -136,27 +143,15 @@ func buildDirectKeyForUser(user auth.User) string {
 	return ""
 }
 
-func (m *Manager) SubscribeToReadsForUser(user auth.User, callback func(PersistencyKey)) func() {
-	if user == nil || user.IsUnknown() {
-		return func() {}
-	}
-	cleanupFn := make([]func(), 2)
-	cleanupFn[0] = m.onUserRead.SubscribeUsingCallback(user.Address(), event.BufferAll, callback)
-	cleanupFn[1] = m.onNotificationCleared.SubscribeUsingCallback(event.BufferAll, callback)
-	return func() {
-		for _, fn := range cleanupFn {
-			fn()
-		}
-	}
-}
-
 func (m *Manager) Notify(notification Notification) func() {
 	clearFn := m.maybePersistNotification(notification)
 
 	recipient := notification.Recipient()
 
 	if userRecipient, ok := recipient.(UserRecipient); ok {
-		m.onSingleUser.Notify(buildDirectKeyForUser(userRecipient.ForUser()), notification, false)
+		m.onSingleUser.Notify(buildDirectKeyForUser(userRecipient.ForUser()), NotificationEvent{
+			NewNotifications: []Notification{notification},
+		}, false)
 		return clearFn
 	}
 
@@ -164,11 +159,13 @@ func (m *Manager) Notify(notification Notification) func() {
 	defer m.recipientsMu.Unlock()
 
 	if r, ok := m.recipients[recipient.ID()]; ok && r.event != nil {
-		r.event.Notify(notification, false)
+		r.event.Notify(NotificationEvent{
+			NewNotifications: []Notification{notification},
+		}, false)
 	} else if !ok {
 		r = &recipientContainer{
 			recipient: recipient,
-			event:     event.New[Notification](),
+			event:     event.New[NotificationEvent](),
 		}
 
 		recipientID := recipient.ID()
@@ -178,7 +175,9 @@ func (m *Manager) Notify(notification Notification) func() {
 			callback(recipientID, r) // we are inside recipientsMu, so we can call these functions
 		}
 		if r.subs != 0 {
-			r.event.Notify(notification, false)
+			r.event.Notify(NotificationEvent{
+				NewNotifications: []Notification{notification},
+			}, false)
 		} else {
 			// no point in keeping the recipient in this map if it has no current subscribers
 			delete(m.recipients, recipientID)
@@ -241,7 +240,10 @@ func (m *Manager) MarkAsRead(persistencyKey PersistencyKey, user auth.User) {
 		for userAddress := range m.readNotifications[persistencyKey] {
 			usersThatRead = append(usersThatRead, auth.NewAddressOnlyUser(userAddress))
 		}
-		m.onUserRead.Notify(user.Address(), persistencyKey, false)
+		m.onSingleUser.Notify(buildDirectKeyForUser(user), NotificationEvent{
+			IsClear:    true,
+			ClearedKey: persistencyKey,
+		}, false)
 		if p.notification.Recipient().FullyContainedWithin(usersThatRead) {
 			// notification was read by every recipient, clear it
 			m.clearPersistedNotificationInsideMutex(persistencyKey)
@@ -280,7 +282,10 @@ func (m *Manager) clearPersistedNotificationInsideMutex(key PersistencyKey) {
 	if existing, ok := m.persistedNotifications[key]; ok {
 		close(existing.monitorAbortChan)
 		delete(m.persistedNotifications, key)
-		m.onNotificationCleared.Notify(key, false)
+		m.onSingleUser.NotifyAll(NotificationEvent{
+			IsClear:    true,
+			ClearedKey: key,
+		})
 	}
 	delete(m.readNotifications, key)
 }
