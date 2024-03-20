@@ -323,10 +323,12 @@ export const limitedMarkdownToHTML = async function (markdown: string): Promise<
 }
 
 /**
- * Shows a notification on the navigation bar
- * @param message The message to show
- * @param duration The length of time for which the notification should show, in milliseconds. Must not be greater than 15000
- * @param href An optional internal website link to navigate to
+ * Shows a notification on the navigation bar.
+ * @param message The message to show.
+ * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
+ * @param duration The length of time for which the notification should show, in milliseconds.
+ * Must not be greater than 15000.
+ * @param href An optional internal website link to navigate to when the user clicks the notification.
  */
 export const showNavigationBarNotification = async function (message: string, duration?: number, href?: string) {
     if (typeof duration === "undefined") {

@@ -2062,4 +2062,27 @@ interface AppBridge {
      * @returns The resulting HTML.
      */
     limitedMarkdownToHTML: (markdown: string) => Promise<string>;
+
+    /**
+     * Shows a notification on the navigation bar.
+     * @param message The message to show.
+     * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
+     * @param duration The length of time for which the notification should show, in milliseconds.
+     * Must not be greater than 15000.
+     * @param href An optional internal website link to navigate to when the user clicks the notification.
+     */
+    showNavigationBarNotification: (message: string, duration?: number, href?: string) => Promise<void>;
+
+    /**
+     * Get the current player volume being used by playing media.
+     * @returns The current volume as a fraction between 0 and 1.
+     */
+    getPlayerVolume: () => Promise<number>;
+
+    /**
+     * Set the current player volume being used by playing media.
+     * Application pages may only use this method when mounted as playing media.
+     * @param volume The volume to set as a fraction between 0 and 1.
+     */
+    setPlayerVolume: (volume: number) => Promise<void>;
 }
