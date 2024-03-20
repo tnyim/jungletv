@@ -16,14 +16,16 @@
     } from "../appbridge/common/model";
     import NotFound from "./NotFound.svelte";
     import { apiClient } from "./api_client";
+    import { processConfigurationChanges } from "./configurationStores";
     import { modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
     import { showNavbarToast } from "./navigationStores";
+    import { processClearedNotifications, processNotifications } from "./notifications";
     import { pageTitleApplicationPage } from "./pageTitleStores";
     import { openUserProfile } from "./profile_utils";
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { consumeStreamRPC, type StreamRequestController } from "./rpcUtils";
-    import { darkMode, permissionLevel, rewardAddress } from "./stores";
+    import { darkMode, permissionLevel, playerConnected, rewardAddress } from "./stores";
     import {
         awaitReadableValue,
         formatMarkdownTimestamp,
@@ -164,6 +166,7 @@
     }
 
     async function handleApplicationEventUpdate(update: ApplicationEventUpdate) {
+        const playerAlreadyConnected = $playerConnected;
         if (update.hasApplicationEvent()) {
             try {
                 let decodedArgs: any[] = [];
@@ -180,6 +183,12 @@
         } else if (update.hasPageUnpublishedEvent()) {
             eventsRequestController?.disconnect();
             unpublished = true;
+        } else if (update.hasNotification() && !playerAlreadyConnected) {
+            processNotifications([update.getNotification()]);
+        } else if (update.hasClearedNotification() && !playerAlreadyConnected) {
+            processClearedNotifications([update.getClearedNotification()]);
+        } else if (update.hasConfigurationChange() && !playerAlreadyConnected) {
+            processConfigurationChanges([update.getConfigurationChange()]);
         }
     }
 

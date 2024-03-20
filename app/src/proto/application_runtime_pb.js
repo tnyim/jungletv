@@ -23,6 +23,8 @@ var global =
 
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
+var common_pb = require('./common_pb.js');
+goog.object.extend(proto, common_pb);
 goog.exportSymbol('proto.jungletv.ApplicationEventUpdate', null, global);
 goog.exportSymbol('proto.jungletv.ApplicationEventUpdate.TypeCase', null, global);
 goog.exportSymbol('proto.jungletv.ApplicationHeartbeatEvent', null, global);
@@ -776,7 +778,7 @@ proto.jungletv.ConsumeApplicationEventsRequest.prototype.setPageId = function(va
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.jungletv.ApplicationEventUpdate.oneofGroups_ = [[1,2,3]];
+proto.jungletv.ApplicationEventUpdate.oneofGroups_ = [[1,2,3,4,5,6]];
 
 /**
  * @enum {number}
@@ -785,7 +787,10 @@ proto.jungletv.ApplicationEventUpdate.TypeCase = {
   TYPE_NOT_SET: 0,
   HEARTBEAT: 1,
   APPLICATION_EVENT: 2,
-  PAGE_UNPUBLISHED_EVENT: 3
+  PAGE_UNPUBLISHED_EVENT: 3,
+  NOTIFICATION: 4,
+  CLEARED_NOTIFICATION: 5,
+  CONFIGURATION_CHANGE: 6
 };
 
 /**
@@ -828,7 +833,10 @@ proto.jungletv.ApplicationEventUpdate.toObject = function(includeInstance, msg) 
   var f, obj = {
     heartbeat: (f = msg.getHeartbeat()) && proto.jungletv.ApplicationHeartbeatEvent.toObject(includeInstance, f),
     applicationEvent: (f = msg.getApplicationEvent()) && proto.jungletv.ApplicationServerEvent.toObject(includeInstance, f),
-    pageUnpublishedEvent: (f = msg.getPageUnpublishedEvent()) && proto.jungletv.ApplicationPageUnpublishedEvent.toObject(includeInstance, f)
+    pageUnpublishedEvent: (f = msg.getPageUnpublishedEvent()) && proto.jungletv.ApplicationPageUnpublishedEvent.toObject(includeInstance, f),
+    notification: (f = msg.getNotification()) && common_pb.Notification.toObject(includeInstance, f),
+    clearedNotification: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    configurationChange: (f = msg.getConfigurationChange()) && common_pb.ConfigurationChange.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -879,6 +887,20 @@ proto.jungletv.ApplicationEventUpdate.deserializeBinaryFromReader = function(msg
       var value = new proto.jungletv.ApplicationPageUnpublishedEvent;
       reader.readMessage(value,proto.jungletv.ApplicationPageUnpublishedEvent.deserializeBinaryFromReader);
       msg.setPageUnpublishedEvent(value);
+      break;
+    case 4:
+      var value = new common_pb.Notification;
+      reader.readMessage(value,common_pb.Notification.deserializeBinaryFromReader);
+      msg.setNotification(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClearedNotification(value);
+      break;
+    case 6:
+      var value = new common_pb.ConfigurationChange;
+      reader.readMessage(value,common_pb.ConfigurationChange.deserializeBinaryFromReader);
+      msg.setConfigurationChange(value);
       break;
     default:
       reader.skipField();
@@ -931,6 +953,29 @@ proto.jungletv.ApplicationEventUpdate.serializeBinaryToWriter = function(message
       3,
       f,
       proto.jungletv.ApplicationPageUnpublishedEvent.serializeBinaryToWriter
+    );
+  }
+  f = message.getNotification();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      common_pb.Notification.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 5));
+  if (f != null) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getConfigurationChange();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      common_pb.ConfigurationChange.serializeBinaryToWriter
     );
   }
 };
@@ -1044,6 +1089,116 @@ proto.jungletv.ApplicationEventUpdate.prototype.clearPageUnpublishedEvent = func
  */
 proto.jungletv.ApplicationEventUpdate.prototype.hasPageUnpublishedEvent = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional Notification notification = 4;
+ * @return {?proto.jungletv.Notification}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.getNotification = function() {
+  return /** @type{?proto.jungletv.Notification} */ (
+    jspb.Message.getWrapperField(this, common_pb.Notification, 4));
+};
+
+
+/**
+ * @param {?proto.jungletv.Notification|undefined} value
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+*/
+proto.jungletv.ApplicationEventUpdate.prototype.setNotification = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 4, proto.jungletv.ApplicationEventUpdate.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.clearNotification = function() {
+  return this.setNotification(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.hasNotification = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string cleared_notification = 5;
+ * @return {string}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.getClearedNotification = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.setClearedNotification = function(value) {
+  return jspb.Message.setOneofField(this, 5, proto.jungletv.ApplicationEventUpdate.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.clearClearedNotification = function() {
+  return jspb.Message.setOneofField(this, 5, proto.jungletv.ApplicationEventUpdate.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.hasClearedNotification = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional ConfigurationChange configuration_change = 6;
+ * @return {?proto.jungletv.ConfigurationChange}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.getConfigurationChange = function() {
+  return /** @type{?proto.jungletv.ConfigurationChange} */ (
+    jspb.Message.getWrapperField(this, common_pb.ConfigurationChange, 6));
+};
+
+
+/**
+ * @param {?proto.jungletv.ConfigurationChange|undefined} value
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+*/
+proto.jungletv.ApplicationEventUpdate.prototype.setConfigurationChange = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 6, proto.jungletv.ApplicationEventUpdate.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.jungletv.ApplicationEventUpdate} returns this
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.clearConfigurationChange = function() {
+  return this.setConfigurationChange(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.ApplicationEventUpdate.prototype.hasConfigurationChange = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

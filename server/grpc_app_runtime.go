@@ -10,6 +10,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
+	"github.com/tnyim/jungletv/utils/event"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,6 +43,20 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 		_ = s.appRunner.ApplicationEvent(stream.Context(), true, r.ApplicationId, r.PageId, "disconnected", []string{})
 	}()
 
+	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	notificationCh := make(chan notificationmanager.Notification, 5)
+	notificationClearCh := make(chan notificationmanager.PersistencyKey, 5)
+	defer s.notificationManager.SubscribeToNotificationsForUser(user, func(n notificationmanager.Notification) {
+		notificationCh <- n
+	})()
+
+	defer s.notificationManager.SubscribeToReadsForUser(user, func(key notificationmanager.PersistencyKey) {
+		notificationClearCh <- key
+	})()
+
+	configChangeCh, configChangedU := s.configManager.ClientConfigurationChanged().Subscribe(event.BufferAll)
+	defer configChangedU()
+
 	heartbeat := time.NewTicker(5 * time.Second)
 	defer heartbeat.Stop()
 	var seq uint32
@@ -58,7 +73,6 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 		return stacktrace.Propagate(err, "")
 	}
 
-	user := authinterceptor.UserClaimsFromContext(stream.Context())
 	// mark both user-targeting and everyone-targeting notifications as read
 	s.notificationManager.MarkAsRead(notificationmanager.PersistencyKey(notifications.NavigationDestinationHighlightedForUserKey("application-"+r.ApplicationId, user)), user)
 	s.notificationManager.MarkAsRead(notificationmanager.PersistencyKey(notifications.NavigationDestinationHighlightedForUserKey("application-"+r.ApplicationId, auth.UnknownUser)), user)
@@ -88,6 +102,30 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 					},
 				},
 			})
+		case n, ok := <-notificationCh:
+			if ok {
+				err = stream.Send(&proto.ApplicationEventUpdate{
+					Type: &proto.ApplicationEventUpdate_Notification{
+						Notification: serializeNotification(n),
+					},
+				})
+			}
+		case c, ok := <-notificationClearCh:
+			if ok {
+				err = stream.Send(&proto.ApplicationEventUpdate{
+					Type: &proto.ApplicationEventUpdate_ClearedNotification{
+						ClearedNotification: string(c),
+					},
+				})
+			}
+		case c, ok := <-configChangeCh:
+			if ok {
+				err = stream.Send(&proto.ApplicationEventUpdate{
+					Type: &proto.ApplicationEventUpdate_ConfigurationChange{
+						ConfigurationChange: c,
+					},
+				})
+			}
 		case <-heartbeat.C:
 			err = sendHeartbeat()
 		case <-stream.Context().Done():

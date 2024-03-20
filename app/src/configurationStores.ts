@@ -1,7 +1,6 @@
 import { get, writable, type StartStopNotifier, type Writable } from "svelte/store";
-import ApplicationPage from "./ApplicationPage.svelte";
 import { addNavigationDestination, navigationDestinations, removeAllApplicationNavigationDestinations, removeNavigationDestination, type NavigationDestination } from "./navigationStores";
-import { ConfigurationChange } from "./proto/jungletv_pb";
+import { ConfigurationChange } from "./proto/common_pb";
 import { sidebarMode } from "./stores";
 import { closeSidebarTab, openSidebarTab, sidebarTabs, type SidebarTab } from "./tabStores";
 import type { ButtonColor } from "./utils";
@@ -34,6 +33,12 @@ export const resetConfigurationChanges = function () {
     removeAllApplicationNavigationDestinations();
 }
 
+let applicationPageComponent: any;
+
+export const setApplicationPageComponent = function (component: any) {
+    applicationPageComponent = component;
+}
+
 export const processConfigurationChanges = function (changes: ConfigurationChange[]) {
     processedOnlineChangesAt = new Date();
     for (let change of changes) {
@@ -51,7 +56,7 @@ export const processConfigurationChanges = function (changes: ConfigurationChang
                 let tabInfo = change.getOpenSidebarTab();
                 let newTab: SidebarTab = {
                     id: tabInfo.getTabId(),
-                    component: ApplicationPage,
+                    component: applicationPageComponent,
                     tabTitle: tabInfo.getTabTitle(),
                     props: {
                         applicationID: tabInfo.getApplicationId(),
@@ -102,7 +107,7 @@ export const processStateFromOtherTab = function (state: ConfigurableState) {
     faviconURL.set(state.faviconURL);
 
     removeAllApplicationNavigationDestinations();
-    for(const d of state.navigationDestinations.reverse()) {
+    for (const d of state.navigationDestinations.reverse()) {
         addNavigationDestination(d.destination, d.beforeDestinationID);
     }
 }

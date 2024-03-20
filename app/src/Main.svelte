@@ -28,8 +28,10 @@
 		faviconURL,
 		processStateFromOtherTab,
 		produceConfigurableState,
+		setApplicationPageComponent,
 		type ConfigurableState,
 	} from "./configurationStores";
+	import { defaultTabs } from "./defaultTabs";
 	import { closeModal, modalSetContext, onModalClosed } from "./modal/modal";
 	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
 	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
@@ -63,6 +65,12 @@
 	import { formatMarkdownTimestamp, ttsAudioAlert } from "./utils";
 
 	export let url = "";
+
+	// these are being set here to avoid a circular dependency involving tabStores
+	$sidebarTabs = defaultTabs;
+
+	// another dirty hack to quickly break a cyclic dependency
+	setApplicationPageComponent(ApplicationPage);
 
 	// the purpose of this div is to be our <body> inside the shadow DOM so we can apply the dark mode class
 	let rootInsideShadowRoot: HTMLElement;
@@ -270,10 +278,10 @@
 	}
 
 	$: {
-        if (!isOnHomepage) {
-            lastTTSAlertAt = 0;
-        }
-    }
+		if (!isOnHomepage) {
+			lastTTSAlertAt = 0;
+		}
+	}
 
 	function chatMentionTTSAlert(m?: string) {
 		if (!m) {

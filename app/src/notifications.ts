@@ -1,6 +1,6 @@
 import { formatBANPrice } from "./currency_utils";
 import { setNavigationDestinationHighlighted, showNavbarToast } from "./navigationStores";
-import { Notification } from "./proto/jungletv_pb";
+import { Notification } from "./proto/common_pb";
 import { mostRecentAnnouncement, rewardBalance, unreadAnnouncement, unreadChatMention } from "./stores";
 import { setSidebarTabHighlighted } from "./tabStores";
 

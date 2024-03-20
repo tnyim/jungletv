@@ -1,8 +1,4 @@
 import { writable } from 'svelte/store';
-import Chat from "./Chat.svelte";
-import Document from "./Document.svelte";
-import Queue from "./Queue.svelte";
-import SkipAndTip from "./SkipAndTip.svelte";
 import { sidebarMode } from './stores';
 
 export type SidebarTab = {
@@ -18,48 +14,7 @@ export type SidebarTab = {
 
 export const defaultSidebarTabIDs = ["queue", "skipandtip", "chat", "announcements"];
 
-export const sidebarTabs = writable([
-    {
-        id: "queue",
-        component: Queue,
-        tabTitle: "Queue",
-        props: { mode: "sidebar" },
-        closeable: false,
-        highlighted: false,
-        canPopout: true,
-        isApplicationTab: false,
-    },
-    {
-        id: "skipandtip",
-        component: SkipAndTip,
-        tabTitle: "Skip\u200A&\u200ATip",
-        props: { mode: "sidebar" },
-        closeable: false,
-        highlighted: false,
-        canPopout: true,
-        isApplicationTab: false,
-    },
-    {
-        id: "chat",
-        component: Chat,
-        tabTitle: "Chat",
-        props: { mode: "sidebar" },
-        closeable: false,
-        highlighted: false,
-        canPopout: true,
-        isApplicationTab: false,
-    },
-    {
-        id: "announcements",
-        component: Document,
-        tabTitle: "Announcements",
-        props: { mode: "sidebar", documentID: "announcements" },
-        closeable: false,
-        highlighted: false,
-        canPopout: true,
-        isApplicationTab: false,
-    },
-] as SidebarTab[]);
+export const sidebarTabs = writable([] as SidebarTab[]);
 
 export const openSidebarTab = function (newTab: SidebarTab, relativeToTabID?: string, toTheLeft: boolean = false) {
     sidebarTabs.update((tabs) => {

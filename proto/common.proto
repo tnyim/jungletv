@@ -2,6 +2,9 @@ syntax = "proto3";
 
 option go_package = "github.com/tnyim/jungletv/proto";
 
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
 package jungletv;
 
 enum UserRole {
@@ -30,4 +33,81 @@ message User {
 message PaginationParameters {
     uint64 offset = 1;
     uint64 limit = 2;
+}
+
+message Notification {
+    int64 id = 1 [jstype = JS_STRING];
+    string key = 2;
+    google.protobuf.Timestamp expiration = 3;
+    oneof notification_data {
+        ChatMentionNotification chat_mention = 4;
+        AnnouncementsUpdatedNotification announcements_updated = 5;
+        RewardBalanceUpdatedNotification reward_balance_updated = 6;
+        SidebarTabHighlightedNotification sidebar_tab_highlighted = 7;
+        NavigationDestinationHighlightedNotification navigation_destination_highlighted = 8;
+        ToastNotification toast = 9;
+    }
+}
+
+message ChatMentionNotification {
+    int64 message_id = 1 [jstype = JS_STRING];
+}
+
+message AnnouncementsUpdatedNotification {
+    uint32 notification_counter = 1;
+}
+
+message RewardBalanceUpdatedNotification {
+    string reward_balance = 1;
+    string difference = 2;
+    RewardBalanceUpdateReason reason = 3;
+}
+
+enum RewardBalanceUpdateReason {
+    REWARD_BALANCE_UPDATE_REASON_UNKNOWN = 0;
+    REWARD_BALANCE_UPDATE_REASON_REWARD_RECEIVED = 1;
+    REWARD_BALANCE_UPDATE_REASON_WITHDRAW = 2;
+}
+
+message SidebarTabHighlightedNotification {
+    string tab_id = 1;
+}
+
+message NavigationDestinationHighlightedNotification {
+    string destination_id = 1;
+}
+
+message ToastNotification {
+    string message = 1;
+    string href = 2;
+    google.protobuf.Duration duration = 3;
+}
+
+message ConfigurationChange {
+    oneof configuration_change {
+        string application_name = 1;
+        string logo_url = 2;
+        string favicon_url = 3;
+        ConfigurationChangeSidebarTabOpen open_sidebar_tab = 4;
+        string close_sidebar_tab = 5;
+        ConfigurationChangeAddNavigationDestination add_navigation_destination = 6;
+        string remove_navigation_destination = 7;
+    }
+}
+
+message ConfigurationChangeSidebarTabOpen {
+    string tab_id = 1;
+    string application_id = 2;
+    string page_id = 3;
+    string tab_title = 4;
+    string before_tab_id = 5;
+}
+
+message ConfigurationChangeAddNavigationDestination {
+    string destination_id = 1;
+    string label = 2;
+    string icon = 3;
+    string href = 4;
+    string color = 5;
+    string before_destination_id = 6;
 }

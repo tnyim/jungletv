@@ -3,6 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
+import * as common_pb from "./common_pb";
 
 export class ResolveApplicationPageRequest extends jspb.Message {
   getApplicationId(): string;
@@ -94,6 +95,21 @@ export class ApplicationEventUpdate extends jspb.Message {
   getPageUnpublishedEvent(): ApplicationPageUnpublishedEvent | undefined;
   setPageUnpublishedEvent(value?: ApplicationPageUnpublishedEvent): void;
 
+  hasNotification(): boolean;
+  clearNotification(): void;
+  getNotification(): common_pb.Notification | undefined;
+  setNotification(value?: common_pb.Notification): void;
+
+  hasClearedNotification(): boolean;
+  clearClearedNotification(): void;
+  getClearedNotification(): string;
+  setClearedNotification(value: string): void;
+
+  hasConfigurationChange(): boolean;
+  clearConfigurationChange(): void;
+  getConfigurationChange(): common_pb.ConfigurationChange | undefined;
+  setConfigurationChange(value?: common_pb.ConfigurationChange): void;
+
   getTypeCase(): ApplicationEventUpdate.TypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApplicationEventUpdate.AsObject;
@@ -110,6 +126,9 @@ export namespace ApplicationEventUpdate {
     heartbeat?: ApplicationHeartbeatEvent.AsObject,
     applicationEvent?: ApplicationServerEvent.AsObject,
     pageUnpublishedEvent?: ApplicationPageUnpublishedEvent.AsObject,
+    notification?: common_pb.Notification.AsObject,
+    clearedNotification: string,
+    configurationChange?: common_pb.ConfigurationChange.AsObject,
   }
 
   export enum TypeCase {
@@ -117,6 +136,9 @@ export namespace ApplicationEventUpdate {
     HEARTBEAT = 1,
     APPLICATION_EVENT = 2,
     PAGE_UNPUBLISHED_EVENT = 3,
+    NOTIFICATION = 4,
+    CLEARED_NOTIFICATION = 5,
+    CONFIGURATION_CHANGE = 6,
   }
 }
 

@@ -3,6 +3,7 @@ syntax = "proto3";
 option go_package = "github.com/tnyim/jungletv/proto";
 
 import "google/protobuf/timestamp.proto";
+import "common.proto";
 
 package jungletv;
 
@@ -26,6 +27,9 @@ message ApplicationEventUpdate {
         ApplicationHeartbeatEvent heartbeat = 1;
         ApplicationServerEvent application_event = 2;
         ApplicationPageUnpublishedEvent page_unpublished_event = 3;
+        Notification notification = 4;
+        string cleared_notification = 5;
+        ConfigurationChange configuration_change = 6;
     }
 }
 

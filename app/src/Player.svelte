@@ -19,6 +19,7 @@
         playerConnected,
         playerCurrentTime,
     } from "./stores";
+    import ApplicationPage from "./ApplicationPage.svelte";
 
     export let fullSize: boolean;
     export let bigMinimizedPlayer: boolean;

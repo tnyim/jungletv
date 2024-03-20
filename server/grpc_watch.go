@@ -58,13 +58,7 @@ func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.Jun
 
 	defer s.notificationManager.SubscribeToNotificationsForUser(user, func(n notificationmanager.Notification) {
 		notificationsPendingSendSynchronizer.Do(func() {
-			protoNotification := &proto.Notification{
-				NotificationData: n.SerializeDataForAPI(),
-			}
-			if key, persistent := n.PersistencyKey(); persistent {
-				protoNotification.Key = string(key)
-				protoNotification.Expiration = timestamppb.New(n.Expiration())
-			}
+			protoNotification := serializeNotification(n)
 			notificationsPendingSend = append(notificationsPendingSend, protoNotification)
 			notificationDebounce()
 		})
@@ -134,4 +128,15 @@ func (s *grpcServer) SubmitActivityChallenge(ctx context.Context, r *proto.Submi
 	return &proto.SubmitActivityChallengeResponse{
 		SkippedClientIntegrityChecks: skippedClientIntegrityChecks,
 	}, stacktrace.Propagate(err, "")
+}
+
+func serializeNotification(n notificationmanager.Notification) *proto.Notification {
+	protoNotification := &proto.Notification{
+		NotificationData: n.SerializeDataForAPI(),
+	}
+	if key, persistent := n.PersistencyKey(); persistent {
+		protoNotification.Key = string(key)
+		protoNotification.Expiration = timestamppb.New(n.Expiration())
+	}
+	return protoNotification
 }
