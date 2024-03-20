@@ -25,7 +25,7 @@
     import type { ApplicationEventUpdate, ResolveApplicationPageResponse } from "./proto/application_runtime_pb";
     import type { PermissionLevelMap } from "./proto/jungletv_pb";
     import { consumeStreamRPC, type StreamRequestController } from "./rpcUtils";
-    import { darkMode, permissionLevel, playerConnected, rewardAddress } from "./stores";
+    import { darkMode, permissionLevel, playerConnected, playerVolume, rewardAddress } from "./stores";
     import {
         awaitReadableValue,
         formatMarkdownTimestamp,
@@ -141,6 +141,12 @@
             return formatMarkdownTimestamp(date, timestampType);
         },
         showNavbarToast,
+        playerVolume(): number {
+            return $playerVolume;
+        },
+        setPlayerVolume(volume: number) {
+            $playerVolume = volume;
+        },
     };
 
     let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);

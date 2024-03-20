@@ -32,6 +32,7 @@ let cachedInfo = {
     hostVersion: "",
     pageID: "",
     pagePathname: "",
+    role: "",
 };
 
 let resolveServerConnectionPromise: () => void;
@@ -70,10 +71,11 @@ const connectionPromise: Promise<Connection<ChildMethods, ChildEvents, ParentMet
         });
         page.dispatchEvent(new Event("disconnected"));
     });
-    h.addEventListener("mounted", (args) => {
+    h.addEventListener("mounted", (args: MountEventArgs) => {
         beginObservingPageTitle();
         beginObservingDocumentResizes();
         beginUpdatingMarkdownTimestamps();
+        cachedInfo.role = args.role;
         page.dispatchEvent(new CustomEvent<MountEventArgs>("mounted", { detail: args }));
     });
     h.addEventListener("destroyed", () => {
@@ -320,7 +322,13 @@ export const limitedMarkdownToHTML = async function (markdown: string): Promise<
     return connection.remoteHandle().call("parseLimitedMarkdown", markdown);
 }
 
-export const showNavigationBarNotification = async function(message: string, duration?: number, href?: string) {
+/**
+ * Shows a notification on the navigation bar
+ * @param message The message to show
+ * @param duration The length of time for which the notification should show, in milliseconds. Must not be greater than 15000
+ * @param href An optional internal website link to navigate to
+ */
+export const showNavigationBarNotification = async function (message: string, duration?: number, href?: string) {
     if (typeof duration === "undefined") {
         duration = 7000;
     }
@@ -331,6 +339,31 @@ export const showNavigationBarNotification = async function(message: string, dur
     }
     let connection = await connectionPromise;
     return connection.remoteHandle().call("showNavbarToast", message, duration, href);
+}
+
+/**
+ * Get the current player volume being used by playing media.
+ * @returns The current volume as a fraction between 0 and 1.
+ */
+export const getPlayerVolume = async function (): Promise<number> {
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("playerVolume");
+}
+
+/**
+ * Set the current player volume being used by playing media.
+ * Application pages may only use this method when mounted as playing media.
+ * @param volume The volume to set as a fraction between 0 and 1.
+ */
+export const setPlayerVolume = async function (volume: number): Promise<void> {
+    if (volume < 0 || volume > 1) {
+        throw new Error("Volume must be between 0 and 1");
+    }
+    if (cachedInfo.role !== "playingmedia") {
+        throw new Error("This method may only be used when mounted as playing media");
+    }
+    let connection = await connectionPromise;
+    return connection.remoteHandle().call("setPlayerVolume", volume);
 }
 
 // #region Page title syncing
