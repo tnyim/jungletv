@@ -1,10 +1,14 @@
 interface Require {
     (id: string): any;
     (id: "jungletv:chat"): typeof import("jungletv:chat");
+    (id: "jungletv:configuration"): typeof import("jungletv:configuration");
     (id: "jungletv:pages"): typeof import("jungletv:pages");
+    (id: "jungletv:keyvalue"): typeof import("jungletv:keyvalue");
     (id: "jungletv:points"): typeof import("jungletv:points");
+    (id: "jungletv:profile"): typeof import("jungletv:profile");
     (id: "jungletv:queue"): typeof import("jungletv:queue");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
+    (id: "jungletv:wallet"): typeof import("jungletv:wallet");
     (id: "node:console" | "console"): typeof import("node:console");
     (id: "node:process" | "process"): typeof import("node:process");
 }
