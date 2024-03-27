@@ -13,7 +13,6 @@ interface Require {
     (id: "node:process" | "process"): typeof import("node:process");
 }
 
-declare var console: typeof import("node:console");
 declare var process: typeof import("node:process");
 declare var require: Require;
 
@@ -516,8 +515,8 @@ declare module "node:console" {
     export function error(message?: any, ...optionalParams: any[]): void;
 }
 declare module "console" {
-    const m = typeof import("node:console");
-    export default m;
+    import console from "node:console";
+    export default console;
 }
 
 /** Lets applications control and obtain information about their own execution instance and operating environment. */
@@ -556,8 +555,8 @@ declare module "node:process" {
     };
 }
 declare module "process" {
-    const m = typeof import("node:process");
-    export default m;
+    import process from "node:process";
+    export default process;
 }
 
 /** Allows for interaction with the JungleTV points subsystem. */
@@ -1834,10 +1833,10 @@ declare module "jungletv:wallet" {
     export let address: string;
 }
 
-export type Amount = string;
+type Amount = string;
 
 /** The permission levels a user can have */
-export enum PermissionLevelEnum {
+declare enum PermissionLevelEnum {
     /** The user is not identified. When used to restrict accessibility of remote calls, the resulting method can be called by any user, even unauthenticated ones. */
     Unauthenticated = "unauthenticated",
 
@@ -1849,10 +1848,10 @@ export enum PermissionLevelEnum {
 }
 
 /** The permission levels a user can have */
-export type PermissionLevel = `${PermissionLevelEnum}`;
+type PermissionLevel = `${PermissionLevelEnum}`;
 
 /** Represents a user or application within the JungleTV service. */
-export interface User {
+interface User {
     /** Reward address of the user. */
     address: string;
 
