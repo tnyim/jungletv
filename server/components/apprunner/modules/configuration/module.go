@@ -70,6 +70,8 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setNavigationDestination", m.setNavigationDestination)
 		m.exports.Set("highlightNavigationDestination", m.highlightNavigationDestination)
 		m.exports.Set("highlightNavigationDestinationForUser", m.highlightNavigationDestinationForUser)
+		m.exports.Set("showNavigationBarNotification", m.showNavigationBarNotification)
+		m.exports.Set("showNavigationBarNotificationForUser", m.showNavigationBarNotificationForUser)
 	}
 }
 func (m *configurationModule) ModuleName() string {
@@ -487,4 +489,72 @@ func (m *configurationModule) highlightNavigationDestinationForUser(call goja.Fu
 		m.currentNavigationDestination.DestinationID,
 	)
 	return m.runtime.ToValue(m.notifManager.Notify(n))
+}
+
+func (m *configurationModule) showNavigationBarNotification(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	message := call.Argument(0).String()
+	durationms := 7000
+
+	if len(call.Arguments) > 1 {
+		err := m.runtime.ExportTo(call.Argument(1), &durationms)
+		if err != nil {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotification must be an integer"))
+		}
+
+		if durationms <= 0 {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotification must not be zero or negative"))
+		}
+		if durationms > 15000 {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotification must not be greater than 15000"))
+		}
+	}
+
+	n := notifications.NewToastNotification(
+		m.appContext.ApplicationID(),
+		message,
+		"",
+		time.Duration(durationms)*time.Millisecond,
+	)
+	m.notifManager.Notify(n)
+	return goja.Undefined()
+}
+
+func (m *configurationModule) showNavigationBarNotificationForUser(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 2 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	userAddress := call.Argument(0).String()
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
+
+	message := call.Argument(1).String()
+	durationms := 7000
+
+	if len(call.Arguments) > 2 {
+		err := m.runtime.ExportTo(call.Argument(2), &durationms)
+		if err != nil {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotificationForUser must be an integer"))
+		}
+
+		if durationms <= 0 {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotificationForUser must not be zero or negative"))
+		}
+		if durationms > 15000 {
+			panic(m.runtime.NewTypeError("Second argument to showNavigationBarNotificationForUser must not be greater than 15000"))
+		}
+	}
+
+	n := notifications.NewToastForUserNotification(
+		m.appContext.ApplicationID(),
+		auth.NewAddressOnlyUser(userAddress),
+		message,
+		"",
+		time.Duration(durationms)*time.Millisecond,
+	)
+	m.notifManager.Notify(n)
+	return goja.Undefined()
 }

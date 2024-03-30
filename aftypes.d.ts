@@ -899,6 +899,36 @@ declare module "jungletv:configuration" {
 
     /** Represents the possible appearance styles of a user that has been made VIP. */
     export type VIPUserAppearance = `${VIPUserAppearanceEnum}`;
+
+    /**
+     * Shows a notification on the navigation bar of the JungleTV client SPA.
+     * @param message The message to show.
+     * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
+     * @param duration The length of time for which the notification should show, in milliseconds.
+     * Must not be greater than 15000.
+     */
+    export function showNavigationBarNotification(message: string, duration?: number): void;
+
+    /**
+     * Shows a notification to all users on the navigation bar of the JungleTV client SPA.
+     * @param message The message to show.
+     * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
+     * @param duration The length of time for which the notification should show, in milliseconds.
+     * Defaults to 7000.
+     * Must not be greater than 15000.
+     */
+    export function showNavigationBarNotification(message: string, duration?: number): void;
+
+    /**
+     * Shows a notification to a specific user on the navigation bar of the JungleTV client SPA.
+     * @param address The reward address of the user for whom to show the notification.
+     * @param message The message to show.
+     * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
+     * @param duration The length of time for which the notification should show, in milliseconds.
+     * Defaults to 7000.
+     * Must not be greater than 15000.
+     */
+    export function showNavigationBarNotificationForUser(address: string, message: string, duration?: number): void;
 }
 
 /** Allows for interaction with the JungleTV queue subsystem. */
