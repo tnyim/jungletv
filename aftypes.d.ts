@@ -910,7 +910,8 @@ declare module "jungletv:configuration" {
     export function showNavigationBarNotification(message: string, duration?: number): void;
 
     /**
-     * Shows a notification to all users on the navigation bar of the JungleTV client SPA.
+     * Shows an ephemeral notification to all users on the navigation bar of the JungleTV client SPA.
+     * If other notifications are presently showing, the new one will be enqueued to display after them.
      * @param message The message to show.
      * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
      * @param duration The length of time for which the notification should show, in milliseconds.
@@ -920,7 +921,8 @@ declare module "jungletv:configuration" {
     export function showNavigationBarNotification(message: string, duration?: number): void;
 
     /**
-     * Shows a notification to a specific user on the navigation bar of the JungleTV client SPA.
+     * Shows an ephemeral notification to a specific user on the navigation bar of the JungleTV client SPA.
+     * If other notifications are presently showing, the new one will be enqueued to display after them.
      * @param address The reward address of the user for whom to show the notification.
      * @param message The message to show.
      * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
@@ -2097,7 +2099,8 @@ interface AppBridge {
     limitedMarkdownToHTML: (markdown: string) => Promise<string>;
 
     /**
-     * Shows a notification on the navigation bar.
+     * Shows an ephemeral notification on the navigation bar.
+     * If other notifications are presently showing, the new one will be enqueued to display after them.
      * @param message The message to show.
      * Inline Markdown features will be formatted according to rules similar to those used with {@link markdownToHTML}.
      * @param duration The length of time for which the notification should show, in milliseconds.
@@ -2107,15 +2110,15 @@ interface AppBridge {
     showNavigationBarNotification: (message: string, duration?: number, href?: string) => Promise<void>;
 
     /**
-     * Get the current player volume being used by playing media.
-     * @returns The current volume as a fraction between 0 and 1.
+     * Get the current player volume preference being used by playing media.
+     * @returns The current volume preference as a fraction between 0 and 1.
      */
     getPlayerVolume: () => Promise<number>;
 
     /**
-     * Set the current player volume being used by playing media.
+     * Set the current player volume preference being used by playing media.
      * Application pages may only use this method when mounted as playing media.
-     * @param volume The volume to set as a fraction between 0 and 1.
+     * @param volume The volume preference to set, as a fraction between 0 and 1.
      */
     setPlayerVolume: (volume: number) => Promise<void>;
 }
