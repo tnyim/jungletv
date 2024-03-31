@@ -10,6 +10,8 @@
     export let fullSizePlayerContainer: HTMLElement = null;
     export let fullSizePlayerContainerWidth: number = 0;
     export let fullSizePlayerContainerHeight: number = 0;
+    export let resizingSidebar = false;
+    export let sidebarWidth = 384;
 
     let windowInnerHeight = 0;
 
@@ -43,7 +45,8 @@
 
     export const onSidebarCollapseStart = () => {
         sidebarOpeningOrClosing = true;
-        playerContainer.style.width = playerContainer.clientWidth + 384 + "px";
+        console.log("sidebarWidth", sidebarWidth);
+        playerContainer.style.width = playerContainer.clientWidth + sidebarWidth + "px";
     };
 
     export const onSidebarCollapseEnd = () => {
@@ -52,7 +55,7 @@
 
     export const onSidebarOpenStart = async () => {
         sidebarOpeningOrClosing = true;
-        playerContainer.style.width = playerContainer.clientWidth - 384 + "px";
+        playerContainer.style.width = playerContainer.clientWidth - sidebarWidth + "px";
     };
 
     export const onSidebarOpenEnd = () => {
@@ -171,6 +174,12 @@
         playerPresenceBroadcastChannel.removeEventListener("message", onBroadcastChannelMessage);
         playerPresenceBroadcastChannel.close();
     });
+
+    // doing this allows us to fix mousemove tracking getting lost over iframes on Blink-based browsers
+    // which made it very hard to increase the size of the sidebar while media is playing
+    $: if (playerContainer) {
+        playerContainer.style.pointerEvents = resizingSidebar ? "none" : "auto";
+    }
 </script>
 
 <svelte:window bind:innerHeight={windowInnerHeight} />

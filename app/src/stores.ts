@@ -26,6 +26,7 @@ export const sidebarMode = writable(((): string => {
     }
     return localStorage.sidebarMode;
 })());
+export const sidebarSplitterPosition = writable(1.0);
 export const chatMediaPickerMode = writable(((): "emoji" | "gifs" | "settings" => {
     if (!('chatMediaPickerMode' in localStorage)) {
         return "emoji";

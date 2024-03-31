@@ -118,14 +118,35 @@
         }
     }
 
+    function onTabButtonClick(tabID: string, e: MouseEvent) {
+        if (e.ctrlKey || e.altKey) {
+            if (tryToPopOutTab(tabID)) {
+                e.preventDefault();
+            }
+        } else {
+            sidebarMode.update((_) => tabID);
+        }
+    }
+
+    function onTabButtonDoubleClick(tabID: string, e: MouseEvent) {
+        tryToPopOutTab(tabID);
+    }
+
     function onTabButtonMouseDown(tabID: string, e: MouseEvent) {
         if (e.button == 1) {
-            let clickedTab = tabs.find((t) => tabID == t.id);
-            if (typeof clickedTab !== "undefined" && clickedTab.canPopout) {
+            if (tryToPopOutTab(tabID)) {
                 e.preventDefault();
-                openPopout(tabID);
             }
         }
+    }
+
+    function tryToPopOutTab(tabID: string): boolean {
+        let clickedTab = tabs.find((t) => tabID == t.id);
+        if (typeof clickedTab !== "undefined" && clickedTab.canPopout) {
+            openPopout(tabID);
+            return true;
+        }
+        return false;
     }
 
     onDestroy(() => {
@@ -159,7 +180,8 @@
                 <TabButton
                     selected={selectedTabID == tab.id}
                     on:mousedown={(e) => onTabButtonMouseDown(tab.id, e)}
-                    on:click={() => sidebarMode.update((_) => tab.id)}
+                    on:click={(e) => onTabButtonClick(tab.id, e)}
+                    on:dblclick={(e) => onTabButtonDoubleClick(tab.id, e)}
                 >
                     {#if tab.highlighted}
                         <div class="inline-block">

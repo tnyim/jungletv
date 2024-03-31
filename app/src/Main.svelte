@@ -59,6 +59,7 @@
 		playerVolume,
 		rewardAddress,
 		rewardBalance,
+		sidebarSplitterPosition,
 		unreadChatMention,
 	} from "./stores";
 	import { sidebarTabs, type SidebarTab } from "./tabStores";
@@ -218,6 +219,8 @@
 	let fullSizePlayerContainer: HTMLElement = null;
 	let fullSizePlayerContainerWidth: number = 0;
 	let fullSizePlayerContainerHeight: number = 0;
+	let resizingSidebar: boolean = false;
+	let sidebarWidth: number = 384;
 
 	let popoutTab: SidebarTab;
 	function transformPopoutProps(props: {}): {} {
@@ -316,6 +319,8 @@
 			<PlayerContainer
 				bind:this={playerContainer}
 				bind:mainContentBottomPadding
+				{resizingSidebar}
+				{sidebarWidth}
 				fullSize={isOnHomepage}
 				{fullSizePlayerContainer}
 				{fullSizePlayerContainerWidth}
@@ -327,6 +332,8 @@
 						bind:playerContainer={fullSizePlayerContainer}
 						bind:playerContainerWidth={fullSizePlayerContainerWidth}
 						bind:playerContainerHeight={fullSizePlayerContainerHeight}
+						bind:resizingSidebar
+						bind:sidebarWidth
 						on:sidebarCollapseStart={playerContainer.onSidebarCollapseStart}
 						on:sidebarCollapseEnd={playerContainer.onSidebarCollapseEnd}
 						on:sidebarOpenStart={playerContainer.onSidebarOpenStart}

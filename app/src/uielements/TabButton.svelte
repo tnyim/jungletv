@@ -9,6 +9,7 @@
 <div>
     <button
         on:click
+        on:dblclick
         on:mousedown
         class="block {extraClasses} {selected
             ? 'font-semibold'
