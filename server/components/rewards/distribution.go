@@ -3,7 +3,6 @@ package rewards
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -14,12 +13,10 @@ import (
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
 	"github.com/tnyim/jungletv/buildconfig"
-	"github.com/tnyim/jungletv/server/components/ipreputation"
 	"github.com/tnyim/jungletv/server/components/notificationmanager/notifications"
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pricer"
 	"github.com/tnyim/jungletv/server/media"
-	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -84,8 +81,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	}
 	rewardBudget.Add(rewardBudget.Int, rainBudget.Int)
 
-	eligible := getEligibleSpectators(ctx, r.log, r.ipReputationChecker, r.moderationStore,
-		r.spectatorsByRemoteAddress, media.RequestedBy().Address(), media.PlayedFor())
+	eligible := r.getEligibleSpectators(ctx, media.RequestedBy().Address(), media.PlayedFor())
 	go r.statsClient.Gauge("eligible", len(eligible))
 	r.eligibleMovingAverage.Add(float64(len(eligible)))
 
@@ -120,19 +116,13 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 	return nil
 }
 
-func getEligibleSpectators(ctx context.Context,
-	l *log.Logger,
-	c *ipreputation.Checker,
-	moderationStore moderation.Store,
-	spectatorsByRemoteAddress map[string][]*spectator,
-	exceptAddress string,
-	mediaPlayedFor time.Duration) map[string]*spectator {
+func (r *Handler) getEligibleSpectators(ctx context.Context, exceptAddress string, mediaPlayedFor time.Duration) map[string]*spectator {
 	// maps addresses to spectators
 	toBeRewarded := make(map[string]*spectator)
 
 	spectatorsByUniquifiedRemoteAddress := make(map[string][]*spectator)
-	for k := range spectatorsByRemoteAddress {
-		spectators := spectatorsByRemoteAddress[k]
+	for k := range r.spectatorsByRemoteAddress {
+		spectators := r.spectatorsByRemoteAddress[k]
 		if len(spectators) == 0 {
 			continue
 		}
@@ -149,39 +139,36 @@ func getEligibleSpectators(ctx context.Context,
 			spectators[i], spectators[j] = spectators[j], spectators[i]
 		})
 		for j := range spectators {
-			if canReceive := c.CanReceiveRewards(spectators[j].remoteAddress); !canReceive {
-				canUseBadIP, err := moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, spectators[j].user.Address())
-				if err == nil && !canUseBadIP {
-					l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
-					continue
-				}
-			}
 			if !spectators[j].stoppedWatching.IsZero() {
 				// spectator not currently watching
 				continue
 			}
+			if goodRemoteAddressRep := spectators[j].GoodRemoteAddressReputation(ctx, r); !goodRemoteAddressRep {
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
+				continue
+			}
 			// do not reward spectators who didn't watch at least 40% of the media
 			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
-				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
 				continue
 			}
 			// do not reward an inactive spectator
 			if spectators[j].activityChallenge != nil && time.Since(spectators[j].activityChallenge.ChallengedAt) > spectators[j].activityChallenge.Tolerance {
-				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to inactivity")
 				continue
 			}
 			// do not reward an illegitimate spectator
 			if !spectators[j].legitimate {
-				l.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "because it is not considered legitimate")
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "because it is not considered legitimate")
 				continue
 			}
 			// do not reward a banned spectator
-			if banned, err := moderationStore.LoadPaymentAddressBannedFromRewards(ctx, spectators[j].user.Address()); err == nil && banned {
-				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
+			if banned, err := r.moderationStore.LoadPaymentAddressBannedFromRewards(ctx, spectators[j].user.Address()); err == nil && banned {
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
 				continue
 			}
-			if banned, err := moderationStore.LoadRemoteAddressBannedFromRewards(ctx, spectators[j].remoteAddress); err == nil && banned {
-				l.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
+			if banned, err := r.moderationStore.LoadRemoteAddressBannedFromRewards(ctx, spectators[j].remoteAddress); err == nil && banned {
+				r.log.Println("Skipped rewarding", spectators[j].user.Address(), "due to ban")
 				continue
 			}
 			// do not reward an address that would have received a reward via another remote address already

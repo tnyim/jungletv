@@ -434,8 +434,9 @@ message RewardInfoResponse {
     string reward_balance = 2;
     bool withdrawal_pending = 3;
     bool bad_representative = 4;
-    optional int32 withdrawal_position_in_queue = 5;
-    optional int32 withdrawals_in_queue = 6;
+    bool bad_remote_address_reputation = 5;
+    optional int32 withdrawal_position_in_queue = 6;
+    optional int32 withdrawals_in_queue = 7;
 }
 
 message RemoveQueueEntryRequest {

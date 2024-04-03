@@ -96,6 +96,12 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 		}()
 	}
 
+	goodRemoteAddressRep := true
+	// allow some time for IP addresses to be checked
+	if spectator, ok := s.rewardsHandler.GetSpectator(userClaims.Address()); ok && time.Since(spectator.WatchingSince()) > 3*time.Minute {
+		goodRemoteAddressRep = spectator.GoodRemoteAddressReputation(ctx, s.rewardsHandler)
+	}
+
 	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.Address())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -128,10 +134,11 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 
 	response := &proto.RewardInfoResponse{
-		RewardsAddress:    userClaims.Address(),
-		RewardBalance:     payment.NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
-		WithdrawalPending: pendingWithdrawal,
-		BadRepresentative: badRepresentative,
+		RewardsAddress:             userClaims.Address(),
+		RewardBalance:              payment.NewAmountFromDecimal(balance.Balance).SerializeForAPI(),
+		WithdrawalPending:          pendingWithdrawal,
+		BadRepresentative:          badRepresentative,
+		BadRemoteAddressReputation: !goodRemoteAddressRep,
 	}
 	if pendingWithdrawal {
 		p := int32(position)

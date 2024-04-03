@@ -25,6 +25,7 @@
     let withdrawalsInQueue = 0;
     let connections: Connection[];
     let services: ServiceInfo[];
+    let badRemoteAddressReputation = false;
 
     let rewardInfoPromise = (async function () {
         try {
@@ -33,6 +34,7 @@
             rewardAddress.update((_) => rewardInfo.getRewardsAddress());
             rewardBalance.update((_) => rewardInfo.getRewardBalance());
             badRepresentative.update((_) => rewardInfo.getBadRepresentative());
+            badRemoteAddressReputation = rewardInfo.getBadRemoteAddressReputation();
             pendingWithdrawal = rewardInfo.getWithdrawalPending();
             if (rewardInfo.hasWithdrawalPositionInQueue()) {
                 withdrawalPositionInQueue = rewardInfo.getWithdrawalPositionInQueue();
@@ -171,8 +173,24 @@
                 <a use:link href="/rewards/address" class={hrefButtonStyleClasses()}>Change address</a>
                 <ButtonButton on:click={() => openUserProfile($rewardAddress)}>Edit profile and nickname</ButtonButton>
             </div>
+            {#if badRemoteAddressReputation}
+                <div class="mb-3">
+                    <WarningMessage>
+                        You may not be receiving rewards because one or more of the internet connections you are using
+                        to access JungleTV is considered suspicious.
+                        <p class="text-sm">
+                            To receive rewards for watching JungleTV, disconnect from any VPNs or proxies you may be
+                            using and close all JungleTV tabs for roughly 30 minutes.
+                            <br />
+                            If this does not describe your situation, and/or if this warning persists, please contact the
+                            JungleTV team for assistance, for example, through the dedicated channel in the
+                            <a href="https://chat.banano.cc/" target="_blank" rel="noopener">Banano Discord</a>.
+                        </p>
+                    </WarningMessage>
+                </div>
+            {/if}
             {#if pendingWithdrawal}
-                <div class="mt-3">
+                <div class="mb-3">
                     <WarningMessage>
                         A withdrawal is pending for your account. This usually takes some seconds to complete, and
                         occasionally can take some minutes. You'll be able to withdraw when it completes.

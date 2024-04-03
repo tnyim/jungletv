@@ -15478,8 +15478,9 @@ proto.jungletv.RewardInfoResponse.toObject = function(includeInstance, msg) {
     rewardBalance: jspb.Message.getFieldWithDefault(msg, 2, ""),
     withdrawalPending: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
     badRepresentative: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
-    withdrawalPositionInQueue: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    withdrawalsInQueue: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    badRemoteAddressReputation: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
+    withdrawalPositionInQueue: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    withdrawalsInQueue: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -15533,10 +15534,14 @@ proto.jungletv.RewardInfoResponse.deserializeBinaryFromReader = function(msg, re
       msg.setBadRepresentative(value);
       break;
     case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setBadRemoteAddressReputation(value);
+      break;
+    case 6:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWithdrawalPositionInQueue(value);
       break;
-    case 6:
+    case 7:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setWithdrawalsInQueue(value);
       break;
@@ -15597,9 +15602,9 @@ proto.jungletv.RewardInfoResponse.serializeBinaryToWriter = function(message, wr
       f
     );
   }
-  f = /** @type {number} */ (jspb.Message.getField(message, 5));
-  if (f != null) {
-    writer.writeInt32(
+  f = message.getBadRemoteAddressReputation();
+  if (f) {
+    writer.writeBool(
       5,
       f
     );
@@ -15608,6 +15613,13 @@ proto.jungletv.RewardInfoResponse.serializeBinaryToWriter = function(message, wr
   if (f != null) {
     writer.writeInt32(
       6,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeInt32(
+      7,
       f
     );
   }
@@ -15687,46 +15699,28 @@ proto.jungletv.RewardInfoResponse.prototype.setBadRepresentative = function(valu
 
 
 /**
- * optional int32 withdrawal_position_in_queue = 5;
+ * optional bool bad_remote_address_reputation = 5;
+ * @return {boolean}
+ */
+proto.jungletv.RewardInfoResponse.prototype.getBadRemoteAddressReputation = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.setBadRemoteAddressReputation = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * optional int32 withdrawal_position_in_queue = 6;
  * @return {number}
  */
 proto.jungletv.RewardInfoResponse.prototype.getWithdrawalPositionInQueue = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
-};
-
-
-/**
- * @param {number} value
- * @return {!proto.jungletv.RewardInfoResponse} returns this
- */
-proto.jungletv.RewardInfoResponse.prototype.setWithdrawalPositionInQueue = function(value) {
-  return jspb.Message.setField(this, 5, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.jungletv.RewardInfoResponse} returns this
- */
-proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalPositionInQueue = function() {
-  return jspb.Message.setField(this, 5, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalPositionInQueue = function() {
-  return jspb.Message.getField(this, 5) != null;
-};
-
-
-/**
- * optional int32 withdrawals_in_queue = 6;
- * @return {number}
- */
-proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
 };
 
@@ -15735,7 +15729,7 @@ proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
  * @param {number} value
  * @return {!proto.jungletv.RewardInfoResponse} returns this
  */
-proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(value) {
+proto.jungletv.RewardInfoResponse.prototype.setWithdrawalPositionInQueue = function(value) {
   return jspb.Message.setField(this, 6, value);
 };
 
@@ -15744,7 +15738,7 @@ proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(val
  * Clears the field making it undefined.
  * @return {!proto.jungletv.RewardInfoResponse} returns this
  */
-proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function() {
+proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalPositionInQueue = function() {
   return jspb.Message.setField(this, 6, undefined);
 };
 
@@ -15753,8 +15747,44 @@ proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function()
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalsInQueue = function() {
+proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalPositionInQueue = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional int32 withdrawals_in_queue = 7;
+ * @return {number}
+ */
+proto.jungletv.RewardInfoResponse.prototype.getWithdrawalsInQueue = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.setWithdrawalsInQueue = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.jungletv.RewardInfoResponse} returns this
+ */
+proto.jungletv.RewardInfoResponse.prototype.clearWithdrawalsInQueue = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.jungletv.RewardInfoResponse.prototype.hasWithdrawalsInQueue = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 
