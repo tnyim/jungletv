@@ -400,7 +400,10 @@ func main() {
 		listenAddr = buildconfig.ServerListenAddr
 	}
 
-	httpServer, err := buildHTTPserver(apiServer, jwtManager, apiServer, listenAddr, certFile, keyFile, options, daClient, ssoCookieStore, basicAuthChecker)
+	var pprofPassword string
+	pprofPassword, _ = secrets.Get("pprofPassword")
+
+	httpServer, err := buildHTTPserver(apiServer, apiServer, listenAddr, certFile, keyFile, options, daClient, ssoCookieStore, basicAuthChecker, pprofPassword)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
@@ -440,7 +443,7 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	s.handler.ServeHTTP(resp, req)
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options, daClient *ssoclient.SSOClient, ssoCookieStore *sessions.CookieStore, basicAuthChecker func(ip, username, password string) bool) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options, daClient *ssoclient.SSOClient, ssoCookieStore *sessions.CookieStore, basicAuthChecker func(ip, username, password string) bool, pprofPassword string) (*http.Server, error) {
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(options.VersionInterceptor.Unary(), options.AuthInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(options.VersionInterceptor.Stream(), options.AuthInterceptor.Stream())
 	grpcServer := grpc.NewServer(
@@ -460,7 +463,8 @@ func buildHTTPserver(apiServer proto.JungleTVServer, jwtManager *auth.JWTManager
 		signatureVerifier,
 		daClient,
 		ssoCookieStore,
-		basicAuthChecker)
+		basicAuthChecker,
+		pprofPassword)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

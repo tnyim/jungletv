@@ -51,6 +51,7 @@ require (
 	github.com/smallnest/chanx v1.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/uptrace/bunrouter v1.0.21
+	github.com/uptrace/bunrouter/extra/basicauth v1.0.21
 	github.com/vburenin/nsync v0.0.0-20160822015540-9a75d1c80410
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
 	golang.org/x/crypto v0.19.0

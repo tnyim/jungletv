@@ -19,6 +19,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/raffle"
 	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/uptrace/bunrouter"
+	"github.com/uptrace/bunrouter/extra/basicauth"
 )
 
 type HTTPServer struct {
@@ -35,6 +36,7 @@ type HTTPServer struct {
 	ssoCookieStore     *sessions.CookieStore                    // optional, needed if daClient is not nil
 	daClient           *ssoclient.SSOClient                     // optional
 	basicAuthChecker   func(ip, username, password string) bool // optional
+	pprofPassword      string                                   // optional and only needed for non-debug environments
 }
 
 type SignatureVerifier interface {
@@ -53,7 +55,8 @@ func New(
 	signatureVerifier SignatureVerifier,
 	daClient *ssoclient.SSOClient,
 	ssoCookieStore *sessions.CookieStore,
-	basicAuthChecker func(ip, username, password string) bool) (http.Handler, error) {
+	basicAuthChecker func(ip, username, password string) bool,
+	pprofPassword string) (http.Handler, error) {
 	key, err := raffle.DecodeSecretKey(raffleSecretKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -77,6 +80,7 @@ func New(
 		ssoCookieStore:     ssoCookieStore,
 		daClient:           daClient,
 		basicAuthChecker:   basicAuthChecker,
+		pprofPassword:      pprofPassword,
 	}
 
 	router := bunrouter.New(
@@ -134,12 +138,24 @@ func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
 		}
 	})
 
-	if buildconfig.DEBUG {
-		router.Compat().GET("/debug/pprof/cmdline", pprof.Cmdline)
-		router.Compat().GET("/debug/pprof/profile", pprof.Profile)
-		router.Compat().GET("/debug/pprof/symbol", pprof.Symbol)
-		router.Compat().GET("/debug/pprof/trace", pprof.Trace)
-		router.Compat().GET("/debug/pprof/*anything", pprof.Index)
+	if buildconfig.DEBUG || s.pprofPassword != "" {
+		r := router.NewGroup("/debug/pprof")
+		if s.pprofPassword != "" {
+			authMiddleware := basicauth.NewMiddleware(func(req bunrouter.Request) (bool, error) {
+				_, pass, ok := req.BasicAuth()
+				if !ok {
+					return false, nil
+				}
+				return pass == s.pprofPassword, nil
+			})
+			r = r.Use(authMiddleware)
+		}
+
+		r.Compat().GET("/cmdline", pprof.Cmdline)
+		r.Compat().GET("/profile", pprof.Profile)
+		r.Compat().GET("/symbol", pprof.Symbol)
+		r.Compat().GET("/trace", pprof.Trace)
+		r.Compat().GET("/*anything", pprof.Index)
 	}
 
 	if buildconfig.DEBUG && s.daClient == nil && s.basicAuthChecker == nil {

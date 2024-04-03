@@ -737,6 +737,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/uptrace/bunrouter v1.0.21 h1:HXarvX+N834sXyHpl+I/TuE11m19kLW/qG5u3YpHUag=
 github.com/uptrace/bunrouter v1.0.21/go.mod h1:TwT7Bc0ztF2Z2q/ZzMuSVkcb/Ig/d3MQeP2cxn3e1hI=
+github.com/uptrace/bunrouter/extra/basicauth v1.0.21 h1:bcU/IBQq4NK1p8mfqbbVGCvmYAvuOGoMLI84thuw+zI=
+github.com/uptrace/bunrouter/extra/basicauth v1.0.21/go.mod h1:jF5YZRVjN8XbTlREPPlU5lJjJWugaNd/o4pLxiKeGPw=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
