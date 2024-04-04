@@ -380,6 +380,18 @@ export const setPlayerVolume = async function (volume: number): Promise<void> {
     return connection.remoteHandle().call("setPlayerVolume", volume);
 }
 
+/**
+ * Get the reward address of the user in whose profile this page is mounted.
+ * @returns The reward address of the user in whose profile this page is mounted.
+ */
+export const containingProfileUserAddress = async function(): Promise<string> {
+    let connection = await connectionPromise;
+    if (cachedInfo.role !== "profile" && cachedInfo.role !== "profilepage") {
+        throw new Error("This method may only be used when mounted as a profile tab");
+    }
+    return connection.remoteHandle().call("containingProfileUserAddress");
+}
+
 // #region Page title syncing
 
 let pageTitleObserver: MutationObserver;

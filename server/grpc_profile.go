@@ -67,10 +67,6 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 		CurrentSubscription:    convertSubscription(subscription),
 	}
 
-	if appID := user.ApplicationID(); appID != "" {
-		response.ApplicationId = &appID
-	}
-
 	if profile.FeaturedMedia != nil {
 		id := *profile.FeaturedMedia
 		playedMedia, err := types.GetPlayedMediaWithIDs(ctx, []string{id})
@@ -90,15 +86,19 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 		return nil, stacktrace.Propagate(err, "failed to get profile tabs")
 	}
 
-	response.ApplicationTabs = lo.Map(profileTabs, func(tab configurationmanager.ProfileTabData, _ int) *proto.UserProfileApplicationTab {
-		return &proto.UserProfileApplicationTab{
-			TabId:         tab.TabID,
-			TabTitle:      tab.Title,
-			ApplicationId: tab.ApplicationID,
-			PageId:        tab.PageID,
-			BeforeTabId:   tab.BeforeTabID,
-		}
-	})
+	if appID := user.ApplicationID(); appID != "" {
+		response.ApplicationId = &appID
+	} else {
+		response.ApplicationTabs = lo.Map(profileTabs, func(tab configurationmanager.ProfileTabData, _ int) *proto.UserProfileApplicationTab {
+			return &proto.UserProfileApplicationTab{
+				TabId:         tab.TabID,
+				TabTitle:      tab.Title,
+				ApplicationId: tab.ApplicationID,
+				PageId:        tab.PageID,
+				BeforeTabId:   tab.BeforeTabID,
+			}
+		})
+	}
 
 	return response, nil
 }

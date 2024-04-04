@@ -468,6 +468,7 @@
                         applicationID={appTab.applicationID}
                         pageID={appTab.pageID}
                         mode={mode == "page" ? "profilepage" : "profile"}
+                        profileUserAddress={userProfile.getUser().getAddress()}
                         on:setTabTitle={(e) => setTabTitle(appTab.id, e.detail)}
                         on:pageUnpublished={refreshProfile}
                     />

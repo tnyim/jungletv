@@ -24,6 +24,7 @@ export type ParentMethods = {
     showNavbarToast: (content: string, duration: number, href?: string) => void;
     playerVolume: () => number;
     setPlayerVolume: (volume: number) => void;
+    containingProfileUserAddress: () => string;
 }
 
 // events that the parent can trigger on the child
