@@ -148,7 +148,7 @@
     {#if sidebarExpanded || !largeScreen}
         <div
             bind:this={sidebarContainer}
-            class="sidebar-container flex flex-col lg:shadow-xl bg-white dark:bg-gray-900 dark:text-white lg:z-40 relative"
+            class="sidebar-container flex flex-col flex-grow lg:flex-grow-0 lg:shadow-xl bg-white dark:bg-gray-900 dark:text-white lg:z-40 relative"
             style="--sidebar-width: {cssSidebarWidth}px; pointer-events: {resizingSidebar ? 'none' : 'auto'}"
             transition:fly|local={{
                 x: sidebarWidth,

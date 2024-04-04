@@ -4961,8 +4961,8 @@ export namespace ClearQueueInsertCursorResponse {
 }
 
 export class UserProfileRequest extends jspb.Message {
-  getAddress(): string;
-  setAddress(value: string): void;
+  getAddressOrApplicationId(): string;
+  setAddressOrApplicationId(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserProfileRequest.AsObject;
@@ -4976,7 +4976,7 @@ export class UserProfileRequest extends jspb.Message {
 
 export namespace UserProfileRequest {
   export type AsObject = {
-    address: string,
+    addressOrApplicationId: string,
   }
 }
 
@@ -4998,6 +4998,16 @@ export class UserProfileResponse extends jspb.Message {
   clearCurrentSubscription(): void;
   getCurrentSubscription(): SubscriptionDetails | undefined;
   setCurrentSubscription(value?: SubscriptionDetails): void;
+
+  hasApplicationId(): boolean;
+  clearApplicationId(): void;
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  clearApplicationTabsList(): void;
+  getApplicationTabsList(): Array<UserProfileApplicationTab>;
+  setApplicationTabsList(value: Array<UserProfileApplicationTab>): void;
+  addApplicationTabs(value?: UserProfileApplicationTab, index?: number): UserProfileApplicationTab;
 
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
@@ -5031,6 +5041,8 @@ export namespace UserProfileResponse {
     recentlyPlayedRequestsList: Array<PlayedMedia.AsObject>,
     biography: string,
     currentSubscription?: SubscriptionDetails.AsObject,
+    applicationId: string,
+    applicationTabsList: Array<UserProfileApplicationTab.AsObject>,
     youtubeVideoData?: QueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
     documentData?: QueueDocumentData.AsObject,
@@ -5038,9 +5050,45 @@ export namespace UserProfileResponse {
 
   export enum FeaturedMediaCase {
     FEATURED_MEDIA_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 5,
-    SOUNDCLOUD_TRACK_DATA = 6,
-    DOCUMENT_DATA = 7,
+    YOUTUBE_VIDEO_DATA = 7,
+    SOUNDCLOUD_TRACK_DATA = 8,
+    DOCUMENT_DATA = 9,
+  }
+}
+
+export class UserProfileApplicationTab extends jspb.Message {
+  getTabId(): string;
+  setTabId(value: string): void;
+
+  getApplicationId(): string;
+  setApplicationId(value: string): void;
+
+  getPageId(): string;
+  setPageId(value: string): void;
+
+  getTabTitle(): string;
+  setTabTitle(value: string): void;
+
+  getBeforeTabId(): string;
+  setBeforeTabId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserProfileApplicationTab.AsObject;
+  static toObject(includeInstance: boolean, msg: UserProfileApplicationTab): UserProfileApplicationTab.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserProfileApplicationTab, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserProfileApplicationTab;
+  static deserializeBinaryFromReader(message: UserProfileApplicationTab, reader: jspb.BinaryReader): UserProfileApplicationTab;
+}
+
+export namespace UserProfileApplicationTab {
+  export type AsObject = {
+    tabId: string,
+    applicationId: string,
+    pageId: string,
+    tabTitle: string,
+    beforeTabId: string,
   }
 }
 

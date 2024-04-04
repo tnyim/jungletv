@@ -92,3 +92,6 @@ export const enqueuingPasswordEdition = writable(((): string => {
     return localStorage.enqueuingPasswordEdition;
 })());
 enqueuingPasswordEdition.subscribe(v => localStorage.setItem("enqueuingPasswordEdition", v))
+
+export const mainContentBottomPadding = writable("");
+export const mainContentBottomPaddingAppliedByChild = writable(false);

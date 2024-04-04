@@ -94,6 +94,26 @@ func GetApplicationsWithIDs(node sqalx.Node, ids []string) (map[string]*Applicat
 	return result, nil
 }
 
+// GetApplicationWalletAddress resolves an application's wallet address based on their ID
+// The application must have been launched at least once before
+func GetApplicationWalletAddress(node sqalx.Node, id string) (string, error) {
+	tx, err := node.Beginx()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	defer tx.Commit() // read-only tx
+
+	var address string
+	err = sdb.Select("address").
+		From("chat_user").
+		Where(sq.Eq{"chat_user.application_id": id}).
+		RunWith(tx).QueryRow().Scan(&address)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "")
+	}
+	return address, nil
+}
+
 // GetEarliestVersionOfApplication returns the earliest version of the application with the specified ID
 func GetEarliestVersionOfApplication(node sqalx.Node, id string) (ApplicationVersion, error) {
 	tx, err := node.Beginx()

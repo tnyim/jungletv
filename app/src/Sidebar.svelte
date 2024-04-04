@@ -13,6 +13,7 @@
     } from "./tabStores";
     import SidebarTabContainer from "./uielements/SidebarTabContainer.svelte";
     import TabButton from "./uielements/TabButton.svelte";
+    import TabButtonBar from "./uielements/TabButtonBar.svelte";
     import { openPopout } from "./utils";
 
     const registerFocus = useFocus();
@@ -58,66 +59,6 @@
         }
     });
 
-    let tabBar: HTMLDivElement;
-    let blW = 0;
-    let blSW = 1,
-        wDiff = blSW / blW - 1, // widths difference ratio
-        mPadd = 50, // Mousemove Padding
-        damp = 12, // Mousemove response softness
-        mX = 0, // Real mouse position
-        mX2 = 0, // Modified mouse position
-        posX = 0,
-        mmAA = blW - mPadd * 2, // The mousemove available area
-        mmAAr = blW / mmAA; // get available mousemove fidderence ratio
-    $: if (tabBar !== undefined) {
-        blSW = tabBar.scrollWidth;
-        wDiff = blSW / blW - 1; // widths difference ratio
-        mmAA = blW - mPadd * 2; // The mousemove available area
-        mmAAr = blW / mmAA;
-    }
-    let touchingTabBar = false;
-    function onTabBarMouseMove(e: MouseEvent) {
-        if (!touchingTabBar) {
-            mX = e.pageX - tabBar.getBoundingClientRect().left;
-            mX2 = Math.min(Math.max(0, mX - mPadd), mmAA) * mmAAr;
-            if (scrollInterval == undefined) {
-                setupScrollInterval();
-            }
-        }
-    }
-
-    let scrollInterval: number;
-    let didNotMoveFor = 0;
-
-    function setupScrollInterval() {
-        scrollInterval = setInterval(function () {
-            if (!touchingTabBar) {
-                let prev = tabBar.scrollLeft;
-                posX += (mX2 - posX) / damp; // zeno's paradox equation "catching delay"
-                tabBar.scrollLeft = posX * wDiff;
-                if (prev == tabBar.scrollLeft) {
-                    didNotMoveFor++;
-                    if (didNotMoveFor > 20) {
-                        // we have stopped moving, clear the interval to save power
-                        clearScrollInterval();
-                        return;
-                    }
-                } else {
-                    didNotMoveFor = 0;
-                }
-            } else {
-                clearScrollInterval();
-            }
-        }, 16);
-    }
-
-    function clearScrollInterval() {
-        if (scrollInterval !== undefined) {
-            clearInterval(scrollInterval);
-            scrollInterval = undefined;
-        }
-    }
-
     function onTabButtonClick(tabID: string, e: MouseEvent) {
         if (e.ctrlKey || e.altKey) {
             if (tryToPopOutTab(tabID)) {
@@ -148,10 +89,6 @@
         }
         return false;
     }
-
-    onDestroy(() => {
-        clearScrollInterval();
-    });
 </script>
 
 <div class="px-2 pt-1 pb-2 cursor-default relative">
@@ -164,18 +101,7 @@
         <i class="fas fa-angle-double-right" />
     </button>
     <div class="flex flex-row lg:ml-10">
-        <div
-            tabindex="-1"
-            class="flex-1 flex flex-row h-9 overflow-x-scroll disable-scrollbars relative"
-            on:mousemove={onTabBarMouseMove}
-            on:touchstart={() => (touchingTabBar = true)}
-            on:touchend={() => {
-                clearScrollInterval();
-                touchingTabBar = false;
-            }}
-            bind:this={tabBar}
-            bind:offsetWidth={blW}
-        >
+        <TabButtonBar extraClasses="flex-1">
             {#each tabs as tab}
                 <TabButton
                     selected={selectedTabID == tab.id}
@@ -204,7 +130,7 @@
                     {/if}
                 </TabButton>
             {/each}
-        </div>
+        </TabButtonBar>
         {#if $playerConnected}
             <div
                 class="text-gray-500 pt-1 pl-2"
@@ -247,16 +173,5 @@
         grid-column: 1;
         overflow-x: hidden;
         mix-blend-mode: normal;
-    }
-
-    .disable-scrollbars::-webkit-scrollbar {
-        width: 0px;
-        height: 0px;
-        background: transparent; /* Chrome/Safari/Webkit */
-    }
-
-    .disable-scrollbars {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE 10+ */
     }
 </style>

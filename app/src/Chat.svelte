@@ -497,7 +497,7 @@
     let containerClasses = "";
     $: {
         if (mode == "sidebar") {
-            containerClasses = "chat-max-height h-full";
+            containerClasses = "chat-max-height min-h-full";
         } else if (mode == "popout") {
             containerClasses = "h-screen";
         }

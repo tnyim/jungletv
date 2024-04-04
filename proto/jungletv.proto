@@ -1150,7 +1150,7 @@ message ClearQueueInsertCursorRequest {}
 message ClearQueueInsertCursorResponse {}
 
 message UserProfileRequest {
-    string address = 1;
+    string address_or_application_id = 1;
 }
 
 message UserProfileResponse {
@@ -1158,11 +1158,21 @@ message UserProfileResponse {
     repeated PlayedMedia recently_played_requests = 2;
     string biography = 3;
     optional SubscriptionDetails current_subscription = 4;
+    optional string application_id = 5;
+    repeated UserProfileApplicationTab application_tabs = 6;
     oneof featured_media {
-        QueueYouTubeVideoData youtube_video_data = 5;
-        QueueSoundCloudTrackData soundcloud_track_data = 6;
-        QueueDocumentData document_data = 7;
+        QueueYouTubeVideoData youtube_video_data = 7;
+        QueueSoundCloudTrackData soundcloud_track_data = 8;
+        QueueDocumentData document_data = 9;
     }
+}
+
+message UserProfileApplicationTab {
+    string tab_id = 1;
+    string application_id = 2;
+    string page_id = 3;
+    string tab_title = 4;
+    string before_tab_id = 5;
 }
 
 message UserStatsRequest {

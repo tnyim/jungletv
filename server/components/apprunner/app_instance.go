@@ -221,6 +221,8 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	if !a.startedOnce {
 		// ensure that the nicknames table has the applicationID associated with this application,
 		// such that loading the application user (e.g. via UserCache) always returns an user associated with the ID of this application
+		// types.GetApplicationWalletAddress relies on this, which in turn is relied upon to resolve application profiles based on their ID
+		// (quite messy, but works for now)
 		nickname := a.runner.moduleDependencies.ChatManager.GetNickname(ctx, a.applicationUser)
 		err := a.runner.moduleDependencies.ChatManager.SetNickname(ctx, a.applicationUser, nickname, true)
 		if err != nil {

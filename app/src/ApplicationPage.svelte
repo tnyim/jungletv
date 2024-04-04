@@ -37,7 +37,7 @@
     export let pageID: string;
     export let subpath = "";
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
-    export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" = "page";
+    export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" | "profile" | "profilepage" = "page";
     export let fixedHeight: number = 0;
     let unpublished = false;
     let applicationVersion: Date;
@@ -97,13 +97,13 @@
             return subpath;
         },
         pageSearch() {
-            if (mode !== "page") {
+            if (mode !== "page" && mode !== "profilepage") {
                 return "";
             }
             return window.location.search;
         },
         pageHash() {
-            if (mode !== "page") {
+            if (mode !== "page" && mode !== "profilepage") {
                 return "";
             }
             return window.location.hash;
@@ -234,7 +234,7 @@
             let title = t ? t : originalPageTitle;
             if (mode == "page") {
                 pageTitleApplicationPage.set(title);
-            } else if (mode == "sidebar") {
+            } else if (mode == "sidebar" || mode == "profile" || mode == "profilepage") {
                 dispatch("setTabTitle", title);
             }
         });

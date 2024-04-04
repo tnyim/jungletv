@@ -1,6 +1,7 @@
-import type { Context, Open, Close } from "svelte-simple-modal";
+import type { Close, Context, Open } from "svelte-simple-modal";
 import { writable, type Unsubscriber } from "svelte/store";
 import ModalAlert from "./ModalAlert.svelte";
+import ModalCloseButton from "./ModalCloseButton.svelte";
 import ModalConfirm from "./ModalConfirm.svelte";
 import ModalPrompt from "./ModalPrompt.svelte";
 
@@ -62,6 +63,9 @@ function processModalQueue() {
         // this delay is an attempt to fix a bug where a modal will end up showing above another, i.e. taking the screen space above another one
         setTimeout(() => {
             const p = deferredModalOpeningQueue.pop();
+            if (p.options?.closeButton === true) {
+                p.options.closeButton = ModalCloseButton;
+            }
             modalOpen(p.component, p.props, p.options, p.callbacks);
             currentModal.set(p);
         }, 100);

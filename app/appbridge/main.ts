@@ -231,6 +231,9 @@ export const getApplicationPageHash = async function (): Promise<string> {
  */
 export const alert = async function (message: string, title: string = "", buttonLabel: string = "OK"): Promise<void> {
     let connection = await connectionPromise;
+    if (cachedInfo.role === "profile") {
+        throw new Error("This method may not be used when mounted in a profile modal");
+    }
     await connection.remoteHandle().call("alert", message, title, buttonLabel);
 }
 
@@ -245,6 +248,9 @@ export const alert = async function (message: string, title: string = "", button
  */
 export const confirm = async function (question: string, title: string = "", positiveAnswerLabel: string = "Yes", negativeAnswerLabel: string = "No"): Promise<boolean> {
     let connection = await connectionPromise;
+    if (cachedInfo.role === "profile") {
+        throw new Error("This method may not be used when mounted in a profile modal");
+    }
     return connection.remoteHandle().call("confirm", question, title, positiveAnswerLabel, negativeAnswerLabel);
 }
 
@@ -266,6 +272,9 @@ export const prompt = async function (question: string,
     positiveAnswerLabel: string = "OK",
     negativeAnswerLabel: string = "Cancel"): Promise<string> {
     let connection = await connectionPromise;
+    if (cachedInfo.role === "profile") {
+        throw new Error("This method may not be used when mounted in a profile modal");
+    }
     return connection.remoteHandle().call("prompt", question, title, placeholder, initialValue, positiveAnswerLabel, negativeAnswerLabel);
 }
 
@@ -297,6 +306,9 @@ export const getUserPermissionLevel = async function (): Promise<string> {
  */
 export const showUserProfile = async function (userAddress: string): Promise<void> {
     let connection = await connectionPromise;
+    if (cachedInfo.role === "profile") {
+        throw new Error("This method may not be used when mounted in a profile modal");
+    }
     return connection.remoteHandle().call("showUserProfile", userAddress);
 }
 
@@ -361,10 +373,10 @@ export const setPlayerVolume = async function (volume: number): Promise<void> {
     if (volume < 0 || volume > 1) {
         throw new Error("Volume must be between 0 and 1");
     }
+    let connection = await connectionPromise;
     if (cachedInfo.role !== "playingmedia") {
         throw new Error("This method may only be used when mounted as playing media");
     }
-    let connection = await connectionPromise;
     return connection.remoteHandle().call("setPlayerVolume", volume);
 }
 

@@ -22,6 +22,8 @@
 	import PointsFromBanano from "./PointsFromBanano.svelte";
 	import Rewards from "./Rewards.svelte";
 	import SetRewardsAddress from "./SetRewardsAddress.svelte";
+	import UserProfile from "./UserProfile.svelte";
+	import UserProfilePage from "./UserProfilePage.svelte";
 	import { apiClient } from "./api_client";
 	import {
 		applicationName,
@@ -44,6 +46,7 @@
 	import UserChatHistory from "./moderation/UserChatHistory.svelte";
 	import UserVerifications from "./moderation/UserVerifications.svelte";
 	import { pageTitleApplicationPage, pageTitleMedia, pageTitlePopoutTab } from "./pageTitleStores";
+	import { setUserProfileComponent } from "./profile_utils";
 	import { PermissionLevel } from "./proto/jungletv_pb";
 	import {
 		autoCloseBrackets,
@@ -55,11 +58,12 @@
 		currentSubscription,
 		darkMode,
 		featureFlags,
+		mainContentBottomPadding,
+		mainContentBottomPaddingAppliedByChild,
 		permissionLevel,
 		playerVolume,
 		rewardAddress,
 		rewardBalance,
-		sidebarSplitterPosition,
 		unreadChatMention,
 	} from "./stores";
 	import { sidebarTabs, type SidebarTab } from "./tabStores";
@@ -72,6 +76,7 @@
 
 	// another dirty hack to quickly break a cyclic dependency
 	setApplicationPageComponent(ApplicationPage);
+	setUserProfileComponent(UserProfile);
 
 	// the purpose of this div is to be our <body> inside the shadow DOM so we can apply the dark mode class
 	let rootInsideShadowRoot: HTMLElement;
@@ -214,7 +219,6 @@
 		localStorage.featureFlags = JSON.stringify(v);
 	});
 
-	let mainContentBottomPadding = "";
 	let playerContainer: PlayerContainer;
 	let fullSizePlayerContainer: HTMLElement = null;
 	let fullSizePlayerContainerWidth: number = 0;
@@ -313,12 +317,11 @@
 	{:else if isOnline}
 		<Navbar />
 		<div
-			class="flex justify-center lg:min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
-			dark:text-gray-300 {mainContentBottomPadding}"
+			class="flex justify-center min-h-screen pt-16 bg-gray-100 dark:bg-gray-900
+			dark:text-gray-300 {$mainContentBottomPaddingAppliedByChild ? '' : $mainContentBottomPadding}"
 		>
 			<PlayerContainer
 				bind:this={playerContainer}
-				bind:mainContentBottomPadding
 				{resizingSidebar}
 				{sidebarWidth}
 				fullSize={isOnHomepage}
@@ -352,6 +355,7 @@
 				<Route path="/faq" component={Document} documentID="faq" />
 				<Route path="/documents/:documentID" component={Document} />
 				<Route path="/history" component={PlayedMediaHistory} />
+				<Route path="/profile/:userAddressOrApplicationID/*selectedTab" component={UserProfilePage} />
 				<Route path="/apps/:applicationID/*" let:params>
 					<Route path="/" component={ApplicationPage} applicationID={params.applicationID} pageID="" />
 					<Route path=":pageID/*subpath" component={ApplicationPage} applicationID={params.applicationID} />

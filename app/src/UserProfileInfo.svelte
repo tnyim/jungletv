@@ -7,6 +7,7 @@
     export let biography: string;
     export let isSelf: boolean;
     export let isApplication: boolean;
+    export let limitHeight: boolean;
 
     let editedBiography = "";
     $: editedBiography = biography;
@@ -70,7 +71,7 @@
         style="resize: none;"
         use:fixAutosize
         use:autosize
-        class="w-full max-h-64 bg-transparent"
+        class="w-full {limitHeight ? 'max-h-64' : ''} bg-transparent"
         placeholder="Tell the monkeys a little bit about yourself"
         maxlength="512"
         rows="1"

@@ -1,10 +1,16 @@
-import UserProfile from "./UserProfile.svelte";
+import { crossfade } from "svelte/transition";
 import { openModal } from "./modal/modal";
+
+let userProfileComponent: any;
+
+export const setUserProfileComponent = function (component: any) {
+    userProfileComponent = component;
+}
 
 export const openUserProfile = function (userAddress: string) {
     openModal({
-        component: UserProfile,
-        props: { userAddress: userAddress },
+        component: userProfileComponent,
+        props: { userAddressOrApplicationID: userAddress },
         options: {
             closeButton: true,
             closeOnEsc: true,
@@ -15,3 +21,15 @@ export const openUserProfile = function (userAddress: string) {
         },
     });
 }
+
+export const [userProfileSend, userProfileReceive] = crossfade({
+    duration: 400,
+});
+
+export type ProfileTab = {
+    id: string;
+    tabTitle: string;
+    isApplicationTab: boolean;
+    applicationID?: string;
+    pageID?: string;
+};

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -23,14 +24,26 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := auth.NewAddressOnlyUser(r.Address)
+	address := r.AddressOrApplicationId
+	if len(r.AddressOrApplicationId) != 64 || !strings.HasPrefix(r.AddressOrApplicationId, "ban_") {
+		address, err = types.GetApplicationWalletAddress(ctx, r.AddressOrApplicationId)
+		if err != nil {
+			return nil, stacktrace.NewError("invalid address or unregistered application ID")
+		}
+	}
 
-	recentlyRequestedMedia, err := types.LastRequestsOfAddress(ctx, r.Address, 10, true)
+	user := auth.NewAddressOnlyUser(address)
+	fetchedUser, err := s.nicknameCache.GetOrFetchUser(ctx, address)
+	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+		user = fetchedUser
+	}
+
+	recentlyRequestedMedia, err := types.LastRequestsOfAddress(ctx, address, 10, true)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	profile, err := types.GetUserProfileForAddress(ctx, r.Address)
+	profile, err := types.GetUserProfileForAddress(ctx, address)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -50,6 +63,10 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 		RecentlyPlayedRequests: protoPlayedMedias,
 		Biography:              profile.Biography,
 		CurrentSubscription:    convertSubscription(subscription),
+	}
+
+	if appID := user.ApplicationID(); appID != "" {
+		response.ApplicationId = &appID
 	}
 
 	if profile.FeaturedMedia != nil {

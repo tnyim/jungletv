@@ -763,9 +763,9 @@ class APIClient {
         return this.unaryRPC(JungleTV.UserPermissionLevel, new UserPermissionLevelRequest());
     }
 
-    async userProfile(address: string): Promise<UserProfileResponse> {
+    async userProfile(addressOrApplicationID: string): Promise<UserProfileResponse> {
         const request = new UserProfileRequest();
-        request.setAddress(address);
+        request.setAddressOrApplicationId(addressOrApplicationID);
         return this.unaryRPC(JungleTV.UserProfile, request);
     }
 

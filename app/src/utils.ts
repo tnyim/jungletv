@@ -335,7 +335,7 @@ const configureMarked = function () {
 }
 
 // asynchronously fills the shortcodes used in the tooltips of native unicode emoji
-const emojiShortcodeFillerTokenWalker = async function(token) {
+const emojiShortcodeFillerTokenWalker = async function (token) {
     if (token.type === 'emoji') {
         try {
             const result = await emojiDatabase.getEmojiByUnicodeOrName(token.raw);

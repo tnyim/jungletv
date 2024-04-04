@@ -4,7 +4,7 @@
     import watchMedia from "svelte-media";
     import { navigate } from "svelte-navigator";
     import Player from "./Player.svelte";
-    import { rewardAddress } from "./stores";
+    import { mainContentBottomPadding, rewardAddress } from "./stores";
 
     export let fullSize = false;
     export let fullSizePlayerContainer: HTMLElement = null;
@@ -36,8 +36,6 @@
     });
     onDestroy(mediaUnsubscribe);
 
-    export let mainContentBottomPadding = "";
-
     let playerContainer: HTMLElement;
 
     const sidebarOpenCloseAnimDuration = 400;
@@ -46,7 +44,7 @@
     export const onSidebarCollapseStart = () => {
         sidebarOpeningOrClosing = true;
         console.log("sidebarWidth", sidebarWidth);
-        playerContainer.style.width = playerContainer.clientWidth + sidebarWidth + "px";
+        playerContainer.style.width = playerCoOFntainer.clientWidth + sidebarWidth + "px";
     };
 
     export const onSidebarCollapseEnd = () => {
@@ -120,12 +118,12 @@
     $: {
         if (!fullSize && playerOpen) {
             if (bigMinimizedPlayer) {
-                mainContentBottomPadding = largeEnoughToNotCollide ? "" : "pb-64";
+                $mainContentBottomPadding = largeEnoughToNotCollide ? "" : "pb-64";
             } else {
-                mainContentBottomPadding = "pb-32";
+                $mainContentBottomPadding = "pb-32";
             }
         } else {
-            mainContentBottomPadding = "";
+            $mainContentBottomPadding = "";
         }
     }
 
@@ -197,13 +195,13 @@
         {/key}
     {/if}
     <button
-        class="player-close-button flex-row shadow-md bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+        class="player-close-button flex-row shadow-md bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={closePlayer}
     >
         <i class="fas fa-times" />
     </button>
     <button
-        class="player-expand-button flex-row shadow-md bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 cursor-pointer text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
+        class="player-expand-button flex-row shadow-md bg-white dark:bg-gray-800 text-black dark:text-white hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 z-40 text-xl text-center place-content-center items-center ease-linear transition-all duration-150"
         on:click={expandPlayer}
     >
         <i class="fas fa-external-link-alt" />

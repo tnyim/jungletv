@@ -48,7 +48,7 @@ export type ChildEvents = {
 }
 
 export type MountEventArgs = {
-    role: "standalone" | "activity" | "sidebar" | "chatattachment" | "playingmedia",
+    role: "standalone" | "activity" | "sidebar" | "chatattachment" | "playingmedia" | "profile" | "profilepage",
 }
 
 export type ApplicationEventArgs = {
