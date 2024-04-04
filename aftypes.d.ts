@@ -813,6 +813,27 @@ declare module "jungletv:configuration" {
     export function setSidebarTab(pageID?: string, beforeTabID?: string): boolean;
 
     /**
+     * Sets an application page, registered with {@link "jungletv:pages".publishFile}, to be shown as an additional tab on the JungleTV user profiles.
+     * The tab's initial title will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
+     * When the page makes use of the app bridge script, its document title will be automatically synchronized with the tab title, **while the tab is visible/selected**.
+     * When not selected, the tab **may** retain the most recent title until it is reopened or removed, **or** it **may** revert to the page's default title.
+     * The new profile tab becomes available on all user profiles opened after the moment this function is invoked, and it is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.
+     * Each JAF application can elect to show a single one of their application pages as a profile tab.
+     * If the same application invokes this function with different pages as the argument, the profile tab slot available to that application will contain the page passed on the most recent invocation.
+     * @param pageID A case-sensitive string representing the ID of the page to use as the content for the tab, as was specified when invoking {@link "jungletv:pages".publishFile}.
+     * When set to `null` or `undefined`, the profile tab slot for the JAF application will be removed.
+     * Connected users with the application's tab active will see an immediate switch to another profile tab.
+     * @param beforeTabID An optional string that allows for controlling the placement of the new profile tab relative to the built-in profile tabs.
+     * The application's tab will appear to the left of the specified built-in tab.
+     * The built-in tab IDs are: `featuredmedia`, `info`, `tip`, `stats` and `moderation`.
+     * If this argument is not specified, or if the specified tab ID is not available on a certain user profile, the tab will appear to the right of all the built-in tabs.
+     * The application framework is not designed to let applications control the placement of their tab relative to the tabs of other JAF applications.
+     * The placement of an application's tab relative to the tabs of other applications may change every time this function is invoked.
+     * @returns true in circumstances where the AF runtime is working as expected.
+     */
+    export function setProfileTab(pageID?: string, beforeTabID?: string): boolean;
+
+    /**
      * Sets a new navigation bar item, on the JungleTV client SPA, to link to an application page, registered with {@link "jungletv:pages".publishFile}.
      * The item's label will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
      * The new navigation destination becomes immediately available on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.

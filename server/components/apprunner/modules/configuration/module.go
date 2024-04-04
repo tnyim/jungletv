@@ -38,6 +38,7 @@ type configurationModule struct {
 
 	configurationAssociationLock       sync.Mutex
 	currentSidebarTab                  configurationmanager.SidebarTabData
+	currentProfileTab                  configurationmanager.ProfileTabData
 	currentNavigationDestination       configurationmanager.NavigationDestination
 	currentNavigationDestinationPageID string
 
@@ -66,6 +67,7 @@ func (m *configurationModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("setAppLogo", m.setAppLogo)
 		m.exports.Set("setAppFavicon", m.setAppFavicon)
 		m.exports.Set("setSidebarTab", m.setSidebarTab)
+		m.exports.Set("setProfileTab", m.setProfileTab)
 		m.exports.Set("setUserVIPStatus", m.setUserVIPStatus)
 		m.exports.Set("setNavigationDestination", m.setNavigationDestination)
 		m.exports.Set("highlightNavigationDestination", m.highlightNavigationDestination)
@@ -108,6 +110,13 @@ func (m *configurationModule) updatePageConfigurablesOnPagePublish(pageID string
 			_, _ = configurationmanager.SetConfigurable(m.configManager, configurationmanager.SidebarTabs, m.currentSidebarTab.ApplicationID, m.currentSidebarTab)
 		}
 	}
+	if pageID == m.currentProfileTab.PageID && m.currentProfileTab != (configurationmanager.ProfileTabData{}) {
+		info, ok := m.pagesModule.ResolvePage(pageID)
+		if ok {
+			m.currentProfileTab.Title = info.Title
+			_, _ = configurationmanager.SetConfigurable(m.configManager, configurationmanager.ProfileTabs, m.currentProfileTab.ApplicationID, m.currentProfileTab)
+		}
+	}
 	if pageID == m.currentNavigationDestinationPageID && m.currentNavigationDestination != (configurationmanager.NavigationDestination{}) {
 		info, ok := m.pagesModule.ResolvePage(pageID)
 		if ok {
@@ -123,6 +132,9 @@ func (m *configurationModule) resetPageConfigurablesOnPageUnpublish(pageID strin
 
 	if pageID == m.currentSidebarTab.PageID && m.currentSidebarTab != (configurationmanager.SidebarTabData{}) {
 		_ = m.configManager.UndoApplicationChange(configurationmanager.SidebarTabs, m.appContext.ApplicationID())
+	}
+	if pageID == m.currentProfileTab.PageID && m.currentProfileTab != (configurationmanager.ProfileTabData{}) {
+		_ = m.configManager.UndoApplicationChange(configurationmanager.ProfileTabs, m.appContext.ApplicationID())
 	}
 	if pageID == m.currentNavigationDestinationPageID && m.currentNavigationDestination != (configurationmanager.NavigationDestination{}) {
 		_ = m.configManager.UndoApplicationChange(configurationmanager.NavigationDestinations, m.appContext.ApplicationID())
@@ -309,6 +321,64 @@ func (m *configurationModule) setSidebarTab(call goja.FunctionCall) goja.Value {
 		m.configurationAssociationLock.Lock()
 		defer m.configurationAssociationLock.Unlock()
 		m.currentSidebarTab = data
+	}
+
+	return m.runtime.ToValue(success)
+}
+
+func (m *configurationModule) setProfileTab(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+
+	applicationID := m.appContext.ApplicationID()
+	pageID := call.Argument(0).String()
+	configurable := configurationmanager.ProfileTabs
+
+	if goja.IsUndefined(call.Argument(0)) || goja.IsNull(call.Argument(0)) {
+		err := m.configManager.UndoApplicationChange(configurable, applicationID)
+		if err != nil {
+			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+		}
+
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
+		m.currentProfileTab = configurationmanager.ProfileTabData{}
+		return m.runtime.ToValue(true)
+	}
+
+	beforeTabID := ""
+	if !goja.IsUndefined(call.Argument(1)) && !goja.IsNull(call.Argument(1)) && call.Argument(1).String() != "" {
+		beforeTabID = call.Argument(1).String()
+		tabIDs := []string{"featuredmedia", "info", "tip", "stats", "moderation"}
+		if !slices.Contains(tabIDs, beforeTabID) {
+			panic(m.runtime.NewTypeError(
+				"Second argument to setProfileTab must be undefined or one of '%s' or '%s'",
+				strings.Join(tabIDs[0:len(tabIDs)-1], "', '"),
+				tabIDs[len(tabIDs)-1]))
+		}
+	}
+
+	info, ok := m.pagesModule.ResolvePage(pageID)
+	if !ok {
+		panic(m.runtime.NewTypeError("First argument to setProfileTab must be the ID of a published page"))
+	}
+
+	data := configurationmanager.ProfileTabData{
+		TabID:         applicationID,
+		ApplicationID: applicationID,
+		PageID:        pageID,
+		Title:         info.Title,
+		BeforeTabID:   beforeTabID,
+	}
+	success, err := configurationmanager.SetConfigurable(m.configManager, configurable, applicationID, data)
+	if err != nil {
+		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+	}
+	if success {
+		m.configurationAssociationLock.Lock()
+		defer m.configurationAssociationLock.Unlock()
+		m.currentProfileTab = data
 	}
 
 	return m.runtime.ToValue(success)

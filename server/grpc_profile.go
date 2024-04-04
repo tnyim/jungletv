@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
+	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/components/payment"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
@@ -82,6 +84,21 @@ func (s *grpcServer) UserProfile(ctxCtx context.Context, r *proto.UserProfileReq
 			}
 		}
 	}
+
+	profileTabs, err := configurationmanager.GetCollectionConfigurable[configurationmanager.ProfileTabData](s.configManager, configurationmanager.ProfileTabs)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to get profile tabs")
+	}
+
+	response.ApplicationTabs = lo.Map(profileTabs, func(tab configurationmanager.ProfileTabData, _ int) *proto.UserProfileApplicationTab {
+		return &proto.UserProfileApplicationTab{
+			TabId:         tab.TabID,
+			TabTitle:      tab.Title,
+			ApplicationId: tab.ApplicationID,
+			PageId:        tab.PageID,
+			BeforeTabId:   tab.BeforeTabID,
+		}
+	})
 
 	return response, nil
 }

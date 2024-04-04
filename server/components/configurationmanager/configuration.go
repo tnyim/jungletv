@@ -21,6 +21,8 @@ const (
 	FaviconURL
 	// SidebarTabs allows applications to present pages as sidebar tabs
 	SidebarTabs
+	// ProfileTabs allows applications to present pages as user profile tabs
+	ProfileTabs
 	// VIPUsers allows applications to configure the list of VIP users
 	VIPUsers
 	// NavigationDestinations allows applications to present new navigation destinations in the navigation bar
@@ -105,9 +107,16 @@ func New(ctx context.Context) *Manager {
 	}
 
 	serverConfigs := map[ConfigurationKey]Configurable{
-		VIPUsers: newServerUnionOfSetsConfigurable[string, VIPUser](func(v VIPUser) string {
+		VIPUsers: newServerUnionOfSetsConfigurable(func(v VIPUser) string {
 			return v.Address
 		}),
+		ProfileTabs: newClientCollectionConfigurable(
+			func(v ProfileTabData) *proto.ConfigurationChange {
+				return nil // doesn't matter, we aren't using this as a client configurable
+			},
+			func(v ProfileTabData) *proto.ConfigurationChange {
+				return nil // doesn't matter, we aren't using this as a client configurable
+			}),
 	}
 
 	configs := map[ConfigurationKey]Configurable{}

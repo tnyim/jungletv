@@ -77,16 +77,6 @@
             $mainContentBottomPaddingAppliedByChild = true;
         }
         await refreshProfile();
-
-        if (!selectedTab) {
-            if (hasFeaturedMedia) {
-                selectedTab = "featuredMedia";
-            } else if (biography != "" || isSelf || isApplication) {
-                selectedTab = "info";
-            } else {
-                selectedTab = "tip";
-            }
-        }
     });
 
     onDestroy(async () => {
@@ -110,7 +100,7 @@
 
         let tabs: ProfileTab[] = [];
         if (hasFeaturedMedia) {
-            tabs.push({ id: "featuredMedia", tabTitle: "Featured media", isApplicationTab: false });
+            tabs.push({ id: "featuredmedia", tabTitle: "Featured media", isApplicationTab: false });
         }
         if (biography != "" || isSelf || isApplication) {
             tabs.push({
@@ -145,6 +135,16 @@
             }
         }
         profileTabs = tabs;
+
+        if (!selectedTab || !profileTabs.find((x) => x.id == selectedTab)) {
+            if (hasFeaturedMedia) {
+                selectedTab = "featuredmedia";
+            } else if (biography != "" || isSelf || isApplication) {
+                selectedTab = "info";
+            } else {
+                selectedTab = "tip";
+            }
+        }
     }
 
     let copiedAddress = false;
@@ -410,7 +410,7 @@
                     on:click={() => (selectedTab = tab.id)}
                 >
                     {tab.tabTitle}
-                    {#if tab.id == "featuredMedia" && isSelf}
+                    {#if tab.id == "featuredmedia" && isSelf}
                         <button
                             class="hover:text-yellow-700 dark:hover:text-yellow-500"
                             on:click|stopPropagation={clearFeaturedMedia}
@@ -427,7 +427,7 @@
                 ? $mainContentBottomPadding
                 : ''}"
         >
-            {#if userProfile && selectedTab == "featuredMedia"}
+            {#if userProfile && selectedTab == "featuredmedia"}
                 {#if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.YOUTUBE_VIDEO_DATA}
                     <UserProfileFeaturedMediaYouTube data={userProfile.getYoutubeVideoData()} />
                 {:else if userProfile.getFeaturedMediaCase() == UserProfileResponse.FeaturedMediaCase.SOUNDCLOUD_TRACK_DATA}
@@ -469,6 +469,7 @@
                         pageID={appTab.pageID}
                         mode={mode == "page" ? "profilepage" : "profile"}
                         on:setTabTitle={(e) => setTabTitle(appTab.id, e.detail)}
+                        on:pageUnpublished={refreshProfile}
                     />
                 </div>
             {/if}

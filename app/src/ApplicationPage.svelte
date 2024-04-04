@@ -46,20 +46,25 @@
     const dispatch = createEventDispatcher();
 
     async function resolvePage(applicationID: string, pageID: string): Promise<ResolveApplicationPageResponse> {
-        let r: ResolveApplicationPageResponse;
-        if (typeof preloadedPageInfo !== "undefined") {
-            r = preloadedPageInfo;
-        } else {
-            r = await apiClient.resolveApplicationPage(applicationID, pageID);
+        try {
+            let r: ResolveApplicationPageResponse;
+            if (typeof preloadedPageInfo !== "undefined") {
+                r = preloadedPageInfo;
+            } else {
+                r = await apiClient.resolveApplicationPage(applicationID, pageID);
+            }
+            applicationVersion = r.getApplicationVersion().toDate();
+            originalPageTitle = r.getPageTitle();
+            if (mode == "page") {
+                pageTitleApplicationPage.set(originalPageTitle);
+            } else if (mode == "sidebar") {
+                dispatch("setTabTitle", originalPageTitle);
+            }
+            return r;
+        } catch (e) {
+            dispatch("pageUnpublished");
+            throw e;
         }
-        applicationVersion = r.getApplicationVersion().toDate();
-        originalPageTitle = r.getPageTitle();
-        if (mode == "page") {
-            pageTitleApplicationPage.set(originalPageTitle);
-        } else if (mode == "sidebar") {
-            dispatch("setTabTitle", originalPageTitle);
-        }
-        return r;
     }
 
     let iframe: HTMLIFrameElement;
@@ -189,6 +194,7 @@
         } else if (update.hasPageUnpublishedEvent()) {
             eventsRequestController?.disconnect();
             unpublished = true;
+            dispatch("pageUnpublished");
         } else if (update.hasNotification() && !playerAlreadyConnected) {
             processNotifications([update.getNotification()]);
         } else if (update.hasClearedNotification() && !playerAlreadyConnected) {
