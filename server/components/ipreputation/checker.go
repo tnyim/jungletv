@@ -59,13 +59,13 @@ func NewChecker(ctx context.Context, log *log.Logger, endpoint string) (*Checker
 	return c, nil
 }
 
-func (c *Checker) CanReceiveRewards(remoteAddress string) bool {
+func (c *Checker) CanReceiveRewards(remoteAddress string) (bool, bool) {
 	badActorConfidence, present := c.reputation.Get(remoteAddress)
 	if !present {
 		c.EnqueueAddressForChecking(remoteAddress)
-		return false // do not be generous and don't reward until they're checked
+		return false, false
 	}
-	return badActorConfidence < 0.95
+	return badActorConfidence < 0.95, true
 }
 
 func (c *Checker) EnqueueAddressForChecking(remoteAddress string) {

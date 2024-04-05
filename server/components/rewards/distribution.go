@@ -143,12 +143,13 @@ func (r *Handler) getEligibleSpectators(ctx context.Context, exceptAddress strin
 				// spectator not currently watching
 				continue
 			}
-			if goodRemoteAddressRep := spectators[j].GoodRemoteAddressReputation(ctx, r); !goodRemoteAddressRep {
+			watchingFor := time.Since(spectators[j].startedWatching)
+			if goodRemoteAddressRep, checked := spectators[j].GoodRemoteAddressReputation(ctx, r); checked && !goodRemoteAddressRep {
 				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
 				continue
 			}
 			// do not reward spectators who didn't watch at least 40% of the media
-			if time.Since(spectators[j].startedWatching) < minAcceptableDuration {
+			if watchingFor < minAcceptableDuration {
 				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to watching less than 40% of the last media")
 				continue
 			}

@@ -44,7 +44,7 @@
     export const onSidebarCollapseStart = () => {
         sidebarOpeningOrClosing = true;
         console.log("sidebarWidth", sidebarWidth);
-        playerContainer.style.width = playerCoOFntainer.clientWidth + sidebarWidth + "px";
+        playerContainer.style.width = playerContainer.clientWidth + sidebarWidth + "px";
     };
 
     export const onSidebarCollapseEnd = () => {

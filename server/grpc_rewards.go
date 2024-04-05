@@ -97,9 +97,11 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 
 	goodRemoteAddressRep := true
-	// allow some time for IP addresses to be checked
-	if spectator, ok := s.rewardsHandler.GetSpectator(userClaims.Address()); ok && time.Since(spectator.WatchingSince()) > 3*time.Minute {
-		goodRemoteAddressRep = spectator.GoodRemoteAddressReputation(ctx, s.rewardsHandler)
+	if spectator, ok := s.rewardsHandler.GetSpectator(userClaims.Address()); ok {
+		rep, checked := spectator.GoodRemoteAddressReputation(ctx, s.rewardsHandler)
+		if checked {
+			goodRemoteAddressRep = rep
+		}
 	}
 
 	balance, err := types.GetRewardBalanceOfAddress(ctx, userClaims.Address())

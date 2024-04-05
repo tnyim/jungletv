@@ -80,7 +80,7 @@ func (c *Manager) CreateMessage(ctx context.Context, author auth.User, content s
 		loaded, err := c.store.LoadAttachment(ctx, a.AttachmentType()+":"+a.SerializeForDatabase(ctx))
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
-		} else if loaded != nil && loaded != (chat.MessageAttachmentView)(nil) {
+		} else if loaded != nil {
 			m.AttachmentsView = append(m.AttachmentsView, loaded)
 		}
 	}
