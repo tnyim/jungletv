@@ -372,22 +372,6 @@ export namespace EnqueueDocumentData {
   }
 }
 
-export class EnqueueStubData extends jspb.Message {
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): EnqueueStubData.AsObject;
-  static toObject(includeInstance: boolean, msg: EnqueueStubData): EnqueueStubData.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: EnqueueStubData, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): EnqueueStubData;
-  static deserializeBinaryFromReader(message: EnqueueStubData, reader: jspb.BinaryReader): EnqueueStubData;
-}
-
-export namespace EnqueueStubData {
-  export type AsObject = {
-  }
-}
-
 export class EnqueueMediaRequest extends jspb.Message {
   getUnskippable(): boolean;
   setUnskippable(value: boolean): void;
@@ -402,11 +386,6 @@ export class EnqueueMediaRequest extends jspb.Message {
   clearPassword(): void;
   getPassword(): string;
   setPassword(value: string): void;
-
-  hasStubData(): boolean;
-  clearStubData(): void;
-  getStubData(): EnqueueStubData | undefined;
-  setStubData(value?: EnqueueStubData): void;
 
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
@@ -440,7 +419,6 @@ export namespace EnqueueMediaRequest {
     concealed: boolean,
     anonymous: boolean,
     password: string,
-    stubData?: EnqueueStubData.AsObject,
     youtubeVideoData?: EnqueueYouTubeVideoData.AsObject,
     soundcloudTrackData?: EnqueueSoundCloudTrackData.AsObject,
     documentData?: EnqueueDocumentData.AsObject,
@@ -448,10 +426,9 @@ export namespace EnqueueMediaRequest {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 5,
-    YOUTUBE_VIDEO_DATA = 6,
-    SOUNDCLOUD_TRACK_DATA = 7,
-    DOCUMENT_DATA = 8,
+    YOUTUBE_VIDEO_DATA = 5,
+    SOUNDCLOUD_TRACK_DATA = 6,
+    DOCUMENT_DATA = 7,
   }
 }
 
@@ -764,22 +741,6 @@ export namespace ConsumeMediaRequest {
   }
 }
 
-export class NowPlayingStubData extends jspb.Message {
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): NowPlayingStubData.AsObject;
-  static toObject(includeInstance: boolean, msg: NowPlayingStubData): NowPlayingStubData.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: NowPlayingStubData, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): NowPlayingStubData;
-  static deserializeBinaryFromReader(message: NowPlayingStubData, reader: jspb.BinaryReader): NowPlayingStubData;
-}
-
-export namespace NowPlayingStubData {
-  export type AsObject = {
-  }
-}
-
 export class NowPlayingYouTubeVideoData extends jspb.Message {
   getId(): string;
   setId(value: string): void;
@@ -910,11 +871,6 @@ export class MediaConsumptionCheckpoint extends jspb.Message {
   getActivityChallenge(): ActivityChallenge | undefined;
   setActivityChallenge(value?: ActivityChallenge): void;
 
-  hasStubData(): boolean;
-  clearStubData(): void;
-  getStubData(): NowPlayingStubData | undefined;
-  setStubData(value?: NowPlayingStubData): void;
-
   hasYoutubeVideoData(): boolean;
   clearYoutubeVideoData(): void;
   getYoutubeVideoData(): NowPlayingYouTubeVideoData | undefined;
@@ -975,7 +931,6 @@ export namespace MediaConsumptionCheckpoint {
     requestCost: string,
     currentlyWatching: number,
     activityChallenge?: ActivityChallenge.AsObject,
-    stubData?: NowPlayingStubData.AsObject,
     youtubeVideoData?: NowPlayingYouTubeVideoData.AsObject,
     soundcloudTrackData?: NowPlayingSoundCloudTrackData.AsObject,
     documentData?: NowPlayingDocumentData.AsObject,
@@ -988,11 +943,10 @@ export namespace MediaConsumptionCheckpoint {
 
   export enum MediaInfoCase {
     MEDIA_INFO_NOT_SET = 0,
-    STUB_DATA = 8,
-    YOUTUBE_VIDEO_DATA = 9,
-    SOUNDCLOUD_TRACK_DATA = 10,
-    DOCUMENT_DATA = 11,
-    APPLICATION_PAGE_DATA = 12,
+    YOUTUBE_VIDEO_DATA = 8,
+    SOUNDCLOUD_TRACK_DATA = 9,
+    DOCUMENT_DATA = 10,
+    APPLICATION_PAGE_DATA = 11,
   }
 }
 

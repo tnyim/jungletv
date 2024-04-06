@@ -204,19 +204,15 @@ message EnqueueDocumentData {
     optional ForcedTicketEnqueueType enqueue_type = 4;
 }
 
-// EnqueueStubData allows us to prepare and confirm that polymorphism is working properly
-message EnqueueStubData {}
-
 message EnqueueMediaRequest {
     bool unskippable = 1;
     bool concealed = 2;
     bool anonymous = 3;
     optional string password = 4;
     oneof media_info {
-        EnqueueStubData stub_data = 5;
-        EnqueueYouTubeVideoData youtube_video_data = 6;
-        EnqueueSoundCloudTrackData soundcloud_track_data = 7;
-        EnqueueDocumentData document_data = 8;
+        EnqueueYouTubeVideoData youtube_video_data = 5;
+        EnqueueSoundCloudTrackData soundcloud_track_data = 6;
+        EnqueueDocumentData document_data = 7;
     }
 }
 
@@ -293,9 +289,6 @@ message MoveQueueEntryResponse {}
 
 message ConsumeMediaRequest {}
 
-// NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
-message NowPlayingStubData {}
-
 message NowPlayingYouTubeVideoData {
     string id = 1;
 }
@@ -325,11 +318,10 @@ message MediaConsumptionCheckpoint {
     uint32 currently_watching = 6;
     optional ActivityChallenge activity_challenge = 7;
     oneof media_info {
-        NowPlayingStubData stub_data = 8;
-        NowPlayingYouTubeVideoData youtube_video_data = 9;
-        NowPlayingSoundCloudTrackData soundcloud_track_data = 10;
-        NowPlayingDocumentData document_data = 11;
-        NowPlayingApplicationPageData application_page_data = 12;
+        NowPlayingYouTubeVideoData youtube_video_data = 8;
+        NowPlayingSoundCloudTrackData soundcloud_track_data = 9;
+        NowPlayingDocumentData document_data = 10;
+        NowPlayingApplicationPageData application_page_data = 11;
     }
     optional string media_title = 13;
     repeated ConfigurationChange configuration_changes = 14;

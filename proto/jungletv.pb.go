@@ -1539,45 +1539,6 @@ func (x *EnqueueDocumentData) GetEnqueueType() ForcedTicketEnqueueType {
 	return ForcedTicketEnqueueType_ENQUEUE
 }
 
-// EnqueueStubData allows us to prepare and confirm that polymorphism is working properly
-type EnqueueStubData struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *EnqueueStubData) Reset() {
-	*x = EnqueueStubData{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[12]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *EnqueueStubData) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EnqueueStubData) ProtoMessage() {}
-
-func (x *EnqueueStubData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[12]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EnqueueStubData.ProtoReflect.Descriptor instead.
-func (*EnqueueStubData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{12}
-}
-
 type EnqueueMediaRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1588,7 +1549,6 @@ type EnqueueMediaRequest struct {
 	Anonymous   bool    `protobuf:"varint,3,opt,name=anonymous,proto3" json:"anonymous,omitempty"`
 	Password    *string `protobuf:"bytes,4,opt,name=password,proto3,oneof" json:"password,omitempty"`
 	// Types that are assignable to MediaInfo:
-	//	*EnqueueMediaRequest_StubData
 	//	*EnqueueMediaRequest_YoutubeVideoData
 	//	*EnqueueMediaRequest_SoundcloudTrackData
 	//	*EnqueueMediaRequest_DocumentData
@@ -1598,7 +1558,7 @@ type EnqueueMediaRequest struct {
 func (x *EnqueueMediaRequest) Reset() {
 	*x = EnqueueMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[13]
+		mi := &file_jungletv_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1611,7 +1571,7 @@ func (x *EnqueueMediaRequest) String() string {
 func (*EnqueueMediaRequest) ProtoMessage() {}
 
 func (x *EnqueueMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[13]
+	mi := &file_jungletv_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1584,7 @@ func (x *EnqueueMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnqueueMediaRequest.ProtoReflect.Descriptor instead.
 func (*EnqueueMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{13}
+	return file_jungletv_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EnqueueMediaRequest) GetUnskippable() bool {
@@ -1662,13 +1622,6 @@ func (m *EnqueueMediaRequest) GetMediaInfo() isEnqueueMediaRequest_MediaInfo {
 	return nil
 }
 
-func (x *EnqueueMediaRequest) GetStubData() *EnqueueStubData {
-	if x, ok := x.GetMediaInfo().(*EnqueueMediaRequest_StubData); ok {
-		return x.StubData
-	}
-	return nil
-}
-
 func (x *EnqueueMediaRequest) GetYoutubeVideoData() *EnqueueYouTubeVideoData {
 	if x, ok := x.GetMediaInfo().(*EnqueueMediaRequest_YoutubeVideoData); ok {
 		return x.YoutubeVideoData
@@ -1694,23 +1647,17 @@ type isEnqueueMediaRequest_MediaInfo interface {
 	isEnqueueMediaRequest_MediaInfo()
 }
 
-type EnqueueMediaRequest_StubData struct {
-	StubData *EnqueueStubData `protobuf:"bytes,5,opt,name=stub_data,json=stubData,proto3,oneof"`
-}
-
 type EnqueueMediaRequest_YoutubeVideoData struct {
-	YoutubeVideoData *EnqueueYouTubeVideoData `protobuf:"bytes,6,opt,name=youtube_video_data,json=youtubeVideoData,proto3,oneof"`
+	YoutubeVideoData *EnqueueYouTubeVideoData `protobuf:"bytes,5,opt,name=youtube_video_data,json=youtubeVideoData,proto3,oneof"`
 }
 
 type EnqueueMediaRequest_SoundcloudTrackData struct {
-	SoundcloudTrackData *EnqueueSoundCloudTrackData `protobuf:"bytes,7,opt,name=soundcloud_track_data,json=soundcloudTrackData,proto3,oneof"`
+	SoundcloudTrackData *EnqueueSoundCloudTrackData `protobuf:"bytes,6,opt,name=soundcloud_track_data,json=soundcloudTrackData,proto3,oneof"`
 }
 
 type EnqueueMediaRequest_DocumentData struct {
-	DocumentData *EnqueueDocumentData `protobuf:"bytes,8,opt,name=document_data,json=documentData,proto3,oneof"`
+	DocumentData *EnqueueDocumentData `protobuf:"bytes,7,opt,name=document_data,json=documentData,proto3,oneof"`
 }
-
-func (*EnqueueMediaRequest_StubData) isEnqueueMediaRequest_MediaInfo() {}
 
 func (*EnqueueMediaRequest_YoutubeVideoData) isEnqueueMediaRequest_MediaInfo() {}
 
@@ -1732,7 +1679,7 @@ type EnqueueMediaResponse struct {
 func (x *EnqueueMediaResponse) Reset() {
 	*x = EnqueueMediaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[14]
+		mi := &file_jungletv_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1745,7 +1692,7 @@ func (x *EnqueueMediaResponse) String() string {
 func (*EnqueueMediaResponse) ProtoMessage() {}
 
 func (x *EnqueueMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[14]
+	mi := &file_jungletv_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1758,7 +1705,7 @@ func (x *EnqueueMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnqueueMediaResponse.ProtoReflect.Descriptor instead.
 func (*EnqueueMediaResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{14}
+	return file_jungletv_proto_rawDescGZIP(), []int{13}
 }
 
 func (m *EnqueueMediaResponse) GetEnqueueResponse() isEnqueueMediaResponse_EnqueueResponse {
@@ -1809,7 +1756,7 @@ type EnqueueMediaFailure struct {
 func (x *EnqueueMediaFailure) Reset() {
 	*x = EnqueueMediaFailure{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[15]
+		mi := &file_jungletv_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1822,7 +1769,7 @@ func (x *EnqueueMediaFailure) String() string {
 func (*EnqueueMediaFailure) ProtoMessage() {}
 
 func (x *EnqueueMediaFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[15]
+	mi := &file_jungletv_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1835,7 +1782,7 @@ func (x *EnqueueMediaFailure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnqueueMediaFailure.ProtoReflect.Descriptor instead.
 func (*EnqueueMediaFailure) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{15}
+	return file_jungletv_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *EnqueueMediaFailure) GetFailureReason() string {
@@ -1873,7 +1820,7 @@ type EnqueueMediaTicket struct {
 func (x *EnqueueMediaTicket) Reset() {
 	*x = EnqueueMediaTicket{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[16]
+		mi := &file_jungletv_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1886,7 +1833,7 @@ func (x *EnqueueMediaTicket) String() string {
 func (*EnqueueMediaTicket) ProtoMessage() {}
 
 func (x *EnqueueMediaTicket) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[16]
+	mi := &file_jungletv_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1899,7 +1846,7 @@ func (x *EnqueueMediaTicket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnqueueMediaTicket.ProtoReflect.Descriptor instead.
 func (*EnqueueMediaTicket) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{16}
+	return file_jungletv_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *EnqueueMediaTicket) GetId() string {
@@ -2059,7 +2006,7 @@ type ExtraCurrencyPaymentData struct {
 func (x *ExtraCurrencyPaymentData) Reset() {
 	*x = ExtraCurrencyPaymentData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[17]
+		mi := &file_jungletv_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2072,7 +2019,7 @@ func (x *ExtraCurrencyPaymentData) String() string {
 func (*ExtraCurrencyPaymentData) ProtoMessage() {}
 
 func (x *ExtraCurrencyPaymentData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[17]
+	mi := &file_jungletv_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2085,7 +2032,7 @@ func (x *ExtraCurrencyPaymentData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtraCurrencyPaymentData.ProtoReflect.Descriptor instead.
 func (*ExtraCurrencyPaymentData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{17}
+	return file_jungletv_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ExtraCurrencyPaymentData) GetCurrencyTicker() string {
@@ -2141,7 +2088,7 @@ type MonitorTicketRequest struct {
 func (x *MonitorTicketRequest) Reset() {
 	*x = MonitorTicketRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[18]
+		mi := &file_jungletv_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2154,7 +2101,7 @@ func (x *MonitorTicketRequest) String() string {
 func (*MonitorTicketRequest) ProtoMessage() {}
 
 func (x *MonitorTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[18]
+	mi := &file_jungletv_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2167,7 +2114,7 @@ func (x *MonitorTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorTicketRequest.ProtoReflect.Descriptor instead.
 func (*MonitorTicketRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{18}
+	return file_jungletv_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MonitorTicketRequest) GetTicketId() string {
@@ -2188,7 +2135,7 @@ type RemoveOwnQueueEntryRequest struct {
 func (x *RemoveOwnQueueEntryRequest) Reset() {
 	*x = RemoveOwnQueueEntryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[19]
+		mi := &file_jungletv_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2201,7 +2148,7 @@ func (x *RemoveOwnQueueEntryRequest) String() string {
 func (*RemoveOwnQueueEntryRequest) ProtoMessage() {}
 
 func (x *RemoveOwnQueueEntryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[19]
+	mi := &file_jungletv_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2161,7 @@ func (x *RemoveOwnQueueEntryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOwnQueueEntryRequest.ProtoReflect.Descriptor instead.
 func (*RemoveOwnQueueEntryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{19}
+	return file_jungletv_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RemoveOwnQueueEntryRequest) GetId() string {
@@ -2233,7 +2180,7 @@ type RemoveOwnQueueEntryResponse struct {
 func (x *RemoveOwnQueueEntryResponse) Reset() {
 	*x = RemoveOwnQueueEntryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[20]
+		mi := &file_jungletv_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2246,7 +2193,7 @@ func (x *RemoveOwnQueueEntryResponse) String() string {
 func (*RemoveOwnQueueEntryResponse) ProtoMessage() {}
 
 func (x *RemoveOwnQueueEntryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[20]
+	mi := &file_jungletv_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2259,7 +2206,7 @@ func (x *RemoveOwnQueueEntryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOwnQueueEntryResponse.ProtoReflect.Descriptor instead.
 func (*RemoveOwnQueueEntryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{20}
+	return file_jungletv_proto_rawDescGZIP(), []int{19}
 }
 
 type MoveQueueEntryRequest struct {
@@ -2274,7 +2221,7 @@ type MoveQueueEntryRequest struct {
 func (x *MoveQueueEntryRequest) Reset() {
 	*x = MoveQueueEntryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[21]
+		mi := &file_jungletv_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2287,7 +2234,7 @@ func (x *MoveQueueEntryRequest) String() string {
 func (*MoveQueueEntryRequest) ProtoMessage() {}
 
 func (x *MoveQueueEntryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[21]
+	mi := &file_jungletv_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2300,7 +2247,7 @@ func (x *MoveQueueEntryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveQueueEntryRequest.ProtoReflect.Descriptor instead.
 func (*MoveQueueEntryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{21}
+	return file_jungletv_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MoveQueueEntryRequest) GetId() string {
@@ -2326,7 +2273,7 @@ type MoveQueueEntryResponse struct {
 func (x *MoveQueueEntryResponse) Reset() {
 	*x = MoveQueueEntryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[22]
+		mi := &file_jungletv_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2339,7 +2286,7 @@ func (x *MoveQueueEntryResponse) String() string {
 func (*MoveQueueEntryResponse) ProtoMessage() {}
 
 func (x *MoveQueueEntryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[22]
+	mi := &file_jungletv_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2352,7 +2299,7 @@ func (x *MoveQueueEntryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveQueueEntryResponse.ProtoReflect.Descriptor instead.
 func (*MoveQueueEntryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{22}
+	return file_jungletv_proto_rawDescGZIP(), []int{21}
 }
 
 type ConsumeMediaRequest struct {
@@ -2364,7 +2311,7 @@ type ConsumeMediaRequest struct {
 func (x *ConsumeMediaRequest) Reset() {
 	*x = ConsumeMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[23]
+		mi := &file_jungletv_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2377,7 +2324,7 @@ func (x *ConsumeMediaRequest) String() string {
 func (*ConsumeMediaRequest) ProtoMessage() {}
 
 func (x *ConsumeMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[23]
+	mi := &file_jungletv_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2390,46 +2337,7 @@ func (x *ConsumeMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumeMediaRequest.ProtoReflect.Descriptor instead.
 func (*ConsumeMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{23}
-}
-
-// NowPlayingStubData allows us to prepare and confirm that polymorphism is working properly
-type NowPlayingStubData struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *NowPlayingStubData) Reset() {
-	*x = NowPlayingStubData{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[24]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *NowPlayingStubData) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NowPlayingStubData) ProtoMessage() {}
-
-func (x *NowPlayingStubData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[24]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NowPlayingStubData.ProtoReflect.Descriptor instead.
-func (*NowPlayingStubData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{24}
+	return file_jungletv_proto_rawDescGZIP(), []int{22}
 }
 
 type NowPlayingYouTubeVideoData struct {
@@ -2443,7 +2351,7 @@ type NowPlayingYouTubeVideoData struct {
 func (x *NowPlayingYouTubeVideoData) Reset() {
 	*x = NowPlayingYouTubeVideoData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[25]
+		mi := &file_jungletv_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2456,7 +2364,7 @@ func (x *NowPlayingYouTubeVideoData) String() string {
 func (*NowPlayingYouTubeVideoData) ProtoMessage() {}
 
 func (x *NowPlayingYouTubeVideoData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[25]
+	mi := &file_jungletv_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2469,7 +2377,7 @@ func (x *NowPlayingYouTubeVideoData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NowPlayingYouTubeVideoData.ProtoReflect.Descriptor instead.
 func (*NowPlayingYouTubeVideoData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{25}
+	return file_jungletv_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *NowPlayingYouTubeVideoData) GetId() string {
@@ -2490,7 +2398,7 @@ type NowPlayingSoundCloudTrackData struct {
 func (x *NowPlayingSoundCloudTrackData) Reset() {
 	*x = NowPlayingSoundCloudTrackData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[26]
+		mi := &file_jungletv_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2503,7 +2411,7 @@ func (x *NowPlayingSoundCloudTrackData) String() string {
 func (*NowPlayingSoundCloudTrackData) ProtoMessage() {}
 
 func (x *NowPlayingSoundCloudTrackData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[26]
+	mi := &file_jungletv_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2516,7 +2424,7 @@ func (x *NowPlayingSoundCloudTrackData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NowPlayingSoundCloudTrackData.ProtoReflect.Descriptor instead.
 func (*NowPlayingSoundCloudTrackData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{26}
+	return file_jungletv_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *NowPlayingSoundCloudTrackData) GetId() string {
@@ -2539,7 +2447,7 @@ type NowPlayingDocumentData struct {
 func (x *NowPlayingDocumentData) Reset() {
 	*x = NowPlayingDocumentData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[27]
+		mi := &file_jungletv_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2552,7 +2460,7 @@ func (x *NowPlayingDocumentData) String() string {
 func (*NowPlayingDocumentData) ProtoMessage() {}
 
 func (x *NowPlayingDocumentData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[27]
+	mi := &file_jungletv_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2565,7 +2473,7 @@ func (x *NowPlayingDocumentData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NowPlayingDocumentData.ProtoReflect.Descriptor instead.
 func (*NowPlayingDocumentData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{27}
+	return file_jungletv_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *NowPlayingDocumentData) GetId() string {
@@ -2602,7 +2510,7 @@ type NowPlayingApplicationPageData struct {
 func (x *NowPlayingApplicationPageData) Reset() {
 	*x = NowPlayingApplicationPageData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[28]
+		mi := &file_jungletv_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2615,7 +2523,7 @@ func (x *NowPlayingApplicationPageData) String() string {
 func (*NowPlayingApplicationPageData) ProtoMessage() {}
 
 func (x *NowPlayingApplicationPageData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[28]
+	mi := &file_jungletv_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2628,7 +2536,7 @@ func (x *NowPlayingApplicationPageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NowPlayingApplicationPageData.ProtoReflect.Descriptor instead.
 func (*NowPlayingApplicationPageData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{28}
+	return file_jungletv_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *NowPlayingApplicationPageData) GetApplicationId() string {
@@ -2665,7 +2573,6 @@ type MediaConsumptionCheckpoint struct {
 	CurrentlyWatching uint32               `protobuf:"varint,6,opt,name=currently_watching,json=currentlyWatching,proto3" json:"currently_watching,omitempty"`
 	ActivityChallenge *ActivityChallenge   `protobuf:"bytes,7,opt,name=activity_challenge,json=activityChallenge,proto3,oneof" json:"activity_challenge,omitempty"`
 	// Types that are assignable to MediaInfo:
-	//	*MediaConsumptionCheckpoint_StubData
 	//	*MediaConsumptionCheckpoint_YoutubeVideoData
 	//	*MediaConsumptionCheckpoint_SoundcloudTrackData
 	//	*MediaConsumptionCheckpoint_DocumentData
@@ -2680,7 +2587,7 @@ type MediaConsumptionCheckpoint struct {
 func (x *MediaConsumptionCheckpoint) Reset() {
 	*x = MediaConsumptionCheckpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[29]
+		mi := &file_jungletv_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2693,7 +2600,7 @@ func (x *MediaConsumptionCheckpoint) String() string {
 func (*MediaConsumptionCheckpoint) ProtoMessage() {}
 
 func (x *MediaConsumptionCheckpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[29]
+	mi := &file_jungletv_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2706,7 +2613,7 @@ func (x *MediaConsumptionCheckpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MediaConsumptionCheckpoint.ProtoReflect.Descriptor instead.
 func (*MediaConsumptionCheckpoint) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{29}
+	return file_jungletv_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *MediaConsumptionCheckpoint) GetMediaPresent() bool {
@@ -2761,13 +2668,6 @@ func (x *MediaConsumptionCheckpoint) GetActivityChallenge() *ActivityChallenge {
 func (m *MediaConsumptionCheckpoint) GetMediaInfo() isMediaConsumptionCheckpoint_MediaInfo {
 	if m != nil {
 		return m.MediaInfo
-	}
-	return nil
-}
-
-func (x *MediaConsumptionCheckpoint) GetStubData() *NowPlayingStubData {
-	if x, ok := x.GetMediaInfo().(*MediaConsumptionCheckpoint_StubData); ok {
-		return x.StubData
 	}
 	return nil
 }
@@ -2832,27 +2732,21 @@ type isMediaConsumptionCheckpoint_MediaInfo interface {
 	isMediaConsumptionCheckpoint_MediaInfo()
 }
 
-type MediaConsumptionCheckpoint_StubData struct {
-	StubData *NowPlayingStubData `protobuf:"bytes,8,opt,name=stub_data,json=stubData,proto3,oneof"`
-}
-
 type MediaConsumptionCheckpoint_YoutubeVideoData struct {
-	YoutubeVideoData *NowPlayingYouTubeVideoData `protobuf:"bytes,9,opt,name=youtube_video_data,json=youtubeVideoData,proto3,oneof"`
+	YoutubeVideoData *NowPlayingYouTubeVideoData `protobuf:"bytes,8,opt,name=youtube_video_data,json=youtubeVideoData,proto3,oneof"`
 }
 
 type MediaConsumptionCheckpoint_SoundcloudTrackData struct {
-	SoundcloudTrackData *NowPlayingSoundCloudTrackData `protobuf:"bytes,10,opt,name=soundcloud_track_data,json=soundcloudTrackData,proto3,oneof"`
+	SoundcloudTrackData *NowPlayingSoundCloudTrackData `protobuf:"bytes,9,opt,name=soundcloud_track_data,json=soundcloudTrackData,proto3,oneof"`
 }
 
 type MediaConsumptionCheckpoint_DocumentData struct {
-	DocumentData *NowPlayingDocumentData `protobuf:"bytes,11,opt,name=document_data,json=documentData,proto3,oneof"`
+	DocumentData *NowPlayingDocumentData `protobuf:"bytes,10,opt,name=document_data,json=documentData,proto3,oneof"`
 }
 
 type MediaConsumptionCheckpoint_ApplicationPageData struct {
-	ApplicationPageData *NowPlayingApplicationPageData `protobuf:"bytes,12,opt,name=application_page_data,json=applicationPageData,proto3,oneof"`
+	ApplicationPageData *NowPlayingApplicationPageData `protobuf:"bytes,11,opt,name=application_page_data,json=applicationPageData,proto3,oneof"`
 }
-
-func (*MediaConsumptionCheckpoint_StubData) isMediaConsumptionCheckpoint_MediaInfo() {}
 
 func (*MediaConsumptionCheckpoint_YoutubeVideoData) isMediaConsumptionCheckpoint_MediaInfo() {}
 
@@ -2875,7 +2769,7 @@ type ActivityChallenge struct {
 func (x *ActivityChallenge) Reset() {
 	*x = ActivityChallenge{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[30]
+		mi := &file_jungletv_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2888,7 +2782,7 @@ func (x *ActivityChallenge) String() string {
 func (*ActivityChallenge) ProtoMessage() {}
 
 func (x *ActivityChallenge) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[30]
+	mi := &file_jungletv_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2901,7 +2795,7 @@ func (x *ActivityChallenge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityChallenge.ProtoReflect.Descriptor instead.
 func (*ActivityChallenge) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{30}
+	return file_jungletv_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ActivityChallenge) GetId() string {
@@ -2934,7 +2828,7 @@ type MonitorQueueRequest struct {
 func (x *MonitorQueueRequest) Reset() {
 	*x = MonitorQueueRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[31]
+		mi := &file_jungletv_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2947,7 +2841,7 @@ func (x *MonitorQueueRequest) String() string {
 func (*MonitorQueueRequest) ProtoMessage() {}
 
 func (x *MonitorQueueRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[31]
+	mi := &file_jungletv_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2960,7 +2854,7 @@ func (x *MonitorQueueRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorQueueRequest.ProtoReflect.Descriptor instead.
 func (*MonitorQueueRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{31}
+	return file_jungletv_proto_rawDescGZIP(), []int{29}
 }
 
 type Queue struct {
@@ -2978,7 +2872,7 @@ type Queue struct {
 func (x *Queue) Reset() {
 	*x = Queue{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[32]
+		mi := &file_jungletv_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2991,7 +2885,7 @@ func (x *Queue) String() string {
 func (*Queue) ProtoMessage() {}
 
 func (x *Queue) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[32]
+	mi := &file_jungletv_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3004,7 +2898,7 @@ func (x *Queue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Queue.ProtoReflect.Descriptor instead.
 func (*Queue) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{32}
+	return file_jungletv_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Queue) GetEntries() []*QueueEntry {
@@ -3057,7 +2951,7 @@ type QueueYouTubeVideoData struct {
 func (x *QueueYouTubeVideoData) Reset() {
 	*x = QueueYouTubeVideoData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[33]
+		mi := &file_jungletv_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3070,7 +2964,7 @@ func (x *QueueYouTubeVideoData) String() string {
 func (*QueueYouTubeVideoData) ProtoMessage() {}
 
 func (x *QueueYouTubeVideoData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[33]
+	mi := &file_jungletv_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3083,7 +2977,7 @@ func (x *QueueYouTubeVideoData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueYouTubeVideoData.ProtoReflect.Descriptor instead.
 func (*QueueYouTubeVideoData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{33}
+	return file_jungletv_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *QueueYouTubeVideoData) GetId() string {
@@ -3137,7 +3031,7 @@ type QueueSoundCloudTrackData struct {
 func (x *QueueSoundCloudTrackData) Reset() {
 	*x = QueueSoundCloudTrackData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[34]
+		mi := &file_jungletv_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3150,7 +3044,7 @@ func (x *QueueSoundCloudTrackData) String() string {
 func (*QueueSoundCloudTrackData) ProtoMessage() {}
 
 func (x *QueueSoundCloudTrackData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[34]
+	mi := &file_jungletv_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3163,7 +3057,7 @@ func (x *QueueSoundCloudTrackData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueSoundCloudTrackData.ProtoReflect.Descriptor instead.
 func (*QueueSoundCloudTrackData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{34}
+	return file_jungletv_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *QueueSoundCloudTrackData) GetId() string {
@@ -3220,7 +3114,7 @@ type QueueDocumentData struct {
 func (x *QueueDocumentData) Reset() {
 	*x = QueueDocumentData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[35]
+		mi := &file_jungletv_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3233,7 +3127,7 @@ func (x *QueueDocumentData) String() string {
 func (*QueueDocumentData) ProtoMessage() {}
 
 func (x *QueueDocumentData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[35]
+	mi := &file_jungletv_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3246,7 +3140,7 @@ func (x *QueueDocumentData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueDocumentData.ProtoReflect.Descriptor instead.
 func (*QueueDocumentData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{35}
+	return file_jungletv_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *QueueDocumentData) GetId() string {
@@ -3278,7 +3172,7 @@ type QueueApplicationPageData struct {
 func (x *QueueApplicationPageData) Reset() {
 	*x = QueueApplicationPageData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[36]
+		mi := &file_jungletv_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3291,7 +3185,7 @@ func (x *QueueApplicationPageData) String() string {
 func (*QueueApplicationPageData) ProtoMessage() {}
 
 func (x *QueueApplicationPageData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[36]
+	mi := &file_jungletv_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3304,7 +3198,7 @@ func (x *QueueApplicationPageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueApplicationPageData.ProtoReflect.Descriptor instead.
 func (*QueueApplicationPageData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{36}
+	return file_jungletv_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *QueueApplicationPageData) GetApplicationId() string {
@@ -3351,7 +3245,7 @@ type QueueConcealedData struct {
 func (x *QueueConcealedData) Reset() {
 	*x = QueueConcealedData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[37]
+		mi := &file_jungletv_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3364,7 +3258,7 @@ func (x *QueueConcealedData) String() string {
 func (*QueueConcealedData) ProtoMessage() {}
 
 func (x *QueueConcealedData) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[37]
+	mi := &file_jungletv_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3377,7 +3271,7 @@ func (x *QueueConcealedData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueConcealedData.ProtoReflect.Descriptor instead.
 func (*QueueConcealedData) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{37}
+	return file_jungletv_proto_rawDescGZIP(), []int{35}
 }
 
 type QueueEntry struct {
@@ -3407,7 +3301,7 @@ type QueueEntry struct {
 func (x *QueueEntry) Reset() {
 	*x = QueueEntry{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[38]
+		mi := &file_jungletv_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3420,7 +3314,7 @@ func (x *QueueEntry) String() string {
 func (*QueueEntry) ProtoMessage() {}
 
 func (x *QueueEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[38]
+	mi := &file_jungletv_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3433,7 +3327,7 @@ func (x *QueueEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueueEntry.ProtoReflect.Descriptor instead.
 func (*QueueEntry) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{38}
+	return file_jungletv_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *QueueEntry) GetId() string {
@@ -3591,7 +3485,7 @@ type MonitorSkipAndTipRequest struct {
 func (x *MonitorSkipAndTipRequest) Reset() {
 	*x = MonitorSkipAndTipRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[39]
+		mi := &file_jungletv_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3604,7 +3498,7 @@ func (x *MonitorSkipAndTipRequest) String() string {
 func (*MonitorSkipAndTipRequest) ProtoMessage() {}
 
 func (x *MonitorSkipAndTipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[39]
+	mi := &file_jungletv_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3617,7 +3511,7 @@ func (x *MonitorSkipAndTipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorSkipAndTipRequest.ProtoReflect.Descriptor instead.
 func (*MonitorSkipAndTipRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{39}
+	return file_jungletv_proto_rawDescGZIP(), []int{37}
 }
 
 type SkipAndTipStatus struct {
@@ -3637,7 +3531,7 @@ type SkipAndTipStatus struct {
 func (x *SkipAndTipStatus) Reset() {
 	*x = SkipAndTipStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[40]
+		mi := &file_jungletv_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3650,7 +3544,7 @@ func (x *SkipAndTipStatus) String() string {
 func (*SkipAndTipStatus) ProtoMessage() {}
 
 func (x *SkipAndTipStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[40]
+	mi := &file_jungletv_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3663,7 +3557,7 @@ func (x *SkipAndTipStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SkipAndTipStatus.ProtoReflect.Descriptor instead.
 func (*SkipAndTipStatus) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{40}
+	return file_jungletv_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SkipAndTipStatus) GetSkipStatus() SkipStatus {
@@ -3724,7 +3618,7 @@ type RewardInfoRequest struct {
 func (x *RewardInfoRequest) Reset() {
 	*x = RewardInfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[41]
+		mi := &file_jungletv_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3737,7 +3631,7 @@ func (x *RewardInfoRequest) String() string {
 func (*RewardInfoRequest) ProtoMessage() {}
 
 func (x *RewardInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[41]
+	mi := &file_jungletv_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3750,7 +3644,7 @@ func (x *RewardInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RewardInfoRequest.ProtoReflect.Descriptor instead.
 func (*RewardInfoRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{41}
+	return file_jungletv_proto_rawDescGZIP(), []int{39}
 }
 
 type RewardInfoResponse struct {
@@ -3770,7 +3664,7 @@ type RewardInfoResponse struct {
 func (x *RewardInfoResponse) Reset() {
 	*x = RewardInfoResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[42]
+		mi := &file_jungletv_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3783,7 +3677,7 @@ func (x *RewardInfoResponse) String() string {
 func (*RewardInfoResponse) ProtoMessage() {}
 
 func (x *RewardInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[42]
+	mi := &file_jungletv_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3796,7 +3690,7 @@ func (x *RewardInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RewardInfoResponse.ProtoReflect.Descriptor instead.
 func (*RewardInfoResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{42}
+	return file_jungletv_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *RewardInfoResponse) GetRewardsAddress() string {
@@ -3859,7 +3753,7 @@ type RemoveQueueEntryRequest struct {
 func (x *RemoveQueueEntryRequest) Reset() {
 	*x = RemoveQueueEntryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[43]
+		mi := &file_jungletv_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3872,7 +3766,7 @@ func (x *RemoveQueueEntryRequest) String() string {
 func (*RemoveQueueEntryRequest) ProtoMessage() {}
 
 func (x *RemoveQueueEntryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[43]
+	mi := &file_jungletv_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3885,7 +3779,7 @@ func (x *RemoveQueueEntryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveQueueEntryRequest.ProtoReflect.Descriptor instead.
 func (*RemoveQueueEntryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{43}
+	return file_jungletv_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RemoveQueueEntryRequest) GetId() string {
@@ -3904,7 +3798,7 @@ type RemoveQueueEntryResponse struct {
 func (x *RemoveQueueEntryResponse) Reset() {
 	*x = RemoveQueueEntryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[44]
+		mi := &file_jungletv_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3917,7 +3811,7 @@ func (x *RemoveQueueEntryResponse) String() string {
 func (*RemoveQueueEntryResponse) ProtoMessage() {}
 
 func (x *RemoveQueueEntryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[44]
+	mi := &file_jungletv_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3930,7 +3824,7 @@ func (x *RemoveQueueEntryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveQueueEntryResponse.ProtoReflect.Descriptor instead.
 func (*RemoveQueueEntryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{44}
+	return file_jungletv_proto_rawDescGZIP(), []int{42}
 }
 
 type ForciblyEnqueueTicketRequest struct {
@@ -3945,7 +3839,7 @@ type ForciblyEnqueueTicketRequest struct {
 func (x *ForciblyEnqueueTicketRequest) Reset() {
 	*x = ForciblyEnqueueTicketRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[45]
+		mi := &file_jungletv_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3958,7 +3852,7 @@ func (x *ForciblyEnqueueTicketRequest) String() string {
 func (*ForciblyEnqueueTicketRequest) ProtoMessage() {}
 
 func (x *ForciblyEnqueueTicketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[45]
+	mi := &file_jungletv_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3971,7 +3865,7 @@ func (x *ForciblyEnqueueTicketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForciblyEnqueueTicketRequest.ProtoReflect.Descriptor instead.
 func (*ForciblyEnqueueTicketRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{45}
+	return file_jungletv_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ForciblyEnqueueTicketRequest) GetId() string {
@@ -3997,7 +3891,7 @@ type ForciblyEnqueueTicketResponse struct {
 func (x *ForciblyEnqueueTicketResponse) Reset() {
 	*x = ForciblyEnqueueTicketResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[46]
+		mi := &file_jungletv_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4010,7 +3904,7 @@ func (x *ForciblyEnqueueTicketResponse) String() string {
 func (*ForciblyEnqueueTicketResponse) ProtoMessage() {}
 
 func (x *ForciblyEnqueueTicketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[46]
+	mi := &file_jungletv_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4023,7 +3917,7 @@ func (x *ForciblyEnqueueTicketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForciblyEnqueueTicketResponse.ProtoReflect.Descriptor instead.
 func (*ForciblyEnqueueTicketResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{46}
+	return file_jungletv_proto_rawDescGZIP(), []int{44}
 }
 
 type SubmitActivityChallengeRequest struct {
@@ -4040,7 +3934,7 @@ type SubmitActivityChallengeRequest struct {
 func (x *SubmitActivityChallengeRequest) Reset() {
 	*x = SubmitActivityChallengeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[47]
+		mi := &file_jungletv_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4053,7 +3947,7 @@ func (x *SubmitActivityChallengeRequest) String() string {
 func (*SubmitActivityChallengeRequest) ProtoMessage() {}
 
 func (x *SubmitActivityChallengeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[47]
+	mi := &file_jungletv_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4066,7 +3960,7 @@ func (x *SubmitActivityChallengeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitActivityChallengeRequest.ProtoReflect.Descriptor instead.
 func (*SubmitActivityChallengeRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{47}
+	return file_jungletv_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SubmitActivityChallengeRequest) GetChallenge() string {
@@ -4108,7 +4002,7 @@ type SubmitActivityChallengeResponse struct {
 func (x *SubmitActivityChallengeResponse) Reset() {
 	*x = SubmitActivityChallengeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[48]
+		mi := &file_jungletv_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4121,7 +4015,7 @@ func (x *SubmitActivityChallengeResponse) String() string {
 func (*SubmitActivityChallengeResponse) ProtoMessage() {}
 
 func (x *SubmitActivityChallengeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[48]
+	mi := &file_jungletv_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4134,7 +4028,7 @@ func (x *SubmitActivityChallengeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitActivityChallengeResponse.ProtoReflect.Descriptor instead.
 func (*SubmitActivityChallengeResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{48}
+	return file_jungletv_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *SubmitActivityChallengeResponse) GetSkippedClientIntegrityChecks() bool {
@@ -4155,7 +4049,7 @@ type ConsumeChatRequest struct {
 func (x *ConsumeChatRequest) Reset() {
 	*x = ConsumeChatRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[49]
+		mi := &file_jungletv_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4168,7 +4062,7 @@ func (x *ConsumeChatRequest) String() string {
 func (*ConsumeChatRequest) ProtoMessage() {}
 
 func (x *ConsumeChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[49]
+	mi := &file_jungletv_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4181,7 +4075,7 @@ func (x *ConsumeChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumeChatRequest.ProtoReflect.Descriptor instead.
 func (*ConsumeChatRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{49}
+	return file_jungletv_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ConsumeChatRequest) GetInitialHistorySize() uint32 {
@@ -4202,7 +4096,7 @@ type ChatUpdate struct {
 func (x *ChatUpdate) Reset() {
 	*x = ChatUpdate{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[50]
+		mi := &file_jungletv_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4215,7 +4109,7 @@ func (x *ChatUpdate) String() string {
 func (*ChatUpdate) ProtoMessage() {}
 
 func (x *ChatUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[50]
+	mi := &file_jungletv_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4228,7 +4122,7 @@ func (x *ChatUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatUpdate.ProtoReflect.Descriptor instead.
 func (*ChatUpdate) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{50}
+	return file_jungletv_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ChatUpdate) GetEvents() []*ChatUpdateEvent {
@@ -4258,7 +4152,7 @@ type ChatUpdateEvent struct {
 func (x *ChatUpdateEvent) Reset() {
 	*x = ChatUpdateEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[51]
+		mi := &file_jungletv_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4271,7 +4165,7 @@ func (x *ChatUpdateEvent) String() string {
 func (*ChatUpdateEvent) ProtoMessage() {}
 
 func (x *ChatUpdateEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[51]
+	mi := &file_jungletv_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4284,7 +4178,7 @@ func (x *ChatUpdateEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatUpdateEvent.ProtoReflect.Descriptor instead.
 func (*ChatUpdateEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{51}
+	return file_jungletv_proto_rawDescGZIP(), []int{49}
 }
 
 func (m *ChatUpdateEvent) GetEvent() isChatUpdateEvent_Event {
@@ -4420,7 +4314,7 @@ type ChatMessage struct {
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[52]
+		mi := &file_jungletv_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4433,7 +4327,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[52]
+	mi := &file_jungletv_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4446,7 +4340,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{52}
+	return file_jungletv_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ChatMessage) GetId() int64 {
@@ -4528,7 +4422,7 @@ type ChatMessageAttachment struct {
 func (x *ChatMessageAttachment) Reset() {
 	*x = ChatMessageAttachment{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[53]
+		mi := &file_jungletv_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4541,7 +4435,7 @@ func (x *ChatMessageAttachment) String() string {
 func (*ChatMessageAttachment) ProtoMessage() {}
 
 func (x *ChatMessageAttachment) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[53]
+	mi := &file_jungletv_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4554,7 +4448,7 @@ func (x *ChatMessageAttachment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessageAttachment.ProtoReflect.Descriptor instead.
 func (*ChatMessageAttachment) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{53}
+	return file_jungletv_proto_rawDescGZIP(), []int{51}
 }
 
 func (m *ChatMessageAttachment) GetAttachment() isChatMessageAttachment_Attachment {
@@ -4610,7 +4504,7 @@ type ChatMessageTenorGifAttachment struct {
 func (x *ChatMessageTenorGifAttachment) Reset() {
 	*x = ChatMessageTenorGifAttachment{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[54]
+		mi := &file_jungletv_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4623,7 +4517,7 @@ func (x *ChatMessageTenorGifAttachment) String() string {
 func (*ChatMessageTenorGifAttachment) ProtoMessage() {}
 
 func (x *ChatMessageTenorGifAttachment) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[54]
+	mi := &file_jungletv_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4636,7 +4530,7 @@ func (x *ChatMessageTenorGifAttachment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessageTenorGifAttachment.ProtoReflect.Descriptor instead.
 func (*ChatMessageTenorGifAttachment) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{54}
+	return file_jungletv_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ChatMessageTenorGifAttachment) GetId() string {
@@ -4695,7 +4589,7 @@ type ChatMessageApplicationPageAttachment struct {
 func (x *ChatMessageApplicationPageAttachment) Reset() {
 	*x = ChatMessageApplicationPageAttachment{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[55]
+		mi := &file_jungletv_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4708,7 +4602,7 @@ func (x *ChatMessageApplicationPageAttachment) String() string {
 func (*ChatMessageApplicationPageAttachment) ProtoMessage() {}
 
 func (x *ChatMessageApplicationPageAttachment) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[55]
+	mi := &file_jungletv_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4721,7 +4615,7 @@ func (x *ChatMessageApplicationPageAttachment) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ChatMessageApplicationPageAttachment.ProtoReflect.Descriptor instead.
 func (*ChatMessageApplicationPageAttachment) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{55}
+	return file_jungletv_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ChatMessageApplicationPageAttachment) GetApplicationId() string {
@@ -4764,7 +4658,7 @@ type UserChatMessage struct {
 func (x *UserChatMessage) Reset() {
 	*x = UserChatMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[56]
+		mi := &file_jungletv_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4777,7 +4671,7 @@ func (x *UserChatMessage) String() string {
 func (*UserChatMessage) ProtoMessage() {}
 
 func (x *UserChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[56]
+	mi := &file_jungletv_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4790,7 +4684,7 @@ func (x *UserChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserChatMessage.ProtoReflect.Descriptor instead.
 func (*UserChatMessage) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{56}
+	return file_jungletv_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UserChatMessage) GetAuthor() *User {
@@ -4818,7 +4712,7 @@ type SystemChatMessage struct {
 func (x *SystemChatMessage) Reset() {
 	*x = SystemChatMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[57]
+		mi := &file_jungletv_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4831,7 +4725,7 @@ func (x *SystemChatMessage) String() string {
 func (*SystemChatMessage) ProtoMessage() {}
 
 func (x *SystemChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[57]
+	mi := &file_jungletv_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4844,7 +4738,7 @@ func (x *SystemChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemChatMessage.ProtoReflect.Descriptor instead.
 func (*SystemChatMessage) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{57}
+	return file_jungletv_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SystemChatMessage) GetContent() string {
@@ -4865,7 +4759,7 @@ type ChatDisabledEvent struct {
 func (x *ChatDisabledEvent) Reset() {
 	*x = ChatDisabledEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[58]
+		mi := &file_jungletv_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4878,7 +4772,7 @@ func (x *ChatDisabledEvent) String() string {
 func (*ChatDisabledEvent) ProtoMessage() {}
 
 func (x *ChatDisabledEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[58]
+	mi := &file_jungletv_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4891,7 +4785,7 @@ func (x *ChatDisabledEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatDisabledEvent.ProtoReflect.Descriptor instead.
 func (*ChatDisabledEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{58}
+	return file_jungletv_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ChatDisabledEvent) GetReason() ChatDisabledReason {
@@ -4910,7 +4804,7 @@ type ChatEnabledEvent struct {
 func (x *ChatEnabledEvent) Reset() {
 	*x = ChatEnabledEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[59]
+		mi := &file_jungletv_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4923,7 +4817,7 @@ func (x *ChatEnabledEvent) String() string {
 func (*ChatEnabledEvent) ProtoMessage() {}
 
 func (x *ChatEnabledEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[59]
+	mi := &file_jungletv_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4936,7 +4830,7 @@ func (x *ChatEnabledEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatEnabledEvent.ProtoReflect.Descriptor instead.
 func (*ChatEnabledEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{59}
+	return file_jungletv_proto_rawDescGZIP(), []int{57}
 }
 
 type ChatMessageCreatedEvent struct {
@@ -4950,7 +4844,7 @@ type ChatMessageCreatedEvent struct {
 func (x *ChatMessageCreatedEvent) Reset() {
 	*x = ChatMessageCreatedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[60]
+		mi := &file_jungletv_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4963,7 +4857,7 @@ func (x *ChatMessageCreatedEvent) String() string {
 func (*ChatMessageCreatedEvent) ProtoMessage() {}
 
 func (x *ChatMessageCreatedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[60]
+	mi := &file_jungletv_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4976,7 +4870,7 @@ func (x *ChatMessageCreatedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessageCreatedEvent.ProtoReflect.Descriptor instead.
 func (*ChatMessageCreatedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{60}
+	return file_jungletv_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ChatMessageCreatedEvent) GetMessage() *ChatMessage {
@@ -4997,7 +4891,7 @@ type ChatMessageDeletedEvent struct {
 func (x *ChatMessageDeletedEvent) Reset() {
 	*x = ChatMessageDeletedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[61]
+		mi := &file_jungletv_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5010,7 +4904,7 @@ func (x *ChatMessageDeletedEvent) String() string {
 func (*ChatMessageDeletedEvent) ProtoMessage() {}
 
 func (x *ChatMessageDeletedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[61]
+	mi := &file_jungletv_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5023,7 +4917,7 @@ func (x *ChatMessageDeletedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessageDeletedEvent.ProtoReflect.Descriptor instead.
 func (*ChatMessageDeletedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{61}
+	return file_jungletv_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ChatMessageDeletedEvent) GetId() int64 {
@@ -5044,7 +4938,7 @@ type ChatHeartbeatEvent struct {
 func (x *ChatHeartbeatEvent) Reset() {
 	*x = ChatHeartbeatEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[62]
+		mi := &file_jungletv_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5057,7 +4951,7 @@ func (x *ChatHeartbeatEvent) String() string {
 func (*ChatHeartbeatEvent) ProtoMessage() {}
 
 func (x *ChatHeartbeatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[62]
+	mi := &file_jungletv_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5070,7 +4964,7 @@ func (x *ChatHeartbeatEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatHeartbeatEvent.ProtoReflect.Descriptor instead.
 func (*ChatHeartbeatEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{62}
+	return file_jungletv_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ChatHeartbeatEvent) GetSequence() uint32 {
@@ -5091,7 +4985,7 @@ type ChatBlockedUserCreatedEvent struct {
 func (x *ChatBlockedUserCreatedEvent) Reset() {
 	*x = ChatBlockedUserCreatedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[63]
+		mi := &file_jungletv_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5104,7 +4998,7 @@ func (x *ChatBlockedUserCreatedEvent) String() string {
 func (*ChatBlockedUserCreatedEvent) ProtoMessage() {}
 
 func (x *ChatBlockedUserCreatedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[63]
+	mi := &file_jungletv_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5117,7 +5011,7 @@ func (x *ChatBlockedUserCreatedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatBlockedUserCreatedEvent.ProtoReflect.Descriptor instead.
 func (*ChatBlockedUserCreatedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{63}
+	return file_jungletv_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ChatBlockedUserCreatedEvent) GetBlockedUserAddress() string {
@@ -5138,7 +5032,7 @@ type ChatBlockedUserDeletedEvent struct {
 func (x *ChatBlockedUserDeletedEvent) Reset() {
 	*x = ChatBlockedUserDeletedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[64]
+		mi := &file_jungletv_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5151,7 +5045,7 @@ func (x *ChatBlockedUserDeletedEvent) String() string {
 func (*ChatBlockedUserDeletedEvent) ProtoMessage() {}
 
 func (x *ChatBlockedUserDeletedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[64]
+	mi := &file_jungletv_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5164,7 +5058,7 @@ func (x *ChatBlockedUserDeletedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatBlockedUserDeletedEvent.ProtoReflect.Descriptor instead.
 func (*ChatBlockedUserDeletedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{64}
+	return file_jungletv_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ChatBlockedUserDeletedEvent) GetBlockedUserAddress() string {
@@ -5188,7 +5082,7 @@ type ChatEmoteCreatedEvent struct {
 func (x *ChatEmoteCreatedEvent) Reset() {
 	*x = ChatEmoteCreatedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[65]
+		mi := &file_jungletv_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5201,7 +5095,7 @@ func (x *ChatEmoteCreatedEvent) String() string {
 func (*ChatEmoteCreatedEvent) ProtoMessage() {}
 
 func (x *ChatEmoteCreatedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[65]
+	mi := &file_jungletv_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5214,7 +5108,7 @@ func (x *ChatEmoteCreatedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatEmoteCreatedEvent.ProtoReflect.Descriptor instead.
 func (*ChatEmoteCreatedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{65}
+	return file_jungletv_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ChatEmoteCreatedEvent) GetId() int64 {
@@ -5259,7 +5153,7 @@ type SendChatMessageRequest struct {
 func (x *SendChatMessageRequest) Reset() {
 	*x = SendChatMessageRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[66]
+		mi := &file_jungletv_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5272,7 +5166,7 @@ func (x *SendChatMessageRequest) String() string {
 func (*SendChatMessageRequest) ProtoMessage() {}
 
 func (x *SendChatMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[66]
+	mi := &file_jungletv_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5285,7 +5179,7 @@ func (x *SendChatMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendChatMessageRequest.ProtoReflect.Descriptor instead.
 func (*SendChatMessageRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{66}
+	return file_jungletv_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SendChatMessageRequest) GetContent() string {
@@ -5327,7 +5221,7 @@ type SendChatMessageResponse struct {
 func (x *SendChatMessageResponse) Reset() {
 	*x = SendChatMessageResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[67]
+		mi := &file_jungletv_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5340,7 +5234,7 @@ func (x *SendChatMessageResponse) String() string {
 func (*SendChatMessageResponse) ProtoMessage() {}
 
 func (x *SendChatMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[67]
+	mi := &file_jungletv_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5353,7 +5247,7 @@ func (x *SendChatMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendChatMessageResponse.ProtoReflect.Descriptor instead.
 func (*SendChatMessageResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{67}
+	return file_jungletv_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *SendChatMessageResponse) GetId() int64 {
@@ -5374,7 +5268,7 @@ type RemoveChatMessageRequest struct {
 func (x *RemoveChatMessageRequest) Reset() {
 	*x = RemoveChatMessageRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[68]
+		mi := &file_jungletv_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5387,7 +5281,7 @@ func (x *RemoveChatMessageRequest) String() string {
 func (*RemoveChatMessageRequest) ProtoMessage() {}
 
 func (x *RemoveChatMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[68]
+	mi := &file_jungletv_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5400,7 +5294,7 @@ func (x *RemoveChatMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveChatMessageRequest.ProtoReflect.Descriptor instead.
 func (*RemoveChatMessageRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{68}
+	return file_jungletv_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *RemoveChatMessageRequest) GetId() int64 {
@@ -5419,7 +5313,7 @@ type RemoveChatMessageResponse struct {
 func (x *RemoveChatMessageResponse) Reset() {
 	*x = RemoveChatMessageResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[69]
+		mi := &file_jungletv_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5432,7 +5326,7 @@ func (x *RemoveChatMessageResponse) String() string {
 func (*RemoveChatMessageResponse) ProtoMessage() {}
 
 func (x *RemoveChatMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[69]
+	mi := &file_jungletv_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5445,7 +5339,7 @@ func (x *RemoveChatMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveChatMessageResponse.ProtoReflect.Descriptor instead.
 func (*RemoveChatMessageResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{69}
+	return file_jungletv_proto_rawDescGZIP(), []int{67}
 }
 
 type SetChatSettingsRequest struct {
@@ -5460,7 +5354,7 @@ type SetChatSettingsRequest struct {
 func (x *SetChatSettingsRequest) Reset() {
 	*x = SetChatSettingsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[70]
+		mi := &file_jungletv_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5473,7 +5367,7 @@ func (x *SetChatSettingsRequest) String() string {
 func (*SetChatSettingsRequest) ProtoMessage() {}
 
 func (x *SetChatSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[70]
+	mi := &file_jungletv_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5486,7 +5380,7 @@ func (x *SetChatSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetChatSettingsRequest.ProtoReflect.Descriptor instead.
 func (*SetChatSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{70}
+	return file_jungletv_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *SetChatSettingsRequest) GetEnabled() bool {
@@ -5512,7 +5406,7 @@ type SetChatSettingsResponse struct {
 func (x *SetChatSettingsResponse) Reset() {
 	*x = SetChatSettingsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[71]
+		mi := &file_jungletv_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5525,7 +5419,7 @@ func (x *SetChatSettingsResponse) String() string {
 func (*SetChatSettingsResponse) ProtoMessage() {}
 
 func (x *SetChatSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[71]
+	mi := &file_jungletv_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5538,7 +5432,7 @@ func (x *SetChatSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetChatSettingsResponse.ProtoReflect.Descriptor instead.
 func (*SetChatSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{71}
+	return file_jungletv_proto_rawDescGZIP(), []int{69}
 }
 
 type BanUserRequest struct {
@@ -5558,7 +5452,7 @@ type BanUserRequest struct {
 func (x *BanUserRequest) Reset() {
 	*x = BanUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[72]
+		mi := &file_jungletv_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5571,7 +5465,7 @@ func (x *BanUserRequest) String() string {
 func (*BanUserRequest) ProtoMessage() {}
 
 func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[72]
+	mi := &file_jungletv_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5584,7 +5478,7 @@ func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserRequest.ProtoReflect.Descriptor instead.
 func (*BanUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{72}
+	return file_jungletv_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *BanUserRequest) GetAddress() string {
@@ -5647,7 +5541,7 @@ type BanUserResponse struct {
 func (x *BanUserResponse) Reset() {
 	*x = BanUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[73]
+		mi := &file_jungletv_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5660,7 +5554,7 @@ func (x *BanUserResponse) String() string {
 func (*BanUserResponse) ProtoMessage() {}
 
 func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[73]
+	mi := &file_jungletv_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5673,7 +5567,7 @@ func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserResponse.ProtoReflect.Descriptor instead.
 func (*BanUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{73}
+	return file_jungletv_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *BanUserResponse) GetBanIds() []string {
@@ -5695,7 +5589,7 @@ type RemoveBanRequest struct {
 func (x *RemoveBanRequest) Reset() {
 	*x = RemoveBanRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[74]
+		mi := &file_jungletv_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5708,7 +5602,7 @@ func (x *RemoveBanRequest) String() string {
 func (*RemoveBanRequest) ProtoMessage() {}
 
 func (x *RemoveBanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[74]
+	mi := &file_jungletv_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5721,7 +5615,7 @@ func (x *RemoveBanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveBanRequest.ProtoReflect.Descriptor instead.
 func (*RemoveBanRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{74}
+	return file_jungletv_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *RemoveBanRequest) GetBanId() string {
@@ -5747,7 +5641,7 @@ type RemoveBanResponse struct {
 func (x *RemoveBanResponse) Reset() {
 	*x = RemoveBanResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[75]
+		mi := &file_jungletv_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5760,7 +5654,7 @@ func (x *RemoveBanResponse) String() string {
 func (*RemoveBanResponse) ProtoMessage() {}
 
 func (x *RemoveBanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[75]
+	mi := &file_jungletv_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5773,7 +5667,7 @@ func (x *RemoveBanResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveBanResponse.ProtoReflect.Descriptor instead.
 func (*RemoveBanResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{75}
+	return file_jungletv_proto_rawDescGZIP(), []int{73}
 }
 
 type UserBan struct {
@@ -5797,7 +5691,7 @@ type UserBan struct {
 func (x *UserBan) Reset() {
 	*x = UserBan{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[76]
+		mi := &file_jungletv_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5810,7 +5704,7 @@ func (x *UserBan) String() string {
 func (*UserBan) ProtoMessage() {}
 
 func (x *UserBan) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[76]
+	mi := &file_jungletv_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5823,7 +5717,7 @@ func (x *UserBan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserBan.ProtoReflect.Descriptor instead.
 func (*UserBan) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{76}
+	return file_jungletv_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *UserBan) GetBanId() string {
@@ -5916,7 +5810,7 @@ type UserBansRequest struct {
 func (x *UserBansRequest) Reset() {
 	*x = UserBansRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[77]
+		mi := &file_jungletv_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5929,7 +5823,7 @@ func (x *UserBansRequest) String() string {
 func (*UserBansRequest) ProtoMessage() {}
 
 func (x *UserBansRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[77]
+	mi := &file_jungletv_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5942,7 +5836,7 @@ func (x *UserBansRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserBansRequest.ProtoReflect.Descriptor instead.
 func (*UserBansRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{77}
+	return file_jungletv_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *UserBansRequest) GetPaginationParams() *PaginationParameters {
@@ -5979,7 +5873,7 @@ type UserBansResponse struct {
 func (x *UserBansResponse) Reset() {
 	*x = UserBansResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[78]
+		mi := &file_jungletv_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5992,7 +5886,7 @@ func (x *UserBansResponse) String() string {
 func (*UserBansResponse) ProtoMessage() {}
 
 func (x *UserBansResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[78]
+	mi := &file_jungletv_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6005,7 +5899,7 @@ func (x *UserBansResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserBansResponse.ProtoReflect.Descriptor instead.
 func (*UserBansResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{78}
+	return file_jungletv_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *UserBansResponse) GetUserBans() []*UserBan {
@@ -6044,7 +5938,7 @@ type VerifyUserRequest struct {
 func (x *VerifyUserRequest) Reset() {
 	*x = VerifyUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[79]
+		mi := &file_jungletv_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6057,7 +5951,7 @@ func (x *VerifyUserRequest) String() string {
 func (*VerifyUserRequest) ProtoMessage() {}
 
 func (x *VerifyUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[79]
+	mi := &file_jungletv_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6070,7 +5964,7 @@ func (x *VerifyUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyUserRequest.ProtoReflect.Descriptor instead.
 func (*VerifyUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{79}
+	return file_jungletv_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *VerifyUserRequest) GetAddress() string {
@@ -6119,7 +6013,7 @@ type VerifyUserResponse struct {
 func (x *VerifyUserResponse) Reset() {
 	*x = VerifyUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[80]
+		mi := &file_jungletv_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6132,7 +6026,7 @@ func (x *VerifyUserResponse) String() string {
 func (*VerifyUserResponse) ProtoMessage() {}
 
 func (x *VerifyUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[80]
+	mi := &file_jungletv_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6145,7 +6039,7 @@ func (x *VerifyUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyUserResponse.ProtoReflect.Descriptor instead.
 func (*VerifyUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{80}
+	return file_jungletv_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *VerifyUserResponse) GetVerificationId() string {
@@ -6167,7 +6061,7 @@ type RemoveUserVerificationRequest struct {
 func (x *RemoveUserVerificationRequest) Reset() {
 	*x = RemoveUserVerificationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[81]
+		mi := &file_jungletv_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6180,7 +6074,7 @@ func (x *RemoveUserVerificationRequest) String() string {
 func (*RemoveUserVerificationRequest) ProtoMessage() {}
 
 func (x *RemoveUserVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[81]
+	mi := &file_jungletv_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6193,7 +6087,7 @@ func (x *RemoveUserVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveUserVerificationRequest.ProtoReflect.Descriptor instead.
 func (*RemoveUserVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{81}
+	return file_jungletv_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *RemoveUserVerificationRequest) GetVerificationId() string {
@@ -6219,7 +6113,7 @@ type RemoveUserVerificationResponse struct {
 func (x *RemoveUserVerificationResponse) Reset() {
 	*x = RemoveUserVerificationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[82]
+		mi := &file_jungletv_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6232,7 +6126,7 @@ func (x *RemoveUserVerificationResponse) String() string {
 func (*RemoveUserVerificationResponse) ProtoMessage() {}
 
 func (x *RemoveUserVerificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[82]
+	mi := &file_jungletv_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6245,7 +6139,7 @@ func (x *RemoveUserVerificationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveUserVerificationResponse.ProtoReflect.Descriptor instead.
 func (*RemoveUserVerificationResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{82}
+	return file_jungletv_proto_rawDescGZIP(), []int{80}
 }
 
 type UserVerification struct {
@@ -6266,7 +6160,7 @@ type UserVerification struct {
 func (x *UserVerification) Reset() {
 	*x = UserVerification{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[83]
+		mi := &file_jungletv_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6279,7 +6173,7 @@ func (x *UserVerification) String() string {
 func (*UserVerification) ProtoMessage() {}
 
 func (x *UserVerification) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[83]
+	mi := &file_jungletv_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6292,7 +6186,7 @@ func (x *UserVerification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserVerification.ProtoReflect.Descriptor instead.
 func (*UserVerification) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{83}
+	return file_jungletv_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *UserVerification) GetId() string {
@@ -6363,7 +6257,7 @@ type UserVerificationsRequest struct {
 func (x *UserVerificationsRequest) Reset() {
 	*x = UserVerificationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[84]
+		mi := &file_jungletv_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6376,7 +6270,7 @@ func (x *UserVerificationsRequest) String() string {
 func (*UserVerificationsRequest) ProtoMessage() {}
 
 func (x *UserVerificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[84]
+	mi := &file_jungletv_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6389,7 +6283,7 @@ func (x *UserVerificationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserVerificationsRequest.ProtoReflect.Descriptor instead.
 func (*UserVerificationsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{84}
+	return file_jungletv_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *UserVerificationsRequest) GetPaginationParams() *PaginationParameters {
@@ -6419,7 +6313,7 @@ type UserVerificationsResponse struct {
 func (x *UserVerificationsResponse) Reset() {
 	*x = UserVerificationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[85]
+		mi := &file_jungletv_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6432,7 +6326,7 @@ func (x *UserVerificationsResponse) String() string {
 func (*UserVerificationsResponse) ProtoMessage() {}
 
 func (x *UserVerificationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[85]
+	mi := &file_jungletv_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6445,7 +6339,7 @@ func (x *UserVerificationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserVerificationsResponse.ProtoReflect.Descriptor instead.
 func (*UserVerificationsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{85}
+	return file_jungletv_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *UserVerificationsResponse) GetUserVerifications() []*UserVerification {
@@ -6481,7 +6375,7 @@ type SetMediaEnqueuingEnabledRequest struct {
 func (x *SetMediaEnqueuingEnabledRequest) Reset() {
 	*x = SetMediaEnqueuingEnabledRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[86]
+		mi := &file_jungletv_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6494,7 +6388,7 @@ func (x *SetMediaEnqueuingEnabledRequest) String() string {
 func (*SetMediaEnqueuingEnabledRequest) ProtoMessage() {}
 
 func (x *SetMediaEnqueuingEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[86]
+	mi := &file_jungletv_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6507,7 +6401,7 @@ func (x *SetMediaEnqueuingEnabledRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMediaEnqueuingEnabledRequest.ProtoReflect.Descriptor instead.
 func (*SetMediaEnqueuingEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{86}
+	return file_jungletv_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *SetMediaEnqueuingEnabledRequest) GetAllowed() AllowedMediaEnqueuingType {
@@ -6533,7 +6427,7 @@ type SetMediaEnqueuingEnabledResponse struct {
 func (x *SetMediaEnqueuingEnabledResponse) Reset() {
 	*x = SetMediaEnqueuingEnabledResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[87]
+		mi := &file_jungletv_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6546,7 +6440,7 @@ func (x *SetMediaEnqueuingEnabledResponse) String() string {
 func (*SetMediaEnqueuingEnabledResponse) ProtoMessage() {}
 
 func (x *SetMediaEnqueuingEnabledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[87]
+	mi := &file_jungletv_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6559,7 +6453,7 @@ func (x *SetMediaEnqueuingEnabledResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMediaEnqueuingEnabledResponse.ProtoReflect.Descriptor instead.
 func (*SetMediaEnqueuingEnabledResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{87}
+	return file_jungletv_proto_rawDescGZIP(), []int{85}
 }
 
 type UserChatMessagesRequest struct {
@@ -6574,7 +6468,7 @@ type UserChatMessagesRequest struct {
 func (x *UserChatMessagesRequest) Reset() {
 	*x = UserChatMessagesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[88]
+		mi := &file_jungletv_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6587,7 +6481,7 @@ func (x *UserChatMessagesRequest) String() string {
 func (*UserChatMessagesRequest) ProtoMessage() {}
 
 func (x *UserChatMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[88]
+	mi := &file_jungletv_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6600,7 +6494,7 @@ func (x *UserChatMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserChatMessagesRequest.ProtoReflect.Descriptor instead.
 func (*UserChatMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{88}
+	return file_jungletv_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *UserChatMessagesRequest) GetAddress() string {
@@ -6628,7 +6522,7 @@ type UserChatMessagesResponse struct {
 func (x *UserChatMessagesResponse) Reset() {
 	*x = UserChatMessagesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[89]
+		mi := &file_jungletv_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6641,7 +6535,7 @@ func (x *UserChatMessagesResponse) String() string {
 func (*UserChatMessagesResponse) ProtoMessage() {}
 
 func (x *UserChatMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[89]
+	mi := &file_jungletv_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6654,7 +6548,7 @@ func (x *UserChatMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserChatMessagesResponse.ProtoReflect.Descriptor instead.
 func (*UserChatMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{89}
+	return file_jungletv_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *UserChatMessagesResponse) GetMessages() []*ChatMessage {
@@ -6673,7 +6567,7 @@ type UserPermissionLevelRequest struct {
 func (x *UserPermissionLevelRequest) Reset() {
 	*x = UserPermissionLevelRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[90]
+		mi := &file_jungletv_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6686,7 +6580,7 @@ func (x *UserPermissionLevelRequest) String() string {
 func (*UserPermissionLevelRequest) ProtoMessage() {}
 
 func (x *UserPermissionLevelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[90]
+	mi := &file_jungletv_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6699,7 +6593,7 @@ func (x *UserPermissionLevelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserPermissionLevelRequest.ProtoReflect.Descriptor instead.
 func (*UserPermissionLevelRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{90}
+	return file_jungletv_proto_rawDescGZIP(), []int{88}
 }
 
 type UserPermissionLevelResponse struct {
@@ -6713,7 +6607,7 @@ type UserPermissionLevelResponse struct {
 func (x *UserPermissionLevelResponse) Reset() {
 	*x = UserPermissionLevelResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[91]
+		mi := &file_jungletv_proto_msgTypes[89]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6726,7 +6620,7 @@ func (x *UserPermissionLevelResponse) String() string {
 func (*UserPermissionLevelResponse) ProtoMessage() {}
 
 func (x *UserPermissionLevelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[91]
+	mi := &file_jungletv_proto_msgTypes[89]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6739,7 +6633,7 @@ func (x *UserPermissionLevelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserPermissionLevelResponse.ProtoReflect.Descriptor instead.
 func (*UserPermissionLevelResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{91}
+	return file_jungletv_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *UserPermissionLevelResponse) GetPermissionLevel() PermissionLevel {
@@ -6761,7 +6655,7 @@ type DisallowedMediaRequest struct {
 func (x *DisallowedMediaRequest) Reset() {
 	*x = DisallowedMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[92]
+		mi := &file_jungletv_proto_msgTypes[90]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6774,7 +6668,7 @@ func (x *DisallowedMediaRequest) String() string {
 func (*DisallowedMediaRequest) ProtoMessage() {}
 
 func (x *DisallowedMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[92]
+	mi := &file_jungletv_proto_msgTypes[90]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6787,7 +6681,7 @@ func (x *DisallowedMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisallowedMediaRequest.ProtoReflect.Descriptor instead.
 func (*DisallowedMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{92}
+	return file_jungletv_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *DisallowedMediaRequest) GetPaginationParams() *PaginationParameters {
@@ -6820,7 +6714,7 @@ type DisallowedMedia struct {
 func (x *DisallowedMedia) Reset() {
 	*x = DisallowedMedia{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[93]
+		mi := &file_jungletv_proto_msgTypes[91]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6833,7 +6727,7 @@ func (x *DisallowedMedia) String() string {
 func (*DisallowedMedia) ProtoMessage() {}
 
 func (x *DisallowedMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[93]
+	mi := &file_jungletv_proto_msgTypes[91]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6846,7 +6740,7 @@ func (x *DisallowedMedia) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisallowedMedia.ProtoReflect.Descriptor instead.
 func (*DisallowedMedia) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{93}
+	return file_jungletv_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *DisallowedMedia) GetId() string {
@@ -6904,7 +6798,7 @@ type DisallowedMediaResponse struct {
 func (x *DisallowedMediaResponse) Reset() {
 	*x = DisallowedMediaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[94]
+		mi := &file_jungletv_proto_msgTypes[92]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6917,7 +6811,7 @@ func (x *DisallowedMediaResponse) String() string {
 func (*DisallowedMediaResponse) ProtoMessage() {}
 
 func (x *DisallowedMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[94]
+	mi := &file_jungletv_proto_msgTypes[92]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6930,7 +6824,7 @@ func (x *DisallowedMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisallowedMediaResponse.ProtoReflect.Descriptor instead.
 func (*DisallowedMediaResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{94}
+	return file_jungletv_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *DisallowedMediaResponse) GetDisallowedMedia() []*DisallowedMedia {
@@ -6966,7 +6860,7 @@ type AddDisallowedMediaRequest struct {
 func (x *AddDisallowedMediaRequest) Reset() {
 	*x = AddDisallowedMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[95]
+		mi := &file_jungletv_proto_msgTypes[93]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6979,7 +6873,7 @@ func (x *AddDisallowedMediaRequest) String() string {
 func (*AddDisallowedMediaRequest) ProtoMessage() {}
 
 func (x *AddDisallowedMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[95]
+	mi := &file_jungletv_proto_msgTypes[93]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6992,7 +6886,7 @@ func (x *AddDisallowedMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddDisallowedMediaRequest.ProtoReflect.Descriptor instead.
 func (*AddDisallowedMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{95}
+	return file_jungletv_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *AddDisallowedMediaRequest) GetDisallowedMediaRequest() *EnqueueMediaRequest {
@@ -7013,7 +6907,7 @@ type AddDisallowedMediaResponse struct {
 func (x *AddDisallowedMediaResponse) Reset() {
 	*x = AddDisallowedMediaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[96]
+		mi := &file_jungletv_proto_msgTypes[94]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7026,7 +6920,7 @@ func (x *AddDisallowedMediaResponse) String() string {
 func (*AddDisallowedMediaResponse) ProtoMessage() {}
 
 func (x *AddDisallowedMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[96]
+	mi := &file_jungletv_proto_msgTypes[94]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7039,7 +6933,7 @@ func (x *AddDisallowedMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddDisallowedMediaResponse.ProtoReflect.Descriptor instead.
 func (*AddDisallowedMediaResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{96}
+	return file_jungletv_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *AddDisallowedMediaResponse) GetId() string {
@@ -7060,7 +6954,7 @@ type RemoveDisallowedMediaRequest struct {
 func (x *RemoveDisallowedMediaRequest) Reset() {
 	*x = RemoveDisallowedMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[97]
+		mi := &file_jungletv_proto_msgTypes[95]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7073,7 +6967,7 @@ func (x *RemoveDisallowedMediaRequest) String() string {
 func (*RemoveDisallowedMediaRequest) ProtoMessage() {}
 
 func (x *RemoveDisallowedMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[97]
+	mi := &file_jungletv_proto_msgTypes[95]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7086,7 +6980,7 @@ func (x *RemoveDisallowedMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveDisallowedMediaRequest.ProtoReflect.Descriptor instead.
 func (*RemoveDisallowedMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{97}
+	return file_jungletv_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *RemoveDisallowedMediaRequest) GetId() string {
@@ -7105,7 +6999,7 @@ type RemoveDisallowedMediaResponse struct {
 func (x *RemoveDisallowedMediaResponse) Reset() {
 	*x = RemoveDisallowedMediaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[98]
+		mi := &file_jungletv_proto_msgTypes[96]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7118,7 +7012,7 @@ func (x *RemoveDisallowedMediaResponse) String() string {
 func (*RemoveDisallowedMediaResponse) ProtoMessage() {}
 
 func (x *RemoveDisallowedMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[98]
+	mi := &file_jungletv_proto_msgTypes[96]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7131,7 +7025,7 @@ func (x *RemoveDisallowedMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveDisallowedMediaResponse.ProtoReflect.Descriptor instead.
 func (*RemoveDisallowedMediaResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{98}
+	return file_jungletv_proto_rawDescGZIP(), []int{96}
 }
 
 type DisallowedMediaCollectionsRequest struct {
@@ -7146,7 +7040,7 @@ type DisallowedMediaCollectionsRequest struct {
 func (x *DisallowedMediaCollectionsRequest) Reset() {
 	*x = DisallowedMediaCollectionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[99]
+		mi := &file_jungletv_proto_msgTypes[97]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7159,7 +7053,7 @@ func (x *DisallowedMediaCollectionsRequest) String() string {
 func (*DisallowedMediaCollectionsRequest) ProtoMessage() {}
 
 func (x *DisallowedMediaCollectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[99]
+	mi := &file_jungletv_proto_msgTypes[97]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7172,7 +7066,7 @@ func (x *DisallowedMediaCollectionsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DisallowedMediaCollectionsRequest.ProtoReflect.Descriptor instead.
 func (*DisallowedMediaCollectionsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{99}
+	return file_jungletv_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *DisallowedMediaCollectionsRequest) GetPaginationParams() *PaginationParameters {
@@ -7205,7 +7099,7 @@ type DisallowedMediaCollection struct {
 func (x *DisallowedMediaCollection) Reset() {
 	*x = DisallowedMediaCollection{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[100]
+		mi := &file_jungletv_proto_msgTypes[98]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7218,7 +7112,7 @@ func (x *DisallowedMediaCollection) String() string {
 func (*DisallowedMediaCollection) ProtoMessage() {}
 
 func (x *DisallowedMediaCollection) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[100]
+	mi := &file_jungletv_proto_msgTypes[98]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7231,7 +7125,7 @@ func (x *DisallowedMediaCollection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisallowedMediaCollection.ProtoReflect.Descriptor instead.
 func (*DisallowedMediaCollection) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{100}
+	return file_jungletv_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *DisallowedMediaCollection) GetId() string {
@@ -7289,7 +7183,7 @@ type DisallowedMediaCollectionsResponse struct {
 func (x *DisallowedMediaCollectionsResponse) Reset() {
 	*x = DisallowedMediaCollectionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[101]
+		mi := &file_jungletv_proto_msgTypes[99]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7302,7 +7196,7 @@ func (x *DisallowedMediaCollectionsResponse) String() string {
 func (*DisallowedMediaCollectionsResponse) ProtoMessage() {}
 
 func (x *DisallowedMediaCollectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[101]
+	mi := &file_jungletv_proto_msgTypes[99]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7315,7 +7209,7 @@ func (x *DisallowedMediaCollectionsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DisallowedMediaCollectionsResponse.ProtoReflect.Descriptor instead.
 func (*DisallowedMediaCollectionsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{101}
+	return file_jungletv_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *DisallowedMediaCollectionsResponse) GetDisallowedMediaCollections() []*DisallowedMediaCollection {
@@ -7351,7 +7245,7 @@ type AddDisallowedMediaCollectionRequest struct {
 func (x *AddDisallowedMediaCollectionRequest) Reset() {
 	*x = AddDisallowedMediaCollectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[102]
+		mi := &file_jungletv_proto_msgTypes[100]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7364,7 +7258,7 @@ func (x *AddDisallowedMediaCollectionRequest) String() string {
 func (*AddDisallowedMediaCollectionRequest) ProtoMessage() {}
 
 func (x *AddDisallowedMediaCollectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[102]
+	mi := &file_jungletv_proto_msgTypes[100]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7377,7 +7271,7 @@ func (x *AddDisallowedMediaCollectionRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use AddDisallowedMediaCollectionRequest.ProtoReflect.Descriptor instead.
 func (*AddDisallowedMediaCollectionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{102}
+	return file_jungletv_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *AddDisallowedMediaCollectionRequest) GetDisallowedMediaRequest() *EnqueueMediaRequest {
@@ -7398,7 +7292,7 @@ type AddDisallowedMediaCollectionResponse struct {
 func (x *AddDisallowedMediaCollectionResponse) Reset() {
 	*x = AddDisallowedMediaCollectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[103]
+		mi := &file_jungletv_proto_msgTypes[101]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7411,7 +7305,7 @@ func (x *AddDisallowedMediaCollectionResponse) String() string {
 func (*AddDisallowedMediaCollectionResponse) ProtoMessage() {}
 
 func (x *AddDisallowedMediaCollectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[103]
+	mi := &file_jungletv_proto_msgTypes[101]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7424,7 +7318,7 @@ func (x *AddDisallowedMediaCollectionResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use AddDisallowedMediaCollectionResponse.ProtoReflect.Descriptor instead.
 func (*AddDisallowedMediaCollectionResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{103}
+	return file_jungletv_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *AddDisallowedMediaCollectionResponse) GetIds() []string {
@@ -7445,7 +7339,7 @@ type RemoveDisallowedMediaCollectionRequest struct {
 func (x *RemoveDisallowedMediaCollectionRequest) Reset() {
 	*x = RemoveDisallowedMediaCollectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[104]
+		mi := &file_jungletv_proto_msgTypes[102]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7458,7 +7352,7 @@ func (x *RemoveDisallowedMediaCollectionRequest) String() string {
 func (*RemoveDisallowedMediaCollectionRequest) ProtoMessage() {}
 
 func (x *RemoveDisallowedMediaCollectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[104]
+	mi := &file_jungletv_proto_msgTypes[102]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7471,7 +7365,7 @@ func (x *RemoveDisallowedMediaCollectionRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use RemoveDisallowedMediaCollectionRequest.ProtoReflect.Descriptor instead.
 func (*RemoveDisallowedMediaCollectionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{104}
+	return file_jungletv_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *RemoveDisallowedMediaCollectionRequest) GetId() string {
@@ -7490,7 +7384,7 @@ type RemoveDisallowedMediaCollectionResponse struct {
 func (x *RemoveDisallowedMediaCollectionResponse) Reset() {
 	*x = RemoveDisallowedMediaCollectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[105]
+		mi := &file_jungletv_proto_msgTypes[103]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7503,7 +7397,7 @@ func (x *RemoveDisallowedMediaCollectionResponse) String() string {
 func (*RemoveDisallowedMediaCollectionResponse) ProtoMessage() {}
 
 func (x *RemoveDisallowedMediaCollectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[105]
+	mi := &file_jungletv_proto_msgTypes[103]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7516,7 +7410,7 @@ func (x *RemoveDisallowedMediaCollectionResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use RemoveDisallowedMediaCollectionResponse.ProtoReflect.Descriptor instead.
 func (*RemoveDisallowedMediaCollectionResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{105}
+	return file_jungletv_proto_rawDescGZIP(), []int{103}
 }
 
 type GetDocumentRequest struct {
@@ -7530,7 +7424,7 @@ type GetDocumentRequest struct {
 func (x *GetDocumentRequest) Reset() {
 	*x = GetDocumentRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[106]
+		mi := &file_jungletv_proto_msgTypes[104]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7543,7 +7437,7 @@ func (x *GetDocumentRequest) String() string {
 func (*GetDocumentRequest) ProtoMessage() {}
 
 func (x *GetDocumentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[106]
+	mi := &file_jungletv_proto_msgTypes[104]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7556,7 +7450,7 @@ func (x *GetDocumentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDocumentRequest.ProtoReflect.Descriptor instead.
 func (*GetDocumentRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{106}
+	return file_jungletv_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *GetDocumentRequest) GetId() string {
@@ -7580,7 +7474,7 @@ type Document struct {
 func (x *Document) Reset() {
 	*x = Document{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[107]
+		mi := &file_jungletv_proto_msgTypes[105]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7593,7 +7487,7 @@ func (x *Document) String() string {
 func (*Document) ProtoMessage() {}
 
 func (x *Document) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[107]
+	mi := &file_jungletv_proto_msgTypes[105]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7606,7 +7500,7 @@ func (x *Document) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Document.ProtoReflect.Descriptor instead.
 func (*Document) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{107}
+	return file_jungletv_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *Document) GetId() string {
@@ -7646,7 +7540,7 @@ type UpdateDocumentResponse struct {
 func (x *UpdateDocumentResponse) Reset() {
 	*x = UpdateDocumentResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[108]
+		mi := &file_jungletv_proto_msgTypes[106]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7659,7 +7553,7 @@ func (x *UpdateDocumentResponse) String() string {
 func (*UpdateDocumentResponse) ProtoMessage() {}
 
 func (x *UpdateDocumentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[108]
+	mi := &file_jungletv_proto_msgTypes[106]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7672,7 +7566,7 @@ func (x *UpdateDocumentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDocumentResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDocumentResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{108}
+	return file_jungletv_proto_rawDescGZIP(), []int{106}
 }
 
 type DocumentsRequest struct {
@@ -7687,7 +7581,7 @@ type DocumentsRequest struct {
 func (x *DocumentsRequest) Reset() {
 	*x = DocumentsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[109]
+		mi := &file_jungletv_proto_msgTypes[107]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7700,7 +7594,7 @@ func (x *DocumentsRequest) String() string {
 func (*DocumentsRequest) ProtoMessage() {}
 
 func (x *DocumentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[109]
+	mi := &file_jungletv_proto_msgTypes[107]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7713,7 +7607,7 @@ func (x *DocumentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocumentsRequest.ProtoReflect.Descriptor instead.
 func (*DocumentsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{109}
+	return file_jungletv_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *DocumentsRequest) GetPaginationParams() *PaginationParameters {
@@ -7745,7 +7639,7 @@ type DocumentHeader struct {
 func (x *DocumentHeader) Reset() {
 	*x = DocumentHeader{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[110]
+		mi := &file_jungletv_proto_msgTypes[108]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7758,7 +7652,7 @@ func (x *DocumentHeader) String() string {
 func (*DocumentHeader) ProtoMessage() {}
 
 func (x *DocumentHeader) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[110]
+	mi := &file_jungletv_proto_msgTypes[108]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7771,7 +7665,7 @@ func (x *DocumentHeader) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocumentHeader.ProtoReflect.Descriptor instead.
 func (*DocumentHeader) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{110}
+	return file_jungletv_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *DocumentHeader) GetId() string {
@@ -7822,7 +7716,7 @@ type DocumentsResponse struct {
 func (x *DocumentsResponse) Reset() {
 	*x = DocumentsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[111]
+		mi := &file_jungletv_proto_msgTypes[109]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7835,7 +7729,7 @@ func (x *DocumentsResponse) String() string {
 func (*DocumentsResponse) ProtoMessage() {}
 
 func (x *DocumentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[111]
+	mi := &file_jungletv_proto_msgTypes[109]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7848,7 +7742,7 @@ func (x *DocumentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocumentsResponse.ProtoReflect.Descriptor instead.
 func (*DocumentsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{111}
+	return file_jungletv_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *DocumentsResponse) GetDocuments() []*DocumentHeader {
@@ -7883,7 +7777,7 @@ type SetChatNicknameRequest struct {
 func (x *SetChatNicknameRequest) Reset() {
 	*x = SetChatNicknameRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[112]
+		mi := &file_jungletv_proto_msgTypes[110]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7896,7 +7790,7 @@ func (x *SetChatNicknameRequest) String() string {
 func (*SetChatNicknameRequest) ProtoMessage() {}
 
 func (x *SetChatNicknameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[112]
+	mi := &file_jungletv_proto_msgTypes[110]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7909,7 +7803,7 @@ func (x *SetChatNicknameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetChatNicknameRequest.ProtoReflect.Descriptor instead.
 func (*SetChatNicknameRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{112}
+	return file_jungletv_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *SetChatNicknameRequest) GetNickname() string {
@@ -7928,7 +7822,7 @@ type SetChatNicknameResponse struct {
 func (x *SetChatNicknameResponse) Reset() {
 	*x = SetChatNicknameResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[113]
+		mi := &file_jungletv_proto_msgTypes[111]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7941,7 +7835,7 @@ func (x *SetChatNicknameResponse) String() string {
 func (*SetChatNicknameResponse) ProtoMessage() {}
 
 func (x *SetChatNicknameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[113]
+	mi := &file_jungletv_proto_msgTypes[111]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7954,7 +7848,7 @@ func (x *SetChatNicknameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetChatNicknameResponse.ProtoReflect.Descriptor instead.
 func (*SetChatNicknameResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{113}
+	return file_jungletv_proto_rawDescGZIP(), []int{111}
 }
 
 type SetUserChatNicknameRequest struct {
@@ -7969,7 +7863,7 @@ type SetUserChatNicknameRequest struct {
 func (x *SetUserChatNicknameRequest) Reset() {
 	*x = SetUserChatNicknameRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[114]
+		mi := &file_jungletv_proto_msgTypes[112]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7982,7 +7876,7 @@ func (x *SetUserChatNicknameRequest) String() string {
 func (*SetUserChatNicknameRequest) ProtoMessage() {}
 
 func (x *SetUserChatNicknameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[114]
+	mi := &file_jungletv_proto_msgTypes[112]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7995,7 +7889,7 @@ func (x *SetUserChatNicknameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUserChatNicknameRequest.ProtoReflect.Descriptor instead.
 func (*SetUserChatNicknameRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{114}
+	return file_jungletv_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *SetUserChatNicknameRequest) GetAddress() string {
@@ -8021,7 +7915,7 @@ type SetUserChatNicknameResponse struct {
 func (x *SetUserChatNicknameResponse) Reset() {
 	*x = SetUserChatNicknameResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[115]
+		mi := &file_jungletv_proto_msgTypes[113]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8034,7 +7928,7 @@ func (x *SetUserChatNicknameResponse) String() string {
 func (*SetUserChatNicknameResponse) ProtoMessage() {}
 
 func (x *SetUserChatNicknameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[115]
+	mi := &file_jungletv_proto_msgTypes[113]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8047,7 +7941,7 @@ func (x *SetUserChatNicknameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUserChatNicknameResponse.ProtoReflect.Descriptor instead.
 func (*SetUserChatNicknameResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{115}
+	return file_jungletv_proto_rawDescGZIP(), []int{113}
 }
 
 type SetPricesMultiplierRequest struct {
@@ -8061,7 +7955,7 @@ type SetPricesMultiplierRequest struct {
 func (x *SetPricesMultiplierRequest) Reset() {
 	*x = SetPricesMultiplierRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[116]
+		mi := &file_jungletv_proto_msgTypes[114]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8074,7 +7968,7 @@ func (x *SetPricesMultiplierRequest) String() string {
 func (*SetPricesMultiplierRequest) ProtoMessage() {}
 
 func (x *SetPricesMultiplierRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[116]
+	mi := &file_jungletv_proto_msgTypes[114]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8087,7 +7981,7 @@ func (x *SetPricesMultiplierRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPricesMultiplierRequest.ProtoReflect.Descriptor instead.
 func (*SetPricesMultiplierRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{116}
+	return file_jungletv_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *SetPricesMultiplierRequest) GetMultiplier() int32 {
@@ -8106,7 +8000,7 @@ type SetPricesMultiplierResponse struct {
 func (x *SetPricesMultiplierResponse) Reset() {
 	*x = SetPricesMultiplierResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[117]
+		mi := &file_jungletv_proto_msgTypes[115]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8119,7 +8013,7 @@ func (x *SetPricesMultiplierResponse) String() string {
 func (*SetPricesMultiplierResponse) ProtoMessage() {}
 
 func (x *SetPricesMultiplierResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[117]
+	mi := &file_jungletv_proto_msgTypes[115]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8132,7 +8026,7 @@ func (x *SetPricesMultiplierResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPricesMultiplierResponse.ProtoReflect.Descriptor instead.
 func (*SetPricesMultiplierResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{117}
+	return file_jungletv_proto_rawDescGZIP(), []int{115}
 }
 
 type SetMinimumPricesMultiplierRequest struct {
@@ -8146,7 +8040,7 @@ type SetMinimumPricesMultiplierRequest struct {
 func (x *SetMinimumPricesMultiplierRequest) Reset() {
 	*x = SetMinimumPricesMultiplierRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[118]
+		mi := &file_jungletv_proto_msgTypes[116]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8159,7 +8053,7 @@ func (x *SetMinimumPricesMultiplierRequest) String() string {
 func (*SetMinimumPricesMultiplierRequest) ProtoMessage() {}
 
 func (x *SetMinimumPricesMultiplierRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[118]
+	mi := &file_jungletv_proto_msgTypes[116]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8172,7 +8066,7 @@ func (x *SetMinimumPricesMultiplierRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SetMinimumPricesMultiplierRequest.ProtoReflect.Descriptor instead.
 func (*SetMinimumPricesMultiplierRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{118}
+	return file_jungletv_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *SetMinimumPricesMultiplierRequest) GetMultiplier() int32 {
@@ -8191,7 +8085,7 @@ type SetMinimumPricesMultiplierResponse struct {
 func (x *SetMinimumPricesMultiplierResponse) Reset() {
 	*x = SetMinimumPricesMultiplierResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[119]
+		mi := &file_jungletv_proto_msgTypes[117]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8204,7 +8098,7 @@ func (x *SetMinimumPricesMultiplierResponse) String() string {
 func (*SetMinimumPricesMultiplierResponse) ProtoMessage() {}
 
 func (x *SetMinimumPricesMultiplierResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[119]
+	mi := &file_jungletv_proto_msgTypes[117]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8217,7 +8111,7 @@ func (x *SetMinimumPricesMultiplierResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetMinimumPricesMultiplierResponse.ProtoReflect.Descriptor instead.
 func (*SetMinimumPricesMultiplierResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{119}
+	return file_jungletv_proto_rawDescGZIP(), []int{117}
 }
 
 type WithdrawRequest struct {
@@ -8229,7 +8123,7 @@ type WithdrawRequest struct {
 func (x *WithdrawRequest) Reset() {
 	*x = WithdrawRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[120]
+		mi := &file_jungletv_proto_msgTypes[118]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8242,7 +8136,7 @@ func (x *WithdrawRequest) String() string {
 func (*WithdrawRequest) ProtoMessage() {}
 
 func (x *WithdrawRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[120]
+	mi := &file_jungletv_proto_msgTypes[118]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8255,7 +8149,7 @@ func (x *WithdrawRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{120}
+	return file_jungletv_proto_rawDescGZIP(), []int{118}
 }
 
 type WithdrawResponse struct {
@@ -8267,7 +8161,7 @@ type WithdrawResponse struct {
 func (x *WithdrawResponse) Reset() {
 	*x = WithdrawResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[121]
+		mi := &file_jungletv_proto_msgTypes[119]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8280,7 +8174,7 @@ func (x *WithdrawResponse) String() string {
 func (*WithdrawResponse) ProtoMessage() {}
 
 func (x *WithdrawResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[121]
+	mi := &file_jungletv_proto_msgTypes[119]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8293,7 +8187,7 @@ func (x *WithdrawResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{121}
+	return file_jungletv_proto_rawDescGZIP(), []int{119}
 }
 
 type LeaderboardsRequest struct {
@@ -8307,7 +8201,7 @@ type LeaderboardsRequest struct {
 func (x *LeaderboardsRequest) Reset() {
 	*x = LeaderboardsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[122]
+		mi := &file_jungletv_proto_msgTypes[120]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8320,7 +8214,7 @@ func (x *LeaderboardsRequest) String() string {
 func (*LeaderboardsRequest) ProtoMessage() {}
 
 func (x *LeaderboardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[122]
+	mi := &file_jungletv_proto_msgTypes[120]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8333,7 +8227,7 @@ func (x *LeaderboardsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderboardsRequest.ProtoReflect.Descriptor instead.
 func (*LeaderboardsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{122}
+	return file_jungletv_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *LeaderboardsRequest) GetPeriod() LeaderboardPeriod {
@@ -8354,7 +8248,7 @@ type LeaderboardsResponse struct {
 func (x *LeaderboardsResponse) Reset() {
 	*x = LeaderboardsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[123]
+		mi := &file_jungletv_proto_msgTypes[121]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8367,7 +8261,7 @@ func (x *LeaderboardsResponse) String() string {
 func (*LeaderboardsResponse) ProtoMessage() {}
 
 func (x *LeaderboardsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[123]
+	mi := &file_jungletv_proto_msgTypes[121]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8380,7 +8274,7 @@ func (x *LeaderboardsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderboardsResponse.ProtoReflect.Descriptor instead.
 func (*LeaderboardsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{123}
+	return file_jungletv_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *LeaderboardsResponse) GetLeaderboards() []*Leaderboard {
@@ -8403,7 +8297,7 @@ type Leaderboard struct {
 func (x *Leaderboard) Reset() {
 	*x = Leaderboard{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[124]
+		mi := &file_jungletv_proto_msgTypes[122]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8416,7 +8310,7 @@ func (x *Leaderboard) String() string {
 func (*Leaderboard) ProtoMessage() {}
 
 func (x *Leaderboard) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[124]
+	mi := &file_jungletv_proto_msgTypes[122]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8429,7 +8323,7 @@ func (x *Leaderboard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Leaderboard.ProtoReflect.Descriptor instead.
 func (*Leaderboard) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{124}
+	return file_jungletv_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *Leaderboard) GetTitle() string {
@@ -8467,7 +8361,7 @@ type LeaderboardRow struct {
 func (x *LeaderboardRow) Reset() {
 	*x = LeaderboardRow{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[125]
+		mi := &file_jungletv_proto_msgTypes[123]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8480,7 +8374,7 @@ func (x *LeaderboardRow) String() string {
 func (*LeaderboardRow) ProtoMessage() {}
 
 func (x *LeaderboardRow) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[125]
+	mi := &file_jungletv_proto_msgTypes[123]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8493,7 +8387,7 @@ func (x *LeaderboardRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderboardRow.ProtoReflect.Descriptor instead.
 func (*LeaderboardRow) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{125}
+	return file_jungletv_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *LeaderboardRow) GetRowNum() uint32 {
@@ -8537,7 +8431,7 @@ type LeaderboardValue struct {
 func (x *LeaderboardValue) Reset() {
 	*x = LeaderboardValue{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[126]
+		mi := &file_jungletv_proto_msgTypes[124]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8550,7 +8444,7 @@ func (x *LeaderboardValue) String() string {
 func (*LeaderboardValue) ProtoMessage() {}
 
 func (x *LeaderboardValue) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[126]
+	mi := &file_jungletv_proto_msgTypes[124]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8563,7 +8457,7 @@ func (x *LeaderboardValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderboardValue.ProtoReflect.Descriptor instead.
 func (*LeaderboardValue) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{126}
+	return file_jungletv_proto_rawDescGZIP(), []int{124}
 }
 
 func (m *LeaderboardValue) GetValue() isLeaderboardValue_Value {
@@ -8601,7 +8495,7 @@ type RewardHistoryRequest struct {
 func (x *RewardHistoryRequest) Reset() {
 	*x = RewardHistoryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[127]
+		mi := &file_jungletv_proto_msgTypes[125]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8614,7 +8508,7 @@ func (x *RewardHistoryRequest) String() string {
 func (*RewardHistoryRequest) ProtoMessage() {}
 
 func (x *RewardHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[127]
+	mi := &file_jungletv_proto_msgTypes[125]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8627,7 +8521,7 @@ func (x *RewardHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RewardHistoryRequest.ProtoReflect.Descriptor instead.
 func (*RewardHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{127}
+	return file_jungletv_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *RewardHistoryRequest) GetPaginationParams() *PaginationParameters {
@@ -8658,7 +8552,7 @@ type ReceivedReward struct {
 func (x *ReceivedReward) Reset() {
 	*x = ReceivedReward{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[128]
+		mi := &file_jungletv_proto_msgTypes[126]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8671,7 +8565,7 @@ func (x *ReceivedReward) String() string {
 func (*ReceivedReward) ProtoMessage() {}
 
 func (x *ReceivedReward) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[128]
+	mi := &file_jungletv_proto_msgTypes[126]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8684,7 +8578,7 @@ func (x *ReceivedReward) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceivedReward.ProtoReflect.Descriptor instead.
 func (*ReceivedReward) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{128}
+	return file_jungletv_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *ReceivedReward) GetId() string {
@@ -8798,7 +8692,7 @@ type RewardHistoryResponse struct {
 func (x *RewardHistoryResponse) Reset() {
 	*x = RewardHistoryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[129]
+		mi := &file_jungletv_proto_msgTypes[127]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8811,7 +8705,7 @@ func (x *RewardHistoryResponse) String() string {
 func (*RewardHistoryResponse) ProtoMessage() {}
 
 func (x *RewardHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[129]
+	mi := &file_jungletv_proto_msgTypes[127]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8824,7 +8718,7 @@ func (x *RewardHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RewardHistoryResponse.ProtoReflect.Descriptor instead.
 func (*RewardHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{129}
+	return file_jungletv_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *RewardHistoryResponse) GetReceivedRewards() []*ReceivedReward {
@@ -8859,7 +8753,7 @@ type WithdrawalHistoryRequest struct {
 func (x *WithdrawalHistoryRequest) Reset() {
 	*x = WithdrawalHistoryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[130]
+		mi := &file_jungletv_proto_msgTypes[128]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8872,7 +8766,7 @@ func (x *WithdrawalHistoryRequest) String() string {
 func (*WithdrawalHistoryRequest) ProtoMessage() {}
 
 func (x *WithdrawalHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[130]
+	mi := &file_jungletv_proto_msgTypes[128]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8885,7 +8779,7 @@ func (x *WithdrawalHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawalHistoryRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawalHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{130}
+	return file_jungletv_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *WithdrawalHistoryRequest) GetPaginationParams() *PaginationParameters {
@@ -8910,7 +8804,7 @@ type Withdrawal struct {
 func (x *Withdrawal) Reset() {
 	*x = Withdrawal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[131]
+		mi := &file_jungletv_proto_msgTypes[129]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8923,7 +8817,7 @@ func (x *Withdrawal) String() string {
 func (*Withdrawal) ProtoMessage() {}
 
 func (x *Withdrawal) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[131]
+	mi := &file_jungletv_proto_msgTypes[129]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8936,7 +8830,7 @@ func (x *Withdrawal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Withdrawal.ProtoReflect.Descriptor instead.
 func (*Withdrawal) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{131}
+	return file_jungletv_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *Withdrawal) GetTxHash() string {
@@ -8987,7 +8881,7 @@ type WithdrawalHistoryResponse struct {
 func (x *WithdrawalHistoryResponse) Reset() {
 	*x = WithdrawalHistoryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[132]
+		mi := &file_jungletv_proto_msgTypes[130]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9000,7 +8894,7 @@ func (x *WithdrawalHistoryResponse) String() string {
 func (*WithdrawalHistoryResponse) ProtoMessage() {}
 
 func (x *WithdrawalHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[132]
+	mi := &file_jungletv_proto_msgTypes[130]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9013,7 +8907,7 @@ func (x *WithdrawalHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawalHistoryResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawalHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{132}
+	return file_jungletv_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *WithdrawalHistoryResponse) GetWithdrawals() []*Withdrawal {
@@ -9048,7 +8942,7 @@ type SetCrowdfundedSkippingEnabledRequest struct {
 func (x *SetCrowdfundedSkippingEnabledRequest) Reset() {
 	*x = SetCrowdfundedSkippingEnabledRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[133]
+		mi := &file_jungletv_proto_msgTypes[131]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9061,7 +8955,7 @@ func (x *SetCrowdfundedSkippingEnabledRequest) String() string {
 func (*SetCrowdfundedSkippingEnabledRequest) ProtoMessage() {}
 
 func (x *SetCrowdfundedSkippingEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[133]
+	mi := &file_jungletv_proto_msgTypes[131]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9074,7 +8968,7 @@ func (x *SetCrowdfundedSkippingEnabledRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use SetCrowdfundedSkippingEnabledRequest.ProtoReflect.Descriptor instead.
 func (*SetCrowdfundedSkippingEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{133}
+	return file_jungletv_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *SetCrowdfundedSkippingEnabledRequest) GetEnabled() bool {
@@ -9093,7 +8987,7 @@ type SetCrowdfundedSkippingEnabledResponse struct {
 func (x *SetCrowdfundedSkippingEnabledResponse) Reset() {
 	*x = SetCrowdfundedSkippingEnabledResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[134]
+		mi := &file_jungletv_proto_msgTypes[132]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9106,7 +9000,7 @@ func (x *SetCrowdfundedSkippingEnabledResponse) String() string {
 func (*SetCrowdfundedSkippingEnabledResponse) ProtoMessage() {}
 
 func (x *SetCrowdfundedSkippingEnabledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[134]
+	mi := &file_jungletv_proto_msgTypes[132]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9119,7 +9013,7 @@ func (x *SetCrowdfundedSkippingEnabledResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use SetCrowdfundedSkippingEnabledResponse.ProtoReflect.Descriptor instead.
 func (*SetCrowdfundedSkippingEnabledResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{134}
+	return file_jungletv_proto_rawDescGZIP(), []int{132}
 }
 
 type SetSkipPriceMultiplierRequest struct {
@@ -9133,7 +9027,7 @@ type SetSkipPriceMultiplierRequest struct {
 func (x *SetSkipPriceMultiplierRequest) Reset() {
 	*x = SetSkipPriceMultiplierRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[135]
+		mi := &file_jungletv_proto_msgTypes[133]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9146,7 +9040,7 @@ func (x *SetSkipPriceMultiplierRequest) String() string {
 func (*SetSkipPriceMultiplierRequest) ProtoMessage() {}
 
 func (x *SetSkipPriceMultiplierRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[135]
+	mi := &file_jungletv_proto_msgTypes[133]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9159,7 +9053,7 @@ func (x *SetSkipPriceMultiplierRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSkipPriceMultiplierRequest.ProtoReflect.Descriptor instead.
 func (*SetSkipPriceMultiplierRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{135}
+	return file_jungletv_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *SetSkipPriceMultiplierRequest) GetMultiplier() int32 {
@@ -9178,7 +9072,7 @@ type SetSkipPriceMultiplierResponse struct {
 func (x *SetSkipPriceMultiplierResponse) Reset() {
 	*x = SetSkipPriceMultiplierResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[136]
+		mi := &file_jungletv_proto_msgTypes[134]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9191,7 +9085,7 @@ func (x *SetSkipPriceMultiplierResponse) String() string {
 func (*SetSkipPriceMultiplierResponse) ProtoMessage() {}
 
 func (x *SetSkipPriceMultiplierResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[136]
+	mi := &file_jungletv_proto_msgTypes[134]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9204,7 +9098,7 @@ func (x *SetSkipPriceMultiplierResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSkipPriceMultiplierResponse.ProtoReflect.Descriptor instead.
 func (*SetSkipPriceMultiplierResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{136}
+	return file_jungletv_proto_rawDescGZIP(), []int{134}
 }
 
 type ProduceSegchaChallengeRequest struct {
@@ -9216,7 +9110,7 @@ type ProduceSegchaChallengeRequest struct {
 func (x *ProduceSegchaChallengeRequest) Reset() {
 	*x = ProduceSegchaChallengeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[137]
+		mi := &file_jungletv_proto_msgTypes[135]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9229,7 +9123,7 @@ func (x *ProduceSegchaChallengeRequest) String() string {
 func (*ProduceSegchaChallengeRequest) ProtoMessage() {}
 
 func (x *ProduceSegchaChallengeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[137]
+	mi := &file_jungletv_proto_msgTypes[135]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9242,7 +9136,7 @@ func (x *ProduceSegchaChallengeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProduceSegchaChallengeRequest.ProtoReflect.Descriptor instead.
 func (*ProduceSegchaChallengeRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{137}
+	return file_jungletv_proto_rawDescGZIP(), []int{135}
 }
 
 type ProduceSegchaChallengeResponse struct {
@@ -9257,7 +9151,7 @@ type ProduceSegchaChallengeResponse struct {
 func (x *ProduceSegchaChallengeResponse) Reset() {
 	*x = ProduceSegchaChallengeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[138]
+		mi := &file_jungletv_proto_msgTypes[136]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9270,7 +9164,7 @@ func (x *ProduceSegchaChallengeResponse) String() string {
 func (*ProduceSegchaChallengeResponse) ProtoMessage() {}
 
 func (x *ProduceSegchaChallengeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[138]
+	mi := &file_jungletv_proto_msgTypes[136]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9283,7 +9177,7 @@ func (x *ProduceSegchaChallengeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProduceSegchaChallengeResponse.ProtoReflect.Descriptor instead.
 func (*ProduceSegchaChallengeResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{138}
+	return file_jungletv_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *ProduceSegchaChallengeResponse) GetChallengeId() string {
@@ -9311,7 +9205,7 @@ type SegchaChallengeStep struct {
 func (x *SegchaChallengeStep) Reset() {
 	*x = SegchaChallengeStep{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[139]
+		mi := &file_jungletv_proto_msgTypes[137]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9324,7 +9218,7 @@ func (x *SegchaChallengeStep) String() string {
 func (*SegchaChallengeStep) ProtoMessage() {}
 
 func (x *SegchaChallengeStep) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[139]
+	mi := &file_jungletv_proto_msgTypes[137]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9337,7 +9231,7 @@ func (x *SegchaChallengeStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SegchaChallengeStep.ProtoReflect.Descriptor instead.
 func (*SegchaChallengeStep) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{139}
+	return file_jungletv_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *SegchaChallengeStep) GetImage() []byte {
@@ -9358,7 +9252,7 @@ type ConfirmRaffleWinnerRequest struct {
 func (x *ConfirmRaffleWinnerRequest) Reset() {
 	*x = ConfirmRaffleWinnerRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[140]
+		mi := &file_jungletv_proto_msgTypes[138]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9371,7 +9265,7 @@ func (x *ConfirmRaffleWinnerRequest) String() string {
 func (*ConfirmRaffleWinnerRequest) ProtoMessage() {}
 
 func (x *ConfirmRaffleWinnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[140]
+	mi := &file_jungletv_proto_msgTypes[138]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9384,7 +9278,7 @@ func (x *ConfirmRaffleWinnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmRaffleWinnerRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmRaffleWinnerRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{140}
+	return file_jungletv_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *ConfirmRaffleWinnerRequest) GetRaffleId() string {
@@ -9403,7 +9297,7 @@ type ConfirmRaffleWinnerResponse struct {
 func (x *ConfirmRaffleWinnerResponse) Reset() {
 	*x = ConfirmRaffleWinnerResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[141]
+		mi := &file_jungletv_proto_msgTypes[139]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9416,7 +9310,7 @@ func (x *ConfirmRaffleWinnerResponse) String() string {
 func (*ConfirmRaffleWinnerResponse) ProtoMessage() {}
 
 func (x *ConfirmRaffleWinnerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[141]
+	mi := &file_jungletv_proto_msgTypes[139]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9429,7 +9323,7 @@ func (x *ConfirmRaffleWinnerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmRaffleWinnerResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmRaffleWinnerResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{141}
+	return file_jungletv_proto_rawDescGZIP(), []int{139}
 }
 
 type CompleteRaffleRequest struct {
@@ -9444,7 +9338,7 @@ type CompleteRaffleRequest struct {
 func (x *CompleteRaffleRequest) Reset() {
 	*x = CompleteRaffleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[142]
+		mi := &file_jungletv_proto_msgTypes[140]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9457,7 +9351,7 @@ func (x *CompleteRaffleRequest) String() string {
 func (*CompleteRaffleRequest) ProtoMessage() {}
 
 func (x *CompleteRaffleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[142]
+	mi := &file_jungletv_proto_msgTypes[140]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9470,7 +9364,7 @@ func (x *CompleteRaffleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteRaffleRequest.ProtoReflect.Descriptor instead.
 func (*CompleteRaffleRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{142}
+	return file_jungletv_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *CompleteRaffleRequest) GetRaffleId() string {
@@ -9496,7 +9390,7 @@ type CompleteRaffleResponse struct {
 func (x *CompleteRaffleResponse) Reset() {
 	*x = CompleteRaffleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[143]
+		mi := &file_jungletv_proto_msgTypes[141]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9509,7 +9403,7 @@ func (x *CompleteRaffleResponse) String() string {
 func (*CompleteRaffleResponse) ProtoMessage() {}
 
 func (x *CompleteRaffleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[143]
+	mi := &file_jungletv_proto_msgTypes[141]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9522,7 +9416,7 @@ func (x *CompleteRaffleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteRaffleResponse.ProtoReflect.Descriptor instead.
 func (*CompleteRaffleResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{143}
+	return file_jungletv_proto_rawDescGZIP(), []int{141}
 }
 
 type RedrawRaffleRequest struct {
@@ -9537,7 +9431,7 @@ type RedrawRaffleRequest struct {
 func (x *RedrawRaffleRequest) Reset() {
 	*x = RedrawRaffleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[144]
+		mi := &file_jungletv_proto_msgTypes[142]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9550,7 +9444,7 @@ func (x *RedrawRaffleRequest) String() string {
 func (*RedrawRaffleRequest) ProtoMessage() {}
 
 func (x *RedrawRaffleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[144]
+	mi := &file_jungletv_proto_msgTypes[142]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9563,7 +9457,7 @@ func (x *RedrawRaffleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedrawRaffleRequest.ProtoReflect.Descriptor instead.
 func (*RedrawRaffleRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{144}
+	return file_jungletv_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *RedrawRaffleRequest) GetRaffleId() string {
@@ -9589,7 +9483,7 @@ type RedrawRaffleResponse struct {
 func (x *RedrawRaffleResponse) Reset() {
 	*x = RedrawRaffleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[145]
+		mi := &file_jungletv_proto_msgTypes[143]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9602,7 +9496,7 @@ func (x *RedrawRaffleResponse) String() string {
 func (*RedrawRaffleResponse) ProtoMessage() {}
 
 func (x *RedrawRaffleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[145]
+	mi := &file_jungletv_proto_msgTypes[143]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9615,7 +9509,7 @@ func (x *RedrawRaffleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedrawRaffleResponse.ProtoReflect.Descriptor instead.
 func (*RedrawRaffleResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{145}
+	return file_jungletv_proto_rawDescGZIP(), []int{143}
 }
 
 type OngoingRaffleInfoRequest struct {
@@ -9627,7 +9521,7 @@ type OngoingRaffleInfoRequest struct {
 func (x *OngoingRaffleInfoRequest) Reset() {
 	*x = OngoingRaffleInfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[146]
+		mi := &file_jungletv_proto_msgTypes[144]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9640,7 +9534,7 @@ func (x *OngoingRaffleInfoRequest) String() string {
 func (*OngoingRaffleInfoRequest) ProtoMessage() {}
 
 func (x *OngoingRaffleInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[146]
+	mi := &file_jungletv_proto_msgTypes[144]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9653,7 +9547,7 @@ func (x *OngoingRaffleInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OngoingRaffleInfoRequest.ProtoReflect.Descriptor instead.
 func (*OngoingRaffleInfoRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{146}
+	return file_jungletv_proto_rawDescGZIP(), []int{144}
 }
 
 type OngoingRaffleInfoResponse struct {
@@ -9667,7 +9561,7 @@ type OngoingRaffleInfoResponse struct {
 func (x *OngoingRaffleInfoResponse) Reset() {
 	*x = OngoingRaffleInfoResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[147]
+		mi := &file_jungletv_proto_msgTypes[145]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9680,7 +9574,7 @@ func (x *OngoingRaffleInfoResponse) String() string {
 func (*OngoingRaffleInfoResponse) ProtoMessage() {}
 
 func (x *OngoingRaffleInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[147]
+	mi := &file_jungletv_proto_msgTypes[145]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9693,7 +9587,7 @@ func (x *OngoingRaffleInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OngoingRaffleInfoResponse.ProtoReflect.Descriptor instead.
 func (*OngoingRaffleInfoResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{147}
+	return file_jungletv_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *OngoingRaffleInfoResponse) GetRaffleInfo() *OngoingRaffleInfo {
@@ -9720,7 +9614,7 @@ type OngoingRaffleInfo struct {
 func (x *OngoingRaffleInfo) Reset() {
 	*x = OngoingRaffleInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[148]
+		mi := &file_jungletv_proto_msgTypes[146]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9733,7 +9627,7 @@ func (x *OngoingRaffleInfo) String() string {
 func (*OngoingRaffleInfo) ProtoMessage() {}
 
 func (x *OngoingRaffleInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[148]
+	mi := &file_jungletv_proto_msgTypes[146]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9746,7 +9640,7 @@ func (x *OngoingRaffleInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OngoingRaffleInfo.ProtoReflect.Descriptor instead.
 func (*OngoingRaffleInfo) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{148}
+	return file_jungletv_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *OngoingRaffleInfo) GetRaffleId() string {
@@ -9819,7 +9713,7 @@ type RaffleDrawing struct {
 func (x *RaffleDrawing) Reset() {
 	*x = RaffleDrawing{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[149]
+		mi := &file_jungletv_proto_msgTypes[147]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9832,7 +9726,7 @@ func (x *RaffleDrawing) String() string {
 func (*RaffleDrawing) ProtoMessage() {}
 
 func (x *RaffleDrawing) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[149]
+	mi := &file_jungletv_proto_msgTypes[147]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9845,7 +9739,7 @@ func (x *RaffleDrawing) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RaffleDrawing.ProtoReflect.Descriptor instead.
 func (*RaffleDrawing) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{149}
+	return file_jungletv_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *RaffleDrawing) GetRaffleId() string {
@@ -9936,7 +9830,7 @@ type RaffleDrawingsRequest struct {
 func (x *RaffleDrawingsRequest) Reset() {
 	*x = RaffleDrawingsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[150]
+		mi := &file_jungletv_proto_msgTypes[148]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9949,7 +9843,7 @@ func (x *RaffleDrawingsRequest) String() string {
 func (*RaffleDrawingsRequest) ProtoMessage() {}
 
 func (x *RaffleDrawingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[150]
+	mi := &file_jungletv_proto_msgTypes[148]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9962,7 +9856,7 @@ func (x *RaffleDrawingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RaffleDrawingsRequest.ProtoReflect.Descriptor instead.
 func (*RaffleDrawingsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{150}
+	return file_jungletv_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *RaffleDrawingsRequest) GetPaginationParams() *PaginationParameters {
@@ -9985,7 +9879,7 @@ type RaffleDrawingsResponse struct {
 func (x *RaffleDrawingsResponse) Reset() {
 	*x = RaffleDrawingsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[151]
+		mi := &file_jungletv_proto_msgTypes[149]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9998,7 +9892,7 @@ func (x *RaffleDrawingsResponse) String() string {
 func (*RaffleDrawingsResponse) ProtoMessage() {}
 
 func (x *RaffleDrawingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[151]
+	mi := &file_jungletv_proto_msgTypes[149]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10011,7 +9905,7 @@ func (x *RaffleDrawingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RaffleDrawingsResponse.ProtoReflect.Descriptor instead.
 func (*RaffleDrawingsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{151}
+	return file_jungletv_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *RaffleDrawingsResponse) GetRaffleDrawings() []*RaffleDrawing {
@@ -10044,7 +9938,7 @@ type TriggerAnnouncementsNotificationRequest struct {
 func (x *TriggerAnnouncementsNotificationRequest) Reset() {
 	*x = TriggerAnnouncementsNotificationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[152]
+		mi := &file_jungletv_proto_msgTypes[150]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10057,7 +9951,7 @@ func (x *TriggerAnnouncementsNotificationRequest) String() string {
 func (*TriggerAnnouncementsNotificationRequest) ProtoMessage() {}
 
 func (x *TriggerAnnouncementsNotificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[152]
+	mi := &file_jungletv_proto_msgTypes[150]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10070,7 +9964,7 @@ func (x *TriggerAnnouncementsNotificationRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use TriggerAnnouncementsNotificationRequest.ProtoReflect.Descriptor instead.
 func (*TriggerAnnouncementsNotificationRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{152}
+	return file_jungletv_proto_rawDescGZIP(), []int{150}
 }
 
 type TriggerAnnouncementsNotificationResponse struct {
@@ -10082,7 +9976,7 @@ type TriggerAnnouncementsNotificationResponse struct {
 func (x *TriggerAnnouncementsNotificationResponse) Reset() {
 	*x = TriggerAnnouncementsNotificationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[153]
+		mi := &file_jungletv_proto_msgTypes[151]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10095,7 +9989,7 @@ func (x *TriggerAnnouncementsNotificationResponse) String() string {
 func (*TriggerAnnouncementsNotificationResponse) ProtoMessage() {}
 
 func (x *TriggerAnnouncementsNotificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[153]
+	mi := &file_jungletv_proto_msgTypes[151]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10108,7 +10002,7 @@ func (x *TriggerAnnouncementsNotificationResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use TriggerAnnouncementsNotificationResponse.ProtoReflect.Descriptor instead.
 func (*TriggerAnnouncementsNotificationResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{153}
+	return file_jungletv_proto_rawDescGZIP(), []int{151}
 }
 
 type SpectatorInfoRequest struct {
@@ -10122,7 +10016,7 @@ type SpectatorInfoRequest struct {
 func (x *SpectatorInfoRequest) Reset() {
 	*x = SpectatorInfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[154]
+		mi := &file_jungletv_proto_msgTypes[152]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10135,7 +10029,7 @@ func (x *SpectatorInfoRequest) String() string {
 func (*SpectatorInfoRequest) ProtoMessage() {}
 
 func (x *SpectatorInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[154]
+	mi := &file_jungletv_proto_msgTypes[152]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10148,7 +10042,7 @@ func (x *SpectatorInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpectatorInfoRequest.ProtoReflect.Descriptor instead.
 func (*SpectatorInfoRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{154}
+	return file_jungletv_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *SpectatorInfoRequest) GetRewardsAddress() string {
@@ -10181,7 +10075,7 @@ type Spectator struct {
 func (x *Spectator) Reset() {
 	*x = Spectator{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[155]
+		mi := &file_jungletv_proto_msgTypes[153]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10194,7 +10088,7 @@ func (x *Spectator) String() string {
 func (*Spectator) ProtoMessage() {}
 
 func (x *Spectator) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[155]
+	mi := &file_jungletv_proto_msgTypes[153]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10207,7 +10101,7 @@ func (x *Spectator) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Spectator.ProtoReflect.Descriptor instead.
 func (*Spectator) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{155}
+	return file_jungletv_proto_rawDescGZIP(), []int{153}
 }
 
 func (x *Spectator) GetRewardsAddress() string {
@@ -10312,7 +10206,7 @@ type ResetSpectatorStatusRequest struct {
 func (x *ResetSpectatorStatusRequest) Reset() {
 	*x = ResetSpectatorStatusRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[156]
+		mi := &file_jungletv_proto_msgTypes[154]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10325,7 +10219,7 @@ func (x *ResetSpectatorStatusRequest) String() string {
 func (*ResetSpectatorStatusRequest) ProtoMessage() {}
 
 func (x *ResetSpectatorStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[156]
+	mi := &file_jungletv_proto_msgTypes[154]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10338,7 +10232,7 @@ func (x *ResetSpectatorStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetSpectatorStatusRequest.ProtoReflect.Descriptor instead.
 func (*ResetSpectatorStatusRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{156}
+	return file_jungletv_proto_rawDescGZIP(), []int{154}
 }
 
 func (x *ResetSpectatorStatusRequest) GetRewardsAddress() string {
@@ -10357,7 +10251,7 @@ type ResetSpectatorStatusResponse struct {
 func (x *ResetSpectatorStatusResponse) Reset() {
 	*x = ResetSpectatorStatusResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[157]
+		mi := &file_jungletv_proto_msgTypes[155]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10370,7 +10264,7 @@ func (x *ResetSpectatorStatusResponse) String() string {
 func (*ResetSpectatorStatusResponse) ProtoMessage() {}
 
 func (x *ResetSpectatorStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[157]
+	mi := &file_jungletv_proto_msgTypes[155]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10383,7 +10277,7 @@ func (x *ResetSpectatorStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetSpectatorStatusResponse.ProtoReflect.Descriptor instead.
 func (*ResetSpectatorStatusResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{157}
+	return file_jungletv_proto_rawDescGZIP(), []int{155}
 }
 
 type MonitorModerationStatusRequest struct {
@@ -10395,7 +10289,7 @@ type MonitorModerationStatusRequest struct {
 func (x *MonitorModerationStatusRequest) Reset() {
 	*x = MonitorModerationStatusRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[158]
+		mi := &file_jungletv_proto_msgTypes[156]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10408,7 +10302,7 @@ func (x *MonitorModerationStatusRequest) String() string {
 func (*MonitorModerationStatusRequest) ProtoMessage() {}
 
 func (x *MonitorModerationStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[158]
+	mi := &file_jungletv_proto_msgTypes[156]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10421,7 +10315,7 @@ func (x *MonitorModerationStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorModerationStatusRequest.ProtoReflect.Descriptor instead.
 func (*MonitorModerationStatusRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{158}
+	return file_jungletv_proto_rawDescGZIP(), []int{156}
 }
 
 type ModerationStatusOverview struct {
@@ -10446,7 +10340,7 @@ type ModerationStatusOverview struct {
 func (x *ModerationStatusOverview) Reset() {
 	*x = ModerationStatusOverview{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[159]
+		mi := &file_jungletv_proto_msgTypes[157]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10459,7 +10353,7 @@ func (x *ModerationStatusOverview) String() string {
 func (*ModerationStatusOverview) ProtoMessage() {}
 
 func (x *ModerationStatusOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[159]
+	mi := &file_jungletv_proto_msgTypes[157]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10472,7 +10366,7 @@ func (x *ModerationStatusOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModerationStatusOverview.ProtoReflect.Descriptor instead.
 func (*ModerationStatusOverview) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{159}
+	return file_jungletv_proto_rawDescGZIP(), []int{157}
 }
 
 func (x *ModerationStatusOverview) GetAllowedMediaEnqueuing() AllowedMediaEnqueuingType {
@@ -10570,7 +10464,7 @@ type SetQueueEntryReorderingAllowedRequest struct {
 func (x *SetQueueEntryReorderingAllowedRequest) Reset() {
 	*x = SetQueueEntryReorderingAllowedRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[160]
+		mi := &file_jungletv_proto_msgTypes[158]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10583,7 +10477,7 @@ func (x *SetQueueEntryReorderingAllowedRequest) String() string {
 func (*SetQueueEntryReorderingAllowedRequest) ProtoMessage() {}
 
 func (x *SetQueueEntryReorderingAllowedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[160]
+	mi := &file_jungletv_proto_msgTypes[158]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10596,7 +10490,7 @@ func (x *SetQueueEntryReorderingAllowedRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use SetQueueEntryReorderingAllowedRequest.ProtoReflect.Descriptor instead.
 func (*SetQueueEntryReorderingAllowedRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{160}
+	return file_jungletv_proto_rawDescGZIP(), []int{158}
 }
 
 func (x *SetQueueEntryReorderingAllowedRequest) GetAllowed() bool {
@@ -10615,7 +10509,7 @@ type SetQueueEntryReorderingAllowedResponse struct {
 func (x *SetQueueEntryReorderingAllowedResponse) Reset() {
 	*x = SetQueueEntryReorderingAllowedResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[161]
+		mi := &file_jungletv_proto_msgTypes[159]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10628,7 +10522,7 @@ func (x *SetQueueEntryReorderingAllowedResponse) String() string {
 func (*SetQueueEntryReorderingAllowedResponse) ProtoMessage() {}
 
 func (x *SetQueueEntryReorderingAllowedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[161]
+	mi := &file_jungletv_proto_msgTypes[159]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10641,7 +10535,7 @@ func (x *SetQueueEntryReorderingAllowedResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use SetQueueEntryReorderingAllowedResponse.ProtoReflect.Descriptor instead.
 func (*SetQueueEntryReorderingAllowedResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{161}
+	return file_jungletv_proto_rawDescGZIP(), []int{159}
 }
 
 type SetOwnQueueEntryRemovalAllowedRequest struct {
@@ -10655,7 +10549,7 @@ type SetOwnQueueEntryRemovalAllowedRequest struct {
 func (x *SetOwnQueueEntryRemovalAllowedRequest) Reset() {
 	*x = SetOwnQueueEntryRemovalAllowedRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[162]
+		mi := &file_jungletv_proto_msgTypes[160]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10668,7 +10562,7 @@ func (x *SetOwnQueueEntryRemovalAllowedRequest) String() string {
 func (*SetOwnQueueEntryRemovalAllowedRequest) ProtoMessage() {}
 
 func (x *SetOwnQueueEntryRemovalAllowedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[162]
+	mi := &file_jungletv_proto_msgTypes[160]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10681,7 +10575,7 @@ func (x *SetOwnQueueEntryRemovalAllowedRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use SetOwnQueueEntryRemovalAllowedRequest.ProtoReflect.Descriptor instead.
 func (*SetOwnQueueEntryRemovalAllowedRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{162}
+	return file_jungletv_proto_rawDescGZIP(), []int{160}
 }
 
 func (x *SetOwnQueueEntryRemovalAllowedRequest) GetAllowed() bool {
@@ -10700,7 +10594,7 @@ type SetOwnQueueEntryRemovalAllowedResponse struct {
 func (x *SetOwnQueueEntryRemovalAllowedResponse) Reset() {
 	*x = SetOwnQueueEntryRemovalAllowedResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[163]
+		mi := &file_jungletv_proto_msgTypes[161]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10713,7 +10607,7 @@ func (x *SetOwnQueueEntryRemovalAllowedResponse) String() string {
 func (*SetOwnQueueEntryRemovalAllowedResponse) ProtoMessage() {}
 
 func (x *SetOwnQueueEntryRemovalAllowedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[163]
+	mi := &file_jungletv_proto_msgTypes[161]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10726,7 +10620,7 @@ func (x *SetOwnQueueEntryRemovalAllowedResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use SetOwnQueueEntryRemovalAllowedResponse.ProtoReflect.Descriptor instead.
 func (*SetOwnQueueEntryRemovalAllowedResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{163}
+	return file_jungletv_proto_rawDescGZIP(), []int{161}
 }
 
 type SetNewQueueEntriesAlwaysUnskippableRequest struct {
@@ -10740,7 +10634,7 @@ type SetNewQueueEntriesAlwaysUnskippableRequest struct {
 func (x *SetNewQueueEntriesAlwaysUnskippableRequest) Reset() {
 	*x = SetNewQueueEntriesAlwaysUnskippableRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[164]
+		mi := &file_jungletv_proto_msgTypes[162]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10753,7 +10647,7 @@ func (x *SetNewQueueEntriesAlwaysUnskippableRequest) String() string {
 func (*SetNewQueueEntriesAlwaysUnskippableRequest) ProtoMessage() {}
 
 func (x *SetNewQueueEntriesAlwaysUnskippableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[164]
+	mi := &file_jungletv_proto_msgTypes[162]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10766,7 +10660,7 @@ func (x *SetNewQueueEntriesAlwaysUnskippableRequest) ProtoReflect() protoreflect
 
 // Deprecated: Use SetNewQueueEntriesAlwaysUnskippableRequest.ProtoReflect.Descriptor instead.
 func (*SetNewQueueEntriesAlwaysUnskippableRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{164}
+	return file_jungletv_proto_rawDescGZIP(), []int{162}
 }
 
 func (x *SetNewQueueEntriesAlwaysUnskippableRequest) GetEnabled() bool {
@@ -10785,7 +10679,7 @@ type SetNewQueueEntriesAlwaysUnskippableResponse struct {
 func (x *SetNewQueueEntriesAlwaysUnskippableResponse) Reset() {
 	*x = SetNewQueueEntriesAlwaysUnskippableResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[165]
+		mi := &file_jungletv_proto_msgTypes[163]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10798,7 +10692,7 @@ func (x *SetNewQueueEntriesAlwaysUnskippableResponse) String() string {
 func (*SetNewQueueEntriesAlwaysUnskippableResponse) ProtoMessage() {}
 
 func (x *SetNewQueueEntriesAlwaysUnskippableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[165]
+	mi := &file_jungletv_proto_msgTypes[163]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10811,7 +10705,7 @@ func (x *SetNewQueueEntriesAlwaysUnskippableResponse) ProtoReflect() protoreflec
 
 // Deprecated: Use SetNewQueueEntriesAlwaysUnskippableResponse.ProtoReflect.Descriptor instead.
 func (*SetNewQueueEntriesAlwaysUnskippableResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{165}
+	return file_jungletv_proto_rawDescGZIP(), []int{163}
 }
 
 type SetSkippingEnabledRequest struct {
@@ -10825,7 +10719,7 @@ type SetSkippingEnabledRequest struct {
 func (x *SetSkippingEnabledRequest) Reset() {
 	*x = SetSkippingEnabledRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[166]
+		mi := &file_jungletv_proto_msgTypes[164]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10838,7 +10732,7 @@ func (x *SetSkippingEnabledRequest) String() string {
 func (*SetSkippingEnabledRequest) ProtoMessage() {}
 
 func (x *SetSkippingEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[166]
+	mi := &file_jungletv_proto_msgTypes[164]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10851,7 +10745,7 @@ func (x *SetSkippingEnabledRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSkippingEnabledRequest.ProtoReflect.Descriptor instead.
 func (*SetSkippingEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{166}
+	return file_jungletv_proto_rawDescGZIP(), []int{164}
 }
 
 func (x *SetSkippingEnabledRequest) GetEnabled() bool {
@@ -10870,7 +10764,7 @@ type SetSkippingEnabledResponse struct {
 func (x *SetSkippingEnabledResponse) Reset() {
 	*x = SetSkippingEnabledResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[167]
+		mi := &file_jungletv_proto_msgTypes[165]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10883,7 +10777,7 @@ func (x *SetSkippingEnabledResponse) String() string {
 func (*SetSkippingEnabledResponse) ProtoMessage() {}
 
 func (x *SetSkippingEnabledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[167]
+	mi := &file_jungletv_proto_msgTypes[165]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10896,7 +10790,7 @@ func (x *SetSkippingEnabledResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSkippingEnabledResponse.ProtoReflect.Descriptor instead.
 func (*SetSkippingEnabledResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{167}
+	return file_jungletv_proto_rawDescGZIP(), []int{165}
 }
 
 type ConnectionsRequest struct {
@@ -10908,7 +10802,7 @@ type ConnectionsRequest struct {
 func (x *ConnectionsRequest) Reset() {
 	*x = ConnectionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[168]
+		mi := &file_jungletv_proto_msgTypes[166]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10921,7 +10815,7 @@ func (x *ConnectionsRequest) String() string {
 func (*ConnectionsRequest) ProtoMessage() {}
 
 func (x *ConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[168]
+	mi := &file_jungletv_proto_msgTypes[166]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10934,7 +10828,7 @@ func (x *ConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*ConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{168}
+	return file_jungletv_proto_rawDescGZIP(), []int{166}
 }
 
 type Connection struct {
@@ -10951,7 +10845,7 @@ type Connection struct {
 func (x *Connection) Reset() {
 	*x = Connection{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[169]
+		mi := &file_jungletv_proto_msgTypes[167]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10964,7 +10858,7 @@ func (x *Connection) String() string {
 func (*Connection) ProtoMessage() {}
 
 func (x *Connection) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[169]
+	mi := &file_jungletv_proto_msgTypes[167]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10977,7 +10871,7 @@ func (x *Connection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connection.ProtoReflect.Descriptor instead.
 func (*Connection) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{169}
+	return file_jungletv_proto_rawDescGZIP(), []int{167}
 }
 
 func (x *Connection) GetId() string {
@@ -11020,7 +10914,7 @@ type ServiceInfo struct {
 func (x *ServiceInfo) Reset() {
 	*x = ServiceInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[170]
+		mi := &file_jungletv_proto_msgTypes[168]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11033,7 +10927,7 @@ func (x *ServiceInfo) String() string {
 func (*ServiceInfo) ProtoMessage() {}
 
 func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[170]
+	mi := &file_jungletv_proto_msgTypes[168]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11046,7 +10940,7 @@ func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceInfo.ProtoReflect.Descriptor instead.
 func (*ServiceInfo) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{170}
+	return file_jungletv_proto_rawDescGZIP(), []int{168}
 }
 
 func (x *ServiceInfo) GetService() ConnectionService {
@@ -11075,7 +10969,7 @@ type ConnectionsResponse struct {
 func (x *ConnectionsResponse) Reset() {
 	*x = ConnectionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[171]
+		mi := &file_jungletv_proto_msgTypes[169]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11088,7 +10982,7 @@ func (x *ConnectionsResponse) String() string {
 func (*ConnectionsResponse) ProtoMessage() {}
 
 func (x *ConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[171]
+	mi := &file_jungletv_proto_msgTypes[169]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11101,7 +10995,7 @@ func (x *ConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*ConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{171}
+	return file_jungletv_proto_rawDescGZIP(), []int{169}
 }
 
 func (x *ConnectionsResponse) GetConnections() []*Connection {
@@ -11129,7 +11023,7 @@ type CreateConnectionRequest struct {
 func (x *CreateConnectionRequest) Reset() {
 	*x = CreateConnectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[172]
+		mi := &file_jungletv_proto_msgTypes[170]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11142,7 +11036,7 @@ func (x *CreateConnectionRequest) String() string {
 func (*CreateConnectionRequest) ProtoMessage() {}
 
 func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[172]
+	mi := &file_jungletv_proto_msgTypes[170]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11155,7 +11049,7 @@ func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConnectionRequest.ProtoReflect.Descriptor instead.
 func (*CreateConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{172}
+	return file_jungletv_proto_rawDescGZIP(), []int{170}
 }
 
 func (x *CreateConnectionRequest) GetService() ConnectionService {
@@ -11176,7 +11070,7 @@ type CreateConnectionResponse struct {
 func (x *CreateConnectionResponse) Reset() {
 	*x = CreateConnectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[173]
+		mi := &file_jungletv_proto_msgTypes[171]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11189,7 +11083,7 @@ func (x *CreateConnectionResponse) String() string {
 func (*CreateConnectionResponse) ProtoMessage() {}
 
 func (x *CreateConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[173]
+	mi := &file_jungletv_proto_msgTypes[171]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11202,7 +11096,7 @@ func (x *CreateConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConnectionResponse.ProtoReflect.Descriptor instead.
 func (*CreateConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{173}
+	return file_jungletv_proto_rawDescGZIP(), []int{171}
 }
 
 func (x *CreateConnectionResponse) GetAuthUrl() string {
@@ -11223,7 +11117,7 @@ type RemoveConnectionRequest struct {
 func (x *RemoveConnectionRequest) Reset() {
 	*x = RemoveConnectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[174]
+		mi := &file_jungletv_proto_msgTypes[172]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11236,7 +11130,7 @@ func (x *RemoveConnectionRequest) String() string {
 func (*RemoveConnectionRequest) ProtoMessage() {}
 
 func (x *RemoveConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[174]
+	mi := &file_jungletv_proto_msgTypes[172]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11249,7 +11143,7 @@ func (x *RemoveConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveConnectionRequest.ProtoReflect.Descriptor instead.
 func (*RemoveConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{174}
+	return file_jungletv_proto_rawDescGZIP(), []int{172}
 }
 
 func (x *RemoveConnectionRequest) GetId() string {
@@ -11268,7 +11162,7 @@ type RemoveConnectionResponse struct {
 func (x *RemoveConnectionResponse) Reset() {
 	*x = RemoveConnectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[175]
+		mi := &file_jungletv_proto_msgTypes[173]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11281,7 +11175,7 @@ func (x *RemoveConnectionResponse) String() string {
 func (*RemoveConnectionResponse) ProtoMessage() {}
 
 func (x *RemoveConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[175]
+	mi := &file_jungletv_proto_msgTypes[173]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11294,7 +11188,7 @@ func (x *RemoveConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveConnectionResponse.ProtoReflect.Descriptor instead.
 func (*RemoveConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{175}
+	return file_jungletv_proto_rawDescGZIP(), []int{173}
 }
 
 type SetQueueInsertCursorRequest struct {
@@ -11308,7 +11202,7 @@ type SetQueueInsertCursorRequest struct {
 func (x *SetQueueInsertCursorRequest) Reset() {
 	*x = SetQueueInsertCursorRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[176]
+		mi := &file_jungletv_proto_msgTypes[174]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11321,7 +11215,7 @@ func (x *SetQueueInsertCursorRequest) String() string {
 func (*SetQueueInsertCursorRequest) ProtoMessage() {}
 
 func (x *SetQueueInsertCursorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[176]
+	mi := &file_jungletv_proto_msgTypes[174]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11334,7 +11228,7 @@ func (x *SetQueueInsertCursorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetQueueInsertCursorRequest.ProtoReflect.Descriptor instead.
 func (*SetQueueInsertCursorRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{176}
+	return file_jungletv_proto_rawDescGZIP(), []int{174}
 }
 
 func (x *SetQueueInsertCursorRequest) GetId() string {
@@ -11353,7 +11247,7 @@ type SetQueueInsertCursorResponse struct {
 func (x *SetQueueInsertCursorResponse) Reset() {
 	*x = SetQueueInsertCursorResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[177]
+		mi := &file_jungletv_proto_msgTypes[175]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11366,7 +11260,7 @@ func (x *SetQueueInsertCursorResponse) String() string {
 func (*SetQueueInsertCursorResponse) ProtoMessage() {}
 
 func (x *SetQueueInsertCursorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[177]
+	mi := &file_jungletv_proto_msgTypes[175]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11379,7 +11273,7 @@ func (x *SetQueueInsertCursorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetQueueInsertCursorResponse.ProtoReflect.Descriptor instead.
 func (*SetQueueInsertCursorResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{177}
+	return file_jungletv_proto_rawDescGZIP(), []int{175}
 }
 
 type ClearQueueInsertCursorRequest struct {
@@ -11391,7 +11285,7 @@ type ClearQueueInsertCursorRequest struct {
 func (x *ClearQueueInsertCursorRequest) Reset() {
 	*x = ClearQueueInsertCursorRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[178]
+		mi := &file_jungletv_proto_msgTypes[176]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11404,7 +11298,7 @@ func (x *ClearQueueInsertCursorRequest) String() string {
 func (*ClearQueueInsertCursorRequest) ProtoMessage() {}
 
 func (x *ClearQueueInsertCursorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[178]
+	mi := &file_jungletv_proto_msgTypes[176]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11417,7 +11311,7 @@ func (x *ClearQueueInsertCursorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearQueueInsertCursorRequest.ProtoReflect.Descriptor instead.
 func (*ClearQueueInsertCursorRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{178}
+	return file_jungletv_proto_rawDescGZIP(), []int{176}
 }
 
 type ClearQueueInsertCursorResponse struct {
@@ -11429,7 +11323,7 @@ type ClearQueueInsertCursorResponse struct {
 func (x *ClearQueueInsertCursorResponse) Reset() {
 	*x = ClearQueueInsertCursorResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[179]
+		mi := &file_jungletv_proto_msgTypes[177]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11442,7 +11336,7 @@ func (x *ClearQueueInsertCursorResponse) String() string {
 func (*ClearQueueInsertCursorResponse) ProtoMessage() {}
 
 func (x *ClearQueueInsertCursorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[179]
+	mi := &file_jungletv_proto_msgTypes[177]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11455,7 +11349,7 @@ func (x *ClearQueueInsertCursorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearQueueInsertCursorResponse.ProtoReflect.Descriptor instead.
 func (*ClearQueueInsertCursorResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{179}
+	return file_jungletv_proto_rawDescGZIP(), []int{177}
 }
 
 type UserProfileRequest struct {
@@ -11469,7 +11363,7 @@ type UserProfileRequest struct {
 func (x *UserProfileRequest) Reset() {
 	*x = UserProfileRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[180]
+		mi := &file_jungletv_proto_msgTypes[178]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11482,7 +11376,7 @@ func (x *UserProfileRequest) String() string {
 func (*UserProfileRequest) ProtoMessage() {}
 
 func (x *UserProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[180]
+	mi := &file_jungletv_proto_msgTypes[178]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11495,7 +11389,7 @@ func (x *UserProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserProfileRequest.ProtoReflect.Descriptor instead.
 func (*UserProfileRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{180}
+	return file_jungletv_proto_rawDescGZIP(), []int{178}
 }
 
 func (x *UserProfileRequest) GetAddressOrApplicationId() string {
@@ -11526,7 +11420,7 @@ type UserProfileResponse struct {
 func (x *UserProfileResponse) Reset() {
 	*x = UserProfileResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[181]
+		mi := &file_jungletv_proto_msgTypes[179]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11539,7 +11433,7 @@ func (x *UserProfileResponse) String() string {
 func (*UserProfileResponse) ProtoMessage() {}
 
 func (x *UserProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[181]
+	mi := &file_jungletv_proto_msgTypes[179]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11552,7 +11446,7 @@ func (x *UserProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserProfileResponse.ProtoReflect.Descriptor instead.
 func (*UserProfileResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{181}
+	return file_jungletv_proto_rawDescGZIP(), []int{179}
 }
 
 func (x *UserProfileResponse) GetUser() *User {
@@ -11662,7 +11556,7 @@ type UserProfileApplicationTab struct {
 func (x *UserProfileApplicationTab) Reset() {
 	*x = UserProfileApplicationTab{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[182]
+		mi := &file_jungletv_proto_msgTypes[180]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11675,7 +11569,7 @@ func (x *UserProfileApplicationTab) String() string {
 func (*UserProfileApplicationTab) ProtoMessage() {}
 
 func (x *UserProfileApplicationTab) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[182]
+	mi := &file_jungletv_proto_msgTypes[180]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11688,7 +11582,7 @@ func (x *UserProfileApplicationTab) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserProfileApplicationTab.ProtoReflect.Descriptor instead.
 func (*UserProfileApplicationTab) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{182}
+	return file_jungletv_proto_rawDescGZIP(), []int{180}
 }
 
 func (x *UserProfileApplicationTab) GetTabId() string {
@@ -11737,7 +11631,7 @@ type UserStatsRequest struct {
 func (x *UserStatsRequest) Reset() {
 	*x = UserStatsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[183]
+		mi := &file_jungletv_proto_msgTypes[181]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11750,7 +11644,7 @@ func (x *UserStatsRequest) String() string {
 func (*UserStatsRequest) ProtoMessage() {}
 
 func (x *UserStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[183]
+	mi := &file_jungletv_proto_msgTypes[181]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11763,7 +11657,7 @@ func (x *UserStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserStatsRequest.ProtoReflect.Descriptor instead.
 func (*UserStatsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{183}
+	return file_jungletv_proto_rawDescGZIP(), []int{181}
 }
 
 func (x *UserStatsRequest) GetAddress() string {
@@ -11787,7 +11681,7 @@ type UserStatsForPeriod struct {
 func (x *UserStatsForPeriod) Reset() {
 	*x = UserStatsForPeriod{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[184]
+		mi := &file_jungletv_proto_msgTypes[182]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11800,7 +11694,7 @@ func (x *UserStatsForPeriod) String() string {
 func (*UserStatsForPeriod) ProtoMessage() {}
 
 func (x *UserStatsForPeriod) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[184]
+	mi := &file_jungletv_proto_msgTypes[182]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11813,7 +11707,7 @@ func (x *UserStatsForPeriod) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserStatsForPeriod.ProtoReflect.Descriptor instead.
 func (*UserStatsForPeriod) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{184}
+	return file_jungletv_proto_rawDescGZIP(), []int{182}
 }
 
 func (x *UserStatsForPeriod) GetTotalSpent() string {
@@ -11857,7 +11751,7 @@ type UserStatsResponse struct {
 func (x *UserStatsResponse) Reset() {
 	*x = UserStatsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[185]
+		mi := &file_jungletv_proto_msgTypes[183]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11870,7 +11764,7 @@ func (x *UserStatsResponse) String() string {
 func (*UserStatsResponse) ProtoMessage() {}
 
 func (x *UserStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[185]
+	mi := &file_jungletv_proto_msgTypes[183]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11883,7 +11777,7 @@ func (x *UserStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserStatsResponse.ProtoReflect.Descriptor instead.
 func (*UserStatsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{185}
+	return file_jungletv_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *UserStatsResponse) GetStatsAllTime() *UserStatsForPeriod {
@@ -11932,7 +11826,7 @@ type PlayedMedia struct {
 func (x *PlayedMedia) Reset() {
 	*x = PlayedMedia{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[186]
+		mi := &file_jungletv_proto_msgTypes[184]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11945,7 +11839,7 @@ func (x *PlayedMedia) String() string {
 func (*PlayedMedia) ProtoMessage() {}
 
 func (x *PlayedMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[186]
+	mi := &file_jungletv_proto_msgTypes[184]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11958,7 +11852,7 @@ func (x *PlayedMedia) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayedMedia.ProtoReflect.Descriptor instead.
 func (*PlayedMedia) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{186}
+	return file_jungletv_proto_rawDescGZIP(), []int{184}
 }
 
 func (x *PlayedMedia) GetId() string {
@@ -12098,7 +11992,7 @@ type SetProfileBiographyRequest struct {
 func (x *SetProfileBiographyRequest) Reset() {
 	*x = SetProfileBiographyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[187]
+		mi := &file_jungletv_proto_msgTypes[185]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12111,7 +12005,7 @@ func (x *SetProfileBiographyRequest) String() string {
 func (*SetProfileBiographyRequest) ProtoMessage() {}
 
 func (x *SetProfileBiographyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[187]
+	mi := &file_jungletv_proto_msgTypes[185]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12124,7 +12018,7 @@ func (x *SetProfileBiographyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfileBiographyRequest.ProtoReflect.Descriptor instead.
 func (*SetProfileBiographyRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{187}
+	return file_jungletv_proto_rawDescGZIP(), []int{185}
 }
 
 func (x *SetProfileBiographyRequest) GetBiography() string {
@@ -12143,7 +12037,7 @@ type SetProfileBiographyResponse struct {
 func (x *SetProfileBiographyResponse) Reset() {
 	*x = SetProfileBiographyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[188]
+		mi := &file_jungletv_proto_msgTypes[186]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12156,7 +12050,7 @@ func (x *SetProfileBiographyResponse) String() string {
 func (*SetProfileBiographyResponse) ProtoMessage() {}
 
 func (x *SetProfileBiographyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[188]
+	mi := &file_jungletv_proto_msgTypes[186]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12169,7 +12063,7 @@ func (x *SetProfileBiographyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfileBiographyResponse.ProtoReflect.Descriptor instead.
 func (*SetProfileBiographyResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{188}
+	return file_jungletv_proto_rawDescGZIP(), []int{186}
 }
 
 type SetProfileFeaturedMediaRequest struct {
@@ -12183,7 +12077,7 @@ type SetProfileFeaturedMediaRequest struct {
 func (x *SetProfileFeaturedMediaRequest) Reset() {
 	*x = SetProfileFeaturedMediaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[189]
+		mi := &file_jungletv_proto_msgTypes[187]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12196,7 +12090,7 @@ func (x *SetProfileFeaturedMediaRequest) String() string {
 func (*SetProfileFeaturedMediaRequest) ProtoMessage() {}
 
 func (x *SetProfileFeaturedMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[189]
+	mi := &file_jungletv_proto_msgTypes[187]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12209,7 +12103,7 @@ func (x *SetProfileFeaturedMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfileFeaturedMediaRequest.ProtoReflect.Descriptor instead.
 func (*SetProfileFeaturedMediaRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{189}
+	return file_jungletv_proto_rawDescGZIP(), []int{187}
 }
 
 func (x *SetProfileFeaturedMediaRequest) GetMediaId() string {
@@ -12228,7 +12122,7 @@ type SetProfileFeaturedMediaResponse struct {
 func (x *SetProfileFeaturedMediaResponse) Reset() {
 	*x = SetProfileFeaturedMediaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[190]
+		mi := &file_jungletv_proto_msgTypes[188]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12241,7 +12135,7 @@ func (x *SetProfileFeaturedMediaResponse) String() string {
 func (*SetProfileFeaturedMediaResponse) ProtoMessage() {}
 
 func (x *SetProfileFeaturedMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[190]
+	mi := &file_jungletv_proto_msgTypes[188]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12254,7 +12148,7 @@ func (x *SetProfileFeaturedMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfileFeaturedMediaResponse.ProtoReflect.Descriptor instead.
 func (*SetProfileFeaturedMediaResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{190}
+	return file_jungletv_proto_rawDescGZIP(), []int{188}
 }
 
 type ClearUserProfileRequest struct {
@@ -12268,7 +12162,7 @@ type ClearUserProfileRequest struct {
 func (x *ClearUserProfileRequest) Reset() {
 	*x = ClearUserProfileRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[191]
+		mi := &file_jungletv_proto_msgTypes[189]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12281,7 +12175,7 @@ func (x *ClearUserProfileRequest) String() string {
 func (*ClearUserProfileRequest) ProtoMessage() {}
 
 func (x *ClearUserProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[191]
+	mi := &file_jungletv_proto_msgTypes[189]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12294,7 +12188,7 @@ func (x *ClearUserProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearUserProfileRequest.ProtoReflect.Descriptor instead.
 func (*ClearUserProfileRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{191}
+	return file_jungletv_proto_rawDescGZIP(), []int{189}
 }
 
 func (x *ClearUserProfileRequest) GetAddress() string {
@@ -12313,7 +12207,7 @@ type ClearUserProfileResponse struct {
 func (x *ClearUserProfileResponse) Reset() {
 	*x = ClearUserProfileResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[192]
+		mi := &file_jungletv_proto_msgTypes[190]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12326,7 +12220,7 @@ func (x *ClearUserProfileResponse) String() string {
 func (*ClearUserProfileResponse) ProtoMessage() {}
 
 func (x *ClearUserProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[192]
+	mi := &file_jungletv_proto_msgTypes[190]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12339,7 +12233,7 @@ func (x *ClearUserProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearUserProfileResponse.ProtoReflect.Descriptor instead.
 func (*ClearUserProfileResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{192}
+	return file_jungletv_proto_rawDescGZIP(), []int{190}
 }
 
 type PlayedMediaHistoryRequest struct {
@@ -12354,7 +12248,7 @@ type PlayedMediaHistoryRequest struct {
 func (x *PlayedMediaHistoryRequest) Reset() {
 	*x = PlayedMediaHistoryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[193]
+		mi := &file_jungletv_proto_msgTypes[191]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12367,7 +12261,7 @@ func (x *PlayedMediaHistoryRequest) String() string {
 func (*PlayedMediaHistoryRequest) ProtoMessage() {}
 
 func (x *PlayedMediaHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[193]
+	mi := &file_jungletv_proto_msgTypes[191]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12380,7 +12274,7 @@ func (x *PlayedMediaHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayedMediaHistoryRequest.ProtoReflect.Descriptor instead.
 func (*PlayedMediaHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{193}
+	return file_jungletv_proto_rawDescGZIP(), []int{191}
 }
 
 func (x *PlayedMediaHistoryRequest) GetPaginationParams() *PaginationParameters {
@@ -12410,7 +12304,7 @@ type PlayedMediaHistoryResponse struct {
 func (x *PlayedMediaHistoryResponse) Reset() {
 	*x = PlayedMediaHistoryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[194]
+		mi := &file_jungletv_proto_msgTypes[192]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12423,7 +12317,7 @@ func (x *PlayedMediaHistoryResponse) String() string {
 func (*PlayedMediaHistoryResponse) ProtoMessage() {}
 
 func (x *PlayedMediaHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[194]
+	mi := &file_jungletv_proto_msgTypes[192]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12436,7 +12330,7 @@ func (x *PlayedMediaHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayedMediaHistoryResponse.ProtoReflect.Descriptor instead.
 func (*PlayedMediaHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{194}
+	return file_jungletv_proto_rawDescGZIP(), []int{192}
 }
 
 func (x *PlayedMediaHistoryResponse) GetPlayedMedia() []*PlayedMedia {
@@ -12471,7 +12365,7 @@ type BlockUserRequest struct {
 func (x *BlockUserRequest) Reset() {
 	*x = BlockUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[195]
+		mi := &file_jungletv_proto_msgTypes[193]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12484,7 +12378,7 @@ func (x *BlockUserRequest) String() string {
 func (*BlockUserRequest) ProtoMessage() {}
 
 func (x *BlockUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[195]
+	mi := &file_jungletv_proto_msgTypes[193]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12497,7 +12391,7 @@ func (x *BlockUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockUserRequest.ProtoReflect.Descriptor instead.
 func (*BlockUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{195}
+	return file_jungletv_proto_rawDescGZIP(), []int{193}
 }
 
 func (x *BlockUserRequest) GetAddress() string {
@@ -12516,7 +12410,7 @@ type BlockUserResponse struct {
 func (x *BlockUserResponse) Reset() {
 	*x = BlockUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[196]
+		mi := &file_jungletv_proto_msgTypes[194]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12529,7 +12423,7 @@ func (x *BlockUserResponse) String() string {
 func (*BlockUserResponse) ProtoMessage() {}
 
 func (x *BlockUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[196]
+	mi := &file_jungletv_proto_msgTypes[194]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12542,7 +12436,7 @@ func (x *BlockUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockUserResponse.ProtoReflect.Descriptor instead.
 func (*BlockUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{196}
+	return file_jungletv_proto_rawDescGZIP(), []int{194}
 }
 
 type UnblockUserRequest struct {
@@ -12559,7 +12453,7 @@ type UnblockUserRequest struct {
 func (x *UnblockUserRequest) Reset() {
 	*x = UnblockUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[197]
+		mi := &file_jungletv_proto_msgTypes[195]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12572,7 +12466,7 @@ func (x *UnblockUserRequest) String() string {
 func (*UnblockUserRequest) ProtoMessage() {}
 
 func (x *UnblockUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[197]
+	mi := &file_jungletv_proto_msgTypes[195]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12585,7 +12479,7 @@ func (x *UnblockUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnblockUserRequest.ProtoReflect.Descriptor instead.
 func (*UnblockUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{197}
+	return file_jungletv_proto_rawDescGZIP(), []int{195}
 }
 
 func (m *UnblockUserRequest) GetBlockIdentification() isUnblockUserRequest_BlockIdentification {
@@ -12634,7 +12528,7 @@ type UnblockUserResponse struct {
 func (x *UnblockUserResponse) Reset() {
 	*x = UnblockUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[198]
+		mi := &file_jungletv_proto_msgTypes[196]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12647,7 +12541,7 @@ func (x *UnblockUserResponse) String() string {
 func (*UnblockUserResponse) ProtoMessage() {}
 
 func (x *UnblockUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[198]
+	mi := &file_jungletv_proto_msgTypes[196]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12660,7 +12554,7 @@ func (x *UnblockUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnblockUserResponse.ProtoReflect.Descriptor instead.
 func (*UnblockUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{198}
+	return file_jungletv_proto_rawDescGZIP(), []int{196}
 }
 
 type BlockedUsersRequest struct {
@@ -12674,7 +12568,7 @@ type BlockedUsersRequest struct {
 func (x *BlockedUsersRequest) Reset() {
 	*x = BlockedUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[199]
+		mi := &file_jungletv_proto_msgTypes[197]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12687,7 +12581,7 @@ func (x *BlockedUsersRequest) String() string {
 func (*BlockedUsersRequest) ProtoMessage() {}
 
 func (x *BlockedUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[199]
+	mi := &file_jungletv_proto_msgTypes[197]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12700,7 +12594,7 @@ func (x *BlockedUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockedUsersRequest.ProtoReflect.Descriptor instead.
 func (*BlockedUsersRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{199}
+	return file_jungletv_proto_rawDescGZIP(), []int{197}
 }
 
 func (x *BlockedUsersRequest) GetPaginationParams() *PaginationParameters {
@@ -12724,7 +12618,7 @@ type BlockedUser struct {
 func (x *BlockedUser) Reset() {
 	*x = BlockedUser{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[200]
+		mi := &file_jungletv_proto_msgTypes[198]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12737,7 +12631,7 @@ func (x *BlockedUser) String() string {
 func (*BlockedUser) ProtoMessage() {}
 
 func (x *BlockedUser) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[200]
+	mi := &file_jungletv_proto_msgTypes[198]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12750,7 +12644,7 @@ func (x *BlockedUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockedUser.ProtoReflect.Descriptor instead.
 func (*BlockedUser) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{200}
+	return file_jungletv_proto_rawDescGZIP(), []int{198}
 }
 
 func (x *BlockedUser) GetId() string {
@@ -12794,7 +12688,7 @@ type BlockedUsersResponse struct {
 func (x *BlockedUsersResponse) Reset() {
 	*x = BlockedUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[201]
+		mi := &file_jungletv_proto_msgTypes[199]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12807,7 +12701,7 @@ func (x *BlockedUsersResponse) String() string {
 func (*BlockedUsersResponse) ProtoMessage() {}
 
 func (x *BlockedUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[201]
+	mi := &file_jungletv_proto_msgTypes[199]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12820,7 +12714,7 @@ func (x *BlockedUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockedUsersResponse.ProtoReflect.Descriptor instead.
 func (*BlockedUsersResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{201}
+	return file_jungletv_proto_rawDescGZIP(), []int{199}
 }
 
 func (x *BlockedUsersResponse) GetBlockedUsers() []*BlockedUser {
@@ -12853,7 +12747,7 @@ type MarkAsActivelyModeratingRequest struct {
 func (x *MarkAsActivelyModeratingRequest) Reset() {
 	*x = MarkAsActivelyModeratingRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[202]
+		mi := &file_jungletv_proto_msgTypes[200]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12866,7 +12760,7 @@ func (x *MarkAsActivelyModeratingRequest) String() string {
 func (*MarkAsActivelyModeratingRequest) ProtoMessage() {}
 
 func (x *MarkAsActivelyModeratingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[202]
+	mi := &file_jungletv_proto_msgTypes[200]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12879,7 +12773,7 @@ func (x *MarkAsActivelyModeratingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkAsActivelyModeratingRequest.ProtoReflect.Descriptor instead.
 func (*MarkAsActivelyModeratingRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{202}
+	return file_jungletv_proto_rawDescGZIP(), []int{200}
 }
 
 type MarkAsActivelyModeratingResponse struct {
@@ -12891,7 +12785,7 @@ type MarkAsActivelyModeratingResponse struct {
 func (x *MarkAsActivelyModeratingResponse) Reset() {
 	*x = MarkAsActivelyModeratingResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[203]
+		mi := &file_jungletv_proto_msgTypes[201]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12904,7 +12798,7 @@ func (x *MarkAsActivelyModeratingResponse) String() string {
 func (*MarkAsActivelyModeratingResponse) ProtoMessage() {}
 
 func (x *MarkAsActivelyModeratingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[203]
+	mi := &file_jungletv_proto_msgTypes[201]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12917,7 +12811,7 @@ func (x *MarkAsActivelyModeratingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkAsActivelyModeratingResponse.ProtoReflect.Descriptor instead.
 func (*MarkAsActivelyModeratingResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{203}
+	return file_jungletv_proto_rawDescGZIP(), []int{201}
 }
 
 type StopActivelyModeratingRequest struct {
@@ -12929,7 +12823,7 @@ type StopActivelyModeratingRequest struct {
 func (x *StopActivelyModeratingRequest) Reset() {
 	*x = StopActivelyModeratingRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[204]
+		mi := &file_jungletv_proto_msgTypes[202]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12942,7 +12836,7 @@ func (x *StopActivelyModeratingRequest) String() string {
 func (*StopActivelyModeratingRequest) ProtoMessage() {}
 
 func (x *StopActivelyModeratingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[204]
+	mi := &file_jungletv_proto_msgTypes[202]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12955,7 +12849,7 @@ func (x *StopActivelyModeratingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopActivelyModeratingRequest.ProtoReflect.Descriptor instead.
 func (*StopActivelyModeratingRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{204}
+	return file_jungletv_proto_rawDescGZIP(), []int{202}
 }
 
 type StopActivelyModeratingResponse struct {
@@ -12967,7 +12861,7 @@ type StopActivelyModeratingResponse struct {
 func (x *StopActivelyModeratingResponse) Reset() {
 	*x = StopActivelyModeratingResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[205]
+		mi := &file_jungletv_proto_msgTypes[203]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12980,7 +12874,7 @@ func (x *StopActivelyModeratingResponse) String() string {
 func (*StopActivelyModeratingResponse) ProtoMessage() {}
 
 func (x *StopActivelyModeratingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[205]
+	mi := &file_jungletv_proto_msgTypes[203]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12993,7 +12887,7 @@ func (x *StopActivelyModeratingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopActivelyModeratingResponse.ProtoReflect.Descriptor instead.
 func (*StopActivelyModeratingResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{205}
+	return file_jungletv_proto_rawDescGZIP(), []int{203}
 }
 
 type PointsInfoRequest struct {
@@ -13005,7 +12899,7 @@ type PointsInfoRequest struct {
 func (x *PointsInfoRequest) Reset() {
 	*x = PointsInfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[206]
+		mi := &file_jungletv_proto_msgTypes[204]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13018,7 +12912,7 @@ func (x *PointsInfoRequest) String() string {
 func (*PointsInfoRequest) ProtoMessage() {}
 
 func (x *PointsInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[206]
+	mi := &file_jungletv_proto_msgTypes[204]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13031,7 +12925,7 @@ func (x *PointsInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PointsInfoRequest.ProtoReflect.Descriptor instead.
 func (*PointsInfoRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{206}
+	return file_jungletv_proto_rawDescGZIP(), []int{204}
 }
 
 type PointsInfoResponse struct {
@@ -13046,7 +12940,7 @@ type PointsInfoResponse struct {
 func (x *PointsInfoResponse) Reset() {
 	*x = PointsInfoResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[207]
+		mi := &file_jungletv_proto_msgTypes[205]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13059,7 +12953,7 @@ func (x *PointsInfoResponse) String() string {
 func (*PointsInfoResponse) ProtoMessage() {}
 
 func (x *PointsInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[207]
+	mi := &file_jungletv_proto_msgTypes[205]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13072,7 +12966,7 @@ func (x *PointsInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PointsInfoResponse.ProtoReflect.Descriptor instead.
 func (*PointsInfoResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{207}
+	return file_jungletv_proto_rawDescGZIP(), []int{205}
 }
 
 func (x *PointsInfoResponse) GetBalance() int32 {
@@ -13101,7 +12995,7 @@ type SubscriptionDetails struct {
 func (x *SubscriptionDetails) Reset() {
 	*x = SubscriptionDetails{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[208]
+		mi := &file_jungletv_proto_msgTypes[206]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13114,7 +13008,7 @@ func (x *SubscriptionDetails) String() string {
 func (*SubscriptionDetails) ProtoMessage() {}
 
 func (x *SubscriptionDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[208]
+	mi := &file_jungletv_proto_msgTypes[206]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13127,7 +13021,7 @@ func (x *SubscriptionDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriptionDetails.ProtoReflect.Descriptor instead.
 func (*SubscriptionDetails) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{208}
+	return file_jungletv_proto_rawDescGZIP(), []int{206}
 }
 
 func (x *SubscriptionDetails) GetSubscribedAt() *timestamppb.Timestamp {
@@ -13155,7 +13049,7 @@ type PointsTransactionsRequest struct {
 func (x *PointsTransactionsRequest) Reset() {
 	*x = PointsTransactionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[209]
+		mi := &file_jungletv_proto_msgTypes[207]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13168,7 +13062,7 @@ func (x *PointsTransactionsRequest) String() string {
 func (*PointsTransactionsRequest) ProtoMessage() {}
 
 func (x *PointsTransactionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[209]
+	mi := &file_jungletv_proto_msgTypes[207]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13181,7 +13075,7 @@ func (x *PointsTransactionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PointsTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*PointsTransactionsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{209}
+	return file_jungletv_proto_rawDescGZIP(), []int{207}
 }
 
 func (x *PointsTransactionsRequest) GetPaginationParams() *PaginationParameters {
@@ -13204,7 +13098,7 @@ type PointsTransactionsResponse struct {
 func (x *PointsTransactionsResponse) Reset() {
 	*x = PointsTransactionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[210]
+		mi := &file_jungletv_proto_msgTypes[208]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13217,7 +13111,7 @@ func (x *PointsTransactionsResponse) String() string {
 func (*PointsTransactionsResponse) ProtoMessage() {}
 
 func (x *PointsTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[210]
+	mi := &file_jungletv_proto_msgTypes[208]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13230,7 +13124,7 @@ func (x *PointsTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PointsTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*PointsTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{210}
+	return file_jungletv_proto_rawDescGZIP(), []int{208}
 }
 
 func (x *PointsTransactionsResponse) GetTransactions() []*PointsTransaction {
@@ -13271,7 +13165,7 @@ type PointsTransaction struct {
 func (x *PointsTransaction) Reset() {
 	*x = PointsTransaction{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[211]
+		mi := &file_jungletv_proto_msgTypes[209]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13284,7 +13178,7 @@ func (x *PointsTransaction) String() string {
 func (*PointsTransaction) ProtoMessage() {}
 
 func (x *PointsTransaction) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[211]
+	mi := &file_jungletv_proto_msgTypes[209]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13297,7 +13191,7 @@ func (x *PointsTransaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PointsTransaction.ProtoReflect.Descriptor instead.
 func (*PointsTransaction) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{211}
+	return file_jungletv_proto_rawDescGZIP(), []int{209}
 }
 
 func (x *PointsTransaction) GetId() int64 {
@@ -13361,7 +13255,7 @@ type ChatGifSearchRequest struct {
 func (x *ChatGifSearchRequest) Reset() {
 	*x = ChatGifSearchRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[212]
+		mi := &file_jungletv_proto_msgTypes[210]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13374,7 +13268,7 @@ func (x *ChatGifSearchRequest) String() string {
 func (*ChatGifSearchRequest) ProtoMessage() {}
 
 func (x *ChatGifSearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[212]
+	mi := &file_jungletv_proto_msgTypes[210]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13387,7 +13281,7 @@ func (x *ChatGifSearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatGifSearchRequest.ProtoReflect.Descriptor instead.
 func (*ChatGifSearchRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{212}
+	return file_jungletv_proto_rawDescGZIP(), []int{210}
 }
 
 func (x *ChatGifSearchRequest) GetQuery() string {
@@ -13416,7 +13310,7 @@ type ChatGifSearchResponse struct {
 func (x *ChatGifSearchResponse) Reset() {
 	*x = ChatGifSearchResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[213]
+		mi := &file_jungletv_proto_msgTypes[211]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13429,7 +13323,7 @@ func (x *ChatGifSearchResponse) String() string {
 func (*ChatGifSearchResponse) ProtoMessage() {}
 
 func (x *ChatGifSearchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[213]
+	mi := &file_jungletv_proto_msgTypes[211]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13442,7 +13336,7 @@ func (x *ChatGifSearchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatGifSearchResponse.ProtoReflect.Descriptor instead.
 func (*ChatGifSearchResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{213}
+	return file_jungletv_proto_rawDescGZIP(), []int{211}
 }
 
 func (x *ChatGifSearchResponse) GetResults() []*ChatGifSearchResult {
@@ -13476,7 +13370,7 @@ type ChatGifSearchResult struct {
 func (x *ChatGifSearchResult) Reset() {
 	*x = ChatGifSearchResult{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[214]
+		mi := &file_jungletv_proto_msgTypes[212]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13489,7 +13383,7 @@ func (x *ChatGifSearchResult) String() string {
 func (*ChatGifSearchResult) ProtoMessage() {}
 
 func (x *ChatGifSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[214]
+	mi := &file_jungletv_proto_msgTypes[212]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13502,7 +13396,7 @@ func (x *ChatGifSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatGifSearchResult.ProtoReflect.Descriptor instead.
 func (*ChatGifSearchResult) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{214}
+	return file_jungletv_proto_rawDescGZIP(), []int{212}
 }
 
 func (x *ChatGifSearchResult) GetId() string {
@@ -13567,7 +13461,7 @@ type AdjustPointsBalanceRequest struct {
 func (x *AdjustPointsBalanceRequest) Reset() {
 	*x = AdjustPointsBalanceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[215]
+		mi := &file_jungletv_proto_msgTypes[213]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13580,7 +13474,7 @@ func (x *AdjustPointsBalanceRequest) String() string {
 func (*AdjustPointsBalanceRequest) ProtoMessage() {}
 
 func (x *AdjustPointsBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[215]
+	mi := &file_jungletv_proto_msgTypes[213]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13593,7 +13487,7 @@ func (x *AdjustPointsBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdjustPointsBalanceRequest.ProtoReflect.Descriptor instead.
 func (*AdjustPointsBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{215}
+	return file_jungletv_proto_rawDescGZIP(), []int{213}
 }
 
 func (x *AdjustPointsBalanceRequest) GetRewardsAddress() string {
@@ -13626,7 +13520,7 @@ type AdjustPointsBalanceResponse struct {
 func (x *AdjustPointsBalanceResponse) Reset() {
 	*x = AdjustPointsBalanceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[216]
+		mi := &file_jungletv_proto_msgTypes[214]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13639,7 +13533,7 @@ func (x *AdjustPointsBalanceResponse) String() string {
 func (*AdjustPointsBalanceResponse) ProtoMessage() {}
 
 func (x *AdjustPointsBalanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[216]
+	mi := &file_jungletv_proto_msgTypes[214]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13652,7 +13546,7 @@ func (x *AdjustPointsBalanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdjustPointsBalanceResponse.ProtoReflect.Descriptor instead.
 func (*AdjustPointsBalanceResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{216}
+	return file_jungletv_proto_rawDescGZIP(), []int{214}
 }
 
 type ConvertBananoToPointsRequest struct {
@@ -13664,7 +13558,7 @@ type ConvertBananoToPointsRequest struct {
 func (x *ConvertBananoToPointsRequest) Reset() {
 	*x = ConvertBananoToPointsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[217]
+		mi := &file_jungletv_proto_msgTypes[215]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13677,7 +13571,7 @@ func (x *ConvertBananoToPointsRequest) String() string {
 func (*ConvertBananoToPointsRequest) ProtoMessage() {}
 
 func (x *ConvertBananoToPointsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[217]
+	mi := &file_jungletv_proto_msgTypes[215]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13690,7 +13584,7 @@ func (x *ConvertBananoToPointsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConvertBananoToPointsRequest.ProtoReflect.Descriptor instead.
 func (*ConvertBananoToPointsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{217}
+	return file_jungletv_proto_rawDescGZIP(), []int{215}
 }
 
 type ConvertBananoToPointsStatus struct {
@@ -13708,7 +13602,7 @@ type ConvertBananoToPointsStatus struct {
 func (x *ConvertBananoToPointsStatus) Reset() {
 	*x = ConvertBananoToPointsStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[218]
+		mi := &file_jungletv_proto_msgTypes[216]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13721,7 +13615,7 @@ func (x *ConvertBananoToPointsStatus) String() string {
 func (*ConvertBananoToPointsStatus) ProtoMessage() {}
 
 func (x *ConvertBananoToPointsStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[218]
+	mi := &file_jungletv_proto_msgTypes[216]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13734,7 +13628,7 @@ func (x *ConvertBananoToPointsStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConvertBananoToPointsStatus.ProtoReflect.Descriptor instead.
 func (*ConvertBananoToPointsStatus) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{218}
+	return file_jungletv_proto_rawDescGZIP(), []int{216}
 }
 
 func (x *ConvertBananoToPointsStatus) GetPaymentAddress() string {
@@ -13781,7 +13675,7 @@ type StartOrExtendSubscriptionRequest struct {
 func (x *StartOrExtendSubscriptionRequest) Reset() {
 	*x = StartOrExtendSubscriptionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[219]
+		mi := &file_jungletv_proto_msgTypes[217]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13794,7 +13688,7 @@ func (x *StartOrExtendSubscriptionRequest) String() string {
 func (*StartOrExtendSubscriptionRequest) ProtoMessage() {}
 
 func (x *StartOrExtendSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[219]
+	mi := &file_jungletv_proto_msgTypes[217]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13807,7 +13701,7 @@ func (x *StartOrExtendSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOrExtendSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*StartOrExtendSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{219}
+	return file_jungletv_proto_rawDescGZIP(), []int{217}
 }
 
 type StartOrExtendSubscriptionResponse struct {
@@ -13821,7 +13715,7 @@ type StartOrExtendSubscriptionResponse struct {
 func (x *StartOrExtendSubscriptionResponse) Reset() {
 	*x = StartOrExtendSubscriptionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[220]
+		mi := &file_jungletv_proto_msgTypes[218]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13834,7 +13728,7 @@ func (x *StartOrExtendSubscriptionResponse) String() string {
 func (*StartOrExtendSubscriptionResponse) ProtoMessage() {}
 
 func (x *StartOrExtendSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[220]
+	mi := &file_jungletv_proto_msgTypes[218]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13847,7 +13741,7 @@ func (x *StartOrExtendSubscriptionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use StartOrExtendSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*StartOrExtendSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{220}
+	return file_jungletv_proto_rawDescGZIP(), []int{218}
 }
 
 func (x *StartOrExtendSubscriptionResponse) GetSubscription() *SubscriptionDetails {
@@ -13868,7 +13762,7 @@ type SoundCloudTrackDetailsRequest struct {
 func (x *SoundCloudTrackDetailsRequest) Reset() {
 	*x = SoundCloudTrackDetailsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[221]
+		mi := &file_jungletv_proto_msgTypes[219]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13881,7 +13775,7 @@ func (x *SoundCloudTrackDetailsRequest) String() string {
 func (*SoundCloudTrackDetailsRequest) ProtoMessage() {}
 
 func (x *SoundCloudTrackDetailsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[221]
+	mi := &file_jungletv_proto_msgTypes[219]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13894,7 +13788,7 @@ func (x *SoundCloudTrackDetailsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SoundCloudTrackDetailsRequest.ProtoReflect.Descriptor instead.
 func (*SoundCloudTrackDetailsRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{221}
+	return file_jungletv_proto_rawDescGZIP(), []int{219}
 }
 
 func (x *SoundCloudTrackDetailsRequest) GetTrackUrl() string {
@@ -13915,7 +13809,7 @@ type SoundCloudTrackDetailsResponse struct {
 func (x *SoundCloudTrackDetailsResponse) Reset() {
 	*x = SoundCloudTrackDetailsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[222]
+		mi := &file_jungletv_proto_msgTypes[220]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13928,7 +13822,7 @@ func (x *SoundCloudTrackDetailsResponse) String() string {
 func (*SoundCloudTrackDetailsResponse) ProtoMessage() {}
 
 func (x *SoundCloudTrackDetailsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[222]
+	mi := &file_jungletv_proto_msgTypes[220]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13941,7 +13835,7 @@ func (x *SoundCloudTrackDetailsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SoundCloudTrackDetailsResponse.ProtoReflect.Descriptor instead.
 func (*SoundCloudTrackDetailsResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{222}
+	return file_jungletv_proto_rawDescGZIP(), []int{220}
 }
 
 func (x *SoundCloudTrackDetailsResponse) GetLength() *durationpb.Duration {
@@ -13963,7 +13857,7 @@ type AddVipUserRequest struct {
 func (x *AddVipUserRequest) Reset() {
 	*x = AddVipUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[223]
+		mi := &file_jungletv_proto_msgTypes[221]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13976,7 +13870,7 @@ func (x *AddVipUserRequest) String() string {
 func (*AddVipUserRequest) ProtoMessage() {}
 
 func (x *AddVipUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[223]
+	mi := &file_jungletv_proto_msgTypes[221]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13989,7 +13883,7 @@ func (x *AddVipUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddVipUserRequest.ProtoReflect.Descriptor instead.
 func (*AddVipUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{223}
+	return file_jungletv_proto_rawDescGZIP(), []int{221}
 }
 
 func (x *AddVipUserRequest) GetRewardsAddress() string {
@@ -14015,7 +13909,7 @@ type AddVipUserResponse struct {
 func (x *AddVipUserResponse) Reset() {
 	*x = AddVipUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[224]
+		mi := &file_jungletv_proto_msgTypes[222]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14028,7 +13922,7 @@ func (x *AddVipUserResponse) String() string {
 func (*AddVipUserResponse) ProtoMessage() {}
 
 func (x *AddVipUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[224]
+	mi := &file_jungletv_proto_msgTypes[222]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14041,7 +13935,7 @@ func (x *AddVipUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddVipUserResponse.ProtoReflect.Descriptor instead.
 func (*AddVipUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{224}
+	return file_jungletv_proto_rawDescGZIP(), []int{222}
 }
 
 type RemoveVipUserRequest struct {
@@ -14055,7 +13949,7 @@ type RemoveVipUserRequest struct {
 func (x *RemoveVipUserRequest) Reset() {
 	*x = RemoveVipUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[225]
+		mi := &file_jungletv_proto_msgTypes[223]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14068,7 +13962,7 @@ func (x *RemoveVipUserRequest) String() string {
 func (*RemoveVipUserRequest) ProtoMessage() {}
 
 func (x *RemoveVipUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[225]
+	mi := &file_jungletv_proto_msgTypes[223]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14081,7 +13975,7 @@ func (x *RemoveVipUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveVipUserRequest.ProtoReflect.Descriptor instead.
 func (*RemoveVipUserRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{225}
+	return file_jungletv_proto_rawDescGZIP(), []int{223}
 }
 
 func (x *RemoveVipUserRequest) GetRewardsAddress() string {
@@ -14100,7 +13994,7 @@ type RemoveVipUserResponse struct {
 func (x *RemoveVipUserResponse) Reset() {
 	*x = RemoveVipUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[226]
+		mi := &file_jungletv_proto_msgTypes[224]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14113,7 +14007,7 @@ func (x *RemoveVipUserResponse) String() string {
 func (*RemoveVipUserResponse) ProtoMessage() {}
 
 func (x *RemoveVipUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[226]
+	mi := &file_jungletv_proto_msgTypes[224]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14126,7 +14020,7 @@ func (x *RemoveVipUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveVipUserResponse.ProtoReflect.Descriptor instead.
 func (*RemoveVipUserResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{226}
+	return file_jungletv_proto_rawDescGZIP(), []int{224}
 }
 
 type TriggerClientReloadRequest struct {
@@ -14138,7 +14032,7 @@ type TriggerClientReloadRequest struct {
 func (x *TriggerClientReloadRequest) Reset() {
 	*x = TriggerClientReloadRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[227]
+		mi := &file_jungletv_proto_msgTypes[225]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14151,7 +14045,7 @@ func (x *TriggerClientReloadRequest) String() string {
 func (*TriggerClientReloadRequest) ProtoMessage() {}
 
 func (x *TriggerClientReloadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[227]
+	mi := &file_jungletv_proto_msgTypes[225]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14164,7 +14058,7 @@ func (x *TriggerClientReloadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerClientReloadRequest.ProtoReflect.Descriptor instead.
 func (*TriggerClientReloadRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{227}
+	return file_jungletv_proto_rawDescGZIP(), []int{225}
 }
 
 type TriggerClientReloadResponse struct {
@@ -14176,7 +14070,7 @@ type TriggerClientReloadResponse struct {
 func (x *TriggerClientReloadResponse) Reset() {
 	*x = TriggerClientReloadResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[228]
+		mi := &file_jungletv_proto_msgTypes[226]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14189,7 +14083,7 @@ func (x *TriggerClientReloadResponse) String() string {
 func (*TriggerClientReloadResponse) ProtoMessage() {}
 
 func (x *TriggerClientReloadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[228]
+	mi := &file_jungletv_proto_msgTypes[226]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14202,7 +14096,7 @@ func (x *TriggerClientReloadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriggerClientReloadResponse.ProtoReflect.Descriptor instead.
 func (*TriggerClientReloadResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{228}
+	return file_jungletv_proto_rawDescGZIP(), []int{226}
 }
 
 type IncreaseOrReduceSkipThresholdRequest struct {
@@ -14216,7 +14110,7 @@ type IncreaseOrReduceSkipThresholdRequest struct {
 func (x *IncreaseOrReduceSkipThresholdRequest) Reset() {
 	*x = IncreaseOrReduceSkipThresholdRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[229]
+		mi := &file_jungletv_proto_msgTypes[227]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14229,7 +14123,7 @@ func (x *IncreaseOrReduceSkipThresholdRequest) String() string {
 func (*IncreaseOrReduceSkipThresholdRequest) ProtoMessage() {}
 
 func (x *IncreaseOrReduceSkipThresholdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[229]
+	mi := &file_jungletv_proto_msgTypes[227]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14242,7 +14136,7 @@ func (x *IncreaseOrReduceSkipThresholdRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use IncreaseOrReduceSkipThresholdRequest.ProtoReflect.Descriptor instead.
 func (*IncreaseOrReduceSkipThresholdRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{229}
+	return file_jungletv_proto_rawDescGZIP(), []int{227}
 }
 
 func (x *IncreaseOrReduceSkipThresholdRequest) GetIncrease() bool {
@@ -14261,7 +14155,7 @@ type IncreaseOrReduceSkipThresholdResponse struct {
 func (x *IncreaseOrReduceSkipThresholdResponse) Reset() {
 	*x = IncreaseOrReduceSkipThresholdResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[230]
+		mi := &file_jungletv_proto_msgTypes[228]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14274,7 +14168,7 @@ func (x *IncreaseOrReduceSkipThresholdResponse) String() string {
 func (*IncreaseOrReduceSkipThresholdResponse) ProtoMessage() {}
 
 func (x *IncreaseOrReduceSkipThresholdResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[230]
+	mi := &file_jungletv_proto_msgTypes[228]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14287,7 +14181,7 @@ func (x *IncreaseOrReduceSkipThresholdResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use IncreaseOrReduceSkipThresholdResponse.ProtoReflect.Descriptor instead.
 func (*IncreaseOrReduceSkipThresholdResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{230}
+	return file_jungletv_proto_rawDescGZIP(), []int{228}
 }
 
 type SetMulticurrencyPaymentsEnabledRequest struct {
@@ -14301,7 +14195,7 @@ type SetMulticurrencyPaymentsEnabledRequest struct {
 func (x *SetMulticurrencyPaymentsEnabledRequest) Reset() {
 	*x = SetMulticurrencyPaymentsEnabledRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[231]
+		mi := &file_jungletv_proto_msgTypes[229]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14314,7 +14208,7 @@ func (x *SetMulticurrencyPaymentsEnabledRequest) String() string {
 func (*SetMulticurrencyPaymentsEnabledRequest) ProtoMessage() {}
 
 func (x *SetMulticurrencyPaymentsEnabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[231]
+	mi := &file_jungletv_proto_msgTypes[229]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14327,7 +14221,7 @@ func (x *SetMulticurrencyPaymentsEnabledRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use SetMulticurrencyPaymentsEnabledRequest.ProtoReflect.Descriptor instead.
 func (*SetMulticurrencyPaymentsEnabledRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{231}
+	return file_jungletv_proto_rawDescGZIP(), []int{229}
 }
 
 func (x *SetMulticurrencyPaymentsEnabledRequest) GetEnabled() bool {
@@ -14346,7 +14240,7 @@ type SetMulticurrencyPaymentsEnabledResponse struct {
 func (x *SetMulticurrencyPaymentsEnabledResponse) Reset() {
 	*x = SetMulticurrencyPaymentsEnabledResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[232]
+		mi := &file_jungletv_proto_msgTypes[230]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14359,7 +14253,7 @@ func (x *SetMulticurrencyPaymentsEnabledResponse) String() string {
 func (*SetMulticurrencyPaymentsEnabledResponse) ProtoMessage() {}
 
 func (x *SetMulticurrencyPaymentsEnabledResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[232]
+	mi := &file_jungletv_proto_msgTypes[230]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14372,7 +14266,7 @@ func (x *SetMulticurrencyPaymentsEnabledResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use SetMulticurrencyPaymentsEnabledResponse.ProtoReflect.Descriptor instead.
 func (*SetMulticurrencyPaymentsEnabledResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{232}
+	return file_jungletv_proto_rawDescGZIP(), []int{230}
 }
 
 type CheckMediaEnqueuingPasswordRequest struct {
@@ -14386,7 +14280,7 @@ type CheckMediaEnqueuingPasswordRequest struct {
 func (x *CheckMediaEnqueuingPasswordRequest) Reset() {
 	*x = CheckMediaEnqueuingPasswordRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[233]
+		mi := &file_jungletv_proto_msgTypes[231]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14399,7 +14293,7 @@ func (x *CheckMediaEnqueuingPasswordRequest) String() string {
 func (*CheckMediaEnqueuingPasswordRequest) ProtoMessage() {}
 
 func (x *CheckMediaEnqueuingPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[233]
+	mi := &file_jungletv_proto_msgTypes[231]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14412,7 +14306,7 @@ func (x *CheckMediaEnqueuingPasswordRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CheckMediaEnqueuingPasswordRequest.ProtoReflect.Descriptor instead.
 func (*CheckMediaEnqueuingPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{233}
+	return file_jungletv_proto_rawDescGZIP(), []int{231}
 }
 
 func (x *CheckMediaEnqueuingPasswordRequest) GetPassword() string {
@@ -14433,7 +14327,7 @@ type CheckMediaEnqueuingPasswordResponse struct {
 func (x *CheckMediaEnqueuingPasswordResponse) Reset() {
 	*x = CheckMediaEnqueuingPasswordResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[234]
+		mi := &file_jungletv_proto_msgTypes[232]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14446,7 +14340,7 @@ func (x *CheckMediaEnqueuingPasswordResponse) String() string {
 func (*CheckMediaEnqueuingPasswordResponse) ProtoMessage() {}
 
 func (x *CheckMediaEnqueuingPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[234]
+	mi := &file_jungletv_proto_msgTypes[232]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14459,7 +14353,7 @@ func (x *CheckMediaEnqueuingPasswordResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CheckMediaEnqueuingPasswordResponse.ProtoReflect.Descriptor instead.
 func (*CheckMediaEnqueuingPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{234}
+	return file_jungletv_proto_rawDescGZIP(), []int{232}
 }
 
 func (x *CheckMediaEnqueuingPasswordResponse) GetPasswordEdition() string {
@@ -14478,7 +14372,7 @@ type MonitorMediaEnqueuingPermissionRequest struct {
 func (x *MonitorMediaEnqueuingPermissionRequest) Reset() {
 	*x = MonitorMediaEnqueuingPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[235]
+		mi := &file_jungletv_proto_msgTypes[233]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14491,7 +14385,7 @@ func (x *MonitorMediaEnqueuingPermissionRequest) String() string {
 func (*MonitorMediaEnqueuingPermissionRequest) ProtoMessage() {}
 
 func (x *MonitorMediaEnqueuingPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[235]
+	mi := &file_jungletv_proto_msgTypes[233]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14504,7 +14398,7 @@ func (x *MonitorMediaEnqueuingPermissionRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use MonitorMediaEnqueuingPermissionRequest.ProtoReflect.Descriptor instead.
 func (*MonitorMediaEnqueuingPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{235}
+	return file_jungletv_proto_rawDescGZIP(), []int{233}
 }
 
 type MediaEnqueuingPermissionStatus struct {
@@ -14521,7 +14415,7 @@ type MediaEnqueuingPermissionStatus struct {
 func (x *MediaEnqueuingPermissionStatus) Reset() {
 	*x = MediaEnqueuingPermissionStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[236]
+		mi := &file_jungletv_proto_msgTypes[234]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14534,7 +14428,7 @@ func (x *MediaEnqueuingPermissionStatus) String() string {
 func (*MediaEnqueuingPermissionStatus) ProtoMessage() {}
 
 func (x *MediaEnqueuingPermissionStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[236]
+	mi := &file_jungletv_proto_msgTypes[234]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14547,7 +14441,7 @@ func (x *MediaEnqueuingPermissionStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MediaEnqueuingPermissionStatus.ProtoReflect.Descriptor instead.
 func (*MediaEnqueuingPermissionStatus) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{236}
+	return file_jungletv_proto_rawDescGZIP(), []int{234}
 }
 
 func (x *MediaEnqueuingPermissionStatus) GetAllowedMediaEnqueuing() AllowedMediaEnqueuingType {
@@ -14587,7 +14481,7 @@ type InvalidateAuthTokensRequest struct {
 func (x *InvalidateAuthTokensRequest) Reset() {
 	*x = InvalidateAuthTokensRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[237]
+		mi := &file_jungletv_proto_msgTypes[235]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14600,7 +14494,7 @@ func (x *InvalidateAuthTokensRequest) String() string {
 func (*InvalidateAuthTokensRequest) ProtoMessage() {}
 
 func (x *InvalidateAuthTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[237]
+	mi := &file_jungletv_proto_msgTypes[235]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14613,7 +14507,7 @@ func (x *InvalidateAuthTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvalidateAuthTokensRequest.ProtoReflect.Descriptor instead.
 func (*InvalidateAuthTokensRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{237}
+	return file_jungletv_proto_rawDescGZIP(), []int{235}
 }
 
 type InvalidateAuthTokensResponse struct {
@@ -14625,7 +14519,7 @@ type InvalidateAuthTokensResponse struct {
 func (x *InvalidateAuthTokensResponse) Reset() {
 	*x = InvalidateAuthTokensResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[238]
+		mi := &file_jungletv_proto_msgTypes[236]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14638,7 +14532,7 @@ func (x *InvalidateAuthTokensResponse) String() string {
 func (*InvalidateAuthTokensResponse) ProtoMessage() {}
 
 func (x *InvalidateAuthTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[238]
+	mi := &file_jungletv_proto_msgTypes[236]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14651,7 +14545,7 @@ func (x *InvalidateAuthTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvalidateAuthTokensResponse.ProtoReflect.Descriptor instead.
 func (*InvalidateAuthTokensResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{238}
+	return file_jungletv_proto_rawDescGZIP(), []int{236}
 }
 
 type InvalidateUserAuthTokensRequest struct {
@@ -14665,7 +14559,7 @@ type InvalidateUserAuthTokensRequest struct {
 func (x *InvalidateUserAuthTokensRequest) Reset() {
 	*x = InvalidateUserAuthTokensRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[239]
+		mi := &file_jungletv_proto_msgTypes[237]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14678,7 +14572,7 @@ func (x *InvalidateUserAuthTokensRequest) String() string {
 func (*InvalidateUserAuthTokensRequest) ProtoMessage() {}
 
 func (x *InvalidateUserAuthTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[239]
+	mi := &file_jungletv_proto_msgTypes[237]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14691,7 +14585,7 @@ func (x *InvalidateUserAuthTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvalidateUserAuthTokensRequest.ProtoReflect.Descriptor instead.
 func (*InvalidateUserAuthTokensRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{239}
+	return file_jungletv_proto_rawDescGZIP(), []int{237}
 }
 
 func (x *InvalidateUserAuthTokensRequest) GetAddress() string {
@@ -14710,7 +14604,7 @@ type InvalidateUserAuthTokensResponse struct {
 func (x *InvalidateUserAuthTokensResponse) Reset() {
 	*x = InvalidateUserAuthTokensResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[240]
+		mi := &file_jungletv_proto_msgTypes[238]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14723,7 +14617,7 @@ func (x *InvalidateUserAuthTokensResponse) String() string {
 func (*InvalidateUserAuthTokensResponse) ProtoMessage() {}
 
 func (x *InvalidateUserAuthTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[240]
+	mi := &file_jungletv_proto_msgTypes[238]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14736,7 +14630,7 @@ func (x *InvalidateUserAuthTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvalidateUserAuthTokensResponse.ProtoReflect.Descriptor instead.
 func (*InvalidateUserAuthTokensResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{240}
+	return file_jungletv_proto_rawDescGZIP(), []int{238}
 }
 
 type AuthorizeApplicationRequest struct {
@@ -14752,7 +14646,7 @@ type AuthorizeApplicationRequest struct {
 func (x *AuthorizeApplicationRequest) Reset() {
 	*x = AuthorizeApplicationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[241]
+		mi := &file_jungletv_proto_msgTypes[239]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14765,7 +14659,7 @@ func (x *AuthorizeApplicationRequest) String() string {
 func (*AuthorizeApplicationRequest) ProtoMessage() {}
 
 func (x *AuthorizeApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[241]
+	mi := &file_jungletv_proto_msgTypes[239]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14778,7 +14672,7 @@ func (x *AuthorizeApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeApplicationRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{241}
+	return file_jungletv_proto_rawDescGZIP(), []int{239}
 }
 
 func (x *AuthorizeApplicationRequest) GetApplicationName() string {
@@ -14817,7 +14711,7 @@ type AuthorizeApplicationEvent struct {
 func (x *AuthorizeApplicationEvent) Reset() {
 	*x = AuthorizeApplicationEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[242]
+		mi := &file_jungletv_proto_msgTypes[240]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14830,7 +14724,7 @@ func (x *AuthorizeApplicationEvent) String() string {
 func (*AuthorizeApplicationEvent) ProtoMessage() {}
 
 func (x *AuthorizeApplicationEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[242]
+	mi := &file_jungletv_proto_msgTypes[240]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14843,7 +14737,7 @@ func (x *AuthorizeApplicationEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeApplicationEvent.ProtoReflect.Descriptor instead.
 func (*AuthorizeApplicationEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{242}
+	return file_jungletv_proto_rawDescGZIP(), []int{240}
 }
 
 func (m *AuthorizeApplicationEvent) GetEvent() isAuthorizeApplicationEvent_Event {
@@ -14905,7 +14799,7 @@ type AuthorizeApplicationHeartbeatEvent struct {
 func (x *AuthorizeApplicationHeartbeatEvent) Reset() {
 	*x = AuthorizeApplicationHeartbeatEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[243]
+		mi := &file_jungletv_proto_msgTypes[241]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14918,7 +14812,7 @@ func (x *AuthorizeApplicationHeartbeatEvent) String() string {
 func (*AuthorizeApplicationHeartbeatEvent) ProtoMessage() {}
 
 func (x *AuthorizeApplicationHeartbeatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[243]
+	mi := &file_jungletv_proto_msgTypes[241]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14931,7 +14825,7 @@ func (x *AuthorizeApplicationHeartbeatEvent) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use AuthorizeApplicationHeartbeatEvent.ProtoReflect.Descriptor instead.
 func (*AuthorizeApplicationHeartbeatEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{243}
+	return file_jungletv_proto_rawDescGZIP(), []int{241}
 }
 
 type AuthorizeApplicationAuthorizationURLEvent struct {
@@ -14945,7 +14839,7 @@ type AuthorizeApplicationAuthorizationURLEvent struct {
 func (x *AuthorizeApplicationAuthorizationURLEvent) Reset() {
 	*x = AuthorizeApplicationAuthorizationURLEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[244]
+		mi := &file_jungletv_proto_msgTypes[242]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14958,7 +14852,7 @@ func (x *AuthorizeApplicationAuthorizationURLEvent) String() string {
 func (*AuthorizeApplicationAuthorizationURLEvent) ProtoMessage() {}
 
 func (x *AuthorizeApplicationAuthorizationURLEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[244]
+	mi := &file_jungletv_proto_msgTypes[242]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14971,7 +14865,7 @@ func (x *AuthorizeApplicationAuthorizationURLEvent) ProtoReflect() protoreflect.
 
 // Deprecated: Use AuthorizeApplicationAuthorizationURLEvent.ProtoReflect.Descriptor instead.
 func (*AuthorizeApplicationAuthorizationURLEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{244}
+	return file_jungletv_proto_rawDescGZIP(), []int{242}
 }
 
 func (x *AuthorizeApplicationAuthorizationURLEvent) GetAuthorizationUrl() string {
@@ -14993,7 +14887,7 @@ type AuthorizeApplicationApprovedEvent struct {
 func (x *AuthorizeApplicationApprovedEvent) Reset() {
 	*x = AuthorizeApplicationApprovedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[245]
+		mi := &file_jungletv_proto_msgTypes[243]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15006,7 +14900,7 @@ func (x *AuthorizeApplicationApprovedEvent) String() string {
 func (*AuthorizeApplicationApprovedEvent) ProtoMessage() {}
 
 func (x *AuthorizeApplicationApprovedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[245]
+	mi := &file_jungletv_proto_msgTypes[243]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15019,7 +14913,7 @@ func (x *AuthorizeApplicationApprovedEvent) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use AuthorizeApplicationApprovedEvent.ProtoReflect.Descriptor instead.
 func (*AuthorizeApplicationApprovedEvent) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{245}
+	return file_jungletv_proto_rawDescGZIP(), []int{243}
 }
 
 func (x *AuthorizeApplicationApprovedEvent) GetAuthToken() string {
@@ -15047,7 +14941,7 @@ type AuthorizationProcessDataRequest struct {
 func (x *AuthorizationProcessDataRequest) Reset() {
 	*x = AuthorizationProcessDataRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[246]
+		mi := &file_jungletv_proto_msgTypes[244]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15060,7 +14954,7 @@ func (x *AuthorizationProcessDataRequest) String() string {
 func (*AuthorizationProcessDataRequest) ProtoMessage() {}
 
 func (x *AuthorizationProcessDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[246]
+	mi := &file_jungletv_proto_msgTypes[244]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15073,7 +14967,7 @@ func (x *AuthorizationProcessDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizationProcessDataRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizationProcessDataRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{246}
+	return file_jungletv_proto_rawDescGZIP(), []int{244}
 }
 
 func (x *AuthorizationProcessDataRequest) GetProcessId() string {
@@ -15096,7 +14990,7 @@ type AuthorizationProcessDataResponse struct {
 func (x *AuthorizationProcessDataResponse) Reset() {
 	*x = AuthorizationProcessDataResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[247]
+		mi := &file_jungletv_proto_msgTypes[245]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15109,7 +15003,7 @@ func (x *AuthorizationProcessDataResponse) String() string {
 func (*AuthorizationProcessDataResponse) ProtoMessage() {}
 
 func (x *AuthorizationProcessDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[247]
+	mi := &file_jungletv_proto_msgTypes[245]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15122,7 +15016,7 @@ func (x *AuthorizationProcessDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizationProcessDataResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizationProcessDataResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{247}
+	return file_jungletv_proto_rawDescGZIP(), []int{245}
 }
 
 func (x *AuthorizationProcessDataResponse) GetApplicationName() string {
@@ -15158,7 +15052,7 @@ type ConsentOrDissentToAuthorizationRequest struct {
 func (x *ConsentOrDissentToAuthorizationRequest) Reset() {
 	*x = ConsentOrDissentToAuthorizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[248]
+		mi := &file_jungletv_proto_msgTypes[246]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15171,7 +15065,7 @@ func (x *ConsentOrDissentToAuthorizationRequest) String() string {
 func (*ConsentOrDissentToAuthorizationRequest) ProtoMessage() {}
 
 func (x *ConsentOrDissentToAuthorizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[248]
+	mi := &file_jungletv_proto_msgTypes[246]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15184,7 +15078,7 @@ func (x *ConsentOrDissentToAuthorizationRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ConsentOrDissentToAuthorizationRequest.ProtoReflect.Descriptor instead.
 func (*ConsentOrDissentToAuthorizationRequest) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{248}
+	return file_jungletv_proto_rawDescGZIP(), []int{246}
 }
 
 func (x *ConsentOrDissentToAuthorizationRequest) GetProcessId() string {
@@ -15210,7 +15104,7 @@ type ConsentOrDissentToAuthorizationResponse struct {
 func (x *ConsentOrDissentToAuthorizationResponse) Reset() {
 	*x = ConsentOrDissentToAuthorizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_jungletv_proto_msgTypes[249]
+		mi := &file_jungletv_proto_msgTypes[247]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15223,7 +15117,7 @@ func (x *ConsentOrDissentToAuthorizationResponse) String() string {
 func (*ConsentOrDissentToAuthorizationResponse) ProtoMessage() {}
 
 func (x *ConsentOrDissentToAuthorizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_jungletv_proto_msgTypes[249]
+	mi := &file_jungletv_proto_msgTypes[247]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15236,7 +15130,7 @@ func (x *ConsentOrDissentToAuthorizationResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ConsentOrDissentToAuthorizationResponse.ProtoReflect.Descriptor instead.
 func (*ConsentOrDissentToAuthorizationResponse) Descriptor() ([]byte, []int) {
-	return file_jungletv_proto_rawDescGZIP(), []int{249}
+	return file_jungletv_proto_rawDescGZIP(), []int{247}
 }
 
 var File_jungletv_proto protoreflect.FileDescriptor
@@ -15384,217 +15278,207 @@ var file_jungletv_proto_rawDesc = []byte{
 	0x75, 0x65, 0x54, 0x79, 0x70, 0x65, 0x48, 0x01, 0x52, 0x0b, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75,
 	0x65, 0x54, 0x79, 0x70, 0x65, 0x88, 0x01, 0x01, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x64, 0x75, 0x72,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75,
-	0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x22, 0x11, 0x0a, 0x0f, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75,
-	0x65, 0x53, 0x74, 0x75, 0x62, 0x44, 0x61, 0x74, 0x61, 0x22, 0xde, 0x03, 0x0a, 0x13, 0x45, 0x6e,
-	0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x20, 0x0a, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61,
-	0x62, 0x6c, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61, 0x6c, 0x65, 0x64,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61, 0x6c, 0x65,
-	0x64, 0x12, 0x1c, 0x0a, 0x09, 0x61, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x6f, 0x75, 0x73, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x61, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x6f, 0x75, 0x73, 0x12,
-	0x1f, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x09, 0x48, 0x01, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x88, 0x01, 0x01,
-	0x12, 0x38, 0x0a, 0x09, 0x73, 0x74, 0x75, 0x62, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45,
-	0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x53, 0x74, 0x75, 0x62, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00,
-	0x52, 0x08, 0x73, 0x74, 0x75, 0x62, 0x44, 0x61, 0x74, 0x61, 0x12, 0x51, 0x0a, 0x12, 0x79, 0x6f,
-	0x75, 0x74, 0x75, 0x62, 0x65, 0x5f, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64, 0x61, 0x74, 0x61,
-	0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
-	0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x59, 0x6f, 0x75, 0x54, 0x75, 0x62, 0x65,
-	0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x10, 0x79, 0x6f, 0x75,
-	0x74, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x5a, 0x0a,
-	0x15, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x74, 0x72, 0x61, 0x63,
-	0x6b, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6a,
-	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x53,
-	0x6f, 0x75, 0x6e, 0x64, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61,
-	0x74, 0x61, 0x48, 0x00, 0x52, 0x13, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64,
-	0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x12, 0x44, 0x0a, 0x0d, 0x64, 0x6f, 0x63,
-	0x75, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75,
-	0x65, 0x75, 0x65, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x48,
-	0x00, 0x52, 0x0c, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x42,
-	0x0c, 0x0a, 0x0a, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x42, 0x0b, 0x0a,
-	0x09, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x9d, 0x01, 0x0a, 0x14, 0x45,
-	0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x06, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45,
-	0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69, 0x63, 0x6b, 0x65,
-	0x74, 0x48, 0x00, 0x52, 0x06, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x12, 0x39, 0x0a, 0x07, 0x66,
-	0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6a,
-	0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d,
-	0x65, 0x64, 0x69, 0x61, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x48, 0x00, 0x52, 0x07, 0x66,
-	0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x42, 0x12, 0x0a, 0x10, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75,
-	0x65, 0x5f, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x3c, 0x0a, 0x13, 0x45, 0x6e,
-	0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72,
-	0x65, 0x12, 0x25, 0x0a, 0x0e, 0x66, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x5f, 0x72, 0x65, 0x61,
-	0x73, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x66, 0x61, 0x69, 0x6c, 0x75,
-	0x72, 0x65, 0x52, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x22, 0x87, 0x07, 0x0a, 0x12, 0x45, 0x6e, 0x71,
-	0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x12,
-	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12,
-	0x3a, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32,
-	0x22, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65,
-	0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x53, 0x74, 0x61,
-	0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x27, 0x0a, 0x0f, 0x70,
-	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x41, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x5f,
-	0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x6e, 0x71,
-	0x75, 0x65, 0x75, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x70, 0x6c, 0x61,
-	0x79, 0x5f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x0d, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x72, 0x69, 0x63,
-	0x65, 0x12, 0x24, 0x0a, 0x0e, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x6f, 0x77, 0x5f, 0x70, 0x72,
-	0x69, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x6c, 0x61, 0x79, 0x4e,
-	0x6f, 0x77, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x3a, 0x0a, 0x0a, 0x65, 0x78, 0x70, 0x69, 0x72,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x0a, 0x65, 0x78, 0x70, 0x69, 0x72, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x12, 0x20, 0x0a, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62,
-	0x6c, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70,
-	0x70, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61, 0x6c,
-	0x65, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61,
-	0x6c, 0x65, 0x64, 0x12, 0x47, 0x0a, 0x20, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79,
-	0x5f, 0x70, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x5f, 0x69, 0x73, 0x5f, 0x75, 0x6e, 0x73, 0x6b,
-	0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x08, 0x52, 0x1d, 0x63,
-	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x49,
-	0x73, 0x55, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x31, 0x0a, 0x06,
-	0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44,
-	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x12,
-	0x31, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x22, 0xa4, 0x03, 0x0a, 0x13, 0x45, 0x6e, 0x71, 0x75, 0x65,
+	0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x20,
+	0x0a, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65,
+	0x12, 0x1c, 0x0a, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61, 0x6c, 0x65, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x09, 0x63, 0x6f, 0x6e, 0x63, 0x65, 0x61, 0x6c, 0x65, 0x64, 0x12, 0x1c,
+	0x0a, 0x09, 0x61, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x6f, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x08, 0x52, 0x09, 0x61, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x6f, 0x75, 0x73, 0x12, 0x1f, 0x0a, 0x08,
+	0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01,
+	0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x88, 0x01, 0x01, 0x12, 0x51, 0x0a,
+	0x12, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65, 0x5f, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
+	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x59, 0x6f, 0x75, 0x54,
+	0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x10,
+	0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61,
+	0x12, 0x5a, 0x0a, 0x15, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x74,
+	0x72, 0x61, 0x63, 0x6b, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x24, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65,
+	0x75, 0x65, 0x53, 0x6f, 0x75, 0x6e, 0x64, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63,
+	0x6b, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x13, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c,
+	0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x12, 0x44, 0x0a, 0x0d,
+	0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45,
+	0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61,
+	0x74, 0x61, 0x48, 0x00, 0x52, 0x0c, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61,
+	0x74, 0x61, 0x42, 0x0c, 0x0a, 0x0a, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x5f, 0x69, 0x6e, 0x66, 0x6f,
+	0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x9d, 0x01,
+	0x0a, 0x14, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x06, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
+	0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69,
+	0x63, 0x6b, 0x65, 0x74, 0x48, 0x00, 0x52, 0x06, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x12, 0x39,
+	0x0a, 0x07, 0x66, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1d, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e, 0x71, 0x75, 0x65,
+	0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x48, 0x00,
+	0x52, 0x07, 0x66, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x42, 0x12, 0x0a, 0x10, 0x65, 0x6e, 0x71,
+	0x75, 0x65, 0x75, 0x65, 0x5f, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x3c, 0x0a,
+	0x13, 0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x46, 0x61, 0x69,
+	0x6c, 0x75, 0x72, 0x65, 0x12, 0x25, 0x0a, 0x0e, 0x66, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x5f,
+	0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x66, 0x61,
+	0x69, 0x6c, 0x75, 0x72, 0x65, 0x52, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x22, 0x87, 0x07, 0x0a, 0x12,
+	0x45, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69, 0x63, 0x6b,
+	0x65, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
+	0x69, 0x64, 0x12, 0x3a, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0e, 0x32, 0x22, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x6e,
+	0x71, 0x75, 0x65, 0x75, 0x65, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74,
+	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x27,
+	0x0a, 0x0f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73,
+	0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
+	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x65, 0x6e, 0x71, 0x75, 0x65,
+	0x75, 0x65, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c,
+	0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x26, 0x0a, 0x0f,
+	0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x50,
+	0x72, 0x69, 0x63, 0x65, 0x12, 0x24, 0x0a, 0x0e, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x6f, 0x77,
+	0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x6c,
+	0x61, 0x79, 0x4e, 0x6f, 0x77, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x3a, 0x0a, 0x0a, 0x65, 0x78,
+	0x70, 0x69, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x0a, 0x65, 0x78, 0x70, 0x69,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x20, 0x0a, 0x0b, 0x75, 0x6e, 0x73, 0x6b, 0x69, 0x70,
+	0x70, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x75, 0x6e, 0x73,
+	0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x6f, 0x6e, 0x63,
+	0x65, 0x61, 0x6c, 0x65, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x63, 0x6f, 0x6e,
+	0x63, 0x65, 0x61, 0x6c, 0x65, 0x64, 0x12, 0x47, 0x0a, 0x20, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
+	0x74, 0x6c, 0x79, 0x5f, 0x70, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x5f, 0x69, 0x73, 0x5f, 0x75,
+	0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x1d, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79, 0x50, 0x6c, 0x61, 0x79, 0x69,
+	0x6e, 0x67, 0x49, 0x73, 0x55, 0x6e, 0x73, 0x6b, 0x69, 0x70, 0x70, 0x61, 0x62, 0x6c, 0x65, 0x12,
+	0x31, 0x0a, 0x06, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32,
 	0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
-	0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73,
-	0x65, 0x74, 0x12, 0x61, 0x0a, 0x1b, 0x65, 0x78, 0x74, 0x72, 0x61, 0x5f, 0x63, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74,
-	0x61, 0x18, 0x0d, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65,
-	0x74, 0x76, 0x2e, 0x45, 0x78, 0x74, 0x72, 0x61, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79,
-	0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x52, 0x18, 0x65, 0x78, 0x74,
-	0x72, 0x61, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e,
-	0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x4f, 0x0a, 0x12, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65,
-	0x5f, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0e, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1f, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x51, 0x75, 0x65,
-	0x75, 0x65, 0x59, 0x6f, 0x75, 0x54, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61,
-	0x74, 0x61, 0x48, 0x00, 0x52, 0x10, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64,
-	0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x58, 0x0a, 0x15, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63,
-	0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x6b, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18,
-	0x0f, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76,
-	0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x53, 0x6f, 0x75, 0x6e, 0x64, 0x43, 0x6c, 0x6f, 0x75, 0x64,
-	0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x13, 0x73, 0x6f, 0x75,
-	0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61,
-	0x12, 0x42, 0x0a, 0x0d, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74,
-	0x61, 0x18, 0x10, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65,
-	0x74, 0x76, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74,
-	0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x0c, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74,
-	0x44, 0x61, 0x74, 0x61, 0x42, 0x0c, 0x0a, 0x0a, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x5f, 0x69, 0x6e,
-	0x66, 0x6f, 0x22, 0x83, 0x02, 0x0a, 0x18, 0x45, 0x78, 0x74, 0x72, 0x61, 0x43, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12,
-	0x27, 0x0a, 0x0f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x74, 0x69, 0x63, 0x6b,
-	0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
-	0x63, 0x79, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0d, 0x73, 0x77, 0x61, 0x70,
-	0x5f, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0b, 0x73, 0x77, 0x61, 0x70, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x0f,
-	0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x41, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65,
-	0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x6e,
-	0x71, 0x75, 0x65, 0x75, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x70, 0x6c,
-	0x61, 0x79, 0x5f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x05, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x72, 0x69,
-	0x63, 0x65, 0x12, 0x24, 0x0a, 0x0e, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x6f, 0x77, 0x5f, 0x70,
-	0x72, 0x69, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x6c, 0x61, 0x79,
-	0x4e, 0x6f, 0x77, 0x50, 0x72, 0x69, 0x63, 0x65, 0x22, 0x33, 0x0a, 0x14, 0x4d, 0x6f, 0x6e, 0x69,
-	0x74, 0x6f, 0x72, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x1b, 0x0a, 0x09, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x49, 0x64, 0x22, 0x2c, 0x0a,
-	0x1a, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4f, 0x77, 0x6e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45,
-	0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69,
-	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x1d, 0x0a, 0x1b, 0x52,
-	0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4f, 0x77, 0x6e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74,
-	0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x6c, 0x0a, 0x15, 0x4d, 0x6f,
-	0x76, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x02, 0x69, 0x64, 0x12, 0x43, 0x0a, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x25, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
-	0x76, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d, 0x6f, 0x76, 0x65,
-	0x6d, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x09, 0x64,
-	0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x18, 0x0a, 0x16, 0x4d, 0x6f, 0x76, 0x65,
-	0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x15, 0x0a, 0x13, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x65, 0x4d, 0x65, 0x64,
-	0x69, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x14, 0x0a, 0x12, 0x4e, 0x6f, 0x77,
-	0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x75, 0x62, 0x44, 0x61, 0x74, 0x61, 0x22,
-	0x2c, 0x0a, 0x1a, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x59, 0x6f, 0x75,
-	0x54, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a,
-	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x2f, 0x0a,
-	0x1d, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x53, 0x6f, 0x75, 0x6e, 0x64,
-	0x43, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e,
-	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0xa5,
-	0x01, 0x0a, 0x16, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x44, 0x6f, 0x63,
-	0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x39, 0x0a, 0x0a, 0x75, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74,
-	0x65, 0x64, 0x41, 0x74, 0x12, 0x33, 0x0a, 0x08, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74,
-	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
-	0x76, 0x2e, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x08, 0x64, 0x6f,
-	0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x88, 0x01, 0x01, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x64, 0x6f,
-	0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x22, 0xa6, 0x01, 0x0a, 0x1d, 0x4e, 0x6f, 0x77, 0x50, 0x6c,
-	0x61, 0x79, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x50, 0x61, 0x67, 0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c,
-	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0d, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12,
-	0x17, 0x0a, 0x07, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x70, 0x61, 0x67, 0x65, 0x49, 0x64, 0x12, 0x45, 0x0a, 0x09, 0x70, 0x61, 0x67, 0x65,
-	0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x6a, 0x75,
-	0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x41, 0x70,
-	0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22,
-	0xc0, 0x08, 0x0a, 0x1a, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x70,
-	0x74, 0x69, 0x6f, 0x6e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x23,
-	0x0a, 0x0d, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x5f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0c, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x50, 0x72, 0x65, 0x73,
-	0x65, 0x6e, 0x74, 0x12, 0x44, 0x0a, 0x10, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x70,
-	0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
-	0x74, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x6c, 0x69, 0x76,
-	0x65, 0x5f, 0x62, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x08, 0x52, 0x0d, 0x6c, 0x69, 0x76, 0x65, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74,
-	0x12, 0x31, 0x0a, 0x0c, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x62, 0x79,
-	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74,
-	0x76, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65,
-	0x64, 0x42, 0x79, 0x12, 0x21, 0x0a, 0x0c, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x63,
-	0x6f, 0x73, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x43, 0x6f, 0x73, 0x74, 0x12, 0x2d, 0x0a, 0x12, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
-	0x74, 0x6c, 0x79, 0x5f, 0x77, 0x61, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x18, 0x06, 0x20, 0x01,
-	0x28, 0x0d, 0x52, 0x11, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79, 0x57, 0x61, 0x74,
-	0x63, 0x68, 0x69, 0x6e, 0x67, 0x12, 0x4f, 0x0a, 0x12, 0x61, 0x63, 0x74, 0x69, 0x76, 0x69, 0x74,
-	0x79, 0x5f, 0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1b, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x63, 0x74,
-	0x69, 0x76, 0x69, 0x74, 0x79, 0x43, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x48, 0x01,
-	0x52, 0x11, 0x61, 0x63, 0x74, 0x69, 0x76, 0x69, 0x74, 0x79, 0x43, 0x68, 0x61, 0x6c, 0x6c, 0x65,
-	0x6e, 0x67, 0x65, 0x88, 0x01, 0x01, 0x12, 0x3b, 0x0a, 0x09, 0x73, 0x74, 0x75, 0x62, 0x5f, 0x64,
-	0x61, 0x74, 0x61, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
-	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x53,
-	0x74, 0x75, 0x62, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x08, 0x73, 0x74, 0x75, 0x62, 0x44,
-	0x61, 0x74, 0x61, 0x12, 0x54, 0x0a, 0x12, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65, 0x5f, 0x76,
-	0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x6c, 0x65, 0x6e, 0x67,
+	0x74, 0x68, 0x12, 0x31, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x0c, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x6f,
+	0x66, 0x66, 0x73, 0x65, 0x74, 0x12, 0x61, 0x0a, 0x1b, 0x65, 0x78, 0x74, 0x72, 0x61, 0x5f, 0x63,
+	0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x0d, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x6a, 0x75, 0x6e,
+	0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x45, 0x78, 0x74, 0x72, 0x61, 0x43, 0x75, 0x72, 0x72, 0x65,
+	0x6e, 0x63, 0x79, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x52, 0x18,
+	0x65, 0x78, 0x74, 0x72, 0x61, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x79,
+	0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x4f, 0x0a, 0x12, 0x79, 0x6f, 0x75, 0x74,
+	0x75, 0x62, 0x65, 0x5f, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0e,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e,
+	0x51, 0x75, 0x65, 0x75, 0x65, 0x59, 0x6f, 0x75, 0x54, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65,
+	0x6f, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x10, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65,
+	0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x58, 0x0a, 0x15, 0x73, 0x6f, 0x75,
+	0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x6b, 0x5f, 0x64, 0x61,
+	0x74, 0x61, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c,
+	0x65, 0x74, 0x76, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x53, 0x6f, 0x75, 0x6e, 0x64, 0x43, 0x6c,
+	0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x13,
+	0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44,
+	0x61, 0x74, 0x61, 0x12, 0x42, 0x0a, 0x0d, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x5f,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x10, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x6a, 0x75, 0x6e,
+	0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x44, 0x6f, 0x63, 0x75, 0x6d,
+	0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x0c, 0x64, 0x6f, 0x63, 0x75, 0x6d,
+	0x65, 0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x42, 0x0c, 0x0a, 0x0a, 0x6d, 0x65, 0x64, 0x69, 0x61,
+	0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x83, 0x02, 0x0a, 0x18, 0x45, 0x78, 0x74, 0x72, 0x61, 0x43,
+	0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61,
+	0x74, 0x61, 0x12, 0x27, 0x0a, 0x0f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x74,
+	0x69, 0x63, 0x6b, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x63, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x63, 0x79, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0d, 0x73,
+	0x77, 0x61, 0x70, 0x5f, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0b, 0x73, 0x77, 0x61, 0x70, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12,
+	0x27, 0x0a, 0x0f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e,
+	0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x65, 0x6e, 0x71, 0x75,
+	0x65, 0x75, 0x65, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0c, 0x65, 0x6e, 0x71, 0x75, 0x65, 0x75, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x26, 0x0a,
+	0x0f, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x65, 0x78, 0x74,
+	0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x24, 0x0a, 0x0e, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x6f,
+	0x77, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70,
+	0x6c, 0x61, 0x79, 0x4e, 0x6f, 0x77, 0x50, 0x72, 0x69, 0x63, 0x65, 0x22, 0x33, 0x0a, 0x14, 0x4d,
+	0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x5f, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x49, 0x64,
+	0x22, 0x2c, 0x0a, 0x1a, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4f, 0x77, 0x6e, 0x51, 0x75, 0x65,
+	0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x1d,
+	0x0a, 0x1b, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4f, 0x77, 0x6e, 0x51, 0x75, 0x65, 0x75, 0x65,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x6c, 0x0a,
+	0x15, 0x4d, 0x6f, 0x76, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x43, 0x0a, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x25, 0x2e, 0x6a, 0x75, 0x6e, 0x67,
+	0x6c, 0x65, 0x74, 0x76, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d,
+	0x6f, 0x76, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x18, 0x0a, 0x16, 0x4d,
+	0x6f, 0x76, 0x65, 0x51, 0x75, 0x65, 0x75, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x15, 0x0a, 0x13, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x65,
+	0x4d, 0x65, 0x64, 0x69, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x2c, 0x0a, 0x1a,
+	0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x59, 0x6f, 0x75, 0x54, 0x75, 0x62,
+	0x65, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x2f, 0x0a, 0x1d, 0x4e, 0x6f,
+	0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x53, 0x6f, 0x75, 0x6e, 0x64, 0x43, 0x6c, 0x6f,
+	0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0xa5, 0x01, 0x0a, 0x16,
+	0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65,
+	0x6e, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x39, 0x0a, 0x0a, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x64, 0x5f, 0x61, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d,
+	0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41,
+	0x74, 0x12, 0x33, 0x0a, 0x08, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x44,
+	0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x08, 0x64, 0x6f, 0x63, 0x75, 0x6d,
+	0x65, 0x6e, 0x74, 0x88, 0x01, 0x01, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x64, 0x6f, 0x63, 0x75, 0x6d,
+	0x65, 0x6e, 0x74, 0x22, 0xa6, 0x01, 0x0a, 0x1d, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69,
+	0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x61, 0x67,
+	0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x25, 0x0a, 0x0e, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x61,
+	0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x07,
+	0x70, 0x61, 0x67, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70,
+	0x61, 0x67, 0x65, 0x49, 0x64, 0x12, 0x45, 0x0a, 0x09, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x69, 0x6e,
+	0x66, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c,
+	0x65, 0x74, 0x76, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x83, 0x08, 0x0a,
+	0x1a, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x23, 0x0a, 0x0d, 0x6d,
+	0x65, 0x64, 0x69, 0x61, 0x5f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x0c, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x50, 0x72, 0x65, 0x73, 0x65, 0x6e, 0x74,
+	0x12, 0x44, 0x0a, 0x10, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x70, 0x6f, 0x73, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x50, 0x6f,
+	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x6c, 0x69, 0x76, 0x65, 0x5f, 0x62,
+	0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0d,
+	0x6c, 0x69, 0x76, 0x65, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x12, 0x31, 0x0a,
+	0x0c, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x62, 0x79, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x55,
+	0x73, 0x65, 0x72, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x42, 0x79,
+	0x12, 0x21, 0x0a, 0x0c, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x63, 0x6f, 0x73, 0x74,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x43,
+	0x6f, 0x73, 0x74, 0x12, 0x2d, 0x0a, 0x12, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79,
+	0x5f, 0x77, 0x61, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x11, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x6c, 0x79, 0x57, 0x61, 0x74, 0x63, 0x68, 0x69,
+	0x6e, 0x67, 0x12, 0x4f, 0x0a, 0x12, 0x61, 0x63, 0x74, 0x69, 0x76, 0x69, 0x74, 0x79, 0x5f, 0x63,
+	0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b,
+	0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x41, 0x63, 0x74, 0x69, 0x76, 0x69,
+	0x74, 0x79, 0x43, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x48, 0x01, 0x52, 0x11, 0x61,
+	0x63, 0x74, 0x69, 0x76, 0x69, 0x74, 0x79, 0x43, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65,
+	0x88, 0x01, 0x01, 0x12, 0x54, 0x0a, 0x12, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65, 0x5f, 0x76,
+	0x69, 0x64, 0x65, 0x6f, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32,
 	0x24, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x4e, 0x6f, 0x77, 0x50, 0x6c,
 	0x61, 0x79, 0x69, 0x6e, 0x67, 0x59, 0x6f, 0x75, 0x54, 0x75, 0x62, 0x65, 0x56, 0x69, 0x64, 0x65,
 	0x6f, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x10, 0x79, 0x6f, 0x75, 0x74, 0x75, 0x62, 0x65,
 	0x56, 0x69, 0x64, 0x65, 0x6f, 0x44, 0x61, 0x74, 0x61, 0x12, 0x5d, 0x0a, 0x15, 0x73, 0x6f, 0x75,
 	0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x6b, 0x5f, 0x64, 0x61,
-	0x74, 0x61, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c,
+	0x74, 0x61, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c,
 	0x65, 0x74, 0x76, 0x2e, 0x4e, 0x6f, 0x77, 0x50, 0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x53, 0x6f,
 	0x75, 0x6e, 0x64, 0x43, 0x6c, 0x6f, 0x75, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74,
 	0x61, 0x48, 0x00, 0x52, 0x13, 0x73, 0x6f, 0x75, 0x6e, 0x64, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x54,
 	0x72, 0x61, 0x63, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x12, 0x47, 0x0a, 0x0d, 0x64, 0x6f, 0x63, 0x75,
-	0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32,
 	0x20, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x4e, 0x6f, 0x77, 0x50, 0x6c,
 	0x61, 0x79, 0x69, 0x6e, 0x67, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74,
 	0x61, 0x48, 0x00, 0x52, 0x0c, 0x64, 0x6f, 0x63, 0x75, 0x6d, 0x65, 0x6e, 0x74, 0x44, 0x61, 0x74,
 	0x61, 0x12, 0x5d, 0x0a, 0x15, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x5f, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b,
+	0x5f, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x27, 0x2e, 0x6a, 0x75, 0x6e, 0x67, 0x6c, 0x65, 0x74, 0x76, 0x2e, 0x4e, 0x6f, 0x77, 0x50,
 	0x6c, 0x61, 0x79, 0x69, 0x6e, 0x67, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x50, 0x61, 0x67, 0x65, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x13, 0x61, 0x70, 0x70,
@@ -18194,7 +18078,7 @@ func file_jungletv_proto_rawDescGZIP() []byte {
 }
 
 var file_jungletv_proto_enumTypes = make([]protoimpl.EnumInfo, 14)
-var file_jungletv_proto_msgTypes = make([]protoimpl.MessageInfo, 251)
+var file_jungletv_proto_msgTypes = make([]protoimpl.MessageInfo, 249)
 var file_jungletv_proto_goTypes = []interface{}{
 	(EnqueueMediaTicketStatus)(0),                       // 0: jungletv.EnqueueMediaTicketStatus
 	(QueueEntryMovementDirection)(0),                    // 1: jungletv.QueueEntryMovementDirection
@@ -18222,295 +18106,293 @@ var file_jungletv_proto_goTypes = []interface{}{
 	(*EnqueueYouTubeVideoData)(nil),                     // 23: jungletv.EnqueueYouTubeVideoData
 	(*EnqueueSoundCloudTrackData)(nil),                  // 24: jungletv.EnqueueSoundCloudTrackData
 	(*EnqueueDocumentData)(nil),                         // 25: jungletv.EnqueueDocumentData
-	(*EnqueueStubData)(nil),                             // 26: jungletv.EnqueueStubData
-	(*EnqueueMediaRequest)(nil),                         // 27: jungletv.EnqueueMediaRequest
-	(*EnqueueMediaResponse)(nil),                        // 28: jungletv.EnqueueMediaResponse
-	(*EnqueueMediaFailure)(nil),                         // 29: jungletv.EnqueueMediaFailure
-	(*EnqueueMediaTicket)(nil),                          // 30: jungletv.EnqueueMediaTicket
-	(*ExtraCurrencyPaymentData)(nil),                    // 31: jungletv.ExtraCurrencyPaymentData
-	(*MonitorTicketRequest)(nil),                        // 32: jungletv.MonitorTicketRequest
-	(*RemoveOwnQueueEntryRequest)(nil),                  // 33: jungletv.RemoveOwnQueueEntryRequest
-	(*RemoveOwnQueueEntryResponse)(nil),                 // 34: jungletv.RemoveOwnQueueEntryResponse
-	(*MoveQueueEntryRequest)(nil),                       // 35: jungletv.MoveQueueEntryRequest
-	(*MoveQueueEntryResponse)(nil),                      // 36: jungletv.MoveQueueEntryResponse
-	(*ConsumeMediaRequest)(nil),                         // 37: jungletv.ConsumeMediaRequest
-	(*NowPlayingStubData)(nil),                          // 38: jungletv.NowPlayingStubData
-	(*NowPlayingYouTubeVideoData)(nil),                  // 39: jungletv.NowPlayingYouTubeVideoData
-	(*NowPlayingSoundCloudTrackData)(nil),               // 40: jungletv.NowPlayingSoundCloudTrackData
-	(*NowPlayingDocumentData)(nil),                      // 41: jungletv.NowPlayingDocumentData
-	(*NowPlayingApplicationPageData)(nil),               // 42: jungletv.NowPlayingApplicationPageData
-	(*MediaConsumptionCheckpoint)(nil),                  // 43: jungletv.MediaConsumptionCheckpoint
-	(*ActivityChallenge)(nil),                           // 44: jungletv.ActivityChallenge
-	(*MonitorQueueRequest)(nil),                         // 45: jungletv.MonitorQueueRequest
-	(*Queue)(nil),                                       // 46: jungletv.Queue
-	(*QueueYouTubeVideoData)(nil),                       // 47: jungletv.QueueYouTubeVideoData
-	(*QueueSoundCloudTrackData)(nil),                    // 48: jungletv.QueueSoundCloudTrackData
-	(*QueueDocumentData)(nil),                           // 49: jungletv.QueueDocumentData
-	(*QueueApplicationPageData)(nil),                    // 50: jungletv.QueueApplicationPageData
-	(*QueueConcealedData)(nil),                          // 51: jungletv.QueueConcealedData
-	(*QueueEntry)(nil),                                  // 52: jungletv.QueueEntry
-	(*MonitorSkipAndTipRequest)(nil),                    // 53: jungletv.MonitorSkipAndTipRequest
-	(*SkipAndTipStatus)(nil),                            // 54: jungletv.SkipAndTipStatus
-	(*RewardInfoRequest)(nil),                           // 55: jungletv.RewardInfoRequest
-	(*RewardInfoResponse)(nil),                          // 56: jungletv.RewardInfoResponse
-	(*RemoveQueueEntryRequest)(nil),                     // 57: jungletv.RemoveQueueEntryRequest
-	(*RemoveQueueEntryResponse)(nil),                    // 58: jungletv.RemoveQueueEntryResponse
-	(*ForciblyEnqueueTicketRequest)(nil),                // 59: jungletv.ForciblyEnqueueTicketRequest
-	(*ForciblyEnqueueTicketResponse)(nil),               // 60: jungletv.ForciblyEnqueueTicketResponse
-	(*SubmitActivityChallengeRequest)(nil),              // 61: jungletv.SubmitActivityChallengeRequest
-	(*SubmitActivityChallengeResponse)(nil),             // 62: jungletv.SubmitActivityChallengeResponse
-	(*ConsumeChatRequest)(nil),                          // 63: jungletv.ConsumeChatRequest
-	(*ChatUpdate)(nil),                                  // 64: jungletv.ChatUpdate
-	(*ChatUpdateEvent)(nil),                             // 65: jungletv.ChatUpdateEvent
-	(*ChatMessage)(nil),                                 // 66: jungletv.ChatMessage
-	(*ChatMessageAttachment)(nil),                       // 67: jungletv.ChatMessageAttachment
-	(*ChatMessageTenorGifAttachment)(nil),               // 68: jungletv.ChatMessageTenorGifAttachment
-	(*ChatMessageApplicationPageAttachment)(nil),        // 69: jungletv.ChatMessageApplicationPageAttachment
-	(*UserChatMessage)(nil),                             // 70: jungletv.UserChatMessage
-	(*SystemChatMessage)(nil),                           // 71: jungletv.SystemChatMessage
-	(*ChatDisabledEvent)(nil),                           // 72: jungletv.ChatDisabledEvent
-	(*ChatEnabledEvent)(nil),                            // 73: jungletv.ChatEnabledEvent
-	(*ChatMessageCreatedEvent)(nil),                     // 74: jungletv.ChatMessageCreatedEvent
-	(*ChatMessageDeletedEvent)(nil),                     // 75: jungletv.ChatMessageDeletedEvent
-	(*ChatHeartbeatEvent)(nil),                          // 76: jungletv.ChatHeartbeatEvent
-	(*ChatBlockedUserCreatedEvent)(nil),                 // 77: jungletv.ChatBlockedUserCreatedEvent
-	(*ChatBlockedUserDeletedEvent)(nil),                 // 78: jungletv.ChatBlockedUserDeletedEvent
-	(*ChatEmoteCreatedEvent)(nil),                       // 79: jungletv.ChatEmoteCreatedEvent
-	(*SendChatMessageRequest)(nil),                      // 80: jungletv.SendChatMessageRequest
-	(*SendChatMessageResponse)(nil),                     // 81: jungletv.SendChatMessageResponse
-	(*RemoveChatMessageRequest)(nil),                    // 82: jungletv.RemoveChatMessageRequest
-	(*RemoveChatMessageResponse)(nil),                   // 83: jungletv.RemoveChatMessageResponse
-	(*SetChatSettingsRequest)(nil),                      // 84: jungletv.SetChatSettingsRequest
-	(*SetChatSettingsResponse)(nil),                     // 85: jungletv.SetChatSettingsResponse
-	(*BanUserRequest)(nil),                              // 86: jungletv.BanUserRequest
-	(*BanUserResponse)(nil),                             // 87: jungletv.BanUserResponse
-	(*RemoveBanRequest)(nil),                            // 88: jungletv.RemoveBanRequest
-	(*RemoveBanResponse)(nil),                           // 89: jungletv.RemoveBanResponse
-	(*UserBan)(nil),                                     // 90: jungletv.UserBan
-	(*UserBansRequest)(nil),                             // 91: jungletv.UserBansRequest
-	(*UserBansResponse)(nil),                            // 92: jungletv.UserBansResponse
-	(*VerifyUserRequest)(nil),                           // 93: jungletv.VerifyUserRequest
-	(*VerifyUserResponse)(nil),                          // 94: jungletv.VerifyUserResponse
-	(*RemoveUserVerificationRequest)(nil),               // 95: jungletv.RemoveUserVerificationRequest
-	(*RemoveUserVerificationResponse)(nil),              // 96: jungletv.RemoveUserVerificationResponse
-	(*UserVerification)(nil),                            // 97: jungletv.UserVerification
-	(*UserVerificationsRequest)(nil),                    // 98: jungletv.UserVerificationsRequest
-	(*UserVerificationsResponse)(nil),                   // 99: jungletv.UserVerificationsResponse
-	(*SetMediaEnqueuingEnabledRequest)(nil),             // 100: jungletv.SetMediaEnqueuingEnabledRequest
-	(*SetMediaEnqueuingEnabledResponse)(nil),            // 101: jungletv.SetMediaEnqueuingEnabledResponse
-	(*UserChatMessagesRequest)(nil),                     // 102: jungletv.UserChatMessagesRequest
-	(*UserChatMessagesResponse)(nil),                    // 103: jungletv.UserChatMessagesResponse
-	(*UserPermissionLevelRequest)(nil),                  // 104: jungletv.UserPermissionLevelRequest
-	(*UserPermissionLevelResponse)(nil),                 // 105: jungletv.UserPermissionLevelResponse
-	(*DisallowedMediaRequest)(nil),                      // 106: jungletv.DisallowedMediaRequest
-	(*DisallowedMedia)(nil),                             // 107: jungletv.DisallowedMedia
-	(*DisallowedMediaResponse)(nil),                     // 108: jungletv.DisallowedMediaResponse
-	(*AddDisallowedMediaRequest)(nil),                   // 109: jungletv.AddDisallowedMediaRequest
-	(*AddDisallowedMediaResponse)(nil),                  // 110: jungletv.AddDisallowedMediaResponse
-	(*RemoveDisallowedMediaRequest)(nil),                // 111: jungletv.RemoveDisallowedMediaRequest
-	(*RemoveDisallowedMediaResponse)(nil),               // 112: jungletv.RemoveDisallowedMediaResponse
-	(*DisallowedMediaCollectionsRequest)(nil),           // 113: jungletv.DisallowedMediaCollectionsRequest
-	(*DisallowedMediaCollection)(nil),                   // 114: jungletv.DisallowedMediaCollection
-	(*DisallowedMediaCollectionsResponse)(nil),          // 115: jungletv.DisallowedMediaCollectionsResponse
-	(*AddDisallowedMediaCollectionRequest)(nil),         // 116: jungletv.AddDisallowedMediaCollectionRequest
-	(*AddDisallowedMediaCollectionResponse)(nil),        // 117: jungletv.AddDisallowedMediaCollectionResponse
-	(*RemoveDisallowedMediaCollectionRequest)(nil),      // 118: jungletv.RemoveDisallowedMediaCollectionRequest
-	(*RemoveDisallowedMediaCollectionResponse)(nil),     // 119: jungletv.RemoveDisallowedMediaCollectionResponse
-	(*GetDocumentRequest)(nil),                          // 120: jungletv.GetDocumentRequest
-	(*Document)(nil),                                    // 121: jungletv.Document
-	(*UpdateDocumentResponse)(nil),                      // 122: jungletv.UpdateDocumentResponse
-	(*DocumentsRequest)(nil),                            // 123: jungletv.DocumentsRequest
-	(*DocumentHeader)(nil),                              // 124: jungletv.DocumentHeader
-	(*DocumentsResponse)(nil),                           // 125: jungletv.DocumentsResponse
-	(*SetChatNicknameRequest)(nil),                      // 126: jungletv.SetChatNicknameRequest
-	(*SetChatNicknameResponse)(nil),                     // 127: jungletv.SetChatNicknameResponse
-	(*SetUserChatNicknameRequest)(nil),                  // 128: jungletv.SetUserChatNicknameRequest
-	(*SetUserChatNicknameResponse)(nil),                 // 129: jungletv.SetUserChatNicknameResponse
-	(*SetPricesMultiplierRequest)(nil),                  // 130: jungletv.SetPricesMultiplierRequest
-	(*SetPricesMultiplierResponse)(nil),                 // 131: jungletv.SetPricesMultiplierResponse
-	(*SetMinimumPricesMultiplierRequest)(nil),           // 132: jungletv.SetMinimumPricesMultiplierRequest
-	(*SetMinimumPricesMultiplierResponse)(nil),          // 133: jungletv.SetMinimumPricesMultiplierResponse
-	(*WithdrawRequest)(nil),                             // 134: jungletv.WithdrawRequest
-	(*WithdrawResponse)(nil),                            // 135: jungletv.WithdrawResponse
-	(*LeaderboardsRequest)(nil),                         // 136: jungletv.LeaderboardsRequest
-	(*LeaderboardsResponse)(nil),                        // 137: jungletv.LeaderboardsResponse
-	(*Leaderboard)(nil),                                 // 138: jungletv.Leaderboard
-	(*LeaderboardRow)(nil),                              // 139: jungletv.LeaderboardRow
-	(*LeaderboardValue)(nil),                            // 140: jungletv.LeaderboardValue
-	(*RewardHistoryRequest)(nil),                        // 141: jungletv.RewardHistoryRequest
-	(*ReceivedReward)(nil),                              // 142: jungletv.ReceivedReward
-	(*RewardHistoryResponse)(nil),                       // 143: jungletv.RewardHistoryResponse
-	(*WithdrawalHistoryRequest)(nil),                    // 144: jungletv.WithdrawalHistoryRequest
-	(*Withdrawal)(nil),                                  // 145: jungletv.Withdrawal
-	(*WithdrawalHistoryResponse)(nil),                   // 146: jungletv.WithdrawalHistoryResponse
-	(*SetCrowdfundedSkippingEnabledRequest)(nil),        // 147: jungletv.SetCrowdfundedSkippingEnabledRequest
-	(*SetCrowdfundedSkippingEnabledResponse)(nil),       // 148: jungletv.SetCrowdfundedSkippingEnabledResponse
-	(*SetSkipPriceMultiplierRequest)(nil),               // 149: jungletv.SetSkipPriceMultiplierRequest
-	(*SetSkipPriceMultiplierResponse)(nil),              // 150: jungletv.SetSkipPriceMultiplierResponse
-	(*ProduceSegchaChallengeRequest)(nil),               // 151: jungletv.ProduceSegchaChallengeRequest
-	(*ProduceSegchaChallengeResponse)(nil),              // 152: jungletv.ProduceSegchaChallengeResponse
-	(*SegchaChallengeStep)(nil),                         // 153: jungletv.SegchaChallengeStep
-	(*ConfirmRaffleWinnerRequest)(nil),                  // 154: jungletv.ConfirmRaffleWinnerRequest
-	(*ConfirmRaffleWinnerResponse)(nil),                 // 155: jungletv.ConfirmRaffleWinnerResponse
-	(*CompleteRaffleRequest)(nil),                       // 156: jungletv.CompleteRaffleRequest
-	(*CompleteRaffleResponse)(nil),                      // 157: jungletv.CompleteRaffleResponse
-	(*RedrawRaffleRequest)(nil),                         // 158: jungletv.RedrawRaffleRequest
-	(*RedrawRaffleResponse)(nil),                        // 159: jungletv.RedrawRaffleResponse
-	(*OngoingRaffleInfoRequest)(nil),                    // 160: jungletv.OngoingRaffleInfoRequest
-	(*OngoingRaffleInfoResponse)(nil),                   // 161: jungletv.OngoingRaffleInfoResponse
-	(*OngoingRaffleInfo)(nil),                           // 162: jungletv.OngoingRaffleInfo
-	(*RaffleDrawing)(nil),                               // 163: jungletv.RaffleDrawing
-	(*RaffleDrawingsRequest)(nil),                       // 164: jungletv.RaffleDrawingsRequest
-	(*RaffleDrawingsResponse)(nil),                      // 165: jungletv.RaffleDrawingsResponse
-	(*TriggerAnnouncementsNotificationRequest)(nil),     // 166: jungletv.TriggerAnnouncementsNotificationRequest
-	(*TriggerAnnouncementsNotificationResponse)(nil),    // 167: jungletv.TriggerAnnouncementsNotificationResponse
-	(*SpectatorInfoRequest)(nil),                        // 168: jungletv.SpectatorInfoRequest
-	(*Spectator)(nil),                                   // 169: jungletv.Spectator
-	(*ResetSpectatorStatusRequest)(nil),                 // 170: jungletv.ResetSpectatorStatusRequest
-	(*ResetSpectatorStatusResponse)(nil),                // 171: jungletv.ResetSpectatorStatusResponse
-	(*MonitorModerationStatusRequest)(nil),              // 172: jungletv.MonitorModerationStatusRequest
-	(*ModerationStatusOverview)(nil),                    // 173: jungletv.ModerationStatusOverview
-	(*SetQueueEntryReorderingAllowedRequest)(nil),       // 174: jungletv.SetQueueEntryReorderingAllowedRequest
-	(*SetQueueEntryReorderingAllowedResponse)(nil),      // 175: jungletv.SetQueueEntryReorderingAllowedResponse
-	(*SetOwnQueueEntryRemovalAllowedRequest)(nil),       // 176: jungletv.SetOwnQueueEntryRemovalAllowedRequest
-	(*SetOwnQueueEntryRemovalAllowedResponse)(nil),      // 177: jungletv.SetOwnQueueEntryRemovalAllowedResponse
-	(*SetNewQueueEntriesAlwaysUnskippableRequest)(nil),  // 178: jungletv.SetNewQueueEntriesAlwaysUnskippableRequest
-	(*SetNewQueueEntriesAlwaysUnskippableResponse)(nil), // 179: jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
-	(*SetSkippingEnabledRequest)(nil),                   // 180: jungletv.SetSkippingEnabledRequest
-	(*SetSkippingEnabledResponse)(nil),                  // 181: jungletv.SetSkippingEnabledResponse
-	(*ConnectionsRequest)(nil),                          // 182: jungletv.ConnectionsRequest
-	(*Connection)(nil),                                  // 183: jungletv.Connection
-	(*ServiceInfo)(nil),                                 // 184: jungletv.ServiceInfo
-	(*ConnectionsResponse)(nil),                         // 185: jungletv.ConnectionsResponse
-	(*CreateConnectionRequest)(nil),                     // 186: jungletv.CreateConnectionRequest
-	(*CreateConnectionResponse)(nil),                    // 187: jungletv.CreateConnectionResponse
-	(*RemoveConnectionRequest)(nil),                     // 188: jungletv.RemoveConnectionRequest
-	(*RemoveConnectionResponse)(nil),                    // 189: jungletv.RemoveConnectionResponse
-	(*SetQueueInsertCursorRequest)(nil),                 // 190: jungletv.SetQueueInsertCursorRequest
-	(*SetQueueInsertCursorResponse)(nil),                // 191: jungletv.SetQueueInsertCursorResponse
-	(*ClearQueueInsertCursorRequest)(nil),               // 192: jungletv.ClearQueueInsertCursorRequest
-	(*ClearQueueInsertCursorResponse)(nil),              // 193: jungletv.ClearQueueInsertCursorResponse
-	(*UserProfileRequest)(nil),                          // 194: jungletv.UserProfileRequest
-	(*UserProfileResponse)(nil),                         // 195: jungletv.UserProfileResponse
-	(*UserProfileApplicationTab)(nil),                   // 196: jungletv.UserProfileApplicationTab
-	(*UserStatsRequest)(nil),                            // 197: jungletv.UserStatsRequest
-	(*UserStatsForPeriod)(nil),                          // 198: jungletv.UserStatsForPeriod
-	(*UserStatsResponse)(nil),                           // 199: jungletv.UserStatsResponse
-	(*PlayedMedia)(nil),                                 // 200: jungletv.PlayedMedia
-	(*SetProfileBiographyRequest)(nil),                  // 201: jungletv.SetProfileBiographyRequest
-	(*SetProfileBiographyResponse)(nil),                 // 202: jungletv.SetProfileBiographyResponse
-	(*SetProfileFeaturedMediaRequest)(nil),              // 203: jungletv.SetProfileFeaturedMediaRequest
-	(*SetProfileFeaturedMediaResponse)(nil),             // 204: jungletv.SetProfileFeaturedMediaResponse
-	(*ClearUserProfileRequest)(nil),                     // 205: jungletv.ClearUserProfileRequest
-	(*ClearUserProfileResponse)(nil),                    // 206: jungletv.ClearUserProfileResponse
-	(*PlayedMediaHistoryRequest)(nil),                   // 207: jungletv.PlayedMediaHistoryRequest
-	(*PlayedMediaHistoryResponse)(nil),                  // 208: jungletv.PlayedMediaHistoryResponse
-	(*BlockUserRequest)(nil),                            // 209: jungletv.BlockUserRequest
-	(*BlockUserResponse)(nil),                           // 210: jungletv.BlockUserResponse
-	(*UnblockUserRequest)(nil),                          // 211: jungletv.UnblockUserRequest
-	(*UnblockUserResponse)(nil),                         // 212: jungletv.UnblockUserResponse
-	(*BlockedUsersRequest)(nil),                         // 213: jungletv.BlockedUsersRequest
-	(*BlockedUser)(nil),                                 // 214: jungletv.BlockedUser
-	(*BlockedUsersResponse)(nil),                        // 215: jungletv.BlockedUsersResponse
-	(*MarkAsActivelyModeratingRequest)(nil),             // 216: jungletv.MarkAsActivelyModeratingRequest
-	(*MarkAsActivelyModeratingResponse)(nil),            // 217: jungletv.MarkAsActivelyModeratingResponse
-	(*StopActivelyModeratingRequest)(nil),               // 218: jungletv.StopActivelyModeratingRequest
-	(*StopActivelyModeratingResponse)(nil),              // 219: jungletv.StopActivelyModeratingResponse
-	(*PointsInfoRequest)(nil),                           // 220: jungletv.PointsInfoRequest
-	(*PointsInfoResponse)(nil),                          // 221: jungletv.PointsInfoResponse
-	(*SubscriptionDetails)(nil),                         // 222: jungletv.SubscriptionDetails
-	(*PointsTransactionsRequest)(nil),                   // 223: jungletv.PointsTransactionsRequest
-	(*PointsTransactionsResponse)(nil),                  // 224: jungletv.PointsTransactionsResponse
-	(*PointsTransaction)(nil),                           // 225: jungletv.PointsTransaction
-	(*ChatGifSearchRequest)(nil),                        // 226: jungletv.ChatGifSearchRequest
-	(*ChatGifSearchResponse)(nil),                       // 227: jungletv.ChatGifSearchResponse
-	(*ChatGifSearchResult)(nil),                         // 228: jungletv.ChatGifSearchResult
-	(*AdjustPointsBalanceRequest)(nil),                  // 229: jungletv.AdjustPointsBalanceRequest
-	(*AdjustPointsBalanceResponse)(nil),                 // 230: jungletv.AdjustPointsBalanceResponse
-	(*ConvertBananoToPointsRequest)(nil),                // 231: jungletv.ConvertBananoToPointsRequest
-	(*ConvertBananoToPointsStatus)(nil),                 // 232: jungletv.ConvertBananoToPointsStatus
-	(*StartOrExtendSubscriptionRequest)(nil),            // 233: jungletv.StartOrExtendSubscriptionRequest
-	(*StartOrExtendSubscriptionResponse)(nil),           // 234: jungletv.StartOrExtendSubscriptionResponse
-	(*SoundCloudTrackDetailsRequest)(nil),               // 235: jungletv.SoundCloudTrackDetailsRequest
-	(*SoundCloudTrackDetailsResponse)(nil),              // 236: jungletv.SoundCloudTrackDetailsResponse
-	(*AddVipUserRequest)(nil),                           // 237: jungletv.AddVipUserRequest
-	(*AddVipUserResponse)(nil),                          // 238: jungletv.AddVipUserResponse
-	(*RemoveVipUserRequest)(nil),                        // 239: jungletv.RemoveVipUserRequest
-	(*RemoveVipUserResponse)(nil),                       // 240: jungletv.RemoveVipUserResponse
-	(*TriggerClientReloadRequest)(nil),                  // 241: jungletv.TriggerClientReloadRequest
-	(*TriggerClientReloadResponse)(nil),                 // 242: jungletv.TriggerClientReloadResponse
-	(*IncreaseOrReduceSkipThresholdRequest)(nil),        // 243: jungletv.IncreaseOrReduceSkipThresholdRequest
-	(*IncreaseOrReduceSkipThresholdResponse)(nil),       // 244: jungletv.IncreaseOrReduceSkipThresholdResponse
-	(*SetMulticurrencyPaymentsEnabledRequest)(nil),      // 245: jungletv.SetMulticurrencyPaymentsEnabledRequest
-	(*SetMulticurrencyPaymentsEnabledResponse)(nil),     // 246: jungletv.SetMulticurrencyPaymentsEnabledResponse
-	(*CheckMediaEnqueuingPasswordRequest)(nil),          // 247: jungletv.CheckMediaEnqueuingPasswordRequest
-	(*CheckMediaEnqueuingPasswordResponse)(nil),         // 248: jungletv.CheckMediaEnqueuingPasswordResponse
-	(*MonitorMediaEnqueuingPermissionRequest)(nil),      // 249: jungletv.MonitorMediaEnqueuingPermissionRequest
-	(*MediaEnqueuingPermissionStatus)(nil),              // 250: jungletv.MediaEnqueuingPermissionStatus
-	(*InvalidateAuthTokensRequest)(nil),                 // 251: jungletv.InvalidateAuthTokensRequest
-	(*InvalidateAuthTokensResponse)(nil),                // 252: jungletv.InvalidateAuthTokensResponse
-	(*InvalidateUserAuthTokensRequest)(nil),             // 253: jungletv.InvalidateUserAuthTokensRequest
-	(*InvalidateUserAuthTokensResponse)(nil),            // 254: jungletv.InvalidateUserAuthTokensResponse
-	(*AuthorizeApplicationRequest)(nil),                 // 255: jungletv.AuthorizeApplicationRequest
-	(*AuthorizeApplicationEvent)(nil),                   // 256: jungletv.AuthorizeApplicationEvent
-	(*AuthorizeApplicationHeartbeatEvent)(nil),          // 257: jungletv.AuthorizeApplicationHeartbeatEvent
-	(*AuthorizeApplicationAuthorizationURLEvent)(nil),   // 258: jungletv.AuthorizeApplicationAuthorizationURLEvent
-	(*AuthorizeApplicationApprovedEvent)(nil),           // 259: jungletv.AuthorizeApplicationApprovedEvent
-	(*AuthorizationProcessDataRequest)(nil),             // 260: jungletv.AuthorizationProcessDataRequest
-	(*AuthorizationProcessDataResponse)(nil),            // 261: jungletv.AuthorizationProcessDataResponse
-	(*ConsentOrDissentToAuthorizationRequest)(nil),      // 262: jungletv.ConsentOrDissentToAuthorizationRequest
-	(*ConsentOrDissentToAuthorizationResponse)(nil),     // 263: jungletv.ConsentOrDissentToAuthorizationResponse
-	nil,                                             // 264: jungletv.PointsTransaction.ExtraEntry
-	(*timestamppb.Timestamp)(nil),                   // 265: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),                     // 266: google.protobuf.Duration
-	(*ResolveApplicationPageResponse)(nil),          // 267: jungletv.ResolveApplicationPageResponse
-	(*User)(nil),                                    // 268: jungletv.User
-	(*ConfigurationChange)(nil),                     // 269: jungletv.ConfigurationChange
-	(*Notification)(nil),                            // 270: jungletv.Notification
-	(*PaginationParameters)(nil),                    // 271: jungletv.PaginationParameters
-	(*ApplicationsRequest)(nil),                     // 272: jungletv.ApplicationsRequest
-	(*GetApplicationRequest)(nil),                   // 273: jungletv.GetApplicationRequest
-	(*Application)(nil),                             // 274: jungletv.Application
-	(*CloneApplicationRequest)(nil),                 // 275: jungletv.CloneApplicationRequest
-	(*DeleteApplicationRequest)(nil),                // 276: jungletv.DeleteApplicationRequest
-	(*ApplicationFilesRequest)(nil),                 // 277: jungletv.ApplicationFilesRequest
-	(*GetApplicationFileRequest)(nil),               // 278: jungletv.GetApplicationFileRequest
-	(*ApplicationFile)(nil),                         // 279: jungletv.ApplicationFile
-	(*CloneApplicationFileRequest)(nil),             // 280: jungletv.CloneApplicationFileRequest
-	(*DeleteApplicationFileRequest)(nil),            // 281: jungletv.DeleteApplicationFileRequest
-	(*LaunchApplicationRequest)(nil),                // 282: jungletv.LaunchApplicationRequest
-	(*StopApplicationRequest)(nil),                  // 283: jungletv.StopApplicationRequest
-	(*ApplicationLogRequest)(nil),                   // 284: jungletv.ApplicationLogRequest
-	(*ConsumeApplicationLogRequest)(nil),            // 285: jungletv.ConsumeApplicationLogRequest
-	(*MonitorRunningApplicationsRequest)(nil),       // 286: jungletv.MonitorRunningApplicationsRequest
-	(*EvaluateExpressionOnApplicationRequest)(nil),  // 287: jungletv.EvaluateExpressionOnApplicationRequest
-	(*ExportApplicationRequest)(nil),                // 288: jungletv.ExportApplicationRequest
-	(*ImportApplicationRequest)(nil),                // 289: jungletv.ImportApplicationRequest
-	(*TypeScriptTypeDefinitionsRequest)(nil),        // 290: jungletv.TypeScriptTypeDefinitionsRequest
-	(*ResolveApplicationPageRequest)(nil),           // 291: jungletv.ResolveApplicationPageRequest
-	(*ConsumeApplicationEventsRequest)(nil),         // 292: jungletv.ConsumeApplicationEventsRequest
-	(*ApplicationServerMethodRequest)(nil),          // 293: jungletv.ApplicationServerMethodRequest
-	(*TriggerApplicationEventRequest)(nil),          // 294: jungletv.TriggerApplicationEventRequest
-	(*ApplicationsResponse)(nil),                    // 295: jungletv.ApplicationsResponse
-	(*UpdateApplicationResponse)(nil),               // 296: jungletv.UpdateApplicationResponse
-	(*CloneApplicationResponse)(nil),                // 297: jungletv.CloneApplicationResponse
-	(*DeleteApplicationResponse)(nil),               // 298: jungletv.DeleteApplicationResponse
-	(*ApplicationFilesResponse)(nil),                // 299: jungletv.ApplicationFilesResponse
-	(*UpdateApplicationFileResponse)(nil),           // 300: jungletv.UpdateApplicationFileResponse
-	(*CloneApplicationFileResponse)(nil),            // 301: jungletv.CloneApplicationFileResponse
-	(*DeleteApplicationFileResponse)(nil),           // 302: jungletv.DeleteApplicationFileResponse
-	(*LaunchApplicationResponse)(nil),               // 303: jungletv.LaunchApplicationResponse
-	(*StopApplicationResponse)(nil),                 // 304: jungletv.StopApplicationResponse
-	(*ApplicationLogResponse)(nil),                  // 305: jungletv.ApplicationLogResponse
-	(*ApplicationLogEntryContainer)(nil),            // 306: jungletv.ApplicationLogEntryContainer
-	(*RunningApplications)(nil),                     // 307: jungletv.RunningApplications
-	(*EvaluateExpressionOnApplicationResponse)(nil), // 308: jungletv.EvaluateExpressionOnApplicationResponse
-	(*ExportApplicationResponse)(nil),               // 309: jungletv.ExportApplicationResponse
-	(*ImportApplicationResponse)(nil),               // 310: jungletv.ImportApplicationResponse
-	(*TypeScriptTypeDefinitionsResponse)(nil),       // 311: jungletv.TypeScriptTypeDefinitionsResponse
-	(*ApplicationEventUpdate)(nil),                  // 312: jungletv.ApplicationEventUpdate
-	(*ApplicationServerMethodResponse)(nil),         // 313: jungletv.ApplicationServerMethodResponse
-	(*TriggerApplicationEventResponse)(nil),         // 314: jungletv.TriggerApplicationEventResponse
+	(*EnqueueMediaRequest)(nil),                         // 26: jungletv.EnqueueMediaRequest
+	(*EnqueueMediaResponse)(nil),                        // 27: jungletv.EnqueueMediaResponse
+	(*EnqueueMediaFailure)(nil),                         // 28: jungletv.EnqueueMediaFailure
+	(*EnqueueMediaTicket)(nil),                          // 29: jungletv.EnqueueMediaTicket
+	(*ExtraCurrencyPaymentData)(nil),                    // 30: jungletv.ExtraCurrencyPaymentData
+	(*MonitorTicketRequest)(nil),                        // 31: jungletv.MonitorTicketRequest
+	(*RemoveOwnQueueEntryRequest)(nil),                  // 32: jungletv.RemoveOwnQueueEntryRequest
+	(*RemoveOwnQueueEntryResponse)(nil),                 // 33: jungletv.RemoveOwnQueueEntryResponse
+	(*MoveQueueEntryRequest)(nil),                       // 34: jungletv.MoveQueueEntryRequest
+	(*MoveQueueEntryResponse)(nil),                      // 35: jungletv.MoveQueueEntryResponse
+	(*ConsumeMediaRequest)(nil),                         // 36: jungletv.ConsumeMediaRequest
+	(*NowPlayingYouTubeVideoData)(nil),                  // 37: jungletv.NowPlayingYouTubeVideoData
+	(*NowPlayingSoundCloudTrackData)(nil),               // 38: jungletv.NowPlayingSoundCloudTrackData
+	(*NowPlayingDocumentData)(nil),                      // 39: jungletv.NowPlayingDocumentData
+	(*NowPlayingApplicationPageData)(nil),               // 40: jungletv.NowPlayingApplicationPageData
+	(*MediaConsumptionCheckpoint)(nil),                  // 41: jungletv.MediaConsumptionCheckpoint
+	(*ActivityChallenge)(nil),                           // 42: jungletv.ActivityChallenge
+	(*MonitorQueueRequest)(nil),                         // 43: jungletv.MonitorQueueRequest
+	(*Queue)(nil),                                       // 44: jungletv.Queue
+	(*QueueYouTubeVideoData)(nil),                       // 45: jungletv.QueueYouTubeVideoData
+	(*QueueSoundCloudTrackData)(nil),                    // 46: jungletv.QueueSoundCloudTrackData
+	(*QueueDocumentData)(nil),                           // 47: jungletv.QueueDocumentData
+	(*QueueApplicationPageData)(nil),                    // 48: jungletv.QueueApplicationPageData
+	(*QueueConcealedData)(nil),                          // 49: jungletv.QueueConcealedData
+	(*QueueEntry)(nil),                                  // 50: jungletv.QueueEntry
+	(*MonitorSkipAndTipRequest)(nil),                    // 51: jungletv.MonitorSkipAndTipRequest
+	(*SkipAndTipStatus)(nil),                            // 52: jungletv.SkipAndTipStatus
+	(*RewardInfoRequest)(nil),                           // 53: jungletv.RewardInfoRequest
+	(*RewardInfoResponse)(nil),                          // 54: jungletv.RewardInfoResponse
+	(*RemoveQueueEntryRequest)(nil),                     // 55: jungletv.RemoveQueueEntryRequest
+	(*RemoveQueueEntryResponse)(nil),                    // 56: jungletv.RemoveQueueEntryResponse
+	(*ForciblyEnqueueTicketRequest)(nil),                // 57: jungletv.ForciblyEnqueueTicketRequest
+	(*ForciblyEnqueueTicketResponse)(nil),               // 58: jungletv.ForciblyEnqueueTicketResponse
+	(*SubmitActivityChallengeRequest)(nil),              // 59: jungletv.SubmitActivityChallengeRequest
+	(*SubmitActivityChallengeResponse)(nil),             // 60: jungletv.SubmitActivityChallengeResponse
+	(*ConsumeChatRequest)(nil),                          // 61: jungletv.ConsumeChatRequest
+	(*ChatUpdate)(nil),                                  // 62: jungletv.ChatUpdate
+	(*ChatUpdateEvent)(nil),                             // 63: jungletv.ChatUpdateEvent
+	(*ChatMessage)(nil),                                 // 64: jungletv.ChatMessage
+	(*ChatMessageAttachment)(nil),                       // 65: jungletv.ChatMessageAttachment
+	(*ChatMessageTenorGifAttachment)(nil),               // 66: jungletv.ChatMessageTenorGifAttachment
+	(*ChatMessageApplicationPageAttachment)(nil),        // 67: jungletv.ChatMessageApplicationPageAttachment
+	(*UserChatMessage)(nil),                             // 68: jungletv.UserChatMessage
+	(*SystemChatMessage)(nil),                           // 69: jungletv.SystemChatMessage
+	(*ChatDisabledEvent)(nil),                           // 70: jungletv.ChatDisabledEvent
+	(*ChatEnabledEvent)(nil),                            // 71: jungletv.ChatEnabledEvent
+	(*ChatMessageCreatedEvent)(nil),                     // 72: jungletv.ChatMessageCreatedEvent
+	(*ChatMessageDeletedEvent)(nil),                     // 73: jungletv.ChatMessageDeletedEvent
+	(*ChatHeartbeatEvent)(nil),                          // 74: jungletv.ChatHeartbeatEvent
+	(*ChatBlockedUserCreatedEvent)(nil),                 // 75: jungletv.ChatBlockedUserCreatedEvent
+	(*ChatBlockedUserDeletedEvent)(nil),                 // 76: jungletv.ChatBlockedUserDeletedEvent
+	(*ChatEmoteCreatedEvent)(nil),                       // 77: jungletv.ChatEmoteCreatedEvent
+	(*SendChatMessageRequest)(nil),                      // 78: jungletv.SendChatMessageRequest
+	(*SendChatMessageResponse)(nil),                     // 79: jungletv.SendChatMessageResponse
+	(*RemoveChatMessageRequest)(nil),                    // 80: jungletv.RemoveChatMessageRequest
+	(*RemoveChatMessageResponse)(nil),                   // 81: jungletv.RemoveChatMessageResponse
+	(*SetChatSettingsRequest)(nil),                      // 82: jungletv.SetChatSettingsRequest
+	(*SetChatSettingsResponse)(nil),                     // 83: jungletv.SetChatSettingsResponse
+	(*BanUserRequest)(nil),                              // 84: jungletv.BanUserRequest
+	(*BanUserResponse)(nil),                             // 85: jungletv.BanUserResponse
+	(*RemoveBanRequest)(nil),                            // 86: jungletv.RemoveBanRequest
+	(*RemoveBanResponse)(nil),                           // 87: jungletv.RemoveBanResponse
+	(*UserBan)(nil),                                     // 88: jungletv.UserBan
+	(*UserBansRequest)(nil),                             // 89: jungletv.UserBansRequest
+	(*UserBansResponse)(nil),                            // 90: jungletv.UserBansResponse
+	(*VerifyUserRequest)(nil),                           // 91: jungletv.VerifyUserRequest
+	(*VerifyUserResponse)(nil),                          // 92: jungletv.VerifyUserResponse
+	(*RemoveUserVerificationRequest)(nil),               // 93: jungletv.RemoveUserVerificationRequest
+	(*RemoveUserVerificationResponse)(nil),              // 94: jungletv.RemoveUserVerificationResponse
+	(*UserVerification)(nil),                            // 95: jungletv.UserVerification
+	(*UserVerificationsRequest)(nil),                    // 96: jungletv.UserVerificationsRequest
+	(*UserVerificationsResponse)(nil),                   // 97: jungletv.UserVerificationsResponse
+	(*SetMediaEnqueuingEnabledRequest)(nil),             // 98: jungletv.SetMediaEnqueuingEnabledRequest
+	(*SetMediaEnqueuingEnabledResponse)(nil),            // 99: jungletv.SetMediaEnqueuingEnabledResponse
+	(*UserChatMessagesRequest)(nil),                     // 100: jungletv.UserChatMessagesRequest
+	(*UserChatMessagesResponse)(nil),                    // 101: jungletv.UserChatMessagesResponse
+	(*UserPermissionLevelRequest)(nil),                  // 102: jungletv.UserPermissionLevelRequest
+	(*UserPermissionLevelResponse)(nil),                 // 103: jungletv.UserPermissionLevelResponse
+	(*DisallowedMediaRequest)(nil),                      // 104: jungletv.DisallowedMediaRequest
+	(*DisallowedMedia)(nil),                             // 105: jungletv.DisallowedMedia
+	(*DisallowedMediaResponse)(nil),                     // 106: jungletv.DisallowedMediaResponse
+	(*AddDisallowedMediaRequest)(nil),                   // 107: jungletv.AddDisallowedMediaRequest
+	(*AddDisallowedMediaResponse)(nil),                  // 108: jungletv.AddDisallowedMediaResponse
+	(*RemoveDisallowedMediaRequest)(nil),                // 109: jungletv.RemoveDisallowedMediaRequest
+	(*RemoveDisallowedMediaResponse)(nil),               // 110: jungletv.RemoveDisallowedMediaResponse
+	(*DisallowedMediaCollectionsRequest)(nil),           // 111: jungletv.DisallowedMediaCollectionsRequest
+	(*DisallowedMediaCollection)(nil),                   // 112: jungletv.DisallowedMediaCollection
+	(*DisallowedMediaCollectionsResponse)(nil),          // 113: jungletv.DisallowedMediaCollectionsResponse
+	(*AddDisallowedMediaCollectionRequest)(nil),         // 114: jungletv.AddDisallowedMediaCollectionRequest
+	(*AddDisallowedMediaCollectionResponse)(nil),        // 115: jungletv.AddDisallowedMediaCollectionResponse
+	(*RemoveDisallowedMediaCollectionRequest)(nil),      // 116: jungletv.RemoveDisallowedMediaCollectionRequest
+	(*RemoveDisallowedMediaCollectionResponse)(nil),     // 117: jungletv.RemoveDisallowedMediaCollectionResponse
+	(*GetDocumentRequest)(nil),                          // 118: jungletv.GetDocumentRequest
+	(*Document)(nil),                                    // 119: jungletv.Document
+	(*UpdateDocumentResponse)(nil),                      // 120: jungletv.UpdateDocumentResponse
+	(*DocumentsRequest)(nil),                            // 121: jungletv.DocumentsRequest
+	(*DocumentHeader)(nil),                              // 122: jungletv.DocumentHeader
+	(*DocumentsResponse)(nil),                           // 123: jungletv.DocumentsResponse
+	(*SetChatNicknameRequest)(nil),                      // 124: jungletv.SetChatNicknameRequest
+	(*SetChatNicknameResponse)(nil),                     // 125: jungletv.SetChatNicknameResponse
+	(*SetUserChatNicknameRequest)(nil),                  // 126: jungletv.SetUserChatNicknameRequest
+	(*SetUserChatNicknameResponse)(nil),                 // 127: jungletv.SetUserChatNicknameResponse
+	(*SetPricesMultiplierRequest)(nil),                  // 128: jungletv.SetPricesMultiplierRequest
+	(*SetPricesMultiplierResponse)(nil),                 // 129: jungletv.SetPricesMultiplierResponse
+	(*SetMinimumPricesMultiplierRequest)(nil),           // 130: jungletv.SetMinimumPricesMultiplierRequest
+	(*SetMinimumPricesMultiplierResponse)(nil),          // 131: jungletv.SetMinimumPricesMultiplierResponse
+	(*WithdrawRequest)(nil),                             // 132: jungletv.WithdrawRequest
+	(*WithdrawResponse)(nil),                            // 133: jungletv.WithdrawResponse
+	(*LeaderboardsRequest)(nil),                         // 134: jungletv.LeaderboardsRequest
+	(*LeaderboardsResponse)(nil),                        // 135: jungletv.LeaderboardsResponse
+	(*Leaderboard)(nil),                                 // 136: jungletv.Leaderboard
+	(*LeaderboardRow)(nil),                              // 137: jungletv.LeaderboardRow
+	(*LeaderboardValue)(nil),                            // 138: jungletv.LeaderboardValue
+	(*RewardHistoryRequest)(nil),                        // 139: jungletv.RewardHistoryRequest
+	(*ReceivedReward)(nil),                              // 140: jungletv.ReceivedReward
+	(*RewardHistoryResponse)(nil),                       // 141: jungletv.RewardHistoryResponse
+	(*WithdrawalHistoryRequest)(nil),                    // 142: jungletv.WithdrawalHistoryRequest
+	(*Withdrawal)(nil),                                  // 143: jungletv.Withdrawal
+	(*WithdrawalHistoryResponse)(nil),                   // 144: jungletv.WithdrawalHistoryResponse
+	(*SetCrowdfundedSkippingEnabledRequest)(nil),        // 145: jungletv.SetCrowdfundedSkippingEnabledRequest
+	(*SetCrowdfundedSkippingEnabledResponse)(nil),       // 146: jungletv.SetCrowdfundedSkippingEnabledResponse
+	(*SetSkipPriceMultiplierRequest)(nil),               // 147: jungletv.SetSkipPriceMultiplierRequest
+	(*SetSkipPriceMultiplierResponse)(nil),              // 148: jungletv.SetSkipPriceMultiplierResponse
+	(*ProduceSegchaChallengeRequest)(nil),               // 149: jungletv.ProduceSegchaChallengeRequest
+	(*ProduceSegchaChallengeResponse)(nil),              // 150: jungletv.ProduceSegchaChallengeResponse
+	(*SegchaChallengeStep)(nil),                         // 151: jungletv.SegchaChallengeStep
+	(*ConfirmRaffleWinnerRequest)(nil),                  // 152: jungletv.ConfirmRaffleWinnerRequest
+	(*ConfirmRaffleWinnerResponse)(nil),                 // 153: jungletv.ConfirmRaffleWinnerResponse
+	(*CompleteRaffleRequest)(nil),                       // 154: jungletv.CompleteRaffleRequest
+	(*CompleteRaffleResponse)(nil),                      // 155: jungletv.CompleteRaffleResponse
+	(*RedrawRaffleRequest)(nil),                         // 156: jungletv.RedrawRaffleRequest
+	(*RedrawRaffleResponse)(nil),                        // 157: jungletv.RedrawRaffleResponse
+	(*OngoingRaffleInfoRequest)(nil),                    // 158: jungletv.OngoingRaffleInfoRequest
+	(*OngoingRaffleInfoResponse)(nil),                   // 159: jungletv.OngoingRaffleInfoResponse
+	(*OngoingRaffleInfo)(nil),                           // 160: jungletv.OngoingRaffleInfo
+	(*RaffleDrawing)(nil),                               // 161: jungletv.RaffleDrawing
+	(*RaffleDrawingsRequest)(nil),                       // 162: jungletv.RaffleDrawingsRequest
+	(*RaffleDrawingsResponse)(nil),                      // 163: jungletv.RaffleDrawingsResponse
+	(*TriggerAnnouncementsNotificationRequest)(nil),     // 164: jungletv.TriggerAnnouncementsNotificationRequest
+	(*TriggerAnnouncementsNotificationResponse)(nil),    // 165: jungletv.TriggerAnnouncementsNotificationResponse
+	(*SpectatorInfoRequest)(nil),                        // 166: jungletv.SpectatorInfoRequest
+	(*Spectator)(nil),                                   // 167: jungletv.Spectator
+	(*ResetSpectatorStatusRequest)(nil),                 // 168: jungletv.ResetSpectatorStatusRequest
+	(*ResetSpectatorStatusResponse)(nil),                // 169: jungletv.ResetSpectatorStatusResponse
+	(*MonitorModerationStatusRequest)(nil),              // 170: jungletv.MonitorModerationStatusRequest
+	(*ModerationStatusOverview)(nil),                    // 171: jungletv.ModerationStatusOverview
+	(*SetQueueEntryReorderingAllowedRequest)(nil),       // 172: jungletv.SetQueueEntryReorderingAllowedRequest
+	(*SetQueueEntryReorderingAllowedResponse)(nil),      // 173: jungletv.SetQueueEntryReorderingAllowedResponse
+	(*SetOwnQueueEntryRemovalAllowedRequest)(nil),       // 174: jungletv.SetOwnQueueEntryRemovalAllowedRequest
+	(*SetOwnQueueEntryRemovalAllowedResponse)(nil),      // 175: jungletv.SetOwnQueueEntryRemovalAllowedResponse
+	(*SetNewQueueEntriesAlwaysUnskippableRequest)(nil),  // 176: jungletv.SetNewQueueEntriesAlwaysUnskippableRequest
+	(*SetNewQueueEntriesAlwaysUnskippableResponse)(nil), // 177: jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
+	(*SetSkippingEnabledRequest)(nil),                   // 178: jungletv.SetSkippingEnabledRequest
+	(*SetSkippingEnabledResponse)(nil),                  // 179: jungletv.SetSkippingEnabledResponse
+	(*ConnectionsRequest)(nil),                          // 180: jungletv.ConnectionsRequest
+	(*Connection)(nil),                                  // 181: jungletv.Connection
+	(*ServiceInfo)(nil),                                 // 182: jungletv.ServiceInfo
+	(*ConnectionsResponse)(nil),                         // 183: jungletv.ConnectionsResponse
+	(*CreateConnectionRequest)(nil),                     // 184: jungletv.CreateConnectionRequest
+	(*CreateConnectionResponse)(nil),                    // 185: jungletv.CreateConnectionResponse
+	(*RemoveConnectionRequest)(nil),                     // 186: jungletv.RemoveConnectionRequest
+	(*RemoveConnectionResponse)(nil),                    // 187: jungletv.RemoveConnectionResponse
+	(*SetQueueInsertCursorRequest)(nil),                 // 188: jungletv.SetQueueInsertCursorRequest
+	(*SetQueueInsertCursorResponse)(nil),                // 189: jungletv.SetQueueInsertCursorResponse
+	(*ClearQueueInsertCursorRequest)(nil),               // 190: jungletv.ClearQueueInsertCursorRequest
+	(*ClearQueueInsertCursorResponse)(nil),              // 191: jungletv.ClearQueueInsertCursorResponse
+	(*UserProfileRequest)(nil),                          // 192: jungletv.UserProfileRequest
+	(*UserProfileResponse)(nil),                         // 193: jungletv.UserProfileResponse
+	(*UserProfileApplicationTab)(nil),                   // 194: jungletv.UserProfileApplicationTab
+	(*UserStatsRequest)(nil),                            // 195: jungletv.UserStatsRequest
+	(*UserStatsForPeriod)(nil),                          // 196: jungletv.UserStatsForPeriod
+	(*UserStatsResponse)(nil),                           // 197: jungletv.UserStatsResponse
+	(*PlayedMedia)(nil),                                 // 198: jungletv.PlayedMedia
+	(*SetProfileBiographyRequest)(nil),                  // 199: jungletv.SetProfileBiographyRequest
+	(*SetProfileBiographyResponse)(nil),                 // 200: jungletv.SetProfileBiographyResponse
+	(*SetProfileFeaturedMediaRequest)(nil),              // 201: jungletv.SetProfileFeaturedMediaRequest
+	(*SetProfileFeaturedMediaResponse)(nil),             // 202: jungletv.SetProfileFeaturedMediaResponse
+	(*ClearUserProfileRequest)(nil),                     // 203: jungletv.ClearUserProfileRequest
+	(*ClearUserProfileResponse)(nil),                    // 204: jungletv.ClearUserProfileResponse
+	(*PlayedMediaHistoryRequest)(nil),                   // 205: jungletv.PlayedMediaHistoryRequest
+	(*PlayedMediaHistoryResponse)(nil),                  // 206: jungletv.PlayedMediaHistoryResponse
+	(*BlockUserRequest)(nil),                            // 207: jungletv.BlockUserRequest
+	(*BlockUserResponse)(nil),                           // 208: jungletv.BlockUserResponse
+	(*UnblockUserRequest)(nil),                          // 209: jungletv.UnblockUserRequest
+	(*UnblockUserResponse)(nil),                         // 210: jungletv.UnblockUserResponse
+	(*BlockedUsersRequest)(nil),                         // 211: jungletv.BlockedUsersRequest
+	(*BlockedUser)(nil),                                 // 212: jungletv.BlockedUser
+	(*BlockedUsersResponse)(nil),                        // 213: jungletv.BlockedUsersResponse
+	(*MarkAsActivelyModeratingRequest)(nil),             // 214: jungletv.MarkAsActivelyModeratingRequest
+	(*MarkAsActivelyModeratingResponse)(nil),            // 215: jungletv.MarkAsActivelyModeratingResponse
+	(*StopActivelyModeratingRequest)(nil),               // 216: jungletv.StopActivelyModeratingRequest
+	(*StopActivelyModeratingResponse)(nil),              // 217: jungletv.StopActivelyModeratingResponse
+	(*PointsInfoRequest)(nil),                           // 218: jungletv.PointsInfoRequest
+	(*PointsInfoResponse)(nil),                          // 219: jungletv.PointsInfoResponse
+	(*SubscriptionDetails)(nil),                         // 220: jungletv.SubscriptionDetails
+	(*PointsTransactionsRequest)(nil),                   // 221: jungletv.PointsTransactionsRequest
+	(*PointsTransactionsResponse)(nil),                  // 222: jungletv.PointsTransactionsResponse
+	(*PointsTransaction)(nil),                           // 223: jungletv.PointsTransaction
+	(*ChatGifSearchRequest)(nil),                        // 224: jungletv.ChatGifSearchRequest
+	(*ChatGifSearchResponse)(nil),                       // 225: jungletv.ChatGifSearchResponse
+	(*ChatGifSearchResult)(nil),                         // 226: jungletv.ChatGifSearchResult
+	(*AdjustPointsBalanceRequest)(nil),                  // 227: jungletv.AdjustPointsBalanceRequest
+	(*AdjustPointsBalanceResponse)(nil),                 // 228: jungletv.AdjustPointsBalanceResponse
+	(*ConvertBananoToPointsRequest)(nil),                // 229: jungletv.ConvertBananoToPointsRequest
+	(*ConvertBananoToPointsStatus)(nil),                 // 230: jungletv.ConvertBananoToPointsStatus
+	(*StartOrExtendSubscriptionRequest)(nil),            // 231: jungletv.StartOrExtendSubscriptionRequest
+	(*StartOrExtendSubscriptionResponse)(nil),           // 232: jungletv.StartOrExtendSubscriptionResponse
+	(*SoundCloudTrackDetailsRequest)(nil),               // 233: jungletv.SoundCloudTrackDetailsRequest
+	(*SoundCloudTrackDetailsResponse)(nil),              // 234: jungletv.SoundCloudTrackDetailsResponse
+	(*AddVipUserRequest)(nil),                           // 235: jungletv.AddVipUserRequest
+	(*AddVipUserResponse)(nil),                          // 236: jungletv.AddVipUserResponse
+	(*RemoveVipUserRequest)(nil),                        // 237: jungletv.RemoveVipUserRequest
+	(*RemoveVipUserResponse)(nil),                       // 238: jungletv.RemoveVipUserResponse
+	(*TriggerClientReloadRequest)(nil),                  // 239: jungletv.TriggerClientReloadRequest
+	(*TriggerClientReloadResponse)(nil),                 // 240: jungletv.TriggerClientReloadResponse
+	(*IncreaseOrReduceSkipThresholdRequest)(nil),        // 241: jungletv.IncreaseOrReduceSkipThresholdRequest
+	(*IncreaseOrReduceSkipThresholdResponse)(nil),       // 242: jungletv.IncreaseOrReduceSkipThresholdResponse
+	(*SetMulticurrencyPaymentsEnabledRequest)(nil),      // 243: jungletv.SetMulticurrencyPaymentsEnabledRequest
+	(*SetMulticurrencyPaymentsEnabledResponse)(nil),     // 244: jungletv.SetMulticurrencyPaymentsEnabledResponse
+	(*CheckMediaEnqueuingPasswordRequest)(nil),          // 245: jungletv.CheckMediaEnqueuingPasswordRequest
+	(*CheckMediaEnqueuingPasswordResponse)(nil),         // 246: jungletv.CheckMediaEnqueuingPasswordResponse
+	(*MonitorMediaEnqueuingPermissionRequest)(nil),      // 247: jungletv.MonitorMediaEnqueuingPermissionRequest
+	(*MediaEnqueuingPermissionStatus)(nil),              // 248: jungletv.MediaEnqueuingPermissionStatus
+	(*InvalidateAuthTokensRequest)(nil),                 // 249: jungletv.InvalidateAuthTokensRequest
+	(*InvalidateAuthTokensResponse)(nil),                // 250: jungletv.InvalidateAuthTokensResponse
+	(*InvalidateUserAuthTokensRequest)(nil),             // 251: jungletv.InvalidateUserAuthTokensRequest
+	(*InvalidateUserAuthTokensResponse)(nil),            // 252: jungletv.InvalidateUserAuthTokensResponse
+	(*AuthorizeApplicationRequest)(nil),                 // 253: jungletv.AuthorizeApplicationRequest
+	(*AuthorizeApplicationEvent)(nil),                   // 254: jungletv.AuthorizeApplicationEvent
+	(*AuthorizeApplicationHeartbeatEvent)(nil),          // 255: jungletv.AuthorizeApplicationHeartbeatEvent
+	(*AuthorizeApplicationAuthorizationURLEvent)(nil),   // 256: jungletv.AuthorizeApplicationAuthorizationURLEvent
+	(*AuthorizeApplicationApprovedEvent)(nil),           // 257: jungletv.AuthorizeApplicationApprovedEvent
+	(*AuthorizationProcessDataRequest)(nil),             // 258: jungletv.AuthorizationProcessDataRequest
+	(*AuthorizationProcessDataResponse)(nil),            // 259: jungletv.AuthorizationProcessDataResponse
+	(*ConsentOrDissentToAuthorizationRequest)(nil),      // 260: jungletv.ConsentOrDissentToAuthorizationRequest
+	(*ConsentOrDissentToAuthorizationResponse)(nil),     // 261: jungletv.ConsentOrDissentToAuthorizationResponse
+	nil,                                             // 262: jungletv.PointsTransaction.ExtraEntry
+	(*timestamppb.Timestamp)(nil),                   // 263: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                     // 264: google.protobuf.Duration
+	(*ResolveApplicationPageResponse)(nil),          // 265: jungletv.ResolveApplicationPageResponse
+	(*User)(nil),                                    // 266: jungletv.User
+	(*ConfigurationChange)(nil),                     // 267: jungletv.ConfigurationChange
+	(*Notification)(nil),                            // 268: jungletv.Notification
+	(*PaginationParameters)(nil),                    // 269: jungletv.PaginationParameters
+	(*ApplicationsRequest)(nil),                     // 270: jungletv.ApplicationsRequest
+	(*GetApplicationRequest)(nil),                   // 271: jungletv.GetApplicationRequest
+	(*Application)(nil),                             // 272: jungletv.Application
+	(*CloneApplicationRequest)(nil),                 // 273: jungletv.CloneApplicationRequest
+	(*DeleteApplicationRequest)(nil),                // 274: jungletv.DeleteApplicationRequest
+	(*ApplicationFilesRequest)(nil),                 // 275: jungletv.ApplicationFilesRequest
+	(*GetApplicationFileRequest)(nil),               // 276: jungletv.GetApplicationFileRequest
+	(*ApplicationFile)(nil),                         // 277: jungletv.ApplicationFile
+	(*CloneApplicationFileRequest)(nil),             // 278: jungletv.CloneApplicationFileRequest
+	(*DeleteApplicationFileRequest)(nil),            // 279: jungletv.DeleteApplicationFileRequest
+	(*LaunchApplicationRequest)(nil),                // 280: jungletv.LaunchApplicationRequest
+	(*StopApplicationRequest)(nil),                  // 281: jungletv.StopApplicationRequest
+	(*ApplicationLogRequest)(nil),                   // 282: jungletv.ApplicationLogRequest
+	(*ConsumeApplicationLogRequest)(nil),            // 283: jungletv.ConsumeApplicationLogRequest
+	(*MonitorRunningApplicationsRequest)(nil),       // 284: jungletv.MonitorRunningApplicationsRequest
+	(*EvaluateExpressionOnApplicationRequest)(nil),  // 285: jungletv.EvaluateExpressionOnApplicationRequest
+	(*ExportApplicationRequest)(nil),                // 286: jungletv.ExportApplicationRequest
+	(*ImportApplicationRequest)(nil),                // 287: jungletv.ImportApplicationRequest
+	(*TypeScriptTypeDefinitionsRequest)(nil),        // 288: jungletv.TypeScriptTypeDefinitionsRequest
+	(*ResolveApplicationPageRequest)(nil),           // 289: jungletv.ResolveApplicationPageRequest
+	(*ConsumeApplicationEventsRequest)(nil),         // 290: jungletv.ConsumeApplicationEventsRequest
+	(*ApplicationServerMethodRequest)(nil),          // 291: jungletv.ApplicationServerMethodRequest
+	(*TriggerApplicationEventRequest)(nil),          // 292: jungletv.TriggerApplicationEventRequest
+	(*ApplicationsResponse)(nil),                    // 293: jungletv.ApplicationsResponse
+	(*UpdateApplicationResponse)(nil),               // 294: jungletv.UpdateApplicationResponse
+	(*CloneApplicationResponse)(nil),                // 295: jungletv.CloneApplicationResponse
+	(*DeleteApplicationResponse)(nil),               // 296: jungletv.DeleteApplicationResponse
+	(*ApplicationFilesResponse)(nil),                // 297: jungletv.ApplicationFilesResponse
+	(*UpdateApplicationFileResponse)(nil),           // 298: jungletv.UpdateApplicationFileResponse
+	(*CloneApplicationFileResponse)(nil),            // 299: jungletv.CloneApplicationFileResponse
+	(*DeleteApplicationFileResponse)(nil),           // 300: jungletv.DeleteApplicationFileResponse
+	(*LaunchApplicationResponse)(nil),               // 301: jungletv.LaunchApplicationResponse
+	(*StopApplicationResponse)(nil),                 // 302: jungletv.StopApplicationResponse
+	(*ApplicationLogResponse)(nil),                  // 303: jungletv.ApplicationLogResponse
+	(*ApplicationLogEntryContainer)(nil),            // 304: jungletv.ApplicationLogEntryContainer
+	(*RunningApplications)(nil),                     // 305: jungletv.RunningApplications
+	(*EvaluateExpressionOnApplicationResponse)(nil), // 306: jungletv.EvaluateExpressionOnApplicationResponse
+	(*ExportApplicationResponse)(nil),               // 307: jungletv.ExportApplicationResponse
+	(*ImportApplicationResponse)(nil),               // 308: jungletv.ImportApplicationResponse
+	(*TypeScriptTypeDefinitionsResponse)(nil),       // 309: jungletv.TypeScriptTypeDefinitionsResponse
+	(*ApplicationEventUpdate)(nil),                  // 310: jungletv.ApplicationEventUpdate
+	(*ApplicationServerMethodResponse)(nil),         // 311: jungletv.ApplicationServerMethodResponse
+	(*TriggerApplicationEventResponse)(nil),         // 312: jungletv.TriggerApplicationEventResponse
 }
 var file_jungletv_proto_depIdxs = []int32{
 	15,  // 0: jungletv.SignInRequest.lab_sign_in_options:type_name -> jungletv.LabSignInOptions
@@ -18520,437 +18402,435 @@ var file_jungletv_proto_depIdxs = []int32{
 	20,  // 4: jungletv.SignInProgress.expired:type_name -> jungletv.SignInVerificationExpired
 	18,  // 5: jungletv.SignInProgress.account_unopened:type_name -> jungletv.SignInAccountUnopened
 	21,  // 6: jungletv.SignInProgress.message_to_sign:type_name -> jungletv.SignInMessageToSign
-	265, // 7: jungletv.SignInVerification.expiration:type_name -> google.protobuf.Timestamp
-	265, // 8: jungletv.SignInResponse.token_expiration:type_name -> google.protobuf.Timestamp
-	265, // 9: jungletv.SignInMessageToSign.expiration:type_name -> google.protobuf.Timestamp
-	266, // 10: jungletv.EnqueueYouTubeVideoData.start_offset:type_name -> google.protobuf.Duration
-	266, // 11: jungletv.EnqueueYouTubeVideoData.end_offset:type_name -> google.protobuf.Duration
-	266, // 12: jungletv.EnqueueSoundCloudTrackData.start_offset:type_name -> google.protobuf.Duration
-	266, // 13: jungletv.EnqueueSoundCloudTrackData.end_offset:type_name -> google.protobuf.Duration
-	266, // 14: jungletv.EnqueueDocumentData.duration:type_name -> google.protobuf.Duration
+	263, // 7: jungletv.SignInVerification.expiration:type_name -> google.protobuf.Timestamp
+	263, // 8: jungletv.SignInResponse.token_expiration:type_name -> google.protobuf.Timestamp
+	263, // 9: jungletv.SignInMessageToSign.expiration:type_name -> google.protobuf.Timestamp
+	264, // 10: jungletv.EnqueueYouTubeVideoData.start_offset:type_name -> google.protobuf.Duration
+	264, // 11: jungletv.EnqueueYouTubeVideoData.end_offset:type_name -> google.protobuf.Duration
+	264, // 12: jungletv.EnqueueSoundCloudTrackData.start_offset:type_name -> google.protobuf.Duration
+	264, // 13: jungletv.EnqueueSoundCloudTrackData.end_offset:type_name -> google.protobuf.Duration
+	264, // 14: jungletv.EnqueueDocumentData.duration:type_name -> google.protobuf.Duration
 	3,   // 15: jungletv.EnqueueDocumentData.enqueue_type:type_name -> jungletv.ForcedTicketEnqueueType
-	26,  // 16: jungletv.EnqueueMediaRequest.stub_data:type_name -> jungletv.EnqueueStubData
-	23,  // 17: jungletv.EnqueueMediaRequest.youtube_video_data:type_name -> jungletv.EnqueueYouTubeVideoData
-	24,  // 18: jungletv.EnqueueMediaRequest.soundcloud_track_data:type_name -> jungletv.EnqueueSoundCloudTrackData
-	25,  // 19: jungletv.EnqueueMediaRequest.document_data:type_name -> jungletv.EnqueueDocumentData
-	30,  // 20: jungletv.EnqueueMediaResponse.ticket:type_name -> jungletv.EnqueueMediaTicket
-	29,  // 21: jungletv.EnqueueMediaResponse.failure:type_name -> jungletv.EnqueueMediaFailure
-	0,   // 22: jungletv.EnqueueMediaTicket.status:type_name -> jungletv.EnqueueMediaTicketStatus
-	265, // 23: jungletv.EnqueueMediaTicket.expiration:type_name -> google.protobuf.Timestamp
-	266, // 24: jungletv.EnqueueMediaTicket.length:type_name -> google.protobuf.Duration
-	266, // 25: jungletv.EnqueueMediaTicket.offset:type_name -> google.protobuf.Duration
-	31,  // 26: jungletv.EnqueueMediaTicket.extra_currency_payment_data:type_name -> jungletv.ExtraCurrencyPaymentData
-	47,  // 27: jungletv.EnqueueMediaTicket.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
-	48,  // 28: jungletv.EnqueueMediaTicket.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
-	49,  // 29: jungletv.EnqueueMediaTicket.document_data:type_name -> jungletv.QueueDocumentData
-	1,   // 30: jungletv.MoveQueueEntryRequest.direction:type_name -> jungletv.QueueEntryMovementDirection
-	265, // 31: jungletv.NowPlayingDocumentData.updated_at:type_name -> google.protobuf.Timestamp
-	121, // 32: jungletv.NowPlayingDocumentData.document:type_name -> jungletv.Document
-	267, // 33: jungletv.NowPlayingApplicationPageData.page_info:type_name -> jungletv.ResolveApplicationPageResponse
-	266, // 34: jungletv.MediaConsumptionCheckpoint.current_position:type_name -> google.protobuf.Duration
-	268, // 35: jungletv.MediaConsumptionCheckpoint.requested_by:type_name -> jungletv.User
-	44,  // 36: jungletv.MediaConsumptionCheckpoint.activity_challenge:type_name -> jungletv.ActivityChallenge
-	38,  // 37: jungletv.MediaConsumptionCheckpoint.stub_data:type_name -> jungletv.NowPlayingStubData
-	39,  // 38: jungletv.MediaConsumptionCheckpoint.youtube_video_data:type_name -> jungletv.NowPlayingYouTubeVideoData
-	40,  // 39: jungletv.MediaConsumptionCheckpoint.soundcloud_track_data:type_name -> jungletv.NowPlayingSoundCloudTrackData
-	41,  // 40: jungletv.MediaConsumptionCheckpoint.document_data:type_name -> jungletv.NowPlayingDocumentData
-	42,  // 41: jungletv.MediaConsumptionCheckpoint.application_page_data:type_name -> jungletv.NowPlayingApplicationPageData
-	269, // 42: jungletv.MediaConsumptionCheckpoint.configuration_changes:type_name -> jungletv.ConfigurationChange
-	270, // 43: jungletv.MediaConsumptionCheckpoint.notifications:type_name -> jungletv.Notification
-	265, // 44: jungletv.ActivityChallenge.challenged_at:type_name -> google.protobuf.Timestamp
-	52,  // 45: jungletv.Queue.entries:type_name -> jungletv.QueueEntry
-	265, // 46: jungletv.Queue.playing_since:type_name -> google.protobuf.Timestamp
-	265, // 47: jungletv.QueueApplicationPageData.application_version:type_name -> google.protobuf.Timestamp
-	268, // 48: jungletv.QueueEntry.requested_by:type_name -> jungletv.User
-	265, // 49: jungletv.QueueEntry.requested_at:type_name -> google.protobuf.Timestamp
-	266, // 50: jungletv.QueueEntry.length:type_name -> google.protobuf.Duration
-	266, // 51: jungletv.QueueEntry.offset:type_name -> google.protobuf.Duration
-	47,  // 52: jungletv.QueueEntry.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
-	48,  // 53: jungletv.QueueEntry.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
-	49,  // 54: jungletv.QueueEntry.document_data:type_name -> jungletv.QueueDocumentData
-	50,  // 55: jungletv.QueueEntry.application_page_data:type_name -> jungletv.QueueApplicationPageData
-	51,  // 56: jungletv.QueueEntry.concealed_data:type_name -> jungletv.QueueConcealedData
-	2,   // 57: jungletv.SkipAndTipStatus.skip_status:type_name -> jungletv.SkipStatus
-	3,   // 58: jungletv.ForciblyEnqueueTicketRequest.enqueue_type:type_name -> jungletv.ForcedTicketEnqueueType
-	65,  // 59: jungletv.ChatUpdate.events:type_name -> jungletv.ChatUpdateEvent
-	72,  // 60: jungletv.ChatUpdateEvent.disabled:type_name -> jungletv.ChatDisabledEvent
-	73,  // 61: jungletv.ChatUpdateEvent.enabled:type_name -> jungletv.ChatEnabledEvent
-	74,  // 62: jungletv.ChatUpdateEvent.message_created:type_name -> jungletv.ChatMessageCreatedEvent
-	75,  // 63: jungletv.ChatUpdateEvent.message_deleted:type_name -> jungletv.ChatMessageDeletedEvent
-	76,  // 64: jungletv.ChatUpdateEvent.heartbeat:type_name -> jungletv.ChatHeartbeatEvent
-	77,  // 65: jungletv.ChatUpdateEvent.blocked_user_created:type_name -> jungletv.ChatBlockedUserCreatedEvent
-	78,  // 66: jungletv.ChatUpdateEvent.blocked_user_deleted:type_name -> jungletv.ChatBlockedUserDeletedEvent
-	79,  // 67: jungletv.ChatUpdateEvent.emote_created:type_name -> jungletv.ChatEmoteCreatedEvent
-	265, // 68: jungletv.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	70,  // 69: jungletv.ChatMessage.user_message:type_name -> jungletv.UserChatMessage
-	71,  // 70: jungletv.ChatMessage.system_message:type_name -> jungletv.SystemChatMessage
-	66,  // 71: jungletv.ChatMessage.reference:type_name -> jungletv.ChatMessage
-	67,  // 72: jungletv.ChatMessage.attachments:type_name -> jungletv.ChatMessageAttachment
-	68,  // 73: jungletv.ChatMessageAttachment.tenor_gif:type_name -> jungletv.ChatMessageTenorGifAttachment
-	69,  // 74: jungletv.ChatMessageAttachment.application_page:type_name -> jungletv.ChatMessageApplicationPageAttachment
-	267, // 75: jungletv.ChatMessageApplicationPageAttachment.page_info:type_name -> jungletv.ResolveApplicationPageResponse
-	268, // 76: jungletv.UserChatMessage.author:type_name -> jungletv.User
-	4,   // 77: jungletv.ChatDisabledEvent.reason:type_name -> jungletv.ChatDisabledReason
-	66,  // 78: jungletv.ChatMessageCreatedEvent.message:type_name -> jungletv.ChatMessage
-	266, // 79: jungletv.BanUserRequest.duration:type_name -> google.protobuf.Duration
-	265, // 80: jungletv.UserBan.banned_at:type_name -> google.protobuf.Timestamp
-	265, // 81: jungletv.UserBan.banned_until:type_name -> google.protobuf.Timestamp
-	268, // 82: jungletv.UserBan.user:type_name -> jungletv.User
-	268, // 83: jungletv.UserBan.banned_by:type_name -> jungletv.User
-	271, // 84: jungletv.UserBansRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	90,  // 85: jungletv.UserBansResponse.user_bans:type_name -> jungletv.UserBan
-	265, // 86: jungletv.UserVerification.created_at:type_name -> google.protobuf.Timestamp
-	268, // 87: jungletv.UserVerification.user:type_name -> jungletv.User
-	268, // 88: jungletv.UserVerification.verified_by:type_name -> jungletv.User
-	271, // 89: jungletv.UserVerificationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	97,  // 90: jungletv.UserVerificationsResponse.user_verifications:type_name -> jungletv.UserVerification
-	5,   // 91: jungletv.SetMediaEnqueuingEnabledRequest.allowed:type_name -> jungletv.AllowedMediaEnqueuingType
-	66,  // 92: jungletv.UserChatMessagesResponse.messages:type_name -> jungletv.ChatMessage
-	6,   // 93: jungletv.UserPermissionLevelResponse.permission_level:type_name -> jungletv.PermissionLevel
-	271, // 94: jungletv.DisallowedMediaRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	268, // 95: jungletv.DisallowedMedia.disallowed_by:type_name -> jungletv.User
-	265, // 96: jungletv.DisallowedMedia.disallowed_at:type_name -> google.protobuf.Timestamp
-	7,   // 97: jungletv.DisallowedMedia.media_type:type_name -> jungletv.DisallowedMediaType
-	107, // 98: jungletv.DisallowedMediaResponse.disallowed_media:type_name -> jungletv.DisallowedMedia
-	27,  // 99: jungletv.AddDisallowedMediaRequest.disallowed_media_request:type_name -> jungletv.EnqueueMediaRequest
-	271, // 100: jungletv.DisallowedMediaCollectionsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	268, // 101: jungletv.DisallowedMediaCollection.disallowed_by:type_name -> jungletv.User
-	265, // 102: jungletv.DisallowedMediaCollection.disallowed_at:type_name -> google.protobuf.Timestamp
-	8,   // 103: jungletv.DisallowedMediaCollection.collection_type:type_name -> jungletv.DisallowedMediaCollectionType
-	114, // 104: jungletv.DisallowedMediaCollectionsResponse.disallowed_media_collections:type_name -> jungletv.DisallowedMediaCollection
-	27,  // 105: jungletv.AddDisallowedMediaCollectionRequest.disallowed_media_request:type_name -> jungletv.EnqueueMediaRequest
-	265, // 106: jungletv.Document.updated_at:type_name -> google.protobuf.Timestamp
-	271, // 107: jungletv.DocumentsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	265, // 108: jungletv.DocumentHeader.updated_at:type_name -> google.protobuf.Timestamp
-	268, // 109: jungletv.DocumentHeader.updated_by:type_name -> jungletv.User
-	124, // 110: jungletv.DocumentsResponse.documents:type_name -> jungletv.DocumentHeader
-	9,   // 111: jungletv.LeaderboardsRequest.period:type_name -> jungletv.LeaderboardPeriod
-	138, // 112: jungletv.LeaderboardsResponse.leaderboards:type_name -> jungletv.Leaderboard
-	139, // 113: jungletv.Leaderboard.rows:type_name -> jungletv.LeaderboardRow
-	268, // 114: jungletv.LeaderboardRow.user:type_name -> jungletv.User
-	140, // 115: jungletv.LeaderboardRow.values:type_name -> jungletv.LeaderboardValue
-	271, // 116: jungletv.RewardHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	265, // 117: jungletv.ReceivedReward.received_at:type_name -> google.protobuf.Timestamp
-	47,  // 118: jungletv.ReceivedReward.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
-	48,  // 119: jungletv.ReceivedReward.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
-	49,  // 120: jungletv.ReceivedReward.document_data:type_name -> jungletv.QueueDocumentData
-	50,  // 121: jungletv.ReceivedReward.application_page_data:type_name -> jungletv.QueueApplicationPageData
-	142, // 122: jungletv.RewardHistoryResponse.received_rewards:type_name -> jungletv.ReceivedReward
-	271, // 123: jungletv.WithdrawalHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	265, // 124: jungletv.Withdrawal.started_at:type_name -> google.protobuf.Timestamp
-	265, // 125: jungletv.Withdrawal.completed_at:type_name -> google.protobuf.Timestamp
-	145, // 126: jungletv.WithdrawalHistoryResponse.withdrawals:type_name -> jungletv.Withdrawal
-	153, // 127: jungletv.ProduceSegchaChallengeResponse.steps:type_name -> jungletv.SegchaChallengeStep
-	162, // 128: jungletv.OngoingRaffleInfoResponse.raffle_info:type_name -> jungletv.OngoingRaffleInfo
-	265, // 129: jungletv.OngoingRaffleInfo.period_start:type_name -> google.protobuf.Timestamp
-	265, // 130: jungletv.OngoingRaffleInfo.period_end:type_name -> google.protobuf.Timestamp
-	265, // 131: jungletv.RaffleDrawing.period_start:type_name -> google.protobuf.Timestamp
-	265, // 132: jungletv.RaffleDrawing.period_end:type_name -> google.protobuf.Timestamp
-	10,  // 133: jungletv.RaffleDrawing.status:type_name -> jungletv.RaffleDrawingStatus
-	268, // 134: jungletv.RaffleDrawing.winner:type_name -> jungletv.User
-	271, // 135: jungletv.RaffleDrawingsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	163, // 136: jungletv.RaffleDrawingsResponse.raffle_drawings:type_name -> jungletv.RaffleDrawing
-	265, // 137: jungletv.Spectator.watching_since:type_name -> google.protobuf.Timestamp
-	265, // 138: jungletv.Spectator.not_legitimate_since:type_name -> google.protobuf.Timestamp
-	265, // 139: jungletv.Spectator.stopped_watching_at:type_name -> google.protobuf.Timestamp
-	44,  // 140: jungletv.Spectator.activity_challenge:type_name -> jungletv.ActivityChallenge
-	5,   // 141: jungletv.ModerationStatusOverview.allowed_media_enqueuing:type_name -> jungletv.AllowedMediaEnqueuingType
-	268, // 142: jungletv.ModerationStatusOverview.actively_moderating:type_name -> jungletv.User
-	268, // 143: jungletv.ModerationStatusOverview.vip_users:type_name -> jungletv.User
-	11,  // 144: jungletv.Connection.service:type_name -> jungletv.ConnectionService
-	265, // 145: jungletv.Connection.created_at:type_name -> google.protobuf.Timestamp
-	11,  // 146: jungletv.ServiceInfo.service:type_name -> jungletv.ConnectionService
-	183, // 147: jungletv.ConnectionsResponse.connections:type_name -> jungletv.Connection
-	184, // 148: jungletv.ConnectionsResponse.service_infos:type_name -> jungletv.ServiceInfo
-	11,  // 149: jungletv.CreateConnectionRequest.service:type_name -> jungletv.ConnectionService
-	268, // 150: jungletv.UserProfileResponse.user:type_name -> jungletv.User
-	200, // 151: jungletv.UserProfileResponse.recently_played_requests:type_name -> jungletv.PlayedMedia
-	222, // 152: jungletv.UserProfileResponse.current_subscription:type_name -> jungletv.SubscriptionDetails
-	196, // 153: jungletv.UserProfileResponse.application_tabs:type_name -> jungletv.UserProfileApplicationTab
-	47,  // 154: jungletv.UserProfileResponse.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
-	48,  // 155: jungletv.UserProfileResponse.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
-	49,  // 156: jungletv.UserProfileResponse.document_data:type_name -> jungletv.QueueDocumentData
-	266, // 157: jungletv.UserStatsForPeriod.requested_media_play_time:type_name -> google.protobuf.Duration
-	198, // 158: jungletv.UserStatsResponse.stats_all_time:type_name -> jungletv.UserStatsForPeriod
-	198, // 159: jungletv.UserStatsResponse.stats_30_days:type_name -> jungletv.UserStatsForPeriod
-	198, // 160: jungletv.UserStatsResponse.stats_7_days:type_name -> jungletv.UserStatsForPeriod
-	268, // 161: jungletv.PlayedMedia.requested_by:type_name -> jungletv.User
-	265, // 162: jungletv.PlayedMedia.enqueued_at:type_name -> google.protobuf.Timestamp
-	265, // 163: jungletv.PlayedMedia.started_at:type_name -> google.protobuf.Timestamp
-	265, // 164: jungletv.PlayedMedia.ended_at:type_name -> google.protobuf.Timestamp
-	266, // 165: jungletv.PlayedMedia.length:type_name -> google.protobuf.Duration
-	266, // 166: jungletv.PlayedMedia.offset:type_name -> google.protobuf.Duration
-	47,  // 167: jungletv.PlayedMedia.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
-	48,  // 168: jungletv.PlayedMedia.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
-	49,  // 169: jungletv.PlayedMedia.document_data:type_name -> jungletv.QueueDocumentData
-	50,  // 170: jungletv.PlayedMedia.application_page_data:type_name -> jungletv.QueueApplicationPageData
-	271, // 171: jungletv.PlayedMediaHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	200, // 172: jungletv.PlayedMediaHistoryResponse.played_media:type_name -> jungletv.PlayedMedia
-	271, // 173: jungletv.BlockedUsersRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	268, // 174: jungletv.BlockedUser.blocked_user:type_name -> jungletv.User
-	268, // 175: jungletv.BlockedUser.blocked_by:type_name -> jungletv.User
-	265, // 176: jungletv.BlockedUser.created_at:type_name -> google.protobuf.Timestamp
-	214, // 177: jungletv.BlockedUsersResponse.blocked_users:type_name -> jungletv.BlockedUser
-	222, // 178: jungletv.PointsInfoResponse.current_subscription:type_name -> jungletv.SubscriptionDetails
-	265, // 179: jungletv.SubscriptionDetails.subscribed_at:type_name -> google.protobuf.Timestamp
-	265, // 180: jungletv.SubscriptionDetails.subscribed_until:type_name -> google.protobuf.Timestamp
-	271, // 181: jungletv.PointsTransactionsRequest.pagination_params:type_name -> jungletv.PaginationParameters
-	225, // 182: jungletv.PointsTransactionsResponse.transactions:type_name -> jungletv.PointsTransaction
-	265, // 183: jungletv.PointsTransaction.created_at:type_name -> google.protobuf.Timestamp
-	265, // 184: jungletv.PointsTransaction.updated_at:type_name -> google.protobuf.Timestamp
-	12,  // 185: jungletv.PointsTransaction.type:type_name -> jungletv.PointsTransactionType
-	264, // 186: jungletv.PointsTransaction.extra:type_name -> jungletv.PointsTransaction.ExtraEntry
-	228, // 187: jungletv.ChatGifSearchResponse.results:type_name -> jungletv.ChatGifSearchResult
-	265, // 188: jungletv.ConvertBananoToPointsStatus.expiration:type_name -> google.protobuf.Timestamp
-	222, // 189: jungletv.StartOrExtendSubscriptionResponse.subscription:type_name -> jungletv.SubscriptionDetails
-	266, // 190: jungletv.SoundCloudTrackDetailsResponse.length:type_name -> google.protobuf.Duration
-	13,  // 191: jungletv.AddVipUserRequest.appearance:type_name -> jungletv.VipUserAppearance
-	5,   // 192: jungletv.MediaEnqueuingPermissionStatus.allowed_media_enqueuing:type_name -> jungletv.AllowedMediaEnqueuingType
-	6,   // 193: jungletv.AuthorizeApplicationRequest.desired_permission_level:type_name -> jungletv.PermissionLevel
-	257, // 194: jungletv.AuthorizeApplicationEvent.heartbeat:type_name -> jungletv.AuthorizeApplicationHeartbeatEvent
-	258, // 195: jungletv.AuthorizeApplicationEvent.authorization_url:type_name -> jungletv.AuthorizeApplicationAuthorizationURLEvent
-	259, // 196: jungletv.AuthorizeApplicationEvent.approved:type_name -> jungletv.AuthorizeApplicationApprovedEvent
-	265, // 197: jungletv.AuthorizeApplicationApprovedEvent.token_expiration:type_name -> google.protobuf.Timestamp
-	6,   // 198: jungletv.AuthorizationProcessDataResponse.desired_permission_level:type_name -> jungletv.PermissionLevel
-	14,  // 199: jungletv.JungleTV.SignIn:input_type -> jungletv.SignInRequest
-	22,  // 200: jungletv.JungleTV.VerifySignInSignature:input_type -> jungletv.VerifySignInSignatureRequest
-	27,  // 201: jungletv.JungleTV.EnqueueMedia:input_type -> jungletv.EnqueueMediaRequest
-	33,  // 202: jungletv.JungleTV.RemoveOwnQueueEntry:input_type -> jungletv.RemoveOwnQueueEntryRequest
-	35,  // 203: jungletv.JungleTV.MoveQueueEntry:input_type -> jungletv.MoveQueueEntryRequest
-	32,  // 204: jungletv.JungleTV.MonitorTicket:input_type -> jungletv.MonitorTicketRequest
-	37,  // 205: jungletv.JungleTV.ConsumeMedia:input_type -> jungletv.ConsumeMediaRequest
-	45,  // 206: jungletv.JungleTV.MonitorQueue:input_type -> jungletv.MonitorQueueRequest
-	53,  // 207: jungletv.JungleTV.MonitorSkipAndTip:input_type -> jungletv.MonitorSkipAndTipRequest
-	55,  // 208: jungletv.JungleTV.RewardInfo:input_type -> jungletv.RewardInfoRequest
-	61,  // 209: jungletv.JungleTV.SubmitActivityChallenge:input_type -> jungletv.SubmitActivityChallengeRequest
-	151, // 210: jungletv.JungleTV.ProduceSegchaChallenge:input_type -> jungletv.ProduceSegchaChallengeRequest
-	63,  // 211: jungletv.JungleTV.ConsumeChat:input_type -> jungletv.ConsumeChatRequest
-	80,  // 212: jungletv.JungleTV.SendChatMessage:input_type -> jungletv.SendChatMessageRequest
-	104, // 213: jungletv.JungleTV.UserPermissionLevel:input_type -> jungletv.UserPermissionLevelRequest
-	120, // 214: jungletv.JungleTV.GetDocument:input_type -> jungletv.GetDocumentRequest
-	126, // 215: jungletv.JungleTV.SetChatNickname:input_type -> jungletv.SetChatNicknameRequest
-	134, // 216: jungletv.JungleTV.Withdraw:input_type -> jungletv.WithdrawRequest
-	136, // 217: jungletv.JungleTV.Leaderboards:input_type -> jungletv.LeaderboardsRequest
-	141, // 218: jungletv.JungleTV.RewardHistory:input_type -> jungletv.RewardHistoryRequest
-	144, // 219: jungletv.JungleTV.WithdrawalHistory:input_type -> jungletv.WithdrawalHistoryRequest
-	160, // 220: jungletv.JungleTV.OngoingRaffleInfo:input_type -> jungletv.OngoingRaffleInfoRequest
-	164, // 221: jungletv.JungleTV.RaffleDrawings:input_type -> jungletv.RaffleDrawingsRequest
-	182, // 222: jungletv.JungleTV.Connections:input_type -> jungletv.ConnectionsRequest
-	186, // 223: jungletv.JungleTV.CreateConnection:input_type -> jungletv.CreateConnectionRequest
-	188, // 224: jungletv.JungleTV.RemoveConnection:input_type -> jungletv.RemoveConnectionRequest
-	194, // 225: jungletv.JungleTV.UserProfile:input_type -> jungletv.UserProfileRequest
-	197, // 226: jungletv.JungleTV.UserStats:input_type -> jungletv.UserStatsRequest
-	201, // 227: jungletv.JungleTV.SetProfileBiography:input_type -> jungletv.SetProfileBiographyRequest
-	203, // 228: jungletv.JungleTV.SetProfileFeaturedMedia:input_type -> jungletv.SetProfileFeaturedMediaRequest
-	207, // 229: jungletv.JungleTV.PlayedMediaHistory:input_type -> jungletv.PlayedMediaHistoryRequest
-	209, // 230: jungletv.JungleTV.BlockUser:input_type -> jungletv.BlockUserRequest
-	211, // 231: jungletv.JungleTV.UnblockUser:input_type -> jungletv.UnblockUserRequest
-	213, // 232: jungletv.JungleTV.BlockedUsers:input_type -> jungletv.BlockedUsersRequest
-	220, // 233: jungletv.JungleTV.PointsInfo:input_type -> jungletv.PointsInfoRequest
-	223, // 234: jungletv.JungleTV.PointsTransactions:input_type -> jungletv.PointsTransactionsRequest
-	226, // 235: jungletv.JungleTV.ChatGifSearch:input_type -> jungletv.ChatGifSearchRequest
-	231, // 236: jungletv.JungleTV.ConvertBananoToPoints:input_type -> jungletv.ConvertBananoToPointsRequest
-	233, // 237: jungletv.JungleTV.StartOrExtendSubscription:input_type -> jungletv.StartOrExtendSubscriptionRequest
-	235, // 238: jungletv.JungleTV.SoundCloudTrackDetails:input_type -> jungletv.SoundCloudTrackDetailsRequest
-	243, // 239: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:input_type -> jungletv.IncreaseOrReduceSkipThresholdRequest
-	247, // 240: jungletv.JungleTV.CheckMediaEnqueuingPassword:input_type -> jungletv.CheckMediaEnqueuingPasswordRequest
-	249, // 241: jungletv.JungleTV.MonitorMediaEnqueuingPermission:input_type -> jungletv.MonitorMediaEnqueuingPermissionRequest
-	251, // 242: jungletv.JungleTV.InvalidateAuthTokens:input_type -> jungletv.InvalidateAuthTokensRequest
-	255, // 243: jungletv.JungleTV.AuthorizeApplication:input_type -> jungletv.AuthorizeApplicationRequest
-	260, // 244: jungletv.JungleTV.AuthorizationProcessData:input_type -> jungletv.AuthorizationProcessDataRequest
-	262, // 245: jungletv.JungleTV.ConsentOrDissentToAuthorization:input_type -> jungletv.ConsentOrDissentToAuthorizationRequest
-	59,  // 246: jungletv.JungleTV.ForciblyEnqueueTicket:input_type -> jungletv.ForciblyEnqueueTicketRequest
-	57,  // 247: jungletv.JungleTV.RemoveQueueEntry:input_type -> jungletv.RemoveQueueEntryRequest
-	82,  // 248: jungletv.JungleTV.RemoveChatMessage:input_type -> jungletv.RemoveChatMessageRequest
-	84,  // 249: jungletv.JungleTV.SetChatSettings:input_type -> jungletv.SetChatSettingsRequest
-	100, // 250: jungletv.JungleTV.SetMediaEnqueuingEnabled:input_type -> jungletv.SetMediaEnqueuingEnabledRequest
-	91,  // 251: jungletv.JungleTV.UserBans:input_type -> jungletv.UserBansRequest
-	86,  // 252: jungletv.JungleTV.BanUser:input_type -> jungletv.BanUserRequest
-	88,  // 253: jungletv.JungleTV.RemoveBan:input_type -> jungletv.RemoveBanRequest
-	98,  // 254: jungletv.JungleTV.UserVerifications:input_type -> jungletv.UserVerificationsRequest
-	93,  // 255: jungletv.JungleTV.VerifyUser:input_type -> jungletv.VerifyUserRequest
-	95,  // 256: jungletv.JungleTV.RemoveUserVerification:input_type -> jungletv.RemoveUserVerificationRequest
-	102, // 257: jungletv.JungleTV.UserChatMessages:input_type -> jungletv.UserChatMessagesRequest
-	106, // 258: jungletv.JungleTV.DisallowedMedia:input_type -> jungletv.DisallowedMediaRequest
-	109, // 259: jungletv.JungleTV.AddDisallowedMedia:input_type -> jungletv.AddDisallowedMediaRequest
-	111, // 260: jungletv.JungleTV.RemoveDisallowedMedia:input_type -> jungletv.RemoveDisallowedMediaRequest
-	113, // 261: jungletv.JungleTV.DisallowedMediaCollections:input_type -> jungletv.DisallowedMediaCollectionsRequest
-	116, // 262: jungletv.JungleTV.AddDisallowedMediaCollection:input_type -> jungletv.AddDisallowedMediaCollectionRequest
-	118, // 263: jungletv.JungleTV.RemoveDisallowedMediaCollection:input_type -> jungletv.RemoveDisallowedMediaCollectionRequest
-	121, // 264: jungletv.JungleTV.UpdateDocument:input_type -> jungletv.Document
-	123, // 265: jungletv.JungleTV.Documents:input_type -> jungletv.DocumentsRequest
-	128, // 266: jungletv.JungleTV.SetUserChatNickname:input_type -> jungletv.SetUserChatNicknameRequest
-	130, // 267: jungletv.JungleTV.SetPricesMultiplier:input_type -> jungletv.SetPricesMultiplierRequest
-	132, // 268: jungletv.JungleTV.SetMinimumPricesMultiplier:input_type -> jungletv.SetMinimumPricesMultiplierRequest
-	147, // 269: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:input_type -> jungletv.SetCrowdfundedSkippingEnabledRequest
-	149, // 270: jungletv.JungleTV.SetSkipPriceMultiplier:input_type -> jungletv.SetSkipPriceMultiplierRequest
-	154, // 271: jungletv.JungleTV.ConfirmRaffleWinner:input_type -> jungletv.ConfirmRaffleWinnerRequest
-	156, // 272: jungletv.JungleTV.CompleteRaffle:input_type -> jungletv.CompleteRaffleRequest
-	158, // 273: jungletv.JungleTV.RedrawRaffle:input_type -> jungletv.RedrawRaffleRequest
-	166, // 274: jungletv.JungleTV.TriggerAnnouncementsNotification:input_type -> jungletv.TriggerAnnouncementsNotificationRequest
-	168, // 275: jungletv.JungleTV.SpectatorInfo:input_type -> jungletv.SpectatorInfoRequest
-	170, // 276: jungletv.JungleTV.ResetSpectatorStatus:input_type -> jungletv.ResetSpectatorStatusRequest
-	172, // 277: jungletv.JungleTV.MonitorModerationStatus:input_type -> jungletv.MonitorModerationStatusRequest
-	176, // 278: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:input_type -> jungletv.SetOwnQueueEntryRemovalAllowedRequest
-	174, // 279: jungletv.JungleTV.SetQueueEntryReorderingAllowed:input_type -> jungletv.SetQueueEntryReorderingAllowedRequest
-	178, // 280: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:input_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableRequest
-	180, // 281: jungletv.JungleTV.SetSkippingEnabled:input_type -> jungletv.SetSkippingEnabledRequest
-	190, // 282: jungletv.JungleTV.SetQueueInsertCursor:input_type -> jungletv.SetQueueInsertCursorRequest
-	192, // 283: jungletv.JungleTV.ClearQueueInsertCursor:input_type -> jungletv.ClearQueueInsertCursorRequest
-	205, // 284: jungletv.JungleTV.ClearUserProfile:input_type -> jungletv.ClearUserProfileRequest
-	216, // 285: jungletv.JungleTV.MarkAsActivelyModerating:input_type -> jungletv.MarkAsActivelyModeratingRequest
-	218, // 286: jungletv.JungleTV.StopActivelyModerating:input_type -> jungletv.StopActivelyModeratingRequest
-	229, // 287: jungletv.JungleTV.AdjustPointsBalance:input_type -> jungletv.AdjustPointsBalanceRequest
-	237, // 288: jungletv.JungleTV.AddVipUser:input_type -> jungletv.AddVipUserRequest
-	239, // 289: jungletv.JungleTV.RemoveVipUser:input_type -> jungletv.RemoveVipUserRequest
-	241, // 290: jungletv.JungleTV.TriggerClientReload:input_type -> jungletv.TriggerClientReloadRequest
-	245, // 291: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:input_type -> jungletv.SetMulticurrencyPaymentsEnabledRequest
-	253, // 292: jungletv.JungleTV.InvalidateUserAuthTokens:input_type -> jungletv.InvalidateUserAuthTokensRequest
-	272, // 293: jungletv.JungleTV.Applications:input_type -> jungletv.ApplicationsRequest
-	273, // 294: jungletv.JungleTV.GetApplication:input_type -> jungletv.GetApplicationRequest
-	274, // 295: jungletv.JungleTV.UpdateApplication:input_type -> jungletv.Application
-	275, // 296: jungletv.JungleTV.CloneApplication:input_type -> jungletv.CloneApplicationRequest
-	276, // 297: jungletv.JungleTV.DeleteApplication:input_type -> jungletv.DeleteApplicationRequest
-	277, // 298: jungletv.JungleTV.ApplicationFiles:input_type -> jungletv.ApplicationFilesRequest
-	278, // 299: jungletv.JungleTV.GetApplicationFile:input_type -> jungletv.GetApplicationFileRequest
-	279, // 300: jungletv.JungleTV.UpdateApplicationFile:input_type -> jungletv.ApplicationFile
-	280, // 301: jungletv.JungleTV.CloneApplicationFile:input_type -> jungletv.CloneApplicationFileRequest
-	281, // 302: jungletv.JungleTV.DeleteApplicationFile:input_type -> jungletv.DeleteApplicationFileRequest
-	282, // 303: jungletv.JungleTV.LaunchApplication:input_type -> jungletv.LaunchApplicationRequest
-	283, // 304: jungletv.JungleTV.StopApplication:input_type -> jungletv.StopApplicationRequest
-	284, // 305: jungletv.JungleTV.ApplicationLog:input_type -> jungletv.ApplicationLogRequest
-	285, // 306: jungletv.JungleTV.ConsumeApplicationLog:input_type -> jungletv.ConsumeApplicationLogRequest
-	286, // 307: jungletv.JungleTV.MonitorRunningApplications:input_type -> jungletv.MonitorRunningApplicationsRequest
-	287, // 308: jungletv.JungleTV.EvaluateExpressionOnApplication:input_type -> jungletv.EvaluateExpressionOnApplicationRequest
-	288, // 309: jungletv.JungleTV.ExportApplication:input_type -> jungletv.ExportApplicationRequest
-	289, // 310: jungletv.JungleTV.ImportApplication:input_type -> jungletv.ImportApplicationRequest
-	290, // 311: jungletv.JungleTV.TypeScriptTypeDefinitions:input_type -> jungletv.TypeScriptTypeDefinitionsRequest
-	291, // 312: jungletv.JungleTV.ResolveApplicationPage:input_type -> jungletv.ResolveApplicationPageRequest
-	292, // 313: jungletv.JungleTV.ConsumeApplicationEvents:input_type -> jungletv.ConsumeApplicationEventsRequest
-	293, // 314: jungletv.JungleTV.ApplicationServerMethod:input_type -> jungletv.ApplicationServerMethodRequest
-	294, // 315: jungletv.JungleTV.TriggerApplicationEvent:input_type -> jungletv.TriggerApplicationEventRequest
-	16,  // 316: jungletv.JungleTV.SignIn:output_type -> jungletv.SignInProgress
-	19,  // 317: jungletv.JungleTV.VerifySignInSignature:output_type -> jungletv.SignInResponse
-	28,  // 318: jungletv.JungleTV.EnqueueMedia:output_type -> jungletv.EnqueueMediaResponse
-	34,  // 319: jungletv.JungleTV.RemoveOwnQueueEntry:output_type -> jungletv.RemoveOwnQueueEntryResponse
-	36,  // 320: jungletv.JungleTV.MoveQueueEntry:output_type -> jungletv.MoveQueueEntryResponse
-	30,  // 321: jungletv.JungleTV.MonitorTicket:output_type -> jungletv.EnqueueMediaTicket
-	43,  // 322: jungletv.JungleTV.ConsumeMedia:output_type -> jungletv.MediaConsumptionCheckpoint
-	46,  // 323: jungletv.JungleTV.MonitorQueue:output_type -> jungletv.Queue
-	54,  // 324: jungletv.JungleTV.MonitorSkipAndTip:output_type -> jungletv.SkipAndTipStatus
-	56,  // 325: jungletv.JungleTV.RewardInfo:output_type -> jungletv.RewardInfoResponse
-	62,  // 326: jungletv.JungleTV.SubmitActivityChallenge:output_type -> jungletv.SubmitActivityChallengeResponse
-	152, // 327: jungletv.JungleTV.ProduceSegchaChallenge:output_type -> jungletv.ProduceSegchaChallengeResponse
-	64,  // 328: jungletv.JungleTV.ConsumeChat:output_type -> jungletv.ChatUpdate
-	81,  // 329: jungletv.JungleTV.SendChatMessage:output_type -> jungletv.SendChatMessageResponse
-	105, // 330: jungletv.JungleTV.UserPermissionLevel:output_type -> jungletv.UserPermissionLevelResponse
-	121, // 331: jungletv.JungleTV.GetDocument:output_type -> jungletv.Document
-	127, // 332: jungletv.JungleTV.SetChatNickname:output_type -> jungletv.SetChatNicknameResponse
-	135, // 333: jungletv.JungleTV.Withdraw:output_type -> jungletv.WithdrawResponse
-	137, // 334: jungletv.JungleTV.Leaderboards:output_type -> jungletv.LeaderboardsResponse
-	143, // 335: jungletv.JungleTV.RewardHistory:output_type -> jungletv.RewardHistoryResponse
-	146, // 336: jungletv.JungleTV.WithdrawalHistory:output_type -> jungletv.WithdrawalHistoryResponse
-	161, // 337: jungletv.JungleTV.OngoingRaffleInfo:output_type -> jungletv.OngoingRaffleInfoResponse
-	165, // 338: jungletv.JungleTV.RaffleDrawings:output_type -> jungletv.RaffleDrawingsResponse
-	185, // 339: jungletv.JungleTV.Connections:output_type -> jungletv.ConnectionsResponse
-	187, // 340: jungletv.JungleTV.CreateConnection:output_type -> jungletv.CreateConnectionResponse
-	189, // 341: jungletv.JungleTV.RemoveConnection:output_type -> jungletv.RemoveConnectionResponse
-	195, // 342: jungletv.JungleTV.UserProfile:output_type -> jungletv.UserProfileResponse
-	199, // 343: jungletv.JungleTV.UserStats:output_type -> jungletv.UserStatsResponse
-	202, // 344: jungletv.JungleTV.SetProfileBiography:output_type -> jungletv.SetProfileBiographyResponse
-	204, // 345: jungletv.JungleTV.SetProfileFeaturedMedia:output_type -> jungletv.SetProfileFeaturedMediaResponse
-	208, // 346: jungletv.JungleTV.PlayedMediaHistory:output_type -> jungletv.PlayedMediaHistoryResponse
-	210, // 347: jungletv.JungleTV.BlockUser:output_type -> jungletv.BlockUserResponse
-	212, // 348: jungletv.JungleTV.UnblockUser:output_type -> jungletv.UnblockUserResponse
-	215, // 349: jungletv.JungleTV.BlockedUsers:output_type -> jungletv.BlockedUsersResponse
-	221, // 350: jungletv.JungleTV.PointsInfo:output_type -> jungletv.PointsInfoResponse
-	224, // 351: jungletv.JungleTV.PointsTransactions:output_type -> jungletv.PointsTransactionsResponse
-	227, // 352: jungletv.JungleTV.ChatGifSearch:output_type -> jungletv.ChatGifSearchResponse
-	232, // 353: jungletv.JungleTV.ConvertBananoToPoints:output_type -> jungletv.ConvertBananoToPointsStatus
-	234, // 354: jungletv.JungleTV.StartOrExtendSubscription:output_type -> jungletv.StartOrExtendSubscriptionResponse
-	236, // 355: jungletv.JungleTV.SoundCloudTrackDetails:output_type -> jungletv.SoundCloudTrackDetailsResponse
-	244, // 356: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:output_type -> jungletv.IncreaseOrReduceSkipThresholdResponse
-	248, // 357: jungletv.JungleTV.CheckMediaEnqueuingPassword:output_type -> jungletv.CheckMediaEnqueuingPasswordResponse
-	250, // 358: jungletv.JungleTV.MonitorMediaEnqueuingPermission:output_type -> jungletv.MediaEnqueuingPermissionStatus
-	252, // 359: jungletv.JungleTV.InvalidateAuthTokens:output_type -> jungletv.InvalidateAuthTokensResponse
-	256, // 360: jungletv.JungleTV.AuthorizeApplication:output_type -> jungletv.AuthorizeApplicationEvent
-	261, // 361: jungletv.JungleTV.AuthorizationProcessData:output_type -> jungletv.AuthorizationProcessDataResponse
-	263, // 362: jungletv.JungleTV.ConsentOrDissentToAuthorization:output_type -> jungletv.ConsentOrDissentToAuthorizationResponse
-	60,  // 363: jungletv.JungleTV.ForciblyEnqueueTicket:output_type -> jungletv.ForciblyEnqueueTicketResponse
-	58,  // 364: jungletv.JungleTV.RemoveQueueEntry:output_type -> jungletv.RemoveQueueEntryResponse
-	83,  // 365: jungletv.JungleTV.RemoveChatMessage:output_type -> jungletv.RemoveChatMessageResponse
-	85,  // 366: jungletv.JungleTV.SetChatSettings:output_type -> jungletv.SetChatSettingsResponse
-	101, // 367: jungletv.JungleTV.SetMediaEnqueuingEnabled:output_type -> jungletv.SetMediaEnqueuingEnabledResponse
-	92,  // 368: jungletv.JungleTV.UserBans:output_type -> jungletv.UserBansResponse
-	87,  // 369: jungletv.JungleTV.BanUser:output_type -> jungletv.BanUserResponse
-	89,  // 370: jungletv.JungleTV.RemoveBan:output_type -> jungletv.RemoveBanResponse
-	99,  // 371: jungletv.JungleTV.UserVerifications:output_type -> jungletv.UserVerificationsResponse
-	94,  // 372: jungletv.JungleTV.VerifyUser:output_type -> jungletv.VerifyUserResponse
-	96,  // 373: jungletv.JungleTV.RemoveUserVerification:output_type -> jungletv.RemoveUserVerificationResponse
-	103, // 374: jungletv.JungleTV.UserChatMessages:output_type -> jungletv.UserChatMessagesResponse
-	108, // 375: jungletv.JungleTV.DisallowedMedia:output_type -> jungletv.DisallowedMediaResponse
-	110, // 376: jungletv.JungleTV.AddDisallowedMedia:output_type -> jungletv.AddDisallowedMediaResponse
-	112, // 377: jungletv.JungleTV.RemoveDisallowedMedia:output_type -> jungletv.RemoveDisallowedMediaResponse
-	115, // 378: jungletv.JungleTV.DisallowedMediaCollections:output_type -> jungletv.DisallowedMediaCollectionsResponse
-	117, // 379: jungletv.JungleTV.AddDisallowedMediaCollection:output_type -> jungletv.AddDisallowedMediaCollectionResponse
-	119, // 380: jungletv.JungleTV.RemoveDisallowedMediaCollection:output_type -> jungletv.RemoveDisallowedMediaCollectionResponse
-	122, // 381: jungletv.JungleTV.UpdateDocument:output_type -> jungletv.UpdateDocumentResponse
-	125, // 382: jungletv.JungleTV.Documents:output_type -> jungletv.DocumentsResponse
-	129, // 383: jungletv.JungleTV.SetUserChatNickname:output_type -> jungletv.SetUserChatNicknameResponse
-	131, // 384: jungletv.JungleTV.SetPricesMultiplier:output_type -> jungletv.SetPricesMultiplierResponse
-	133, // 385: jungletv.JungleTV.SetMinimumPricesMultiplier:output_type -> jungletv.SetMinimumPricesMultiplierResponse
-	148, // 386: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:output_type -> jungletv.SetCrowdfundedSkippingEnabledResponse
-	150, // 387: jungletv.JungleTV.SetSkipPriceMultiplier:output_type -> jungletv.SetSkipPriceMultiplierResponse
-	155, // 388: jungletv.JungleTV.ConfirmRaffleWinner:output_type -> jungletv.ConfirmRaffleWinnerResponse
-	157, // 389: jungletv.JungleTV.CompleteRaffle:output_type -> jungletv.CompleteRaffleResponse
-	159, // 390: jungletv.JungleTV.RedrawRaffle:output_type -> jungletv.RedrawRaffleResponse
-	167, // 391: jungletv.JungleTV.TriggerAnnouncementsNotification:output_type -> jungletv.TriggerAnnouncementsNotificationResponse
-	169, // 392: jungletv.JungleTV.SpectatorInfo:output_type -> jungletv.Spectator
-	171, // 393: jungletv.JungleTV.ResetSpectatorStatus:output_type -> jungletv.ResetSpectatorStatusResponse
-	173, // 394: jungletv.JungleTV.MonitorModerationStatus:output_type -> jungletv.ModerationStatusOverview
-	177, // 395: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:output_type -> jungletv.SetOwnQueueEntryRemovalAllowedResponse
-	175, // 396: jungletv.JungleTV.SetQueueEntryReorderingAllowed:output_type -> jungletv.SetQueueEntryReorderingAllowedResponse
-	179, // 397: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:output_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
-	181, // 398: jungletv.JungleTV.SetSkippingEnabled:output_type -> jungletv.SetSkippingEnabledResponse
-	191, // 399: jungletv.JungleTV.SetQueueInsertCursor:output_type -> jungletv.SetQueueInsertCursorResponse
-	193, // 400: jungletv.JungleTV.ClearQueueInsertCursor:output_type -> jungletv.ClearQueueInsertCursorResponse
-	206, // 401: jungletv.JungleTV.ClearUserProfile:output_type -> jungletv.ClearUserProfileResponse
-	217, // 402: jungletv.JungleTV.MarkAsActivelyModerating:output_type -> jungletv.MarkAsActivelyModeratingResponse
-	219, // 403: jungletv.JungleTV.StopActivelyModerating:output_type -> jungletv.StopActivelyModeratingResponse
-	230, // 404: jungletv.JungleTV.AdjustPointsBalance:output_type -> jungletv.AdjustPointsBalanceResponse
-	238, // 405: jungletv.JungleTV.AddVipUser:output_type -> jungletv.AddVipUserResponse
-	240, // 406: jungletv.JungleTV.RemoveVipUser:output_type -> jungletv.RemoveVipUserResponse
-	242, // 407: jungletv.JungleTV.TriggerClientReload:output_type -> jungletv.TriggerClientReloadResponse
-	246, // 408: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:output_type -> jungletv.SetMulticurrencyPaymentsEnabledResponse
-	254, // 409: jungletv.JungleTV.InvalidateUserAuthTokens:output_type -> jungletv.InvalidateUserAuthTokensResponse
-	295, // 410: jungletv.JungleTV.Applications:output_type -> jungletv.ApplicationsResponse
-	274, // 411: jungletv.JungleTV.GetApplication:output_type -> jungletv.Application
-	296, // 412: jungletv.JungleTV.UpdateApplication:output_type -> jungletv.UpdateApplicationResponse
-	297, // 413: jungletv.JungleTV.CloneApplication:output_type -> jungletv.CloneApplicationResponse
-	298, // 414: jungletv.JungleTV.DeleteApplication:output_type -> jungletv.DeleteApplicationResponse
-	299, // 415: jungletv.JungleTV.ApplicationFiles:output_type -> jungletv.ApplicationFilesResponse
-	279, // 416: jungletv.JungleTV.GetApplicationFile:output_type -> jungletv.ApplicationFile
-	300, // 417: jungletv.JungleTV.UpdateApplicationFile:output_type -> jungletv.UpdateApplicationFileResponse
-	301, // 418: jungletv.JungleTV.CloneApplicationFile:output_type -> jungletv.CloneApplicationFileResponse
-	302, // 419: jungletv.JungleTV.DeleteApplicationFile:output_type -> jungletv.DeleteApplicationFileResponse
-	303, // 420: jungletv.JungleTV.LaunchApplication:output_type -> jungletv.LaunchApplicationResponse
-	304, // 421: jungletv.JungleTV.StopApplication:output_type -> jungletv.StopApplicationResponse
-	305, // 422: jungletv.JungleTV.ApplicationLog:output_type -> jungletv.ApplicationLogResponse
-	306, // 423: jungletv.JungleTV.ConsumeApplicationLog:output_type -> jungletv.ApplicationLogEntryContainer
-	307, // 424: jungletv.JungleTV.MonitorRunningApplications:output_type -> jungletv.RunningApplications
-	308, // 425: jungletv.JungleTV.EvaluateExpressionOnApplication:output_type -> jungletv.EvaluateExpressionOnApplicationResponse
-	309, // 426: jungletv.JungleTV.ExportApplication:output_type -> jungletv.ExportApplicationResponse
-	310, // 427: jungletv.JungleTV.ImportApplication:output_type -> jungletv.ImportApplicationResponse
-	311, // 428: jungletv.JungleTV.TypeScriptTypeDefinitions:output_type -> jungletv.TypeScriptTypeDefinitionsResponse
-	267, // 429: jungletv.JungleTV.ResolveApplicationPage:output_type -> jungletv.ResolveApplicationPageResponse
-	312, // 430: jungletv.JungleTV.ConsumeApplicationEvents:output_type -> jungletv.ApplicationEventUpdate
-	313, // 431: jungletv.JungleTV.ApplicationServerMethod:output_type -> jungletv.ApplicationServerMethodResponse
-	314, // 432: jungletv.JungleTV.TriggerApplicationEvent:output_type -> jungletv.TriggerApplicationEventResponse
-	316, // [316:433] is the sub-list for method output_type
-	199, // [199:316] is the sub-list for method input_type
-	199, // [199:199] is the sub-list for extension type_name
-	199, // [199:199] is the sub-list for extension extendee
-	0,   // [0:199] is the sub-list for field type_name
+	23,  // 16: jungletv.EnqueueMediaRequest.youtube_video_data:type_name -> jungletv.EnqueueYouTubeVideoData
+	24,  // 17: jungletv.EnqueueMediaRequest.soundcloud_track_data:type_name -> jungletv.EnqueueSoundCloudTrackData
+	25,  // 18: jungletv.EnqueueMediaRequest.document_data:type_name -> jungletv.EnqueueDocumentData
+	29,  // 19: jungletv.EnqueueMediaResponse.ticket:type_name -> jungletv.EnqueueMediaTicket
+	28,  // 20: jungletv.EnqueueMediaResponse.failure:type_name -> jungletv.EnqueueMediaFailure
+	0,   // 21: jungletv.EnqueueMediaTicket.status:type_name -> jungletv.EnqueueMediaTicketStatus
+	263, // 22: jungletv.EnqueueMediaTicket.expiration:type_name -> google.protobuf.Timestamp
+	264, // 23: jungletv.EnqueueMediaTicket.length:type_name -> google.protobuf.Duration
+	264, // 24: jungletv.EnqueueMediaTicket.offset:type_name -> google.protobuf.Duration
+	30,  // 25: jungletv.EnqueueMediaTicket.extra_currency_payment_data:type_name -> jungletv.ExtraCurrencyPaymentData
+	45,  // 26: jungletv.EnqueueMediaTicket.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
+	46,  // 27: jungletv.EnqueueMediaTicket.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
+	47,  // 28: jungletv.EnqueueMediaTicket.document_data:type_name -> jungletv.QueueDocumentData
+	1,   // 29: jungletv.MoveQueueEntryRequest.direction:type_name -> jungletv.QueueEntryMovementDirection
+	263, // 30: jungletv.NowPlayingDocumentData.updated_at:type_name -> google.protobuf.Timestamp
+	119, // 31: jungletv.NowPlayingDocumentData.document:type_name -> jungletv.Document
+	265, // 32: jungletv.NowPlayingApplicationPageData.page_info:type_name -> jungletv.ResolveApplicationPageResponse
+	264, // 33: jungletv.MediaConsumptionCheckpoint.current_position:type_name -> google.protobuf.Duration
+	266, // 34: jungletv.MediaConsumptionCheckpoint.requested_by:type_name -> jungletv.User
+	42,  // 35: jungletv.MediaConsumptionCheckpoint.activity_challenge:type_name -> jungletv.ActivityChallenge
+	37,  // 36: jungletv.MediaConsumptionCheckpoint.youtube_video_data:type_name -> jungletv.NowPlayingYouTubeVideoData
+	38,  // 37: jungletv.MediaConsumptionCheckpoint.soundcloud_track_data:type_name -> jungletv.NowPlayingSoundCloudTrackData
+	39,  // 38: jungletv.MediaConsumptionCheckpoint.document_data:type_name -> jungletv.NowPlayingDocumentData
+	40,  // 39: jungletv.MediaConsumptionCheckpoint.application_page_data:type_name -> jungletv.NowPlayingApplicationPageData
+	267, // 40: jungletv.MediaConsumptionCheckpoint.configuration_changes:type_name -> jungletv.ConfigurationChange
+	268, // 41: jungletv.MediaConsumptionCheckpoint.notifications:type_name -> jungletv.Notification
+	263, // 42: jungletv.ActivityChallenge.challenged_at:type_name -> google.protobuf.Timestamp
+	50,  // 43: jungletv.Queue.entries:type_name -> jungletv.QueueEntry
+	263, // 44: jungletv.Queue.playing_since:type_name -> google.protobuf.Timestamp
+	263, // 45: jungletv.QueueApplicationPageData.application_version:type_name -> google.protobuf.Timestamp
+	266, // 46: jungletv.QueueEntry.requested_by:type_name -> jungletv.User
+	263, // 47: jungletv.QueueEntry.requested_at:type_name -> google.protobuf.Timestamp
+	264, // 48: jungletv.QueueEntry.length:type_name -> google.protobuf.Duration
+	264, // 49: jungletv.QueueEntry.offset:type_name -> google.protobuf.Duration
+	45,  // 50: jungletv.QueueEntry.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
+	46,  // 51: jungletv.QueueEntry.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
+	47,  // 52: jungletv.QueueEntry.document_data:type_name -> jungletv.QueueDocumentData
+	48,  // 53: jungletv.QueueEntry.application_page_data:type_name -> jungletv.QueueApplicationPageData
+	49,  // 54: jungletv.QueueEntry.concealed_data:type_name -> jungletv.QueueConcealedData
+	2,   // 55: jungletv.SkipAndTipStatus.skip_status:type_name -> jungletv.SkipStatus
+	3,   // 56: jungletv.ForciblyEnqueueTicketRequest.enqueue_type:type_name -> jungletv.ForcedTicketEnqueueType
+	63,  // 57: jungletv.ChatUpdate.events:type_name -> jungletv.ChatUpdateEvent
+	70,  // 58: jungletv.ChatUpdateEvent.disabled:type_name -> jungletv.ChatDisabledEvent
+	71,  // 59: jungletv.ChatUpdateEvent.enabled:type_name -> jungletv.ChatEnabledEvent
+	72,  // 60: jungletv.ChatUpdateEvent.message_created:type_name -> jungletv.ChatMessageCreatedEvent
+	73,  // 61: jungletv.ChatUpdateEvent.message_deleted:type_name -> jungletv.ChatMessageDeletedEvent
+	74,  // 62: jungletv.ChatUpdateEvent.heartbeat:type_name -> jungletv.ChatHeartbeatEvent
+	75,  // 63: jungletv.ChatUpdateEvent.blocked_user_created:type_name -> jungletv.ChatBlockedUserCreatedEvent
+	76,  // 64: jungletv.ChatUpdateEvent.blocked_user_deleted:type_name -> jungletv.ChatBlockedUserDeletedEvent
+	77,  // 65: jungletv.ChatUpdateEvent.emote_created:type_name -> jungletv.ChatEmoteCreatedEvent
+	263, // 66: jungletv.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	68,  // 67: jungletv.ChatMessage.user_message:type_name -> jungletv.UserChatMessage
+	69,  // 68: jungletv.ChatMessage.system_message:type_name -> jungletv.SystemChatMessage
+	64,  // 69: jungletv.ChatMessage.reference:type_name -> jungletv.ChatMessage
+	65,  // 70: jungletv.ChatMessage.attachments:type_name -> jungletv.ChatMessageAttachment
+	66,  // 71: jungletv.ChatMessageAttachment.tenor_gif:type_name -> jungletv.ChatMessageTenorGifAttachment
+	67,  // 72: jungletv.ChatMessageAttachment.application_page:type_name -> jungletv.ChatMessageApplicationPageAttachment
+	265, // 73: jungletv.ChatMessageApplicationPageAttachment.page_info:type_name -> jungletv.ResolveApplicationPageResponse
+	266, // 74: jungletv.UserChatMessage.author:type_name -> jungletv.User
+	4,   // 75: jungletv.ChatDisabledEvent.reason:type_name -> jungletv.ChatDisabledReason
+	64,  // 76: jungletv.ChatMessageCreatedEvent.message:type_name -> jungletv.ChatMessage
+	264, // 77: jungletv.BanUserRequest.duration:type_name -> google.protobuf.Duration
+	263, // 78: jungletv.UserBan.banned_at:type_name -> google.protobuf.Timestamp
+	263, // 79: jungletv.UserBan.banned_until:type_name -> google.protobuf.Timestamp
+	266, // 80: jungletv.UserBan.user:type_name -> jungletv.User
+	266, // 81: jungletv.UserBan.banned_by:type_name -> jungletv.User
+	269, // 82: jungletv.UserBansRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	88,  // 83: jungletv.UserBansResponse.user_bans:type_name -> jungletv.UserBan
+	263, // 84: jungletv.UserVerification.created_at:type_name -> google.protobuf.Timestamp
+	266, // 85: jungletv.UserVerification.user:type_name -> jungletv.User
+	266, // 86: jungletv.UserVerification.verified_by:type_name -> jungletv.User
+	269, // 87: jungletv.UserVerificationsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	95,  // 88: jungletv.UserVerificationsResponse.user_verifications:type_name -> jungletv.UserVerification
+	5,   // 89: jungletv.SetMediaEnqueuingEnabledRequest.allowed:type_name -> jungletv.AllowedMediaEnqueuingType
+	64,  // 90: jungletv.UserChatMessagesResponse.messages:type_name -> jungletv.ChatMessage
+	6,   // 91: jungletv.UserPermissionLevelResponse.permission_level:type_name -> jungletv.PermissionLevel
+	269, // 92: jungletv.DisallowedMediaRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	266, // 93: jungletv.DisallowedMedia.disallowed_by:type_name -> jungletv.User
+	263, // 94: jungletv.DisallowedMedia.disallowed_at:type_name -> google.protobuf.Timestamp
+	7,   // 95: jungletv.DisallowedMedia.media_type:type_name -> jungletv.DisallowedMediaType
+	105, // 96: jungletv.DisallowedMediaResponse.disallowed_media:type_name -> jungletv.DisallowedMedia
+	26,  // 97: jungletv.AddDisallowedMediaRequest.disallowed_media_request:type_name -> jungletv.EnqueueMediaRequest
+	269, // 98: jungletv.DisallowedMediaCollectionsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	266, // 99: jungletv.DisallowedMediaCollection.disallowed_by:type_name -> jungletv.User
+	263, // 100: jungletv.DisallowedMediaCollection.disallowed_at:type_name -> google.protobuf.Timestamp
+	8,   // 101: jungletv.DisallowedMediaCollection.collection_type:type_name -> jungletv.DisallowedMediaCollectionType
+	112, // 102: jungletv.DisallowedMediaCollectionsResponse.disallowed_media_collections:type_name -> jungletv.DisallowedMediaCollection
+	26,  // 103: jungletv.AddDisallowedMediaCollectionRequest.disallowed_media_request:type_name -> jungletv.EnqueueMediaRequest
+	263, // 104: jungletv.Document.updated_at:type_name -> google.protobuf.Timestamp
+	269, // 105: jungletv.DocumentsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	263, // 106: jungletv.DocumentHeader.updated_at:type_name -> google.protobuf.Timestamp
+	266, // 107: jungletv.DocumentHeader.updated_by:type_name -> jungletv.User
+	122, // 108: jungletv.DocumentsResponse.documents:type_name -> jungletv.DocumentHeader
+	9,   // 109: jungletv.LeaderboardsRequest.period:type_name -> jungletv.LeaderboardPeriod
+	136, // 110: jungletv.LeaderboardsResponse.leaderboards:type_name -> jungletv.Leaderboard
+	137, // 111: jungletv.Leaderboard.rows:type_name -> jungletv.LeaderboardRow
+	266, // 112: jungletv.LeaderboardRow.user:type_name -> jungletv.User
+	138, // 113: jungletv.LeaderboardRow.values:type_name -> jungletv.LeaderboardValue
+	269, // 114: jungletv.RewardHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	263, // 115: jungletv.ReceivedReward.received_at:type_name -> google.protobuf.Timestamp
+	45,  // 116: jungletv.ReceivedReward.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
+	46,  // 117: jungletv.ReceivedReward.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
+	47,  // 118: jungletv.ReceivedReward.document_data:type_name -> jungletv.QueueDocumentData
+	48,  // 119: jungletv.ReceivedReward.application_page_data:type_name -> jungletv.QueueApplicationPageData
+	140, // 120: jungletv.RewardHistoryResponse.received_rewards:type_name -> jungletv.ReceivedReward
+	269, // 121: jungletv.WithdrawalHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	263, // 122: jungletv.Withdrawal.started_at:type_name -> google.protobuf.Timestamp
+	263, // 123: jungletv.Withdrawal.completed_at:type_name -> google.protobuf.Timestamp
+	143, // 124: jungletv.WithdrawalHistoryResponse.withdrawals:type_name -> jungletv.Withdrawal
+	151, // 125: jungletv.ProduceSegchaChallengeResponse.steps:type_name -> jungletv.SegchaChallengeStep
+	160, // 126: jungletv.OngoingRaffleInfoResponse.raffle_info:type_name -> jungletv.OngoingRaffleInfo
+	263, // 127: jungletv.OngoingRaffleInfo.period_start:type_name -> google.protobuf.Timestamp
+	263, // 128: jungletv.OngoingRaffleInfo.period_end:type_name -> google.protobuf.Timestamp
+	263, // 129: jungletv.RaffleDrawing.period_start:type_name -> google.protobuf.Timestamp
+	263, // 130: jungletv.RaffleDrawing.period_end:type_name -> google.protobuf.Timestamp
+	10,  // 131: jungletv.RaffleDrawing.status:type_name -> jungletv.RaffleDrawingStatus
+	266, // 132: jungletv.RaffleDrawing.winner:type_name -> jungletv.User
+	269, // 133: jungletv.RaffleDrawingsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	161, // 134: jungletv.RaffleDrawingsResponse.raffle_drawings:type_name -> jungletv.RaffleDrawing
+	263, // 135: jungletv.Spectator.watching_since:type_name -> google.protobuf.Timestamp
+	263, // 136: jungletv.Spectator.not_legitimate_since:type_name -> google.protobuf.Timestamp
+	263, // 137: jungletv.Spectator.stopped_watching_at:type_name -> google.protobuf.Timestamp
+	42,  // 138: jungletv.Spectator.activity_challenge:type_name -> jungletv.ActivityChallenge
+	5,   // 139: jungletv.ModerationStatusOverview.allowed_media_enqueuing:type_name -> jungletv.AllowedMediaEnqueuingType
+	266, // 140: jungletv.ModerationStatusOverview.actively_moderating:type_name -> jungletv.User
+	266, // 141: jungletv.ModerationStatusOverview.vip_users:type_name -> jungletv.User
+	11,  // 142: jungletv.Connection.service:type_name -> jungletv.ConnectionService
+	263, // 143: jungletv.Connection.created_at:type_name -> google.protobuf.Timestamp
+	11,  // 144: jungletv.ServiceInfo.service:type_name -> jungletv.ConnectionService
+	181, // 145: jungletv.ConnectionsResponse.connections:type_name -> jungletv.Connection
+	182, // 146: jungletv.ConnectionsResponse.service_infos:type_name -> jungletv.ServiceInfo
+	11,  // 147: jungletv.CreateConnectionRequest.service:type_name -> jungletv.ConnectionService
+	266, // 148: jungletv.UserProfileResponse.user:type_name -> jungletv.User
+	198, // 149: jungletv.UserProfileResponse.recently_played_requests:type_name -> jungletv.PlayedMedia
+	220, // 150: jungletv.UserProfileResponse.current_subscription:type_name -> jungletv.SubscriptionDetails
+	194, // 151: jungletv.UserProfileResponse.application_tabs:type_name -> jungletv.UserProfileApplicationTab
+	45,  // 152: jungletv.UserProfileResponse.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
+	46,  // 153: jungletv.UserProfileResponse.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
+	47,  // 154: jungletv.UserProfileResponse.document_data:type_name -> jungletv.QueueDocumentData
+	264, // 155: jungletv.UserStatsForPeriod.requested_media_play_time:type_name -> google.protobuf.Duration
+	196, // 156: jungletv.UserStatsResponse.stats_all_time:type_name -> jungletv.UserStatsForPeriod
+	196, // 157: jungletv.UserStatsResponse.stats_30_days:type_name -> jungletv.UserStatsForPeriod
+	196, // 158: jungletv.UserStatsResponse.stats_7_days:type_name -> jungletv.UserStatsForPeriod
+	266, // 159: jungletv.PlayedMedia.requested_by:type_name -> jungletv.User
+	263, // 160: jungletv.PlayedMedia.enqueued_at:type_name -> google.protobuf.Timestamp
+	263, // 161: jungletv.PlayedMedia.started_at:type_name -> google.protobuf.Timestamp
+	263, // 162: jungletv.PlayedMedia.ended_at:type_name -> google.protobuf.Timestamp
+	264, // 163: jungletv.PlayedMedia.length:type_name -> google.protobuf.Duration
+	264, // 164: jungletv.PlayedMedia.offset:type_name -> google.protobuf.Duration
+	45,  // 165: jungletv.PlayedMedia.youtube_video_data:type_name -> jungletv.QueueYouTubeVideoData
+	46,  // 166: jungletv.PlayedMedia.soundcloud_track_data:type_name -> jungletv.QueueSoundCloudTrackData
+	47,  // 167: jungletv.PlayedMedia.document_data:type_name -> jungletv.QueueDocumentData
+	48,  // 168: jungletv.PlayedMedia.application_page_data:type_name -> jungletv.QueueApplicationPageData
+	269, // 169: jungletv.PlayedMediaHistoryRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	198, // 170: jungletv.PlayedMediaHistoryResponse.played_media:type_name -> jungletv.PlayedMedia
+	269, // 171: jungletv.BlockedUsersRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	266, // 172: jungletv.BlockedUser.blocked_user:type_name -> jungletv.User
+	266, // 173: jungletv.BlockedUser.blocked_by:type_name -> jungletv.User
+	263, // 174: jungletv.BlockedUser.created_at:type_name -> google.protobuf.Timestamp
+	212, // 175: jungletv.BlockedUsersResponse.blocked_users:type_name -> jungletv.BlockedUser
+	220, // 176: jungletv.PointsInfoResponse.current_subscription:type_name -> jungletv.SubscriptionDetails
+	263, // 177: jungletv.SubscriptionDetails.subscribed_at:type_name -> google.protobuf.Timestamp
+	263, // 178: jungletv.SubscriptionDetails.subscribed_until:type_name -> google.protobuf.Timestamp
+	269, // 179: jungletv.PointsTransactionsRequest.pagination_params:type_name -> jungletv.PaginationParameters
+	223, // 180: jungletv.PointsTransactionsResponse.transactions:type_name -> jungletv.PointsTransaction
+	263, // 181: jungletv.PointsTransaction.created_at:type_name -> google.protobuf.Timestamp
+	263, // 182: jungletv.PointsTransaction.updated_at:type_name -> google.protobuf.Timestamp
+	12,  // 183: jungletv.PointsTransaction.type:type_name -> jungletv.PointsTransactionType
+	262, // 184: jungletv.PointsTransaction.extra:type_name -> jungletv.PointsTransaction.ExtraEntry
+	226, // 185: jungletv.ChatGifSearchResponse.results:type_name -> jungletv.ChatGifSearchResult
+	263, // 186: jungletv.ConvertBananoToPointsStatus.expiration:type_name -> google.protobuf.Timestamp
+	220, // 187: jungletv.StartOrExtendSubscriptionResponse.subscription:type_name -> jungletv.SubscriptionDetails
+	264, // 188: jungletv.SoundCloudTrackDetailsResponse.length:type_name -> google.protobuf.Duration
+	13,  // 189: jungletv.AddVipUserRequest.appearance:type_name -> jungletv.VipUserAppearance
+	5,   // 190: jungletv.MediaEnqueuingPermissionStatus.allowed_media_enqueuing:type_name -> jungletv.AllowedMediaEnqueuingType
+	6,   // 191: jungletv.AuthorizeApplicationRequest.desired_permission_level:type_name -> jungletv.PermissionLevel
+	255, // 192: jungletv.AuthorizeApplicationEvent.heartbeat:type_name -> jungletv.AuthorizeApplicationHeartbeatEvent
+	256, // 193: jungletv.AuthorizeApplicationEvent.authorization_url:type_name -> jungletv.AuthorizeApplicationAuthorizationURLEvent
+	257, // 194: jungletv.AuthorizeApplicationEvent.approved:type_name -> jungletv.AuthorizeApplicationApprovedEvent
+	263, // 195: jungletv.AuthorizeApplicationApprovedEvent.token_expiration:type_name -> google.protobuf.Timestamp
+	6,   // 196: jungletv.AuthorizationProcessDataResponse.desired_permission_level:type_name -> jungletv.PermissionLevel
+	14,  // 197: jungletv.JungleTV.SignIn:input_type -> jungletv.SignInRequest
+	22,  // 198: jungletv.JungleTV.VerifySignInSignature:input_type -> jungletv.VerifySignInSignatureRequest
+	26,  // 199: jungletv.JungleTV.EnqueueMedia:input_type -> jungletv.EnqueueMediaRequest
+	32,  // 200: jungletv.JungleTV.RemoveOwnQueueEntry:input_type -> jungletv.RemoveOwnQueueEntryRequest
+	34,  // 201: jungletv.JungleTV.MoveQueueEntry:input_type -> jungletv.MoveQueueEntryRequest
+	31,  // 202: jungletv.JungleTV.MonitorTicket:input_type -> jungletv.MonitorTicketRequest
+	36,  // 203: jungletv.JungleTV.ConsumeMedia:input_type -> jungletv.ConsumeMediaRequest
+	43,  // 204: jungletv.JungleTV.MonitorQueue:input_type -> jungletv.MonitorQueueRequest
+	51,  // 205: jungletv.JungleTV.MonitorSkipAndTip:input_type -> jungletv.MonitorSkipAndTipRequest
+	53,  // 206: jungletv.JungleTV.RewardInfo:input_type -> jungletv.RewardInfoRequest
+	59,  // 207: jungletv.JungleTV.SubmitActivityChallenge:input_type -> jungletv.SubmitActivityChallengeRequest
+	149, // 208: jungletv.JungleTV.ProduceSegchaChallenge:input_type -> jungletv.ProduceSegchaChallengeRequest
+	61,  // 209: jungletv.JungleTV.ConsumeChat:input_type -> jungletv.ConsumeChatRequest
+	78,  // 210: jungletv.JungleTV.SendChatMessage:input_type -> jungletv.SendChatMessageRequest
+	102, // 211: jungletv.JungleTV.UserPermissionLevel:input_type -> jungletv.UserPermissionLevelRequest
+	118, // 212: jungletv.JungleTV.GetDocument:input_type -> jungletv.GetDocumentRequest
+	124, // 213: jungletv.JungleTV.SetChatNickname:input_type -> jungletv.SetChatNicknameRequest
+	132, // 214: jungletv.JungleTV.Withdraw:input_type -> jungletv.WithdrawRequest
+	134, // 215: jungletv.JungleTV.Leaderboards:input_type -> jungletv.LeaderboardsRequest
+	139, // 216: jungletv.JungleTV.RewardHistory:input_type -> jungletv.RewardHistoryRequest
+	142, // 217: jungletv.JungleTV.WithdrawalHistory:input_type -> jungletv.WithdrawalHistoryRequest
+	158, // 218: jungletv.JungleTV.OngoingRaffleInfo:input_type -> jungletv.OngoingRaffleInfoRequest
+	162, // 219: jungletv.JungleTV.RaffleDrawings:input_type -> jungletv.RaffleDrawingsRequest
+	180, // 220: jungletv.JungleTV.Connections:input_type -> jungletv.ConnectionsRequest
+	184, // 221: jungletv.JungleTV.CreateConnection:input_type -> jungletv.CreateConnectionRequest
+	186, // 222: jungletv.JungleTV.RemoveConnection:input_type -> jungletv.RemoveConnectionRequest
+	192, // 223: jungletv.JungleTV.UserProfile:input_type -> jungletv.UserProfileRequest
+	195, // 224: jungletv.JungleTV.UserStats:input_type -> jungletv.UserStatsRequest
+	199, // 225: jungletv.JungleTV.SetProfileBiography:input_type -> jungletv.SetProfileBiographyRequest
+	201, // 226: jungletv.JungleTV.SetProfileFeaturedMedia:input_type -> jungletv.SetProfileFeaturedMediaRequest
+	205, // 227: jungletv.JungleTV.PlayedMediaHistory:input_type -> jungletv.PlayedMediaHistoryRequest
+	207, // 228: jungletv.JungleTV.BlockUser:input_type -> jungletv.BlockUserRequest
+	209, // 229: jungletv.JungleTV.UnblockUser:input_type -> jungletv.UnblockUserRequest
+	211, // 230: jungletv.JungleTV.BlockedUsers:input_type -> jungletv.BlockedUsersRequest
+	218, // 231: jungletv.JungleTV.PointsInfo:input_type -> jungletv.PointsInfoRequest
+	221, // 232: jungletv.JungleTV.PointsTransactions:input_type -> jungletv.PointsTransactionsRequest
+	224, // 233: jungletv.JungleTV.ChatGifSearch:input_type -> jungletv.ChatGifSearchRequest
+	229, // 234: jungletv.JungleTV.ConvertBananoToPoints:input_type -> jungletv.ConvertBananoToPointsRequest
+	231, // 235: jungletv.JungleTV.StartOrExtendSubscription:input_type -> jungletv.StartOrExtendSubscriptionRequest
+	233, // 236: jungletv.JungleTV.SoundCloudTrackDetails:input_type -> jungletv.SoundCloudTrackDetailsRequest
+	241, // 237: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:input_type -> jungletv.IncreaseOrReduceSkipThresholdRequest
+	245, // 238: jungletv.JungleTV.CheckMediaEnqueuingPassword:input_type -> jungletv.CheckMediaEnqueuingPasswordRequest
+	247, // 239: jungletv.JungleTV.MonitorMediaEnqueuingPermission:input_type -> jungletv.MonitorMediaEnqueuingPermissionRequest
+	249, // 240: jungletv.JungleTV.InvalidateAuthTokens:input_type -> jungletv.InvalidateAuthTokensRequest
+	253, // 241: jungletv.JungleTV.AuthorizeApplication:input_type -> jungletv.AuthorizeApplicationRequest
+	258, // 242: jungletv.JungleTV.AuthorizationProcessData:input_type -> jungletv.AuthorizationProcessDataRequest
+	260, // 243: jungletv.JungleTV.ConsentOrDissentToAuthorization:input_type -> jungletv.ConsentOrDissentToAuthorizationRequest
+	57,  // 244: jungletv.JungleTV.ForciblyEnqueueTicket:input_type -> jungletv.ForciblyEnqueueTicketRequest
+	55,  // 245: jungletv.JungleTV.RemoveQueueEntry:input_type -> jungletv.RemoveQueueEntryRequest
+	80,  // 246: jungletv.JungleTV.RemoveChatMessage:input_type -> jungletv.RemoveChatMessageRequest
+	82,  // 247: jungletv.JungleTV.SetChatSettings:input_type -> jungletv.SetChatSettingsRequest
+	98,  // 248: jungletv.JungleTV.SetMediaEnqueuingEnabled:input_type -> jungletv.SetMediaEnqueuingEnabledRequest
+	89,  // 249: jungletv.JungleTV.UserBans:input_type -> jungletv.UserBansRequest
+	84,  // 250: jungletv.JungleTV.BanUser:input_type -> jungletv.BanUserRequest
+	86,  // 251: jungletv.JungleTV.RemoveBan:input_type -> jungletv.RemoveBanRequest
+	96,  // 252: jungletv.JungleTV.UserVerifications:input_type -> jungletv.UserVerificationsRequest
+	91,  // 253: jungletv.JungleTV.VerifyUser:input_type -> jungletv.VerifyUserRequest
+	93,  // 254: jungletv.JungleTV.RemoveUserVerification:input_type -> jungletv.RemoveUserVerificationRequest
+	100, // 255: jungletv.JungleTV.UserChatMessages:input_type -> jungletv.UserChatMessagesRequest
+	104, // 256: jungletv.JungleTV.DisallowedMedia:input_type -> jungletv.DisallowedMediaRequest
+	107, // 257: jungletv.JungleTV.AddDisallowedMedia:input_type -> jungletv.AddDisallowedMediaRequest
+	109, // 258: jungletv.JungleTV.RemoveDisallowedMedia:input_type -> jungletv.RemoveDisallowedMediaRequest
+	111, // 259: jungletv.JungleTV.DisallowedMediaCollections:input_type -> jungletv.DisallowedMediaCollectionsRequest
+	114, // 260: jungletv.JungleTV.AddDisallowedMediaCollection:input_type -> jungletv.AddDisallowedMediaCollectionRequest
+	116, // 261: jungletv.JungleTV.RemoveDisallowedMediaCollection:input_type -> jungletv.RemoveDisallowedMediaCollectionRequest
+	119, // 262: jungletv.JungleTV.UpdateDocument:input_type -> jungletv.Document
+	121, // 263: jungletv.JungleTV.Documents:input_type -> jungletv.DocumentsRequest
+	126, // 264: jungletv.JungleTV.SetUserChatNickname:input_type -> jungletv.SetUserChatNicknameRequest
+	128, // 265: jungletv.JungleTV.SetPricesMultiplier:input_type -> jungletv.SetPricesMultiplierRequest
+	130, // 266: jungletv.JungleTV.SetMinimumPricesMultiplier:input_type -> jungletv.SetMinimumPricesMultiplierRequest
+	145, // 267: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:input_type -> jungletv.SetCrowdfundedSkippingEnabledRequest
+	147, // 268: jungletv.JungleTV.SetSkipPriceMultiplier:input_type -> jungletv.SetSkipPriceMultiplierRequest
+	152, // 269: jungletv.JungleTV.ConfirmRaffleWinner:input_type -> jungletv.ConfirmRaffleWinnerRequest
+	154, // 270: jungletv.JungleTV.CompleteRaffle:input_type -> jungletv.CompleteRaffleRequest
+	156, // 271: jungletv.JungleTV.RedrawRaffle:input_type -> jungletv.RedrawRaffleRequest
+	164, // 272: jungletv.JungleTV.TriggerAnnouncementsNotification:input_type -> jungletv.TriggerAnnouncementsNotificationRequest
+	166, // 273: jungletv.JungleTV.SpectatorInfo:input_type -> jungletv.SpectatorInfoRequest
+	168, // 274: jungletv.JungleTV.ResetSpectatorStatus:input_type -> jungletv.ResetSpectatorStatusRequest
+	170, // 275: jungletv.JungleTV.MonitorModerationStatus:input_type -> jungletv.MonitorModerationStatusRequest
+	174, // 276: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:input_type -> jungletv.SetOwnQueueEntryRemovalAllowedRequest
+	172, // 277: jungletv.JungleTV.SetQueueEntryReorderingAllowed:input_type -> jungletv.SetQueueEntryReorderingAllowedRequest
+	176, // 278: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:input_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableRequest
+	178, // 279: jungletv.JungleTV.SetSkippingEnabled:input_type -> jungletv.SetSkippingEnabledRequest
+	188, // 280: jungletv.JungleTV.SetQueueInsertCursor:input_type -> jungletv.SetQueueInsertCursorRequest
+	190, // 281: jungletv.JungleTV.ClearQueueInsertCursor:input_type -> jungletv.ClearQueueInsertCursorRequest
+	203, // 282: jungletv.JungleTV.ClearUserProfile:input_type -> jungletv.ClearUserProfileRequest
+	214, // 283: jungletv.JungleTV.MarkAsActivelyModerating:input_type -> jungletv.MarkAsActivelyModeratingRequest
+	216, // 284: jungletv.JungleTV.StopActivelyModerating:input_type -> jungletv.StopActivelyModeratingRequest
+	227, // 285: jungletv.JungleTV.AdjustPointsBalance:input_type -> jungletv.AdjustPointsBalanceRequest
+	235, // 286: jungletv.JungleTV.AddVipUser:input_type -> jungletv.AddVipUserRequest
+	237, // 287: jungletv.JungleTV.RemoveVipUser:input_type -> jungletv.RemoveVipUserRequest
+	239, // 288: jungletv.JungleTV.TriggerClientReload:input_type -> jungletv.TriggerClientReloadRequest
+	243, // 289: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:input_type -> jungletv.SetMulticurrencyPaymentsEnabledRequest
+	251, // 290: jungletv.JungleTV.InvalidateUserAuthTokens:input_type -> jungletv.InvalidateUserAuthTokensRequest
+	270, // 291: jungletv.JungleTV.Applications:input_type -> jungletv.ApplicationsRequest
+	271, // 292: jungletv.JungleTV.GetApplication:input_type -> jungletv.GetApplicationRequest
+	272, // 293: jungletv.JungleTV.UpdateApplication:input_type -> jungletv.Application
+	273, // 294: jungletv.JungleTV.CloneApplication:input_type -> jungletv.CloneApplicationRequest
+	274, // 295: jungletv.JungleTV.DeleteApplication:input_type -> jungletv.DeleteApplicationRequest
+	275, // 296: jungletv.JungleTV.ApplicationFiles:input_type -> jungletv.ApplicationFilesRequest
+	276, // 297: jungletv.JungleTV.GetApplicationFile:input_type -> jungletv.GetApplicationFileRequest
+	277, // 298: jungletv.JungleTV.UpdateApplicationFile:input_type -> jungletv.ApplicationFile
+	278, // 299: jungletv.JungleTV.CloneApplicationFile:input_type -> jungletv.CloneApplicationFileRequest
+	279, // 300: jungletv.JungleTV.DeleteApplicationFile:input_type -> jungletv.DeleteApplicationFileRequest
+	280, // 301: jungletv.JungleTV.LaunchApplication:input_type -> jungletv.LaunchApplicationRequest
+	281, // 302: jungletv.JungleTV.StopApplication:input_type -> jungletv.StopApplicationRequest
+	282, // 303: jungletv.JungleTV.ApplicationLog:input_type -> jungletv.ApplicationLogRequest
+	283, // 304: jungletv.JungleTV.ConsumeApplicationLog:input_type -> jungletv.ConsumeApplicationLogRequest
+	284, // 305: jungletv.JungleTV.MonitorRunningApplications:input_type -> jungletv.MonitorRunningApplicationsRequest
+	285, // 306: jungletv.JungleTV.EvaluateExpressionOnApplication:input_type -> jungletv.EvaluateExpressionOnApplicationRequest
+	286, // 307: jungletv.JungleTV.ExportApplication:input_type -> jungletv.ExportApplicationRequest
+	287, // 308: jungletv.JungleTV.ImportApplication:input_type -> jungletv.ImportApplicationRequest
+	288, // 309: jungletv.JungleTV.TypeScriptTypeDefinitions:input_type -> jungletv.TypeScriptTypeDefinitionsRequest
+	289, // 310: jungletv.JungleTV.ResolveApplicationPage:input_type -> jungletv.ResolveApplicationPageRequest
+	290, // 311: jungletv.JungleTV.ConsumeApplicationEvents:input_type -> jungletv.ConsumeApplicationEventsRequest
+	291, // 312: jungletv.JungleTV.ApplicationServerMethod:input_type -> jungletv.ApplicationServerMethodRequest
+	292, // 313: jungletv.JungleTV.TriggerApplicationEvent:input_type -> jungletv.TriggerApplicationEventRequest
+	16,  // 314: jungletv.JungleTV.SignIn:output_type -> jungletv.SignInProgress
+	19,  // 315: jungletv.JungleTV.VerifySignInSignature:output_type -> jungletv.SignInResponse
+	27,  // 316: jungletv.JungleTV.EnqueueMedia:output_type -> jungletv.EnqueueMediaResponse
+	33,  // 317: jungletv.JungleTV.RemoveOwnQueueEntry:output_type -> jungletv.RemoveOwnQueueEntryResponse
+	35,  // 318: jungletv.JungleTV.MoveQueueEntry:output_type -> jungletv.MoveQueueEntryResponse
+	29,  // 319: jungletv.JungleTV.MonitorTicket:output_type -> jungletv.EnqueueMediaTicket
+	41,  // 320: jungletv.JungleTV.ConsumeMedia:output_type -> jungletv.MediaConsumptionCheckpoint
+	44,  // 321: jungletv.JungleTV.MonitorQueue:output_type -> jungletv.Queue
+	52,  // 322: jungletv.JungleTV.MonitorSkipAndTip:output_type -> jungletv.SkipAndTipStatus
+	54,  // 323: jungletv.JungleTV.RewardInfo:output_type -> jungletv.RewardInfoResponse
+	60,  // 324: jungletv.JungleTV.SubmitActivityChallenge:output_type -> jungletv.SubmitActivityChallengeResponse
+	150, // 325: jungletv.JungleTV.ProduceSegchaChallenge:output_type -> jungletv.ProduceSegchaChallengeResponse
+	62,  // 326: jungletv.JungleTV.ConsumeChat:output_type -> jungletv.ChatUpdate
+	79,  // 327: jungletv.JungleTV.SendChatMessage:output_type -> jungletv.SendChatMessageResponse
+	103, // 328: jungletv.JungleTV.UserPermissionLevel:output_type -> jungletv.UserPermissionLevelResponse
+	119, // 329: jungletv.JungleTV.GetDocument:output_type -> jungletv.Document
+	125, // 330: jungletv.JungleTV.SetChatNickname:output_type -> jungletv.SetChatNicknameResponse
+	133, // 331: jungletv.JungleTV.Withdraw:output_type -> jungletv.WithdrawResponse
+	135, // 332: jungletv.JungleTV.Leaderboards:output_type -> jungletv.LeaderboardsResponse
+	141, // 333: jungletv.JungleTV.RewardHistory:output_type -> jungletv.RewardHistoryResponse
+	144, // 334: jungletv.JungleTV.WithdrawalHistory:output_type -> jungletv.WithdrawalHistoryResponse
+	159, // 335: jungletv.JungleTV.OngoingRaffleInfo:output_type -> jungletv.OngoingRaffleInfoResponse
+	163, // 336: jungletv.JungleTV.RaffleDrawings:output_type -> jungletv.RaffleDrawingsResponse
+	183, // 337: jungletv.JungleTV.Connections:output_type -> jungletv.ConnectionsResponse
+	185, // 338: jungletv.JungleTV.CreateConnection:output_type -> jungletv.CreateConnectionResponse
+	187, // 339: jungletv.JungleTV.RemoveConnection:output_type -> jungletv.RemoveConnectionResponse
+	193, // 340: jungletv.JungleTV.UserProfile:output_type -> jungletv.UserProfileResponse
+	197, // 341: jungletv.JungleTV.UserStats:output_type -> jungletv.UserStatsResponse
+	200, // 342: jungletv.JungleTV.SetProfileBiography:output_type -> jungletv.SetProfileBiographyResponse
+	202, // 343: jungletv.JungleTV.SetProfileFeaturedMedia:output_type -> jungletv.SetProfileFeaturedMediaResponse
+	206, // 344: jungletv.JungleTV.PlayedMediaHistory:output_type -> jungletv.PlayedMediaHistoryResponse
+	208, // 345: jungletv.JungleTV.BlockUser:output_type -> jungletv.BlockUserResponse
+	210, // 346: jungletv.JungleTV.UnblockUser:output_type -> jungletv.UnblockUserResponse
+	213, // 347: jungletv.JungleTV.BlockedUsers:output_type -> jungletv.BlockedUsersResponse
+	219, // 348: jungletv.JungleTV.PointsInfo:output_type -> jungletv.PointsInfoResponse
+	222, // 349: jungletv.JungleTV.PointsTransactions:output_type -> jungletv.PointsTransactionsResponse
+	225, // 350: jungletv.JungleTV.ChatGifSearch:output_type -> jungletv.ChatGifSearchResponse
+	230, // 351: jungletv.JungleTV.ConvertBananoToPoints:output_type -> jungletv.ConvertBananoToPointsStatus
+	232, // 352: jungletv.JungleTV.StartOrExtendSubscription:output_type -> jungletv.StartOrExtendSubscriptionResponse
+	234, // 353: jungletv.JungleTV.SoundCloudTrackDetails:output_type -> jungletv.SoundCloudTrackDetailsResponse
+	242, // 354: jungletv.JungleTV.IncreaseOrReduceSkipThreshold:output_type -> jungletv.IncreaseOrReduceSkipThresholdResponse
+	246, // 355: jungletv.JungleTV.CheckMediaEnqueuingPassword:output_type -> jungletv.CheckMediaEnqueuingPasswordResponse
+	248, // 356: jungletv.JungleTV.MonitorMediaEnqueuingPermission:output_type -> jungletv.MediaEnqueuingPermissionStatus
+	250, // 357: jungletv.JungleTV.InvalidateAuthTokens:output_type -> jungletv.InvalidateAuthTokensResponse
+	254, // 358: jungletv.JungleTV.AuthorizeApplication:output_type -> jungletv.AuthorizeApplicationEvent
+	259, // 359: jungletv.JungleTV.AuthorizationProcessData:output_type -> jungletv.AuthorizationProcessDataResponse
+	261, // 360: jungletv.JungleTV.ConsentOrDissentToAuthorization:output_type -> jungletv.ConsentOrDissentToAuthorizationResponse
+	58,  // 361: jungletv.JungleTV.ForciblyEnqueueTicket:output_type -> jungletv.ForciblyEnqueueTicketResponse
+	56,  // 362: jungletv.JungleTV.RemoveQueueEntry:output_type -> jungletv.RemoveQueueEntryResponse
+	81,  // 363: jungletv.JungleTV.RemoveChatMessage:output_type -> jungletv.RemoveChatMessageResponse
+	83,  // 364: jungletv.JungleTV.SetChatSettings:output_type -> jungletv.SetChatSettingsResponse
+	99,  // 365: jungletv.JungleTV.SetMediaEnqueuingEnabled:output_type -> jungletv.SetMediaEnqueuingEnabledResponse
+	90,  // 366: jungletv.JungleTV.UserBans:output_type -> jungletv.UserBansResponse
+	85,  // 367: jungletv.JungleTV.BanUser:output_type -> jungletv.BanUserResponse
+	87,  // 368: jungletv.JungleTV.RemoveBan:output_type -> jungletv.RemoveBanResponse
+	97,  // 369: jungletv.JungleTV.UserVerifications:output_type -> jungletv.UserVerificationsResponse
+	92,  // 370: jungletv.JungleTV.VerifyUser:output_type -> jungletv.VerifyUserResponse
+	94,  // 371: jungletv.JungleTV.RemoveUserVerification:output_type -> jungletv.RemoveUserVerificationResponse
+	101, // 372: jungletv.JungleTV.UserChatMessages:output_type -> jungletv.UserChatMessagesResponse
+	106, // 373: jungletv.JungleTV.DisallowedMedia:output_type -> jungletv.DisallowedMediaResponse
+	108, // 374: jungletv.JungleTV.AddDisallowedMedia:output_type -> jungletv.AddDisallowedMediaResponse
+	110, // 375: jungletv.JungleTV.RemoveDisallowedMedia:output_type -> jungletv.RemoveDisallowedMediaResponse
+	113, // 376: jungletv.JungleTV.DisallowedMediaCollections:output_type -> jungletv.DisallowedMediaCollectionsResponse
+	115, // 377: jungletv.JungleTV.AddDisallowedMediaCollection:output_type -> jungletv.AddDisallowedMediaCollectionResponse
+	117, // 378: jungletv.JungleTV.RemoveDisallowedMediaCollection:output_type -> jungletv.RemoveDisallowedMediaCollectionResponse
+	120, // 379: jungletv.JungleTV.UpdateDocument:output_type -> jungletv.UpdateDocumentResponse
+	123, // 380: jungletv.JungleTV.Documents:output_type -> jungletv.DocumentsResponse
+	127, // 381: jungletv.JungleTV.SetUserChatNickname:output_type -> jungletv.SetUserChatNicknameResponse
+	129, // 382: jungletv.JungleTV.SetPricesMultiplier:output_type -> jungletv.SetPricesMultiplierResponse
+	131, // 383: jungletv.JungleTV.SetMinimumPricesMultiplier:output_type -> jungletv.SetMinimumPricesMultiplierResponse
+	146, // 384: jungletv.JungleTV.SetCrowdfundedSkippingEnabled:output_type -> jungletv.SetCrowdfundedSkippingEnabledResponse
+	148, // 385: jungletv.JungleTV.SetSkipPriceMultiplier:output_type -> jungletv.SetSkipPriceMultiplierResponse
+	153, // 386: jungletv.JungleTV.ConfirmRaffleWinner:output_type -> jungletv.ConfirmRaffleWinnerResponse
+	155, // 387: jungletv.JungleTV.CompleteRaffle:output_type -> jungletv.CompleteRaffleResponse
+	157, // 388: jungletv.JungleTV.RedrawRaffle:output_type -> jungletv.RedrawRaffleResponse
+	165, // 389: jungletv.JungleTV.TriggerAnnouncementsNotification:output_type -> jungletv.TriggerAnnouncementsNotificationResponse
+	167, // 390: jungletv.JungleTV.SpectatorInfo:output_type -> jungletv.Spectator
+	169, // 391: jungletv.JungleTV.ResetSpectatorStatus:output_type -> jungletv.ResetSpectatorStatusResponse
+	171, // 392: jungletv.JungleTV.MonitorModerationStatus:output_type -> jungletv.ModerationStatusOverview
+	175, // 393: jungletv.JungleTV.SetOwnQueueEntryRemovalAllowed:output_type -> jungletv.SetOwnQueueEntryRemovalAllowedResponse
+	173, // 394: jungletv.JungleTV.SetQueueEntryReorderingAllowed:output_type -> jungletv.SetQueueEntryReorderingAllowedResponse
+	177, // 395: jungletv.JungleTV.SetNewQueueEntriesAlwaysUnskippable:output_type -> jungletv.SetNewQueueEntriesAlwaysUnskippableResponse
+	179, // 396: jungletv.JungleTV.SetSkippingEnabled:output_type -> jungletv.SetSkippingEnabledResponse
+	189, // 397: jungletv.JungleTV.SetQueueInsertCursor:output_type -> jungletv.SetQueueInsertCursorResponse
+	191, // 398: jungletv.JungleTV.ClearQueueInsertCursor:output_type -> jungletv.ClearQueueInsertCursorResponse
+	204, // 399: jungletv.JungleTV.ClearUserProfile:output_type -> jungletv.ClearUserProfileResponse
+	215, // 400: jungletv.JungleTV.MarkAsActivelyModerating:output_type -> jungletv.MarkAsActivelyModeratingResponse
+	217, // 401: jungletv.JungleTV.StopActivelyModerating:output_type -> jungletv.StopActivelyModeratingResponse
+	228, // 402: jungletv.JungleTV.AdjustPointsBalance:output_type -> jungletv.AdjustPointsBalanceResponse
+	236, // 403: jungletv.JungleTV.AddVipUser:output_type -> jungletv.AddVipUserResponse
+	238, // 404: jungletv.JungleTV.RemoveVipUser:output_type -> jungletv.RemoveVipUserResponse
+	240, // 405: jungletv.JungleTV.TriggerClientReload:output_type -> jungletv.TriggerClientReloadResponse
+	244, // 406: jungletv.JungleTV.SetMulticurrencyPaymentsEnabled:output_type -> jungletv.SetMulticurrencyPaymentsEnabledResponse
+	252, // 407: jungletv.JungleTV.InvalidateUserAuthTokens:output_type -> jungletv.InvalidateUserAuthTokensResponse
+	293, // 408: jungletv.JungleTV.Applications:output_type -> jungletv.ApplicationsResponse
+	272, // 409: jungletv.JungleTV.GetApplication:output_type -> jungletv.Application
+	294, // 410: jungletv.JungleTV.UpdateApplication:output_type -> jungletv.UpdateApplicationResponse
+	295, // 411: jungletv.JungleTV.CloneApplication:output_type -> jungletv.CloneApplicationResponse
+	296, // 412: jungletv.JungleTV.DeleteApplication:output_type -> jungletv.DeleteApplicationResponse
+	297, // 413: jungletv.JungleTV.ApplicationFiles:output_type -> jungletv.ApplicationFilesResponse
+	277, // 414: jungletv.JungleTV.GetApplicationFile:output_type -> jungletv.ApplicationFile
+	298, // 415: jungletv.JungleTV.UpdateApplicationFile:output_type -> jungletv.UpdateApplicationFileResponse
+	299, // 416: jungletv.JungleTV.CloneApplicationFile:output_type -> jungletv.CloneApplicationFileResponse
+	300, // 417: jungletv.JungleTV.DeleteApplicationFile:output_type -> jungletv.DeleteApplicationFileResponse
+	301, // 418: jungletv.JungleTV.LaunchApplication:output_type -> jungletv.LaunchApplicationResponse
+	302, // 419: jungletv.JungleTV.StopApplication:output_type -> jungletv.StopApplicationResponse
+	303, // 420: jungletv.JungleTV.ApplicationLog:output_type -> jungletv.ApplicationLogResponse
+	304, // 421: jungletv.JungleTV.ConsumeApplicationLog:output_type -> jungletv.ApplicationLogEntryContainer
+	305, // 422: jungletv.JungleTV.MonitorRunningApplications:output_type -> jungletv.RunningApplications
+	306, // 423: jungletv.JungleTV.EvaluateExpressionOnApplication:output_type -> jungletv.EvaluateExpressionOnApplicationResponse
+	307, // 424: jungletv.JungleTV.ExportApplication:output_type -> jungletv.ExportApplicationResponse
+	308, // 425: jungletv.JungleTV.ImportApplication:output_type -> jungletv.ImportApplicationResponse
+	309, // 426: jungletv.JungleTV.TypeScriptTypeDefinitions:output_type -> jungletv.TypeScriptTypeDefinitionsResponse
+	265, // 427: jungletv.JungleTV.ResolveApplicationPage:output_type -> jungletv.ResolveApplicationPageResponse
+	310, // 428: jungletv.JungleTV.ConsumeApplicationEvents:output_type -> jungletv.ApplicationEventUpdate
+	311, // 429: jungletv.JungleTV.ApplicationServerMethod:output_type -> jungletv.ApplicationServerMethodResponse
+	312, // 430: jungletv.JungleTV.TriggerApplicationEvent:output_type -> jungletv.TriggerApplicationEventResponse
+	314, // [314:431] is the sub-list for method output_type
+	197, // [197:314] is the sub-list for method input_type
+	197, // [197:197] is the sub-list for extension type_name
+	197, // [197:197] is the sub-list for extension extendee
+	0,   // [0:197] is the sub-list for field type_name
 }
 
 func init() { file_jungletv_proto_init() }
@@ -19107,18 +18987,6 @@ func file_jungletv_proto_init() {
 			}
 		}
 		file_jungletv_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EnqueueStubData); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_jungletv_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnqueueMediaRequest); i {
 			case 0:
 				return &v.state
@@ -19130,7 +18998,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnqueueMediaResponse); i {
 			case 0:
 				return &v.state
@@ -19142,7 +19010,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnqueueMediaFailure); i {
 			case 0:
 				return &v.state
@@ -19154,7 +19022,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnqueueMediaTicket); i {
 			case 0:
 				return &v.state
@@ -19166,7 +19034,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ExtraCurrencyPaymentData); i {
 			case 0:
 				return &v.state
@@ -19178,7 +19046,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MonitorTicketRequest); i {
 			case 0:
 				return &v.state
@@ -19190,7 +19058,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveOwnQueueEntryRequest); i {
 			case 0:
 				return &v.state
@@ -19202,7 +19070,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveOwnQueueEntryResponse); i {
 			case 0:
 				return &v.state
@@ -19214,7 +19082,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MoveQueueEntryRequest); i {
 			case 0:
 				return &v.state
@@ -19226,7 +19094,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MoveQueueEntryResponse); i {
 			case 0:
 				return &v.state
@@ -19238,7 +19106,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConsumeMediaRequest); i {
 			case 0:
 				return &v.state
@@ -19250,19 +19118,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NowPlayingStubData); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_jungletv_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NowPlayingYouTubeVideoData); i {
 			case 0:
 				return &v.state
@@ -19274,7 +19130,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NowPlayingSoundCloudTrackData); i {
 			case 0:
 				return &v.state
@@ -19286,7 +19142,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NowPlayingDocumentData); i {
 			case 0:
 				return &v.state
@@ -19298,7 +19154,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NowPlayingApplicationPageData); i {
 			case 0:
 				return &v.state
@@ -19310,7 +19166,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MediaConsumptionCheckpoint); i {
 			case 0:
 				return &v.state
@@ -19322,7 +19178,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ActivityChallenge); i {
 			case 0:
 				return &v.state
@@ -19334,7 +19190,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MonitorQueueRequest); i {
 			case 0:
 				return &v.state
@@ -19346,7 +19202,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Queue); i {
 			case 0:
 				return &v.state
@@ -19358,7 +19214,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueYouTubeVideoData); i {
 			case 0:
 				return &v.state
@@ -19370,7 +19226,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueSoundCloudTrackData); i {
 			case 0:
 				return &v.state
@@ -19382,7 +19238,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueDocumentData); i {
 			case 0:
 				return &v.state
@@ -19394,7 +19250,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueApplicationPageData); i {
 			case 0:
 				return &v.state
@@ -19406,7 +19262,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueConcealedData); i {
 			case 0:
 				return &v.state
@@ -19418,7 +19274,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueueEntry); i {
 			case 0:
 				return &v.state
@@ -19430,7 +19286,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MonitorSkipAndTipRequest); i {
 			case 0:
 				return &v.state
@@ -19442,7 +19298,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SkipAndTipStatus); i {
 			case 0:
 				return &v.state
@@ -19454,7 +19310,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RewardInfoRequest); i {
 			case 0:
 				return &v.state
@@ -19466,7 +19322,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RewardInfoResponse); i {
 			case 0:
 				return &v.state
@@ -19478,7 +19334,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveQueueEntryRequest); i {
 			case 0:
 				return &v.state
@@ -19490,7 +19346,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveQueueEntryResponse); i {
 			case 0:
 				return &v.state
@@ -19502,7 +19358,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForciblyEnqueueTicketRequest); i {
 			case 0:
 				return &v.state
@@ -19514,7 +19370,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForciblyEnqueueTicketResponse); i {
 			case 0:
 				return &v.state
@@ -19526,7 +19382,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SubmitActivityChallengeRequest); i {
 			case 0:
 				return &v.state
@@ -19538,7 +19394,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SubmitActivityChallengeResponse); i {
 			case 0:
 				return &v.state
@@ -19550,7 +19406,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConsumeChatRequest); i {
 			case 0:
 				return &v.state
@@ -19562,7 +19418,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatUpdate); i {
 			case 0:
 				return &v.state
@@ -19574,7 +19430,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatUpdateEvent); i {
 			case 0:
 				return &v.state
@@ -19586,7 +19442,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessage); i {
 			case 0:
 				return &v.state
@@ -19598,7 +19454,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessageAttachment); i {
 			case 0:
 				return &v.state
@@ -19610,7 +19466,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessageTenorGifAttachment); i {
 			case 0:
 				return &v.state
@@ -19622,7 +19478,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessageApplicationPageAttachment); i {
 			case 0:
 				return &v.state
@@ -19634,7 +19490,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserChatMessage); i {
 			case 0:
 				return &v.state
@@ -19646,7 +19502,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SystemChatMessage); i {
 			case 0:
 				return &v.state
@@ -19658,7 +19514,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatDisabledEvent); i {
 			case 0:
 				return &v.state
@@ -19670,7 +19526,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatEnabledEvent); i {
 			case 0:
 				return &v.state
@@ -19682,7 +19538,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessageCreatedEvent); i {
 			case 0:
 				return &v.state
@@ -19694,7 +19550,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatMessageDeletedEvent); i {
 			case 0:
 				return &v.state
@@ -19706,7 +19562,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatHeartbeatEvent); i {
 			case 0:
 				return &v.state
@@ -19718,7 +19574,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatBlockedUserCreatedEvent); i {
 			case 0:
 				return &v.state
@@ -19730,7 +19586,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatBlockedUserDeletedEvent); i {
 			case 0:
 				return &v.state
@@ -19742,7 +19598,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatEmoteCreatedEvent); i {
 			case 0:
 				return &v.state
@@ -19754,7 +19610,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SendChatMessageRequest); i {
 			case 0:
 				return &v.state
@@ -19766,7 +19622,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SendChatMessageResponse); i {
 			case 0:
 				return &v.state
@@ -19778,7 +19634,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveChatMessageRequest); i {
 			case 0:
 				return &v.state
@@ -19790,7 +19646,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveChatMessageResponse); i {
 			case 0:
 				return &v.state
@@ -19802,7 +19658,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetChatSettingsRequest); i {
 			case 0:
 				return &v.state
@@ -19814,7 +19670,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetChatSettingsResponse); i {
 			case 0:
 				return &v.state
@@ -19826,7 +19682,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BanUserRequest); i {
 			case 0:
 				return &v.state
@@ -19838,7 +19694,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BanUserResponse); i {
 			case 0:
 				return &v.state
@@ -19850,7 +19706,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveBanRequest); i {
 			case 0:
 				return &v.state
@@ -19862,7 +19718,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveBanResponse); i {
 			case 0:
 				return &v.state
@@ -19874,7 +19730,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserBan); i {
 			case 0:
 				return &v.state
@@ -19886,7 +19742,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserBansRequest); i {
 			case 0:
 				return &v.state
@@ -19898,7 +19754,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserBansResponse); i {
 			case 0:
 				return &v.state
@@ -19910,7 +19766,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*VerifyUserRequest); i {
 			case 0:
 				return &v.state
@@ -19922,7 +19778,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*VerifyUserResponse); i {
 			case 0:
 				return &v.state
@@ -19934,7 +19790,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveUserVerificationRequest); i {
 			case 0:
 				return &v.state
@@ -19946,7 +19802,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveUserVerificationResponse); i {
 			case 0:
 				return &v.state
@@ -19958,7 +19814,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserVerification); i {
 			case 0:
 				return &v.state
@@ -19970,7 +19826,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserVerificationsRequest); i {
 			case 0:
 				return &v.state
@@ -19982,7 +19838,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserVerificationsResponse); i {
 			case 0:
 				return &v.state
@@ -19994,7 +19850,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMediaEnqueuingEnabledRequest); i {
 			case 0:
 				return &v.state
@@ -20006,7 +19862,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMediaEnqueuingEnabledResponse); i {
 			case 0:
 				return &v.state
@@ -20018,7 +19874,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserChatMessagesRequest); i {
 			case 0:
 				return &v.state
@@ -20030,7 +19886,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserChatMessagesResponse); i {
 			case 0:
 				return &v.state
@@ -20042,7 +19898,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserPermissionLevelRequest); i {
 			case 0:
 				return &v.state
@@ -20054,7 +19910,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserPermissionLevelResponse); i {
 			case 0:
 				return &v.state
@@ -20066,7 +19922,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMediaRequest); i {
 			case 0:
 				return &v.state
@@ -20078,7 +19934,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMedia); i {
 			case 0:
 				return &v.state
@@ -20090,7 +19946,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMediaResponse); i {
 			case 0:
 				return &v.state
@@ -20102,7 +19958,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddDisallowedMediaRequest); i {
 			case 0:
 				return &v.state
@@ -20114,7 +19970,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddDisallowedMediaResponse); i {
 			case 0:
 				return &v.state
@@ -20126,7 +19982,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveDisallowedMediaRequest); i {
 			case 0:
 				return &v.state
@@ -20138,7 +19994,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveDisallowedMediaResponse); i {
 			case 0:
 				return &v.state
@@ -20150,7 +20006,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMediaCollectionsRequest); i {
 			case 0:
 				return &v.state
@@ -20162,7 +20018,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMediaCollection); i {
 			case 0:
 				return &v.state
@@ -20174,7 +20030,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisallowedMediaCollectionsResponse); i {
 			case 0:
 				return &v.state
@@ -20186,7 +20042,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddDisallowedMediaCollectionRequest); i {
 			case 0:
 				return &v.state
@@ -20198,7 +20054,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddDisallowedMediaCollectionResponse); i {
 			case 0:
 				return &v.state
@@ -20210,7 +20066,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveDisallowedMediaCollectionRequest); i {
 			case 0:
 				return &v.state
@@ -20222,7 +20078,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveDisallowedMediaCollectionResponse); i {
 			case 0:
 				return &v.state
@@ -20234,7 +20090,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetDocumentRequest); i {
 			case 0:
 				return &v.state
@@ -20246,7 +20102,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Document); i {
 			case 0:
 				return &v.state
@@ -20258,7 +20114,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateDocumentResponse); i {
 			case 0:
 				return &v.state
@@ -20270,7 +20126,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DocumentsRequest); i {
 			case 0:
 				return &v.state
@@ -20282,7 +20138,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DocumentHeader); i {
 			case 0:
 				return &v.state
@@ -20294,7 +20150,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DocumentsResponse); i {
 			case 0:
 				return &v.state
@@ -20306,7 +20162,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetChatNicknameRequest); i {
 			case 0:
 				return &v.state
@@ -20318,7 +20174,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetChatNicknameResponse); i {
 			case 0:
 				return &v.state
@@ -20330,7 +20186,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetUserChatNicknameRequest); i {
 			case 0:
 				return &v.state
@@ -20342,7 +20198,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetUserChatNicknameResponse); i {
 			case 0:
 				return &v.state
@@ -20354,7 +20210,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetPricesMultiplierRequest); i {
 			case 0:
 				return &v.state
@@ -20366,7 +20222,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetPricesMultiplierResponse); i {
 			case 0:
 				return &v.state
@@ -20378,7 +20234,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMinimumPricesMultiplierRequest); i {
 			case 0:
 				return &v.state
@@ -20390,7 +20246,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMinimumPricesMultiplierResponse); i {
 			case 0:
 				return &v.state
@@ -20402,7 +20258,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WithdrawRequest); i {
 			case 0:
 				return &v.state
@@ -20414,7 +20270,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WithdrawResponse); i {
 			case 0:
 				return &v.state
@@ -20426,7 +20282,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*LeaderboardsRequest); i {
 			case 0:
 				return &v.state
@@ -20438,7 +20294,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*LeaderboardsResponse); i {
 			case 0:
 				return &v.state
@@ -20450,7 +20306,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Leaderboard); i {
 			case 0:
 				return &v.state
@@ -20462,7 +20318,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*LeaderboardRow); i {
 			case 0:
 				return &v.state
@@ -20474,7 +20330,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*LeaderboardValue); i {
 			case 0:
 				return &v.state
@@ -20486,7 +20342,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RewardHistoryRequest); i {
 			case 0:
 				return &v.state
@@ -20498,7 +20354,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ReceivedReward); i {
 			case 0:
 				return &v.state
@@ -20510,7 +20366,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RewardHistoryResponse); i {
 			case 0:
 				return &v.state
@@ -20522,7 +20378,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WithdrawalHistoryRequest); i {
 			case 0:
 				return &v.state
@@ -20534,7 +20390,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Withdrawal); i {
 			case 0:
 				return &v.state
@@ -20546,7 +20402,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WithdrawalHistoryResponse); i {
 			case 0:
 				return &v.state
@@ -20558,7 +20414,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetCrowdfundedSkippingEnabledRequest); i {
 			case 0:
 				return &v.state
@@ -20570,7 +20426,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetCrowdfundedSkippingEnabledResponse); i {
 			case 0:
 				return &v.state
@@ -20582,7 +20438,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetSkipPriceMultiplierRequest); i {
 			case 0:
 				return &v.state
@@ -20594,7 +20450,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetSkipPriceMultiplierResponse); i {
 			case 0:
 				return &v.state
@@ -20606,7 +20462,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ProduceSegchaChallengeRequest); i {
 			case 0:
 				return &v.state
@@ -20618,7 +20474,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ProduceSegchaChallengeResponse); i {
 			case 0:
 				return &v.state
@@ -20630,7 +20486,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SegchaChallengeStep); i {
 			case 0:
 				return &v.state
@@ -20642,7 +20498,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfirmRaffleWinnerRequest); i {
 			case 0:
 				return &v.state
@@ -20654,7 +20510,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfirmRaffleWinnerResponse); i {
 			case 0:
 				return &v.state
@@ -20666,7 +20522,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CompleteRaffleRequest); i {
 			case 0:
 				return &v.state
@@ -20678,7 +20534,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CompleteRaffleResponse); i {
 			case 0:
 				return &v.state
@@ -20690,7 +20546,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RedrawRaffleRequest); i {
 			case 0:
 				return &v.state
@@ -20702,7 +20558,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RedrawRaffleResponse); i {
 			case 0:
 				return &v.state
@@ -20714,7 +20570,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*OngoingRaffleInfoRequest); i {
 			case 0:
 				return &v.state
@@ -20726,7 +20582,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*OngoingRaffleInfoResponse); i {
 			case 0:
 				return &v.state
@@ -20738,7 +20594,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*OngoingRaffleInfo); i {
 			case 0:
 				return &v.state
@@ -20750,7 +20606,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RaffleDrawing); i {
 			case 0:
 				return &v.state
@@ -20762,7 +20618,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RaffleDrawingsRequest); i {
 			case 0:
 				return &v.state
@@ -20774,7 +20630,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[151].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RaffleDrawingsResponse); i {
 			case 0:
 				return &v.state
@@ -20786,7 +20642,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[152].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TriggerAnnouncementsNotificationRequest); i {
 			case 0:
 				return &v.state
@@ -20798,7 +20654,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[153].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[151].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TriggerAnnouncementsNotificationResponse); i {
 			case 0:
 				return &v.state
@@ -20810,7 +20666,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[154].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[152].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SpectatorInfoRequest); i {
 			case 0:
 				return &v.state
@@ -20822,7 +20678,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[155].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[153].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Spectator); i {
 			case 0:
 				return &v.state
@@ -20834,7 +20690,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[156].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[154].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResetSpectatorStatusRequest); i {
 			case 0:
 				return &v.state
@@ -20846,7 +20702,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[157].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[155].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResetSpectatorStatusResponse); i {
 			case 0:
 				return &v.state
@@ -20858,7 +20714,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[158].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[156].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MonitorModerationStatusRequest); i {
 			case 0:
 				return &v.state
@@ -20870,7 +20726,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[159].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[157].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ModerationStatusOverview); i {
 			case 0:
 				return &v.state
@@ -20882,7 +20738,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[160].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[158].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetQueueEntryReorderingAllowedRequest); i {
 			case 0:
 				return &v.state
@@ -20894,7 +20750,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[161].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[159].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetQueueEntryReorderingAllowedResponse); i {
 			case 0:
 				return &v.state
@@ -20906,7 +20762,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[162].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[160].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetOwnQueueEntryRemovalAllowedRequest); i {
 			case 0:
 				return &v.state
@@ -20918,7 +20774,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[163].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[161].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetOwnQueueEntryRemovalAllowedResponse); i {
 			case 0:
 				return &v.state
@@ -20930,7 +20786,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[164].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[162].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetNewQueueEntriesAlwaysUnskippableRequest); i {
 			case 0:
 				return &v.state
@@ -20942,7 +20798,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[165].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[163].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetNewQueueEntriesAlwaysUnskippableResponse); i {
 			case 0:
 				return &v.state
@@ -20954,7 +20810,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[166].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[164].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetSkippingEnabledRequest); i {
 			case 0:
 				return &v.state
@@ -20966,7 +20822,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[167].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[165].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetSkippingEnabledResponse); i {
 			case 0:
 				return &v.state
@@ -20978,7 +20834,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[168].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[166].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConnectionsRequest); i {
 			case 0:
 				return &v.state
@@ -20990,7 +20846,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[169].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[167].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Connection); i {
 			case 0:
 				return &v.state
@@ -21002,7 +20858,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[170].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[168].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ServiceInfo); i {
 			case 0:
 				return &v.state
@@ -21014,7 +20870,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[171].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[169].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConnectionsResponse); i {
 			case 0:
 				return &v.state
@@ -21026,7 +20882,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[172].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[170].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateConnectionRequest); i {
 			case 0:
 				return &v.state
@@ -21038,7 +20894,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[173].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[171].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateConnectionResponse); i {
 			case 0:
 				return &v.state
@@ -21050,7 +20906,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[174].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[172].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveConnectionRequest); i {
 			case 0:
 				return &v.state
@@ -21062,7 +20918,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[175].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[173].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveConnectionResponse); i {
 			case 0:
 				return &v.state
@@ -21074,7 +20930,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[176].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[174].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetQueueInsertCursorRequest); i {
 			case 0:
 				return &v.state
@@ -21086,7 +20942,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[177].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[175].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetQueueInsertCursorResponse); i {
 			case 0:
 				return &v.state
@@ -21098,7 +20954,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[178].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[176].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ClearQueueInsertCursorRequest); i {
 			case 0:
 				return &v.state
@@ -21110,7 +20966,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[179].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[177].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ClearQueueInsertCursorResponse); i {
 			case 0:
 				return &v.state
@@ -21122,7 +20978,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[180].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[178].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserProfileRequest); i {
 			case 0:
 				return &v.state
@@ -21134,7 +20990,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[181].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[179].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserProfileResponse); i {
 			case 0:
 				return &v.state
@@ -21146,7 +21002,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[182].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[180].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserProfileApplicationTab); i {
 			case 0:
 				return &v.state
@@ -21158,7 +21014,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[183].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[181].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserStatsRequest); i {
 			case 0:
 				return &v.state
@@ -21170,7 +21026,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[184].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[182].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserStatsForPeriod); i {
 			case 0:
 				return &v.state
@@ -21182,7 +21038,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[185].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[183].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserStatsResponse); i {
 			case 0:
 				return &v.state
@@ -21194,7 +21050,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[186].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[184].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PlayedMedia); i {
 			case 0:
 				return &v.state
@@ -21206,7 +21062,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[187].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[185].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProfileBiographyRequest); i {
 			case 0:
 				return &v.state
@@ -21218,7 +21074,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[188].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[186].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProfileBiographyResponse); i {
 			case 0:
 				return &v.state
@@ -21230,7 +21086,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[189].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[187].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProfileFeaturedMediaRequest); i {
 			case 0:
 				return &v.state
@@ -21242,7 +21098,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[190].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[188].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProfileFeaturedMediaResponse); i {
 			case 0:
 				return &v.state
@@ -21254,7 +21110,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[191].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[189].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ClearUserProfileRequest); i {
 			case 0:
 				return &v.state
@@ -21266,7 +21122,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[192].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[190].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ClearUserProfileResponse); i {
 			case 0:
 				return &v.state
@@ -21278,7 +21134,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[193].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[191].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PlayedMediaHistoryRequest); i {
 			case 0:
 				return &v.state
@@ -21290,7 +21146,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[194].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[192].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PlayedMediaHistoryResponse); i {
 			case 0:
 				return &v.state
@@ -21302,7 +21158,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[195].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[193].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlockUserRequest); i {
 			case 0:
 				return &v.state
@@ -21314,7 +21170,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[196].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[194].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlockUserResponse); i {
 			case 0:
 				return &v.state
@@ -21326,7 +21182,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[197].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[195].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UnblockUserRequest); i {
 			case 0:
 				return &v.state
@@ -21338,7 +21194,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[198].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[196].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UnblockUserResponse); i {
 			case 0:
 				return &v.state
@@ -21350,7 +21206,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[199].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[197].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlockedUsersRequest); i {
 			case 0:
 				return &v.state
@@ -21362,7 +21218,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[200].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[198].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlockedUser); i {
 			case 0:
 				return &v.state
@@ -21374,7 +21230,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[201].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[199].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlockedUsersResponse); i {
 			case 0:
 				return &v.state
@@ -21386,7 +21242,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[202].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[200].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MarkAsActivelyModeratingRequest); i {
 			case 0:
 				return &v.state
@@ -21398,7 +21254,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[203].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[201].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MarkAsActivelyModeratingResponse); i {
 			case 0:
 				return &v.state
@@ -21410,7 +21266,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[204].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[202].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StopActivelyModeratingRequest); i {
 			case 0:
 				return &v.state
@@ -21422,7 +21278,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[205].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[203].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StopActivelyModeratingResponse); i {
 			case 0:
 				return &v.state
@@ -21434,7 +21290,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[206].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[204].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PointsInfoRequest); i {
 			case 0:
 				return &v.state
@@ -21446,7 +21302,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[207].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[205].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PointsInfoResponse); i {
 			case 0:
 				return &v.state
@@ -21458,7 +21314,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[208].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[206].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SubscriptionDetails); i {
 			case 0:
 				return &v.state
@@ -21470,7 +21326,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[209].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[207].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PointsTransactionsRequest); i {
 			case 0:
 				return &v.state
@@ -21482,7 +21338,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[210].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[208].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PointsTransactionsResponse); i {
 			case 0:
 				return &v.state
@@ -21494,7 +21350,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[211].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[209].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PointsTransaction); i {
 			case 0:
 				return &v.state
@@ -21506,7 +21362,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[212].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[210].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatGifSearchRequest); i {
 			case 0:
 				return &v.state
@@ -21518,7 +21374,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[213].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[211].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatGifSearchResponse); i {
 			case 0:
 				return &v.state
@@ -21530,7 +21386,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[214].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[212].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChatGifSearchResult); i {
 			case 0:
 				return &v.state
@@ -21542,7 +21398,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[215].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[213].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdjustPointsBalanceRequest); i {
 			case 0:
 				return &v.state
@@ -21554,7 +21410,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[216].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[214].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdjustPointsBalanceResponse); i {
 			case 0:
 				return &v.state
@@ -21566,7 +21422,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[217].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[215].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConvertBananoToPointsRequest); i {
 			case 0:
 				return &v.state
@@ -21578,7 +21434,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[218].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[216].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConvertBananoToPointsStatus); i {
 			case 0:
 				return &v.state
@@ -21590,7 +21446,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[219].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[217].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StartOrExtendSubscriptionRequest); i {
 			case 0:
 				return &v.state
@@ -21602,7 +21458,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[220].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[218].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StartOrExtendSubscriptionResponse); i {
 			case 0:
 				return &v.state
@@ -21614,7 +21470,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[221].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[219].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SoundCloudTrackDetailsRequest); i {
 			case 0:
 				return &v.state
@@ -21626,7 +21482,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[222].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[220].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SoundCloudTrackDetailsResponse); i {
 			case 0:
 				return &v.state
@@ -21638,7 +21494,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[223].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[221].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddVipUserRequest); i {
 			case 0:
 				return &v.state
@@ -21650,7 +21506,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[224].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[222].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddVipUserResponse); i {
 			case 0:
 				return &v.state
@@ -21662,7 +21518,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[225].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[223].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveVipUserRequest); i {
 			case 0:
 				return &v.state
@@ -21674,7 +21530,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[226].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[224].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveVipUserResponse); i {
 			case 0:
 				return &v.state
@@ -21686,7 +21542,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[227].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[225].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TriggerClientReloadRequest); i {
 			case 0:
 				return &v.state
@@ -21698,7 +21554,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[228].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[226].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TriggerClientReloadResponse); i {
 			case 0:
 				return &v.state
@@ -21710,7 +21566,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[229].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[227].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IncreaseOrReduceSkipThresholdRequest); i {
 			case 0:
 				return &v.state
@@ -21722,7 +21578,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[230].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[228].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IncreaseOrReduceSkipThresholdResponse); i {
 			case 0:
 				return &v.state
@@ -21734,7 +21590,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[231].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[229].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMulticurrencyPaymentsEnabledRequest); i {
 			case 0:
 				return &v.state
@@ -21746,7 +21602,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[232].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[230].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetMulticurrencyPaymentsEnabledResponse); i {
 			case 0:
 				return &v.state
@@ -21758,7 +21614,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[233].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[231].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckMediaEnqueuingPasswordRequest); i {
 			case 0:
 				return &v.state
@@ -21770,7 +21626,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[234].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[232].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckMediaEnqueuingPasswordResponse); i {
 			case 0:
 				return &v.state
@@ -21782,7 +21638,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[235].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[233].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MonitorMediaEnqueuingPermissionRequest); i {
 			case 0:
 				return &v.state
@@ -21794,7 +21650,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[236].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[234].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MediaEnqueuingPermissionStatus); i {
 			case 0:
 				return &v.state
@@ -21806,7 +21662,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[237].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[235].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvalidateAuthTokensRequest); i {
 			case 0:
 				return &v.state
@@ -21818,7 +21674,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[238].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[236].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvalidateAuthTokensResponse); i {
 			case 0:
 				return &v.state
@@ -21830,7 +21686,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[239].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[237].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvalidateUserAuthTokensRequest); i {
 			case 0:
 				return &v.state
@@ -21842,7 +21698,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[240].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[238].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*InvalidateUserAuthTokensResponse); i {
 			case 0:
 				return &v.state
@@ -21854,7 +21710,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[241].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[239].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizeApplicationRequest); i {
 			case 0:
 				return &v.state
@@ -21866,7 +21722,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[242].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[240].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizeApplicationEvent); i {
 			case 0:
 				return &v.state
@@ -21878,7 +21734,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[243].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[241].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizeApplicationHeartbeatEvent); i {
 			case 0:
 				return &v.state
@@ -21890,7 +21746,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[244].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[242].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizeApplicationAuthorizationURLEvent); i {
 			case 0:
 				return &v.state
@@ -21902,7 +21758,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[245].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[243].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizeApplicationApprovedEvent); i {
 			case 0:
 				return &v.state
@@ -21914,7 +21770,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[246].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[244].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizationProcessDataRequest); i {
 			case 0:
 				return &v.state
@@ -21926,7 +21782,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[247].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[245].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthorizationProcessDataResponse); i {
 			case 0:
 				return &v.state
@@ -21938,7 +21794,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[248].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[246].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConsentOrDissentToAuthorizationRequest); i {
 			case 0:
 				return &v.state
@@ -21950,7 +21806,7 @@ func file_jungletv_proto_init() {
 				return nil
 			}
 		}
-		file_jungletv_proto_msgTypes[249].Exporter = func(v interface{}, i int) interface{} {
+		file_jungletv_proto_msgTypes[247].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConsentOrDissentToAuthorizationResponse); i {
 			case 0:
 				return &v.state
@@ -21975,39 +21831,37 @@ func file_jungletv_proto_init() {
 	file_jungletv_proto_msgTypes[9].OneofWrappers = []interface{}{}
 	file_jungletv_proto_msgTypes[10].OneofWrappers = []interface{}{}
 	file_jungletv_proto_msgTypes[11].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[13].OneofWrappers = []interface{}{
-		(*EnqueueMediaRequest_StubData)(nil),
+	file_jungletv_proto_msgTypes[12].OneofWrappers = []interface{}{
 		(*EnqueueMediaRequest_YoutubeVideoData)(nil),
 		(*EnqueueMediaRequest_SoundcloudTrackData)(nil),
 		(*EnqueueMediaRequest_DocumentData)(nil),
 	}
-	file_jungletv_proto_msgTypes[14].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[13].OneofWrappers = []interface{}{
 		(*EnqueueMediaResponse_Ticket)(nil),
 		(*EnqueueMediaResponse_Failure)(nil),
 	}
-	file_jungletv_proto_msgTypes[16].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[15].OneofWrappers = []interface{}{
 		(*EnqueueMediaTicket_YoutubeVideoData)(nil),
 		(*EnqueueMediaTicket_SoundcloudTrackData)(nil),
 		(*EnqueueMediaTicket_DocumentData)(nil),
 	}
-	file_jungletv_proto_msgTypes[27].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[29].OneofWrappers = []interface{}{
-		(*MediaConsumptionCheckpoint_StubData)(nil),
+	file_jungletv_proto_msgTypes[25].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[27].OneofWrappers = []interface{}{
 		(*MediaConsumptionCheckpoint_YoutubeVideoData)(nil),
 		(*MediaConsumptionCheckpoint_SoundcloudTrackData)(nil),
 		(*MediaConsumptionCheckpoint_DocumentData)(nil),
 		(*MediaConsumptionCheckpoint_ApplicationPageData)(nil),
 	}
-	file_jungletv_proto_msgTypes[32].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[38].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[30].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[36].OneofWrappers = []interface{}{
 		(*QueueEntry_YoutubeVideoData)(nil),
 		(*QueueEntry_SoundcloudTrackData)(nil),
 		(*QueueEntry_DocumentData)(nil),
 		(*QueueEntry_ApplicationPageData)(nil),
 		(*QueueEntry_ConcealedData)(nil),
 	}
-	file_jungletv_proto_msgTypes[42].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[51].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[40].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[49].OneofWrappers = []interface{}{
 		(*ChatUpdateEvent_Disabled)(nil),
 		(*ChatUpdateEvent_Enabled)(nil),
 		(*ChatUpdateEvent_MessageCreated)(nil),
@@ -22017,51 +21871,51 @@ func file_jungletv_proto_init() {
 		(*ChatUpdateEvent_BlockedUserDeleted)(nil),
 		(*ChatUpdateEvent_EmoteCreated)(nil),
 	}
-	file_jungletv_proto_msgTypes[52].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[50].OneofWrappers = []interface{}{
 		(*ChatMessage_UserMessage)(nil),
 		(*ChatMessage_SystemMessage)(nil),
 	}
-	file_jungletv_proto_msgTypes[53].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[51].OneofWrappers = []interface{}{
 		(*ChatMessageAttachment_TenorGif)(nil),
 		(*ChatMessageAttachment_ApplicationPage)(nil),
 	}
-	file_jungletv_proto_msgTypes[66].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[72].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[76].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[86].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[126].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[64].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[70].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[74].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[84].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[124].OneofWrappers = []interface{}{
 		(*LeaderboardValue_Amount)(nil),
 	}
-	file_jungletv_proto_msgTypes[128].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[126].OneofWrappers = []interface{}{
 		(*ReceivedReward_YoutubeVideoData)(nil),
 		(*ReceivedReward_SoundcloudTrackData)(nil),
 		(*ReceivedReward_DocumentData)(nil),
 		(*ReceivedReward_ApplicationPageData)(nil),
 	}
+	file_jungletv_proto_msgTypes[145].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[146].OneofWrappers = []interface{}{}
 	file_jungletv_proto_msgTypes[147].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[148].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[149].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[155].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[159].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[170].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[181].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[153].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[157].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[168].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[179].OneofWrappers = []interface{}{
 		(*UserProfileResponse_YoutubeVideoData)(nil),
 		(*UserProfileResponse_SoundcloudTrackData)(nil),
 		(*UserProfileResponse_DocumentData)(nil),
 	}
-	file_jungletv_proto_msgTypes[186].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[184].OneofWrappers = []interface{}{
 		(*PlayedMedia_YoutubeVideoData)(nil),
 		(*PlayedMedia_SoundcloudTrackData)(nil),
 		(*PlayedMedia_DocumentData)(nil),
 		(*PlayedMedia_ApplicationPageData)(nil),
 	}
-	file_jungletv_proto_msgTypes[189].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[197].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[187].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[195].OneofWrappers = []interface{}{
 		(*UnblockUserRequest_BlockId)(nil),
 		(*UnblockUserRequest_Address)(nil),
 	}
-	file_jungletv_proto_msgTypes[207].OneofWrappers = []interface{}{}
-	file_jungletv_proto_msgTypes[242].OneofWrappers = []interface{}{
+	file_jungletv_proto_msgTypes[205].OneofWrappers = []interface{}{}
+	file_jungletv_proto_msgTypes[240].OneofWrappers = []interface{}{
 		(*AuthorizeApplicationEvent_Heartbeat)(nil),
 		(*AuthorizeApplicationEvent_AuthorizationUrl)(nil),
 		(*AuthorizeApplicationEvent_Approved)(nil),
@@ -22072,7 +21926,7 @@ func file_jungletv_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_jungletv_proto_rawDesc,
 			NumEnums:      14,
-			NumMessages:   251,
+			NumMessages:   249,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
