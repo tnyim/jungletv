@@ -2145,7 +2145,7 @@ interface AppBridge {
 
     /**
      * Get the reward address of the user in whose profile this page is mounted.
-     * @returns The reward address of the user in whose profile this page is mounted.
+     * @returns The reward address of the user in whose profile this page is mounted, or `undefined` if the page is not mounted in a user profile.
      */
     getContainingProfileUserAddress: () => Promise<string>;
 }

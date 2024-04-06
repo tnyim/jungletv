@@ -39,7 +39,7 @@
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
     export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" | "profile" | "profilepage" = "page";
     export let fixedHeight: number = 0;
-    export let profileUserAddress = "";
+    export let profileUserAddress: string = undefined;
     let unpublished = false;
     let applicationVersion: Date;
     let originalPageTitle: string;
@@ -153,9 +153,9 @@
         setPlayerVolume(volume: number) {
             $playerVolume = volume;
         },
-        containingProfileUserAddress(): string {
-            return profileUserAddress;
-        }
+        containingProfileUserAddress(): string | undefined {
+            return profileUserAddress ? profileUserAddress : undefined;
+        },
     };
 
     let rewardAddressPromise = awaitReadableValue(rewardAddress, (a) => a !== null);
