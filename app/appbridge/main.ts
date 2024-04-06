@@ -384,7 +384,7 @@ export const setPlayerVolume = async function (volume: number): Promise<void> {
  * Get the reward address of the user in whose profile this page is mounted.
  * @returns The reward address of the user in whose profile this page is mounted.
  */
-export const containingProfileUserAddress = async function(): Promise<string> {
+export const getContainingProfileUserAddress = async function(): Promise<string> {
     let connection = await connectionPromise;
     if (cachedInfo.role !== "profile" && cachedInfo.role !== "profilepage") {
         throw new Error("This method may only be used when mounted as a profile tab");

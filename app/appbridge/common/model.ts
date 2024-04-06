@@ -1,4 +1,4 @@
-export const BRIDGE_VERSION = 8;
+export const BRIDGE_VERSION = 9;
 // methods the child can call on the parent
 export type ParentMethods = {
     bridgeVersion: () => number;

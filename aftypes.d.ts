@@ -2142,4 +2142,10 @@ interface AppBridge {
      * @param volume The volume preference to set, as a fraction between 0 and 1.
      */
     setPlayerVolume: (volume: number) => Promise<void>;
+
+    /**
+     * Get the reward address of the user in whose profile this page is mounted.
+     * @returns The reward address of the user in whose profile this page is mounted.
+     */
+    getContainingProfileUserAddress: () => Promise<string>;
 }
