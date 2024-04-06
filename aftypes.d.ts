@@ -1950,7 +1950,7 @@ interface CustomEventTarget<EventMap> extends EventTarget {
  * Arguments of the "mounted" page event
  */
 type MountEventArgs = {
-    role: "standalone" | "activity" | "sidebar" | "chatattachment",
+    role: "standalone" | "sidebar" | "chatattachment" | "playingmedia" | "profile" | "profilepage",
 }
 
 interface AppBridge {

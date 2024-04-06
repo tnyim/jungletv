@@ -37,7 +37,7 @@
     export let pageID: string;
     export let subpath = "";
     export let preloadedPageInfo: ResolveApplicationPageResponse = undefined;
-    export let mode: "sidebar" | "page" | "chatattachment" | "playingmedia" | "profile" | "profilepage" = "page";
+    export let mode: "page" | Exclude<MountEventArgs["role"], "standalone"> = "page";
     export let fixedHeight: number = 0;
     export let profileUserAddress: string = undefined;
     let unpublished = false;
