@@ -14,9 +14,9 @@ func TestUserRecipientFullyContainedWithin(t *testing.T) {
 
 	recipient := notificationmanager.MakeUserRecipient(user1)
 
-	require.False(t, recipient.FullyContainedWithin([]auth.User{user2}))
-	require.True(t, recipient.FullyContainedWithin([]auth.User{user1}))
-	require.True(t, recipient.FullyContainedWithin([]auth.User{user1, user2}))
+	require.False(t, recipient.FullyContainedWithin(map[string]struct{}{user2.Address(): {}}))
+	require.True(t, recipient.FullyContainedWithin(map[string]struct{}{user1.Address(): {}}))
+	require.True(t, recipient.FullyContainedWithin(map[string]struct{}{user1.Address(): {}, user2.Address(): {}}))
 }
 
 func TestUsersRecipientFullyContainedWithin(t *testing.T) {
@@ -26,8 +26,8 @@ func TestUsersRecipientFullyContainedWithin(t *testing.T) {
 
 	recipient := notificationmanager.MakeUsersRecipient([]auth.User{user1, user2})
 
-	require.False(t, recipient.FullyContainedWithin([]auth.User{user2}))
-	require.True(t, recipient.FullyContainedWithin([]auth.User{user1, user2}))
-	require.False(t, recipient.FullyContainedWithin([]auth.User{user1, user3}))
-	require.True(t, recipient.FullyContainedWithin([]auth.User{user1, user2, user3}))
+	require.False(t, recipient.FullyContainedWithin(map[string]struct{}{user2.Address(): {}}))
+	require.True(t, recipient.FullyContainedWithin(map[string]struct{}{user1.Address(): {}, user2.Address(): {}}))
+	require.False(t, recipient.FullyContainedWithin(map[string]struct{}{user1.Address(): {}, user3.Address(): {}}))
+	require.True(t, recipient.FullyContainedWithin(map[string]struct{}{user1.Address(): {}, user2.Address(): {}, user3.Address(): {}}))
 }

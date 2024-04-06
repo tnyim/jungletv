@@ -236,15 +236,11 @@ func (m *Manager) MarkAsRead(persistencyKey PersistencyKey, user auth.User) {
 	}
 	if _, ok := m.readNotifications[persistencyKey]; ok {
 		m.readNotifications[persistencyKey][user.Address()] = struct{}{}
-		usersThatRead := make([]auth.User, 0, len(m.readNotifications[persistencyKey]))
-		for userAddress := range m.readNotifications[persistencyKey] {
-			usersThatRead = append(usersThatRead, auth.NewAddressOnlyUser(userAddress))
-		}
 		m.onSingleUser.Notify(buildDirectKeyForUser(user), NotificationEvent{
 			IsClear:    true,
 			ClearedKey: persistencyKey,
 		}, false)
-		if p.notification.Recipient().FullyContainedWithin(usersThatRead) {
+		if p.notification.Recipient().FullyContainedWithin(m.readNotifications[persistencyKey]) {
 			// notification was read by every recipient, clear it
 			m.clearPersistedNotificationInsideMutex(persistencyKey)
 		}

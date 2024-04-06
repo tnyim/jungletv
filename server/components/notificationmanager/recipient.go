@@ -18,7 +18,7 @@ type Recipient interface {
 
 	// FullyContainedWithin returns true if the recipient is a subset of the specified users
 	// The specified users are guaranteed not to be anonymous/unknown
-	FullyContainedWithin(users []auth.User) bool
+	FullyContainedWithin(users map[string]struct{}) bool
 }
 
 // RecipientID is any type that can be used to compare two recipients
@@ -42,7 +42,7 @@ func (r recipientEveryone) ContainsUser(user auth.User) bool {
 	return true
 }
 
-func (r recipientEveryone) FullyContainedWithin(users []auth.User) bool {
+func (r recipientEveryone) FullyContainedWithin(users map[string]struct{}) bool {
 	// we can come up with an "infinite" number of recipient user addresses, so this is effectively always false
 	return false
 }
@@ -62,9 +62,9 @@ func (r recipientUser) ContainsUser(user auth.User) bool {
 	return user.Address() == r.user
 }
 
-func (r recipientUser) FullyContainedWithin(users []auth.User) bool {
-	for _, user := range users {
-		if user.Address() == r.user {
+func (r recipientUser) FullyContainedWithin(users map[string]struct{}) bool {
+	for user := range users {
+		if user == r.user {
 			return true
 		}
 	}
@@ -96,7 +96,7 @@ func (r recipientEveryoneExcept) ContainsUser(user auth.User) bool {
 	return !ok
 }
 
-func (r recipientEveryoneExcept) FullyContainedWithin(users []auth.User) bool {
+func (r recipientEveryoneExcept) FullyContainedWithin(users map[string]struct{}) bool {
 	// we can come up with an "infinite" number of recipient user addresses, so this is effectively always false
 	return false
 }
@@ -126,11 +126,8 @@ func (r recipientUsers) ContainsUser(user auth.User) bool {
 	return ok
 }
 
-func (r recipientUsers) FullyContainedWithin(users []auth.User) bool {
+func (r recipientUsers) FullyContainedWithin(superSet map[string]struct{}) bool {
 	// should return true if all of the included users are in the passed superset
-	superSet := lo.SliceToMap(users, func(user auth.User) (string, struct{}) {
-		return user.Address(), struct{}{}
-	})
 	for address := range r.inclusions {
 		if _, ok := superSet[address]; !ok {
 			return false

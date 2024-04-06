@@ -13,7 +13,7 @@ func NewAnnouncementsUpdatedNotification(counter int) notificationmanager.Notifi
 	return notificationmanager.MakePersistentNotification(
 		AnnouncementsKey,
 		notificationmanager.RecipientEveryone,
-		time.Now().Add(48*time.Hour),
+		time.Now().Add(7*24*time.Hour),
 		&proto.Notification_AnnouncementsUpdated{
 			AnnouncementsUpdated: &proto.AnnouncementsUpdatedNotification{
 				NotificationCounter: uint32(counter),
