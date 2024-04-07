@@ -20,7 +20,7 @@
 
     let ticketTimeRemainingFormatted = "";
     let updateTicketTimeRemainingTimeout = 0;
-    let usingSoftware: "thebananostand" | "qrcode" | "other" = "thebananostand";
+    let usingSoftware: "thebananostand" | "qrcode" | "installed" | "other" = "thebananostand";
     let failureReason = "";
     let messageSignature = "";
 
@@ -41,11 +41,11 @@
     }
 
     $: signingURL = `https://thebananostand.com/sign-message#message=${encodeURIComponent(
-        messageToSign.getMessage()
+        messageToSign.getMessage(),
     )}&url=${encodeURIComponent(messageToSign.getSubmissionUrl())}&address=${encodeURIComponent(rewardsAddress)}`;
 
     $: qrValue = `bansign:?message=${encodeURIComponent(messageToSign.getMessage())}&url=${encodeURIComponent(
-        messageToSign.getSubmissionUrl()
+        messageToSign.getSubmissionUrl(),
     )}&address=${encodeURIComponent(rewardsAddress)}`;
 
     async function handleEnter(event: KeyboardEvent) {
@@ -113,12 +113,21 @@
             </TabButton>
             <TabButton
                 bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
+                selected={usingSoftware == "installed"}
+                on:click={() => {
+                    usingSoftware = "installed";
+                }}
+            >
+                Installed software
+            </TabButton>
+            <TabButton
+                bgClasses="hover:bg-gray-300 dark:hover:bg-gray-700"
                 selected={usingSoftware == "other"}
                 on:click={() => {
                     usingSoftware = "other";
                 }}
             >
-                Other software
+                Other
             </TabButton>
         </div>
         {#if usingSoftware == "thebananostand"}
@@ -136,14 +145,29 @@
                     color={$darkMode ? "#FFFFFF" : "#000000"}
                 />
             </div>
+        {:else if usingSoftware == "installed"}
+            <div class="mt-2 flex flex-row justify-center">
+                <a href={qrValue} target="_blank" rel="noopener" class={hrefButtonStyleClasses("green")}>
+                    Sign message with installed software
+                </a>
+            </div>
+            <div class="mt-2">
+                Use the above link to sign the message with software installed on this device, that supports the
+                <code>bansign</code> Banano message signing URI scheme.
+            </div>
         {:else}
             <div class="mt-2">
-                To use other software that supports the Banano message signing scheme, copy the message to the
-                clipboard, paste it on the signing tool, sign it with the specified address, and paste the signature
-                below, in hexadecimal format.
-            </div>
-            <div class="my-2">
-                <ButtonButton on:click={copy}>Copy message to clipboard</ButtonButton>
+                To use other software that does not support QR codes or the <code>bansign</code> URI scheme, but which
+                supports Banano message signing nevertheless:
+                <ul class="list-disc list-inside">
+                    <li>
+                        Copy the complete message displayed in the above box to the clipboard,<br />
+                        <ButtonButton on:click={copy}>Copy message to clipboard</ButtonButton>
+                    </li>
+                    <li>Paste it on the signing tool,</li>
+                    <li>Sign it with the address you specified previously,</li>
+                    <li>And finally, paste the signature below, in hexadecimal format, and press Next:</li>
+                </ul>
             </div>
             <label for="message_signature" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Message signature
@@ -172,7 +196,8 @@
         {/if}
         <p class="mt-4">
             If you run into problems, please ask for help in the
-            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a>, where you can find a channel dedicated to JungleTV.
+            <a href="https://chat.banano.cc" target="_blank" rel="noopener">Banano Discord</a>, where you can find a
+            channel dedicated to JungleTV.
         </p>
         <p class="mt-2">
             This verification process will expire in <span class="font-bold">{ticketTimeRemainingFormatted}</span>.
