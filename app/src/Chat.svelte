@@ -146,8 +146,11 @@
     });
 
     function handleVisibilityChanged() {
-        if (!document.hidden && autoscrollStatus == "new-message") {
-            scrollToBottom();
+        if (!document.hidden) {
+            unreadChatMention.set(null);
+            if (autoscrollStatus == "new-message") {
+                scrollToBottom();
+            }
         }
     }
 

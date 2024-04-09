@@ -239,9 +239,8 @@ func (s *grpcServer) Worker(ctx context.Context, errorCb func(error)) {
 	defer s.chat.OnMessageCreated().SubscribeUsingCallback(event.BufferAll, func(evt chatmanager.MessageCreatedEventArgs) {
 		m := evt.Message
 		if m.Reference != nil && m.Reference.Author != nil && !m.Reference.Author.IsUnknown() &&
-			(m.Author == nil || m.Reference.Author.Address() != m.Author.Address()) &&
-			!s.chat.IsUserConnected(m.Reference.Author) {
-			s.notificationManager.Notify(notifications.NewChatMentionNotification(m.Reference.Author, m.ID))
+			(m.Author == nil || m.Reference.Author.Address() != m.Author.Address()) {
+			s.notificationManager.Notify(notifications.NewChatMentionNotification(m.Reference.Author, m.ID, !s.chat.IsUserConnected(m.Reference.Author)))
 		}
 	})()
 

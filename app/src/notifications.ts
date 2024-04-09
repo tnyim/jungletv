@@ -10,7 +10,7 @@ const persistedNotificationsTimeouts = new Map<string, number>();
 export const processNotifications = function (notifications: Notification[]) {
     for (let notification of notifications) {
         processNotificationData(notification);
-        const until = notification.getExpiration().toDate().getTime() - new Date().getTime();
+        const until = notification.getExpiration()?.toDate().getTime() - new Date().getTime() ?? 0;
         const k = notification.getKey();
         if (until > 0) {
             persistedNotifications.set(k, notification);

@@ -33,8 +33,6 @@
     const unreadChatMentionUnsubscribe = unreadChatMention.subscribe((unreadID) => {
         if (selectedTabID != "chat" || !unreadID) {
             setSidebarTabHighlighted("chat", !!unreadID);
-        } else if (unreadID) {
-            unreadChatMention.set(null);
         }
     });
     onDestroy(unreadChatMentionUnsubscribe);

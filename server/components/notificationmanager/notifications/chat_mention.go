@@ -16,11 +16,21 @@ func ChatMentionKey(user auth.User) notificationmanager.PersistencyKey {
 	return notificationmanager.PersistencyKey("chat_mention_" + user.Address())
 }
 
-func NewChatMentionNotification(mentionedUser auth.User, messageID snowflake.ID) notificationmanager.Notification {
-	return notificationmanager.MakePersistentNotification(
-		ChatMentionKey(mentionedUser),
+func NewChatMentionNotification(mentionedUser auth.User, messageID snowflake.ID, persistent bool) notificationmanager.Notification {
+	if persistent {
+		return notificationmanager.MakePersistentNotification(
+			ChatMentionKey(mentionedUser),
+			notificationmanager.MakeUserRecipient(mentionedUser),
+			time.Now().Add(1*time.Hour),
+			&proto.Notification_ChatMention{
+				ChatMention: &proto.ChatMentionNotification{
+					MessageId: messageID.Int64(),
+				},
+			},
+		)
+	}
+	return notificationmanager.MakeNotification(
 		notificationmanager.MakeUserRecipient(mentionedUser),
-		time.Now().Add(1*time.Hour),
 		&proto.Notification_ChatMention{
 			ChatMention: &proto.ChatMentionNotification{
 				MessageId: messageID.Int64(),
