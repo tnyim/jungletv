@@ -3,7 +3,7 @@
 	import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 	import { DateTime } from "luxon";
 	import { afterUpdate, onDestroy, onMount } from "svelte";
-	import { Route, Router, globalHistory } from "svelte-navigator";
+	import { Route, Router, globalHistory, navigate } from "svelte-navigator";
 	import Modal from "svelte-simple-modal";
 	import About from "./About.svelte";
 	import ApplicationPage from "./ApplicationPage.svelte";
@@ -55,6 +55,7 @@
 		badRepresentative,
 		collapseGifs,
 		convertEmoticons,
+		currentPopoutTabID,
 		currentSubscription,
 		darkMode,
 		featureFlags,
@@ -167,6 +168,19 @@
 		});
 		configurableStateBroadcastChannel.postMessage({ type: "request" });
 
+		window.addEventListener("message", (e) => {
+			if (e.origin != window.origin) {
+				return;
+			}
+			switch (e.data.type) {
+				case "navigate":
+					if (!popoutTab) {
+						navigate(e.data.location);
+					}
+					break;
+			}
+		});
+
 		setInterval(() => {
 			rootInsideShadowRoot.querySelectorAll(".markdown-timestamp.relative").forEach((e) => {
 				if (!(e instanceof HTMLElement)) {
@@ -183,6 +197,26 @@
 		}
 	});
 
+	let popoutTab: SidebarTab;
+	function transformPopoutProps(props: {}): {} {
+		let newProps = Object.assign({}, props);
+		return Object.assign(newProps, { mode: "popout" });
+	}
+
+	$: {
+		if (window.name.startsWith("JungleTV-Popout-")) {
+			let tabID = window.name.substring("JungleTV-Popout-".length);
+			let tab = $sidebarTabs.find((t) => tabID == t.id);
+			if (typeof tab !== "undefined") {
+				popoutTab = tab;
+			} else {
+				popoutTab = undefined;
+			}
+		} else {
+			popoutTab = undefined;
+		}
+	}
+
 	const historyStore = { subscribe: globalHistory.listen };
 	let isOnHomepage = false;
 	let hashToJumpTo = "";
@@ -190,6 +224,23 @@
 		isOnHomepage = v.location.pathname == "/" || v.location.pathname == "";
 		closeModal();
 		refreshOnLineStatus();
+
+		if (popoutTab && !isOnHomepage) {
+			if (window.opener) {
+				window.opener.postMessage(
+					{
+						type: "navigate",
+						location: v.location.pathname + v.location.search + v.location.hash,
+					},
+					window.location.origin,
+				);
+				window.opener.focus();
+			} else {
+				window.open(window.location.origin + v.location.pathname + v.location.search + v.location.hash);
+			}
+			window.close();
+			return;
+		}
 
 		let hash = v.location.hash;
 		if (
@@ -226,26 +277,8 @@
 	let resizingSidebar: boolean = false;
 	let sidebarWidth: number = 384;
 
-	let popoutTab: SidebarTab;
-	function transformPopoutProps(props: {}): {} {
-		let newProps = Object.assign({}, props);
-		return Object.assign(newProps, { mode: "popout" });
-	}
-
-	$: {
-		if (window.name.startsWith("JungleTV-Popout-")) {
-			let tabID = window.name.substring("JungleTV-Popout-".length);
-			let tab = $sidebarTabs.find((t) => tabID == t.id);
-			if (typeof tab !== "undefined") {
-				popoutTab = tab;
-			} else {
-				popoutTab = undefined;
-			}
-		} else {
-			popoutTab = undefined;
-		}
-	}
 	$: pageTitlePopoutTab.set(popoutTab?.tabTitle ?? "");
+	$: currentPopoutTabID.set(popoutTab?.id ?? null);
 
 	$: {
 		let t = $pageTitlePopoutTab;

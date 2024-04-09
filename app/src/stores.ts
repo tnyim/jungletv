@@ -95,3 +95,4 @@ enqueuingPasswordEdition.subscribe(v => localStorage.setItem("enqueuingPasswordE
 
 export const mainContentBottomPadding = writable("");
 export const mainContentBottomPaddingAppliedByChild = writable(false);
+export const currentPopoutTabID = writable(null as string);

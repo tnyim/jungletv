@@ -20,7 +20,6 @@
         if (isNewDocument || checkpoint.getDocumentData().getUpdatedAt().toDate().getTime() > updatedAt.getTime()) {
             if (checkpoint.getDocumentData().hasDocument()) {
                 overrideDocument = checkpoint.getDocumentData().getDocument();
-                console.log("replaced document body via override");
                 updatedAt = checkpoint.getDocumentData().getDocument().getUpdatedAt().toDate();
             } else {
                 // updatedAt moved past what we had, and we didn't receive an updated document via checkpoints
