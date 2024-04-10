@@ -73,6 +73,9 @@
         }
     }
 
+    // this should be computed only once when we load. scrolling affects this diff in undesirable ways
+    let mobileBrowserStrangeDiscrepancy = document.body.getBoundingClientRect().height - window.innerHeight;
+
     function matchPlayerRectToFakeContainer(becauseContainerDimensionsChanged: boolean) {
         if (playerContainer !== undefined && fullSizePlayerContainer != null) {
             if (!sidebarOpeningOrClosing) {
@@ -81,8 +84,10 @@
                 playerContainer.classList.add("player-maximized");
                 playerContainer.style.height = fullSizePlayerContainerHeight + "px";
                 playerContainer.style.width = fullSizePlayerContainerWidth + "px";
+                let bodyRect = document.body.getBoundingClientRect();
                 let rect = fullSizePlayerContainer.getBoundingClientRect();
-                playerContainer.style.bottom = window.innerHeight - rect.bottom - window.scrollY + "px";
+                playerContainer.style.bottom =
+                    bodyRect.height - rect.bottom - window.scrollY - mobileBrowserStrangeDiscrepancy + "px";
                 playerContainer.style.left = rect.left + "px";
                 playerContainer.style.transitionProperty = "width, height, bottom, left";
             }
