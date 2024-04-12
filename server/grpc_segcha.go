@@ -7,6 +7,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/server/components/rewards"
@@ -17,7 +18,13 @@ import (
 
 var segchaChallengeSteps = 4
 var segchaWrongAnswersTolerance = 1
-var segchaPremadeQueueSize = 150
+var segchaPremadeQueueSize = func() int {
+	if buildconfig.DEBUG {
+		return 5
+	} else {
+		return 150
+	}
+}()
 var latestGeneratedChallenge *segcha.Challenge
 
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
