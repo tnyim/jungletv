@@ -832,6 +832,9 @@ export class ExportApplicationRequest extends jspb.Message {
   getApplicationId(): string;
   setApplicationId(value: string): void;
 
+  getOpaqueFormat(): boolean;
+  setOpaqueFormat(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExportApplicationRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ExportApplicationRequest): ExportApplicationRequest.AsObject;
@@ -845,6 +848,7 @@ export class ExportApplicationRequest extends jspb.Message {
 export namespace ExportApplicationRequest {
   export type AsObject = {
     applicationId: string,
+    opaqueFormat: boolean,
   }
 }
 

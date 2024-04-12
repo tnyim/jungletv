@@ -107,9 +107,17 @@
         }
     }
 
-    async function exportApplication() {
+    async function exportApplicationZIP() {
+        exportApplication(false);
+    }
+
+    async function exportApplicationOpaque() {
+        exportApplication(true);
+    }
+
+    async function exportApplication(opaque: boolean) {
         try {
-            let response = await apiClient.exportApplication(application.getId());
+            let response = await apiClient.exportApplication(application.getId(), opaque);
             let link = document.createElement("a");
             let a = response.getArchiveContent_asU8();
             let blob = new Blob([a.buffer.slice(a.byteOffset, a.byteLength + a.byteOffset)], {
@@ -259,10 +267,11 @@
         <div class="mb-6">
             <p class="font-semibold text-lg mb-2">Backup and restore</p>
             <p class="ml-6">
-                <ButtonButton on:click={exportApplication}>Export application</ButtonButton>
+                <ButtonButton on:click={exportApplicationZIP}>Export application</ButtonButton>
+                <ButtonButton on:click={exportApplicationOpaque} extraClasses="ml-2">Export application as opaque archive (for emailing)</ButtonButton>
             </p>
             <p class="ml-6">
-                <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip" />
+                <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip,.jungletvapp,application/x.jungletv.app" />
                 <input
                     id="importAppendOnly"
                     name="importAppendOnly"

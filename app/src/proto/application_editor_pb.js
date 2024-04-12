@@ -6600,7 +6600,8 @@ proto.jungletv.ExportApplicationRequest.prototype.toObject = function(opt_includ
  */
 proto.jungletv.ExportApplicationRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    applicationId: jspb.Message.getFieldWithDefault(msg, 1, "")
+    applicationId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    opaqueFormat: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -6641,6 +6642,10 @@ proto.jungletv.ExportApplicationRequest.deserializeBinaryFromReader = function(m
       var value = /** @type {string} */ (reader.readString());
       msg.setApplicationId(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setOpaqueFormat(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -6677,6 +6682,13 @@ proto.jungletv.ExportApplicationRequest.serializeBinaryToWriter = function(messa
       f
     );
   }
+  f = message.getOpaqueFormat();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -6695,6 +6707,24 @@ proto.jungletv.ExportApplicationRequest.prototype.getApplicationId = function() 
  */
 proto.jungletv.ExportApplicationRequest.prototype.setApplicationId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bool opaque_format = 2;
+ * @return {boolean}
+ */
+proto.jungletv.ExportApplicationRequest.prototype.getOpaqueFormat = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.jungletv.ExportApplicationRequest} returns this
+ */
+proto.jungletv.ExportApplicationRequest.prototype.setOpaqueFormat = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 

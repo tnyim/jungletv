@@ -173,6 +173,7 @@ message EvaluateExpressionOnApplicationResponse {
 
 message ExportApplicationRequest {
     string application_id = 1;
+    bool opaque_format = 2;
 }
 
 message ExportApplicationResponse {

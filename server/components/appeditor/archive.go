@@ -4,6 +4,9 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -19,7 +22,10 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 )
 
-func (*AppEditor) CreateApplicationZIP(ctxCtx context.Context, applicationID string) ([]byte, error) {
+var opaqueHeader = []byte("JUNGLETVAF-OPAQUE-APP-ARCHIVE-V1")
+var opacityKey = []byte("NotSecret;ToLetArchivesBeEmailed")
+
+func (*AppEditor) CreateApplicationZIP(ctxCtx context.Context, applicationID string, makeOpaque bool) ([]byte, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
@@ -71,7 +77,41 @@ func (*AppEditor) CreateApplicationZIP(ctxCtx context.Context, applicationID str
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return buf.Bytes(), nil
+	if !makeOpaque {
+		return buf.Bytes(), nil
+	}
+
+	block, err := aes.NewCipher(opacityKey)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	nonce := make([]byte, 12)
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	opaqueBuf := new(bytes.Buffer)
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+
+	opaqueBytes := aesgcm.Seal(nil, nonce, buf.Bytes(), nil)
+	_, err = opaqueBuf.Write(opaqueHeader)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	_, err = opaqueBuf.Write(nonce)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	_, err = opaqueBuf.Write(opaqueBytes)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	return opaqueBuf.Bytes(), nil
 }
 
 type zipExtraField struct {
@@ -119,6 +159,24 @@ func parseZIPExtraField(extra []byte) (string, bool, error) {
 }
 
 func (e *AppEditor) ImportApplicationFilesFromZIP(ctxCtx context.Context, applicationID string, zipContents []byte, deleteFilesNotInArchive bool, restoreEditMessages bool, importedBy auth.User) error {
+	if len(zipContents) > len(opaqueHeader)+12 && bytes.Equal(zipContents[:len(opaqueHeader)], opaqueHeader) {
+		nonce := zipContents[len(opaqueHeader) : len(opaqueHeader)+12]
+		opaqueBytes := zipContents[len(opaqueHeader)+12:]
+
+		block, err := aes.NewCipher(opacityKey)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		aesgcm, err := cipher.NewGCM(block)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+		zipContents, err = aesgcm.Open(nil, nonce, opaqueBytes, nil)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
 	zipReader, err := zip.NewReader(bytes.NewReader(zipContents), int64(len(zipContents)))
 	if err != nil {
 		return stacktrace.Propagate(err, "")

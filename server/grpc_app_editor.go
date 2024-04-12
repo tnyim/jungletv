@@ -268,9 +268,17 @@ func (s *grpcServer) DeleteApplicationFile(ctx context.Context, r *proto.DeleteA
 }
 
 func (s *grpcServer) ExportApplication(ctx context.Context, r *proto.ExportApplicationRequest) (*proto.ExportApplicationResponse, error) {
-	zipContent, err := s.appEditor.CreateApplicationZIP(ctx, r.ApplicationId)
+	zipContent, err := s.appEditor.CreateApplicationZIP(ctx, r.ApplicationId, r.OpaqueFormat)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
+	}
+
+	if r.OpaqueFormat {
+		return &proto.ExportApplicationResponse{
+			ArchiveName:    r.ApplicationId + ".jungletvapp",
+			ArchiveType:    "application/x.jungletv.app",
+			ArchiveContent: zipContent,
+		}, nil
 	}
 
 	return &proto.ExportApplicationResponse{

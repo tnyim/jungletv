@@ -958,9 +958,10 @@ class APIClient {
         return this.unaryRPC(JungleTV.ApplicationLog, request);
     }
 
-    async exportApplication(applicationID: string): Promise<ExportApplicationResponse> {
+    async exportApplication(applicationID: string, opaqueFormat: boolean): Promise<ExportApplicationResponse> {
         const request = new ExportApplicationRequest();
         request.setApplicationId(applicationID);
+        request.setOpaqueFormat(opaqueFormat);
         return this.unaryRPC(JungleTV.ExportApplication, request);
     }
 
