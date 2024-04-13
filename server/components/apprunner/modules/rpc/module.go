@@ -376,6 +376,7 @@ func (m *rpcModule) emitToUser(call goja.FunctionCall) goja.Value {
 	// make it so that passing null or undefined actually targets unauthenticated users
 	if !goja.IsUndefined(userValue) && !goja.IsNull(userValue) {
 		user = userValue.String()
+		gojautil.ValidateBananoAddress(m.runtime, user, "Invalid user address")
 	}
 
 	m.onUserEvent.Notify(user, m.buildEventData(call, 1), false)
@@ -393,6 +394,7 @@ func (m *rpcModule) emitToPageUser(call goja.FunctionCall) goja.Value {
 	// make it so that passing null or undefined actually targets unauthenticated users
 	if !goja.IsUndefined(userValue) && !goja.IsNull(userValue) {
 		user = userValue.String()
+		gojautil.ValidateBananoAddress(m.runtime, user, "Invalid user address")
 	}
 
 	m.onPageUserEvent.Notify(

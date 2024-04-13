@@ -887,7 +887,7 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 		onPageEvent, pageEventU := a.rpcModule.PageEventEmitted().Subscribe(pageID, event.BufferAll)
 		defer pageEventU()
 
-		onUserEvent, userEventU := a.rpcModule.PageEventEmitted().Subscribe(userStr, event.BufferAll)
+		onUserEvent, userEventU := a.rpcModule.UserEventEmitted().Subscribe(userStr, event.BufferAll)
 		defer userEventU()
 
 		onPageUserEvent, pageUserEventU := a.rpcModule.PageUserEventEmitted().Subscribe(rpc.PageUserTuple{Page: pageID, User: userStr}, event.BufferAll)
