@@ -221,7 +221,13 @@ func (s *grpcServer) SetUserChatNickname(ctx context.Context, r *proto.SetUserCh
 		return nil, err
 	}
 
-	user := auth.NewAddressOnlyUser(r.Address)
+	user := auth.NewAddressOnlyUserWithPermissionLevel(r.Address, auth.UserPermissionLevel)
+	// this next step is important because it fetches the correct permission level for the user,
+	// which is needed for the nickname duplication checks to work properly
+	fetchedUser, err := s.nicknameCache.GetOrFetchUser(ctx, r.Address)
+	if err == nil && fetchedUser != nil && !fetchedUser.IsUnknown() {
+		user = fetchedUser
+	}
 
 	if r.Nickname == "" {
 		err = s.chat.SetNickname(ctx, user, nil, true)
