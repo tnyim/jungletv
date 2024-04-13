@@ -5,7 +5,7 @@
     import QrCode from "svelte-qrcode";
     import { formatPrice } from "../currency_utils";
 
-    export let address = "";  // part of JAF API
+    export let address = ""; // part of JAF API
     export let allowQR = false; // part of JAF API
     export let showQR = false; // part of JAF API
     export let showWebWalletLink = false; // part of JAF API
@@ -127,6 +127,8 @@
     <a
         class="inline-flex items-center px-3 shadow-sm border border-l-0 border-gray-300 bg-gray-50 hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-950 text-gray-500 dark:text-gray-500 text-sm no-underline hover:no-underline"
         href={uri}
+        target="_blank"
+        rel="noopener"
     >
         <i class="fas fa-external-link-square-alt" />
     </a>
@@ -159,11 +161,11 @@
             {#if isRepresentativeChange}
                 Set representative
                 <a target="_blank" rel="noopener" href={webWalletURL}>using {webWalletName}</a> •
-                <a href={uri} rel="noopener">using installed wallet</a>
+                <a target="_blank" href={uri} rel="noopener">using installed wallet</a>
             {:else}
                 Send
                 <a target="_blank" rel="noopener" href={webWalletURL}>from {webWalletName}</a> •
-                <a href={uri} rel="noopener">from installed wallet</a>
+                <a target="_blank" href={uri} rel="noopener">from installed wallet</a>
             {/if}
         </p>
     </div>
