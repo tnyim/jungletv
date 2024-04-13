@@ -111,10 +111,6 @@ export default function registerWebComponent(
 
             let lastSlots = new Set()
             const updateSlots = () => {
-                if (childrenUpdatedCallback) {
-                    childrenUpdatedCallback(this.children);
-                }
-
                 const slotsNames: (string | null | undefined)[] = Array.from(this.children).map((c) =>
                     c.getAttribute('slot')
                 )
@@ -131,6 +127,9 @@ export default function registerWebComponent(
                     lastSlots.size === slotsNames.length &&
                     slotsNames.every((s) => lastSlots.has(s))
                 ) {
+                    if (childrenUpdatedCallback) {
+                        childrenUpdatedCallback(this.shadowRoot.children);
+                    }
                     return
                 }
 
@@ -185,6 +184,10 @@ export default function registerWebComponent(
                         $$scope: { ctx: [] }
                     }
                 })
+
+                if (childrenUpdatedCallback) {
+                    childrenUpdatedCallback(this.shadowRoot.children);
+                }
             }
 
             // Unfortunately we need a DOMMutationObserver to let us know when
@@ -194,11 +197,11 @@ export default function registerWebComponent(
             // 2) Even if we did, if we generated all of the slots at mount time
             //    then Svelte would never render any of the fallback content,
             //    event if the slot was empty.
-            new MutationObserver(updateSlots).observe(this, {
+            new MutationObserver(updateSlots).observe(this.shadowRoot, {
                 childList: true,
                 attributes: false,
                 attributeOldValue: false,
-                subtree: false,
+                subtree: true,
                 characterData: false,
                 characterDataOldValue: false
             })

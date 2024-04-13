@@ -7,6 +7,8 @@ import WarningMessage from "../src/uielements/WarningMessage.svelte";
 import Wizard from "../src/uielements/Wizard.svelte";
 import registerWebComponent from "./svelte-web";
 
+let cachedDarkMode = false;
+
 function buildShadowRootPreparer(hostVersion: string) {
     return function (shadow: ShadowRoot) {
         // note: if font-requiring stylesheets are not loaded in the document root too,
@@ -31,8 +33,6 @@ function buildShadowRootPreparer(hostVersion: string) {
         }
     };
 }
-
-let cachedDarkMode = false;
 
 type customElement = {
     component: any,
