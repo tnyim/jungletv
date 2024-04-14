@@ -53,6 +53,10 @@ func (m *queueModule) serializeQueueEntry(vm *goja.Runtime, entry media.QueueEnt
 }
 
 func (m *queueModule) serializePerformance(vm *goja.Runtime, onObject *goja.Object, performance media.Performance) goja.Value {
+	return SerializePerformance(vm, onObject, performance, m.userSerializer)
+}
+
+func SerializePerformance(vm *goja.Runtime, onObject *goja.Object, performance media.Performance, userSerializer gojautil.UserSerializer) goja.Value {
 	if performance == nil || performance == media.Performance(nil) {
 		return goja.Undefined()
 	}
@@ -101,7 +105,7 @@ func (m *queueModule) serializePerformance(vm *goja.Runtime, onObject *goja.Obje
 		return gojautil.SerializeTime(vm, requestedAt)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
-	result.DefineAccessorProperty("requestedBy", m.userSerializer.BuildUserGetter(m.runtime, performance.RequestedBy()), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
+	result.DefineAccessorProperty("requestedBy", userSerializer.BuildUserGetter(vm, performance.RequestedBy()), nil, goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("unskippable", vm.ToValue(func(call goja.FunctionCall) goja.Value {
 		return vm.ToValue(performance.Unskippable())

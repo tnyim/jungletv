@@ -11,7 +11,9 @@ import (
 	"github.com/tnyim/jungletv/server/components/payment"
 	"github.com/tnyim/jungletv/server/components/pointsmanager"
 	"github.com/tnyim/jungletv/server/components/pricer"
+	"github.com/tnyim/jungletv/server/components/rewards"
 	"github.com/tnyim/jungletv/server/components/skipmanager"
+	"github.com/tnyim/jungletv/server/components/stats"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/server/usercache"
 	"github.com/tnyim/jungletv/types"
@@ -30,6 +32,8 @@ type Dependencies struct {
 	PaymentAccountPool           *payment.PaymentAccountPool
 	DefaultAccountRepresentative string
 	UserCache                    usercache.UserCache
+	RewardsHandler               *rewards.Handler
+	StatsRegistry                *stats.Registry
 }
 
 type OtherMediaQueueMethods interface {

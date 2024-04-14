@@ -9,7 +9,7 @@ import (
 // RewardsDistributedEventArgs are the arguments to the event that is fired when rewards are distributed for a queue entry
 type RewardsDistributedEventArgs struct {
 	RewardBudget       payment.Amount
-	EligibleSpectators int
+	EligibleSpectators []string
 	RequesterReward    payment.Amount
 	Media              media.QueueEntry
 }

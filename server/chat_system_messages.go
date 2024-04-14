@@ -160,7 +160,7 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 			}
 		case args := <-rewardsDistributedC:
 			amount := args.RewardBudget
-			eligibleCount := args.EligibleSpectators
+			eligibleCount := len(args.EligibleSpectators)
 			enqueuerTip := args.RequesterReward
 			mediaEntry := args.Media
 			exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(29), nil)

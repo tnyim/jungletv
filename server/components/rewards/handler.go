@@ -516,7 +516,7 @@ func (r *Handler) handleQueueEntryAdded(ctx context.Context, m media.QueueEntry)
 	if requestedBy == nil || requestedBy.IsUnknown() || requestedBy.IsFromAlienChain() || requestedBy.ApplicationID() != "" {
 		return nil
 	}
-	r.markAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
+	r.MarkAddressAsActiveIfNotChallenged(ctx, requestedBy.Address())
 	_, err := r.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeMediaEnqueuedReward,
 		r.getPointsRewardForMedia(m),
 		pointsmanager.TxExtraField{
@@ -542,7 +542,7 @@ func (r *Handler) handleNewChatMessage(ctx context.Context, m *chat.Message) err
 	}
 
 	if len(m.Content) >= 10 || m.Reference != nil || len(m.AttachmentsView) > 0 {
-		r.markAddressAsActiveIfNotChallenged(ctx, m.Author.Address())
+		r.MarkAddressAsActiveIfNotChallenged(ctx, m.Author.Address())
 
 		_, present := r.chatParticipation.Get(m.Author.Address())
 		_, presentInLessFrequent := r.chatLessFrequentParticipation.Get(m.Author.Address())

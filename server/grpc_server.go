@@ -518,6 +518,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		PaymentAccountPool:           s.paymentAccountPool,
 		DefaultAccountRepresentative: options.RepresentativeAddress,
 		UserCache:                    s.nicknameCache,
+		RewardsHandler:               s.rewardsHandler,
+		StatsRegistry:                s.statsRegistry,
 	})
 
 	return s, nil

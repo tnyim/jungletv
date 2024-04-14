@@ -20,6 +20,7 @@ import (
 	"github.com/tnyim/jungletv/types"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"golang.org/x/exp/maps"
 )
 
 func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error {
@@ -112,7 +113,7 @@ func (r *Handler) rewardUsers(ctx context.Context, media media.QueueEntry) error
 		}
 	}
 
-	r.rewardsDistributed.Notify(RewardsDistributedEventArgs{rewardBudget, len(eligible), requesterReward, media}, true)
+	r.rewardsDistributed.Notify(RewardsDistributedEventArgs{rewardBudget, maps.Keys(eligible), requesterReward, media}, true)
 	return nil
 }
 

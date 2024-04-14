@@ -276,7 +276,7 @@ func (r *Handler) awardPointsForCompletedChallenge(ctxCtx context.Context, user 
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (r *Handler) markAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
+func (r *Handler) MarkAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 

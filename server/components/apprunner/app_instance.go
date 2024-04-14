@@ -39,6 +39,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/profile"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/queue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/spectators"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/wallet"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/types"
@@ -151,6 +152,7 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, r.notifManager, instance.pagesModule))
 	instance.modules.RegisterNativeModule(profile.New(instance, instance.userSerializer, d.ChatManager))
+	instance.modules.RegisterNativeModule(spectators.New(instance, d.RewardsHandler, d.StatsRegistry, instance.userSerializer))
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
