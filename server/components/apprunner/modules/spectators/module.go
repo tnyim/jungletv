@@ -8,6 +8,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/queue"
@@ -60,12 +61,24 @@ func (m *spectatorsModule) ModuleLoader() require.ModuleLoader {
 
 		gojautil.AdaptEvent(m.eventAdapter, m.rewardsHandler.RewardsDistributed(), "rewardsdistributed", func(vm *goja.Runtime, arg rewards.RewardsDistributedEventArgs) *goja.Object {
 			t := map[string]interface{}{
-				"eligibleSpectators": arg.EligibleSpectators,
-				"rewardBudget":       arg.RewardBudget.SerializeForAPI(),
-				"requesterReward":    arg.RequesterReward.SerializeForAPI(),
-				"mediaPerformance":   queue.SerializePerformance(vm, nil, arg.Media, m.userSerializer),
+				"rewardBudget":    arg.RewardBudget.SerializeForAPI(),
+				"requesterReward": arg.RequesterReward.SerializeForAPI(),
 			}
-			return vm.ToValue(t).ToObject(vm)
+			obj := vm.ToValue(t).ToObject(vm)
+
+			obj.DefineAccessorProperty("rewardedUsers", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+				userValues := make([]goja.Value, len(arg.EligibleSpectators))
+				for i, address := range arg.EligibleSpectators {
+					userValues[i] = m.userSerializer.SerializeUser(m.runtime, auth.NewAddressOnlyUser(address))
+				}
+				return m.runtime.ToValue(userValues)
+			}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+			obj.DefineAccessorProperty("mediaPerformance", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+				return queue.SerializePerformance(vm, nil, arg.Media, m.userSerializer)
+			}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+			return obj
 		})
 
 		m.exports.DefineAccessorProperty("connectedCount", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
