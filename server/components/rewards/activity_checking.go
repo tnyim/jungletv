@@ -277,27 +277,19 @@ func (r *Handler) awardPointsForCompletedChallenge(ctxCtx context.Context, user 
 }
 
 func (r *Handler) MarkAddressAsActiveIfNotChallenged(ctx context.Context, address string) error {
-	r.spectatorsMutex.Lock()
-	defer r.spectatorsMutex.Unlock()
-
-	spectator, ok := r.spectatorsByRewardAddress[address]
-	if ok && spectator.activityChallenge == nil {
-		d, err := r.durationUntilNextActivityChallenge(ctx, spectator.user, false)
-		if err != nil {
-			return stacktrace.Propagate(err, "")
-		}
-		spectator.nextActivityCheckTime = time.Now().Add(d)
-		spectator.activityCheckTimer.Reset(d)
-	}
-	return nil
+	return stacktrace.Propagate(r.markAddressAsActive(ctx, address, false), "")
 }
 
 func (r *Handler) MarkAddressAsActiveEvenIfChallenged(ctx context.Context, address string) error {
+	return stacktrace.Propagate(r.markAddressAsActive(ctx, address, true), "")
+}
+
+func (r *Handler) markAddressAsActive(ctx context.Context, address string, evenIfChallenged bool) error {
 	r.spectatorsMutex.Lock()
 	defer r.spectatorsMutex.Unlock()
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
-	if ok {
+	if ok && (evenIfChallenged || spectator.activityChallenge == nil) {
 		d, err := r.durationUntilNextActivityChallenge(ctx, spectator.user, false)
 		if err != nil {
 			return stacktrace.Propagate(err, "")

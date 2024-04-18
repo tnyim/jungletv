@@ -55,6 +55,7 @@ func (m *spectatorsModule) ModuleLoader() require.ModuleLoader {
 			return gojautil.SerializeTime(runtime, t)
 		}
 		m.exports = module.Get("exports").(*goja.Object)
+		m.exports.Set("getSpectator", m.getSpectator)
 		m.exports.Set("markAsActive", m.markAsActive)
 		m.exports.Set("addEventListener", m.eventAdapter.AddEventListener)
 		m.exports.Set("removeEventListener", m.eventAdapter.RemoveEventListener)
@@ -92,6 +93,15 @@ func (m *spectatorsModule) ModuleLoader() require.ModuleLoader {
 			}
 			return m.runtime.ToValue(active)
 		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
+
+		m.exports.DefineAccessorProperty("connected", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+			spectators := m.rewardsHandler.ConnectedSpectators()
+			result := make([]goja.Value, len(spectators))
+			for i := range spectators {
+				result[i] = m.serializeSpectator(spectators[i])
+			}
+			return m.runtime.ToValue(result)
+		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 	}
 }
 func (m *spectatorsModule) ModuleName() string {
@@ -105,6 +115,23 @@ func (m *spectatorsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGr
 	m.executionContext = ctx
 	m.runtime = runtime
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
+}
+
+func (m *spectatorsModule) getSpectator(call goja.FunctionCall) goja.Value {
+	if len(call.Arguments) < 1 {
+		panic(m.runtime.NewTypeError("Missing argument"))
+	}
+	userValue := call.Argument(0)
+	userAddress := userValue.String()
+
+	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
+
+	spectator, ok := m.rewardsHandler.GetSpectator(userAddress)
+	if !ok {
+		return goja.Null()
+	}
+
+	return m.serializeSpectator(spectator)
 }
 
 func (m *spectatorsModule) markAsActive(call goja.FunctionCall) goja.Value {

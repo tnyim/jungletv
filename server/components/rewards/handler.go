@@ -79,6 +79,7 @@ type Handler struct {
 }
 
 type Spectator interface {
+	User() auth.User
 	OnActivityChallenge() event.Event[*ActivityChallenge]
 	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
@@ -138,6 +139,10 @@ func (a *ActivityChallenge) SerializeForAPI() *proto.ActivityChallenge {
 		Types:        utils.CastStringLikeSlice[ActivityChallengeType, string](a.Types),
 		ChallengedAt: timestamppb.New(a.ChallengedAt),
 	}
+}
+
+func (s *spectator) User() auth.User {
+	return s.user
 }
 
 func (s *spectator) OnActivityChallenge() event.Event[*ActivityChallenge] {
@@ -571,6 +576,20 @@ func (r *Handler) GetSpectator(address string) (Spectator, bool) {
 
 	spectator, ok := r.spectatorsByRewardAddress[address]
 	return spectator, ok
+}
+
+func (r *Handler) ConnectedSpectators() []Spectator {
+	r.spectatorsMutex.RLock()
+	defer r.spectatorsMutex.RUnlock()
+
+	result := make([]Spectator, 0, len(r.spectatorsByRewardAddress))
+	for _, spectator := range r.spectatorsByRewardAddress {
+		if spectator.connectionCount > 0 {
+			result = append(result, spectator)
+		}
+	}
+
+	return result
 }
 
 func (r *Handler) CountConnectedSpectatorsOnRemoteAddress(remoteAddress string) int {
