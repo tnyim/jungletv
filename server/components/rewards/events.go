@@ -18,3 +18,13 @@ type RewardsDistributedEventArgs struct {
 func (r *Handler) RewardsDistributed() event.Event[RewardsDistributedEventArgs] {
 	return r.rewardsDistributed
 }
+
+// SpectatorConnected is the event that is fired when a spectator establishes their first connection
+func (r *Handler) SpectatorConnected() event.Event[Spectator] {
+	return r.spectatorConnected
+}
+
+// SpectatorDisconnected is the event that is fired when a spectator disconnects their last remaining connection
+func (r *Handler) SpectatorDisconnected() event.Event[Spectator] {
+	return r.spectatorDisconnected
+}

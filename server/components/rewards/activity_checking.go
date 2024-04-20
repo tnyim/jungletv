@@ -20,6 +20,8 @@ import (
 )
 
 func spectatorActivityWatchdog(ctx context.Context, spectator *spectator, r *Handler) {
+	r.spectatorConnected.Notify(spectator, false)
+	defer r.spectatorDisconnected.Notify(spectator, false)
 	// this function runs once per spectator
 	// it keeps running until all connections of the spectator disconnect
 	// (the spectator will keep existing in memory for a while, they just won't have an activity watchdog)

@@ -64,7 +64,9 @@ type Handler struct {
 	pointsManager         *pointsmanager.Manager
 	notificationManager   *notificationmanager.Manager
 
-	rewardsDistributed event.Event[RewardsDistributedEventArgs]
+	spectatorConnected    event.Event[Spectator]
+	spectatorDisconnected event.Event[Spectator]
+	rewardsDistributed    event.Event[RewardsDistributedEventArgs]
 
 	// spectatorsByRemoteAddress maps a remote address to a set of spectators
 	spectatorsByRemoteAddress map[string][]*spectator
@@ -232,7 +234,9 @@ func NewHandler(log *log.Logger,
 		pointsManager:         pointsManager,
 		notificationManager:   notificationManager,
 
-		rewardsDistributed: event.New[RewardsDistributedEventArgs](),
+		rewardsDistributed:    event.New[RewardsDistributedEventArgs](),
+		spectatorConnected:    event.New[Spectator](),
+		spectatorDisconnected: event.New[Spectator](),
 
 		spectatorsByRemoteAddress:    make(map[string][]*spectator),
 		spectatorsByRewardAddress:    make(map[string]*spectator),

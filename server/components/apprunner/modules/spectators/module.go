@@ -82,6 +82,20 @@ func (m *spectatorsModule) ModuleLoader() require.ModuleLoader {
 			return obj
 		})
 
+		gojautil.AdaptEvent(m.eventAdapter, m.rewardsHandler.SpectatorConnected(), "spectatorconnected", func(vm *goja.Runtime, arg rewards.Spectator) *goja.Object {
+			t := map[string]interface{}{
+				"spectator": m.serializeSpectator(arg),
+			}
+			return vm.ToValue(t).ToObject(vm)
+		})
+
+		gojautil.AdaptEvent(m.eventAdapter, m.rewardsHandler.SpectatorDisconnected(), "spectatordisconnected", func(vm *goja.Runtime, arg rewards.Spectator) *goja.Object {
+			t := map[string]interface{}{
+				"spectator": m.serializeSpectator(arg),
+			}
+			return vm.ToValue(t).ToObject(vm)
+		})
+
 		m.exports.DefineAccessorProperty("connectedCount", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
 			return m.runtime.ToValue(m.statsRegistry.CurrentlyWatching())
 		}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
