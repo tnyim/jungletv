@@ -8,6 +8,7 @@ interface Require {
     (id: "jungletv:profile"): typeof import("jungletv:profile");
     (id: "jungletv:queue"): typeof import("jungletv:queue");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
+    (id: "jungletv:spectators"): typeof import("jungletv:spectators");
     (id: "jungletv:wallet"): typeof import("jungletv:wallet");
     (id: "node:console" | "console"): typeof import("node:console");
     (id: "node:process" | "process"): typeof import("node:process");
@@ -23,6 +24,7 @@ interface Window {
 
 /** Allows for interaction with the JungleTV chat subsystem. */
 declare module "jungletv:chat" {
+    import type { publishFile } from "jungletv:pages";
     /** Arguments to a chat event */
     export interface EventArgs {
         type: keyof ChatEventMap;
@@ -117,7 +119,7 @@ declare module "jungletv:chat" {
      * The content will be parsed as a restricted subset of {@link https://github.github.com/gfm/ | GitHub Flavored Markdown} by the JungleTV clients.
      * Consider escaping any characters that may unintentionally constitute Markdown formatting.
      * Message contents are subject to some of the validation rules of chat messages sent by users, but do not have an explicit length limit.
-     * @param pageID The ID of the application page to attach, as specified when publishing the page using e.g. {@link "jungletv:pages".publishFile}.
+     * @param pageID The ID of the application page to attach, as specified when publishing the page using e.g. {@link publishFile}.
      * @param height The non-zero height of the application page in pixels as it will be displayed in the chat history.
      * The maximum height is 512 pixels.
      * @param referenceID An optional string containing the ID of another message to which this one is a reply.
@@ -350,6 +352,7 @@ declare module "jungletv:keyvalue" {
  * It should be used to define how to handle method calls and events originating from the client-side pages.
  */
 declare module "jungletv:rpc" {
+    import type { publishFile } from "jungletv:pages";
     /**
      * Sets the function that is called when the remote method with the given name is called by the client, and which can optionally return a value back to the client.
      * A minimum required permission level can be set for the method to be handled.
@@ -412,7 +415,7 @@ declare module "jungletv:rpc" {
      * This method does not wait for event delivery before returning.
      * Using this method alone, it is not possible to know which, if any, clients received the event.
      * @param pageID A case-sensitive string representing the ID of the page to target.
-     * This must match the ID passed to {@link "jungletv:pages".publishFile}.
+     * This must match the ID passed to {@link publishFile}.
      * @param eventName A case-sensitive string identifying the event type.
      * @param serverParams An indefinite number of additional parameters of arbitrary types, that will be serialized using JSON and transmitted to the clients.
      */
@@ -434,7 +437,7 @@ declare module "jungletv:rpc" {
      * This method does not wait for event delivery before returning.
      * Using this method alone, it is not possible to know which, if any, clients received the event.
      * @param pageID A case-sensitive string representing the ID of the page to target.
-     * This must match the ID passed to {@link "jungletv:pages".publishFile}.
+     * This must match the ID passed to {@link publishFile}.
      * @param user A string representing the reward address of the user to target.
      * Pass the empty string, or `null` or `undefined`, to target exclusively unauthenticated users.
      * @param eventName A case-sensitive string identifying the event type.
@@ -455,7 +458,7 @@ declare module "jungletv:rpc" {
 
     /** The context of a remote method invocation or client event */
     export interface RemoteContext {
-        /** ID of the page from where this event or method invocation originates, as passed to {@link "jungletv:pages".publishFile} */
+        /** ID of the page from where this event or method invocation originates, as passed to {@link publishFile} */
         page: string;
 
         /** The authenticated user originating this event or invocation, will be undefined if the operation originates from an unauthenticated visitor. */
@@ -752,6 +755,8 @@ declare module "jungletv:points" {
 
 /** Allows for altering different aspects of JungleTV's presentation and behavior. */
 declare module "jungletv:configuration" {
+    import type { publishFile, unpublish } from "jungletv:pages";
+    import type { EnqueuingPermissionEnum } from "jungletv:queue";
     /**
      * Defines a custom website name to be used in place of "JungleTV".
      * The change is immediately reflected on all connected media-consuming clients, and is automatically undone when the application terminates.
@@ -791,15 +796,15 @@ declare module "jungletv:configuration" {
     export function setAppFavicon(filename?: string): boolean;
 
     /**
-     * Sets an application page, registered with {@link "jungletv:pages".publishFile}, to be shown as an additional sidebar tab on the JungleTV homepage.
-     * The tab's initial title will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
+     * Sets an application page, registered with {@link publishFile}, to be shown as an additional sidebar tab on the JungleTV homepage.
+     * The tab's initial title will be the default title passed to {@link publishFile} when publishing the page.
      * When the page makes use of the app bridge script, its document title will be automatically synchronized with the tab title, **while the tab is visible/selected**.
      * When not selected, the tab **may** retain the most recent title until it is reopened or removed, **or** it **may** revert to the page's default title.
      * Currently, application sidebar tabs can't be popped out of the main JungleTV application window like built-in tabs can (e.g. by middle-clicking on the tab title).
-     * The new sidebar tab becomes immediately available (but not immediately visible, i.e. the selected sidebar tab will not change) on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.
+     * The new sidebar tab becomes immediately available (but not immediately visible, i.e. the selected sidebar tab will not change) on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link unpublish unpublished}.
      * Each JAF application can elect to show a single one of their application pages as a sidebar tab.
      * If the same application invokes this function with different pages as the argument, the sidebar tab slot available to that application will contain the page passed on the most recent invocation.
-     * @param pageID A case-sensitive string representing the ID of the page to use as the content for the tab, as was specified when invoking {@link "jungletv:pages".publishFile}.
+     * @param pageID A case-sensitive string representing the ID of the page to use as the content for the tab, as was specified when invoking {@link publishFile}.
      * When set to `null` or `undefined`, the sidebar tab slot for the JAF application will be removed.
      * Connected users with the application's tab active will see an immediate switch to another sidebar tab.
      * @param beforeTabID An optional string that allows for controlling the placement of the new sidebar tab relative to the built-in sidebar tabs.
@@ -813,14 +818,14 @@ declare module "jungletv:configuration" {
     export function setSidebarTab(pageID?: string, beforeTabID?: string): boolean;
 
     /**
-     * Sets an application page, registered with {@link "jungletv:pages".publishFile}, to be shown as an additional tab on the JungleTV user profiles.
-     * The tab's initial title will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
+     * Sets an application page, registered with {@link publishFile}, to be shown as an additional tab on the JungleTV user profiles.
+     * The tab's initial title will be the default title passed to {@link publishFile} when publishing the page.
      * When the page makes use of the app bridge script, its document title will be automatically synchronized with the tab title, **while the tab is visible/selected**.
      * When not selected, the tab **may** retain the most recent title until it is reopened or removed, **or** it **may** revert to the page's default title.
-     * The new profile tab becomes available on all user profiles opened after the moment this function is invoked, and it is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.
+     * The new profile tab becomes available on all user profiles opened after the moment this function is invoked, and it is automatically removed when the application terminates or when the page is {@link unpublish unpublished}.
      * Each JAF application can elect to show a single one of their application pages as a profile tab.
      * If the same application invokes this function with different pages as the argument, the profile tab slot available to that application will contain the page passed on the most recent invocation.
-     * @param pageID A case-sensitive string representing the ID of the page to use as the content for the tab, as was specified when invoking {@link "jungletv:pages".publishFile}.
+     * @param pageID A case-sensitive string representing the ID of the page to use as the content for the tab, as was specified when invoking {@link publishFile}.
      * When set to `null` or `undefined`, the profile tab slot for the JAF application will be removed.
      * Connected users with the application's tab active will see an immediate switch to another profile tab.
      * @param beforeTabID An optional string that allows for controlling the placement of the new profile tab relative to the built-in profile tabs.
@@ -834,12 +839,12 @@ declare module "jungletv:configuration" {
     export function setProfileTab(pageID?: string, beforeTabID?: string): boolean;
 
     /**
-     * Sets a new navigation bar item, on the JungleTV client SPA, to link to an application page, registered with {@link "jungletv:pages".publishFile}.
-     * The item's label will be the default title passed to {@link "jungletv:pages".publishFile} when publishing the page.
-     * The new navigation destination becomes immediately available on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link "jungletv:pages".unpublish unpublished}.
+     * Sets a new navigation bar item, on the JungleTV client SPA, to link to an application page, registered with {@link publishFile}.
+     * The item's label will be the default title passed to {@link publishFile} when publishing the page.
+     * The new navigation destination becomes immediately available on all connected media-consuming clients, and is automatically removed when the application terminates or when the page is {@link unpublish unpublished}.
      * Each JAF application can elect to show a single navigation destination for one of their application pages.
      * If the same application invokes this function with different pages as the argument, the navigation bar slot available to that application will link to the page passed on the most recent invocation.
-     * @param pageID A case-sensitive string representing the ID of the page to use as the destination for the navigation bar item, as was specified when invoking {@link "jungletv:pages".publishFile}.
+     * @param pageID A case-sensitive string representing the ID of the page to use as the destination for the navigation bar item, as was specified when invoking {@link publishFile}.
      * When set to `null` or `undefined`, the navigation destination for the JAF application will be removed.
      * @param iconClasses A FontAwesome v5 icon specified using its classes (e.g. "fas fa-home") that will be shown on the navigation bar item.
      * Required only if {@link pageID} is specified.
@@ -886,7 +891,7 @@ declare module "jungletv:configuration" {
 
     /**
      * Requests that a user be considered VIP, or releases that request.
-     * VIP users are able to enqueue while enqueuing is restricted to {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledStaffOnly} or {@link "jungletv:queue".EnqueuingPermissionEnum.EnabledPasswordRequired}, and optionally have special roles associated with them in chat.
+     * VIP users are able to enqueue while enqueuing is restricted to {@link EnqueuingPermissionEnum.EnabledStaffOnly} or {@link EnqueuingPermissionEnum.EnabledPasswordRequired}, and optionally have special roles associated with them in chat.
      * Multiple applications may request that the same user be considered VIP.
      * In such cases, the most recently requested and not-yet-released appearance will be considered, and a user will not cease to be considered VIP until all applications have released their requests regarding that user.
      * The resulting set of VIP users corresponds to the union of the requests made by all running JAF applications, plus the set of users manually defined on-demand by JungleTV staff.
@@ -956,7 +961,8 @@ declare module "jungletv:configuration" {
 
 /** Allows for interaction with the JungleTV queue subsystem. */
 declare module "jungletv:queue" {
-    /** Arguments to a chat event */
+    import type { publishFile } from "jungletv:pages";
+    /** Arguments to a queue event */
     export interface EventArgs {
         type: keyof QueueEventMap;
     }
@@ -1112,7 +1118,7 @@ declare module "jungletv:queue" {
     /**
      * Enqueues an application page, to be "played" as if it were any other form of media.
      *
-     * The title of the created queue entry will default to the one passed to {@link "jungletv:pages".publishFile}, unless overridden via the {@link options} object.
+     * The title of the created queue entry will default to the one passed to {@link publishFile}, unless overridden via the {@link options} object.
      * The thumbnail of the created queue entry will default to a generic one, unless overridden via the {@link options} object.
      *
      * Once the created queue entry reaches the top of the queue and begins "playing," the specified application page will be displayed on JungleTV clients in the same place where a media player normally goes.
@@ -1457,7 +1463,7 @@ declare module "jungletv:queue" {
     export interface PageEnqueueOptions extends EnqueueOptions {
         /**
          * When present, will override the title of the resulting queue entry.
-         * If not present, the title of the created queue entry will be the one passed to {@link "jungletv:pages".publishFile}.
+         * If not present, the title of the created queue entry will be the one passed to {@link publishFile}.
          */
         title?: string;
 
@@ -1638,6 +1644,7 @@ declare module "jungletv:queue" {
 
 /** Allows for interaction with JungleTV user profiles. */
 declare module "jungletv:profile" {
+    import type { MediaPerformance } from "jungletv:queue";
     /**
      * Gets the user information for an arbitrary user, including their nickname.
      * @param address The reward address of the user to fetch.
@@ -1658,7 +1665,7 @@ declare module "jungletv:profile" {
      * Sets the featured media on the profile of an arbitrary user.
      * Note that this function will change the profile of any valid Banano address, even those that are yet to sign in to the service.
      * @param address The reward address of the user whose profile should be updated.
-     * @param featuredMediaID The ID of the {@link "jungletv:queue".MediaPerformance} to set as the featured media, or `undefined` to clear the featured media.
+     * @param featuredMediaID The ID of the {@link MediaPerformance} to set as the featured media, or `undefined` to clear the featured media.
      */
     export function setProfileFeaturedMedia(address: string, featuredMediaID: string | undefined): Promise<void>;
 
@@ -1703,7 +1710,7 @@ declare module "jungletv:profile" {
         biography: string;
 
         /**
-         * ID of the {@link "jungletv:queue".MediaPerformance} that is featured on the user profile, set by them or via the {@link setProfileFeaturedMedia} method.
+         * ID of the {@link MediaPerformance} that is featured on the user profile, set by them or via the {@link setProfileFeaturedMedia} method.
          * May be `undefined` if the profile does not have a featured media.
          */
         featuredMediaID?: string;
@@ -1728,6 +1735,154 @@ declare module "jungletv:profile" {
 
         /** The total play duration, in milliseconds, of the {@link mediaRequestCount} media performances requested by the user. */
         mediaRequestPlayTime: number;
+    }
+}
+
+/** Allows for obtaining information about the connected media spectators and the rewards being distributed, as well as partially controlling spectator eligibility. */
+declare module "jungletv:spectators" {
+    import type { MediaPerformance } from "jungletv:queue";
+
+    /** Arguments to a spectators event */
+    export interface EventArgs {
+        type: keyof SpectatorsEventMap;
+    }
+
+    /** Arguments to the 'rewardsdistributed' event */
+    export interface RewardsDistributedEventArgs extends EventArgs {
+        /** Guaranteed to be `rewardsdistributed`. */
+        type: "rewardsdistributed";
+
+        /** The total reward amount distributed among eligible spectators, excluding any tips for the media requester. */
+        rewardBudget: Amount;
+
+        /** The amount distributed to the media requester. */
+        requesterReward: Amount;
+
+        /** The eligible spectators rewarded, not including the media requester, who may have been rewarded depending on {@link requesterReward}. */
+        readonly rewardedUsers: User[];
+
+        /** The media performance the spectators were rewarded for consuming. */
+        readonly mediaPerformance: MediaPerformance;
+    }
+
+    /** Arguments to the 'spectatorconnected' event */
+    export interface SpectatorConnectedEventArgs extends EventArgs {
+        /** Guaranteed to be `spectatorconnected`. */
+        type: "spectatorconnected";
+
+        /** The spectator that has connected. */
+        spectator: Spectator;
+    }
+
+    /** Arguments to the 'spectatordisconnected' event */
+    export interface SpectatorDisconnectedEventArgs extends EventArgs {
+        /** Guaranteed to be `spectatordisconnected`. */
+        type: "spectatordisconnected";
+
+        /** The spectator that has disconnected. */
+        spectator: Spectator;
+    }
+
+    /** A relation between event types and the arguments passed to the respective listeners */
+    export interface SpectatorsEventMap {
+        /** This event is fired when rewards are distributed among eligible spectators. */
+        "rewardsdistributed": RewardsDistributedEventArgs;
+
+        /** This event is fired when a spectator connects to the media player. */
+        "spectatorconnected": SpectatorConnectedEventArgs;
+
+        /** This event is fired when a spectator disconnects from the media player. */
+        "spectatordisconnected": SpectatorDisconnectedEventArgs;
+    }
+
+    /**
+     * Registers a function to be called whenever the specified event occurs.
+     * Depending on the event, the function may be invoked with arguments containing information about the event.
+     * Refer to the documentation about each event type for details.
+     * @param eventType A case-sensitive string representing the event to listen for.
+     * @param listener A function that will be called when an event of the specified type occurs.
+     */
+    export function addEventListener<K extends keyof SpectatorsEventMap>(eventType: K, listener: (this: unknown, args: SpectatorsEventMap[K]) => void): void;
+
+    /**
+     * Ceases calling a function previously registered with {@link addEventListener} whenever the specified event occurs.
+     * @param eventType A case-sensitive string corresponding to the event type from which to unsubscribe.
+     * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the given {@param eventType} occurs.
+     */
+    export function removeEventListener<K extends keyof SpectatorsEventMap>(eventType: K, listener: (this: unknown, args: SpectatorsEventMap[K]) => void): void;
+
+    /**
+     * Obtains information about a spectator using their reward address.
+     * @param userAddress The reward address of the user.
+     * @returns The {@link Spectator} if the user is presently registered in the system as a spectator (which may happen even if they are no longer connected, but have disconnected recently), or `null` if the user is not presently registered as a spectator.
+     */
+    export function getSpectator(userAddress: string): Spectator | null;
+
+    /**
+     * Marks a spectator as active, exempting them from activity checks for a typical minimum period of 15 minutes, starting from the moment this method is called.
+     * This method should only be called if the user has very recently performed an action that can be reasonably attributed to sentient human activity.
+     * This method has no effect if the spectator already has a pending activity challenge, or if the user is not registered as a spectator.
+     * @param userAddress The reward address of the user to mark as active.
+     */
+    export function markAsActive(userAddress: string): void;
+
+    /** This read-only property contains the number of currently connected spectators. */
+    export let connectedCount: number;
+
+    /** This read-only property contains the estimated number of connected spectators currently eligible to receive rewards. */
+    export let eligibleEstimate: number;
+
+    /**
+     * This read-only property contains the list of currently connected spectators.
+     * The list is not sorted in any order and different accesses of this property may return different results.
+     */
+    export let connected: Spectator[];
+
+    /** Represents a user that is or was recently connected as a spectator. */
+    export interface Spectator {
+        /** The user entity associated with this spectator. */
+        readonly user: User;
+
+        /** The moment at which this spectator was registered. */
+        readonly connectedAt: Date;
+
+        /** The moment at which the last remaining connection of this user was destroyed, or undefined if the user is presently connected. */
+        readonly disconnectedAt: Date | undefined;
+
+        /** The number of active media player connections of this user. */
+        readonly connectionCount: number;
+
+        /** The number of remaining media player connections of this user. */
+        readonly remainingConnectionCount: number;
+
+        /** The moment at which this spectator failed a legitimacy check, or undefined if the user is presently considered legitimate. */
+        readonly failedLegitimacyCheckAt: Date | undefined;
+
+        /** The moment at which this spectator was issued an activity challenge, or undefined if the user has no pending activity challenge. */
+        readonly activityChallengedAt: Date | undefined;
+
+        /** Information about the remote network address of this spectator or undefined if no information is presently available. */
+        readonly remoteAddress: RemoteAddressInformation | undefined;
+
+        /**
+         * Marks this spectator as active, exempting them from activity checks for a typical minimum period of 15 minutes, starting from the moment this method is called.
+         * This method should only be called if the user has very recently performed an action that can be reasonably attributed to sentient human activity.
+         * This method has no effect if the spectator already has a pending activity challenge, or if the user is not registered as a spectator.
+         * Equivalent to calling {@link markAsActive} with the spectator's reward address.
+         */
+        markAsActive: () => void;
+    }
+
+    /** Contains information about the remote network address of a spectator. */
+    export interface RemoteAddressInformation {
+        /** Whether the remote address is considered to have sufficiently good reputation to be eligible for receiving rewards. */
+        reputable: boolean;
+
+        /**
+         * Autonomous system number associated with the remote address.
+         * May be undefined if the number is unknown.
+         */
+        asNumber: number | undefined;
     }
 }
 
