@@ -24,7 +24,7 @@ import (
 // Checker checks the reputation of IP addresses
 type Checker struct {
 	log        *log.Logger
-	reputation *theine.Cache[string, float32]
+	reputation *theine.Cache[string, ipInfo]
 	httpClient http.Client
 
 	badASNs     map[int]struct{}
@@ -35,9 +35,14 @@ type Checker struct {
 	checkQueue chan string
 }
 
+type ipInfo struct {
+	badActorConfidence float32
+	asn                int
+}
+
 // NewChecker initializes and returns a new Checker
 func NewChecker(ctx context.Context, log *log.Logger, endpoint string) (*Checker, error) {
-	cache, err := theine.NewBuilder[string, float32](buildconfig.ExpectedConcurrentUsers).Build()
+	cache, err := theine.NewBuilder[string, ipInfo](buildconfig.ExpectedConcurrentUsers).Build()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -59,13 +64,13 @@ func NewChecker(ctx context.Context, log *log.Logger, endpoint string) (*Checker
 	return c, nil
 }
 
-func (c *Checker) CanReceiveRewards(remoteAddress string) (bool, bool) {
-	badActorConfidence, present := c.reputation.Get(remoteAddress)
+func (c *Checker) AddressInformation(remoteAddress string) (bool, int, bool) {
+	ipInfo, present := c.reputation.Get(remoteAddress)
 	if !present {
 		c.EnqueueAddressForChecking(remoteAddress)
-		return false, false
+		return false, -1, false
 	}
-	return badActorConfidence < 0.95, true
+	return ipInfo.badActorConfidence < 0.95, ipInfo.asn, true
 }
 
 func (c *Checker) EnqueueAddressForChecking(remoteAddress string) {
@@ -139,14 +144,17 @@ addLoop:
 		if err != nil {
 			c.log.Println("error checking IP info:", stacktrace.Propagate(err, ""))
 			for ip := range addressesToCheck {
-				c.setAddressReputation(ip, 0.5)
+				c.setAddressReputation(ip, 0.5, -1)
 			}
 		}
 	}
 }
 
-func (c *Checker) setAddressReputation(address string, reputation float32) {
-	c.reputation.SetWithTTL(address, reputation, 1, 24*time.Hour)
+func (c *Checker) setAddressReputation(address string, reputation float32, asn int) {
+	c.reputation.SetWithTTL(address, ipInfo{
+		badActorConfidence: reputation,
+		asn:                asn,
+	}, 1, 24*time.Hour)
 }
 
 var asRegexp = regexp.MustCompile(`AS([0-9]+)\s.*`)
@@ -193,7 +201,7 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 	for _, result := range response {
 		if result.Status != "success" {
 			c.log.Printf("Could not check reputation for IP %v due to non-success status", result.Query)
-			c.setAddressReputation(result.Query, 0.5)
+			c.setAddressReputation(result.Query, 0.5, -1)
 			continue
 		}
 		asn, err := extractASN(result.AS)
@@ -206,18 +214,18 @@ func (c *Checker) checkIPs(ctx context.Context, addressesToCheck []string) error
 			}
 			if isBadASN {
 				c.log.Printf("IP %v is from disallowed ASN %d", result.Query, asn)
-				c.setAddressReputation(result.Query, 1)
+				c.setAddressReputation(result.Query, 1, asn)
 				continue
 			}
 		}
 
 		if result.Proxy || result.Hosting {
 			c.log.Printf("IP %v is bad actor", result.Query)
-			c.setAddressReputation(result.Query, 1)
+			c.setAddressReputation(result.Query, 1, asn)
 			continue
 		}
 		c.log.Printf("IP %v seems good", result.Query)
-		c.setAddressReputation(result.Query, 0)
+		c.setAddressReputation(result.Query, 0, asn)
 	}
 	return nil
 }

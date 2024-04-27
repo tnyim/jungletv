@@ -46,12 +46,20 @@ func (m *spectatorsModule) serializeSpectator(spectator rewards.Spectator) goja.
 		return gojautil.SerializeTime(m.runtime, challenge.ChallengedAt)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
-	result.DefineAccessorProperty("reputableRemoteAddress", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-		goodRep, checked := spectator.GoodRemoteAddressReputation(m.executionContext, m.rewardsHandler)
+	result.DefineAccessorProperty("remoteAddress", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
+		goodRep, asn, checked := spectator.RemoteAddressInformation(m.executionContext, m.rewardsHandler)
 		if !checked {
 			return goja.Undefined()
 		}
-		return m.runtime.ToValue(goodRep)
+		info := map[string]interface{}{
+			"reputable": goodRep,
+		}
+		if asn >= 0 {
+			info["asNumber"] = asn
+		} else {
+			info["asNumber"] = goja.Undefined()
+		}
+		return m.runtime.ToValue(info)
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.Set("markAsActive", func() goja.Value {

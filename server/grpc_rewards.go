@@ -98,7 +98,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 
 	goodRemoteAddressRep := true
 	if spectator, ok := s.rewardsHandler.GetSpectator(userClaims.Address()); ok {
-		rep, checked := spectator.GoodRemoteAddressReputation(ctx, s.rewardsHandler)
+		rep, _, checked := spectator.RemoteAddressInformation(ctx, s.rewardsHandler)
 		if checked {
 			goodRemoteAddressRep = rep
 		}

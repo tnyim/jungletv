@@ -496,7 +496,7 @@ func (s *grpcServer) SpectatorInfo(ctx context.Context, r *proto.SpectatorInfoRe
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	goodRep, checked := s.ipReputationChecker.CanReceiveRewards(spectator.CurrentRemoteAddress())
+	goodRep, _, checked := s.ipReputationChecker.AddressInformation(spectator.CurrentRemoteAddress())
 	ps := &proto.Spectator{
 		RewardsAddress:                     r.RewardsAddress,
 		NumConnections:                     uint32(spectator.ConnectionCount()),

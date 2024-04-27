@@ -145,7 +145,7 @@ func (r *Handler) getEligibleSpectators(ctx context.Context, exceptAddress strin
 				continue
 			}
 			watchingFor := time.Since(spectators[j].startedWatching)
-			if goodRemoteAddressRep, checked := spectators[j].GoodRemoteAddressReputation(ctx, r); checked && !goodRemoteAddressRep {
+			if goodRemoteAddressRep, _, checked := spectators[j].RemoteAddressInformation(ctx, r); checked && !goodRemoteAddressRep {
 				r.log.Println("Skipped rewarding", spectators[j].user.Address(), spectators[j].remoteAddress, "due to bad IP reputation")
 				continue
 			}

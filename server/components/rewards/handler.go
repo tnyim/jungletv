@@ -86,7 +86,7 @@ type Spectator interface {
 	CurrentActivityChallenge() *ActivityChallenge
 	Legitimate() (bool, time.Time)
 	CurrentRemoteAddress() string
-	GoodRemoteAddressReputation(context.Context, *Handler) (bool, bool)
+	RemoteAddressInformation(context.Context, *Handler) (bool, int, bool)
 	CountOtherConnectedSpectatorsOnSameRemoteAddress(*Handler) int
 	WatchingSince() time.Time
 	StoppedWatching() (bool, time.Time)
@@ -183,20 +183,20 @@ func (s *spectator) ConnectionCount() int {
 	return s.connectionCount
 }
 
-func (s *spectator) GoodRemoteAddressReputation(ctx context.Context, r *Handler) (bool, bool) {
-	canReceive, ok := r.ipReputationChecker.CanReceiveRewards(s.remoteAddress)
+func (s *spectator) RemoteAddressInformation(ctx context.Context, r *Handler) (bool, int, bool) {
+	canReceive, asn, ok := r.ipReputationChecker.AddressInformation(s.remoteAddress)
 	if !ok {
-		return false, false
+		return false, -1, false
 	}
 	if !canReceive {
 		canUseBadIP, err := r.moderationStore.LoadPaymentAddressSkipsIPReputationChecks(ctx, s.user.Address())
 		if err == nil && !canUseBadIP {
-			return false, true
+			return false, asn, true
 		} else if err != nil {
-			return true, false
+			return true, asn, false
 		}
 	}
-	return true, true
+	return true, asn, true
 }
 
 // NewHandler creates a new RewardsHandler
