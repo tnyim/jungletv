@@ -1783,6 +1783,39 @@ declare module "jungletv:spectators" {
         spectator: Spectator;
     }
 
+    /** Arguments to the 'spectatoractivitychallenged' event */
+    export interface SpectatorActivityChallengedEventArgs extends EventArgs {
+        /** Guaranteed to be `spectatoractivitychallenged`. */
+        type: "spectatoractivitychallenged";
+
+        /** The spectator to which the challenge has been issued. */
+        spectator: Spectator;
+
+        /** Whether the spectator was yet to solve a challenge that had previously been issued to them in the current session. */
+        hadPreviousUnsolvedChallenge: boolean;
+
+        /** The difficulty of the activity challenge that was issued. */
+        challengeDifficulty: "easy" | "hard";
+    }
+
+    /** Arguments to the 'spectatorsolvedactivitychallenge' event */
+    export interface SpectatorSolvedActivityChallengeEventArgs extends EventArgs {
+        /** Guaranteed to be `spectatorsolvedactivitychallenge`. */
+        type: "spectatorsolvedactivitychallenge";
+
+        /** The spectator who solved the challenge. */
+        spectator: Spectator;
+
+        /** The duration, in milliseconds, between the moment the spectator was challenged and the moment they submitted a solution to the challenge.  */
+        challengedFor: number;
+
+        /** Whether the solution submitted by the spectator was considered correct. */
+        correctSolution: boolean;
+
+        /** The difficulty of the activity challenge that was solved. */
+        challengeDifficulty: "easy" | "hard";
+    }
+
     /** A relation between event types and the arguments passed to the respective listeners */
     export interface SpectatorsEventMap {
         /** This event is fired when rewards are distributed among eligible spectators. */
@@ -1793,6 +1826,12 @@ declare module "jungletv:spectators" {
 
         /** This event is fired when a spectator disconnects from the media player. */
         "spectatordisconnected": SpectatorDisconnectedEventArgs;
+
+        /** This event is fired when a spectator is issued an activity challenge. */
+        "spectatoractivitychallenged": SpectatorActivityChallengedEventArgs;
+
+        /** This event is fired when a spectator-submitted solution to an activity challenge has been processed. */
+        "spectatorsolvedactivitychallenge": SpectatorSolvedActivityChallengeEventArgs;
     }
 
     /**

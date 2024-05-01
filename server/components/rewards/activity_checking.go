@@ -140,6 +140,11 @@ func (r *Handler) produceActivityChallenge(ctx context.Context, spectator *spect
 
 	r.spectatorByActivityChallenge[spectator.activityChallenge.ID] = spectator
 	spectator.onActivityChallenge.Notify(spectator.activityChallenge, true)
+	r.spectatorActivityChallenged.Notify(SpectatorActivityChallengedEventArgs{
+		Spectator:                    spectator,
+		HadPreviousUnsolvedChallenge: hadChallenge,
+		HardChallenge:                len(spectator.activityChallenge.Types) > 1,
+	}, false)
 }
 
 func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge string, checkResponses []string, trusted bool, clientVersion string) (skippedClientIntegrityChecks bool, err error) {
@@ -240,7 +245,16 @@ func (r *Handler) SolveActivityChallenge(ctxCtx context.Context, challenge strin
 	r.staffActivityManager.MarkAsStillActive(spectator.user)
 
 	err = r.awardPointsForCompletedChallenge(ctxCtx, spectator.user)
-	return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+	if err != nil {
+		return skipsIntegrityChecks, stacktrace.Propagate(err, "")
+	}
+	r.spectatorSolvedActivityChallenge.Notify(SpectatorSolvedActivityChallengeEventArgs{
+		Spectator:       spectator,
+		ChallengedFor:   timeUntilChallengeResponse,
+		CorrectSolution: captchaValid,
+		HardChallenge:   len(checks) > 0,
+	}, false)
+	return skipsIntegrityChecks, nil
 }
 
 func (r *Handler) awardPointsForCompletedChallenge(ctxCtx context.Context, user auth.User) error {
