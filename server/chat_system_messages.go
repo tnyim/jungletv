@@ -48,6 +48,12 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	var sentCrowdfundedLimiterMessage map[types.CrowdfundedTransactionType]bool
 	resetRateLimiter := func() error {
 		sentCrowdfundedLimiterMessage = make(map[types.CrowdfundedTransactionType]bool)
+		if crowdfundedNotificationLimiter != nil {
+			err := crowdfundedNotificationLimiter.Close(ctx)
+			if err != nil {
+				return stacktrace.Propagate(err, "")
+			}
+		}
 		var err error
 		crowdfundedNotificationLimiter, err = memorystore.New(&memorystore.Config{
 			Tokens:   3,
