@@ -1,6 +1,7 @@
 package youtube
 
 import (
+	"context"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -11,6 +12,7 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"google.golang.org/api/youtube/v3"
 )
@@ -25,11 +27,11 @@ type VideoProvider struct {
 const globalRateLimiterKey = "global"
 
 // NewProvider returns a new YouTube video provider
-func NewProvider(youtube *youtube.Service) (media.Provider, error) {
+func NewProvider(ctx context.Context, youtube *youtube.Service) (media.Provider, error) {
 	// YouTube limits us to 10000 lookups (of the kind we do) per day
 	// ensure a coordinated set of malicious users can't consume the whole quota for the day at once,
 	// by enforcing our own 3-hour-period rate limit
-	rateLimiter, err := memorystore.New(&memorystore.Config{
+	rateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   1250,          // 1250*8=10000
 		Interval: 3 * time.Hour, // 3h*8=24h
 	})

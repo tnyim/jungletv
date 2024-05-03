@@ -14,6 +14,8 @@ type CrowdfundedTransactionType string
 const CrowdfundedTransactionTypeSkip CrowdfundedTransactionType = "skip"
 const CrowdfundedTransactionTypeRain CrowdfundedTransactionType = "rain"
 
+var CrowdfundedTransactionTypes = []CrowdfundedTransactionType{CrowdfundedTransactionTypeSkip, CrowdfundedTransactionTypeRain}
+
 // CrowdfundedTransaction represents a Skip & Tip transaction received by the service
 type CrowdfundedTransaction struct {
 	TxHash          string `dbKey:"true"`

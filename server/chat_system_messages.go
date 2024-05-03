@@ -44,27 +44,14 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 	announcementsUpdatedC, announcementsUpdatedU := s.announcementsUpdated.Subscribe(event.BufferAll)
 	defer announcementsUpdatedU()
 
-	var crowdfundedNotificationLimiter limiter.Store
-	var sentCrowdfundedLimiterMessage map[types.CrowdfundedTransactionType]bool
-	resetRateLimiter := func() error {
-		sentCrowdfundedLimiterMessage = make(map[types.CrowdfundedTransactionType]bool)
-		if crowdfundedNotificationLimiter != nil {
-			err := crowdfundedNotificationLimiter.Close(ctx)
-			if err != nil {
-				return stacktrace.Propagate(err, "")
-			}
-		}
-		var err error
-		crowdfundedNotificationLimiter, err = memorystore.New(&memorystore.Config{
-			Tokens:   3,
-			Interval: 2 * time.Minute, // this also resets whenever the media changes, see below
-		})
-		return stacktrace.Propagate(err, "")
-	}
-	err := resetRateLimiter()
+	crowdfundedNotificationLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
+		Tokens:   3,
+		Interval: 2 * time.Minute, // this also resets whenever the media changes, see below
+	})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
+	sentCrowdfundedLimiterMessage := make(map[types.CrowdfundedTransactionType]bool)
 
 	for {
 		select {
@@ -80,9 +67,13 @@ func (s *grpcServer) ChatSystemMessagesWorker(ctx context.Context) error {
 				return stacktrace.Propagate(err, "")
 			}
 
-			err = resetRateLimiter()
-			if err != nil {
-				return stacktrace.Propagate(err, "")
+			// reset crowdfunded messages rate limiter
+			sentCrowdfundedLimiterMessage = make(map[types.CrowdfundedTransactionType]bool)
+			for _, t := range types.CrowdfundedTransactionTypes {
+				err = crowdfundedNotificationLimiter.Set(ctx, string(t), 3, 2*time.Minute)
+				if err != nil {
+					return stacktrace.Propagate(err, "")
+				}
 			}
 		case args := <-entryAddedC:
 			t := args.AddType

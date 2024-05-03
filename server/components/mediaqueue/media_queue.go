@@ -21,6 +21,7 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/media"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/exp/slices"
@@ -87,7 +88,7 @@ func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client, persi
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	q.ownEntryRemovalRateLimiter, err = memorystore.New(&memorystore.Config{
+	q.ownEntryRemovalRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   4,
 		Interval: 4 * time.Hour,
 	})

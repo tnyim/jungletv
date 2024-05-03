@@ -18,6 +18,7 @@ import (
 	"github.com/tnyim/jungletv/server/stores/blockeduser"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/server/stores/moderation"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/sync/singleflight"
 	"gopkg.in/alexcesaro/statsd.v2"
@@ -60,11 +61,11 @@ type Manager struct {
 }
 
 // New returns an initialized chat Manager
-func New(log *log.Logger, statsClient *statsd.Client,
+func New(ctx context.Context, log *log.Logger, statsClient *statsd.Client,
 	store chat.Store, moderationStore moderation.Store, blockStore blockeduser.Store,
 	userSerializer auth.APIUserSerializer, pointsManager *pointsmanager.Manager, snowflakeNode *snowflake.Node,
 	tenorAPIkey string) (*Manager, error) {
-	rateLimiter, err := memorystore.New(&memorystore.Config{
+	rateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   15,
 		Interval: 30 * time.Second,
 	})
@@ -72,7 +73,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "failed to create rate limiter")
 	}
 
-	slowmodeRateLimiter, err := memorystore.New(&memorystore.Config{
+	slowmodeRateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   1,
 		Interval: 20 * time.Second,
 	})
@@ -80,7 +81,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
 	}
 
-	nickChangeRateLimiter, err := memorystore.New(&memorystore.Config{
+	nickChangeRateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   1,
 		Interval: 1 * time.Minute,
 	})
@@ -88,7 +89,7 @@ func New(log *log.Logger, statsClient *statsd.Client,
 		return nil, stacktrace.Propagate(err, "failed to create slowmode rate limiter")
 	}
 
-	gifSearchRateLimiter, err := memorystore.New(&memorystore.Config{
+	gifSearchRateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   1,
 		Interval: 490 * time.Millisecond,
 	})

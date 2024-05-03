@@ -25,6 +25,7 @@ import (
 	"github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/stores/chat"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
 )
@@ -128,7 +129,7 @@ func New(
 	configManager *configurationmanager.Manager,
 	notifManager *notificationmanager.Manager,
 	walletBuilder WalletBuilder) *AppRunner {
-	rateLimiter, err := memorystore.New(&memorystore.Config{
+	rateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(workerContext, &memorystore.Config{
 		Tokens:   60,
 		Interval: 1 * time.Second,
 	})

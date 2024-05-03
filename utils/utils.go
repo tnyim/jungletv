@@ -1,11 +1,15 @@
 package utils
 
 import (
+	"context"
 	"net/netip"
 	"regexp"
 	"strings"
 
 	"github.com/JohannesKaufmann/html-to-markdown/escape"
+	"github.com/palantir/stacktrace"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/memorystore"
 )
 
 // GetUniquifiedIP returns a uniquified version of an IP address
@@ -97,4 +101,17 @@ func EscapeMarkdownCharacters(s string) string {
 	// TODO do something about emotes and timestamps
 
 	return s
+}
+
+// NewRateLimiterMemoryStoreWithContext creates a new in-memory rate limiter with the given config and takes care of its closure when the context is done
+func NewRateLimiterMemoryStoreWithContext(ctx context.Context, config *memorystore.Config) (limiter.Store, error) {
+	s, err := memorystore.New(config)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "")
+	}
+	go func(ctx context.Context, s limiter.Store) {
+		<-ctx.Done()
+		s.Close(ctx)
+	}(ctx, s)
+	return s, nil
 }

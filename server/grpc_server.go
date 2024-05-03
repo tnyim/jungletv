@@ -59,6 +59,7 @@ import (
 	"github.com/tnyim/jungletv/server/stores/moderation"
 	"github.com/tnyim/jungletv/server/usercache"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/simplelogger"
 	"github.com/tnyim/jungletv/utils/transaction"
@@ -297,7 +298,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 
 	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030") // TODO unhardcode
 
-	ytProvider, err := youtube.NewProvider(ytClient)
+	ytProvider, err := youtube.NewProvider(ctx, ytClient)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error creating YouTube provider")
 	}
@@ -396,21 +397,21 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		}
 	}
 
-	s.enqueueRequestRateLimiter, err = memorystore.New(&memorystore.Config{
+	s.enqueueRequestRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   5,
 		Interval: time.Minute,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	s.enqueueRequestLongTermRateLimiter, err = memorystore.New(&memorystore.Config{
+	s.enqueueRequestLongTermRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   100,
 		Interval: time.Hour,
 	})
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	s.signInRateLimiter, err = memorystore.New(&memorystore.Config{
+	s.signInRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   10,
 		Interval: 5 * time.Minute,
 	})
@@ -418,7 +419,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.segchaRateLimiter, err = memorystore.New(&memorystore.Config{
+	s.segchaRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   4,
 		Interval: 2 * time.Minute,
 	})
@@ -426,7 +427,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.mediaPreviewLimiter, err = memorystore.New(&memorystore.Config{
+	s.mediaPreviewLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   4,
 		Interval: 1 * time.Minute,
 	})
@@ -434,7 +435,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	s.enqueuingPasswordAttemptRateLimiter, err = memorystore.New(&memorystore.Config{
+	s.enqueuingPasswordAttemptRateLimiter, err = utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 		Tokens:   3,
 		Interval: 2 * time.Minute,
 	})
@@ -469,7 +470,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	}
 
 	chatStore := chat.NewStoreDatabase(s.log, s.nicknameCache)
-	s.chat, err = chatmanager.New(s.log, s.statsClient, chatStore, s.moderationStore,
+	s.chat, err = chatmanager.New(ctx, s.log, s.statsClient, chatStore, s.moderationStore,
 		blockeduser.NewStoreDatabase(), s.userSerializer, s.pointsManager, s.snowflakeNode, options.TenorAPIKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")

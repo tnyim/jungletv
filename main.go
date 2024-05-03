@@ -38,6 +38,7 @@ import (
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/server/interceptors/version"
 	"github.com/tnyim/jungletv/types"
+	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -205,7 +206,7 @@ func main() {
 			if !present {
 				mainLog.Fatalln("Basic auth password not present in keybox")
 			}
-			rateLimiter, err := memorystore.New(&memorystore.Config{
+			rateLimiter, err := utils.NewRateLimiterMemoryStoreWithContext(ctx, &memorystore.Config{
 				Tokens:   5,
 				Interval: time.Minute,
 			})
