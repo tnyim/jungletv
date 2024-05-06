@@ -1738,7 +1738,7 @@ declare module "jungletv:profile" {
     }
 }
 
-/** Allows for obtaining information about the connected media spectators and the rewards being distributed, as well as partially controlling spectator eligibility. */
+/** Allows for obtaining information about the connected spectators (users connected to the media player) and managing the state of their media consumption sessions. */
 declare module "jungletv:spectators" {
     import type { MediaPerformance } from "jungletv:queue";
 
@@ -1877,7 +1877,7 @@ declare module "jungletv:spectators" {
      */
     export let connected: Spectator[];
 
-    /** Represents a user that is or was recently connected as a spectator. */
+    /** Represents the media consumption session of a user that is or was recently connected to the media player. */
     export interface Spectator {
         /** The user entity associated with this spectator. */
         readonly user: User;
@@ -1890,9 +1890,6 @@ declare module "jungletv:spectators" {
 
         /** The number of active media player connections of this user. */
         readonly connectionCount: number;
-
-        /** The number of remaining media player connections of this user. */
-        readonly remainingConnectionCount: number;
 
         /** The moment at which this spectator failed a legitimacy check, or undefined if the user is presently considered legitimate. */
         readonly failedLegitimacyCheckAt: Date | undefined;
