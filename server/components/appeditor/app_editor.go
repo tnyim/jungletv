@@ -375,6 +375,29 @@ func (e *AppEditor) DeleteApplication(ctxCtx context.Context, applicationID stri
 		return stacktrace.Propagate(err, "failed to empty application wallet")
 	}
 
+	index := uint32(0)
+	appAccount, err := appWallet.NewAccount(&index)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+	appAddress := appAccount.Address()
+
+	// doing this here is definitely not the cleanest solution,
+	// but it's also something we brought upon ourselves by still having nicknames and application IDs being associated with a "chat" table
+	// and without types from the `types` package
+	_, err = ctx.ExecContext(ctx, `DELETE FROM chat_user WHERE "address" = $1`, appAddress)
+	if err != nil {
+		return stacktrace.Propagate(err, "")
+	}
+
+	profile, err := types.GetUserProfileForAddress(ctx, appAddress)
+	if err == nil {
+		err = profile.Delete(ctx)
+		if err != nil {
+			return stacktrace.Propagate(err, "")
+		}
+	}
+
 	err = application.Delete(ctx) // this takes care of deleting all application files too
 	if err != nil {
 		return stacktrace.Propagate(err, "")
