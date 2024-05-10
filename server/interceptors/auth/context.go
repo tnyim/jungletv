@@ -6,14 +6,18 @@ import (
 	"github.com/tnyim/jungletv/server/auth"
 )
 
-type userClaimsContextKey struct{}
+type userContextKey struct{}
 
 func UserClaimsFromContext(ctx context.Context) auth.User {
-	v := ctx.Value(userClaimsContextKey{})
+	v := ctx.Value(userContextKey{})
 	if v == nil {
 		return auth.UnknownUser
 	}
-	return v.(*auth.UserClaims)
+	return v.(auth.User)
+}
+
+func WithUser(ctx context.Context, claims auth.User) context.Context {
+	return context.WithValue(ctx, userContextKey{}, claims)
 }
 
 type remoteAddressContextKey struct{}

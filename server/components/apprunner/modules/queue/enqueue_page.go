@@ -55,7 +55,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		var lengthms int64
 		err := m.runtime.ExportTo(call.Argument(2), &lengthms)
 		if err != nil {
-			panic(m.runtime.NewTypeError("Third argument must be an integer or undefined"))
+			panic(m.runtime.NewTypeError("Third argument to enqueuePage must be an integer or undefined"))
 		}
 
 		if lengthms < 1000 {
@@ -74,7 +74,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		optionsMap := map[string]goja.Value{}
 		err := m.runtime.ExportTo(call.Argument(3), &optionsMap)
 		if err != nil {
-			panic(m.runtime.NewTypeError("Fourth argument is not an object"))
+			panic(m.runtime.NewTypeError("Fourth argument to enqueuePage is not an object"))
 		}
 
 		if v, ok := optionsMap["title"]; ok {
@@ -104,7 +104,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 
 		err := m.paymentsModule.DebitFromApplicationWallet(requestCost)
 		if err != nil {
-			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
+			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
 
 		entry := applicationpage.NewApplicationPageQueueEntry(applicationID, applicationVersion, pageID, title, thumbnailFileName, length, m.appContext.ApplicationUser(), requestCost, unskippable, concealed)
@@ -113,7 +113,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		go m.monitorForPageQueueEntry(m.executionContext, entry.PerformanceID(), pageID, ready)
 		pageStillPublished := <-ready
 		if !pageStillPublished {
-			panic(m.runtime.NewTypeError("First argument to enqueuePage must be the ID of a published page"))
+			panic(actx.NewTypeError("First argument to enqueuePage must be the ID of a published page"))
 		}
 
 		// we only enqueue now that the monitor is running. this ensures there isn't a toctou issue between the time we

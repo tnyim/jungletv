@@ -257,21 +257,25 @@ func (e *Manager) tryEnqueuingTicket(ctx context.Context, balance payment.Amount
 }
 
 func (e *Manager) deductConcealedTicketPoints(ctxCtx context.Context, ticket EnqueueTicket) error {
+	err := DeductConcealedTicketPoints(ctxCtx, e.pointsManager, ticket.RequestedBy(), ticket.ID())
+	return stacktrace.Propagate(err, "")
+}
+
+func DeductConcealedTicketPoints(ctxCtx context.Context, pointsManager *pointsmanager.Manager, requestedBy auth.User, mediaID string) error {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	defer ctx.Rollback()
 
-	requestedBy := ticket.RequestedBy()
-	cost, err := e.pointsCostOfConcealedEntry(ctx, requestedBy)
+	cost, err := pointsCostOfConcealedEntry(ctx, pointsManager, requestedBy)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	_, err = e.pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeConcealedEntryEnqueuing, -cost, pointsmanager.TxExtraField{
+	_, err = pointsManager.CreateTransaction(ctx, requestedBy, types.PointsTxTypeConcealedEntryEnqueuing, -cost, pointsmanager.TxExtraField{
 		Key:   "media",
-		Value: ticket.ID(),
+		Value: mediaID,
 	})
 	if err != nil {
 		return stacktrace.Propagate(err, "")
@@ -280,7 +284,7 @@ func (e *Manager) deductConcealedTicketPoints(ctxCtx context.Context, ticket Enq
 	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
-func (e *Manager) pointsCostOfConcealedEntry(ctxCtx context.Context, user auth.User) (int, error) {
+func pointsCostOfConcealedEntry(ctxCtx context.Context, pointsManager *pointsmanager.Manager, user auth.User) (int, error) {
 	ctx, err := transaction.Begin(ctxCtx)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
@@ -288,7 +292,7 @@ func (e *Manager) pointsCostOfConcealedEntry(ctxCtx context.Context, user auth.U
 	defer ctx.Commit() // read-only tx
 
 	cost := 690
-	subscribed, err := e.pointsManager.IsUserCurrentlySubscribed(ctx, user)
+	subscribed, err := pointsManager.IsUserCurrentlySubscribed(ctx, user)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
@@ -310,7 +314,7 @@ func (e *Manager) UserHasEnoughPointsToEnqueueConcealedEntry(ctxCtx context.Cont
 		return false, stacktrace.Propagate(err, "")
 	}
 
-	cost, err := e.pointsCostOfConcealedEntry(ctx, user)
+	cost, err := pointsCostOfConcealedEntry(ctx, e.pointsManager, user)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")
 	}

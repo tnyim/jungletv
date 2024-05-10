@@ -147,7 +147,7 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 	instance.pagesModule = pages.New(instance)
 	instance.modules.RegisterNativeModule(instance.pagesModule)
 	instance.modules.RegisterNativeModule(chat.New(instance, d.ChatManager, instance.pagesModule, instance.userSerializer))
-	instance.modules.RegisterNativeModule(queue.New(instance, d.MediaQueue, d.MediaProviders, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule, instance.userSerializer))
+	instance.modules.RegisterNativeModule(queue.New(instance, d.PointsManager, d.MediaQueue, d.MediaProviders, d.Pricer, d.SkipManager, d.OtherMediaQueueMethods, instance.pagesModule, walletModule, instance.userSerializer))
 	instance.rpcModule = rpc.New(instance.userSerializer)
 	instance.modules.RegisterNativeModule(instance.rpcModule)
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, r.notifManager, instance.pagesModule))

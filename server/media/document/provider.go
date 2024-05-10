@@ -60,7 +60,7 @@ func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext,
 	defer ctx.Commit() // read-only tx
 
 	user := authinterceptor.UserClaimsFromContext(ctx)
-	if !auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) {
+	if !auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) && user.ApplicationID() == "" {
 		return nil, media.EnqueueRequestCreationFailed, nil
 	}
 

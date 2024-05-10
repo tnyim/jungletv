@@ -103,7 +103,7 @@ func (interceptor *Interceptor) authorize(ctx context.Context, method string) (c
 		}
 
 		// place claims in context
-		ctx = context.WithValue(ctx, userClaimsContextKey{}, claims)
+		ctx = WithUser(ctx, claims)
 
 		if interceptor.jwtManager.IsTokenAboutToExpire(claims) {
 			err := interceptor.renewAuthToken(ctx, claims)
