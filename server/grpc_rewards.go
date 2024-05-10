@@ -48,7 +48,7 @@ func (s *grpcServer) RewardInfo(ctxCtx context.Context, r *proto.RewardInfoReque
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

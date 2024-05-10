@@ -24,7 +24,7 @@ import (
 
 func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.JungleTV_MonitorQueueServer) error {
 	ctx := stream.Context()
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	isAdmin := user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel)
 
@@ -124,7 +124,7 @@ func (s *grpcServer) MonitorQueue(r *proto.MonitorQueueRequest, stream proto.Jun
 }
 
 func (s *grpcServer) RemoveOwnQueueEntry(ctx context.Context, r *proto.RemoveOwnQueueEntryRequest) (*proto.RemoveOwnQueueEntryResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -144,7 +144,7 @@ func (s *grpcServer) RemoveOwnQueueEntry(ctx context.Context, r *proto.RemoveOwn
 }
 
 func (s *grpcServer) MoveQueueEntry(ctxCtx context.Context, r *proto.MoveQueueEntryRequest) (*proto.MoveQueueEntryResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

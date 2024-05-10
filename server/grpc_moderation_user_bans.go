@@ -79,7 +79,7 @@ func convertUserBan(ctx context.Context, orig *types.BannedUser, userSerializer 
 }
 
 func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*proto.BanUserResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -159,7 +159,7 @@ func (s *grpcServer) BanUser(ctx context.Context, r *proto.BanUserRequest) (*pro
 }
 
 func (s *grpcServer) RemoveBan(ctx context.Context, r *proto.RemoveBanRequest) (*proto.RemoveBanResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

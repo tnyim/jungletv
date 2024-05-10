@@ -26,7 +26,7 @@ func (s *grpcServer) Withdraw(ctxCtx context.Context, r *proto.WithdrawRequest) 
 	}
 	defer ctx.Rollback()
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -67,7 +67,7 @@ func (s *grpcServer) WithdrawalHistory(ctxCtx context.Context, r *proto.Withdraw
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

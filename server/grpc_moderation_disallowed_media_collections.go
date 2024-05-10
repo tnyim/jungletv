@@ -76,7 +76,7 @@ func (s *grpcServer) AddDisallowedMediaCollection(ctxCtx context.Context, r *pro
 	}
 	defer ctx.Rollback()
 
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -161,7 +161,7 @@ func (s *grpcServer) RemoveDisallowedMediaCollection(ctxCtx context.Context, r *
 	}
 	defer ctx.Rollback()
 
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

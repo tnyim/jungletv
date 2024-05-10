@@ -123,12 +123,8 @@ func (m *rpcModule) ModuleLoader() require.ModuleLoader {
 			panic("could not assert argument unmarshaller function")
 		}
 
-		marshallerValue, err := runtime.RunString(`JSON.stringify`)
-		if err != nil {
-			panic(stacktrace.Propagate(err, ""))
-		}
-
-		m.jsonMarshaller, ok = goja.AssertFunction(marshallerValue)
+		json := runtime.Get("JSON").(*goja.Object)
+		m.jsonMarshaller, ok = goja.AssertFunction(json.Get("stringify"))
 		if !ok {
 			panic("could not assert return value marshaller function")
 		}

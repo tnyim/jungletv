@@ -21,7 +21,7 @@ func (s *grpcServer) PointsInfo(ctxCtx context.Context, r *proto.PointsInfoReque
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -59,7 +59,7 @@ func (s *grpcServer) PointsTransactions(ctxCtx context.Context, r *proto.PointsT
 	}
 	defer ctx.Commit() // read-only tx
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -99,7 +99,7 @@ func convertPointsTransaction(tx *types.PointsTx) *proto.PointsTransaction {
 
 func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest, stream proto.JungleTV_ConvertBananoToPointsServer) error {
 	ctx := stream.Context()
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -159,7 +159,7 @@ func (s *grpcServer) ConvertBananoToPoints(r *proto.ConvertBananoToPointsRequest
 }
 
 func (s *grpcServer) StartOrExtendSubscription(ctx context.Context, r *proto.StartOrExtendSubscriptionRequest) (*proto.StartOrExtendSubscriptionResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

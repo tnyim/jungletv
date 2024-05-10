@@ -83,7 +83,7 @@ func (s *grpcServer) GetApplication(ctxCtx context.Context, r *proto.GetApplicat
 }
 
 func (s *grpcServer) UpdateApplication(ctx context.Context, r *proto.Application) (*proto.UpdateApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -98,7 +98,7 @@ func (s *grpcServer) UpdateApplication(ctx context.Context, r *proto.Application
 }
 
 func (s *grpcServer) CloneApplication(ctx context.Context, r *proto.CloneApplicationRequest) (*proto.CloneApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -113,7 +113,7 @@ func (s *grpcServer) CloneApplication(ctx context.Context, r *proto.CloneApplica
 }
 
 func (s *grpcServer) DeleteApplication(ctx context.Context, r *proto.DeleteApplicationRequest) (*proto.DeleteApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -221,7 +221,7 @@ func (s *grpcServer) GetApplicationFile(ctxCtx context.Context, r *proto.GetAppl
 }
 
 func (s *grpcServer) UpdateApplicationFile(ctx context.Context, r *proto.ApplicationFile) (*proto.UpdateApplicationFileResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -238,7 +238,7 @@ func (s *grpcServer) UpdateApplicationFile(ctx context.Context, r *proto.Applica
 }
 
 func (s *grpcServer) CloneApplicationFile(ctx context.Context, r *proto.CloneApplicationFileRequest) (*proto.CloneApplicationFileResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -253,7 +253,7 @@ func (s *grpcServer) CloneApplicationFile(ctx context.Context, r *proto.CloneApp
 }
 
 func (s *grpcServer) DeleteApplicationFile(ctx context.Context, r *proto.DeleteApplicationFileRequest) (*proto.DeleteApplicationFileResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -289,7 +289,7 @@ func (s *grpcServer) ExportApplication(ctx context.Context, r *proto.ExportAppli
 }
 
 func (s *grpcServer) ImportApplication(ctx context.Context, r *proto.ImportApplicationRequest) (*proto.ImportApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

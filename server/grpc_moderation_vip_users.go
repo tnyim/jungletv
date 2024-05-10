@@ -13,7 +13,7 @@ import (
 )
 
 func (s *grpcServer) AddVipUser(ctx context.Context, r *proto.AddVipUserRequest) (*proto.AddVipUserResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -62,7 +62,7 @@ func (s *grpcServer) AddVipUser(ctx context.Context, r *proto.AddVipUserRequest)
 }
 
 func (s *grpcServer) RemoveVipUser(ctx context.Context, r *proto.RemoveVipUserRequest) (*proto.RemoveVipUserResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

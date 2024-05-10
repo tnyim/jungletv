@@ -59,7 +59,7 @@ func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext,
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if !auth.UserPermissionLevelIsAtLeast(user, auth.AdminPermissionLevel) && user.ApplicationID() == "" {
 		return nil, media.EnqueueRequestCreationFailed, nil
 	}
@@ -112,7 +112,7 @@ func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingConte
 	request.SetUnskippable(unskippable)
 	request.SetConcealed(concealed)
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims != nil && !anonymous {
 		request.SetRequestedBy(userClaims)
 	}

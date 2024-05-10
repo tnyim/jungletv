@@ -105,7 +105,7 @@ type EnqueuePricing struct {
 func (p *Pricer) ComputeEnqueuePricing(mediaDuration time.Duration, unskippable, concealed bool) EnqueuePricing {
 	// QueueLength = max(0, actual queue length - 1)
 	// QueueLengthFactor = floor(100 * (QueueLength to the power of 1.3))
-	// UnskippableFactor is 19 if unskippable, else 0
+	// UnskippableFactor is 6.9 if unskippable, else 0
 	// LengthInSeconds gets wonky for media under 75 seconds
 	// EnqueuePrice = ( BaseEnqueuePrice * LengthInSeconds * (1000 + QueueLengthFactor + currentlyWatching * minimumPricesMultiplier) ) / 500000 * UnskippableFactor
 	// PlayNextPrice = EnqueuePrice * 3

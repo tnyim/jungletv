@@ -21,7 +21,7 @@ import (
 )
 
 func (s *grpcServer) LaunchApplication(ctx context.Context, r *proto.LaunchApplicationRequest) (*proto.LaunchApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -48,7 +48,7 @@ func (s *grpcServer) LaunchApplication(ctx context.Context, r *proto.LaunchAppli
 }
 
 func (s *grpcServer) StopApplication(ctx context.Context, r *proto.StopApplicationRequest) (*proto.StopApplicationResponse, error) {
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

@@ -21,7 +21,7 @@ import (
 
 func (s *grpcServer) EnqueueMedia(ctxCtx context.Context, r *proto.EnqueueMediaRequest) (*proto.EnqueueMediaResponse, error) {
 	isAdmin := false
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if banned, err := s.moderationStore.LoadRemoteAddressBannedFromVideoEnqueuing(ctxCtx, authinterceptor.RemoteAddressFromContext(ctxCtx)); err == nil && banned {
 		return produceEnqueueMediaFailureResponse("Media enqueuing is currently disabled due to upcoming maintenance")
 	}
@@ -308,7 +308,7 @@ func (s *grpcServer) CheckMediaEnqueuingPassword(ctx context.Context, r *proto.C
 var numbersOnly = regexp.MustCompile("^[0-9]+$")
 
 func (s *grpcServer) MonitorMediaEnqueuingPermission(r *proto.MonitorMediaEnqueuingPermissionRequest, stream proto.JungleTV_MonitorMediaEnqueuingPermissionServer) error {
-	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	user := authinterceptor.UserFromContext(stream.Context())
 	isBanned := false
 	if user != nil && !user.IsUnknown() {
 		if banned, err := s.moderationStore.LoadPaymentAddressBannedFromVideoEnqueuing(stream.Context(), user.Address()); err == nil && banned {

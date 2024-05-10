@@ -20,7 +20,7 @@ import (
 
 func (s *grpcServer) MonitorSkipAndTip(r *proto.MonitorSkipAndTipRequest, stream proto.JungleTV_MonitorSkipAndTipServer) error {
 	ctx := stream.Context()
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	onStatusUpdated, statusUpdatedU := s.skipManager.StatusUpdated().Subscribe(event.BufferFirst)
 	defer statusUpdatedU()
@@ -80,7 +80,7 @@ var skipThresholdIncrease = payment.NewAmount(big.NewInt(0).Mul(pricer.BananoUni
 var skipThresholdReduction = payment.NewAmount(big.NewInt(0).Mul(pricer.BananoUnit, big.NewInt(-2)))
 
 func (s *grpcServer) IncreaseOrReduceSkipThreshold(ctxCtx context.Context, r *proto.IncreaseOrReduceSkipThresholdRequest) (*proto.IncreaseOrReduceSkipThresholdResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

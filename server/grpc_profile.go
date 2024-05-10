@@ -167,7 +167,7 @@ func (s *grpcServer) UserStats(ctxCtx context.Context, r *proto.UserStatsRequest
 }
 
 func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetProfileBiographyRequest) (*proto.SetProfileBiographyResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -203,7 +203,7 @@ func (s *grpcServer) SetProfileBiography(ctxCtx context.Context, r *proto.SetPro
 }
 
 func (s *grpcServer) SetProfileFeaturedMedia(ctxCtx context.Context, r *proto.SetProfileFeaturedMediaRequest) (*proto.SetProfileFeaturedMediaResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

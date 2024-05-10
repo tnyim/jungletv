@@ -43,7 +43,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 	defer versionHashChangedU()
 
 	ctx := stream.Context()
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	onUserBlocked := make(<-chan string)
 	onUserUnblocked := make(<-chan string)
@@ -250,7 +250,7 @@ func (s *grpcServer) ConsumeChat(r *proto.ConsumeChatRequest, stream proto.Jungl
 }
 
 func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessageRequest) (*proto.SendChatMessageResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -308,7 +308,7 @@ func (s *grpcServer) SendChatMessage(ctx context.Context, r *proto.SendChatMessa
 var disallowedEmojiRegex = regexp.MustCompile("[🛡️🔰🛡⚔️⚔🗡️🗡🗡️]")
 
 func (s *grpcServer) SetChatNickname(ctx context.Context, r *proto.SetChatNicknameRequest) (*proto.SetChatNicknameResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -354,7 +354,7 @@ func validateNicknameReturningGRPCError(nickname string) (string, error) {
 }
 
 func (s *grpcServer) ChatGifSearch(ctx context.Context, r *proto.ChatGifSearchRequest) (*proto.ChatGifSearchResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

@@ -94,7 +94,7 @@ func (s *grpcServer) convertRaffleDrawing(ctx context.Context, orig *types.Raffl
 }
 
 func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingRaffleInfoRequest) (*proto.OngoingRaffleInfoResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 
 	year, week := time.Now().UTC().ISOWeek()
 	raffleID, periodStart, periodEnd, valid := raffle.WeeklyRaffleParameters(year, week)
@@ -137,7 +137,7 @@ func (s *grpcServer) OngoingRaffleInfo(ctxCtx context.Context, r *proto.OngoingR
 }
 
 func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRaffleWinnerRequest) (*proto.ConfirmRaffleWinnerResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -163,7 +163,7 @@ func (s *grpcServer) ConfirmRaffleWinner(ctx context.Context, r *proto.ConfirmRa
 }
 
 func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequest) (*proto.RedrawRaffleResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -189,7 +189,7 @@ func (s *grpcServer) RedrawRaffle(ctx context.Context, r *proto.RedrawRaffleRequ
 }
 
 func (s *grpcServer) CompleteRaffle(ctx context.Context, r *proto.CompleteRaffleRequest) (*proto.CompleteRaffleResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

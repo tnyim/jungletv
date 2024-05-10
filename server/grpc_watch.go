@@ -17,7 +17,7 @@ import (
 func (s *grpcServer) ConsumeMedia(r *proto.ConsumeMediaRequest, stream proto.JungleTV_ConsumeMediaServer) error {
 	cpChan := make(chan *proto.MediaConsumptionCheckpoint, 3)
 
-	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	user := authinterceptor.UserFromContext(stream.Context())
 
 	var initialActivityChallenge *rewards.ActivityChallenge
 	if user != nil && !user.IsUnknown() {

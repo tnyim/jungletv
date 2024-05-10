@@ -22,7 +22,7 @@ func (s *grpcServer) Leaderboards(ctxCtx context.Context, r *proto.LeaderboardsR
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	mustInclude := []string{}
 	userAddress := ""

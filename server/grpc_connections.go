@@ -20,7 +20,7 @@ import (
 )
 
 func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsRequest) (*proto.ConnectionsResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -70,7 +70,7 @@ func (s *grpcServer) Connections(ctxCtx context.Context, r *proto.ConnectionsReq
 }
 
 func (s *grpcServer) CreateConnection(ctxCtx context.Context, r *proto.CreateConnectionRequest) (*proto.CreateConnectionResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -140,7 +140,7 @@ func onCryptomonKeysCallback(ctx context.Context, token *oauth2.Token, connectio
 }
 
 func (s *grpcServer) RemoveConnection(ctxCtx context.Context, r *proto.RemoveConnectionRequest) (*proto.RemoveConnectionResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}

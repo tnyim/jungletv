@@ -363,7 +363,7 @@ func (s *grpcServer) getProcessForSignInRequest(ctx context.Context, r *proto.Si
 		return nil, time.Time{}, status.Errorf(codes.InvalidArgument, "lab sign in options specified in non-lab environment")
 	}
 
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user != nil && auth.UserPermissionLevelIsAtLeast(user, auth.UserPermissionLevel) && !overridingPermissionLevelForLab {
 		// keep permissions of authenticated user
 		finalPermissionLevel = user.PermissionLevel()
@@ -428,7 +428,7 @@ Request ID: %[5]s`,
 }
 
 func (s *grpcServer) InvalidateAuthTokens(ctx context.Context, r *proto.InvalidateAuthTokensRequest) (*proto.InvalidateAuthTokensResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		return nil, stacktrace.NewError("user claims unexpectedly missing")
 	}
@@ -442,7 +442,7 @@ func (s *grpcServer) InvalidateAuthTokens(ctx context.Context, r *proto.Invalida
 }
 
 func (s *grpcServer) UserPermissionLevel(ctx context.Context, r *proto.UserPermissionLevelRequest) (*proto.UserPermissionLevelResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	level := proto.PermissionLevel_UNAUTHENTICATED
 	if user != nil {
 		level = user.PermissionLevel().SerializeForAPI()
@@ -514,7 +514,7 @@ func (s *grpcServer) AuthorizeApplication(r *proto.AuthorizeApplicationRequest, 
 }
 
 func (s *grpcServer) AuthorizationProcessData(ctx context.Context, r *proto.AuthorizationProcessDataRequest) (*proto.AuthorizationProcessDataResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -537,7 +537,7 @@ func (s *grpcServer) AuthorizationProcessData(ctx context.Context, r *proto.Auth
 }
 
 func (s *grpcServer) ConsentOrDissentToAuthorization(ctx context.Context, r *proto.ConsentOrDissentToAuthorizationRequest) (*proto.ConsentOrDissentToAuthorizationResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

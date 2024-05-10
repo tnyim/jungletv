@@ -182,7 +182,7 @@ func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	request.SetUnskippable(unskippable)
 	request.SetConcealed(concealed)
 
-	userClaims := authinterceptor.UserClaimsFromContext(ctx)
+	userClaims := authinterceptor.UserFromContext(ctx)
 	if userClaims != nil && !anonymous {
 		request.SetRequestedBy(userClaims)
 	}

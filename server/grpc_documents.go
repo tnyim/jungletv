@@ -66,7 +66,7 @@ func (s *grpcServer) GetDocument(ctxCtx context.Context, r *proto.GetDocumentReq
 	}
 	defer ctx.Commit() // read-only tx
 
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	documents, err := types.GetDocumentsWithIDs(ctx, []string{r.Id})
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *grpcServer) UpdateDocument(ctxCtx context.Context, r *proto.Document) (
 	}
 	defer ctx.Rollback()
 
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -147,7 +147,7 @@ func (s *grpcServer) TriggerAnnouncementsNotification(ctxCtx context.Context, r 
 	}
 	defer ctx.Rollback()
 
-	moderator := authinterceptor.UserClaimsFromContext(ctx)
+	moderator := authinterceptor.UserFromContext(ctx)
 	if moderator == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

@@ -58,7 +58,7 @@ func (s *grpcServer) serializeUserForAPI(ctx context.Context, user auth.User) *p
 
 	var nickname *string
 	bannedFromChat, err := s.moderationStore.LoadUserBannedFromChat(ctx, userAddress, "")
-	serializingForUser := authinterceptor.UserClaimsFromContext(ctx)
+	serializingForUser := authinterceptor.UserFromContext(ctx)
 	if err == nil && (!bannedFromChat || (serializingForUser != nil && serializingForUser.Address() == userAddress)) {
 		nickname = user.Nickname()
 		if nickname != nil && strings.TrimSpace(*nickname) == "" {

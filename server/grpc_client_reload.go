@@ -11,7 +11,7 @@ import (
 )
 
 func (s *grpcServer) TriggerClientReload(ctx context.Context, r *proto.TriggerClientReloadRequest) (*proto.TriggerClientReloadResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

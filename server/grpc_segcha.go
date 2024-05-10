@@ -28,7 +28,7 @@ var segchaPremadeQueueSize = func() int {
 var latestGeneratedChallenge *segcha.Challenge
 
 func (s *grpcServer) ProduceSegchaChallenge(ctx context.Context, r *proto.ProduceSegchaChallengeRequest) (*proto.ProduceSegchaChallengeResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 
 	_, _, _, ok, err := s.segchaRateLimiter.Take(ctx, user.Address())
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 
 type userContextKey struct{}
 
-func UserClaimsFromContext(ctx context.Context) auth.User {
+func UserFromContext(ctx context.Context) auth.User {
 	v := ctx.Value(userContextKey{})
 	if v == nil {
 		return auth.UnknownUser

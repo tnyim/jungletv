@@ -15,7 +15,7 @@ import (
 )
 
 func (s *grpcServer) BlockedUsers(ctxCtx context.Context, r *proto.BlockedUsersRequest) (*proto.BlockedUsersResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctxCtx)
+	user := authinterceptor.UserFromContext(ctxCtx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -57,7 +57,7 @@ func convertBlockedUser(ctx context.Context, orig *types.BlockedUser, userSerial
 }
 
 func (s *grpcServer) BlockUser(ctx context.Context, r *proto.BlockUserRequest) (*proto.BlockUserResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")
@@ -75,7 +75,7 @@ func (s *grpcServer) BlockUser(ctx context.Context, r *proto.BlockUserRequest) (
 }
 
 func (s *grpcServer) UnblockUser(ctx context.Context, r *proto.UnblockUserRequest) (*proto.UnblockUserResponse, error) {
-	user := authinterceptor.UserClaimsFromContext(ctx)
+	user := authinterceptor.UserFromContext(ctx)
 	if user == nil {
 		// this should never happen, as the auth interceptors should have taken care of this for us
 		return nil, status.Error(codes.Unauthenticated, "missing user claims")

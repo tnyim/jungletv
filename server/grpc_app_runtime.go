@@ -43,7 +43,7 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 		_ = s.appRunner.ApplicationEvent(stream.Context(), true, r.ApplicationId, r.PageId, "disconnected", []string{})
 	}()
 
-	user := authinterceptor.UserClaimsFromContext(stream.Context())
+	user := authinterceptor.UserFromContext(stream.Context())
 	notificationCh := make(chan notificationmanager.NotificationEvent, 5)
 	defer s.notificationManager.SubscribeToEventsForUser(user, func(n notificationmanager.NotificationEvent) {
 		notificationCh <- n
