@@ -1143,6 +1143,34 @@ declare module "jungletv:queue" {
     export function enqueuePage(pageID: string, placement: EnqueuePlacement, length?: number, options?: PageEnqueueOptions): Promise<QueueEntry>;
 
     /**
+     * Enqueues media other than application pages (use {@link enqueuePage} to enqueue application pages).
+     *
+     * The minimum information necessary to specify what media to enqueue varies depending on the media type.
+     *
+     * The title and thumbnail of the created queue entry are defined by the media/media provider and can't be overridden.
+     *
+     * Media enqueued by applications remains in the queue if the application is terminated.
+     *
+     * @param mediaType The type of media to enqueue.
+     * @param mediaInfo Media provider-specific information that determines the media to enqueue.
+     * Depending on the provider, the accepted options may allow control over e.g. the duration of the media or specific portions to enqueue.
+     * @param placement The desired placement of the new queue entry.
+     * @param options An optional object containing additional options for the queue entry.
+     * @returns The newly-created queue entry.
+     */
+    export function enqueueMedia(mediaType: Exclude<MediaType, "app_page">, mediaInfo: MediaInfoRequest, placement: EnqueuePlacement, options?: MediaEnqueueOptions): Promise<QueueEntry>;
+
+    /**
+     * Obtains information about media as retrieved or computed by a media provider.
+     * This allows for confirming that a media can be found by a media provider and that it passes a variety of checks.
+     * @param mediaType The type of media to retrieve information about.
+     * @param mediaInfo Media provider-specific information that determines the media to retrieve information about.
+     * @param options An optional object containing additional options for the media information request.
+     * @returns Information about the media.
+     */
+    export function getMediaInformation(mediaType: Exclude<MediaType, "app_page">, mediaInfo: MediaInfoRequest, options?: MediaInformationRequestOptions): Promise<MediaInfo>;
+
+    /**
      * Retrieves the play history for the time period specified between {@link since} and {@link until}, with results sorted by the order in which they played.
      *
      * @param since The start of the time period to retrieve play history for.
@@ -1477,6 +1505,66 @@ declare module "jungletv:queue" {
         thumbnail?: string;
     }
 
+    /** Contains additional options for media enqueuing */
+    export interface MediaEnqueueOptions extends EnqueueOptions {
+        /**
+         * Whether the points cost for concealed entries will be deducted from the applications's account.
+         * Defaults to true.
+         */
+        debitPoints?: boolean;
+
+        /**
+         * Whether to prevent the enqueuing of media that is below a certain popularity threshold, defined on a media and media-provider basis.
+         * Defaults to true.
+         */
+        checkPopularity?: boolean;
+
+        /**
+         * Whether to prevent the enqueuing of media that is longer than a certain threshold, defined on a media provider basis.
+         * Defaults to true.
+         */
+        checkLength?: boolean;
+
+        /**
+         * Whether to prevent the enqueuing of media that is presently enqueued or has played recently.
+         * Defaults to true.
+         */
+        checkDuplicateContent?: boolean;
+
+        /**
+         * Whether to prevent the enqueuing of media that has been disallowed by JungleTV staff.
+         * Defaults to true.
+         */
+        checkMediaBlocklist?: boolean;
+    }
+
+    /** Contains additional options for a media information request */
+    export interface MediaInformationRequestOptions {
+        /**
+         * Whether to fail if the media is below a certain popularity threshold, defined on a media and media-provider basis.
+         * Defaults to true.
+         */
+        checkPopularity?: boolean;
+
+        /**
+         * Whether to fail if the media is longer than a certain threshold, defined on a media provider basis.
+         * Defaults to true.
+         */
+        checkLength?: boolean;
+
+        /**
+         * Whether to fail if the media is presently enqueued or has played recently.
+         * Defaults to true.
+         */
+        checkDuplicateContent?: boolean;
+
+        /**
+         * Whether to fail if the media has been disallowed by JungleTV staff.
+         * Defaults to true.
+         */
+        checkMediaBlocklist?: boolean;
+    }
+
     /** Contains additional options for fetching play history */
     export interface GetPlayHistoryOptions {
         /**
@@ -1586,7 +1674,7 @@ declare module "jungletv:queue" {
         unskippable: boolean;
     }
 
-    /** Information about the media associated with a queue entry. */
+    /** Information about the media associated with a queue entry or a past or hypothetical media performance. */
     export interface MediaInfo {
         /** Length of the media in milliseconds - just the duration that is meant to play on the service. */
         length: number;
@@ -1605,8 +1693,10 @@ declare module "jungletv:queue" {
         id: string;
 
         /** Type (media provider) of the media. */
-        type: "yt_video" | "sc_track" | "document" | "app_page";
+        type: MediaType;
     }
+
+    export type MediaType = "yt_video" | "sc_track" | "document" | "app_page";
 
     /** Represents the desired placement of a queue entry when it is being enqueued. */
     export enum EnqueuePlacementEnum {
@@ -1640,6 +1730,61 @@ declare module "jungletv:queue" {
 
     /** Represents the restriction in who is able to add entries to the queue. */
     export type EnqueuingPermission = `${EnqueuingPermissionEnum}`;
+
+    /** Represents the information required by a media provider to identify a piece of media. */
+    export type MediaInfoRequest = YouTubeMediaInfoRequest | SoundCloudMediaInfoRequest | DocumentMediaInfoRequest;
+
+    /** Represents the information required by the YouTube media provider to identify a video or broadcast as enqueuable media. */
+    export interface YouTubeMediaInfoRequest {
+        /** The YouTube video or broadcast ID, usually 11 characters long. */
+        id: string;
+
+        /**
+         * The offset from the start of the video, in milliseconds, at which playback should start.
+         * Should be zero for broadcasts.
+         * Defaults to zero.
+         */
+        startOffset?: number;
+
+        /**
+         * The offset from the start of the video, in milliseconds, at which playback should end or, in the case of broadcasts, for how long the broadcast should play.
+         * Defaults to the length of the video or to 600000 (10 minutes) for broadcasts.
+         */
+        endOffset?: number;
+    }
+
+    /** Represents the information required by the SoundCloud media provider to identify a track as enqueuable media. */
+    export interface SoundCloudMediaInfoRequest {
+        /** The complete URL of the track. */
+        permalink: string;
+
+        /**
+         * The offset from the start of the track, in milliseconds, at which playback should start.
+         * Defaults to zero.
+         */
+        startOffset?: number;
+
+        /**
+         * The offset from the start of the track, in milliseconds, at which playback should end.
+         * Defaults to the length of the track.
+         */
+        endOffset?: number;
+    }
+
+    /** Represents the information required by the documents media provider to identify a JungleTV document as enqueuable media. */
+    export interface DocumentMediaInfoRequest {
+        /** The ID of the document. */
+        id: string;
+
+        /** The title to use for the media queue entry (JungleTV documents don't have titles, so one must be specified). */
+        title: string;
+
+        /**
+         * For how long the document should play, in milliseconds.
+         * Defaults to 300000 (5 minutes).
+         */
+        length: number;
+    }
 }
 
 /** Allows for interaction with JungleTV user profiles. */
