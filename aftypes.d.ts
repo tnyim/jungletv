@@ -1151,6 +1151,8 @@ declare module "jungletv:queue" {
      *
      * Media enqueued by applications remains in the queue if the application is terminated.
      *
+     * Depending on the type of media, this operation may interact with external services and consume shared, limited resources to accomplish its goal (e.g. third-party API credits).
+     * Make sure to keep this in mind, limiting the application users' ability to deplete these resources.
      * @param mediaType The type of media to enqueue.
      * @param mediaInfo Media provider-specific information that determines the media to enqueue.
      * Depending on the provider, the accepted options may allow control over e.g. the duration of the media or specific portions to enqueue.
@@ -1161,8 +1163,11 @@ declare module "jungletv:queue" {
     export function enqueueMedia(mediaType: Exclude<MediaType, "app_page">, mediaInfo: MediaInfoRequest, placement: EnqueuePlacement, options?: MediaEnqueueOptions): Promise<QueueEntry>;
 
     /**
-     * Obtains information about media as retrieved or computed by a media provider.
-     * This allows for confirming that a media can be found by a media provider and that it passes a variety of checks.
+     * Obtains information about media, as retrieved or computed by a media provider.
+     * This allows for confirming that a media can be found by a media provider and that it passes a variety of checks that would allow for it to be enqueued on JungleTV at the time this function is called.
+     *
+     * Depending on the type of media, this operation may interact with external services and consume shared, limited resources to accomplish its goal (e.g. third-party API credits).
+     * Make sure to keep this in mind, avoiding unnecessary lookups and limiting the application users' ability to deplete these resources.
      * @param mediaType The type of media to retrieve information about.
      * @param mediaInfo Media provider-specific information that determines the media to retrieve information about.
      * @param options An optional object containing additional options for the media information request.
@@ -1783,7 +1788,7 @@ declare module "jungletv:queue" {
          * For how long the document should play, in milliseconds.
          * Defaults to 300000 (5 minutes).
          */
-        length: number;
+        length?: number;
     }
 }
 
