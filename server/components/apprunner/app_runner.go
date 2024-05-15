@@ -524,9 +524,6 @@ func (r *AppRunner) pageAttachmentLoader(ctx context.Context, data string) (chat
 }
 
 func (r *AppRunner) ServeFile(ctx context.Context, applicationID, fileName string, w http.ResponseWriter, req *http.Request) error {
-	r.instancesLock.RLock()
-	defer r.instancesLock.RUnlock()
-
 	var instance *appInstance
 	var ok bool
 	func() {
@@ -541,4 +538,17 @@ func (r *AppRunner) ServeFile(ctx context.Context, applicationID, fileName strin
 	}
 
 	return stacktrace.Propagate(instance.ServeFile(ctx, fileName, w, req), "")
+}
+
+// SendMessageToApplication is used by application instances to communicate between each other
+func (r *AppRunner) SendMessageToApplication(destinationApplicationID, sourceApplicationID, serializedMessage string) error {
+	r.instancesLock.RLock()
+	defer r.instancesLock.RUnlock()
+
+	instance, ok := r.instances[destinationApplicationID]
+	if !ok {
+		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
+	}
+
+	return stacktrace.Propagate(instance.ReceiveMessageFromApplication(sourceApplicationID, serializedMessage), "")
 }

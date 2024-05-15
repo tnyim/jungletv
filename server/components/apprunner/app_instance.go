@@ -32,6 +32,7 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/configuration"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/db"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/ipc"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/keyvalue"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/points"
@@ -74,6 +75,7 @@ type appInstance struct {
 	modules            *modules.Collection
 	pagesModule        pages.PagesModule
 	rpcModule          rpc.RPCModule
+	ipcModule          ipc.IPCModule
 	userSerializer     *gojautil.UserSerializerImplementation
 	transpiledFiles    map[transpiledFilesMapKey][]byte
 	transpiledFilesMu  sync.Mutex
@@ -153,6 +155,8 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 	instance.modules.RegisterNativeModule(configuration.New(instance, r.configManager, r.notifManager, instance.pagesModule))
 	instance.modules.RegisterNativeModule(profile.New(instance, instance.userSerializer, d.ChatManager))
 	instance.modules.RegisterNativeModule(spectators.New(instance, d.RewardsHandler, d.StatsRegistry, instance.userSerializer))
+	instance.ipcModule = ipc.New(instance)
+	instance.modules.RegisterNativeModule(instance.ipcModule)
 
 	registry := instance.modules.BuildRegistry(instance.sourceLoader)
 	registry.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(instance.appLogger))
@@ -962,6 +966,25 @@ func (a *appInstance) ServeFile(ctxCtx context.Context, fileName string, w http.
 	w.Header().Add("Content-Type", fileType)
 	w.Header().Set("X-Frame-Options", "sameorigin")
 	http.ServeContent(w, req, "", file.UpdatedAt, bytes.NewReader(fileContent))
+	return nil
+}
+
+func (a *appInstance) SendMessageToApplication(destinationApplicationID string, serializedMessage string) error {
+	return stacktrace.Propagate(a.runner.SendMessageToApplication(destinationApplicationID, a.applicationID, serializedMessage), "")
+}
+
+func (a *appInstance) ReceiveMessageFromApplication(sourceApplicationID string, serializedMessage string) error {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	if !a.running {
+		return stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
+	}
+
+	a.Schedule(func(vm *goja.Runtime) error {
+		a.ipcModule.HandleMessage(vm, sourceApplicationID, serializedMessage)
+		return nil
+	})
 	return nil
 }
 
