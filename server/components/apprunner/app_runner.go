@@ -541,7 +541,7 @@ func (r *AppRunner) ServeFile(ctx context.Context, applicationID, fileName strin
 }
 
 // SendMessageToApplication is used by application instances to communicate between each other
-func (r *AppRunner) SendMessageToApplication(destinationApplicationID, sourceApplicationID, serializedMessage string) error {
+func (r *AppRunner) SendMessageToApplication(destinationApplicationID, sourceApplicationID, eventName string, serializedArgs []string) error {
 	r.instancesLock.RLock()
 	defer r.instancesLock.RUnlock()
 
@@ -550,5 +550,5 @@ func (r *AppRunner) SendMessageToApplication(destinationApplicationID, sourceApp
 		return stacktrace.Propagate(ErrApplicationNotInstantiated, "")
 	}
 
-	return stacktrace.Propagate(instance.ReceiveMessageFromApplication(sourceApplicationID, serializedMessage), "")
+	return stacktrace.Propagate(instance.ReceiveMessageFromApplication(sourceApplicationID, eventName, serializedArgs), "")
 }

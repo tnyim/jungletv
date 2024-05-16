@@ -18,12 +18,12 @@ const ModuleName = "jungletv:ipc"
 type IPCModule interface {
 	modules.NativeModule
 	// HandleMessage must be called inside the event loop
-	HandleMessage(vm *goja.Runtime, sourceApplicationID string, serializedMessage string)
+	HandleMessage(vm *goja.Runtime, sourceApplicationID, eventName string, serializedArgs []string)
 }
 
 // MessageSender sends messages to other application instances
 type MessageSender interface {
-	SendMessageToApplication(applicationID string, serializedMessage string) error
+	SendMessageToApplication(applicationID, eventName string, serializedArgs []string) error
 }
 
 type ipcModule struct {
@@ -92,23 +92,25 @@ func (m *ipcModule) ExecutionPaused() {}
 var gojaUndefined = goja.Undefined()
 
 // to be called inside the loop
-func (m *ipcModule) HandleMessage(vm *goja.Runtime, sourceApplicationID string, serializedMessage string) {
+func (m *ipcModule) HandleMessage(vm *goja.Runtime, sourceApplicationID, eventName string, serializedArgs []string) {
 	// no need to sync access to m.eventListeners as it can only be accessed inside the loop
-	handlers := m.eventListeners["message"]
+	handlers := m.eventListeners[eventName]
 
-	if len(handlers) == 0 {
-		return
-	}
-
-	data, err := m.jsonUnmarshaller(gojaUndefined, vm.ToValue(serializedMessage))
-	if err != nil {
-		panic(err)
-	}
 	for _, h := range handlers {
 		eventContext := vm.NewObject()
 		eventContext.Set("source", sourceApplicationID)
-		eventContext.Set("data", data)
-		_, _ = h.callable(gojaUndefined, eventContext)
+
+		callableArgs := make([]goja.Value, len(serializedArgs)+1)
+		callableArgs[0] = eventContext
+		for i, arg := range serializedArgs {
+			var err error
+			callableArgs[i+1], err = m.jsonUnmarshaller(gojaUndefined, vm.ToValue(arg))
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		_, _ = h.callable(gojaUndefined, callableArgs...)
 	}
 }
 
@@ -125,10 +127,6 @@ func (m *ipcModule) addEventListener(call goja.FunctionCall) goja.Value {
 	}
 
 	event := eventValue.String()
-
-	if event != "message" {
-		panic(m.runtime.NewTypeError("Unknown event '%s'", event))
-	}
 
 	m.eventListeners[event] = append(m.eventListeners[event], eventListener{
 		value:    listenerValue,
@@ -147,10 +145,6 @@ func (m *ipcModule) removeEventListener(call goja.FunctionCall) goja.Value {
 
 	event := eventValue.String()
 
-	if event != "message" {
-		panic(m.runtime.NewTypeError("Unknown event '%s'", event))
-	}
-
 	// no need to sync access to m.eventListeners as it can only be accessed inside the loop
 	for i, listener := range m.eventListeners[event] {
 		if listener.value.SameAs(listenerValue) {
@@ -167,15 +161,22 @@ func (m *ipcModule) emitToApplication(call goja.FunctionCall) goja.Value {
 	}
 
 	applicationID := call.Argument(0).String()
+	if applicationID == "" {
+		panic(m.runtime.NewTypeError("First argument to emitToApplication must not be an empty string"))
+	}
+	eventName := call.Argument(1).String()
 
-	data, err := m.jsonMarshaller(gojaUndefined, call.Argument(1))
-	if err != nil {
-		panic(err)
+	serializedArguments := make([]string, len(call.Arguments)-2)
+	for i, arg := range call.Arguments[2:] {
+		v, err := m.jsonMarshaller(gojaUndefined, arg)
+		if err != nil {
+			panic(err)
+		}
+		serializedArguments[i] = v.String()
 	}
 
-	serializedMessage := data.String()
 	// this ignores any errors
-	go m.messageSender.SendMessageToApplication(applicationID, serializedMessage)
+	go m.messageSender.SendMessageToApplication(applicationID, eventName, serializedArguments)
 
 	return gojaUndefined
 }

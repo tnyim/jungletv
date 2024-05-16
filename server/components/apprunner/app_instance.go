@@ -969,11 +969,11 @@ func (a *appInstance) ServeFile(ctxCtx context.Context, fileName string, w http.
 	return nil
 }
 
-func (a *appInstance) SendMessageToApplication(destinationApplicationID string, serializedMessage string) error {
-	return stacktrace.Propagate(a.runner.SendMessageToApplication(destinationApplicationID, a.applicationID, serializedMessage), "")
+func (a *appInstance) SendMessageToApplication(destinationApplicationID string, eventName string, serializedArgs []string) error {
+	return stacktrace.Propagate(a.runner.SendMessageToApplication(destinationApplicationID, a.applicationID, eventName, serializedArgs), "")
 }
 
-func (a *appInstance) ReceiveMessageFromApplication(sourceApplicationID string, serializedMessage string) error {
+func (a *appInstance) ReceiveMessageFromApplication(sourceApplicationID, eventName string, serializedArgs []string) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -982,7 +982,7 @@ func (a *appInstance) ReceiveMessageFromApplication(sourceApplicationID string, 
 	}
 
 	a.Schedule(func(vm *goja.Runtime) error {
-		a.ipcModule.HandleMessage(vm, sourceApplicationID, serializedMessage)
+		a.ipcModule.HandleMessage(vm, sourceApplicationID, eventName, serializedArgs)
 		return nil
 	})
 	return nil
