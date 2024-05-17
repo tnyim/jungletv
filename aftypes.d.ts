@@ -8,6 +8,7 @@ interface Require {
     (id: "jungletv:profile"): typeof import("jungletv:profile");
     (id: "jungletv:queue"): typeof import("jungletv:queue");
     (id: "jungletv:rpc"): typeof import("jungletv:rpc");
+    (id: "jungletv:ipc"): typeof import("jungletv:ipc");
     (id: "jungletv:spectators"): typeof import("jungletv:spectators");
     (id: "jungletv:wallet"): typeof import("jungletv:wallet");
     (id: "node:console" | "console"): typeof import("node:console");
@@ -451,10 +452,10 @@ declare module "jungletv:rpc" {
     export type RPCHandler = (context: CallContext, ...clientParams: any[]) => any;
 
     /** The type of function that listens for client events on the server */
-    export type EventHandler = (context: RemoteContext, ...clientParams: any[]) => any;
+    export type EventHandler = (context: RemoteContext, ...clientParams: any[]) => void;
 
     /** The type of function that listens for events, that have a chance of being runtime-originated, on the server */
-    export type PossiblyTrustedEventHandler = (context: RemoteContext | TrustedRemoteContext) => any;
+    export type PossiblyTrustedEventHandler = (context: RemoteContext | TrustedRemoteContext) => void;
 
     /** The context of a remote method invocation or client event */
     export interface RemoteContext {
@@ -477,6 +478,51 @@ declare module "jungletv:rpc" {
     /** The context of a trusted (runtime-originated) remote method invocation */
     export interface TrustedRemoteContext extends RemoteContext {
         trusted: true;
+    }
+}
+
+/**
+ * Allows for communication between running JungleTV AF applications.
+ * IPC stands for {@link https://en.wikipedia.org/wiki/Inter-process_communication | Inter-process communication}.
+ */
+declare module "jungletv:ipc" {
+    /**
+     * Registers a function to be called whenever an application emits the event with the specified name to this application.
+     * More than one listener may be registered to be called for each event type.
+     * Other applications can pass arguments when they trigger an event, but it is not possible for the receiving application to directly return values, and the sending application is not notified about event delivery.
+     * If an application is expecting to receive events from a specific application, it must check the {@link InterProcessContext.source} field to confirm the source.
+     * @param eventName A case-sensitive string identifying the event type.
+     * @param listener A function that will be executed whenever this type of remote event is emitted by an application.
+     * The function will be called with at least one argument, a {@link InterProcessContext}, followed by any arguments included by the sending application when emitting the event.
+     */
+    export function addEventListener(eventName: string, listener: EventHandler): void;
+
+    /**
+     * Ceases calling a function previously registered with {@link addEventListener} whenever an event of the specified type is emitted by an application.
+     * @param eventName A case-sensitive string identifying the event type.
+     * @param listener The function previously passed to {@link addEventListener}, that should no longer be called whenever an event of the specified type occurs.
+     */
+    export function removeEventListener(eventName: string, listener: EventHandler): void;
+
+    /**
+     * Emits an event to the specified application.
+     * This method does not wait for event delivery before returning.
+     * Using this method alone, it is not possible to know whether the application received the event.
+     * @param applicationID A case-sensitive string representing the ID of the application to target.
+     * If this ID does not match the ID of a running application, the message is lost.
+     * @param eventName A case-sensitive string identifying the event type.
+     * If this string does not match one for which the receiving application has {@link addEventListener registered a listener}, the message is lost.
+     * @param senderParams An indefinite number of additional parameters of arbitrary types, that will be internally serialized using JSON and transmitted to the receiving application.
+     */
+    export function emitToApplication(applicationID: string, eventName: string, ...senderParams: any[]): void;
+
+    /** The type of function that listens for events on the receiving application */
+    export type EventHandler = (context: InterProcessContext, ...senderParams: any[]) => void;
+
+    /** The context of an inter-process event */
+    export interface InterProcessContext {
+        /** The ID of the application from which this event originated. */
+        source: string;
     }
 }
 
