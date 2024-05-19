@@ -492,7 +492,7 @@ declare module "jungletv:ipc" {
      * Other applications can pass arguments when they trigger an event, but it is not possible for the receiving application to directly return values, and the sending application is not notified about event delivery.
      * If an application is expecting to receive events from a specific application, it must check the {@link InterProcessContext.source} field to confirm the source.
      * @param eventName A case-sensitive string identifying the event type.
-     * @param listener A function that will be executed whenever this type of remote event is emitted by an application.
+     * @param listener A function that will be executed whenever this type of event is emitted by an application.
      * The function will be called with at least one argument, a {@link InterProcessContext}, followed by any arguments included by the sending application when emitting the event.
      */
     export function addEventListener(eventName: string, listener: EventHandler): void;
@@ -1206,7 +1206,7 @@ declare module "jungletv:queue" {
      * @param options An optional object containing additional options for the queue entry.
      * @returns The newly-created queue entry.
      */
-    export function enqueueMedia(mediaType: Exclude<MediaType, "app_page">, mediaInfo: MediaInfoRequest, placement: EnqueuePlacement, options?: MediaEnqueueOptions): Promise<QueueEntry>;
+    export function enqueueMedia<K extends keyof MediaInfoRequestMap>(mediaType: K, mediaInfo: MediaInfoRequestMap[K], placement: EnqueuePlacement, options?: MediaEnqueueOptions): Promise<QueueEntry>;
 
     /**
      * Obtains information about media, as retrieved or computed by a media provider.
@@ -1219,7 +1219,7 @@ declare module "jungletv:queue" {
      * @param options An optional object containing additional options for the media information request.
      * @returns Information about the media.
      */
-    export function getMediaInformation(mediaType: Exclude<MediaType, "app_page">, mediaInfo: MediaInfoRequest, options?: MediaInformationRequestOptions): Promise<MediaInfo>;
+    export function getMediaInformation<K extends keyof MediaInfoRequestMap>(mediaType: K, mediaInfo: MediaInfoRequestMap[K], options?: MediaInformationRequestOptions): Promise<MediaInfo>;
 
     /**
      * Retrieves the play history for the time period specified between {@link since} and {@link until}, with results sorted by the order in which they played.
@@ -1747,7 +1747,7 @@ declare module "jungletv:queue" {
         type: MediaType;
     }
 
-    export type MediaType = "yt_video" | "sc_track" | "document" | "app_page";
+    export type MediaType = keyof MediaInfoRequestMap | "app_page";
 
     /** Represents the desired placement of a queue entry when it is being enqueued. */
     export enum EnqueuePlacementEnum {
@@ -1782,8 +1782,17 @@ declare module "jungletv:queue" {
     /** Represents the restriction in who is able to add entries to the queue. */
     export type EnqueuingPermission = `${EnqueuingPermissionEnum}`;
 
-    /** Represents the information required by a media provider to identify a piece of media. */
-    export type MediaInfoRequest = YouTubeMediaInfoRequest | SoundCloudMediaInfoRequest | DocumentMediaInfoRequest;
+    /** A relation between media types and the arguments passed to enqueue them */
+    export interface MediaInfoRequestMap {
+        /** This request is used to enqueue YouTube videos and broadcasts. */
+        "yt_video": YouTubeMediaInfoRequest;
+
+        /** This request is used to enqueue SoundCloud tracks. */
+        "sc_track": SoundCloudMediaInfoRequest;
+
+        /** This request is used to enqueue documents. */
+        "document": DocumentMediaInfoRequest;
+    }
 
     /** Represents the information required by the YouTube media provider to identify a video or broadcast as enqueuable media. */
     export interface YouTubeMediaInfoRequest {
