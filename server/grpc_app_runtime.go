@@ -29,7 +29,7 @@ func (s *grpcServer) ResolveApplicationPage(ctx context.Context, r *proto.Resolv
 }
 
 func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsRequest, stream proto.JungleTV_ConsumeApplicationEventsServer) error {
-	eventCh, unsub, err := s.appRunner.ConsumeApplicationEvents(stream.Context(), r.ApplicationId, r.PageId)
+	eventCh, unsub, err := s.appRunner.ConsumeApplicationEvents(stream.Context(), stream, r.ApplicationId, r.PageId)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -89,14 +89,7 @@ func (s *grpcServer) ConsumeApplicationEvents(r *proto.ConsumeApplicationEventsR
 				})
 				return stacktrace.Propagate(err, "")
 			}
-			err = stream.Send(&proto.ApplicationEventUpdate{
-				Type: &proto.ApplicationEventUpdate_ApplicationEvent{
-					ApplicationEvent: &proto.ApplicationServerEvent{
-						Name:      e.EventName,
-						Arguments: e.EventArgs,
-					},
-				},
-			})
+			err = stream.SendMsg(e)
 		case n, ok := <-notificationCh:
 			if ok {
 				if n.IsClear {

@@ -26,6 +26,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	gonano_wallet "github.com/hectorchu/gonano/wallet"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/apprunner/gojautil"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
@@ -49,6 +50,7 @@ import (
 	"github.com/tnyim/jungletv/utils/transaction"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
+	"google.golang.org/grpc"
 )
 
 type transpiledFilesMapKey struct {
@@ -873,7 +875,7 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 	return nil
 }
 
-func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID string) (<-chan rpc.ClientEventData, func()) {
+func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, stream grpc.ServerStream, pageID string) (<-chan *grpc.PreparedMsg, func()) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	userStr := ""
@@ -882,7 +884,7 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 		userStr = user.Address()
 	}
 
-	eventCh := make(chan rpc.ClientEventData)
+	eventCh := make(chan *grpc.PreparedMsg)
 
 	go func() {
 		defer close(eventCh)
@@ -906,22 +908,38 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, pageID strin
 		defer pageUnpublishedU()
 
 		for {
+			var data rpc.ClientEventData
 			select {
 			case d := <-onGlobalEvent:
-				eventCh <- d
+				data = d
 			case d := <-onPageEvent:
-				eventCh <- d
+				data = d
 			case d := <-onUserEvent:
-				eventCh <- d
+				data = d
 			case d := <-onPageUserEvent:
-				eventCh <- d
+				data = d
 			case unpublishedPageID := <-onPageUnpublished:
 				if pageID == unpublishedPageID {
 					return
 				}
+				continue
 			case <-ctx.Done():
 				return
 			}
+
+			preparedMsg := &grpc.PreparedMsg{}
+			err := preparedMsg.Encode(stream, &proto.ApplicationEventUpdate{
+				Type: &proto.ApplicationEventUpdate_ApplicationEvent{
+					ApplicationEvent: &proto.ApplicationServerEvent{
+						Name:      data.EventName,
+						Arguments: data.EventArgs,
+					},
+				},
+			})
+			if err != nil {
+				continue
+			}
+			eventCh <- preparedMsg
 		}
 	}()
 

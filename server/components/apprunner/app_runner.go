@@ -19,7 +19,6 @@ import (
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	chatmodule "github.com/tnyim/jungletv/server/components/apprunner/modules/chat"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
-	"github.com/tnyim/jungletv/server/components/apprunner/modules/rpc"
 	"github.com/tnyim/jungletv/server/components/configurationmanager"
 	"github.com/tnyim/jungletv/server/components/notificationmanager"
 	"github.com/tnyim/jungletv/server/interceptors/auth"
@@ -28,6 +27,7 @@ import (
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
+	"google.golang.org/grpc"
 )
 
 // RuntimeVersion is the version of the application runtime
@@ -491,11 +491,11 @@ func (r *AppRunner) ApplicationEvent(ctx context.Context, trusted bool, applicat
 	return stacktrace.Propagate(instance.ApplicationEvent(ctx, trusted, pageID, eventName, eventArgs), "")
 }
 
-func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, applicationID, pageID string) (<-chan rpc.ClientEventData, func(), error) {
+func (r *AppRunner) ConsumeApplicationEvents(ctx context.Context, stream grpc.ServerStream, applicationID, pageID string) (<-chan *grpc.PreparedMsg, func(), error) {
 	r.instancesLock.RLock()
 	defer r.instancesLock.RUnlock()
 	if instance, ok := r.instances[applicationID]; ok {
-		ch, cancel := instance.ConsumeApplicationEvents(ctx, pageID)
+		ch, cancel := instance.ConsumeApplicationEvents(ctx, stream, pageID)
 		return ch, cancel, nil
 	}
 	return nil, nil, stacktrace.Propagate(ErrApplicationNotInstantiated, "")
