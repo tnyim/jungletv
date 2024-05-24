@@ -58,17 +58,29 @@
     let hasFeaturedMedia = false;
 
     let isSelf = false;
+    let isApplication = false;
 
     let editedNickname = "";
     let nicknameEditingError = "";
     $: editedNickname = nickname;
-    $: isSelf = userAddressOrApplicationID == $rewardAddress;
-
-    $: isApplication = rolesList.includes(UserRole.APPLICATION);
 
     // keep page URL updated as user switches tabs:
-    $: if (mode == "page" && userAddressOrApplicationID && selectedTab)
-        navigate("/profile" + "/" + userAddressOrApplicationID + "/" + selectedTab);
+    $: if (mode == "page" && userAddressOrApplicationID && selectedTab) {
+        navigate("/profile" + "/" + userAddressOrApplicationID + "/" + selectedTab, {
+            // having separate history entries is confusing/annoying when the user is just switching tabs and not really navigating, so avoid that
+            replace: true,
+        });
+    }
+
+    $: if (profileTabs.length && (!selectedTab || !profileTabs.find((x) => x.id == selectedTab))) {
+        if (hasFeaturedMedia) {
+            selectedTab = "featuredmedia";
+        } else if (biography != "" || isSelf || isApplication) {
+            selectedTab = "info";
+        } else {
+            selectedTab = "tip";
+        }
+    }
 
     let nicknameInput: HTMLInputElement;
 
@@ -92,6 +104,8 @@
         userProfile = await apiClient.userProfile(userAddressOrApplicationID);
         nickname = userProfile.getUser().hasNickname() ? userProfile.getUser().getNickname() : "";
         rolesList = userProfile.getUser().getRolesList();
+        isSelf = userAddressOrApplicationID == $rewardAddress
+        isApplication = rolesList.includes(UserRole.APPLICATION)
         userStatus = userProfile.getUser().getStatus();
         recentRequests = userProfile.getRecentlyPlayedRequestsList();
         biography = userProfile.getBiography();
@@ -135,16 +149,6 @@
             }
         }
         profileTabs = tabs;
-
-        if (!selectedTab || !profileTabs.find((x) => x.id == selectedTab)) {
-            if (hasFeaturedMedia) {
-                selectedTab = "featuredmedia";
-            } else if (biography != "" || isSelf || isApplication) {
-                selectedTab = "info";
-            } else {
-                selectedTab = "tip";
-            }
-        }
     }
 
     let copiedAddress = false;
