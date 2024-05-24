@@ -3632,30 +3632,11 @@ export class ReceivedReward extends jspb.Message {
   getReceivedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setReceivedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  getMediaId(): string;
-  setMediaId(value: string): void;
+  hasPlayedMedia(): boolean;
+  clearPlayedMedia(): void;
+  getPlayedMedia(): PlayedMedia | undefined;
+  setPlayedMedia(value?: PlayedMedia): void;
 
-  hasYoutubeVideoData(): boolean;
-  clearYoutubeVideoData(): void;
-  getYoutubeVideoData(): QueueYouTubeVideoData | undefined;
-  setYoutubeVideoData(value?: QueueYouTubeVideoData): void;
-
-  hasSoundcloudTrackData(): boolean;
-  clearSoundcloudTrackData(): void;
-  getSoundcloudTrackData(): QueueSoundCloudTrackData | undefined;
-  setSoundcloudTrackData(value?: QueueSoundCloudTrackData): void;
-
-  hasDocumentData(): boolean;
-  clearDocumentData(): void;
-  getDocumentData(): QueueDocumentData | undefined;
-  setDocumentData(value?: QueueDocumentData): void;
-
-  hasApplicationPageData(): boolean;
-  clearApplicationPageData(): void;
-  getApplicationPageData(): QueueApplicationPageData | undefined;
-  setApplicationPageData(value?: QueueApplicationPageData): void;
-
-  getMediaInfoCase(): ReceivedReward.MediaInfoCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ReceivedReward.AsObject;
   static toObject(includeInstance: boolean, msg: ReceivedReward): ReceivedReward.AsObject;
@@ -3672,19 +3653,7 @@ export namespace ReceivedReward {
     rewardsAddress: string,
     amount: string,
     receivedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    mediaId: string,
-    youtubeVideoData?: QueueYouTubeVideoData.AsObject,
-    soundcloudTrackData?: QueueSoundCloudTrackData.AsObject,
-    documentData?: QueueDocumentData.AsObject,
-    applicationPageData?: QueueApplicationPageData.AsObject,
-  }
-
-  export enum MediaInfoCase {
-    MEDIA_INFO_NOT_SET = 0,
-    YOUTUBE_VIDEO_DATA = 6,
-    SOUNDCLOUD_TRACK_DATA = 7,
-    DOCUMENT_DATA = 8,
-    APPLICATION_PAGE_DATA = 9,
+    playedMedia?: PlayedMedia.AsObject,
   }
 }
 

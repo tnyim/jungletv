@@ -5,7 +5,6 @@ package proto
 // https://github.com/golang/protobuf/issues/1326
 
 type IsEnqueueMediaRequest_MediaInfo = isEnqueueMediaRequest_MediaInfo
-type IsReceivedReward_MediaInfo = isReceivedReward_MediaInfo
 type IsPlayedMedia_MediaInfo = isPlayedMedia_MediaInfo
 type IsUserProfileResponse_FeaturedMedia = isUserProfileResponse_FeaturedMedia
 type IsQueueEntry_MediaInfo = isQueueEntry_MediaInfo

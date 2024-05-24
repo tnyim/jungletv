@@ -42,16 +42,6 @@ func (s *TrackProvider) serializeProtoTrackData(playedMedia *types.PlayedMedia) 
 	}, nil
 }
 
-func (s *TrackProvider) SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error) {
-	info, err := s.serializeProtoTrackData(playedMedia)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return &proto.ReceivedReward_SoundcloudTrackData{
-		SoundcloudTrackData: info,
-	}, nil
-}
-
 func (s *TrackProvider) SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error) {
 	info, err := s.serializeProtoTrackData(playedMedia)
 	if err != nil {

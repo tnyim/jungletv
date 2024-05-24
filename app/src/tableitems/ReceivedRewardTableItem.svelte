@@ -2,6 +2,7 @@
     import { DateTime } from "luxon";
     import { link } from "svelte-navigator";
     import { formatBANPriceFixed } from "../currency_utils";
+    import { openUserProfile } from "../profile_utils";
     import type { ReceivedReward } from "../proto/jungletv_pb";
 
     export let reward: ReceivedReward;
@@ -26,21 +27,37 @@
         {formatDate(reward.getReceivedAt().toDate())}
     </td>
     <td class="border-t-0 px-4 sm:px-6 align-middle border-l-0 border-r-0 text-xs p-4 text-gray-700 dark:text-white">
-        {#if reward.hasYoutubeVideoData()}
-            <a href="https://youtube.com/watch?v={reward.getYoutubeVideoData().getId()}" target="_blank" rel="noopener">
-                {reward.getYoutubeVideoData().getTitle()}
+        {#if reward.getPlayedMedia()?.hasYoutubeVideoData()}
+            {@const d = reward.getPlayedMedia().getYoutubeVideoData()}
+            <a href="https://youtube.com/watch?v={d.getId()}" target="_blank" rel="noopener">
+                {d.getTitle()}
             </a>
-        {:else if reward.hasSoundcloudTrackData()}
-            <a href={reward.getSoundcloudTrackData().getPermalink()} target="_blank" rel="noopener">
-                {reward.getSoundcloudTrackData().getTitle()}
+        {:else if reward.getPlayedMedia()?.hasSoundcloudTrackData()}
+            {@const d = reward.getPlayedMedia().getSoundcloudTrackData()}
+            <a href={d.getPermalink()} target="_blank" rel="noopener">
+                {d.getTitle()}
             </a>
-        {:else if reward.hasDocumentData()}
-            <a use:link href="/documents/{reward.getDocumentData().getId()}">
-                {reward.getDocumentData().getTitle()}
+        {:else if reward.getPlayedMedia()?.hasDocumentData()}
+            {@const d = reward.getPlayedMedia().getDocumentData()}
+            <a use:link href="/documents/{d.getId()}">
+                {d.getTitle()}
             </a>
-        {:else if reward.hasApplicationPageData()}
-            {reward.getApplicationPageData().getTitle()} <span class="font-thin">from</span>
-            <span class="font-extralight mono">{reward.getApplicationPageData().getApplicationId()}</span>
+        {:else if reward.getPlayedMedia()?.hasApplicationPageData()}
+            {@const d = reward.getPlayedMedia().getApplicationPageData()}
+            {@const application = reward.getPlayedMedia().getRequestedBy()}
+            {d.getTitle()} <span class="font-thin italic">from</span>
+            <a use:link href="/profile/{d.getApplicationId()}">
+                <button
+                    class="hover:underline inline italic"
+                    on:click|preventDefault={(e) => openUserProfile(d.getApplicationId())}
+                >
+                    {#if application?.hasNickname()}
+                        {application.getNickname()}
+                    {:else}
+                        <span class="font-mono">{d.getApplicationId()}</span>
+                    {/if}
+                </button>
+            </a>
         {/if}
     </td>
 </tr>

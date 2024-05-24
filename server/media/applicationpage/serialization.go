@@ -47,16 +47,6 @@ func (s *ApplicationPageProvider) serializeProtoApplicationPageData(playedMedia 
 	}, nil
 }
 
-func (s *ApplicationPageProvider) SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error) {
-	info, err := s.serializeProtoApplicationPageData(playedMedia)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return &proto.ReceivedReward_ApplicationPageData{
-		ApplicationPageData: info,
-	}, nil
-}
-
 func (s *ApplicationPageProvider) SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error) {
 	info, err := s.serializeProtoApplicationPageData(playedMedia)
 	if err != nil {

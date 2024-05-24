@@ -33,16 +33,6 @@ func (s *DocumentProvider) serializeProtoDocumentData(playedMedia *types.PlayedM
 	}, nil
 }
 
-func (s *DocumentProvider) SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error) {
-	info, err := s.serializeProtoDocumentData(playedMedia)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
-	}
-	return &proto.ReceivedReward_DocumentData{
-		DocumentData: info,
-	}, nil
-}
-
 func (s *DocumentProvider) SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error) {
 	info, err := s.serializeProtoDocumentData(playedMedia)
 	if err != nil {

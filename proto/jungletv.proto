@@ -897,13 +897,7 @@ message ReceivedReward {
     string rewards_address = 2;
     string amount = 3;
     google.protobuf.Timestamp received_at = 4;
-    string media_id = 5;
-    oneof media_info {
-        QueueYouTubeVideoData youtube_video_data = 6;
-        QueueSoundCloudTrackData soundcloud_track_data = 7;
-        QueueDocumentData document_data = 8;
-        QueueApplicationPageData application_page_data = 9;
-    }
+    PlayedMedia played_media = 5;
 }
 
 message RewardHistoryResponse {

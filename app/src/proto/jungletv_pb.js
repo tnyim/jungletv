@@ -188,7 +188,6 @@ goog.exportSymbol('proto.jungletv.RaffleDrawingStatus', null, global);
 goog.exportSymbol('proto.jungletv.RaffleDrawingsRequest', null, global);
 goog.exportSymbol('proto.jungletv.RaffleDrawingsResponse', null, global);
 goog.exportSymbol('proto.jungletv.ReceivedReward', null, global);
-goog.exportSymbol('proto.jungletv.ReceivedReward.MediaInfoCase', null, global);
 goog.exportSymbol('proto.jungletv.RedrawRaffleRequest', null, global);
 goog.exportSymbol('proto.jungletv.RedrawRaffleResponse', null, global);
 goog.exportSymbol('proto.jungletv.RemoveBanRequest', null, global);
@@ -2965,7 +2964,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.jungletv.ReceivedReward = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.jungletv.ReceivedReward.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.jungletv.ReceivedReward, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -30566,34 +30565,6 @@ proto.jungletv.RewardHistoryRequest.prototype.hasPaginationParams = function() {
 
 
 
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.jungletv.ReceivedReward.oneofGroups_ = [[6,7,8,9]];
-
-/**
- * @enum {number}
- */
-proto.jungletv.ReceivedReward.MediaInfoCase = {
-  MEDIA_INFO_NOT_SET: 0,
-  YOUTUBE_VIDEO_DATA: 6,
-  SOUNDCLOUD_TRACK_DATA: 7,
-  DOCUMENT_DATA: 8,
-  APPLICATION_PAGE_DATA: 9
-};
-
-/**
- * @return {proto.jungletv.ReceivedReward.MediaInfoCase}
- */
-proto.jungletv.ReceivedReward.prototype.getMediaInfoCase = function() {
-  return /** @type {proto.jungletv.ReceivedReward.MediaInfoCase} */(jspb.Message.computeOneofCase(this, proto.jungletv.ReceivedReward.oneofGroups_[0]));
-};
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -30629,11 +30600,7 @@ proto.jungletv.ReceivedReward.toObject = function(includeInstance, msg) {
     rewardsAddress: jspb.Message.getFieldWithDefault(msg, 2, ""),
     amount: jspb.Message.getFieldWithDefault(msg, 3, ""),
     receivedAt: (f = msg.getReceivedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    mediaId: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    youtubeVideoData: (f = msg.getYoutubeVideoData()) && proto.jungletv.QueueYouTubeVideoData.toObject(includeInstance, f),
-    soundcloudTrackData: (f = msg.getSoundcloudTrackData()) && proto.jungletv.QueueSoundCloudTrackData.toObject(includeInstance, f),
-    documentData: (f = msg.getDocumentData()) && proto.jungletv.QueueDocumentData.toObject(includeInstance, f),
-    applicationPageData: (f = msg.getApplicationPageData()) && proto.jungletv.QueueApplicationPageData.toObject(includeInstance, f)
+    playedMedia: (f = msg.getPlayedMedia()) && proto.jungletv.PlayedMedia.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -30688,28 +30655,9 @@ proto.jungletv.ReceivedReward.deserializeBinaryFromReader = function(msg, reader
       msg.setReceivedAt(value);
       break;
     case 5:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setMediaId(value);
-      break;
-    case 6:
-      var value = new proto.jungletv.QueueYouTubeVideoData;
-      reader.readMessage(value,proto.jungletv.QueueYouTubeVideoData.deserializeBinaryFromReader);
-      msg.setYoutubeVideoData(value);
-      break;
-    case 7:
-      var value = new proto.jungletv.QueueSoundCloudTrackData;
-      reader.readMessage(value,proto.jungletv.QueueSoundCloudTrackData.deserializeBinaryFromReader);
-      msg.setSoundcloudTrackData(value);
-      break;
-    case 8:
-      var value = new proto.jungletv.QueueDocumentData;
-      reader.readMessage(value,proto.jungletv.QueueDocumentData.deserializeBinaryFromReader);
-      msg.setDocumentData(value);
-      break;
-    case 9:
-      var value = new proto.jungletv.QueueApplicationPageData;
-      reader.readMessage(value,proto.jungletv.QueueApplicationPageData.deserializeBinaryFromReader);
-      msg.setApplicationPageData(value);
+      var value = new proto.jungletv.PlayedMedia;
+      reader.readMessage(value,proto.jungletv.PlayedMedia.deserializeBinaryFromReader);
+      msg.setPlayedMedia(value);
       break;
     default:
       reader.skipField();
@@ -30769,43 +30717,12 @@ proto.jungletv.ReceivedReward.serializeBinaryToWriter = function(message, writer
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getMediaId();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getPlayedMedia();
+  if (f != null) {
+    writer.writeMessage(
       5,
-      f
-    );
-  }
-  f = message.getYoutubeVideoData();
-  if (f != null) {
-    writer.writeMessage(
-      6,
       f,
-      proto.jungletv.QueueYouTubeVideoData.serializeBinaryToWriter
-    );
-  }
-  f = message.getSoundcloudTrackData();
-  if (f != null) {
-    writer.writeMessage(
-      7,
-      f,
-      proto.jungletv.QueueSoundCloudTrackData.serializeBinaryToWriter
-    );
-  }
-  f = message.getDocumentData();
-  if (f != null) {
-    writer.writeMessage(
-      8,
-      f,
-      proto.jungletv.QueueDocumentData.serializeBinaryToWriter
-    );
-  }
-  f = message.getApplicationPageData();
-  if (f != null) {
-    writer.writeMessage(
-      9,
-      f,
-      proto.jungletv.QueueApplicationPageData.serializeBinaryToWriter
+      proto.jungletv.PlayedMedia.serializeBinaryToWriter
     );
   }
 };
@@ -30903,39 +30820,21 @@ proto.jungletv.ReceivedReward.prototype.hasReceivedAt = function() {
 
 
 /**
- * optional string media_id = 5;
- * @return {string}
+ * optional PlayedMedia played_media = 5;
+ * @return {?proto.jungletv.PlayedMedia}
  */
-proto.jungletv.ReceivedReward.prototype.getMediaId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+proto.jungletv.ReceivedReward.prototype.getPlayedMedia = function() {
+  return /** @type{?proto.jungletv.PlayedMedia} */ (
+    jspb.Message.getWrapperField(this, proto.jungletv.PlayedMedia, 5));
 };
 
 
 /**
- * @param {string} value
- * @return {!proto.jungletv.ReceivedReward} returns this
- */
-proto.jungletv.ReceivedReward.prototype.setMediaId = function(value) {
-  return jspb.Message.setProto3StringField(this, 5, value);
-};
-
-
-/**
- * optional QueueYouTubeVideoData youtube_video_data = 6;
- * @return {?proto.jungletv.QueueYouTubeVideoData}
- */
-proto.jungletv.ReceivedReward.prototype.getYoutubeVideoData = function() {
-  return /** @type{?proto.jungletv.QueueYouTubeVideoData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueYouTubeVideoData, 6));
-};
-
-
-/**
- * @param {?proto.jungletv.QueueYouTubeVideoData|undefined} value
+ * @param {?proto.jungletv.PlayedMedia|undefined} value
  * @return {!proto.jungletv.ReceivedReward} returns this
 */
-proto.jungletv.ReceivedReward.prototype.setYoutubeVideoData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 6, proto.jungletv.ReceivedReward.oneofGroups_[0], value);
+proto.jungletv.ReceivedReward.prototype.setPlayedMedia = function(value) {
+  return jspb.Message.setWrapperField(this, 5, value);
 };
 
 
@@ -30943,8 +30842,8 @@ proto.jungletv.ReceivedReward.prototype.setYoutubeVideoData = function(value) {
  * Clears the message field making it undefined.
  * @return {!proto.jungletv.ReceivedReward} returns this
  */
-proto.jungletv.ReceivedReward.prototype.clearYoutubeVideoData = function() {
-  return this.setYoutubeVideoData(undefined);
+proto.jungletv.ReceivedReward.prototype.clearPlayedMedia = function() {
+  return this.setPlayedMedia(undefined);
 };
 
 
@@ -30952,119 +30851,8 @@ proto.jungletv.ReceivedReward.prototype.clearYoutubeVideoData = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.jungletv.ReceivedReward.prototype.hasYoutubeVideoData = function() {
-  return jspb.Message.getField(this, 6) != null;
-};
-
-
-/**
- * optional QueueSoundCloudTrackData soundcloud_track_data = 7;
- * @return {?proto.jungletv.QueueSoundCloudTrackData}
- */
-proto.jungletv.ReceivedReward.prototype.getSoundcloudTrackData = function() {
-  return /** @type{?proto.jungletv.QueueSoundCloudTrackData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueSoundCloudTrackData, 7));
-};
-
-
-/**
- * @param {?proto.jungletv.QueueSoundCloudTrackData|undefined} value
- * @return {!proto.jungletv.ReceivedReward} returns this
-*/
-proto.jungletv.ReceivedReward.prototype.setSoundcloudTrackData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 7, proto.jungletv.ReceivedReward.oneofGroups_[0], value);
-};
-
-
-/**
- * Clears the message field making it undefined.
- * @return {!proto.jungletv.ReceivedReward} returns this
- */
-proto.jungletv.ReceivedReward.prototype.clearSoundcloudTrackData = function() {
-  return this.setSoundcloudTrackData(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.jungletv.ReceivedReward.prototype.hasSoundcloudTrackData = function() {
-  return jspb.Message.getField(this, 7) != null;
-};
-
-
-/**
- * optional QueueDocumentData document_data = 8;
- * @return {?proto.jungletv.QueueDocumentData}
- */
-proto.jungletv.ReceivedReward.prototype.getDocumentData = function() {
-  return /** @type{?proto.jungletv.QueueDocumentData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueDocumentData, 8));
-};
-
-
-/**
- * @param {?proto.jungletv.QueueDocumentData|undefined} value
- * @return {!proto.jungletv.ReceivedReward} returns this
-*/
-proto.jungletv.ReceivedReward.prototype.setDocumentData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 8, proto.jungletv.ReceivedReward.oneofGroups_[0], value);
-};
-
-
-/**
- * Clears the message field making it undefined.
- * @return {!proto.jungletv.ReceivedReward} returns this
- */
-proto.jungletv.ReceivedReward.prototype.clearDocumentData = function() {
-  return this.setDocumentData(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.jungletv.ReceivedReward.prototype.hasDocumentData = function() {
-  return jspb.Message.getField(this, 8) != null;
-};
-
-
-/**
- * optional QueueApplicationPageData application_page_data = 9;
- * @return {?proto.jungletv.QueueApplicationPageData}
- */
-proto.jungletv.ReceivedReward.prototype.getApplicationPageData = function() {
-  return /** @type{?proto.jungletv.QueueApplicationPageData} */ (
-    jspb.Message.getWrapperField(this, proto.jungletv.QueueApplicationPageData, 9));
-};
-
-
-/**
- * @param {?proto.jungletv.QueueApplicationPageData|undefined} value
- * @return {!proto.jungletv.ReceivedReward} returns this
-*/
-proto.jungletv.ReceivedReward.prototype.setApplicationPageData = function(value) {
-  return jspb.Message.setOneofWrapperField(this, 9, proto.jungletv.ReceivedReward.oneofGroups_[0], value);
-};
-
-
-/**
- * Clears the message field making it undefined.
- * @return {!proto.jungletv.ReceivedReward} returns this
- */
-proto.jungletv.ReceivedReward.prototype.clearApplicationPageData = function() {
-  return this.setApplicationPageData(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.jungletv.ReceivedReward.prototype.hasApplicationPageData = function() {
-  return jspb.Message.getField(this, 9) != null;
+proto.jungletv.ReceivedReward.prototype.hasPlayedMedia = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

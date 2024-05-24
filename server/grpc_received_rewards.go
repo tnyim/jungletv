@@ -58,7 +58,7 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 		}
 	}
 
-	protoReceivedRewards, err := s.convertReceivedRewards(receivedRewards, playedMedia)
+	protoReceivedRewards, err := s.convertReceivedRewards(ctx, receivedRewards, playedMedia)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -70,11 +70,11 @@ func (s *grpcServer) RewardHistory(ctxCtx context.Context, r *proto.RewardHistor
 	}, nil
 }
 
-func (s *grpcServer) convertReceivedRewards(orig []*types.ReceivedReward, playedMedia map[string]*types.PlayedMedia) ([]*proto.ReceivedReward, error) {
+func (s *grpcServer) convertReceivedRewards(ctx context.Context, orig []*types.ReceivedReward, playedMedia map[string]*types.PlayedMedia) ([]*proto.ReceivedReward, error) {
 	protoEntries := make([]*proto.ReceivedReward, len(orig))
 	for i, entry := range orig {
 		var err error
-		protoEntries[i], err = s.convertReceivedReward(entry, playedMedia[entry.Media])
+		protoEntries[i], err = s.convertReceivedReward(ctx, entry, playedMedia[entry.Media])
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}
@@ -82,18 +82,17 @@ func (s *grpcServer) convertReceivedRewards(orig []*types.ReceivedReward, played
 	return protoEntries, nil
 }
 
-func (s *grpcServer) convertReceivedReward(orig *types.ReceivedReward, playedMedia *types.PlayedMedia) (*proto.ReceivedReward, error) {
+func (s *grpcServer) convertReceivedReward(ctx context.Context, orig *types.ReceivedReward, playedMedia *types.PlayedMedia) (*proto.ReceivedReward, error) {
 	reward := &proto.ReceivedReward{
 		Id:             orig.ID,
 		RewardsAddress: orig.RewardsAddress,
 		Amount:         payment.NewAmountFromDecimal(orig.Amount).SerializeForAPI(),
 		ReceivedAt:     timestamppb.New(orig.ReceivedAt),
-		MediaId:        orig.Media,
 	}
 
 	if playedMedia != nil {
 		var err error
-		reward.MediaInfo, err = s.mediaProviders[playedMedia.MediaType].SerializeReceivedRewardMediaInfo(playedMedia)
+		reward.PlayedMedia, err = s.convertPlayedMedia(ctx, s.userSerializer, playedMedia)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "")
 		}

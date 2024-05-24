@@ -87,7 +87,6 @@ type Provider interface {
 	UnmarshalQueueEntryJSON(ctx context.Context, b []byte) (QueueEntry, bool, error)
 
 	BasicMediaInfoFromPlayedMedia(playedMedia *types.PlayedMedia) (BasicInfo, error)
-	SerializeReceivedRewardMediaInfo(playedMedia *types.PlayedMedia) (proto.IsReceivedReward_MediaInfo, error)
 	SerializePlayedMediaMediaInfo(playedMedia *types.PlayedMedia) (proto.IsPlayedMedia_MediaInfo, error)
 	SerializeUserProfileResponseFeaturedMedia(playedMedia *types.PlayedMedia) (proto.IsUserProfileResponse_FeaturedMedia, error)
 }
