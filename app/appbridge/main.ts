@@ -428,7 +428,7 @@ let pageResizeObserver: ResizeObserver;
 function beginObservingDocumentResizes() {
     pageResizeObserver = new ResizeObserver(async (changes) => {
         let connection = await connectionPromise;
-        let rect = document.body.getBoundingClientRect();
+        let rect = document.documentElement.getBoundingClientRect();
         connection.localHandle().emit("pageResized", {
             width: rect.width,
             height: rect.height,
