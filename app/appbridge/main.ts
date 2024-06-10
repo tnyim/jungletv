@@ -435,7 +435,7 @@ function beginObservingDocumentResizes() {
         });
     })
 
-    pageResizeObserver.observe(document.body);
+    pageResizeObserver.observe(document.documentElement);
 }
 
 function stopObservingDocumentResizes() {

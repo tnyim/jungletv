@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
     import { Application, RunningApplication } from "../proto/application_editor_pb";
@@ -60,6 +60,7 @@
         application.setAllowFileEditing(true);
         try {
             await apiClient.updateApplication(application);
+            navigate(`/moderate/applications/${id}`);
             cur_page = -1;
         } catch (e) {
             await modalAlert("An error occurred when creating the application: " + e);
