@@ -31,6 +31,6 @@
 
 <div class="h-full w-full max-h-full max-w-full overflow-auto">
     {#key forceUpdateCount}
-        <ApplicationPage {applicationID} {pageID} {preloadedPageInfo} />
+        <ApplicationPage {applicationID} {pageID} {preloadedPageInfo} mode="playingmedia" />
     {/key}
 </div>
