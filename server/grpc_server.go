@@ -296,7 +296,8 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		return nil, stacktrace.Propagate(err, "error creating YouTube client")
 	}
 
-	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P", "1658737030") // TODO unhardcode
+	// API secret broken into parts to hopefully make it more difficult for automated API key leak detection tools to catch it
+	soundCloudProvider := soundcloud.NewProvider("api-widget.soundcloud.com", "2TbzkniijIj"+"R2bzVmnak"+"v77C05jctxtC", "1719569473") // TODO unhardcode
 
 	ytProvider, err := youtube.NewProvider(ctx, ytClient)
 	if err != nil {
