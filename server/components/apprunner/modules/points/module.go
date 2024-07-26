@@ -33,8 +33,6 @@ type pointsModule struct {
 	eventAdapter   *gojautil.EventAdapter
 
 	appContext modules.ApplicationContext
-
-	executionContext context.Context
 }
 
 // New returns a new points module
@@ -42,7 +40,7 @@ func New(appContext modules.ApplicationContext, pointsManager *pointsmanager.Man
 	return &pointsModule{
 		pointsManager: pointsManager,
 		appContext:    appContext,
-		eventAdapter:  gojautil.NewEventAdapter(appContext.Schedule),
+		eventAdapter:  gojautil.NewEventAdapter(appContext),
 	}
 }
 
@@ -83,9 +81,7 @@ func (m *pointsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.executionContext = ctx
-	m.runtime = runtime
+func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
@@ -111,7 +107,7 @@ func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Third argument to createTransaction must be a non-zero integer"))
 	}
 
-	tx, err := m.pointsManager.CreateTransaction(m.executionContext, user, types.PointsTxTypeApplicationDefined, value, pointsmanager.TxExtraField{
+	tx, err := m.pointsManager.CreateTransaction(m.appContext.ExecutionContext(), user, types.PointsTxTypeApplicationDefined, value, pointsmanager.TxExtraField{
 		Key:   "application_id",
 		Value: m.appContext.ApplicationID(),
 	}, pointsmanager.TxExtraField{
@@ -161,7 +157,7 @@ func (m *pointsModule) getBalance(call goja.FunctionCall) goja.Value {
 
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
-	ctx, err := transaction.Begin(m.executionContext)
+	ctx, err := transaction.Begin(m.appContext.ExecutionContext())
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -185,7 +181,7 @@ func (m *pointsModule) getNiceSubscription(call goja.FunctionCall) goja.Value {
 
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
-	subscription, err := m.pointsManager.GetCurrentUserSubscription(m.executionContext, auth.NewAddressOnlyUser(userAddress))
+	subscription, err := m.pointsManager.GetCurrentUserSubscription(m.appContext.ExecutionContext(), auth.NewAddressOnlyUser(userAddress))
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}

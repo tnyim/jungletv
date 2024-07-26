@@ -42,8 +42,6 @@ type queueModule struct {
 	dateSerializer           func(time.Time) interface{}
 	eventAdapter             *gojautil.EventAdapter
 	crowdfundingEventAdapter *gojautil.EventAdapter
-
-	executionContext context.Context
 }
 
 // New returns a new queue module
@@ -59,8 +57,8 @@ func New(appContext modules.ApplicationContext, pointsManager *pointsmanager.Man
 		pricer:                   pricer,
 		skipManager:              skipManager,
 		queueMisc:                queueMisc,
-		eventAdapter:             gojautil.NewEventAdapter(appContext.Schedule),
-		crowdfundingEventAdapter: gojautil.NewEventAdapter(appContext.Schedule),
+		eventAdapter:             gojautil.NewEventAdapter(appContext),
+		crowdfundingEventAdapter: gojautil.NewEventAdapter(appContext),
 	}
 }
 
@@ -111,9 +109,7 @@ func (m *queueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.executionContext = ctx
-	m.runtime = runtime
+func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 	m.crowdfundingEventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
@@ -198,7 +194,7 @@ func (m *queueModule) moveEntry(entryID, direction, argPos, callerName string, w
 	up := m.parseMovementDirectionArgument(direction, argPos, callerName)
 
 	if withCost {
-		err := m.queueMisc.MoveQueueEntryWithCost(m.executionContext, entryID, up, m.appContext.ApplicationUser())
+		err := m.queueMisc.MoveQueueEntryWithCost(m.appContext.ExecutionContext(), entryID, up, m.appContext.ApplicationUser())
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}

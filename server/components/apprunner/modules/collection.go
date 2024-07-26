@@ -30,9 +30,9 @@ func (c *Collection) EnableModules(runtime *goja.Runtime) {
 	}
 }
 
-func (c *Collection) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
+func (c *Collection) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	for _, c := range c.modules {
-		c.ExecutionResumed(ctx, wg, runtime)
+		c.ExecutionResumed(ctx, wg)
 	}
 }
 

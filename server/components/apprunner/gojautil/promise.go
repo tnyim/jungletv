@@ -1,11 +1,16 @@
 package gojautil
 
 import (
+	"context"
+
 	"github.com/dop251/goja"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 )
 
 // AsyncContext is a type used mainly to encourage the exclusive use of some functions inside of an AsyncCallback
-type AsyncContext struct{}
+type AsyncContext struct {
+	context.Context
+}
 
 // AsyncCallback is a function that should run asynchronously
 type AsyncCallback[T any] func(asyncContext AsyncContext) T
@@ -18,15 +23,11 @@ type AsyncCallbackWithTransformer[T any] func(asyncContext AsyncContext) (T, Pro
 // and transforms the result of an asynchronous promise before it is provided to the JS runtime
 type PromiseResultTransformer[T any] func(*goja.Runtime, T) interface{}
 
-// ScheduleFunction is a function that may be called to add tasks to an application's event loop
-type ScheduleFunction func(func(vm *goja.Runtime) error)
-
-// ScheduleFunctionNoError is a function that may be called to add tasks to an application's event loop
-type ScheduleFunctionNoError func(func(vm *goja.Runtime))
-
 // DoAsync schedules a function to run asynchronously and returns a Promise to track it
-func DoAsync[T any](runtime *goja.Runtime, runOnLoop ScheduleFunctionNoError, cb AsyncCallback[T]) goja.Value {
+func DoAsync[T any](appContext modules.ApplicationContext, runtime *goja.Runtime, cb AsyncCallback[T]) goja.Value {
 	promise, resolve, reject := runtime.NewPromise()
+
+	ctx, cancelCtx := context.WithCancel(appContext.ExecutionContext())
 
 	go func() {
 		var rejectReason interface{}
@@ -35,10 +36,13 @@ func DoAsync[T any](runtime *goja.Runtime, runOnLoop ScheduleFunctionNoError, cb
 			defer func() {
 				rejectReason = recover()
 			}()
-			result = cb(AsyncContext{})
+			result = cb(AsyncContext{
+				Context: ctx,
+			})
 		}()
 
-		runOnLoop(func(r *goja.Runtime) {
+		appContext.ScheduleNoError(func(r *goja.Runtime) {
+			defer cancelCtx() // if we never get scheduled because the execution paused, it's fine since the parent execution context gets cancelled too
 			if rejectReason == nil {
 				resolve(result)
 			} else {
@@ -51,8 +55,10 @@ func DoAsync[T any](runtime *goja.Runtime, runOnLoop ScheduleFunctionNoError, cb
 
 // DoAsyncWithTransformer schedules a function to run asynchronously and returns a Promise to track it
 // The transformer returned by the async function will be run synchronously in the goja event loop
-func DoAsyncWithTransformer[T any](runtime *goja.Runtime, runOnLoop ScheduleFunctionNoError, cb AsyncCallbackWithTransformer[T]) goja.Value {
+func DoAsyncWithTransformer[T any](appContext modules.ApplicationContext, runtime *goja.Runtime, cb AsyncCallbackWithTransformer[T]) goja.Value {
 	promise, resolve, reject := runtime.NewPromise()
+
+	ctx, cancelCtx := context.WithCancel(appContext.ExecutionContext())
 
 	go func() {
 		var rejectReason interface{}
@@ -62,10 +68,13 @@ func DoAsyncWithTransformer[T any](runtime *goja.Runtime, runOnLoop ScheduleFunc
 			defer func() {
 				rejectReason = recover()
 			}()
-			result, transformer = cb(AsyncContext{})
+			result, transformer = cb(AsyncContext{
+				Context: ctx,
+			})
 		}()
 
-		runOnLoop(func(r *goja.Runtime) {
+		appContext.ScheduleNoError(func(r *goja.Runtime) {
+			defer cancelCtx() // if we never get scheduled because the execution paused, it's fine since the parent execution context gets cancelled too
 			if rejectReason == nil {
 				resolve(transformer(r, result))
 			} else {

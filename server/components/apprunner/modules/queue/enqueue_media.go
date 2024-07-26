@@ -91,11 +91,11 @@ func (m *queueModule) enqueueMedia(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	ctxCtx, ctxCancel := context.WithTimeout(m.executionContext, 15*time.Second)
-	// some media providers rely on having the user in the context
-	ctxCtx = auth.WithUser(ctxCtx, m.appContext.ApplicationUser())
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) (media.QueueEntry, gojautil.PromiseResultTransformer[media.QueueEntry]) {
+		ctxCtx, ctxCancel := context.WithTimeout(actx, 15*time.Second)
+		// some media providers rely on having the user in the context
+		ctxCtx = auth.WithUser(ctxCtx, m.appContext.ApplicationUser())
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (media.QueueEntry, gojautil.PromiseResultTransformer[media.QueueEntry]) {
 		defer ctxCancel()
 		ctx, err := transaction.Begin(ctxCtx)
 		if err != nil {
@@ -366,11 +366,11 @@ func (m *queueModule) getMediaInformation(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	ctxCtx, ctxCancel := context.WithTimeout(m.executionContext, 15*time.Second)
-	// some media providers rely on having the user in the context
-	ctxCtx = auth.WithUser(ctxCtx, m.appContext.ApplicationUser())
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) (media.BasicInfo, gojautil.PromiseResultTransformer[media.BasicInfo]) {
+		ctxCtx, ctxCancel := context.WithTimeout(actx, 15*time.Second)
+		// some media providers rely on having the user in the context
+		ctxCtx = auth.WithUser(ctxCtx, m.appContext.ApplicationUser())
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (media.BasicInfo, gojautil.PromiseResultTransformer[media.BasicInfo]) {
 		defer ctxCancel()
 		ctx, err := transaction.Begin(ctxCtx)
 		if err != nil {

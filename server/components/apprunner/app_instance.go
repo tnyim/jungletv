@@ -59,28 +59,25 @@ type transpiledFilesMapKey struct {
 }
 
 type appInstance struct {
+	state              *appInstanceState
 	applicationID      string
 	applicationVersion types.ApplicationVersion
 	applicationUser    auth.User
 	applicationWallet  *gonano_wallet.Wallet
-	mu                 sync.RWMutex
-	running            bool
-	startedOnce        bool
-	terminated         bool
-	exitCode           int
-	startedOrStoppedAt time.Time
-	onPaused           event.NoArgEvent
-	onTerminated       event.NoArgEvent
-	runner             *AppRunner
-	loop               *eventloop.EventLoop
-	appLogger          *appLogger
-	modules            *modules.Collection
-	pagesModule        pages.PagesModule
-	rpcModule          rpc.RPCModule
-	ipcModule          ipc.IPCModule
-	userSerializer     *gojautil.UserSerializerImplementation
-	transpiledFiles    map[transpiledFilesMapKey][]byte
-	transpiledFilesMu  sync.Mutex
+
+	mu                sync.RWMutex
+	ranInitCode       bool
+	exitCode          int
+	runner            *AppRunner
+	loop              *eventloop.EventLoop
+	appLogger         *appLogger
+	modules           *modules.Collection
+	pagesModule       pages.PagesModule
+	rpcModule         rpc.RPCModule
+	ipcModule         ipc.IPCModule
+	userSerializer    *gojautil.UserSerializerImplementation
+	transpiledFiles   map[transpiledFilesMapKey][]byte
+	transpiledFilesMu sync.Mutex
 
 	modLogWebhook    disgohookapi.WebhookClient
 	auditEntryAddedU func()
@@ -121,11 +118,13 @@ var ErrApplicationInstanceNotRunning = errors.New("application instance not runn
 func (r *AppRunner) newAppInstance(applicationID string, applicationVersion types.ApplicationVersion, applicationWallet *gonano_wallet.Wallet) (*appInstance, error) {
 	d := r.moduleDependencies
 	instance := &appInstance{
+		state: &appInstanceState{
+			onPaused:     event.NewNoArg(),
+			onTerminated: event.NewNoArg(),
+		},
 		applicationID:                   applicationID,
 		applicationVersion:              applicationVersion,
 		applicationWallet:               applicationWallet,
-		onPaused:                        event.NewNoArg(),
-		onTerminated:                    event.NewNoArg(),
 		runner:                          r,
 		modules:                         &modules.Collection{},
 		appLogger:                       NewAppLogger(applicationID),
@@ -171,12 +170,12 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 
 // Terminated returns the event that is fired when the application instance is terminated
 func (a *appInstance) Terminated() event.NoArgEvent {
-	return a.onTerminated
+	return a.state.Terminated()
 }
 
 // Paused returns the event that is fired when the application instance is paused. Fired before Terminated
 func (a *appInstance) Paused() event.NoArgEvent {
-	return a.onPaused
+	return a.state.Paused()
 }
 
 func (a *appInstance) getMainFile() (*types.ApplicationFile, bool, error) {
@@ -211,22 +210,26 @@ func (a *appInstance) getMainFile() (*types.ApplicationFile, bool, error) {
 func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.terminated {
+
+	state := a.state.Snapshot()
+	if state.IsTerminated() {
 		return stacktrace.Propagate(ErrApplicationInstanceTerminated, "")
 	}
-	if a.running {
+	if state.IsRunning() {
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyRunning, "")
 	}
 
 	a.ctx, a.ctxCancel = context.WithCancelCause(ctx)
 	a.userSerializer.SetContext(a.ctx)
 
+	if a.vmClearInterrupt != nil {
+		a.vmClearInterrupt()
+	}
 	a.loop.Start()
-	a.running = true
-	a.startedOrStoppedAt = time.Now()
+	a.state.MarkAsRunning()
 	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
 
-	if !a.startedOnce {
+	if !a.ranInitCode {
 		// ensure that the nicknames table has the applicationID associated with this application,
 		// such that loading the application user (e.g. via UserCache) always returns an user associated with the ID of this application
 		// types.GetApplicationWalletAddress relies on this, which in turn is relied upon to resolve application profiles based on their ID
@@ -242,19 +245,20 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			return stacktrace.Propagate(err, "")
 		}
 
-		// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
-		// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
-		// scheduled by JS functions in a JS setTimeout call.
-		// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
-		// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
 			r.SetPromiseRejectionTracker(a.promiseRejectionTracker)
+
+			// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
+			// and the approach used in e.g. runOnLoopWithInterruption doesn't work for e.g. infinite loops
+			// scheduled by JS functions in a JS setTimeout call.
+			// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
+			// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
 			a.vmInterrupt = r.Interrupt
 			a.vmClearInterrupt = r.ClearInterrupt
 
 			_, err = r.RunScript("", runtimeBaseCode)
 
-			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup, r)
+			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
 			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
@@ -283,10 +287,10 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		if a.modLogWebhook != nil {
 			a.auditEntryAddedU = a.appLogger.AuditEntryAdded().SubscribeUsingCallback(event.BufferAll, a.sendLogEntryToModLog)
 		}
-		a.startedOnce = true
+		a.ranInitCode = true
 	} else {
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
-			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup, r)
+			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
 		})
 	}
 
@@ -355,6 +359,10 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (fu
 	}, feedWatchdog
 }
 
+func (a *appInstance) ExecutionContext() context.Context {
+	return a.ctx
+}
+
 func (a *appInstance) Schedule(f func(vm *goja.Runtime) error) {
 	a.runOnLoopWithInterruption(a.ctx, func(vm *goja.Runtime) {
 		err := f(vm)
@@ -372,8 +380,8 @@ func (a *appInstance) ScheduleNoError(f func(vm *goja.Runtime)) {
 	})
 }
 
-func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(panicResult)) {
-	a.loop.RunOnLoop(func(vm *goja.Runtime) {
+func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(panicResult)) bool {
+	return a.loop.RunOnLoop(func(vm *goja.Runtime) {
 		a.feedWatchdog() // if we got scheduled then the loop is not stuck
 		ranChan := make(chan struct{}, 1)
 		waitGroup := sync.WaitGroup{}
@@ -381,9 +389,7 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 		go func() {
 			select {
 			case <-ctx.Done():
-				a.appLogger.RuntimeLog("interrupting execution due to cancelled context")
 				vm.Interrupt(appInstanceInterruptValue)
-				a.appLogger.RuntimeLog("execution interrupted due to cancelled context")
 			case <-ranChan:
 			}
 			waitGroup.Done()
@@ -442,7 +448,7 @@ func (a *appInstance) Terminate(force bool, after time.Duration, waitUntilTermin
 		a.mu.Lock()
 		defer a.mu.Unlock()
 
-		if a.terminated {
+		if a.state.IsTerminated() {
 			return stacktrace.Propagate(ErrApplicationInstanceTerminated, "")
 		}
 		err := a.pause(force, after, true)
@@ -450,8 +456,7 @@ func (a *appInstance) Terminate(force bool, after time.Duration, waitUntilTermin
 			return stacktrace.Propagate(err, "")
 		}
 
-		a.terminated = true
-		a.onTerminated.Notify(true)
+		a.state.MarkAsTerminated()
 
 		if a.auditEntryAddedU != nil {
 			a.auditEntryAddedU()
@@ -468,9 +473,11 @@ func (a *appInstance) Terminate(force bool, after time.Duration, waitUntilTermin
 
 // pause must run within write mutex
 func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) error {
-	if !a.running {
+	if a.state.IsPaused() {
 		return stacktrace.Propagate(ErrApplicationInstanceAlreadyPaused, "")
 	}
+
+	a.state.MarkAsPausing()
 
 	a.stopWatchdog()
 	a.stopWatchdog = nil
@@ -491,6 +498,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 		interrupt := func() {
 			a.appLogger.RuntimeLog(fmt.Sprintf("interrupting execution after waiting %s", after.String()))
 			a.vmInterrupt(appInstanceInterruptValue)
+			a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 			a.appLogger.RuntimeLog("execution interrupted")
 		}
 		if after == 0 {
@@ -501,14 +509,14 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	}
 
 	jobs := a.loop.Stop()
+	if toTerminate {
+		a.loop.Terminate()
+	}
 	if interruptTimer != nil {
 		interruptTimer.Stop()
 	}
 	a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 	a.executionWaitGroup.Wait()
-	a.running = false
-	a.startedOrStoppedAt = time.Now()
-	a.vmClearInterrupt()
 	plural := "s"
 	if jobs == 1 {
 		plural = ""
@@ -518,14 +526,14 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 		exitCodeMsg = fmt.Sprintf(" and exit code %d", a.exitCode)
 	}
 	a.appLogger.RuntimeLog(fmt.Sprintf("application instance %s with %d job%s remaining%s", verbPast, jobs, plural, exitCodeMsg))
-	a.onPaused.Notify(false)
+	a.state.MarkAsPaused()
 	return nil
 }
 
 func (a *appInstance) Running() (bool, types.ApplicationVersion, time.Time) {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-	return a.running, a.applicationVersion, a.startedOrStoppedAt
+	// it's important that this doesn't lock a.mu to avoid deadlocks on termination
+	snapshot := a.state.Snapshot()
+	return snapshot.IsRunning(), a.applicationVersion, snapshot.StartedOrTerminatedAt()
 }
 
 func (a *appInstance) sourceLoader(vm *goja.Runtime, filename string) ([]byte, error) {
@@ -655,15 +663,7 @@ func (a *appInstance) EvaluateExpression(ctx context.Context, expression string)
 }
 
 func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstance, cb func(vm *goja.Runtime) (T, error)) (T, time.Duration, error) {
-	a.mu.RLock()
-	running := a.running
-	// we release the lock here because there's no guarantee the function passed to runOnLoopWithInterruption
-	// will ever execute (the event loop could be stuck in an infinite loop)
-	// we also can't hold the lock until this function finishes executing, for the same reason
-	// (if we keep holding the lock, Pause/Terminate will get stuck waiting for it)
-	a.mu.RUnlock()
-
-	if !running {
+	if !a.state.IsRunning() {
 		return *new(T), 0, stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
@@ -676,7 +676,7 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 	panicChan := make(chan panicResult, 1)
 	couldHavePaused := &atomic.Int32{}
 	couldHavePaused.Store(1)
-	a.runOnLoopWithInterruption(ctx, func(vm *goja.Runtime) {
+	submitted := a.runOnLoopWithInterruption(ctx, func(vm *goja.Runtime) {
 		couldHavePaused.Store(0)
 		start := time.Now()
 		value, err := cb(vm)
@@ -688,6 +688,10 @@ func runOnLoopSynchronouslyAndGetResult[T any](ctx context.Context, a *appInstan
 	}, func(p panicResult) {
 		panicChan <- p
 	})
+
+	if !submitted {
+		return *new(T), 0, stacktrace.Propagate(ErrApplicationInstanceTerminated, "")
+	}
 
 	onPaused, pausedU := a.Paused().Subscribe(event.BufferFirst)
 	defer pausedU()
@@ -812,15 +816,11 @@ func (a *appInstance) Logger() modules.ApplicationLogger {
 }
 
 func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.ApplicationVersion, bool) {
-	a.mu.RLock()
-	r := a.running
-	v := a.applicationVersion
-	a.mu.RUnlock()
-	if !r {
+	if !a.state.IsRunning() {
 		return pages.PageInfo{}, types.ApplicationVersion{}, false
 	}
 	p, ok := a.pagesModule.ResolvePage(pageID)
-	return p, v, ok
+	return p, a.applicationVersion, ok
 }
 
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
@@ -858,7 +858,7 @@ func (a *appInstance) ApplicationEvent(ctx context.Context, trusted bool, pageID
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	if !a.running {
+	if !a.state.IsRunning() {
 		return stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 
@@ -901,7 +901,7 @@ func (a *appInstance) ConsumeApplicationEvents(ctx context.Context, stream grpc.
 		onPageUserEvent, pageUserEventU := a.rpcModule.PageUserEventEmitted().Subscribe(rpc.PageUserTuple{Page: pageID, User: userStr}, event.BufferAll)
 		defer pageUserEventU()
 
-		terminatedU := a.onTerminated.SubscribeUsingCallback(event.BufferFirst, cancel)
+		terminatedU := a.state.Terminated().SubscribeUsingCallback(event.BufferFirst, cancel)
 		defer terminatedU()
 
 		onPageUnpublished, pageUnpublishedU := a.pagesModule.OnPageUnpublished().Subscribe(event.BufferFirst)
@@ -995,7 +995,7 @@ func (a *appInstance) ReceiveMessageFromApplication(sourceApplicationID, eventNa
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	if !a.running {
+	if !a.state.IsRunning() {
 		return stacktrace.Propagate(ErrApplicationInstanceNotRunning, "")
 	}
 

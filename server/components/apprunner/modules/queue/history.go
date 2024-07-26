@@ -107,8 +107,8 @@ func (m *queueModule) parseAdditionalOptionsForGetPlayHistory(call goja.Function
 }
 
 func (m *queueModule) getPlayHistoryForFilters(filters types.GetPlayedMediaFilters, pagParams *types.PaginationParams) goja.Value {
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]*types.PlayedMedia, gojautil.PromiseResultTransformer[[]*types.PlayedMedia]) {
-		ctx, err := transaction.Begin(m.executionContext)
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) ([]*types.PlayedMedia, gojautil.PromiseResultTransformer[[]*types.PlayedMedia]) {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}

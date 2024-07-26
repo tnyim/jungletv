@@ -30,8 +30,6 @@ type chatModule struct {
 	userSerializer gojautil.UserSerializer
 	dateSerializer func(time.Time) interface{}
 	eventAdapter   *gojautil.EventAdapter
-
-	executionContext context.Context
 }
 
 // New returns a new chat module
@@ -40,7 +38,7 @@ func New(appContext modules.ApplicationContext, chatManager *chatmanager.Manager
 		appContext:     appContext,
 		pagesModule:    pagesModule,
 		chatManager:    chatManager,
-		eventAdapter:   gojautil.NewEventAdapter(appContext.Schedule),
+		eventAdapter:   gojautil.NewEventAdapter(appContext),
 		userSerializer: userSerializer,
 	}
 }
@@ -65,7 +63,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		m.exports.Set("removeMessage", m.removeMessage)
 
 		m.exports.DefineAccessorProperty("nickname", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-			return m.runtime.ToValue(m.chatManager.GetNickname(m.executionContext, m.appContext.ApplicationUser()))
+			return m.runtime.ToValue(m.chatManager.GetNickname(m.appContext.ExecutionContext(), m.appContext.ApplicationUser()))
 		}), m.runtime.ToValue(m.setApplicationNickname), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 		m.exports.DefineAccessorProperty("enabled", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
@@ -85,7 +83,7 @@ func (m *chatModule) ModuleLoader() require.ModuleLoader {
 		})
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageCreated(), "messagecreated", func(vm *goja.Runtime, arg chatmanager.MessageCreatedEventArgs) *goja.Object {
 			return vm.ToValue(map[string]interface{}{
-				"message": m.serializeMessage(m.executionContext, arg.Message),
+				"message": m.serializeMessage(m.appContext.ExecutionContext(), arg.Message),
 			}).ToObject(vm)
 		})
 		gojautil.AdaptEvent(m.eventAdapter, m.chatManager.OnMessageDeleted(), "messagedeleted", func(vm *goja.Runtime, arg snowflake.ID) *goja.Object {
@@ -102,9 +100,7 @@ func (m *chatModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *chatModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.executionContext = ctx
-	m.runtime = runtime
+func (m *chatModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
@@ -128,7 +124,7 @@ func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message
 
 	result.Set("remove", func() goja.Value {
 		message := m.removeMessageAndLog(message.ID)
-		return m.serializeMessage(m.executionContext, message)
+		return m.serializeMessage(m.appContext.ExecutionContext(), message)
 	})
 
 	return m.runtime.ToValue(result)
@@ -140,12 +136,12 @@ func (m *chatModule) createSystemMessage(call goja.FunctionCall) goja.Value {
 	}
 	contentValue := call.Argument(0)
 
-	message, err := m.chatManager.CreateSystemMessage(m.executionContext, contentValue.String())
+	message, err := m.chatManager.CreateSystemMessage(m.appContext.ExecutionContext(), contentValue.String())
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.serializeMessage(m.executionContext, message)
+	return m.serializeMessage(m.appContext.ExecutionContext(), message)
 }
 
 func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
@@ -161,7 +157,7 @@ func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
 		if err != nil {
 			panic(m.runtime.NewTypeError("Second argument must be a message ID string"))
 		}
-		reference, err = m.chatManager.LoadMessage(m.executionContext, id)
+		reference, err = m.chatManager.LoadMessage(m.appContext.ExecutionContext(), id)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -175,12 +171,12 @@ func (m *chatModule) createMessage(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Message content is empty"))
 	}
 
-	message, err := m.chatManager.CreateMessage(m.executionContext, m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{})
+	message, err := m.chatManager.CreateMessage(m.appContext.ExecutionContext(), m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.serializeMessage(m.executionContext, message)
+	return m.serializeMessage(m.appContext.ExecutionContext(), message)
 }
 
 func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goja.Value {
@@ -219,7 +215,7 @@ func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goj
 		if err != nil {
 			panic(m.runtime.NewTypeError("Fourth argument must be a message ID string"))
 		}
-		reference, err = m.chatManager.LoadMessage(m.executionContext, id)
+		reference, err = m.chatManager.LoadMessage(m.appContext.ExecutionContext(), id)
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -233,12 +229,12 @@ func (m *chatModule) createMessageWithPageAttachment(call goja.FunctionCall) goj
 		content = strings.TrimSpace(contentValue.String())
 	}
 
-	message, err := m.chatManager.CreateMessage(m.executionContext, m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{attachment})
+	message, err := m.chatManager.CreateMessage(m.appContext.ExecutionContext(), m.appContext.ApplicationUser(), content, reference, []chat.MessageAttachmentStorage{attachment})
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	return m.serializeMessage(m.executionContext, message)
+	return m.serializeMessage(m.appContext.ExecutionContext(), message)
 }
 
 func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
@@ -259,8 +255,8 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("First argument to getMessages must correspond to a Date prior to that of the second argument"))
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
-		messages, err := m.chatManager.LoadMessagesBetween(m.executionContext, nil, since, until)
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) ([]*chat.Message, gojautil.PromiseResultTransformer[[]*chat.Message]) {
+		messages, err := m.chatManager.LoadMessagesBetween(actx, nil, since, until)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -268,7 +264,7 @@ func (m *chatModule) getMessages(call goja.FunctionCall) goja.Value {
 		return messages, func(vm *goja.Runtime, messages []*chat.Message) interface{} {
 			jsMessages := make([]goja.Value, len(messages))
 			for i := range messages {
-				jsMessages[i] = m.serializeMessage(m.executionContext, messages[i])
+				jsMessages[i] = m.serializeMessage(actx, messages[i])
 			}
 			return jsMessages
 		}
@@ -287,11 +283,11 @@ func (m *chatModule) removeMessage(call goja.FunctionCall) goja.Value {
 
 	message := m.removeMessageAndLog(id)
 
-	return m.serializeMessage(m.executionContext, message)
+	return m.serializeMessage(m.appContext.ExecutionContext(), message)
 }
 
 func (m *chatModule) removeMessageAndLog(id snowflake.ID) *chat.Message {
-	message, err := m.chatManager.DeleteMessage(m.executionContext, id)
+	message, err := m.chatManager.DeleteMessage(m.appContext.ExecutionContext(), id)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -300,7 +296,7 @@ func (m *chatModule) removeMessageAndLog(id snowflake.ID) *chat.Message {
 	if len(message.AttachmentsView) > 0 {
 		attachments = "\n\nAttachments:\n"
 		for _, a := range message.AttachmentsView {
-			attachments += "- " + a.SerializeForModLog(m.executionContext) + "\n"
+			attachments += "- " + a.SerializeForModLog(m.appContext.ExecutionContext()) + "\n"
 		}
 	}
 
@@ -326,7 +322,7 @@ func (m *chatModule) setApplicationNickname(call goja.FunctionCall) goja.Value {
 		nickname = &nicknameString
 	}
 
-	err := m.chatManager.SetNickname(m.executionContext, m.appContext.ApplicationUser(), nickname, true)
+	err := m.chatManager.SetNickname(m.appContext.ExecutionContext(), m.appContext.ApplicationUser(), nickname, true)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}

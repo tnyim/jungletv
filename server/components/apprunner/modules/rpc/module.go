@@ -136,10 +136,7 @@ func (m *rpcModule) ModuleName() string {
 func (m *rpcModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *rpcModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
-	m.runtime = runtime
-}
-func (m *rpcModule) ExecutionPaused() {}
+func (m *rpcModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
 
 var gojaUndefined = goja.Undefined()
 

@@ -21,7 +21,6 @@ const ModuleName = "jungletv:db"
 type dbModule struct {
 	runtime    *goja.Runtime
 	appContext modules.ApplicationContext
-	ctx        context.Context // just to pass the sqalx node around...
 }
 
 // New returns a new db module
@@ -46,10 +45,7 @@ func (m *dbModule) ModuleName() string {
 func (m *dbModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *dbModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
-	m.ctx = ctx
-	m.runtime = runtime
-}
+func (m *dbModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
 
 func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
@@ -70,8 +66,8 @@ func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) ([]map[string]interface{}, gojautil.PromiseResultTransformer[[]map[string]interface{}]) {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}

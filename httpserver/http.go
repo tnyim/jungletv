@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"strings"
 
+	"github.com/arl/statsviz"
 	"github.com/gbl08ma/ssoclient"
 	"github.com/gorilla/sessions"
 	"github.com/klauspost/compress/gzhttp"
@@ -140,8 +141,9 @@ func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
 
 	if buildconfig.DEBUG || s.pprofPassword != "" {
 		r := router.NewGroup("/debug/pprof")
+		var authMiddleware bunrouter.MiddlewareFunc
 		if s.pprofPassword != "" {
-			authMiddleware := basicauth.NewMiddleware(func(req bunrouter.Request) (bool, error) {
+			authMiddleware = basicauth.NewMiddleware(func(req bunrouter.Request) (bool, error) {
 				_, pass, ok := req.BasicAuth()
 				if !ok {
 					return false, nil
@@ -156,6 +158,17 @@ func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
 		r.Compat().GET("/symbol", pprof.Symbol)
 		r.Compat().GET("/trace", pprof.Trace)
 		r.Compat().GET("/*anything", pprof.Index)
+
+		r = router.NewGroup("/debug/statsviz")
+		srv, err := statsviz.NewServer()
+		if err != nil {
+			panic(stacktrace.Propagate(err, ""))
+		}
+		if s.pprofPassword != "" {
+			r.Use(authMiddleware)
+		}
+		r.Compat().GET("/ws", srv.Ws())
+		r.Compat().GET("/*anything", srv.Index())
 	}
 
 	if buildconfig.DEBUG && s.daClient == nil && s.basicAuthChecker == nil {

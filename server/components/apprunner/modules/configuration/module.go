@@ -41,8 +41,6 @@ type configurationModule struct {
 	currentProfileTab                  configurationmanager.ProfileTabData
 	currentNavigationDestination       configurationmanager.NavigationDestination
 	currentNavigationDestinationPageID string
-
-	executionContext context.Context
 }
 
 // New returns a new configuration module
@@ -83,10 +81,7 @@ func (m *configurationModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.executionContext = ctx
-	m.runtime = runtime
-
+func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	unsub := m.pagesModule.OnPagePublished().SubscribeUsingCallback(event.BufferAll, m.updatePageConfigurablesOnPagePublish)
 	unsub2 := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 
@@ -217,7 +212,7 @@ func (m *configurationModule) setAppLogo(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(true)
 	}
 
-	m.assertFileAvailablePublicly(m.executionContext, fileName, func(af *types.ApplicationFile) {
+	m.assertFileAvailablePublicly(m.appContext.ExecutionContext(), fileName, func(af *types.ApplicationFile) {
 		if !strings.HasPrefix(af.Type, "image/") {
 			panic(m.runtime.NewTypeError("File is not an image"))
 		}
@@ -251,7 +246,7 @@ func (m *configurationModule) setAppFavicon(call goja.FunctionCall) goja.Value {
 		return m.runtime.ToValue(true)
 	}
 
-	m.assertFileAvailablePublicly(m.executionContext, fileName, func(af *types.ApplicationFile) {
+	m.assertFileAvailablePublicly(m.appContext.ExecutionContext(), fileName, func(af *types.ApplicationFile) {
 		if !strings.HasPrefix(af.Type, "image/") {
 			panic(m.runtime.NewTypeError("File is not an image"))
 		}

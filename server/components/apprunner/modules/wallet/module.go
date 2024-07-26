@@ -34,7 +34,6 @@ type walletModule struct {
 	applicationAccount *wallet.Account
 	paymentAccountPool *payment.PaymentAccountPool
 	defaultRep         string
-	ctx                context.Context
 	executionWaitGroup *sync.WaitGroup
 }
 
@@ -79,9 +78,7 @@ func (m *walletModule) ModuleName() string {
 func (m *walletModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *walletModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.runtime = runtime
-	m.ctx = ctx
+func (m *walletModule) ExecutionResumed(_ context.Context, wg *sync.WaitGroup) {
 	m.executionWaitGroup = wg
 }
 
@@ -209,7 +206,7 @@ func (m *walletModule) receivePendingsAndGetSendableBalance() (payment.Amount, e
 }
 
 func (m *walletModule) getBalance(call goja.FunctionCall) goja.Value {
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) string {
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) string {
 		balance, err := m.receivePendingsAndGetSendableBalance()
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
@@ -238,7 +235,7 @@ func (m *walletModule) send(call goja.FunctionCall) goja.Value {
 		customRep = &rep
 	}
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) string {
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) string {
 		hashes, err := m.sendFromApplicationWallet(customRep, wallet.SendDestination{Account: destinationAddress, Amount: amount.Int})
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
@@ -268,7 +265,7 @@ func (m *walletModule) receivePayment(call goja.FunctionCall) goja.Value {
 
 	timeout := time.Duration(timeoutms) * time.Millisecond
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (struct{}, gojautil.PromiseResultTransformer[struct{}]) {
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) (struct{}, gojautil.PromiseResultTransformer[struct{}]) {
 		return m.receivePaymentAsyncCb(actx, timeout)
 	})
 }
@@ -279,7 +276,7 @@ func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout
 		panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 	}
 
-	eventAdapter := gojautil.NewEventAdapter(m.appContext.Schedule)
+	eventAdapter := gojautil.NewEventAdapter(m.appContext)
 
 	closed := event.NewNoArg()
 
@@ -295,9 +292,10 @@ func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout
 	})
 	gojautil.AdaptNoArgEvent(eventAdapter, closed, "closed", nil)
 
-	workerCtx, workerCancelFn := context.WithDeadline(m.ctx, time.Now().Add(timeout))
+	// these contexts should live past the resolution of the promise, so don't use the async context
+	workerCtx, workerCancelFn := context.WithDeadline(m.appContext.ExecutionContext(), time.Now().Add(timeout))
 	workerDone := make(chan struct{})
-	adapterCtx, adapterCancelFn := context.WithCancel(m.ctx)
+	adapterCtx, adapterCancelFn := context.WithCancel(m.appContext.ExecutionContext())
 
 	jsPaymentReceiver := &jsPaymentReceiver{
 		m:               m,
@@ -350,7 +348,7 @@ type jsPaymentReceiver struct {
 
 func (r *jsPaymentReceiver) makeCloseFn(vm *goja.Runtime, workerDone <-chan struct{}) func(call goja.FunctionCall) goja.Value {
 	return func(call goja.FunctionCall) goja.Value {
-		return gojautil.DoAsync(vm, r.m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
+		return gojautil.DoAsync(r.m.appContext, vm, func(actx gojautil.AsyncContext) goja.Value {
 			r.workerCancelFn()
 			<-workerDone
 			return goja.Undefined()

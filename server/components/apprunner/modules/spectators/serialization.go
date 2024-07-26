@@ -47,7 +47,7 @@ func (m *spectatorsModule) serializeSpectator(spectator rewards.Spectator) goja.
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.DefineAccessorProperty("remoteAddress", m.runtime.ToValue(func(call goja.FunctionCall) goja.Value {
-		goodRep, asn, checked := spectator.RemoteAddressInformation(m.executionContext, m.rewardsHandler)
+		goodRep, asn, checked := spectator.RemoteAddressInformation(m.appContext.ExecutionContext(), m.rewardsHandler)
 		if !checked {
 			return goja.Undefined()
 		}
@@ -63,7 +63,7 @@ func (m *spectatorsModule) serializeSpectator(spectator rewards.Spectator) goja.
 	}), goja.Undefined(), goja.FLAG_FALSE, goja.FLAG_TRUE)
 
 	result.Set("markAsActive", func() goja.Value {
-		err := m.rewardsHandler.MarkAddressAsActiveIfNotChallenged(m.executionContext, spectator.User().Address())
+		err := m.rewardsHandler.MarkAddressAsActiveIfNotChallenged(m.appContext.ExecutionContext(), spectator.User().Address())
 		if err != nil {
 			panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 		}

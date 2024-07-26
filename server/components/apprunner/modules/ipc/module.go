@@ -84,10 +84,7 @@ func (m *ipcModule) ModuleName() string {
 func (m *ipcModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *ipcModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
-	m.runtime = runtime
-}
-func (m *ipcModule) ExecutionPaused() {}
+func (m *ipcModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
 
 var gojaUndefined = goja.Undefined()
 

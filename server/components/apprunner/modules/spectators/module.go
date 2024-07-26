@@ -29,8 +29,6 @@ type spectatorsModule struct {
 	eventAdapter   *gojautil.EventAdapter
 
 	appContext modules.ApplicationContext
-
-	executionContext context.Context
 }
 
 // New returns a new points module
@@ -40,7 +38,7 @@ func New(appContext modules.ApplicationContext, rewardsHandler *rewards.Handler,
 		statsRegistry:  statsRegistry,
 		userSerializer: userSerializer,
 		appContext:     appContext,
-		eventAdapter:   gojautil.NewEventAdapter(appContext.Schedule),
+		eventAdapter:   gojautil.NewEventAdapter(appContext),
 	}
 }
 
@@ -152,9 +150,7 @@ func (m *spectatorsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *spectatorsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
-	m.executionContext = ctx
-	m.runtime = runtime
+func (m *spectatorsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
 	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
 }
 
@@ -184,7 +180,7 @@ func (m *spectatorsModule) markAsActive(call goja.FunctionCall) goja.Value {
 
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
-	err := m.rewardsHandler.MarkAddressAsActiveIfNotChallenged(m.executionContext, userAddress)
+	err := m.rewardsHandler.MarkAddressAsActiveIfNotChallenged(m.appContext.ExecutionContext(), userAddress)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}

@@ -97,7 +97,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		}
 	}
 
-	return gojautil.DoAsyncWithTransformer(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) (media.QueueEntry, gojautil.PromiseResultTransformer[media.QueueEntry]) {
+	return gojautil.DoAsyncWithTransformer(m.appContext, m.runtime, func(actx gojautil.AsyncContext) (media.QueueEntry, gojautil.PromiseResultTransformer[media.QueueEntry]) {
 		if thumbnailFileName != "" {
 			m.validateThumbnailFileName(actx, thumbnailFileName)
 		}
@@ -110,7 +110,8 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 		entry := applicationpage.NewApplicationPageQueueEntry(applicationID, applicationVersion, pageID, title, thumbnailFileName, length, m.appContext.ApplicationUser(), requestCost, unskippable, concealed)
 
 		ready := make(chan bool)
-		go m.monitorForPageQueueEntry(m.executionContext, entry.PerformanceID(), pageID, ready)
+		// use the execution context here and not the async context, because the monitor should live past the resolution of the promise
+		go m.monitorForPageQueueEntry(m.appContext.ExecutionContext(), entry.PerformanceID(), pageID, ready)
 		pageStillPublished := <-ready
 		if !pageStillPublished {
 			panic(actx.NewTypeError("First argument to enqueuePage must be the ID of a published page"))
@@ -128,7 +129,7 @@ func (m *queueModule) enqueuePage(call goja.FunctionCall) goja.Value {
 }
 
 func (m *queueModule) validateThumbnailFileName(actx gojautil.AsyncContext, fileName string) {
-	ctx, err := transaction.Begin(m.executionContext)
+	ctx, err := transaction.Begin(actx)
 	if err != nil {
 		panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 	}

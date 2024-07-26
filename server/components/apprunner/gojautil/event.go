@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/dop251/goja"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 	"github.com/tnyim/jungletv/utils/event"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -12,8 +13,8 @@ import (
 
 // EventAdapter adapts a series of event.Event to events that can be used in goja scripts
 type EventAdapter struct {
+	appContext  modules.ApplicationContext
 	runtime     *goja.Runtime
-	schedule    ScheduleFunction
 	this        struct{}
 	running     bool
 	mu          sync.RWMutex
@@ -21,9 +22,9 @@ type EventAdapter struct {
 }
 
 // NewEventAdapter returns a new EventAdapter
-func NewEventAdapter(schedule ScheduleFunction) *EventAdapter {
+func NewEventAdapter(appContext modules.ApplicationContext) *EventAdapter {
 	return &EventAdapter{
-		schedule:    schedule,
+		appContext:  appContext,
 		this:        struct{}{},
 		knownEvents: make(map[string]*knownEvent),
 	}
@@ -194,7 +195,7 @@ func eventSubscribeFunction[T any](a *EventAdapter, ev event.Event[T], eventType
 
 		for _, listener := range listeners {
 			listenerCopy := listener
-			a.schedule(func(vm *goja.Runtime) error {
+			a.appContext.Schedule(func(vm *goja.Runtime) error {
 				result := vm.NewObject()
 				if transformArgFn != nil {
 					r := transformArgFn(vm, arg)
@@ -221,7 +222,7 @@ func noArgEventSubscribeFunction(a *EventAdapter, ev event.NoArgEvent, eventType
 
 		for _, listener := range listeners {
 			listenerCopy := listener
-			a.schedule(func(vm *goja.Runtime) error {
+			a.appContext.Schedule(func(vm *goja.Runtime) error {
 				result := vm.NewObject()
 				if transformArgFn != nil {
 					r := transformArgFn(vm)

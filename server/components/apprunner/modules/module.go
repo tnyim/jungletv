@@ -17,7 +17,7 @@ type NativeModule interface {
 	ModuleName() string
 	IsNodeBuiltin() bool
 	AutoRequire() (bool, string)
-	ExecutionResumed(context.Context, *sync.WaitGroup, *goja.Runtime)
+	ExecutionResumed(context.Context, *sync.WaitGroup)
 }
 
 // ApplicationLogger logs application actions
@@ -44,4 +44,6 @@ type ApplicationContext interface {
 
 	Schedule(func(*goja.Runtime) error)
 	ScheduleNoError(func(*goja.Runtime))
+
+	ExecutionContext() context.Context
 }

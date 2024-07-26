@@ -316,8 +316,8 @@ func (r *AppRunner) StopApplication(applicationID string) error {
 	defer stoppedU()
 
 	instance := func() *appInstance {
-		r.instancesLock.Lock()
-		defer r.instancesLock.Unlock()
+		r.instancesLock.RLock()
+		defer r.instancesLock.RUnlock()
 
 		instance, ok := r.instances[applicationID]
 		if ok {

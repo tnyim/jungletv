@@ -28,7 +28,6 @@ type profileModule struct {
 
 	userSerializer gojautil.UserSerializer
 	chatManager    *chatmanager.Manager
-	ctx            context.Context // just to pass the sqalx node around...
 }
 
 // New returns a new profile module
@@ -63,10 +62,7 @@ func (m *profileModule) ModuleName() string {
 func (m *profileModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *profileModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup, runtime *goja.Runtime) {
-	m.runtime = runtime
-	m.ctx = ctx
-}
+func (m *profileModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
 
 func (m *profileModule) getUser(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {
@@ -87,8 +83,8 @@ func (m *profileModule) getProfile(call goja.FunctionCall) goja.Value {
 	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) map[string]interface{} {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) map[string]interface{} {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -124,8 +120,8 @@ func (m *profileModule) setProfileFeaturedMedia(call goja.FunctionCall) goja.Val
 		mediaID = lo.ToPtr(mediaValue.String())
 	}
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) goja.Value {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -203,8 +199,8 @@ func (m *profileModule) setProfileBiography(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to setProfileBiography must not be longer than 512 characters"))
 	}
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) goja.Value {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -245,8 +241,8 @@ func (m *profileModule) clearProfile(call goja.FunctionCall) goja.Value {
 	userAddress := call.Argument(0).String()
 	gojautil.ValidateBananoAddress(m.runtime, userAddress, "Invalid user address")
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) goja.Value {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) goja.Value {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
@@ -288,7 +284,7 @@ func (m *profileModule) setUserNickname(call goja.FunctionCall) goja.Value {
 	}
 	user := auth.NewAddressOnlyUser(userAddress)
 
-	err := m.chatManager.SetNickname(m.ctx, user, newNickname, true)
+	err := m.chatManager.SetNickname(m.appContext.ExecutionContext(), user, newNickname, true)
 	if err != nil {
 		panic(m.runtime.NewGoError(stacktrace.Propagate(err, "")))
 	}
@@ -316,8 +312,8 @@ func (m *profileModule) getStatistics(call goja.FunctionCall) goja.Value {
 		panic(m.runtime.NewTypeError("Second argument to getStatistics must be a Date"))
 	}
 
-	return gojautil.DoAsync(m.runtime, m.appContext.ScheduleNoError, func(actx gojautil.AsyncContext) map[string]interface{} {
-		ctx, err := transaction.Begin(m.ctx)
+	return gojautil.DoAsync(m.appContext, m.runtime, func(actx gojautil.AsyncContext) map[string]interface{} {
+		ctx, err := transaction.Begin(actx)
 		if err != nil {
 			panic(actx.NewGoError(stacktrace.Propagate(err, "")))
 		}
