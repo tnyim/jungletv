@@ -1,8 +1,6 @@
 package types
 
-import (
-	"github.com/gbl08ma/sqalx"
-)
+import "github.com/tnyim/jungletv/utils/transaction"
 
 // ChatEmote represents a chat emote
 type ChatEmote struct {
@@ -14,19 +12,19 @@ type ChatEmote struct {
 }
 
 // GetChatEmotes returns all chat emotes in the database
-func GetChatEmotes(node sqalx.Node, pagParams *PaginationParams) ([]*ChatEmote, uint64, error) {
+func GetChatEmotes(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*ChatEmote, uint64, error) {
 	s := sdb.Select().
 		OrderBy("chat_emote.id DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*ChatEmote](node, s)
+	return GetWithSelectAndCount[*ChatEmote](ctx, s)
 }
 
 // Update updates or inserts the ChatEmote
-func (obj *ChatEmote) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *ChatEmote) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the ChatEmote
-func (obj *ChatEmote) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *ChatEmote) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gbl08ma/sqalx"
 	"github.com/jmoiron/sqlx"
 	"github.com/palantir/stacktrace"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // SpendingLeaderboardEntry represents a enqueue leaderboard entry
@@ -22,12 +22,12 @@ type SpendingLeaderboardEntry struct {
 }
 
 // EnqueueLeaderboardBetween returns the enqueue leaderboard for the specified period
-func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
-	tx, err := node.Beginx()
+func EnqueueLeaderboardBetween(ctx transaction.WrappingContext, start, end time.Time, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	query := `WITH lb AS (
 		SELECT
@@ -59,9 +59,9 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	query = tx.Rebind(query)
+	query = ctx.Rebind(query)
 
-	rows, err := tx.Query(query, args...)
+	rows, err := ctx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -83,12 +83,12 @@ func EnqueueLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, 
 }
 
 // CrowdfundedTransactionLeaderboardBetween returns the community skip or the community tipping leaderboard for the specified period
-func CrowdfundedTransactionLeaderboardBetween(node sqalx.Node, start, end time.Time, txType CrowdfundedTransactionType, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
-	tx, err := node.Beginx()
+func CrowdfundedTransactionLeaderboardBetween(ctx transaction.WrappingContext, start, end time.Time, txType CrowdfundedTransactionType, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	query := `WITH lb AS (
 		SELECT
@@ -120,9 +120,9 @@ func CrowdfundedTransactionLeaderboardBetween(node sqalx.Node, start, end time.T
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	query = tx.Rebind(query)
+	query = ctx.Rebind(query)
 
-	rows, err := tx.Query(query, args...)
+	rows, err := ctx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -144,12 +144,12 @@ func CrowdfundedTransactionLeaderboardBetween(node sqalx.Node, start, end time.T
 }
 
 // GlobalSpendingLeaderboardBetween returns the leaderboard for all forms of spending for the specified period
-func GlobalSpendingLeaderboardBetween(node sqalx.Node, start, end time.Time, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
-	tx, err := node.Beginx()
+func GlobalSpendingLeaderboardBetween(ctx transaction.WrappingContext, start, end time.Time, size int, showNeighbors int, mustIncludes ...string) ([]SpendingLeaderboardEntry, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	query := `WITH lb AS (
 		SELECT
@@ -192,9 +192,9 @@ func GlobalSpendingLeaderboardBetween(node sqalx.Node, start, end time.Time, siz
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	query = tx.Rebind(query)
+	query = ctx.Rebind(query)
 
-	rows, err := tx.Query(query, args...)
+	rows, err := ctx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // PointsBalance is the points balance of an address
@@ -16,10 +16,10 @@ type PointsBalance struct {
 }
 
 // GetPointsBalanceForAddress returns the points balance of the given address
-func GetPointsBalanceForAddress(node sqalx.Node, address string) (*PointsBalance, error) {
+func GetPointsBalanceForAddress(ctx transaction.WrappingContext, address string) (*PointsBalance, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"points_balance.rewards_address": address})
-	items, err := GetWithSelect[*PointsBalance](node, s)
+	items, err := GetWithSelect[*PointsBalance](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -36,12 +36,12 @@ func GetPointsBalanceForAddress(node sqalx.Node, address string) (*PointsBalance
 var ErrInsufficientPointsBalance = errors.New("insufficient points balance")
 
 // AdjustPointsBalanceOfAddress adjusts the points balance of the specified address by the specified amount
-func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) error {
-	tx, err := node.Beginx()
+func AdjustPointsBalanceOfAddress(ctx transaction.WrappingContext, address string, amount int) error {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	// a CHECK (balance >= 0) exists in the table to prevent overdraw, even in concurrent transactions
 	// the CHECK runs on the INSERT even if there is a conflict and fails the whole statement,
@@ -50,7 +50,7 @@ func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) e
 	_, err = sdb.Insert("points_balance").
 		Columns("rewards_address", "balance").
 		Values(address, 0).
-		Suffix("ON CONFLICT DO NOTHING").RunWith(tx).Exec()
+		Suffix("ON CONFLICT DO NOTHING").RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -58,7 +58,7 @@ func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) e
 	_, err = sdb.Update("points_balance").
 		Where(sq.Eq{"points_balance.rewards_address": address}).
 		Set("balance", sq.Expr("balance + ?", amount)).
-		RunWith(tx).Exec()
+		RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "points_balance_balance_check") {
 			return stacktrace.Propagate(ErrInsufficientPointsBalance, "")
@@ -66,5 +66,5 @@ func AdjustPointsBalanceOfAddress(node sqalx.Node, address string, amount int) e
 		return stacktrace.Propagate(err, "")
 	}
 
-	return stacktrace.Propagate(tx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }

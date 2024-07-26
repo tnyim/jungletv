@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // BlockedUser represents a blocked user
@@ -18,12 +18,12 @@ type BlockedUser struct {
 }
 
 // GetUsersBlockedByAddress returns the users blocked by the specified address.
-func GetUsersBlockedByAddress(node sqalx.Node, address string, pagParams *PaginationParams) ([]*BlockedUser, uint64, error) {
+func GetUsersBlockedByAddress(ctx transaction.WrappingContext, address string, pagParams *PaginationParams) ([]*BlockedUser, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"blocked_user.blocked_by": address}).
 		OrderBy("blocked_user.created_at", "blocked_user.id")
 	s = applyPaginationParameters(s, pagParams)
-	items, total, err := GetWithSelectAndCount[*BlockedUser](node, s)
+	items, total, err := GetWithSelectAndCount[*BlockedUser](ctx, s)
 	return items, total, stacktrace.Propagate(err, "")
 }
 
@@ -31,10 +31,10 @@ func GetUsersBlockedByAddress(node sqalx.Node, address string, pagParams *Pagina
 var ErrBlockedUserNotFound = errors.New("blocked user not found")
 
 // GetBlockedUserByID returns the user block specified by the given ID
-func GetBlockedUserByID(node sqalx.Node, id string) (*BlockedUser, error) {
+func GetBlockedUserByID(ctx transaction.WrappingContext, id string) (*BlockedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"blocked_user.id": id})
-	items, err := GetWithSelect[*BlockedUser](node, s)
+	items, err := GetWithSelect[*BlockedUser](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -46,11 +46,11 @@ func GetBlockedUserByID(node sqalx.Node, id string) (*BlockedUser, error) {
 }
 
 // GetBlockedUserByID returns the user block specified by the given ID
-func GetBlockedUserByAddress(node sqalx.Node, address string, blockedBy string) (*BlockedUser, error) {
+func GetBlockedUserByAddress(ctx transaction.WrappingContext, address string, blockedBy string) (*BlockedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"blocked_user.address": address}).
 		Where(sq.Eq{"blocked_user.blocked_by": blockedBy})
-	items, err := GetWithSelect[*BlockedUser](node, s)
+	items, err := GetWithSelect[*BlockedUser](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -62,11 +62,11 @@ func GetBlockedUserByAddress(node sqalx.Node, address string, blockedBy string) 
 }
 
 // Update updates or inserts the BlockedUser
-func (obj *BlockedUser) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *BlockedUser) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the BlockedUser
-func (obj *BlockedUser) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *BlockedUser) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

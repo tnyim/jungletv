@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Document represents a document
@@ -18,7 +18,7 @@ type Document struct {
 	Content   string
 }
 
-func GetDocuments(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*Document, uint64, error) {
+func GetDocuments(ctx transaction.WrappingContext, filter string, pagParams *PaginationParams) ([]*Document, uint64, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"document.updated_at",
@@ -31,18 +31,18 @@ func GetDocuments(node sqalx.Node, filter string, pagParams *PaginationParams) (
 		)
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*Document](node, s)
+	return GetWithSelectAndCount[*Document](ctx, s)
 }
 
 // GetDocumentsWithIDs returns the latest version of the documents with the specified IDs
-func GetDocumentsWithIDs(node sqalx.Node, ids []string) (map[string]*Document, error) {
+func GetDocumentsWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*Document, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"document.updated_at",
 			sq.Select("MAX(d.updated_at)").From("document d").Where("d.id = document.id"),
 		)).
 		Where(sq.Eq{"document.id": ids})
-	items, err := GetWithSelect[*Document](node, s)
+	items, err := GetWithSelect[*Document](ctx, s)
 	if err != nil {
 		return map[string]*Document{}, stacktrace.Propagate(err, "")
 	}
@@ -55,11 +55,11 @@ func GetDocumentsWithIDs(node sqalx.Node, ids []string) (map[string]*Document, e
 }
 
 // Update updates or inserts the Document
-func (obj *Document) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *Document) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the Document
-func (obj *Document) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *Document) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

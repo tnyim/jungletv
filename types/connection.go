@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Connection represents a connection between a user identity and an external service
@@ -20,10 +20,10 @@ type Connection struct {
 }
 
 // GetConnectionWithIDs returns the connections with the specified IDs
-func GetConnectionWithIDs(node sqalx.Node, ids []string) (map[string]*Connection, error) {
+func GetConnectionWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*Connection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"connection.id": ids})
-	items, err := GetWithSelect[*Connection](node, s)
+	items, err := GetWithSelect[*Connection](ctx, s)
 	if err != nil {
 		return map[string]*Connection{}, stacktrace.Propagate(err, "")
 	}
@@ -36,10 +36,10 @@ func GetConnectionWithIDs(node sqalx.Node, ids []string) (map[string]*Connection
 }
 
 // GetConnectionsForRewardsAddress returns the connections of the specified rewards address
-func GetConnectionsForRewardsAddress(node sqalx.Node, address string) ([]*Connection, error) {
+func GetConnectionsForRewardsAddress(ctx transaction.WrappingContext, address string) ([]*Connection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"connection.rewards_address": address})
-	items, err := GetWithSelect[*Connection](node, s)
+	items, err := GetWithSelect[*Connection](ctx, s)
 	if err != nil {
 		return []*Connection{}, stacktrace.Propagate(err, "")
 	}
@@ -47,11 +47,11 @@ func GetConnectionsForRewardsAddress(node sqalx.Node, address string) ([]*Connec
 }
 
 // GetConnectionsForServiceAndRewardsAddress returns the connections to the given service of the specified rewards address
-func GetConnectionsForServiceAndRewardsAddress(node sqalx.Node, service ConnectionService, address string) ([]*Connection, error) {
+func GetConnectionsForServiceAndRewardsAddress(ctx transaction.WrappingContext, service ConnectionService, address string) ([]*Connection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"connection.rewards_address": address}).
 		Where(sq.Eq{"connection.service": service})
-	items, err := GetWithSelect[*Connection](node, s)
+	items, err := GetWithSelect[*Connection](ctx, s)
 	if err != nil {
 		return []*Connection{}, stacktrace.Propagate(err, "")
 	}
@@ -59,11 +59,11 @@ func GetConnectionsForServiceAndRewardsAddress(node sqalx.Node, service Connecti
 }
 
 // Update updates or inserts the Connection
-func (obj *Connection) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *Connection) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the Connection
-func (obj *Connection) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *Connection) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

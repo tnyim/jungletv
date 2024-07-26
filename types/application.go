@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ApplicationVersion represents the version of an application
@@ -58,7 +58,7 @@ type Application struct {
 	RuntimeVersion   int
 }
 
-func GetApplications(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*Application, uint64, error) {
+func GetApplications(ctx transaction.WrappingContext, filter string, pagParams *PaginationParams) ([]*Application, uint64, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"application.updated_at",
@@ -71,18 +71,18 @@ func GetApplications(node sqalx.Node, filter string, pagParams *PaginationParams
 		)
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*Application](node, s)
+	return GetWithSelectAndCount[*Application](ctx, s)
 }
 
 // GetApplicationsWithIDs returns the latest version of the applications with the specified IDs
-func GetApplicationsWithIDs(node sqalx.Node, ids []string) (map[string]*Application, error) {
+func GetApplicationsWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*Application, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"application.updated_at",
 			sq.Select("MAX(d.updated_at)").From("application d").Where("d.id = application.id"),
 		)).
 		Where(sq.Eq{"application.id": ids})
-	items, err := GetWithSelect[*Application](node, s)
+	items, err := GetWithSelect[*Application](ctx, s)
 	if err != nil {
 		return map[string]*Application{}, stacktrace.Propagate(err, "")
 	}
@@ -96,18 +96,18 @@ func GetApplicationsWithIDs(node sqalx.Node, ids []string) (map[string]*Applicat
 
 // GetApplicationWalletAddress resolves an application's wallet address based on their ID
 // The application must have been launched at least once before
-func GetApplicationWalletAddress(node sqalx.Node, id string) (string, error) {
-	tx, err := node.Beginx()
+func GetApplicationWalletAddress(ctx transaction.WrappingContext, id string) (string, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var address string
 	err = sdb.Select("address").
 		From("chat_user").
 		Where(sq.Eq{"chat_user.application_id": id}).
-		RunWith(tx).QueryRow().Scan(&address)
+		RunWith(ctx).QueryRowContext(ctx).Scan(&address)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "")
 	}
@@ -115,18 +115,18 @@ func GetApplicationWalletAddress(node sqalx.Node, id string) (string, error) {
 }
 
 // GetEarliestVersionOfApplication returns the earliest version of the application with the specified ID
-func GetEarliestVersionOfApplication(node sqalx.Node, id string) (ApplicationVersion, error) {
-	tx, err := node.Beginx()
+func GetEarliestVersionOfApplication(ctx transaction.WrappingContext, id string) (ApplicationVersion, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return ApplicationVersion{}, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var version ApplicationVersion
 	err = sdb.Select("MIN(application.updated_at)").
 		From("application").
 		Where(sq.Eq{"application.id": id}).
-		RunWith(tx).QueryRow().Scan(&version)
+		RunWith(ctx).QueryRowContext(ctx).Scan(&version)
 	if err != nil {
 		return ApplicationVersion{}, stacktrace.Propagate(err, "")
 	}
@@ -134,29 +134,29 @@ func GetEarliestVersionOfApplication(node sqalx.Node, id string) (ApplicationVer
 }
 
 // Update updates or inserts the Application
-func (obj *Application) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *Application) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the Application
-func (obj *Application) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *Application) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }
 
-func (obj *Application) deleteExtra(node sqalx.Node, preSelf bool) error {
+func (obj *Application) deleteExtra(ctx transaction.WrappingContext, preSelf bool) error {
 	if !preSelf {
 		return nil
 	}
 	// delete files
 	builder := sdb.Delete("application_file").Where(sq.Eq{"application_file.application_id": obj.ID})
 	logger.Println(builder.ToSql())
-	_, err := builder.RunWith(node).Exec()
+	_, err := builder.RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
 	// delete values
-	err = ClearApplicationValuesForApplication(node, obj.ID)
+	err = ClearApplicationValuesForApplication(ctx, obj.ID)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -164,6 +164,6 @@ func (obj *Application) deleteExtra(node sqalx.Node, preSelf bool) error {
 	// delete all other versions of the application
 	builder = sdb.Delete("application").Where(sq.Eq{"application.id": obj.ID})
 	logger.Println(builder.ToSql())
-	_, err = builder.RunWith(node).Exec()
+	_, err = builder.RunWith(ctx).ExecContext(ctx)
 	return stacktrace.Propagate(err, "")
 }

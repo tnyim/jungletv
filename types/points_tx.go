@@ -5,9 +5,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // PointsTx is a points transaction
@@ -22,19 +22,19 @@ type PointsTx struct {
 }
 
 // GetPointsTxForAddress returns all the points transactions for the given address
-func GetPointsTxForAddress(node sqalx.Node, address string, pagParams *PaginationParams) ([]*PointsTx, uint64, error) {
+func GetPointsTxForAddress(ctx transaction.WrappingContext, address string, pagParams *PaginationParams) ([]*PointsTx, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"points_tx.rewards_address": address}).
 		OrderBy("points_tx.created_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*PointsTx](node, s)
+	return GetWithSelectAndCount[*PointsTx](ctx, s)
 }
 
 // ErrPointsTxNotFound is returned when we can not find the specified points transaction
 var ErrPointsTxNotFound = errors.New("points transaction not found")
 
 // GetLatestPointsTxForAddress returns the most recent points transaction for the given address
-func GetLatestPointsTxForAddress(node sqalx.Node, address string) (*PointsTx, error) {
+func GetLatestPointsTxForAddress(ctx transaction.WrappingContext, address string) (*PointsTx, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"points_tx.id",
@@ -42,7 +42,7 @@ func GetLatestPointsTxForAddress(node sqalx.Node, address string) (*PointsTx, er
 				From("points_tx e").
 				Where(sq.Eq{"e.rewards_address": address}),
 		))
-	txs, err := GetWithSelect[*PointsTx](node, s)
+	txs, err := GetWithSelect[*PointsTx](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -53,7 +53,7 @@ func GetLatestPointsTxForAddress(node sqalx.Node, address string) (*PointsTx, er
 }
 
 // GetLatestPointsTxForAddress returns the most recent points transaction of the given type for the given address
-func GetLatestPointsTxOfTypeForAddress(node sqalx.Node, txType PointsTxType, address string) (*PointsTx, error) {
+func GetLatestPointsTxOfTypeForAddress(ctx transaction.WrappingContext, txType PointsTxType, address string) (*PointsTx, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"points_tx.id",
@@ -62,7 +62,7 @@ func GetLatestPointsTxOfTypeForAddress(node sqalx.Node, txType PointsTxType, add
 				Where(sq.Eq{"e.rewards_address": address}).
 				Where(sq.Eq{"e.type": txType}),
 		))
-	txs, err := GetWithSelect[*PointsTx](node, s)
+	txs, err := GetWithSelect[*PointsTx](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -73,17 +73,17 @@ func GetLatestPointsTxOfTypeForAddress(node sqalx.Node, txType PointsTxType, add
 }
 
 // Insert inserts the PointsTx
-func (obj *PointsTx) Insert(node sqalx.Node) error {
-	return Insert(node, obj)
+func (obj *PointsTx) Insert(ctx transaction.WrappingContext) error {
+	return Insert(ctx, obj)
 }
 
 // AdjustValue adjusts the value of the PointsTx by the specified amount.
-func (obj *PointsTx) AdjustValue(node sqalx.Node, value int) error {
-	tx, err := node.Beginx()
+func (obj *PointsTx) AdjustValue(ctx transaction.WrappingContext, value int) error {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	now := time.Now()
 
@@ -91,14 +91,14 @@ func (obj *PointsTx) AdjustValue(node sqalx.Node, value int) error {
 		Set("value", sq.Expr("value + ?", value)).
 		Set("updated_at", now).
 		Where(sq.Eq{"id": obj.ID}).
-		RunWith(tx).Exec()
+		RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 	obj.Value += value
 	obj.UpdatedAt = time.Now()
 
-	return stacktrace.Propagate(tx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 type PointsTxType int

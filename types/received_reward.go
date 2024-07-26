@@ -6,10 +6,10 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/lann/builder"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ReceivedReward represents a reward received by a user for consuming media
@@ -22,14 +22,14 @@ type ReceivedReward struct {
 }
 
 // getReceivedRewardWithSelect returns a slice with all received rewards that match the conditions in sbuilder
-func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]*ReceivedReward, uint64, error) {
-	tx, err := node.Beginx()
+func getReceivedRewardWithSelect(ctx transaction.WrappingContext, sbuilder sq.SelectBuilder) ([]*ReceivedReward, uint64, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
-	values, err := GetWithSelect[*ReceivedReward](node, sbuilder)
+	values, err := GetWithSelect[*ReceivedReward](ctx, sbuilder)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
@@ -42,7 +42,7 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 
 	logger.Println(sbuilder.ToSql())
 	totalCount := uint64(0)
-	err = sbuilder.RunWith(tx).QueryRow().Scan(&totalCount)
+	err = sbuilder.RunWith(ctx).QueryRowContext(ctx).Scan(&totalCount)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
@@ -51,18 +51,18 @@ func getReceivedRewardWithSelect(node sqalx.Node, sbuilder sq.SelectBuilder) ([]
 }
 
 // GetReceivedRewardsForAddress returns received rewards for the specified address, starting with the latest
-func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *PaginationParams) ([]*ReceivedReward, uint64, error) {
+func GetReceivedRewardsForAddress(ctx transaction.WrappingContext, address string, pagParams *PaginationParams) ([]*ReceivedReward, uint64, error) {
 	// we have a custom implementation for this use case, because this table is quite big and
 	// 1) we need to fetch the per-address total count from a separate table
 	// 2) we need to ensure that, on the query that actually fetches the data, offset + limit <= total count (obtained in step 1)
 	// otherwise we mislead the postgres planner/executor into thinking it should have found more entries than it actually did,
 	// for addresses with few received rewards
 
-	tx, err := node.Beginx()
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	// let's get the total count from an entirely separate table that is updated with triggers, as it's even more performant than COUNT(*)
 	sbuilder := sdb.Select("count").
@@ -71,7 +71,7 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 
 	logger.Println(sbuilder.ToSql())
 	totalCount := uint64(0)
-	err = sbuilder.RunWith(tx).QueryRow().Scan(&totalCount)
+	err = sbuilder.RunWith(ctx).QueryRowContext(ctx).Scan(&totalCount)
 	if errors.Is(err, sql.ErrNoRows) || totalCount == 0 {
 		return []*ReceivedReward{}, 0, nil
 	}
@@ -96,7 +96,7 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 		sbuilder = sbuilder.Offset(pagParams.Offset).Limit(limit)
 	}
 
-	values, err := GetWithSelect[*ReceivedReward](tx, sbuilder)
+	values, err := GetWithSelect[*ReceivedReward](ctx, sbuilder)
 	if err != nil {
 		return nil, 0, stacktrace.Propagate(err, "")
 	}
@@ -105,10 +105,10 @@ func GetReceivedRewardsForAddress(node sqalx.Node, address string, pagParams *Pa
 }
 
 // InsertReceivedRewards inserts the passed received rewards in the database
-func InsertReceivedRewards(node sqalx.Node, items []*ReceivedReward) error {
+func InsertReceivedRewards(ctx transaction.WrappingContext, items []*ReceivedReward) error {
 	c := make([]interface{}, len(items))
 	for i := range items {
 		c[i] = items[i]
 	}
-	return stacktrace.Propagate(Insert(node, c...), "")
+	return stacktrace.Propagate(Insert(ctx, c...), "")
 }

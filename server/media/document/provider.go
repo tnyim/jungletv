@@ -52,7 +52,7 @@ func (i *initialInfo) Collections() []media.CollectionKey {
 	return []media.CollectionKey{}
 }
 
-func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
+func (c *DocumentProvider) BeginEnqueueRequest(ctx transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -89,7 +89,7 @@ func (c *DocumentProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext,
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *DocumentProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
+func (c *DocumentProvider) ContinueEnqueueRequest(ctx transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	preInfo, ok := genericInfo.(*initialInfo)
 	if !ok {

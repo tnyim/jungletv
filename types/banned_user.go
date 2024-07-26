@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // BannedUser is a user ban
@@ -26,7 +26,7 @@ type BannedUser struct {
 }
 
 // GetBannedUsers returns all registered user bans, starting with the most recent one
-func GetBannedUsers(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
+func GetBannedUsers(ctx transaction.WrappingContext, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
 	s := sdb.Select().
 		OrderBy("banned_user.banned_at DESC, banned_user.ban_id ASC")
 	if filter != "" {
@@ -39,14 +39,14 @@ func GetBannedUsers(node sqalx.Node, filter string, pagParams *PaginationParams)
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*BannedUser](node, s)
+	return GetWithSelectAndCount[*BannedUser](ctx, s)
 }
 
 // GetBannedUserWithIDs returns the user bans with the specified IDs
-func GetBannedUserWithIDs(node sqalx.Node, ids []string) (map[string]*BannedUser, error) {
+func GetBannedUserWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*BannedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"banned_user.ban_id": ids})
-	items, err := GetWithSelect[*BannedUser](node, s)
+	items, err := GetWithSelect[*BannedUser](ctx, s)
 	if err != nil {
 		return map[string]*BannedUser{}, stacktrace.Propagate(err, "")
 	}
@@ -59,7 +59,7 @@ func GetBannedUserWithIDs(node sqalx.Node, ids []string) (map[string]*BannedUser
 }
 
 // GetBannedUsersAtInstant returns a slice with all user bans in effect at the specified instant, starting with the most recent one
-func GetBannedUsersAtInstant(node sqalx.Node, instant time.Time, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
+func GetBannedUsersAtInstant(ctx transaction.WrappingContext, instant time.Time, filter string, pagParams *PaginationParams) ([]*BannedUser, uint64, error) {
 	s := sdb.Select().
 		From("banned_user").
 		Where(sq.Lt{"banned_user.banned_at": instant}).
@@ -78,10 +78,10 @@ func GetBannedUsersAtInstant(node sqalx.Node, instant time.Time, filter string, 
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*BannedUser](node, s)
+	return GetWithSelectAndCount[*BannedUser](ctx, s)
 }
 
 // Update updates or inserts the BannedUser
-func (obj *BannedUser) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *BannedUser) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }

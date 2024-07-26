@@ -586,7 +586,7 @@ func (s *grpcServer) getChatFriendlyUserName(ctx context.Context, address string
 	return name, nil
 }
 
-func (s *grpcServer) autoEnqueueNewVideo(ctx *transaction.WrappingContext) error {
+func (s *grpcServer) autoEnqueueNewVideo(ctx transaction.WrappingContext) error {
 	videoID, err := s.getRandomVideoForAutoEnqueue()
 	if err != nil {
 		return stacktrace.Propagate(err, "")

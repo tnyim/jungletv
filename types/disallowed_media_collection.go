@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // DisallowedMediaCollection is a set of media that can't be played on the service
@@ -19,18 +19,18 @@ type DisallowedMediaCollection struct {
 }
 
 // GetDisallowedMediaCollections returns all disallowed media collections in the database
-func GetDisallowedMediaCollections(node sqalx.Node, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+func GetDisallowedMediaCollections(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
 		OrderBy("disallowed_media_collection.disallowed_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
+	return GetWithSelectAndCount[*DisallowedMediaCollection](ctx, s)
 }
 
 // GetDisallowedMediaCollectionsWithIDs returns the disallowed media cpllections with the specified IDs
-func GetDisallowedMediaCollectionsWithIDs(node sqalx.Node, ids []string) (map[string]*DisallowedMediaCollection, error) {
+func GetDisallowedMediaCollectionsWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*DisallowedMediaCollection, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media_collection.id": ids})
-	items, err := GetWithSelect[*DisallowedMediaCollection](node, s)
+	items, err := GetWithSelect[*DisallowedMediaCollection](ctx, s)
 	if err != nil {
 		return map[string]*DisallowedMediaCollection{}, stacktrace.Propagate(err, "")
 	}
@@ -43,7 +43,7 @@ func GetDisallowedMediaCollectionsWithIDs(node sqalx.Node, ids []string) (map[st
 }
 
 // GetDisallowedMediaCollectionsWithFilter returns all disallowed media collections that match the specified filter
-func GetDisallowedMediaCollectionsWithFilter(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+func GetDisallowedMediaCollectionsWithFilter(ctx transaction.WrappingContext, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Or{
 			sq.Eq{"disallowed_media_collection.id": filter},
@@ -52,20 +52,20 @@ func GetDisallowedMediaCollectionsWithFilter(node sqalx.Node, filter string, pag
 		}).
 		OrderBy("disallowed_media_collection.disallowed_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
+	return GetWithSelectAndCount[*DisallowedMediaCollection](ctx, s)
 }
 
 // GetDisallowedMediaCollectionWithType returns all disallowed media collections of the specified type
-func GetDisallowedMediaCollectionWithType(node sqalx.Node, collectionType MediaCollectionType, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+func GetDisallowedMediaCollectionWithType(ctx transaction.WrappingContext, collectionType MediaCollectionType, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media_collection.collection_type": string(collectionType)}).
 		OrderBy("disallowed_media_collection.collection_type DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
+	return GetWithSelectAndCount[*DisallowedMediaCollection](ctx, s)
 }
 
 // GetDisallowedMediaCollectionsWithTypeAndFilter returns all disallowed media collections of the given type that match the specified filter
-func GetDisallowedMediaCollectionsWithTypeAndFilter(node sqalx.Node, collectionType MediaCollectionType, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
+func GetDisallowedMediaCollectionsWithTypeAndFilter(ctx transaction.WrappingContext, collectionType MediaCollectionType, filter string, pagParams *PaginationParams) ([]*DisallowedMediaCollection, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media_collection.collection_type": string(collectionType)}).
 		Where(sq.Or{
@@ -75,15 +75,15 @@ func GetDisallowedMediaCollectionsWithTypeAndFilter(node sqalx.Node, collectionT
 		}).
 		OrderBy("disallowed_media_collection.disallowed_at DESC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*DisallowedMediaCollection](node, s)
+	return GetWithSelectAndCount[*DisallowedMediaCollection](ctx, s)
 }
 
 // IsMediaCollectionAllowed returns whether the specified media is allowed
-func IsMediaCollectionAllowed(node sqalx.Node, collectionType MediaCollectionType, collectionID string) (bool, error) {
+func IsMediaCollectionAllowed(ctx transaction.WrappingContext, collectionType MediaCollectionType, collectionID string) (bool, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"disallowed_media_collection.collection_type": string(collectionType)}).
 		Where(sq.Eq{"disallowed_media_collection.collection_id": collectionID})
-	m, err := GetWithSelect[*DisallowedMediaCollection](node, s)
+	m, err := GetWithSelect[*DisallowedMediaCollection](ctx, s)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")
 	}
@@ -91,11 +91,11 @@ func IsMediaCollectionAllowed(node sqalx.Node, collectionType MediaCollectionTyp
 }
 
 // Update updates or inserts the DisallowedMediaCollection
-func (obj *DisallowedMediaCollection) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *DisallowedMediaCollection) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the DisallowedMediaCollection
-func (obj *DisallowedMediaCollection) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *DisallowedMediaCollection) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

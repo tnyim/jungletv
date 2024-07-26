@@ -5,10 +5,10 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // PlayedMedia is media that has played on the service
@@ -55,7 +55,7 @@ var GetPlayedMediaOrderByEnqueuedAtAsc GetPlayedMediaOrderBy = "played_media.enq
 var GetPlayedMediaOrderByEnqueuedAtDesc GetPlayedMediaOrderBy = "played_media.enqueued_at DESC"
 
 // GetPlayedMedia returns all played media in the database according to the given filters
-func GetPlayedMedia(node sqalx.Node, filters GetPlayedMediaFilters, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
+func GetPlayedMedia(ctx transaction.WrappingContext, filters GetPlayedMediaFilters, pagParams *PaginationParams) ([]*PlayedMedia, uint64, error) {
 	orderBy := "played_media.started_at DESC"
 	if filters.OrderBy != "" {
 		orderBy = string(filters.OrderBy)
@@ -90,15 +90,15 @@ func GetPlayedMedia(node sqalx.Node, filters GetPlayedMediaFilters, pagParams *P
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	m, c, err := GetWithSelectAndCount[*PlayedMedia](node, s)
+	m, c, err := GetWithSelectAndCount[*PlayedMedia](ctx, s)
 	return m, c, stacktrace.Propagate(err, "")
 }
 
 // GetPlayedMediaWithIDs returns the played media with the specified IDs
-func GetPlayedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*PlayedMedia, error) {
+func GetPlayedMediaWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*PlayedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"played_media.id": ids})
-	items, err := GetWithSelect[*PlayedMedia](node, s)
+	items, err := GetWithSelect[*PlayedMedia](ctx, s)
 	if err != nil {
 		return map[string]*PlayedMedia{}, stacktrace.Propagate(err, "")
 	}
@@ -112,40 +112,40 @@ func GetPlayedMediaWithIDs(node sqalx.Node, ids []string) (map[string]*PlayedMed
 
 // GetPlayedMediaRequestedBySince returns the played media that had been requested by the given address and which is
 // playing or has finished playing since the specified moment
-func GetPlayedMediaRequestedBySince(node sqalx.Node, requestedBy string, since time.Time) ([]*PlayedMedia, error) {
+func GetPlayedMediaRequestedBySince(ctx transaction.WrappingContext, requestedBy string, since time.Time) ([]*PlayedMedia, error) {
 	s := sdb.Select().
 		From("played_media").
 		Where(sq.Eq{"played_media.requested_by": requestedBy}).
 		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since})
-	m, err := GetWithSelect[*PlayedMedia](node, s)
+	m, err := GetWithSelect[*PlayedMedia](ctx, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
 // LastPlaysOfMedia returns the times the specified media was played since the specified time
-func LastPlaysOfMedia(node sqalx.Node, since time.Time, mediaType MediaType, mediaID string) ([]*PlayedMedia, error) {
+func LastPlaysOfMedia(ctx transaction.WrappingContext, since time.Time, mediaType MediaType, mediaID string) ([]*PlayedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Gt{"COALESCE(played_media.ended_at, NOW())": since}).
 		Where(sq.Eq{"played_media.media_type": string(mediaType)}).
 		Where(sq.Eq{"played_media.media_id": mediaID}).
 		OrderBy("started_at DESC").Limit(1)
-	m, err := GetWithSelect[*PlayedMedia](node, s)
+	m, err := GetWithSelect[*PlayedMedia](ctx, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
 // SumRequestCostsOfAddressSince returns the sum of all request costs of an address since the specified time
-func SumRequestCostsOfAddressSince(node sqalx.Node, address string, since time.Time) (decimal.Decimal, error) {
-	tx, err := node.Beginx()
+func SumRequestCostsOfAddressSince(ctx transaction.WrappingContext, address string, since time.Time) (decimal.Decimal, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return decimal.Decimal{}, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var totalAmount decimal.Decimal
 	err = sdb.Select("COALESCE(SUM(played_media.request_cost), 0)").
 		From("played_media").
 		Where(sq.Eq{"played_media.requested_by": address}).
 		Where(sq.Gt{"played_media.started_at": since}).
-		RunWith(tx).QueryRow().Scan(&totalAmount)
+		RunWith(ctx).QueryRowContext(ctx).Scan(&totalAmount)
 	if err != nil {
 		return decimal.Decimal{}, stacktrace.Propagate(err, "")
 	}
@@ -153,12 +153,12 @@ func SumRequestCostsOfAddressSince(node sqalx.Node, address string, since time.T
 }
 
 // CountRequestsOfAddressSince returns the count and total play time of all the requests by an address since the specified time
-func CountRequestsOfAddressSince(node sqalx.Node, address string, since time.Time) (int, Duration, error) {
-	tx, err := node.Beginx()
+func CountRequestsOfAddressSince(ctx transaction.WrappingContext, address string, since time.Time) (int, Duration, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return 0, 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var count int
 	var length Duration
@@ -166,7 +166,7 @@ func CountRequestsOfAddressSince(node sqalx.Node, address string, since time.Tim
 		From("played_media").
 		Where(sq.Eq{"played_media.requested_by": address}).
 		Where(sq.Gt{"played_media.started_at": since}).
-		RunWith(tx).QueryRow().Scan(&count, &length)
+		RunWith(ctx).QueryRowContext(ctx).Scan(&count, &length)
 	if err != nil {
 		return 0, 0, stacktrace.Propagate(err, "")
 	}
@@ -174,7 +174,7 @@ func CountRequestsOfAddressSince(node sqalx.Node, address string, since time.Tim
 }
 
 // LastRequestsOfAddress returns the most recent played medias requested by the specified address
-func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDisallowed bool) ([]*PlayedMedia, error) {
+func LastRequestsOfAddress(ctx transaction.WrappingContext, address string, count int, excludeDisallowed bool) ([]*PlayedMedia, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"played_media.requested_by": address})
 	if excludeDisallowed {
@@ -184,18 +184,18 @@ func LastRequestsOfAddress(node sqalx.Node, address string, count int, excludeDi
 			Where(sq.Eq{"disallowed_media.media_type": nil})
 	}
 	s = s.OrderBy("started_at DESC").Limit(uint64(count))
-	m, err := GetWithSelect[*PlayedMedia](node, s)
+	m, err := GetWithSelect[*PlayedMedia](ctx, s)
 	return m, stacktrace.Propagate(err, "")
 }
 
 // Update updates or inserts the PlayedMedia
-func (obj *PlayedMedia) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *PlayedMedia) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the PlayedMedia
-func (obj *PlayedMedia) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *PlayedMedia) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }
 
 // PlayedMediaRaffleEntry is the raffle entry representation of a played media entry
@@ -213,7 +213,7 @@ func (p *PlayedMediaRaffleEntry) tableName() string {
 var applicationsExcludedFromRaffleCutoff = time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
 
 // GetPlayedMediaRaffleEntriesBetween returns the played media raffle entries in the specified time period
-func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before time.Time) ([]*PlayedMediaRaffleEntry, error) {
+func GetPlayedMediaRaffleEntriesBetween(ctx transaction.WrappingContext, onOrAfter time.Time, before time.Time) ([]*PlayedMediaRaffleEntry, error) {
 	s := sdb.Select().
 		Where(sq.GtOrEq{"played_media.started_at": onOrAfter}).
 		Where(sq.Lt{"played_media.started_at": before}).
@@ -224,17 +224,17 @@ func GetPlayedMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, be
 		s = s.Where(sq.Expr("played_media.requested_by NOT IN (SELECT \"address\" FROM chat_user WHERE application_id IS NOT NULL)"))
 	}
 
-	values, err := GetWithSelect[*PlayedMediaRaffleEntry](node, s)
+	values, err := GetWithSelect[*PlayedMediaRaffleEntry](ctx, s)
 	return values, stacktrace.Propagate(err, "")
 }
 
 // CountMediaRaffleEntriesBetween counts the played media raffle entries in the specified time period
-func CountMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before time.Time) (int, error) {
-	tx, err := node.Beginx()
+func CountMediaRaffleEntriesBetween(ctx transaction.WrappingContext, onOrAfter time.Time, before time.Time) (int, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	s := sdb.Select("COUNT(*)").
 		From("played_media").
@@ -247,17 +247,17 @@ func CountMediaRaffleEntriesBetween(node sqalx.Node, onOrAfter time.Time, before
 	}
 
 	var count int
-	err = s.RunWith(tx).QueryRow().Scan(&count)
+	err = s.RunWith(ctx).QueryRowContext(ctx).Scan(&count)
 	return count, stacktrace.Propagate(err, "")
 }
 
 // CountMediaRaffleEntriesRequestedByBetween counts the played media raffle entries in the specified time period that belong to the specified user
-func CountMediaRaffleEntriesRequestedByBetween(node sqalx.Node, onOrAfter time.Time, before time.Time, user string) (int, error) {
-	tx, err := node.Beginx()
+func CountMediaRaffleEntriesRequestedByBetween(ctx transaction.WrappingContext, onOrAfter time.Time, before time.Time, user string) (int, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	s := sdb.Select("COUNT(*)").
 		From("played_media").
@@ -271,6 +271,6 @@ func CountMediaRaffleEntriesRequestedByBetween(node sqalx.Node, onOrAfter time.T
 	}
 
 	var count int
-	err = s.RunWith(tx).QueryRow().Scan(&count)
+	err = s.RunWith(ctx).QueryRowContext(ctx).Scan(&count)
 	return count, stacktrace.Propagate(err, "")
 }

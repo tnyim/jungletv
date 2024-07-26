@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // VerifiedUser represents a blocked user
@@ -22,7 +22,7 @@ type VerifiedUser struct {
 }
 
 // GetVerifiedUsers returns all registered user verifications, starting with the most recent one
-func GetVerifiedUsers(node sqalx.Node, filter string, pagParams *PaginationParams) ([]*VerifiedUser, uint64, error) {
+func GetVerifiedUsers(ctx transaction.WrappingContext, filter string, pagParams *PaginationParams) ([]*VerifiedUser, uint64, error) {
 	s := sdb.Select().
 		OrderBy("verified_user.created_at DESC, verified_user.id ASC")
 	if filter != "" {
@@ -33,14 +33,14 @@ func GetVerifiedUsers(node sqalx.Node, filter string, pagParams *PaginationParam
 		})
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*VerifiedUser](node, s)
+	return GetWithSelectAndCount[*VerifiedUser](ctx, s)
 }
 
 // GetVerifiedUserWithIDs returns the user verifications with the specified IDs
-func GetVerifiedUserWithIDs(node sqalx.Node, ids []string) (map[string]*VerifiedUser, error) {
+func GetVerifiedUserWithIDs(ctx transaction.WrappingContext, ids []string) (map[string]*VerifiedUser, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"verified_user.id": ids})
-	items, err := GetWithSelect[*VerifiedUser](node, s)
+	items, err := GetWithSelect[*VerifiedUser](ctx, s)
 	if err != nil {
 		return map[string]*VerifiedUser{}, stacktrace.Propagate(err, "")
 	}
@@ -53,11 +53,11 @@ func GetVerifiedUserWithIDs(node sqalx.Node, ids []string) (map[string]*Verified
 }
 
 // Update updates or inserts the VerifiedUser
-func (obj *VerifiedUser) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *VerifiedUser) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the VerifiedUser
-func (obj *VerifiedUser) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *VerifiedUser) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

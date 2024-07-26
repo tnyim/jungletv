@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ASNumberReputation registers the reputation of an Autonomous System by its number
@@ -21,27 +21,27 @@ func (obj *ASNumberReputation) tableName() string {
 }
 
 // GetASNumberReputations returns all registered reputations
-func GetASNumberReputations(node sqalx.Node, pagParams *PaginationParams) ([]*ASNumberReputation, uint64, error) {
+func GetASNumberReputations(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*ASNumberReputation, uint64, error) {
 	s := sdb.Select().
 		OrderBy("as_number_reputation.as_number ASC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*ASNumberReputation](node, s)
+	return GetWithSelectAndCount[*ASNumberReputation](ctx, s)
 }
 
 // GetProxyASNumberReputations returns all AS numbers marked as proxy
-func GetProxyASNumberReputations(node sqalx.Node, pagParams *PaginationParams) ([]*ASNumberReputation, uint64, error) {
+func GetProxyASNumberReputations(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*ASNumberReputation, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"as_number_reputation.is_proxy": true}).
 		OrderBy("as_number_reputation.as_number ASC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*ASNumberReputation](node, s)
+	return GetWithSelectAndCount[*ASNumberReputation](ctx, s)
 }
 
 // GetASNumberReputationsWithNumbers returns the reputations with the specified numbers
-func GetASNumberReputationsWithNumbers(node sqalx.Node, numbers int) (map[int]*ASNumberReputation, error) {
+func GetASNumberReputationsWithNumbers(ctx transaction.WrappingContext, numbers int) (map[int]*ASNumberReputation, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"as_number_reputation.as_number": numbers})
-	items, err := GetWithSelect[*ASNumberReputation](node, s)
+	items, err := GetWithSelect[*ASNumberReputation](ctx, s)
 	if err != nil {
 		return map[int]*ASNumberReputation{}, stacktrace.Propagate(err, "")
 	}
@@ -54,11 +54,11 @@ func GetASNumberReputationsWithNumbers(node sqalx.Node, numbers int) (map[int]*A
 }
 
 // Update updates or inserts the ASNumberReputation
-func (obj *ASNumberReputation) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *ASNumberReputation) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the ASNumberReputation
-func (obj *ASNumberReputation) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *ASNumberReputation) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

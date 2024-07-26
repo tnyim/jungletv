@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // ApplicationFile represents one of the files used by an application
@@ -44,7 +44,7 @@ type ApplicationFileLike interface {
 }
 
 // GetApplicationFilesForApplication returns the latest version of all the non-deleted files of an application
-func GetApplicationFilesForApplication[T ApplicationFileLike](node sqalx.Node, applicationID, filter string, pagParams *PaginationParams) ([]T, uint64, error) {
+func GetApplicationFilesForApplication[T ApplicationFileLike](ctx transaction.WrappingContext, applicationID, filter string, pagParams *PaginationParams) ([]T, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"application_file.application_id": applicationID}).
 		Where(sq.Eq{"application_file.deleted": false}).
@@ -62,11 +62,11 @@ func GetApplicationFilesForApplication[T ApplicationFileLike](node sqalx.Node, a
 		)
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[T](node, s)
+	return GetWithSelectAndCount[T](ctx, s)
 }
 
 // GetApplicationFilesForApplication returns all the non-deleted files of an application, at the specified version
-func GetApplicationFilesForApplicationAtVersion[T ApplicationFileLike](node sqalx.Node, applicationID string, version ApplicationVersion, filter string, pagParams *PaginationParams) ([]T, uint64, error) {
+func GetApplicationFilesForApplicationAtVersion[T ApplicationFileLike](ctx transaction.WrappingContext, applicationID string, version ApplicationVersion, filter string, pagParams *PaginationParams) ([]T, uint64, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"application_file.application_id": applicationID}).
 		Where(sq.Eq{"application_file.deleted": false}).
@@ -85,11 +85,11 @@ func GetApplicationFilesForApplicationAtVersion[T ApplicationFileLike](node sqal
 		)
 	}
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[T](node, s)
+	return GetWithSelectAndCount[T](ctx, s)
 }
 
 // GetApplicationFilesWithNamesForApplicationAtVersion returns the files with the specified names for an application, at the specified version
-func GetApplicationFilesWithNamesForApplicationAtVersion(node sqalx.Node, applicationID string, version ApplicationVersion, names []string) (map[string]*ApplicationFile, error) {
+func GetApplicationFilesWithNamesForApplicationAtVersion(ctx transaction.WrappingContext, applicationID string, version ApplicationVersion, names []string) (map[string]*ApplicationFile, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"application_file.application_id": applicationID}).
 		Where(sq.Eq{"application_file.deleted": false}).
@@ -102,7 +102,7 @@ func GetApplicationFilesWithNamesForApplicationAtVersion(node sqalx.Node, applic
 				Where(sq.LtOrEq{"a.updated_at": version}),
 		)).
 		Where(sq.Eq{"application_file.name": names})
-	items, err := GetWithSelect[*ApplicationFile](node, s)
+	items, err := GetWithSelect[*ApplicationFile](ctx, s)
 	if err != nil {
 		return map[string]*ApplicationFile{}, stacktrace.Propagate(err, "")
 	}
@@ -115,7 +115,7 @@ func GetApplicationFilesWithNamesForApplicationAtVersion(node sqalx.Node, applic
 }
 
 // GetApplicationFilesWithNamesForApplication returns the latest version of the files with the specified names for an application
-func GetApplicationFilesWithNamesForApplication(node sqalx.Node, applicationID string, names []string) (map[string]*ApplicationFile, error) {
+func GetApplicationFilesWithNamesForApplication(ctx transaction.WrappingContext, applicationID string, names []string) (map[string]*ApplicationFile, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"application_file.application_id": applicationID}).
 		Where(sq.Eq{"application_file.deleted": false}).
@@ -127,7 +127,7 @@ func GetApplicationFilesWithNamesForApplication(node sqalx.Node, applicationID s
 				Where("a.name = application_file.name"),
 		)).
 		Where(sq.Eq{"application_file.name": names})
-	items, err := GetWithSelect[*ApplicationFile](node, s)
+	items, err := GetWithSelect[*ApplicationFile](ctx, s)
 	if err != nil {
 		return map[string]*ApplicationFile{}, stacktrace.Propagate(err, "")
 	}
@@ -140,6 +140,6 @@ func GetApplicationFilesWithNamesForApplication(node sqalx.Node, applicationID s
 }
 
 // Update updates or inserts the ApplicationFile
-func (obj *ApplicationFile) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *ApplicationFile) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }

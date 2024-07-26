@@ -10,9 +10,9 @@ import (
 	"unsafe"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/iancoleman/strcase"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 const dbColumnTagName = "dbColumn"
@@ -49,15 +49,15 @@ type tableNameSpecifier interface {
 }
 
 type extraDataQuerier interface {
-	queryExtra(sqalx.Node) error
+	queryExtra(transaction.WrappingContext) error
 }
 type extraDataUpdater interface {
 	// updateExtra is called twice: once, before updating the main type, and again, after updating it (this helps dealing with foreign keys/row dependencies)
-	updateExtra(node sqalx.Node, preSelf bool) error
+	updateExtra(ctx transaction.WrappingContext, preSelf bool) error
 }
 type extraDataDeleter interface {
 	// deleteExtra is called twice: once, before deleting the main type, and again, after deleting it (this helps dealing with foreign keys/row dependencies)
-	deleteExtra(node sqalx.Node, preSelf bool) error
+	deleteExtra(ctx transaction.WrappingContext, preSelf bool) error
 }
 
 type customDBType interface {
@@ -127,12 +127,12 @@ func parseFieldTag(tag reflect.StructTag, fieldName string) (columnName string, 
 	return columnName, isRawColumnName, false, isKey, dbTypes[tag.Get(dbTypeTagName)]
 }
 
-func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobalCount bool) ([]T, uint64, error) {
-	tx, err := node.Beginx()
+func getWithSelect[T any](ctx transaction.WrappingContext, sbuilder sq.SelectBuilder, withGlobalCount bool) ([]T, uint64, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return []T{}, 0, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var t T
 	fields, tableName := getStructInfo(t)
@@ -155,7 +155,7 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 	query := sbuilder.Columns(columns...).From(tableName)
 	logger.Println(query.ToSql())
 
-	rows, err := query.RunWith(tx).Query()
+	rows, err := query.RunWith(ctx).QueryContext(ctx)
 	if err != nil {
 		return []T{}, 0, stacktrace.Propagate(err, "")
 	}
@@ -219,7 +219,7 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 	if _, hasExtra := (any)(t).(extraDataQuerier); hasExtra {
 		for i := range values {
 			v := (any)(values[i]).(extraDataQuerier)
-			err = v.queryExtra(tx)
+			err = v.queryExtra(ctx)
 			if err != nil {
 				return values, globalCount, stacktrace.Propagate(err, "")
 			}
@@ -230,8 +230,8 @@ func getWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder, withGlobal
 }
 
 // GetWithSelect returns a slice of all values for the generic type that match the conditions in sbuilder
-func GetWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, error) {
-	items, _, err := getWithSelect[T](node, sbuilder, false)
+func GetWithSelect[T any](ctx transaction.WrappingContext, sbuilder sq.SelectBuilder) ([]T, error) {
+	items, _, err := getWithSelect[T](ctx, sbuilder, false)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -240,30 +240,30 @@ func GetWithSelect[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, erro
 
 // GetWithSelect returns a slice of all values for the generic type that match the conditions in sbuilder
 // along with a count of all values ignoring LIMIT or OFFSET clauses
-func GetWithSelectAndCount[T any](node sqalx.Node, sbuilder sq.SelectBuilder) ([]T, uint64, error) {
-	return getWithSelect[T](node, sbuilder, true)
+func GetWithSelectAndCount[T any](ctx transaction.WrappingContext, sbuilder sq.SelectBuilder) ([]T, uint64, error) {
+	return getWithSelect[T](ctx, sbuilder, true)
 }
 
 // Update updates or inserts values t in the database
-func Update[T any](node sqalx.Node, t ...T) error {
-	return stacktrace.Propagate(updateOrInsert(node, true, t), "")
+func Update[T any](ctx transaction.WrappingContext, t ...T) error {
+	return stacktrace.Propagate(updateOrInsert(ctx, true, t), "")
 }
 
 // Insert inserts values t in the database
-func Insert[T any](node sqalx.Node, t ...T) error {
-	return stacktrace.Propagate(updateOrInsert(node, false, t), "")
+func Insert[T any](ctx transaction.WrappingContext, t ...T) error {
+	return stacktrace.Propagate(updateOrInsert(ctx, false, t), "")
 }
 
 // updateOrInsert updates or inserts values t in the database
-func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
+func updateOrInsert[T any](ctx transaction.WrappingContext, allowUpdate bool, t []T) error {
 	if len(t) == 0 {
 		return nil
 	}
-	tx, err := node.Beginx()
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	columns := []string{}
 	rows := [][]interface{}{}
@@ -272,7 +272,7 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	_, hasExtra := (any)(t[0]).(extraDataUpdater)
 	for rowIdx, ti := range t {
 		if hasExtra {
-			err = (any)(ti).(extraDataUpdater).updateExtra(tx, true)
+			err = (any)(ti).(extraDataUpdater).updateExtra(ctx, true)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
@@ -331,7 +331,7 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	builder = builder.Suffix(suffixStr)
 	logger.Println(builder.ToSql())
 
-	_, err = builder.RunWith(tx).Exec()
+	_, err = builder.RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -339,53 +339,53 @@ func updateOrInsert[T any](node sqalx.Node, allowUpdate bool, t []T) error {
 	// call updateExtra again, this time with preSelf == false
 	if hasExtra {
 		for _, ti := range t {
-			err = (any)(ti).(extraDataUpdater).updateExtra(tx, false)
+			err = (any)(ti).(extraDataUpdater).updateExtra(ctx, false)
 			if err != nil {
 				return stacktrace.Propagate(err, "")
 			}
 		}
 	}
 
-	return stacktrace.Propagate(tx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 // DeleteCustom deletes the values which match the conditions in dbuilder
-func DeleteCustom[T any](node sqalx.Node, dbuilder sq.DeleteBuilder) error {
-	tx, err := node.Beginx()
+func DeleteCustom[T any](ctx transaction.WrappingContext, dbuilder sq.DeleteBuilder) error {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	var t T
 	_, tableName := getStructInfo(t)
 
 	builder := dbuilder.From(tableName)
 	logger.Println(builder.ToSql())
-	_, err = builder.RunWith(tx).Exec()
+	_, err = builder.RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	return stacktrace.Propagate(tx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }
 
 // Delete deletes values t from the database.
-func Delete[T any](node sqalx.Node, t ...T) error {
-	return stacktrace.Propagate(deleteValues(node, false, t), "")
+func Delete[T any](ctx transaction.WrappingContext, t ...T) error {
+	return stacktrace.Propagate(deleteValues(ctx, false, t), "")
 }
 
 // MustDelete deletes values t from the database.
 // MustDelete is like Delete but returns an error when no rows were deleted even though a non-zero argument count was passed
-func MustDelete[T any](node sqalx.Node, t ...T) error {
-	return stacktrace.Propagate(deleteValues(node, true, t), "")
+func MustDelete[T any](ctx transaction.WrappingContext, t ...T) error {
+	return stacktrace.Propagate(deleteValues(ctx, true, t), "")
 }
 
 // delete deletes values t from the database
-func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) error {
+func deleteValues[T any](ctx transaction.WrappingContext, errorOnNothingDeleted bool, t []T) error {
 	if len(t) == 0 {
 		return nil
 	}
-	tx, err := node.Beginx()
+	tx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
@@ -419,7 +419,7 @@ func deleteValues[T any](node sqalx.Node, errorOnNothingDeleted bool, t []T) err
 
 	builder := sdb.Delete(tableName).Where(or)
 	logger.Println(builder.ToSql())
-	result, err := builder.RunWith(tx).Exec()
+	result, err := builder.RunWith(tx).ExecContext(tx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}

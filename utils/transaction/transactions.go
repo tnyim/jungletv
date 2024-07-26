@@ -8,19 +8,25 @@ import (
 )
 
 // WrappingContext combines a transaction and a context
-type WrappingContext struct {
+type WrappingContext interface {
 	context.Context
 	sqalx.Node
+	WithoutTx() context.Context
 }
 
 type sqalxNodeKey struct{}
 type sqalxBaseNodeKey struct{}
 
+type wrappingContextImpl struct {
+	context.Context
+	sqalx.Node
+}
+
 // Begin begins a new transaction and returns a transaction.WrappingContext that
 // is the transaction and the context with the new sqalx transaction node.
 // The caller must use the returned context in subsequent function calls that are meant
 // to happen within the transaction.
-func Begin(ctx context.Context) (*WrappingContext, error) {
+func Begin(ctx context.Context) (WrappingContext, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, stacktrace.Propagate(err, "refusing to begin transaction in context that is done")
 	}
@@ -33,14 +39,14 @@ func Begin(ctx context.Context) (*WrappingContext, error) {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return &WrappingContext{
+	return &wrappingContextImpl{
 		Context: context.WithValue(ctx, sqalxNodeKey{}, tx),
 		Node:    tx,
 	}, nil
 }
 
 // WithoutTx returns this context with a top-level sqalx node that is outside of any ongoing transaction
-func (ctx *WrappingContext) WithoutTx() context.Context {
+func (ctx *wrappingContextImpl) WithoutTx() context.Context {
 	n, ok := ctx.Value(sqalxBaseNodeKey{}).(sqalx.Node)
 	if !ok || n == nil {
 		panic("base sqalx node not present in context")

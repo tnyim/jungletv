@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // Counter is a multipurpose integer counter
@@ -16,18 +16,18 @@ type Counter struct {
 }
 
 // GetCounters returns all registered counters
-func GetCounters(node sqalx.Node, pagParams *PaginationParams) ([]*Counter, uint64, error) {
+func GetCounters(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*Counter, uint64, error) {
 	s := sdb.Select().
 		OrderBy("counter.counter_name ASC")
 	s = applyPaginationParameters(s, pagParams)
-	return GetWithSelectAndCount[*Counter](node, s)
+	return GetWithSelectAndCount[*Counter](ctx, s)
 }
 
 // GetCountersWithNames returns the counters with the specified names
-func GetCountersWithNames(node sqalx.Node, names []string) (map[string]*Counter, error) {
+func GetCountersWithNames(ctx transaction.WrappingContext, names []string) (map[string]*Counter, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"counter.counter_name": names})
-	items, err := GetWithSelect[*Counter](node, s)
+	items, err := GetWithSelect[*Counter](ctx, s)
 	if err != nil {
 		return map[string]*Counter{}, stacktrace.Propagate(err, "")
 	}
@@ -40,11 +40,11 @@ func GetCountersWithNames(node sqalx.Node, names []string) (map[string]*Counter,
 }
 
 // Update updates or inserts the Counter
-func (obj *Counter) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *Counter) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the Counter
-func (obj *Counter) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *Counter) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

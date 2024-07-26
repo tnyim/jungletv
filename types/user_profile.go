@@ -2,8 +2,8 @@ package types
 
 import (
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // UserProfile represents a user profile
@@ -15,10 +15,10 @@ type UserProfile struct {
 
 // GetUserProfileForAddress returns the user profile for the specified address.
 // If a profile does not exist, an empty one is returned
-func GetUserProfileForAddress(node sqalx.Node, address string) (*UserProfile, error) {
+func GetUserProfileForAddress(ctx transaction.WrappingContext, address string) (*UserProfile, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"user_profile.address": address})
-	items, err := GetWithSelect[*UserProfile](node, s)
+	items, err := GetWithSelect[*UserProfile](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -32,11 +32,11 @@ func GetUserProfileForAddress(node sqalx.Node, address string) (*UserProfile, er
 }
 
 // Update updates or inserts the UserProfile
-func (obj *UserProfile) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *UserProfile) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the UserProfile
-func (obj *UserProfile) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *UserProfile) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

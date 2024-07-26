@@ -77,7 +77,7 @@ func (i *initialInfo) Collections() []media.CollectionKey {
 	}
 }
 
-func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
+func (c *VideoProvider) BeginEnqueueRequest(ctx transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -129,7 +129,7 @@ func (c *VideoProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
+func (c *VideoProvider) ContinueEnqueueRequest(ctx transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 
 	ctx, err := transaction.Begin(ctx)
@@ -223,7 +223,7 @@ func (c *VideoProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	return request, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (s *VideoProvider) checkYouTubeVideoContentDuplication(ctx *transaction.WrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (media.EnqueueRequestCreationResult, error) {
+func (s *VideoProvider) checkYouTubeVideoContentDuplication(ctx transaction.WrappingContext, videoID string, offset, length, totalVideoLength time.Duration) (media.EnqueueRequestCreationResult, error) {
 	toleranceMargin := 1 * time.Minute
 	if totalVideoLength/10 < toleranceMargin {
 		toleranceMargin = totalVideoLength / 10
@@ -269,7 +269,7 @@ func (s *VideoProvider) checkYouTubeVideoContentDuplication(ctx *transaction.Wra
 	return media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (s *VideoProvider) checkYouTubeBroadcastContentDuplication(ctx *transaction.WrappingContext, videoID string, length time.Duration) (media.EnqueueRequestCreationResult, error) {
+func (s *VideoProvider) checkYouTubeBroadcastContentDuplication(ctx transaction.WrappingContext, videoID string, length time.Duration) (media.EnqueueRequestCreationResult, error) {
 	// check total enqueued length
 	totalLength := length
 	for idx, entry := range s.mediaQueue.Entries() {

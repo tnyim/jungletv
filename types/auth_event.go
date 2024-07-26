@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	"github.com/gbl08ma/sqalx"
 	"github.com/jmoiron/sqlx/types"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // AuthEvent is an authentication or authorization event
@@ -45,6 +45,6 @@ const AuthMethodInteractiveConsent AuthMethod = "interactive_consent"
 const AuthMethodExternal AuthMethod = "external"
 
 // Update updates or inserts the AuthEvent
-func (obj *AuthEvent) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *AuthEvent) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }

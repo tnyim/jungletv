@@ -4,9 +4,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
 	"github.com/shopspring/decimal"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // RewardBalance represents the balance of not-yet-withdrawn rewards for a user
@@ -17,10 +17,10 @@ type RewardBalance struct {
 }
 
 // GetRewardBalanceOfAddress returns the reward balance for the specified address, if one exists
-func GetRewardBalanceOfAddress(node sqalx.Node, address string) (*RewardBalance, error) {
+func GetRewardBalanceOfAddress(ctx transaction.WrappingContext, address string) (*RewardBalance, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"reward_balance.rewards_address": address})
-	items, err := GetWithSelect[*RewardBalance](node, s)
+	items, err := GetWithSelect[*RewardBalance](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -35,7 +35,7 @@ func GetRewardBalanceOfAddress(node sqalx.Node, address string) (*RewardBalance,
 
 // GetRewardBalancesReadyForAutoWithdrawal returns rewards balances
 // that are ready for automated withdrawal according to the passed parameters
-func GetRewardBalancesReadyForAutoWithdrawal(node sqalx.Node, minBalance decimal.Decimal, unchangedSince time.Time) ([]*RewardBalance, error) {
+func GetRewardBalancesReadyForAutoWithdrawal(ctx transaction.WrappingContext, minBalance decimal.Decimal, unchangedSince time.Time) ([]*RewardBalance, error) {
 	s := sdb.Select().
 		Where(sq.Gt{"reward_balance.balance": decimal.Zero}).
 		Where(sq.Or{
@@ -43,20 +43,20 @@ func GetRewardBalancesReadyForAutoWithdrawal(node sqalx.Node, minBalance decimal
 			sq.Lt{"reward_balance.updated_at": unchangedSince},
 		}).
 		Where(sq.Expr("reward_balance.rewards_address NOT IN (SELECT rewards_address FROM pending_withdrawal)"))
-	items, err := GetWithSelect[*RewardBalance](node, s)
+	items, err := GetWithSelect[*RewardBalance](ctx, s)
 	return items, stacktrace.Propagate(err, "")
 }
 
 // GetTotalOfRewardBalances returns the sum of all balances
-func GetTotalOfRewardBalances(node sqalx.Node) (decimal.Decimal, error) {
-	tx, err := node.Beginx()
+func GetTotalOfRewardBalances(ctx transaction.WrappingContext) (decimal.Decimal, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return decimal.Zero, stacktrace.Propagate(err, "")
 	}
-	defer tx.Commit() // read-only tx
+	defer ctx.Commit() // read-only tx
 
 	var tPtr *decimal.Decimal // the sum may be NULL if there are no rows
-	err = sdb.Select("SUM(balance)").From("reward_balance").RunWith(tx).Scan(&tPtr)
+	err = sdb.Select("SUM(balance)").From("reward_balance").RunWith(ctx).ScanContext(ctx, &tPtr)
 	if tPtr == nil {
 		return decimal.Zero, nil
 	}
@@ -64,12 +64,12 @@ func GetTotalOfRewardBalances(node sqalx.Node) (decimal.Decimal, error) {
 }
 
 // AdjustRewardBalanceOfAddresses adjusts the balance of the specified addresses by the specified amount
-func AdjustRewardBalanceOfAddresses(node sqalx.Node, addresses []string, amount decimal.Decimal) ([]*RewardBalance, error) {
-	tx, err := node.Beginx()
+func AdjustRewardBalanceOfAddresses(ctx transaction.WrappingContext, addresses []string, amount decimal.Decimal) ([]*RewardBalance, error) {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	now := time.Now()
 
@@ -88,30 +88,30 @@ func AdjustRewardBalanceOfAddresses(node sqalx.Node, addresses []string, amount 
 	}
 
 	balances := []*RewardBalance{}
-	err = tx.Tx().Select(&balances, query, args...)
+	err = ctx.Tx().SelectContext(ctx, &balances, query, args...)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
 
-	return balances, stacktrace.Propagate(tx.Commit(), "")
+	return balances, stacktrace.Propagate(ctx.Commit(), "")
 }
 
 // ZeroRewardBalanceOfAddresses zeroes the balance of the specified addresses
-func ZeroRewardBalanceOfAddresses(node sqalx.Node, addresses []string) error {
-	tx, err := node.Beginx()
+func ZeroRewardBalanceOfAddresses(ctx transaction.WrappingContext, addresses []string) error {
+	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
-	defer tx.Rollback()
+	defer ctx.Rollback()
 
 	_, err = sdb.Update("reward_balance").
 		Set("balance", decimal.Zero).
 		Set("updated_at", time.Now()).
 		Where(sq.Eq{"rewards_address": addresses}).
-		RunWith(tx).Exec()
+		RunWith(ctx).ExecContext(ctx)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
 
-	return stacktrace.Propagate(tx.Commit(), "")
+	return stacktrace.Propagate(ctx.Commit(), "")
 }

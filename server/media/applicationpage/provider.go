@@ -26,11 +26,11 @@ func (c *ApplicationPageProvider) CanHandleRequestType(mediaParameters proto.IsE
 	return false
 }
 
-func (c *ApplicationPageProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
+func (c *ApplicationPageProvider) BeginEnqueueRequest(ctx transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("not supported")
 }
 
-func (c *ApplicationPageProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
+func (c *ApplicationPageProvider) ContinueEnqueueRequest(ctx transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	return nil, media.EnqueueRequestCreationFailed, stacktrace.NewError("not supported")
 }

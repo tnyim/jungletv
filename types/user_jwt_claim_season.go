@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // UserJWTClaimSeason is the JWT claims season of a user
@@ -20,10 +20,10 @@ type UserJWTClaimSeason struct {
 var ErrJWTClaimSeasonNotFound = errors.New("JWT claim season not found")
 
 // GetUserJWTClaimSeason returns the UserJWTClaimSeason for the specified user address
-func GetUserJWTClaimSeason(node sqalx.Node, address string) (*UserJWTClaimSeason, error) {
+func GetUserJWTClaimSeason(ctx transaction.WrappingContext, address string) (*UserJWTClaimSeason, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"user_jwt_claim_season.address": address})
-	items, err := GetWithSelect[*UserJWTClaimSeason](node, s)
+	items, err := GetWithSelect[*UserJWTClaimSeason](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -36,11 +36,11 @@ func GetUserJWTClaimSeason(node sqalx.Node, address string) (*UserJWTClaimSeason
 }
 
 // Update updates or inserts the UserJWTClaimSeason
-func (obj *UserJWTClaimSeason) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *UserJWTClaimSeason) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the UserJWTClaimSeason
-func (obj *UserJWTClaimSeason) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *UserJWTClaimSeason) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }

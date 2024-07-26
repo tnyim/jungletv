@@ -73,7 +73,7 @@ func (i *initialInfo) Collections() []media.CollectionKey {
 	}
 }
 
-func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
+func (c *TrackProvider) BeginEnqueueRequest(ctx transaction.WrappingContext, mediaParameters proto.IsEnqueueMediaRequest_MediaInfo) (media.InitialInfo, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
 		return nil, media.EnqueueRequestCreationFailed, stacktrace.Propagate(err, "")
@@ -112,7 +112,7 @@ func (c *TrackProvider) BeginEnqueueRequest(ctx *transaction.WrappingContext, me
 	}, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
+func (c *TrackProvider) ContinueEnqueueRequest(ctx transaction.WrappingContext, genericInfo media.InitialInfo, unskippable, concealed, anonymous,
 	allowUnpopular, skipLengthChecks, skipDuplicationChecks bool) (media.EnqueueRequest, media.EnqueueRequestCreationResult, error) {
 	ctx, err := transaction.Begin(ctx)
 	if err != nil {
@@ -190,7 +190,7 @@ func (c *TrackProvider) ContinueEnqueueRequest(ctx *transaction.WrappingContext,
 	return request, media.EnqueueRequestCreationSucceeded, nil
 }
 
-func (s *TrackProvider) checkSoundCloudTrackContentDuplication(ctx *transaction.WrappingContext, trackID string, offset, length, totalTrackLength time.Duration) (media.EnqueueRequestCreationResult, error) {
+func (s *TrackProvider) checkSoundCloudTrackContentDuplication(ctx transaction.WrappingContext, trackID string, offset, length, totalTrackLength time.Duration) (media.EnqueueRequestCreationResult, error) {
 	toleranceMargin := 1 * time.Minute
 	if totalTrackLength/10 < toleranceMargin {
 		toleranceMargin = totalTrackLength / 10

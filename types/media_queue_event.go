@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 // MediaQueueEvent represents a noteworthy media queue event
@@ -28,7 +28,7 @@ const MediaQueueEmptied MediaQueueEventType = "emptied"
 var ErrMediaQueueEventNotFound = errors.New("media queue event not found")
 
 // GetMostRecentMediaQueueEventWithType returns the most recent media queue event with the given type
-func GetMostRecentMediaQueueEventWithType(node sqalx.Node, eventType ...MediaQueueEventType) (*MediaQueueEvent, error) {
+func GetMostRecentMediaQueueEventWithType(ctx transaction.WrappingContext, eventType ...MediaQueueEventType) (*MediaQueueEvent, error) {
 	s := sdb.Select().
 		Where(subQueryEq(
 			"media_queue_event.created_at",
@@ -36,7 +36,7 @@ func GetMostRecentMediaQueueEventWithType(node sqalx.Node, eventType ...MediaQue
 				From("media_queue_event e").
 				Where(sq.Eq{"media_queue_event.event_type": eventType}),
 		))
-	events, err := GetWithSelect[*MediaQueueEvent](node, s)
+	events, err := GetWithSelect[*MediaQueueEvent](ctx, s)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
@@ -47,10 +47,10 @@ func GetMostRecentMediaQueueEventWithType(node sqalx.Node, eventType ...MediaQue
 }
 
 // InsertMediaQueueEvents inserts the passed received rewards in the database
-func InsertMediaQueueEvents(node sqalx.Node, items []*MediaQueueEvent) error {
+func InsertMediaQueueEvents(ctx transaction.WrappingContext, items []*MediaQueueEvent) error {
 	c := make([]interface{}, len(items))
 	for i := range items {
 		c[i] = items[i]
 	}
-	return stacktrace.Propagate(Insert(node, c...), "")
+	return stacktrace.Propagate(Insert(ctx, c...), "")
 }

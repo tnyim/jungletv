@@ -4,8 +4,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gbl08ma/sqalx"
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils/transaction"
 )
 
 type RaffleDrawingStatus string
@@ -41,29 +41,29 @@ type RaffleDrawing struct {
 }
 
 // GetRaffleDrawings returns all the raffle drawings
-func GetRaffleDrawings(node sqalx.Node, pagParams *PaginationParams) ([]*RaffleDrawing, uint64, error) {
+func GetRaffleDrawings(ctx transaction.WrappingContext, pagParams *PaginationParams) ([]*RaffleDrawing, uint64, error) {
 	s := sdb.Select().
 		OrderBy("raffle_drawing.period_start DESC", "raffle_drawing.drawing_number ASC")
 	s = applyPaginationParameters(s, pagParams)
-	items, total, err := GetWithSelectAndCount[*RaffleDrawing](node, s)
+	items, total, err := GetWithSelectAndCount[*RaffleDrawing](ctx, s)
 	return items, total, stacktrace.Propagate(err, "")
 }
 
 // GetRaffleDrawingsOfRaffle returns all the drawings for a raffle
-func GetRaffleDrawingsOfRaffle(node sqalx.Node, raffleID string) ([]*RaffleDrawing, error) {
+func GetRaffleDrawingsOfRaffle(ctx transaction.WrappingContext, raffleID string) ([]*RaffleDrawing, error) {
 	s := sdb.Select().
 		Where(sq.Eq{"raffle_drawing.raffle_id": raffleID}).
 		OrderBy("raffle_drawing.drawing_number ASC")
-	drawings, err := GetWithSelect[*RaffleDrawing](node, s)
+	drawings, err := GetWithSelect[*RaffleDrawing](ctx, s)
 	return drawings, stacktrace.Propagate(err, "")
 }
 
 // Update updates or inserts the RaffleDrawing
-func (obj *RaffleDrawing) Update(node sqalx.Node) error {
-	return Update(node, obj)
+func (obj *RaffleDrawing) Update(ctx transaction.WrappingContext) error {
+	return Update(ctx, obj)
 }
 
 // Delete deletes the RaffleDrawing
-func (obj *RaffleDrawing) Delete(node sqalx.Node) error {
-	return Delete(node, obj)
+func (obj *RaffleDrawing) Delete(ctx transaction.WrappingContext) error {
+	return Delete(ctx, obj)
 }
