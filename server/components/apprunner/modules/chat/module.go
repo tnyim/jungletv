@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -100,8 +99,8 @@ func (m *chatModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *chatModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
-	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
+func (m *chatModule) ExecutionResumed(ctx context.Context) {
+	m.eventAdapter.StartOrResume(ctx, m.runtime)
 }
 
 func (m *chatModule) serializeMessage(ctx context.Context, message *chat.Message) goja.Value {

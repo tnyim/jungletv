@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -45,7 +44,7 @@ func (m *dbModule) ModuleName() string {
 func (m *dbModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *dbModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
+func (m *dbModule) ExecutionResumed(_ context.Context) {}
 
 func (m *dbModule) query(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {

@@ -88,13 +88,13 @@ type appInstance struct {
 	promisesWithoutRejectionHandler map[*goja.Promise]struct{}
 
 	// context for this instance's current execution: derives from the context passed in StartOrResume(), lives as long as each execution of this instance does
-	ctx                context.Context
-	ctxCancel          context.CancelCauseFunc
-	executionWaitGroup sync.WaitGroup
-	stopWatchdog       func()
-	feedWatchdog       func()
-	vmInterrupt        func(v any)
-	vmClearInterrupt   func()
+	ctx                  context.Context
+	ctxCancel            context.CancelCauseFunc
+	terminationWaitGroup sync.WaitGroup
+	stopWatchdog         func()
+	feedWatchdog         func()
+	vmInterrupt          func(v any)
+	vmClearInterrupt     func()
 }
 
 type panicResult struct {
@@ -126,7 +126,7 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 		applicationVersion:              applicationVersion,
 		applicationWallet:               applicationWallet,
 		runner:                          r,
-		modules:                         &modules.Collection{},
+		modules:                         modules.NewCollection(),
 		appLogger:                       NewAppLogger(applicationID),
 		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
 		userSerializer:                  gojautil.NewUserSerializer(d.UserCache),
@@ -258,7 +258,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 
 			_, err = r.RunScript("", runtimeBaseCode)
 
-			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
+			a.modules.ExecutionResumed(a.ctx)
 			a.modules.EnableModules(r)
 			a.appLogger.RuntimeLog("application instance started")
 		})
@@ -290,7 +290,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		a.ranInitCode = true
 	} else {
 		a.loop.RunOnLoop(func(r *goja.Runtime) {
-			a.modules.ExecutionResumed(a.ctx, &a.executionWaitGroup)
+			a.modules.ExecutionResumed(a.ctx)
 		})
 	}
 
@@ -361,6 +361,14 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (fu
 
 func (a *appInstance) ExecutionContext() context.Context {
 	return a.ctx
+}
+
+func (a *appInstance) TerminationWaitGroupAdd(n int) {
+	a.terminationWaitGroup.Add(n)
+}
+
+func (a *appInstance) TerminationWaitGroupDone() {
+	a.terminationWaitGroup.Done()
 }
 
 func (a *appInstance) Schedule(f func(vm *goja.Runtime) error) {
@@ -516,7 +524,9 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 		interruptTimer.Stop()
 	}
 	a.ctxCancel(stacktrace.NewError("application execution interrupted"))
-	a.executionWaitGroup.Wait()
+	if toTerminate {
+		a.terminationWaitGroup.Wait()
+	}
 	plural := "s"
 	if jobs == 1 {
 		plural = ""

@@ -29,7 +29,9 @@ func DoAsync[T any](appContext modules.ApplicationContext, runtime *goja.Runtime
 
 	ctx, cancelCtx := context.WithCancel(appContext.ExecutionContext())
 
+	appContext.TerminationWaitGroupAdd(1)
 	go func() {
+		defer appContext.TerminationWaitGroupDone()
 		var rejectReason interface{}
 		var result T
 		func() {
@@ -60,7 +62,9 @@ func DoAsyncWithTransformer[T any](appContext modules.ApplicationContext, runtim
 
 	ctx, cancelCtx := context.WithCancel(appContext.ExecutionContext())
 
+	appContext.TerminationWaitGroupAdd(1)
 	go func() {
+		defer appContext.TerminationWaitGroupDone()
 		var rejectReason interface{}
 		var result T
 		var transformer PromiseResultTransformer[T]

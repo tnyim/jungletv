@@ -81,16 +81,16 @@ func (m *configurationModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *configurationModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
+func (m *configurationModule) ExecutionResumed(ctx context.Context) {
 	unsub := m.pagesModule.OnPagePublished().SubscribeUsingCallback(event.BufferAll, m.updatePageConfigurablesOnPagePublish)
 	unsub2 := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 
-	wg.Add(1)
+	m.appContext.TerminationWaitGroupAdd(1)
 	go func() {
+		defer m.appContext.TerminationWaitGroupDone()
 		<-ctx.Done()
 		unsub()
 		unsub2()
-		wg.Done()
 	}()
 }
 

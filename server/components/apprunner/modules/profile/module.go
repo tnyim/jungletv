@@ -3,7 +3,6 @@ package profile
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -62,7 +61,7 @@ func (m *profileModule) ModuleName() string {
 func (m *profileModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *profileModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
+func (m *profileModule) ExecutionResumed(_ context.Context) {}
 
 func (m *profileModule) getUser(call goja.FunctionCall) goja.Value {
 	if len(call.Arguments) < 1 {

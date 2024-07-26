@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -81,8 +80,8 @@ func (m *pointsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *pointsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
-	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
+func (m *pointsModule) ExecutionResumed(ctx context.Context) {
+	m.eventAdapter.StartOrResume(ctx, m.runtime)
 }
 
 func (m *pointsModule) createTransaction(call goja.FunctionCall) goja.Value {

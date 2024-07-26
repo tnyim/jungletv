@@ -3,7 +3,6 @@ package process
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -67,7 +66,7 @@ func (m *processModule) ModuleName() string {
 func (m *processModule) AutoRequire() (bool, string) {
 	return true, "process"
 }
-func (m *processModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
+func (m *processModule) ExecutionResumed(_ context.Context) {}
 
 func (m *processModule) abort(call goja.FunctionCall) goja.Value {
 	m.runtime.Interrupt("process aborted")

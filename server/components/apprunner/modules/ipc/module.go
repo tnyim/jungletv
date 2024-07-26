@@ -2,7 +2,6 @@ package ipc
 
 import (
 	"context"
-	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -84,7 +83,7 @@ func (m *ipcModule) ModuleName() string {
 func (m *ipcModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *ipcModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
+func (m *ipcModule) ExecutionResumed(_ context.Context) {}
 
 var gojaUndefined = goja.Undefined()
 

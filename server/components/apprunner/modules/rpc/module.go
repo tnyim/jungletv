@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -136,7 +135,7 @@ func (m *rpcModule) ModuleName() string {
 func (m *rpcModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *rpcModule) ExecutionResumed(_ context.Context, _ *sync.WaitGroup) {}
+func (m *rpcModule) ExecutionResumed(_ context.Context) {}
 
 var gojaUndefined = goja.Undefined()
 

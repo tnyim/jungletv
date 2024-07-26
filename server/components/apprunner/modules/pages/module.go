@@ -73,7 +73,7 @@ func (m *pagesModule) ModuleName() string {
 func (m *pagesModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *pagesModule) ExecutionResumed(ctx context.Context, _ *sync.WaitGroup) {
+func (m *pagesModule) ExecutionResumed(ctx context.Context) {
 	m.ctx = ctx
 }
 

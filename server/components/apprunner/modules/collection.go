@@ -2,7 +2,6 @@ package modules
 
 import (
 	"context"
-	"sync"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
@@ -10,8 +9,16 @@ import (
 
 // Collection is a set of NativeModules that belongs to a single application instance
 type Collection struct {
-	modules []NativeModule
-	vm      *goja.Runtime
+	latestExecutionCtx context.Context
+	modules            []NativeModule
+	loaded             map[NativeModule]struct{}
+	vm                 *goja.Runtime
+}
+
+func NewCollection() *Collection {
+	return &Collection{
+		loaded: make(map[NativeModule]struct{}),
+	}
 }
 
 // SourceLoader is a function responsible for loading sources
@@ -30,9 +37,12 @@ func (c *Collection) EnableModules(runtime *goja.Runtime) {
 	}
 }
 
-func (c *Collection) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
-	for _, c := range c.modules {
-		c.ExecutionResumed(ctx, wg)
+func (c *Collection) ExecutionResumed(ctx context.Context) {
+	c.latestExecutionCtx = ctx
+	for _, m := range c.modules {
+		if _, ok := c.loaded[m]; ok {
+			m.ExecutionResumed(ctx)
+		}
 	}
 }
 
@@ -45,10 +55,17 @@ func (c *Collection) BuildRegistry(sourceLoader SourceLoader) *require.Registry 
 }
 
 func (c *Collection) registerModules(registry *require.Registry) {
-	for _, c := range c.modules {
-		name, loader := c.ModuleName(), c.ModuleLoader()
-		registry.RegisterNativeModule(name, loader)
-		if c.IsNodeBuiltin() {
+	for _, m := range c.modules {
+		name, loader := m.ModuleName(), m.ModuleLoader()
+		loaderProxy := func(vm *goja.Runtime, o *goja.Object) {
+			loader(vm, o)
+			if _, ok := c.loaded[m]; !ok {
+				c.loaded[m] = struct{}{}
+				m.ExecutionResumed(c.latestExecutionCtx)
+			}
+		}
+		registry.RegisterNativeModule(name, loaderProxy)
+		if m.IsNodeBuiltin() {
 			registry.RegisterNativeModule("node:"+name, loader)
 		}
 	}

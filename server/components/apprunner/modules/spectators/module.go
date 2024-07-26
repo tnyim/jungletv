@@ -2,7 +2,6 @@ package spectators
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -150,8 +149,8 @@ func (m *spectatorsModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *spectatorsModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
-	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
+func (m *spectatorsModule) ExecutionResumed(ctx context.Context) {
+	m.eventAdapter.StartOrResume(ctx, m.runtime)
 }
 
 func (m *spectatorsModule) getSpectator(call goja.FunctionCall) goja.Value {

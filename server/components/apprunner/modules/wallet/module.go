@@ -34,7 +34,6 @@ type walletModule struct {
 	applicationAccount *wallet.Account
 	paymentAccountPool *payment.PaymentAccountPool
 	defaultRep         string
-	executionWaitGroup *sync.WaitGroup
 }
 
 // New returns a new wallet module
@@ -78,9 +77,7 @@ func (m *walletModule) ModuleName() string {
 func (m *walletModule) AutoRequire() (bool, string) {
 	return false, ""
 }
-func (m *walletModule) ExecutionResumed(_ context.Context, wg *sync.WaitGroup) {
-	m.executionWaitGroup = wg
-}
+func (m *walletModule) ExecutionResumed(_ context.Context) {}
 
 func (m *walletModule) DebitFromApplicationWallet(amount payment.Amount) error {
 	if amount.Cmp(big.NewInt(0)) == 0 {
@@ -309,7 +306,7 @@ func (m *walletModule) receivePaymentAsyncCb(actx gojautil.AsyncContext, timeout
 
 	return struct{}{}, func(vm *goja.Runtime, _ struct{}) interface{} {
 		// calling StartOrResume here instead of in the asynchronous code ensures that the Add call on the WaitGroup is not concurrent with the Wait call that happens after VM interruption
-		eventAdapter.StartOrResume(adapterCtx, m.executionWaitGroup, m.runtime)
+		eventAdapter.StartOrResume(adapterCtx, m.runtime)
 
 		paymentReceiverObject := vm.NewObject()
 		paymentReceiverObject.Set("addEventListener", eventAdapter.AddEventListener)

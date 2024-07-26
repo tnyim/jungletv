@@ -2,7 +2,6 @@ package modules
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -17,7 +16,7 @@ type NativeModule interface {
 	ModuleName() string
 	IsNodeBuiltin() bool
 	AutoRequire() (bool, string)
-	ExecutionResumed(context.Context, *sync.WaitGroup)
+	ExecutionResumed(context.Context)
 }
 
 // ApplicationLogger logs application actions
@@ -46,4 +45,7 @@ type ApplicationContext interface {
 	ScheduleNoError(func(*goja.Runtime))
 
 	ExecutionContext() context.Context
+
+	TerminationWaitGroupAdd(int)
+	TerminationWaitGroupDone()
 }

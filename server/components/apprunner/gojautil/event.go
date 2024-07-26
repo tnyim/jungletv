@@ -111,7 +111,7 @@ func (a *EventAdapter) RemoveEventListener(call goja.FunctionCall) goja.Value {
 
 // StartOrResume should be called when execution starts/resumes with a different context
 // StartOrResume may be safely called multiple times in a row
-func (a *EventAdapter) StartOrResume(ctx context.Context, wg *sync.WaitGroup, runtime *goja.Runtime) {
+func (a *EventAdapter) StartOrResume(ctx context.Context, runtime *goja.Runtime) {
 	a.runtime = runtime
 
 	a.mu.Lock()
@@ -130,13 +130,15 @@ func (a *EventAdapter) StartOrResume(ctx context.Context, wg *sync.WaitGroup, ru
 		}
 	}
 
-	wg.Add(1)
-	go a.pauseLater(ctx, wg)
+	a.appContext.TerminationWaitGroupAdd(1)
+	go a.pauseLater(ctx)
 }
 
-func (a *EventAdapter) pauseLater(ctx context.Context, wg *sync.WaitGroup) {
+func (a *EventAdapter) pauseLater(ctx context.Context) {
+	defer a.appContext.TerminationWaitGroupDone()
+
+	// wait for this application to be paused or terminated
 	<-ctx.Done()
-	defer wg.Done()
 
 	a.mu.Lock()
 	defer a.mu.Unlock()

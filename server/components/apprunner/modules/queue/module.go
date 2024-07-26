@@ -3,7 +3,6 @@ package queue
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -109,9 +108,9 @@ func (m *queueModule) AutoRequire() (bool, string) {
 	return false, ""
 }
 
-func (m *queueModule) ExecutionResumed(ctx context.Context, wg *sync.WaitGroup) {
-	m.eventAdapter.StartOrResume(ctx, wg, m.runtime)
-	m.crowdfundingEventAdapter.StartOrResume(ctx, wg, m.runtime)
+func (m *queueModule) ExecutionResumed(ctx context.Context) {
+	m.eventAdapter.StartOrResume(ctx, m.runtime)
+	m.crowdfundingEventAdapter.StartOrResume(ctx, m.runtime)
 }
 
 func (m *queueModule) setEnqueuingPermission(call goja.FunctionCall) goja.Value {
