@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
+    import { link, navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
+    import { modalAlert, modalPrompt } from "../modal/modal";
     import type { PaginationParameters } from "../proto/common_pb";
     import type { DocumentHeader } from "../proto/jungletv_pb";
     import DocumentTableItem from "../tableitems/DocumentTableItem.svelte";
+    import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
-    import { hrefButtonStyleClasses } from "../utils";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -22,13 +23,32 @@
             prevSearchQuery = searchQuery;
         }
     }
+
+    async function create() {
+        let id = await modalPrompt("Enter the ID for the new document:", "Create document", "", "", "Create", "Cancel");
+        if (id === null) {
+            return;
+        }
+
+        try {
+            await apiClient.getDocument(id);
+            await modalAlert("A document with the same ID already exists");
+            return;
+        } catch {}
+
+        navigate(`/moderate/documents/${id}`);
+    }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
+<div class="mt-6 container mx-auto max-w-screen-lg px-2">
     <p class="mb-6">
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
+        <ButtonButton on:click={create}>Create document</ButtonButton>
+        <span class="px-2">
+            <a use:link href="/moderate/documents/guidelines">Edit Guidelines</a> |
+            <a use:link href="/moderate/documents/faq">Edit FAQ</a> |
+            <a use:link href="/moderate/documents/announcements">Edit Announcements</a>
+        </span>
     </p>
-
     <PaginatedTable
         title={"Documents"}
         column_count={6}

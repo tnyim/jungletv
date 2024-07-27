@@ -1,15 +1,15 @@
 <script lang="ts">
     import { Duration } from "google-protobuf/google/protobuf/duration_pb";
-    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { PaginationParameters } from "../proto/common_pb";
     import type { UserBan } from "../proto/jungletv_pb";
     import UserBanTableItem from "../tableitems/UserBanTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
+    import NumberInput from "../uielements/NumberInput.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
-    import { hrefButtonStyleClasses } from "../utils";
+    import TextInput from "../uielements/TextInput.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -53,7 +53,7 @@
                 banFromEnqueuing,
                 banFromRewards,
                 banReason,
-                duration
+                duration,
             );
             banIDs = response.getBanIdsList();
             banError = "";
@@ -79,23 +79,20 @@
     }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
-    <p class="mb-6">
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
+<div class="mt-6 px-2">
+    <p class="font-semibold text-lg">Banned users</p>
+    <p class="text-sm mt-2">
+        Banned users have restrictions on what actions they can perform. Users may be banned based on their rewards
+        address and/or based on their IP address.
     </p>
-    <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">
+
+    <div class="mt-6 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12 max-w-screen-lg mx-auto">
         <div>
-            <p class="font-semibold text-lg">Create ban</p>
-            <div class="grid grid-rows-5 grid-cols-3 gap-6 max-w-screen-sm">
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Banano address"
-                    bind:value={banRewardAddress}
-                />
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
+            <p class="font-semibold text-lg mb-2">Create ban</p>
+            <div class="grid grid-cols-3 gap-6 max-w-screen-sm">
+                <TextInput extraClasses="col-span-3" placeholder="Banano address" bind:value={banRewardAddress} />
+                <TextInput
+                    extraClasses="col-span-3"
                     placeholder="IP address (leave empty if unknown)"
                     bind:value={banRemoteAddress}
                 />
@@ -135,65 +132,52 @@
                         Ban from receiving rewards
                     </label>
                 </div>
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Reason for ban"
-                    bind:value={banReason}
-                />
-                <div class="col-span-2 text-right text-gray-700">Ban duration in hours (0 for indefinite):</div>
-                <input
-                    class="dark:text-black"
-                    type="number"
-                    placeholder="Duration in hours (0 for indefinite ban)"
-                    min="0"
-                    step="0.5"
-                    bind:value={banDurationHours}
-                />
+                <TextInput extraClasses="col-span-3" placeholder="Reason for ban" bind:value={banReason} />
+                <div class="col-span-2 text-right">Ban duration in hours (0 for indefinite):</div>
+                <NumberInput min={0} step={0.5} bind:value={banDurationHours} />
                 <ButtonButton type="submit" color="red" extraClasses="col-span-3" on:click={createBan}>
                     Create ban
                 </ButtonButton>
-                <div class="col-span-3">
-                    {#if banIDs.length > 0}
-                        Take note of the following ban IDs:
-                        <ul>
-                            {#each banIDs as banID}
-                                <li>{banID}</li>
-                            {/each}
-                        </ul>
-                    {/if}
-                    {#if banError != ""}
-                        <ErrorMessage>{banError}</ErrorMessage>
-                    {/if}
-                </div>
+                {#if banIDs.length > 0 || banError != ""}
+                    <div class="col-span-3">
+                        {#if banIDs.length > 0}
+                            Take note of the following ban IDs:
+                            <ul>
+                                {#each banIDs as banID}
+                                    <li>{banID}</li>
+                                {/each}
+                            </ul>
+                        {/if}
+                        {#if banError != ""}
+                            <ErrorMessage>{banError}</ErrorMessage>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
         <div>
-            <p class="font-semibold text-lg">Remove ban</p>
-            <div class="grid grid-rows-3 grid-cols-1 gap-6 max-w-screen-sm">
-                <input class="col-span-3 dark:text-black" type="text" placeholder="Ban ID" bind:value={removeBanID} />
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Reason for unban"
-                    bind:value={removeBanReason}
-                />
+            <p class="font-semibold text-lg mb-2">Remove ban</p>
+            <div class="grid grid-cols-1 gap-6 max-w-screen-sm">
+                <TextInput extraClasses="col-span-3" placeholder="Ban ID" bind:value={removeBanID} />
+                <TextInput extraClasses="col-span-3" placeholder="Reason for unban" bind:value={removeBanReason} />
                 <ButtonButton type="submit" color="blue" extraClasses="col-span-3" on:click={removeBan}>
                     Remove ban
                 </ButtonButton>
-                <div class="col-span-3">
-                    {#if removeBanSuccessful}
-                        <SuccessMessage>Ban removed successfully</SuccessMessage>
-                    {/if}
-                    {#if removeBanError != ""}
-                        <ErrorMessage>{removeBanError}</ErrorMessage>
-                    {/if}
-                </div>
+                {#if removeBanSuccessful || removeBanError != ""}
+                    <div class="col-span-3">
+                        {#if removeBanSuccessful}
+                            <SuccessMessage>Ban removed successfully</SuccessMessage>
+                        {/if}
+                        {#if removeBanError != ""}
+                            <ErrorMessage>{removeBanError}</ErrorMessage>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
     </div>
 
-    <div class="mt-10 mb-4 grid grid-rows-1 grid-cols-2 gap-12">
+    <div class="mt-8 mb-4 grid grid-rows-1 grid-cols-2 gap-12">
         <div>
             <input
                 id="showOnlyActive"

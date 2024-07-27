@@ -481,7 +481,7 @@ func (m *configurationModule) setNavigationDestination(call goja.FunctionCall) g
 	beforeDestinationID := ""
 	if !goja.IsUndefined(call.Argument(3)) && !goja.IsNull(call.Argument(3)) && call.Argument(3).String() != "" {
 		beforeDestinationID = call.Argument(3).String()
-		destinationIDs := []string{"enqueue", "rewards", "leaderboards", "about", "faq", "guidelines", "playhistory"}
+		destinationIDs := []string{"enqueue", "rewards", "leaderboards", "about", "faq", "guidelines", "playhistory", "controlpanel"}
 		if !slices.Contains(destinationIDs, beforeDestinationID) && !strings.HasPrefix(beforeDestinationID, "application-") {
 			panic(m.runtime.NewTypeError(
 				"Fourth argument to setNavigationDestination must be undefined or one of '%s' or '%s'",

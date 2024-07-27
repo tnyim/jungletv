@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { link, navigate } from "svelte-navigator";
+    import { navigate } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import { modalAlert, modalPrompt } from "../modal/modal";
     import { Application, RunningApplication } from "../proto/application_editor_pb";
@@ -7,7 +7,6 @@
     import ApplicationTableItem from "../tableitems/ApplicationTableItem.svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
-    import { hrefButtonStyleClasses } from "../utils";
     import RunningApplications from "./RunningApplications.svelte";
 
     export let searchQuery = "";
@@ -43,7 +42,7 @@
             "",
             "",
             "Create",
-            "Cancel"
+            "Cancel",
         );
         if (id === null) {
             return;
@@ -68,12 +67,7 @@
     }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
-    <p class="mb-6">
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
-        <ButtonButton on:click={create}>Create application</ButtonButton>
-    </p>
-
+<div class="m-6 grow container mx-auto max-w-screen-lg px-2">
     <div class="text-2xl flex flex-row items-center">
         <video
             src="/assets/brand/af.webm"
@@ -91,6 +85,10 @@
     </div>
 
     <RunningApplications bind:runningApplications />
+
+    <p class="mb-6">
+        <ButtonButton on:click={create}>Create application</ButtonButton>
+    </p>
 
     <PaginatedTable
         title={"Applications"}

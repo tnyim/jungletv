@@ -1,12 +1,11 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import ChatGifAttachment from "../ChatGifAttachment.svelte";
     import { openUserProfile } from "../profile_utils";
     import { ChatMessage, ChatMessageAttachment } from "../proto/jungletv_pb";
     import ButtonButton from "../uielements/ButtonButton.svelte";
-    import { formatDateForModeration, hrefButtonStyleClasses } from "../utils";
+    import { formatDateForModeration } from "../utils";
 
     const dispatch = createEventDispatcher();
 
@@ -19,16 +18,14 @@
     }
 </script>
 
-<div class="{mode == 'sidebar' ? '' : 'm-6'} grow container mx-auto max-w-screen-md p-2">
+<div class="{mode == 'sidebar' ? '' : 'm-6'} grow container mx-auto max-w-screen-md px-2">
     {#if mode == "sidebar"}
         <p class="mb-6">
             <ButtonButton on:click={() => dispatch("closeTab")}>Close tab</ButtonButton>
         </p>
-    {:else}
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
     {/if}
 
-    <p class="mt-6 mb-4">
+    <p class="mb-4">
         <ButtonButton on:click={() => openUserProfile(address)}>User profile</ButtonButton>
     </p>
 

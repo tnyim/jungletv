@@ -60,7 +60,7 @@
             "Enter the name for the new file:\nNote: if you specify the name of an existing file, it will be updated.",
             "Upload file",
             "",
-            uploadFiles[0].name
+            uploadFiles[0].name,
         );
         if (name === null) {
             return;
@@ -138,7 +138,7 @@
                 application.getId(),
                 importAppendOnly,
                 false,
-                new Uint8Array(await importFiles[0].arrayBuffer())
+                new Uint8Array(await importFiles[0].arrayBuffer()),
             );
             cur_page = -1;
             importFileInput.value = "";
@@ -156,7 +156,7 @@
         20000,
         5000,
         apiClient.monitorRunningApplications.bind(apiClient),
-        handleRunningApplicationsUpdated
+        handleRunningApplicationsUpdated,
     );
 
     function handleRunningApplicationsUpdated(applications: RunningApplications) {
@@ -192,7 +192,7 @@
     }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
+<div class="m-6 grow container mx-auto max-w-screen-lg px-2">
     <p class="mb-6">
         <a use:link href="/moderate/applications" class={hrefButtonStyleClasses()}>Back to application list</a>
     </p>
@@ -268,10 +268,17 @@
             <p class="font-semibold text-lg mb-2">Backup and restore</p>
             <p class="ml-6">
                 <ButtonButton on:click={exportApplicationZIP}>Export application</ButtonButton>
-                <ButtonButton on:click={exportApplicationOpaque} extraClasses="ml-2">Export application as opaque archive (for emailing)</ButtonButton>
+                <ButtonButton on:click={exportApplicationOpaque} extraClasses="ml-2"
+                    >Export application as opaque archive (for emailing)</ButtonButton
+                >
             </p>
             <p class="ml-6">
-                <input type="file" bind:files={importFiles} bind:this={importFileInput} accept=".zip,application/zip,.jungletvapp,application/x.jungletv.app" />
+                <input
+                    type="file"
+                    bind:files={importFiles}
+                    bind:this={importFileInput}
+                    accept=".zip,application/zip,.jungletvapp,application/x.jungletv.app"
+                />
                 <input
                     id="importAppendOnly"
                     name="importAppendOnly"

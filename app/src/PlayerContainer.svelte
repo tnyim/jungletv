@@ -4,7 +4,7 @@
     import watchMedia from "svelte-media";
     import { navigate } from "svelte-navigator";
     import Player from "./Player.svelte";
-    import { mainContentBottomPadding, rewardAddress } from "./stores";
+    import { mainContentBottomPadding, playerOpen as playerOpenStore, rewardAddress } from "./stores";
 
     export let fullSize = false;
     export let fullSizePlayerContainer: HTMLElement = null;
@@ -181,6 +181,9 @@
     // which made it very hard to increase the size of the sidebar while media is playing
     $: if (playerContainer) {
         playerContainer.style.pointerEvents = resizingSidebar ? "none" : "auto";
+    }
+    $: {
+        $playerOpenStore = playerOpen;
     }
 </script>
 

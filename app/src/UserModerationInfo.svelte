@@ -3,7 +3,10 @@
     import { navigate } from "svelte-navigator";
 
     import { apiClient } from "./api_client";
+    import { closeModal, modalAlert, modalConfirm, modalPrompt } from "./modal/modal";
+    import { openUserProfile } from "./profile_utils";
     import ButtonButton from "./uielements/ButtonButton.svelte";
+    import PointsIcon from "./uielements/PointsIcon.svelte";
     import { formatDateForModeration } from "./utils";
 
     const dispatch = createEventDispatcher();
@@ -11,35 +14,84 @@
     export let userAddress: string;
 
     async function resetSpectatorStatus() {
+        const hadModal = await closeModal();
         try {
             await apiClient.resetSpectatorStatus(userAddress);
-            alert("Spectator status reset successfully");
+            await modalAlert("Spectator status reset successfully");
+            if (hadModal) {
+                openUserProfile(userAddress);
+            }
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
         }
     }
 
     async function invalidateAuthTokens() {
-        try {
-            await apiClient.invalidateUserAuthTokens(userAddress);
-            alert("Auth tokens invalidated successfully");
-        } catch (e) {
-            alert("An error occurred: " + e);
+        const hadModal = await closeModal();
+        if (await modalConfirm("Are you sure? This will sign out the user on all devices.")) {
+            try {
+                await apiClient.invalidateUserAuthTokens(userAddress);
+                await modalAlert("Auth tokens invalidated successfully");
+            } catch (e) {
+                await modalAlert("An error occurred: " + e);
+            }
+        }
+        if (hadModal) {
+            openUserProfile(userAddress);
         }
     }
 
     async function clearProfile() {
+        const hadModal = await closeModal();
         try {
             await apiClient.clearUserProfile(userAddress);
-            alert("User profile cleared successfully");
+            await modalAlert("User profile cleared successfully");
             dispatch("cleared");
         } catch (e) {
-            alert("An error occurred: " + e);
+            await modalAlert("An error occurred: " + e);
+        }
+        if (hadModal) {
+            openUserProfile(userAddress);
         }
     }
 
     function chatHistory() {
         navigate("/moderate/users/" + userAddress + "/chathistory");
+    }
+
+    async function adjustPointsBalance() {
+        const hadModal = await closeModal();
+        await (async () => {
+            let valueStr = await modalPrompt(
+                "Enter the integer value (positive or negative) for the adjustment, or press cancel:",
+                "Adjust points balance",
+            );
+            if (valueStr === null) {
+                return;
+            }
+            let value = parseInt(valueStr);
+            if (isNaN(value)) {
+                await modalAlert("Invalid value");
+                return;
+            }
+            let reason = await modalPrompt(
+                `Adjusting points balance of ${userAddress} by ${value} points.` +
+                    "\n\nEnter a reason, or press cancel:",
+                "Adjust points balance",
+            );
+            if (reason === null) {
+                return;
+            }
+            try {
+                await apiClient.adjustPointsBalance(userAddress, value, reason);
+                await modalAlert("Balance adjustment successful");
+            } catch (e) {
+                await modalAlert("An error occurred when adjusting the points balance: " + e);
+            }
+        })();
+        if (hadModal) {
+            openUserProfile(userAddress);
+        }
     }
 </script>
 
@@ -82,9 +134,16 @@
         <p>This address is not currently registered as a spectator.</p>
     {/await}
     <p class="mt-6 mb-4">
+        <ButtonButton on:click={adjustPointsBalance}>
+            <span class="inline">Adjust <PointsIcon /> balance</span>
+        </ButtonButton>
+    </p>
+    <p class="mt-6 mb-4">
         <ButtonButton on:click={clearProfile}>Clear user profile</ButtonButton>
     </p>
     <p class="mt-6 mb-4">
-        <ButtonButton color="red" on:click={invalidateAuthTokens}>Invalidate user auth tokens (sign user off on all devices)</ButtonButton>
+        <ButtonButton color="red" on:click={invalidateAuthTokens}>
+            Invalidate user auth tokens (sign user out on all devices)
+        </ButtonButton>
     </p>
 </div>

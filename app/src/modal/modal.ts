@@ -1,5 +1,5 @@
 import type { Close, Context, Open } from "svelte-simple-modal";
-import { writable, type Unsubscriber } from "svelte/store";
+import { get, writable, type Unsubscriber } from "svelte/store";
 import ModalAlert from "./ModalAlert.svelte";
 import ModalCloseButton from "./ModalCloseButton.svelte";
 import ModalConfirm from "./ModalConfirm.svelte";
@@ -40,16 +40,30 @@ export function openModal(mi: ModalData) {
     processModalQueue();
 }
 
+let currentModalClosePromiseResolve: () => void;
+
 /**
  * closeModal closes the modal that is presently being displayed.
+ * @returns true if a modal was closed
  */
-export function closeModal() {
+export async function closeModal(): Promise<boolean> {
+    const p = new Promise<void>(resolve => currentModalClosePromiseResolve = resolve);
+    let hadModal = get(currentModal) !== null;
     if (modalClose !== undefined) {
         modalClose(); // and later on, onModalClosed gets called when it finishes closing, and modalCurrentlyActuallyClosed is set to true in there
+        if (hadModal) {
+            await p;
+        }
+        return hadModal;
     }
+    return false;
 }
 
 export function onModalClosed() {
+    if (currentModalClosePromiseResolve !== undefined) {
+        currentModalClosePromiseResolve();
+        currentModalClosePromiseResolve = undefined;
+    }
     modalCurrentlyActuallyClosed = true;
     processModalQueue();
 }

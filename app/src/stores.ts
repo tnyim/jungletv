@@ -4,6 +4,7 @@ import type { ActivityChallenge, ChatGifSearchResult, PermissionLevelMap, Subscr
 
 type valueof<T> = T[keyof T];
 
+export const playerOpen = writable(false);
 export const playerConnected = writable(false);
 export const playerCurrentTime = writable(0);
 export const playerVolume = writable(((): number => {

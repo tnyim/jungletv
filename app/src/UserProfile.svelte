@@ -91,6 +91,10 @@
         await refreshProfile();
     });
 
+    onMount(() => {
+        return permissionLevel.subscribe(() => refreshProfile());
+    });
+
     onDestroy(async () => {
         if (isSelf) {
             await editNickname();
@@ -104,8 +108,8 @@
         userProfile = await apiClient.userProfile(userAddressOrApplicationID);
         nickname = userProfile.getUser().hasNickname() ? userProfile.getUser().getNickname() : "";
         rolesList = userProfile.getUser().getRolesList();
-        isSelf = userAddressOrApplicationID == $rewardAddress
-        isApplication = rolesList.includes(UserRole.APPLICATION)
+        isSelf = userAddressOrApplicationID == $rewardAddress;
+        isApplication = rolesList.includes(UserRole.APPLICATION);
         userStatus = userProfile.getUser().getStatus();
         recentRequests = userProfile.getRecentlyPlayedRequestsList();
         biography = userProfile.getBiography();

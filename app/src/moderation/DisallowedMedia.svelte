@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { AddDisallowedMediaCollectionResponse, AddDisallowedMediaResponse } from "../proto/jungletv_pb";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
-    import { hrefButtonStyleClasses, parseURLForMediaSelection } from "../utils";
+    import TextInput from "../uielements/TextInput.svelte";
+    import { parseURLForMediaSelection } from "../utils";
     import DisallowedMediaCollectionsTable from "./DisallowedMediaCollectionsTable.svelte";
     import DisallowedMediaEntryTable from "./DisallowedMediaEntryTable.svelte";
 
@@ -79,15 +79,15 @@
     }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
-    <p class="mb-6">
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
+<div class="m-6 grow container mx-auto max-w-screen-lg px-2">
+    <p class="font-semibold text-lg">Disallowed media</p>
+    <p class="text-sm mt-2">
+        Disallowed media can't be enqueued. Media may be disallowed individually or based on its parent collection.
     </p>
     <p class="mt-6">Note: always enter a specific video or track URL even when disallowing a channel or user</p>
-    <div class="px-2 grid grid-rows-1 grid-cols-5 gap-6 mb-6">
-        <input
-            class="col-span-3 dark:text-black"
-            type="text"
+    <div class="grid grid-cols-5 gap-6">
+        <TextInput
+            extraClasses="col-span-3"
             placeholder="URL of YouTube video or SoundCloud track to disallow"
             bind:value={disallowMediaURL}
         />

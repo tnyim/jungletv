@@ -35,16 +35,7 @@
 	} from "./configurationStores";
 	import { defaultTabs } from "./defaultTabs";
 	import { closeModal, modalSetContext, onModalClosed } from "./modal/modal";
-	import ApplicationConsole from "./moderation/ApplicationConsole.svelte";
-	import ApplicationDetails from "./moderation/ApplicationDetails.svelte";
-	import ApplicationFileEditor from "./moderation/ApplicationFileEditor.svelte";
-	import Applications from "./moderation/Applications.svelte";
-	import DisallowedMedia from "./moderation/DisallowedMedia.svelte";
-	import Documents from "./moderation/Documents.svelte";
-	import EditDocument from "./moderation/EditDocument.svelte";
-	import UserBans from "./moderation/UserBans.svelte";
-	import UserChatHistory from "./moderation/UserChatHistory.svelte";
-	import UserVerifications from "./moderation/UserVerifications.svelte";
+	import { addNavigationDestination, removeNavigationDestination } from "./navigationStores";
 	import { pageTitleApplicationPage, pageTitleMedia, pageTitlePopoutTab } from "./pageTitleStores";
 	import { setUserProfileComponent } from "./profile_utils";
 	import { PermissionLevel } from "./proto/jungletv_pb";
@@ -339,6 +330,22 @@
 	}
 
 	$: chatMentionTTSAlert($unreadChatMention);
+
+	$: if ($permissionLevel == PermissionLevel.ADMIN) {
+		addNavigationDestination(
+			{
+				builtIn: true,
+				id: "controlpanel",
+				href: "/moderate",
+				icon: "fas fa-cogs",
+				label: "Control Panel",
+				highlighted: false,
+			},
+			"about",
+		);
+	} else {
+		removeNavigationDestination("controlpanel");
+	}
 </script>
 
 <div bind:this={rootInsideShadowRoot} class={$darkMode ? "bg-gray-900 dark" : "bg-gray-100"} style="height: 100vh">
@@ -395,21 +402,7 @@
 				</Route>
 				<Route path="/moderate/*">
 					{#if isAdmin}
-						<Route path="/" component={Moderate} />
-						<Route path="users/:address/chathistory" component={UserChatHistory} />
-						<Route path="media/disallowed" component={DisallowedMedia} />
-						<Route path="bans" component={UserBans} />
-						<Route path="verifiedusers" component={UserVerifications} />
-						<Route path="applications/*">
-							<Route path="/" component={Applications} />
-							<Route path=":applicationID" component={ApplicationDetails} />
-							<Route path=":applicationID/files/:fileName" component={ApplicationFileEditor} />
-							<Route path=":applicationID/console" component={ApplicationConsole} />
-						</Route>
-						<Route path="documents/*">
-							<Route path="/" component={Documents} />
-							<Route path=":documentID" component={EditDocument} />
-						</Route>
+						<Route component={Moderate} />
 					{:else}
 						<a href="/admin/signin">Sign in</a>
 					{/if}

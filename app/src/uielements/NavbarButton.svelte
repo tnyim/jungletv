@@ -11,7 +11,7 @@
 <button
     bind:this={button}
     type="button"
-    class="p-1 lg:py-2 h-full flex flex-col items-center rounded
+    class="w-full p-1 lg:py-2 h-full flex flex-col items-center rounded
     dark:text-gray-300 text-gray-700
     hover:shadow-lg hover:bg-gray-200 dark:hover:bg-gray-800
     focus:shadow-lg focus:bg-gray-200 dark:focus:bg-gray-800

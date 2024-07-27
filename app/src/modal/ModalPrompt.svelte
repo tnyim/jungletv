@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import ButtonButton from "../uielements/ButtonButton.svelte";
+    import TextInput from "../uielements/TextInput.svelte";
 
     export let resultCallback: ([string, boolean]) => void;
     export let title: string;
@@ -31,14 +32,7 @@
     {/if}
     <p class="whitespace-pre-line">{question}</p>
     <div class="mt-1 flex rounded-md shadow-sm">
-        <input
-            bind:this={input}
-            on:keydown={handleEnter}
-            type="text"
-            class="dark:bg-gray-950 focus:ring-yellow-500 focus:outline-none focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border border-gray-300 p-2"
-            {placeholder}
-            bind:value
-        />
+        <TextInput bind:input on:keydown={handleEnter} {placeholder} bind:value />
     </div>
 </div>
 <div

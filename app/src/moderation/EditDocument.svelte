@@ -56,7 +56,11 @@
             }
         } catch {}
         if (hasConflict) {
-            if (!(await modalConfirm("The document has been edited in a different editor. Are you sure you want to save, potentially losing changes?"))) {
+            if (
+                !(await modalConfirm(
+                    "The document has been edited in a different editor. Are you sure you want to save, potentially losing changes?",
+                ))
+            ) {
                 return;
             }
         }
@@ -191,7 +195,7 @@
 
 <div class="grow mx-auto editor-container flex flex-col">
     <div class="flex flex-row flex-wrap space-x-2 bg-gray-50 dark:bg-gray-950">
-        <a use:link href="/moderate" class="block {hrefButtonStyleClasses()}}">
+        <a use:link href="/moderate/documents" class="block {hrefButtonStyleClasses()}}">
             <i class="fas fa-arrow-left" />
         </a>
         <h1 class="text-lg block pt-1">

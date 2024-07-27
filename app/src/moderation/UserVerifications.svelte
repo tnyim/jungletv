@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { link } from "svelte-navigator";
     import { apiClient } from "../api_client";
     import type { PaginationParameters } from "../proto/common_pb";
     import type { UserVerification } from "../proto/jungletv_pb";
@@ -8,7 +7,7 @@
     import ErrorMessage from "../uielements/ErrorMessage.svelte";
     import PaginatedTable from "../uielements/PaginatedTable.svelte";
     import SuccessMessage from "../uielements/SuccessMessage.svelte";
-    import { hrefButtonStyleClasses } from "../utils";
+    import TextInput from "../uielements/TextInput.svelte";
 
     export let searchQuery = "";
     let prevSearchQuery = "";
@@ -43,7 +42,7 @@
                 skipClientIntegrityChecks,
                 skipIPAddressReputationChecks,
                 reduceHardChallengeFrequency,
-                reason
+                reason,
             );
             verificationID = response.getVerificationId();
             verificationError = "";
@@ -71,20 +70,19 @@
     }
 </script>
 
-<div class="m-6 grow container mx-auto max-w-screen-lg p-2">
-    <p class="mb-6">
-        <a use:link href="/moderate" class={hrefButtonStyleClasses()}>Back to moderation dashboard</a>
+<div class="mt-6 px-2">
+    <p class="font-semibold text-lg">Verified users</p>
+    <p class="text-sm mt-2">
+        Verified users may bypass some of the anti-abuse checks most users are subject to.
+        <br />
+        A user may be verified as long as JungleTV staff is sufficiently confident that their identity has no overlap with
+        those assumed by any other users. Make sure to include all relevant references in the reason field.
     </p>
-    <div class="mt-10 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12">
+    <div class="mt-6 grid grid-rows-1 grid-cols-1 lg:grid-cols-2 gap-12 mb-8 max-w-screen-lg mx-auto">
         <div>
-            <p class="font-semibold text-lg">Verify user</p>
-            <div class="grid grid-rows-5 grid-cols-3 gap-6 max-w-screen-sm">
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Banano address"
-                    bind:value={verifyRewardAddress}
-                />
+            <p class="font-semibold text-lg mb-2">Verify user</p>
+            <div class="grid grid-cols-3 gap-6 max-w-screen-sm">
+                <TextInput extraClasses="col-span-3" placeholder="Banano address" bind:value={verifyRewardAddress} />
                 <div>
                     <input
                         id="skipClientIntegrityChecks"
@@ -121,51 +119,44 @@
                         Reduce captcha frequency
                     </label>
                 </div>
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Reason for verification"
-                    bind:value={reason}
-                />
+                <TextInput extraClasses="col-span-3" placeholder="Reason for verification" bind:value={reason} />
                 <ButtonButton type="submit" color="green" extraClasses="col-span-3" on:click={verifyUser}>
                     Verify user
                 </ButtonButton>
-                <div class="col-span-3">
-                    {#if verificationID != ""}
-                        Take note of the following ID:<br />{verificationID}
-                    {/if}
-                    {#if verificationError != ""}
-                        <ErrorMessage>{verificationError}</ErrorMessage>
-                    {/if}
-                </div>
+                {#if verificationID != "" || verificationError != ""}
+                    <div class="col-span-3">
+                        {#if verificationID != ""}
+                            Take note of the following ID:<br />{verificationID}
+                        {/if}
+                        {#if verificationError != ""}
+                            <ErrorMessage>{verificationError}</ErrorMessage>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
         <div>
-            <p class="font-semibold text-lg">Remove verification</p>
-            <div class="grid grid-rows-3 grid-cols-1 gap-6 max-w-screen-sm">
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
-                    placeholder="Verification ID"
-                    bind:value={removeVerificationID}
-                />
-                <input
-                    class="col-span-3 dark:text-black"
-                    type="text"
+            <p class="font-semibold text-lg mb-2">Remove verification</p>
+            <div class="grid grid-cols-1 gap-6 max-w-screen-sm">
+                <TextInput extraClasses="col-span-3" placeholder="Verification ID" bind:value={removeVerificationID} />
+                <TextInput
+                    extraClasses="col-span-3"
                     placeholder="Reason for removing"
                     bind:value={removeVerificationReason}
                 />
                 <ButtonButton type="submit" color="blue" extraClasses="col-span-3" on:click={removeVerification}>
                     Remove verification
                 </ButtonButton>
-                <div class="col-span-3">
-                    {#if removeVerificationSuccessful}
-                        <SuccessMessage>Verification removed successfully</SuccessMessage>
-                    {/if}
-                    {#if removeVerificationError != ""}
-                        <ErrorMessage>{removeVerificationError}</ErrorMessage>
-                    {/if}
-                </div>
+                {#if removeVerificationSuccessful || removeVerificationError != ""}
+                    <div class="col-span-3">
+                        {#if removeVerificationSuccessful}
+                            <SuccessMessage>Verification removed successfully</SuccessMessage>
+                        {/if}
+                        {#if removeVerificationError != ""}
+                            <ErrorMessage>{removeVerificationError}</ErrorMessage>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
     </div>

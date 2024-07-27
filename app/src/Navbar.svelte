@@ -63,6 +63,7 @@
     let overflowGridClasses = "grid-cols-3 min-w-96";
     let heroClasses = "col-span-full";
     let moreButtonHighlighted = false;
+    let anyDestinationHighlighted = false;
     $: {
         if (
             overflowDestinations.length % 3 != 0 &&
@@ -74,6 +75,10 @@
             overflowGridClasses = "grid-cols-3 min-w-96";
         }
         moreButtonHighlighted = overflowDestinations.some((d) => d.highlighted);
+        anyDestinationHighlighted =
+            moreButtonHighlighted ||
+            primaryDestinations.some((d) => d.highlighted) ||
+            heroDestinations.some((d) => d.highlighted);
     }
     $: {
         let remainder = (overflowDestinations.length + primaryDestinations.length) % (mediumScreen ? 4 : 3);
@@ -142,6 +147,7 @@
                     <NavbarButton
                         iconClasses="fas {navbarOpen ? 'fa-times' : 'fa-bars'}"
                         label=""
+                        highlighted={anyDestinationHighlighted}
                         extraClasses="text-xl px-3 justify-center"
                         on:click={setNavbarOpen}
                     />

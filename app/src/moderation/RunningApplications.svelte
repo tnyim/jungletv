@@ -4,13 +4,13 @@
     import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
     import { formatDateForModeration } from "../utils";
 
-    export let runningApplications: RunningApplication[];
+    export let runningApplications: RunningApplication[] = [];
 
     consumeStreamRPCFromSvelteComponent(
         20000,
         5000,
         apiClient.monitorRunningApplications.bind(apiClient),
-        handleRunningApplicationsUpdated
+        handleRunningApplicationsUpdated,
     );
 
     function handleRunningApplicationsUpdated(applications: RunningApplications) {
