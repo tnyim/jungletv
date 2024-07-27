@@ -60,6 +60,7 @@ type transpiledFilesMapKey struct {
 
 type appInstance struct {
 	state              *appInstanceState
+	interruptManager   *runtimeInterruptManager
 	applicationID      string
 	applicationVersion types.ApplicationVersion
 	applicationUser    auth.User
@@ -93,8 +94,8 @@ type appInstance struct {
 	terminationWaitGroup sync.WaitGroup
 	stopWatchdog         func()
 	feedWatchdog         func()
-	vmInterrupt          func(v any)
-	vmClearInterrupt     func()
+
+	pauseInterruptToken runtimeInterruptToken
 }
 
 type panicResult struct {
@@ -122,6 +123,7 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 			onPaused:     event.NewNoArg(),
 			onTerminated: event.NewNoArg(),
 		},
+		interruptManager:                &runtimeInterruptManager{},
 		applicationID:                   applicationID,
 		applicationVersion:              applicationVersion,
 		applicationWallet:               applicationWallet,
@@ -222,9 +224,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.ctx, a.ctxCancel = context.WithCancelCause(ctx)
 	a.userSerializer.SetContext(a.ctx)
 
-	if a.vmClearInterrupt != nil {
-		a.vmClearInterrupt()
-	}
+	a.interruptManager.ClearInterrupt(a.pauseInterruptToken)
 	a.loop.Start()
 	a.state.MarkAsRunning()
 	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
@@ -245,7 +245,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			return stacktrace.Propagate(err, "")
 		}
 
-		a.loop.RunOnLoop(func(r *goja.Runtime) {
+		a.ScheduleNoError(func(r *goja.Runtime) {
 			r.SetPromiseRejectionTracker(a.promiseRejectionTracker)
 
 			// in its infinite wisdom, the eventloop doesn't expose any way to interrupt a running script
@@ -253,8 +253,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			// scheduled by JS functions in a JS setTimeout call.
 			// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
 			// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
-			a.vmInterrupt = r.Interrupt
-			a.vmClearInterrupt = r.ClearInterrupt
+			a.interruptManager.configureForRuntime(r)
 
 			_, err = r.RunScript("", runtimeBaseCode)
 
@@ -289,7 +288,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 		}
 		a.ranInitCode = true
 	} else {
-		a.loop.RunOnLoop(func(r *goja.Runtime) {
+		a.ScheduleNoError(func(r *goja.Runtime) {
 			a.modules.ExecutionResumed(a.ctx)
 		})
 	}
@@ -390,14 +389,19 @@ func (a *appInstance) ScheduleNoError(f func(vm *goja.Runtime)) {
 
 func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(panicResult)) bool {
 	return a.loop.RunOnLoop(func(vm *goja.Runtime) {
+		a.TerminationWaitGroupAdd(1)
+		defer a.TerminationWaitGroupDone()
+
 		a.feedWatchdog() // if we got scheduled then the loop is not stuck
 		ranChan := make(chan struct{}, 1)
+		var interruptToken runtimeInterruptToken
+
 		waitGroup := sync.WaitGroup{}
 		waitGroup.Add(1)
 		go func() {
 			select {
-			case <-ctx.Done():
-				vm.Interrupt(appInstanceInterruptValue)
+			case <-ctx.Done(): // this might not be the execution context, it can be e.g. the REPL expression request context
+				interruptToken = a.interruptManager.Interrupt(requestInterruptValue)
 			case <-ranChan:
 			}
 			waitGroup.Done()
@@ -413,10 +417,11 @@ func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goj
 			}()
 			f(vm)
 		}()
+		a.interruptManager.ReinterruptIfNecessary()
 
 		ranChan <- struct{}{}
 		waitGroup.Wait()
-		vm.ClearInterrupt()
+		a.interruptManager.ClearInterrupt(interruptToken) // will do nothing if interruptToken is the zero value
 	})
 }
 
@@ -432,7 +437,8 @@ func (a *appInstance) promiseRejectionTracker(promise *goja.Promise, operation g
 	}
 }
 
-var appInstanceInterruptValue = struct{}{}
+var runtimeInterruptValue = "runtime execution interrupted"
+var requestInterruptValue = "request execution interrupted"
 
 // Pause pauses the application instance.
 // If waitUntilStopped is true and the application is already paused, ErrApplicationInstanceAlreadyPaused will be returned
@@ -505,7 +511,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	if force {
 		interrupt := func() {
 			a.appLogger.RuntimeLog(fmt.Sprintf("interrupting execution after waiting %s", after.String()))
-			a.vmInterrupt(appInstanceInterruptValue)
+			a.pauseInterruptToken = a.interruptManager.Interrupt(runtimeInterruptValue)
 			a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 			a.appLogger.RuntimeLog("execution interrupted")
 		}

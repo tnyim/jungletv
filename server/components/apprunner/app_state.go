@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dop251/goja"
 	"github.com/tnyim/jungletv/utils/event"
 )
 
@@ -101,5 +102,66 @@ func (s *appInstanceState) Snapshot() readOnlyAppInstanceState {
 	return &appInstanceState{
 		status:             s.status,
 		startedOrStoppedAt: s.startedOrStoppedAt,
+	}
+}
+
+type runtimeInterruptManager struct {
+	mu                 sync.Mutex
+	vmInterrupt        func(v any)
+	vmClearInterrupt   func()
+	tokenCounter       runtimeInterruptToken
+	activeTokens       map[runtimeInterruptToken]struct{}
+	lastInterruptValue any
+}
+
+type runtimeInterruptToken int64
+
+func (r *runtimeInterruptManager) configureForRuntime(vm *goja.Runtime) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.activeTokens = make(map[runtimeInterruptToken]struct{})
+	r.vmInterrupt = vm.Interrupt
+	r.vmClearInterrupt = vm.ClearInterrupt
+}
+
+func (r *runtimeInterruptManager) Interrupt(v any) runtimeInterruptToken {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.vmInterrupt == nil {
+		panic("attempt to interrupt without configuring with a runtime first")
+	}
+
+	// start the first token at 1 so that the zero value of runtimeInterruptToken is never a valid token
+	r.tokenCounter++
+	token := r.tokenCounter
+	r.activeTokens[token] = struct{}{}
+	r.lastInterruptValue = v
+	r.vmInterrupt(v)
+	return token
+}
+
+func (r *runtimeInterruptManager) ReinterruptIfNecessary() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if len(r.activeTokens) > 0 {
+		r.vmInterrupt(r.lastInterruptValue)
+	}
+}
+
+func (r *runtimeInterruptManager) ClearInterrupt(token runtimeInterruptToken) {
+	if token <= 0 {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.vmClearInterrupt == nil {
+		panic("attempt to clear interrupt without configuring with a runtime first")
+	}
+
+	delete(r.activeTokens, token)
+	if len(r.activeTokens) == 0 {
+		r.vmClearInterrupt()
 	}
 }
