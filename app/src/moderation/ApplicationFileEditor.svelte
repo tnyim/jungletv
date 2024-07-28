@@ -19,7 +19,7 @@
     import { modalAlert, modalConfirm, modalPrompt } from "../modal/modal";
     import { ApplicationFile, RunningApplication } from "../proto/application_editor_pb";
     import { consumeStreamRPCFromSvelteComponent } from "../rpcUtils";
-    import { darkMode } from "../stores";
+    import { darkMode, playerOpen } from "../stores";
     import ButtonButton from "../uielements/ButtonButton.svelte";
     import { hrefButtonStyleClasses } from "../utils";
     import ApplicationConsole from "./ApplicationConsole.svelte";
@@ -41,7 +41,7 @@
         20000,
         5000,
         apiClient.monitorRunningApplications.bind(apiClient),
-        handleRunningApplicationsUpdated
+        handleRunningApplicationsUpdated,
     );
 
     function handleRunningApplicationsUpdated(applications: RunningApplications) {
@@ -261,7 +261,7 @@
     onDestroy(mediaUnsubscribe);
 </script>
 
-<div class="grow mx-auto editor-container flex flex-col">
+<div class="grow {$playerOpen ? 'editor-container-minus-player-padding' : 'editor-container'} flex flex-col min-h-0">
     <div class="flex flex-row flex-wrap space-x-2 bg-gray-50 dark:bg-gray-950">
         <a use:link href="/moderate/applications/{applicationID}" class="block {hrefButtonStyleClasses()}">
             <i class="fas fa-arrow-left" />
@@ -281,7 +281,7 @@
         <ButtonButton type="submit" on:click={save} extraClasses="block">Save</ButtonButton>
     </div>
 
-    <div class="overflow-hidden h-full">
+    <div class="grow min-h-0 flex">
         {#await fetchFile()}
             <p>Loading file...</p>
         {:then}
@@ -297,7 +297,9 @@
 
 <style>
     .editor-container {
-        width: 100%;
         height: calc(100vh - 4rem);
+    }
+    .editor-container-minus-player-padding {
+        height: calc(100vh - 4rem - 16rem);
     }
 </style>

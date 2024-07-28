@@ -61,7 +61,7 @@
 
     function consumeApplicationLogRequestBuilder(
         onUpdate: (update: ApplicationLogEntryContainer) => void,
-        onEnd: (code: grpc.Code, msg: string) => void
+        onEnd: (code: grpc.Code, msg: string) => void,
     ): Request {
         return apiClient.consumeApplicationLog(applicationID, logLevels, true, latestLogCursor, onUpdate, onEnd);
     }
@@ -70,7 +70,7 @@
         20000,
         5000,
         consumeApplicationLogRequestBuilder,
-        handleNewLogMessage
+        handleNewLogMessage,
     );
 
     let showRuntimeErrors = true,
@@ -85,7 +85,7 @@
         showRuntimeLogs: boolean,
         showJSErrors: boolean,
         showJSWarnings: boolean,
-        showJSLogs: boolean
+        showJSLogs: boolean,
     ) {
         let levels = [];
         if (showRuntimeErrors) {
@@ -367,10 +367,10 @@
                 on:mouseenter={() => onEntryMouseEnter(entry)}
                 on:mouseleave={() => onEntryMouseLeave(entry)}
             >
-                <div class="w-5 text-right mr-2">
+                <div class="flex-shrink-0 w-5 text-right mr-2">
                     <i class={iconForEntry(entry)} />
                 </div>
-                <div class="grow font-mono">
+                <div class="grow min-w-0 font-mono break-words">
                     {#if entry.result}
                         <span
                             class="whitespace-pre-wrap {entry.result.response.getSuccessful()
@@ -384,7 +384,7 @@
                     {/if}
                 </div>
 
-                <div class="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
+                <div class="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
                     {#if entry.result}
                         <span title={formatLogEntryTime(entry.result.receivedAt)}>
                             {formatExecutionTime(entry.result.response.getExecutionTime())}
@@ -425,7 +425,6 @@
 
 <style>
     .console-container {
-        width: 100%;
         max-height: calc(100vh - 4rem);
     }
 </style>
