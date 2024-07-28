@@ -48,7 +48,6 @@ import (
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
 	"github.com/tnyim/jungletv/utils/transaction"
-	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
@@ -89,13 +88,16 @@ type appInstance struct {
 	promisesWithoutRejectionHandler map[*goja.Promise]struct{}
 
 	// context for this instance's current execution: derives from the context passed in StartOrResume(), lives as long as each execution of this instance does
-	ctx                  context.Context
-	ctxCancel            context.CancelCauseFunc
-	terminationWaitGroup sync.WaitGroup
-	stopWatchdog         func()
-	feedWatchdog         func()
+	ctx       context.Context
+	ctxCancel context.CancelCauseFunc
+	// outOfLoopWaitGroup is used to wait for tasks that run out of the loop and whose finalization needs to be tracked,
+	// before the application can be considered terminated
+	outOfLoopWaitGroup sync.WaitGroup
+	// do not use feedWatchdogChan directly, call a.feedWatchdog
+	feedWatchdogChan chan struct{}
 
-	pauseInterruptToken runtimeInterruptToken
+	// runOnLoopWithInterruptionLeaveChan is here to be reused across invocations of runOnLoopWithInterruption
+	runOnLoopWithInterruptionLeaveChan chan struct{}
 }
 
 type panicResult struct {
@@ -123,17 +125,19 @@ func (r *AppRunner) newAppInstance(applicationID string, applicationVersion type
 			onPaused:     event.NewNoArg(),
 			onTerminated: event.NewNoArg(),
 		},
-		interruptManager:                &runtimeInterruptManager{},
-		applicationID:                   applicationID,
-		applicationVersion:              applicationVersion,
-		applicationWallet:               applicationWallet,
-		runner:                          r,
-		modules:                         modules.NewCollection(),
-		appLogger:                       NewAppLogger(applicationID),
-		promisesWithoutRejectionHandler: make(map[*goja.Promise]struct{}),
-		userSerializer:                  gojautil.NewUserSerializer(d.UserCache),
-		transpiledFiles:                 make(map[transpiledFilesMapKey][]byte),
-		modLogWebhook:                   d.ModLogWebhook,
+		interruptManager:                   &runtimeInterruptManager{},
+		applicationID:                      applicationID,
+		applicationVersion:                 applicationVersion,
+		applicationWallet:                  applicationWallet,
+		runner:                             r,
+		modules:                            modules.NewCollection(),
+		appLogger:                          NewAppLogger(applicationID),
+		promisesWithoutRejectionHandler:    make(map[*goja.Promise]struct{}),
+		userSerializer:                     gojautil.NewUserSerializer(d.UserCache),
+		transpiledFiles:                    make(map[transpiledFilesMapKey][]byte),
+		modLogWebhook:                      d.ModLogWebhook,
+		feedWatchdogChan:                   make(chan struct{}),
+		runOnLoopWithInterruptionLeaveChan: make(chan struct{}),
 	}
 
 	accountIndex := uint32(0)
@@ -224,10 +228,10 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 	a.ctx, a.ctxCancel = context.WithCancelCause(ctx)
 	a.userSerializer.SetContext(a.ctx)
 
-	a.interruptManager.ClearInterrupt(a.pauseInterruptToken)
+	a.interruptManager.ClearInterruptForResumption()
 	a.loop.Start()
 	a.state.MarkAsRunning()
-	a.stopWatchdog, a.feedWatchdog = a.startWatchdog(30 * time.Second)
+	a.startWatchdog(30 * time.Second)
 
 	if !a.ranInitCode {
 		// ensure that the nicknames table has the applicationID associated with this application,
@@ -253,7 +257,7 @@ func (a *appInstance) StartOrResume(ctx context.Context) error {
 			// scheduled by JS functions in a JS setTimeout call.
 			// so we do something we theoretically shouldn't do here, which is bring the values from the loop VM out of the
 			// context of RunOnLoop, but which after a "whitebox excursion" into the event loop code, should be fine
-			a.interruptManager.configureForRuntime(r)
+			a.interruptManager.ConfigureForRuntime(r)
 
 			_, err = r.RunScript("", runtimeBaseCode)
 
@@ -305,17 +309,16 @@ func (a *appInstance) sendLogEntryToModLog(entry ApplicationLogEntry) {
 	}
 }
 
-func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (func(), func()) {
-	doneCh := make(chan struct{})
-	feedCh := make(chan struct{})
-	feedWatchdog := func() {
-		select {
-		case feedCh <- struct{}{}:
-		default:
-		}
+func (a *appInstance) feedWatchdog() {
+	select {
+	case a.feedWatchdogChan <- struct{}{}:
+	default:
 	}
+}
+
+func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) {
 	interval := a.loop.SetInterval(func(vm *goja.Runtime) {
-		feedWatchdog()
+		a.feedWatchdog()
 		for promise := range a.promisesWithoutRejectionHandler {
 			value := promise.Result()
 			if !goja.IsUndefined(value) && !goja.IsNull(value) {
@@ -327,16 +330,17 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (fu
 			}
 			a.appLogger.RuntimeError(fmt.Sprintf("Uncaught (in promise) %s", value))
 		}
-		maps.Clear(a.promisesWithoutRejectionHandler)
+		clear(a.promisesWithoutRejectionHandler)
 	}, 1*time.Second)
 	go func() {
+		defer a.loop.ClearInterval(interval)
 		timer := time.NewTimer(tolerateEventLoopStuckFor)
 		defer timer.Stop()
 		for {
 			select {
-			case <-doneCh:
+			case <-a.ctx.Done():
 				return
-			case <-feedCh:
+			case <-a.feedWatchdogChan:
 				if !timer.Stop() {
 					<-timer.C
 				}
@@ -348,26 +352,23 @@ func (a *appInstance) startWatchdog(tolerateEventLoopStuckFor time.Duration) (fu
 			}
 		}
 	}()
-
-	return func() {
-		select {
-		case doneCh <- struct{}{}:
-		default:
-		}
-		a.loop.ClearInterval(interval)
-	}, feedWatchdog
 }
 
 func (a *appInstance) ExecutionContext() context.Context {
 	return a.ctx
 }
 
-func (a *appInstance) TerminationWaitGroupAdd(n int) {
-	a.terminationWaitGroup.Add(n)
+// OutOfLoopWaitGroupAdd should be called by code that runs **outside of the event loop**
+// when launching tasks whose finalization needs to be tracked before the application can be considered terminated
+// (tracking the termination of the tasks inside the event loop is already handled by a.loop.Terminate)
+func (a *appInstance) OutOfLoopWaitGroupAdd(n int) {
+	a.outOfLoopWaitGroup.Add(n)
 }
 
-func (a *appInstance) TerminationWaitGroupDone() {
-	a.terminationWaitGroup.Done()
+// OutOfLoopWaitGroupDone should be called by code that runs **outside of the event loop**
+// to track the finalization of the tasks that warranted calling TerminationWaitGroupAdd
+func (a *appInstance) OutOfLoopWaitGroupDone() {
+	a.outOfLoopWaitGroup.Done()
 }
 
 func (a *appInstance) Schedule(f func(vm *goja.Runtime) error) {
@@ -389,40 +390,43 @@ func (a *appInstance) ScheduleNoError(f func(vm *goja.Runtime)) {
 
 func (a *appInstance) runOnLoopWithInterruption(ctx context.Context, f func(*goja.Runtime), panicCb func(panicResult)) bool {
 	return a.loop.RunOnLoop(func(vm *goja.Runtime) {
-		a.TerminationWaitGroupAdd(1)
-		defer a.TerminationWaitGroupDone()
-
 		a.feedWatchdog() // if we got scheduled then the loop is not stuck
-		ranChan := make(chan struct{}, 1)
-		var interruptToken runtimeInterruptToken
+		go contextMonitoringGoroutine(ctx, a.interruptManager, a.runOnLoopWithInterruptionLeaveChan)
 
-		waitGroup := sync.WaitGroup{}
-		waitGroup.Add(1)
-		go func() {
-			select {
-			case <-ctx.Done(): // this might not be the execution context, it can be e.g. the REPL expression request context
-				interruptToken = a.interruptManager.Interrupt(requestInterruptValue)
-			case <-ranChan:
-			}
-			waitGroup.Done()
-		}()
-
-		func() {
-			defer func() {
-				if x := recover(); x != nil {
-					if panicCb != nil {
-						panicCb(panicResult{x, debug.Stack()})
-					}
+		defer func() {
+			// wait for the context cancellation monitoring goroutine to end,
+			// regardless if due to context cancellation or because we begin receiving from the channel
+			// this runs in the deferred function, so that the goroutine isn't stuck forever in the event f panics
+			<-a.runOnLoopWithInterruptionLeaveChan
+			a.interruptManager.HandleJobFinished()
+			if x := recover(); x != nil {
+				if panicCb != nil {
+					panicCb(panicResult{x, debug.Stack()})
 				}
-			}()
-			f(vm)
+			}
 		}()
-		a.interruptManager.ReinterruptIfNecessary()
 
-		ranChan <- struct{}{}
-		waitGroup.Wait()
-		a.interruptManager.ClearInterrupt(interruptToken) // will do nothing if interruptToken is the zero value
+		// if the context is already cancelled, don't even begin executing f
+		// (we'd stop it anyway thanks to contextMonitoringGoroutine interrupting the VM pretty soon after, if it hasn't already done it,
+		// but this guarantees we don't even begin executing it)
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			f(vm)
+		}
 	})
+}
+
+func contextMonitoringGoroutine(ctx context.Context, interruptManager *runtimeInterruptManager, leaveChan chan<- struct{}) {
+	select {
+	case <-ctx.Done(): // this might not be the execution context, it can be e.g. the REPL expression request context
+		interruptManager.InterruptForSingleJob()
+		leaveChan <- struct{}{}
+	case leaveChan <- struct{}{}:
+		// this means the caller goroutine started listening to the channel, so the job is over,
+		// no need to continue monitoring context cancellation. return
+	}
 }
 
 func (a *appInstance) promiseRejectionTracker(promise *goja.Promise, operation goja.PromiseRejectionOperation) {
@@ -436,9 +440,6 @@ func (a *appInstance) promiseRejectionTracker(promise *goja.Promise, operation g
 		delete(a.promisesWithoutRejectionHandler, promise)
 	}
 }
-
-var runtimeInterruptValue = "runtime execution interrupted"
-var requestInterruptValue = "request execution interrupted"
 
 // Pause pauses the application instance.
 // If waitUntilStopped is true and the application is already paused, ErrApplicationInstanceAlreadyPaused will be returned
@@ -493,9 +494,6 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 
 	a.state.MarkAsPausing()
 
-	a.stopWatchdog()
-	a.stopWatchdog = nil
-
 	verbPresent, verbPast := "pausing", "paused"
 	if toTerminate {
 		verbPresent, verbPast = "terminating", "terminated"
@@ -511,7 +509,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	if force {
 		interrupt := func() {
 			a.appLogger.RuntimeLog(fmt.Sprintf("interrupting execution after waiting %s", after.String()))
-			a.pauseInterruptToken = a.interruptManager.Interrupt(runtimeInterruptValue)
+			a.interruptManager.InterruptForTermination()
 			a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 			a.appLogger.RuntimeLog("execution interrupted")
 		}
@@ -531,7 +529,7 @@ func (a *appInstance) pause(force bool, after time.Duration, toTerminate bool) e
 	}
 	a.ctxCancel(stacktrace.NewError("application execution interrupted"))
 	if toTerminate {
-		a.terminationWaitGroup.Wait()
+		a.outOfLoopWaitGroup.Wait()
 	}
 	plural := "s"
 	if jobs == 1 {

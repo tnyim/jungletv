@@ -46,6 +46,6 @@ type ApplicationContext interface {
 
 	ExecutionContext() context.Context
 
-	TerminationWaitGroupAdd(int)
-	TerminationWaitGroupDone()
+	OutOfLoopWaitGroupAdd(int)
+	OutOfLoopWaitGroupDone()
 }

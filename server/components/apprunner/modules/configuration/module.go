@@ -85,9 +85,9 @@ func (m *configurationModule) ExecutionResumed(ctx context.Context) {
 	unsub := m.pagesModule.OnPagePublished().SubscribeUsingCallback(event.BufferAll, m.updatePageConfigurablesOnPagePublish)
 	unsub2 := m.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferAll, m.resetPageConfigurablesOnPageUnpublish)
 
-	m.appContext.TerminationWaitGroupAdd(1)
+	m.appContext.OutOfLoopWaitGroupAdd(1)
 	go func() {
-		defer m.appContext.TerminationWaitGroupDone()
+		defer m.appContext.OutOfLoopWaitGroupDone()
 		<-ctx.Done()
 		unsub()
 		unsub2()

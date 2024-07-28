@@ -130,12 +130,12 @@ func (a *EventAdapter) StartOrResume(ctx context.Context, runtime *goja.Runtime)
 		}
 	}
 
-	a.appContext.TerminationWaitGroupAdd(1)
+	a.appContext.OutOfLoopWaitGroupAdd(1)
 	go a.pauseLater(ctx)
 }
 
 func (a *EventAdapter) pauseLater(ctx context.Context) {
-	defer a.appContext.TerminationWaitGroupDone()
+	defer a.appContext.OutOfLoopWaitGroupDone()
 
 	// wait for this application to be paused or terminated
 	<-ctx.Done()
