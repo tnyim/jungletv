@@ -5,6 +5,7 @@
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import SuccessMessage from "./uielements/SuccessMessage.svelte";
+    import TextInput from "./uielements/TextInput.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
 
@@ -88,20 +89,16 @@
                 Banano address for rewards
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
-                <input
+                <TextInput
+                    id="rewards_address"
+                    placeholder="ban_"
+                    hasError={failureReason !== ""}
+                    extraClasses="flex-1 font-mono"
                     on:input={() => {
                         failureReason = "";
                         successful = false;
                     }}
                     on:keydown={handleEnter}
-                    type="text"
-                    name="rewards_address"
-                    id="rewards_address"
-                    class="dark:bg-gray-950 focus:ring-yellow-500 focus:outline-none focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
-                    ''
-                        ? 'border-red-600'
-                        : 'border-gray-300'} p-2"
-                    placeholder="ban_"
                     bind:value={rewardsAddress}
                 />
             </div>

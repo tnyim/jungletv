@@ -3,6 +3,7 @@
     import { onDestroy, onMount, tick } from "svelte";
     import { formatBANPriceFixed } from "./currency_utils";
     import { playerCurrentTime, rewardAddress } from "./stores";
+    import TextInput from "./uielements/TextInput.svelte";
 
     export let numEntries = 0;
     export let totalLength: Duration;
@@ -103,12 +104,11 @@
 <div class="w-full flex flex-row">
     {#if searching}
         <div class="grow flex flex-col px-2 gap-2 mb-2" on:keydown={onKeyDown}>
-            <input
-                type="text"
-                placeholder="Search queue entries..."
-                class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border border-gray-300 p-2"
+            <TextInput
+                extraClasses="flex-1"
                 bind:value={searchQuery}
-                bind:this={searchBox}
+                bind:input={searchBox}
+                placeholder="Search queue entries..."
             />
             <div class="grid gap-2 text-xs grid-rows-1 grid-cols-2">
                 {#if $rewardAddress}

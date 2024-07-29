@@ -10,6 +10,7 @@
     import ButtonButton from "./uielements/ButtonButton.svelte";
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import TabButton from "./uielements/TabButton.svelte";
+    import TextInput from "./uielements/TextInput.svelte";
     import Wizard from "./uielements/Wizard.svelte";
     import { copyToClipboard, hrefButtonStyleClasses } from "./utils";
 
@@ -173,18 +174,14 @@
                 Message signature
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
-                <input
+                <TextInput
+                    id="message_signature"
+                    hasError={failureReason !== ""}
+                    extraClasses="flex-1 font-mono"
                     on:input={() => {
                         failureReason = "";
                     }}
                     on:keydown={handleEnter}
-                    type="text"
-                    name="message_signature"
-                    id="message_signature"
-                    class="font-mono dark:bg-gray-950 focus:ring-yellow-500 focus:outline-none focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
-                    ''
-                        ? 'border-red-600'
-                        : 'border-gray-300'} p-2"
                     bind:value={messageSignature}
                 />
             </div>

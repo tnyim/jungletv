@@ -12,6 +12,7 @@
     import ErrorMessage from "./uielements/ErrorMessage.svelte";
     import MediaRangeFloat from "./uielements/MediaRangeFloat.svelte";
     import PointsIcon from "./uielements/PointsIcon.svelte";
+    import TextInput from "./uielements/TextInput.svelte";
     import type { MediaSelectionKind, MediaSelectionParseResult } from "./utils";
     import { parseURLForMediaSelection } from "./utils";
 
@@ -120,7 +121,7 @@
                     anonymous,
                     $enqueuingPassword,
                     startOffset,
-                    endOffset
+                    endOffset,
                 );
             } else if (parseResult.type == "sc_track") {
                 request = apiClient.buildEnqueueSoundCloudTrackRequest(
@@ -130,7 +131,7 @@
                     anonymous,
                     $enqueuingPassword,
                     startOffset,
-                    endOffset
+                    endOffset,
                 );
             } else if (parseResult.type == "document") {
                 request = apiClient.buildEnqueueDocumentRequest(
@@ -141,7 +142,7 @@
                     anonymous,
                     $enqueuingPassword,
                     endOffset,
-                    parseResult.enqueueType
+                    parseResult.enqueueType,
                 );
             }
         } else {
@@ -151,7 +152,7 @@
                     unskippable,
                     concealed,
                     anonymous,
-                    $enqueuingPassword
+                    $enqueuingPassword,
                 );
             } else if (parseResult.type == "sc_track") {
                 request = apiClient.buildEnqueueSoundCloudTrackRequest(
@@ -159,7 +160,7 @@
                     unskippable,
                     concealed,
                     anonymous,
-                    $enqueuingPassword
+                    $enqueuingPassword,
                 );
             } else if (parseResult.type == "document") {
                 request = apiClient.buildEnqueueDocumentRequest(
@@ -170,7 +171,7 @@
                     anonymous,
                     $enqueuingPassword,
                     undefined,
-                    parseResult.enqueueType
+                    parseResult.enqueueType,
                 );
             }
         }
@@ -355,17 +356,15 @@
     YouTube video URL or SoundCloud track URL
 </label>
 <div class="mt-1 flex rounded-md shadow-sm">
-    <input
-        on:input={() => (failureReason = "")}
-        on:keydown={handleEnter}
-        type="text"
-        name="media_url"
+    <TextInput
         id="media_url"
-        class="dark:bg-gray-950 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 flex-1 block w-full rounded-md text-sm border {failureReason !==
-        ''
-            ? 'border-red-600'
-            : 'border-gray-300'} p-2"
         placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        hasError={failureReason !== ""}
+        extraClasses="flex-1"
+        on:input={() => {
+            failureReason = "";
+        }}
+        on:keydown={handleEnter}
         bind:value={mediaURL}
     />
 </div>
