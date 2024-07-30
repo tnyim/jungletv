@@ -385,7 +385,7 @@ func (e *AppEditor) DeleteApplication(ctxCtx context.Context, applicationID stri
 	// doing this here is definitely not the cleanest solution,
 	// but it's also something we brought upon ourselves by still having nicknames and application IDs being associated with a "chat" table
 	// and without types from the `types` package
-	_, err = ctx.ExecContext(ctx, `DELETE FROM chat_user WHERE "address" = $1`, appAddress)
+	_, err = ctx.ExecContext(ctx, `UPDATE chat_user SET permission_level = 'user', nickname = NULL, application_id = NULL WHERE "address" = $1`, appAddress)
 	if err != nil {
 		return stacktrace.Propagate(err, "")
 	}
