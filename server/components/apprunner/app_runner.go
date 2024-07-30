@@ -269,9 +269,18 @@ func (r *AppRunner) launchApplication(ctxCtx context.Context, applicationID stri
 	}
 	r.instances[applicationID] = instance
 
+	runningApplicationsUpdateOnPageChanges := func(_ string) {
+		r.onRunningApplicationsUpdated.Notify(r.RunningApplications(), false)
+	}
+	unsub := instance.pagesModule.OnPagePublished().SubscribeUsingCallback(event.BufferFirst, runningApplicationsUpdateOnPageChanges)
+	unsub2 := instance.pagesModule.OnPageUnpublished().SubscribeUsingCallback(event.BufferFirst, runningApplicationsUpdateOnPageChanges)
+
 	var startedAt time.Time
 	var terminatedUnsub func()
 	terminatedUnsub = instance.Terminated().SubscribeUsingCallback(event.BufferFirst, func() {
+		unsub()
+		unsub2()
+
 		r.instancesLock.Lock()
 		defer r.instancesLock.Unlock()
 
@@ -355,6 +364,7 @@ type RunningApplication struct {
 	ApplicationID      string
 	ApplicationVersion types.ApplicationVersion
 	StartedAt          time.Time
+	PublishedPages     []pages.PageInfoAndID
 }
 
 // RunningApplications returns a list of running applications
@@ -374,6 +384,7 @@ func (r *AppRunner) runningApplicationsNoLock() []RunningApplication {
 				ApplicationID:      instance.applicationID,
 				ApplicationVersion: version,
 				StartedAt:          startedAt,
+				PublishedPages:     instance.PublishedPages(),
 			})
 		}
 	}

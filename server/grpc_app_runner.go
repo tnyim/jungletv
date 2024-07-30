@@ -9,8 +9,10 @@ import (
 
 	"github.com/oklog/ulid/v2"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/proto"
 	"github.com/tnyim/jungletv/server/components/apprunner"
+	"github.com/tnyim/jungletv/server/components/apprunner/modules/pages"
 	authinterceptor "github.com/tnyim/jungletv/server/interceptors/auth"
 	"github.com/tnyim/jungletv/utils"
 	"github.com/tnyim/jungletv/utils/event"
@@ -316,6 +318,7 @@ func convertRunningApplication(orig apprunner.RunningApplication) *proto.Running
 		ApplicationId:      orig.ApplicationID,
 		ApplicationVersion: timestamppb.New(time.Time(orig.ApplicationVersion)),
 		StartedAt:          timestamppb.New(orig.StartedAt),
+		PublishedPageIds:   lo.Map(orig.PublishedPages, func(page pages.PageInfoAndID, _ int) string { return page.ID }),
 	}
 }
 

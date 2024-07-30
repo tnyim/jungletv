@@ -149,8 +149,8 @@
     }
 
     let runningApplications: RunningApplication[] = [];
-    $: launched =
-        typeof runningApplications?.find((a) => a.getApplicationId() === application?.getId()) !== "undefined";
+    $: runningApplication = runningApplications?.find((a) => a.getApplicationId() === application?.getId());
+    $: launched = typeof runningApplication !== "undefined";
 
     consumeStreamRPCFromSvelteComponent(
         20000,
@@ -228,42 +228,75 @@
                 />
             {/if}
         </div>
-        <p class="font-semibold text-lg mb-2">Properties</p>
-        <div class="mb-4 ml-6">
-            <p>
-                <input
-                    id="allowEditing"
-                    name="allowEditing"
-                    type="checkbox"
-                    bind:checked={allowEditing}
-                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                />
-                <label for="allowEditing" class="font-medium text-gray-700 dark:text-gray-300">Allow editing</label>
-            </p>
-            <p>
-                <input
-                    id="allowLaunching"
-                    name="allowLaunching"
-                    type="checkbox"
-                    bind:checked={allowLaunching}
-                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                />
-                <label for="allowLaunching" class="font-medium text-gray-700 dark:text-gray-300">Allow launching</label>
-            </p>
-            <p>
-                <input
-                    id="autorun"
-                    name="autorun"
-                    type="checkbox"
-                    bind:checked={autorun}
-                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
-                />
-                <label for="autorun" class="font-medium text-gray-700 dark:text-gray-300">Run on server start-up</label>
-            </p>
-            <p>
-                <ButtonButton on:click={updateProperties}>Update properties</ButtonButton>
-            </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="font-semibold text-lg mb-2">Properties</p>
+                <div class="mb-4 ml-6">
+                    <p>
+                        <input
+                            id="allowEditing"
+                            name="allowEditing"
+                            type="checkbox"
+                            bind:checked={allowEditing}
+                            class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                        />
+                        <label for="allowEditing" class="font-medium text-gray-700 dark:text-gray-300">
+                            Allow editing
+                        </label>
+                    </p>
+                    <p>
+                        <input
+                            id="allowLaunching"
+                            name="allowLaunching"
+                            type="checkbox"
+                            bind:checked={allowLaunching}
+                            class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                        />
+                        <label for="allowLaunching" class="font-medium text-gray-700 dark:text-gray-300">
+                            Allow launching
+                        </label>
+                    </p>
+                    <p>
+                        <input
+                            id="autorun"
+                            name="autorun"
+                            type="checkbox"
+                            bind:checked={autorun}
+                            class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 dark:border-black rounded"
+                        />
+                        <label for="autorun" class="font-medium text-gray-700 dark:text-gray-300">
+                            Run on server start-up
+                        </label>
+                    </p>
+                    <p>
+                        <ButtonButton on:click={updateProperties}>Update properties</ButtonButton>
+                    </p>
+                </div>
+            </div>
+            {#if launched && runningApplication?.getPublishedPageIdsList().length}
+                <div>
+                    <p class="font-semibold text-lg mb-2">Published pages</p>
+                    <ul class="list-disc list-inside mb-4 ml-6">
+                        {#each runningApplication.getPublishedPageIdsList() as publishedPageID}
+                            {@const pageURL = "/apps/" + runningApplication.getApplicationId() + "/" + publishedPageID}
+                            {#if publishedPageID}
+                                <li class="font-mono">
+                                    <a href={pageURL} use:link>{publishedPageID}</a>
+                                </li>
+                            {:else}
+                                <li>
+                                    <a href={pageURL} use:link class="italic">Index</a>
+                                </li>
+                            {/if}
+                        {:else}
+                            None
+                        {/each}
+                    </ul>
+                </div>
+            {/if}
         </div>
+
         <div class="mb-6">
             <p class="font-semibold text-lg mb-2">Backup and restore</p>
             <p class="ml-6">

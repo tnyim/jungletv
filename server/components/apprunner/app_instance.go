@@ -837,6 +837,10 @@ func (a *appInstance) ResolvePage(pageID string) (pages.PageInfo, types.Applicat
 	return p, a.applicationVersion, ok
 }
 
+func (a *appInstance) PublishedPages() []pages.PageInfoAndID {
+	return a.pagesModule.PublishedPages()
+}
+
 func (a *appInstance) ApplicationMethod(ctx context.Context, pageID, method string, args []string) (string, error) {
 	user := authinterceptor.UserFromContext(ctx)
 	invResult, _, err := runOnLoopSynchronouslyAndGetResult(ctx, a, func(vm *goja.Runtime) (rpc.InvocationResult, error) {

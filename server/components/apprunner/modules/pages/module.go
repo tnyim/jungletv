@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"regexp"
+	"sort"
 	"sync"
 
 	"github.com/dop251/goja"
@@ -24,6 +25,7 @@ const ModuleName = "jungletv:pages"
 type PagesModule interface {
 	modules.NativeModule
 	ResolvePage(pageID string) (PageInfo, bool)
+	PublishedPages() []PageInfoAndID
 	OnPagePublished() event.Event[string]
 	OnPageUnpublished() event.Event[string]
 }
@@ -43,6 +45,11 @@ type PageInfo struct {
 	Title  string
 	File   string
 	Header http.Header
+}
+
+type PageInfoAndID struct {
+	PageInfo
+	ID string
 }
 
 // New returns a new pages module
@@ -83,6 +90,28 @@ func (m *pagesModule) ResolvePage(pageID string) (PageInfo, bool) {
 
 	page, ok := m.pages[pageID]
 	return page, ok
+}
+
+func (m *pagesModule) PublishedPages() []PageInfoAndID {
+	result := func() []PageInfoAndID {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+
+		result := make([]PageInfoAndID, 0, len(m.pages))
+
+		for id, page := range m.pages {
+			result = append(result, PageInfoAndID{
+				PageInfo: page,
+				ID:       id,
+			})
+		}
+		return result
+	}()
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].ID < result[j].ID
+	})
+	return result
 }
 
 func (m *pagesModule) OnPagePublished() event.Event[string] {

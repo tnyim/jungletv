@@ -68,7 +68,7 @@
 </script>
 
 <div class="m-6 grow container mx-auto max-w-screen-lg px-2">
-    <div class="text-2xl flex flex-row items-center">
+    <div class="text-2xl flex flex-row items-center mb-6">
         <video
             src="/assets/brand/af.webm"
             autoplay={true}
@@ -86,7 +86,7 @@
 
     <RunningApplications bind:runningApplications />
 
-    <p class="mb-6">
+    <p class="my-6">
         <ButtonButton on:click={create}>Create application</ButtonButton>
     </p>
 
@@ -101,19 +101,17 @@
         bind:search_query={searchQuery}
         show_search_box={true}
     >
-        <svelte:fragment slot="thead">
-            <tr
-                slot="thead"
-                class="border border-solid border-l-0 border-r-0
+        <tr
+            slot="thead"
+            class="border border-solid border-l-0 border-r-0
                 bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600
                 text-xs uppercase whitespace-nowrap text-left"
-            >
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Application ID</th>
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
-                <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Properties</th>
-            </tr>
-        </svelte:fragment>
+        >
+            <th class="px-4 sm:px-6 align-middle py-3">Application ID</th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated by</th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Updated at</th>
+            <th class="px-4 sm:px-6 align-middle py-3 font-semibold">Properties</th>
+        </tr>
 
         <tbody slot="item" let:item let:updateDataCallback class="hover:bg-gray-200 dark:hover:bg-gray-700">
             <ApplicationTableItem

@@ -665,7 +665,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.jungletv.RunningApplication = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.jungletv.RunningApplication.repeatedFields_, null);
 };
 goog.inherits(proto.jungletv.RunningApplication, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -5776,6 +5776,13 @@ proto.jungletv.MonitorRunningApplicationsRequest.serializeBinaryToWriter = funct
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.jungletv.RunningApplication.repeatedFields_ = [4];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -5809,7 +5816,8 @@ proto.jungletv.RunningApplication.toObject = function(includeInstance, msg) {
   var f, obj = {
     applicationId: jspb.Message.getFieldWithDefault(msg, 1, ""),
     applicationVersion: (f = msg.getApplicationVersion()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    startedAt: (f = msg.getStartedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
+    startedAt: (f = msg.getStartedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    publishedPageIdsList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -5859,6 +5867,10 @@ proto.jungletv.RunningApplication.deserializeBinaryFromReader = function(msg, re
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setStartedAt(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addPublishedPageIds(value);
       break;
     default:
       reader.skipField();
@@ -5910,6 +5922,13 @@ proto.jungletv.RunningApplication.serializeBinaryToWriter = function(message, wr
       3,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getPublishedPageIdsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
     );
   }
 };
@@ -6004,6 +6023,43 @@ proto.jungletv.RunningApplication.prototype.clearStartedAt = function() {
  */
 proto.jungletv.RunningApplication.prototype.hasStartedAt = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * repeated string published_page_ids = 4;
+ * @return {!Array<string>}
+ */
+proto.jungletv.RunningApplication.prototype.getPublishedPageIdsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.jungletv.RunningApplication} returns this
+ */
+proto.jungletv.RunningApplication.prototype.setPublishedPageIdsList = function(value) {
+  return jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.jungletv.RunningApplication} returns this
+ */
+proto.jungletv.RunningApplication.prototype.addPublishedPageIds = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.jungletv.RunningApplication} returns this
+ */
+proto.jungletv.RunningApplication.prototype.clearPublishedPageIdsList = function() {
+  return this.setPublishedPageIdsList([]);
 };
 
 

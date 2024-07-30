@@ -153,6 +153,7 @@ message RunningApplication {
     string application_id = 1;
     google.protobuf.Timestamp application_version = 2;
     google.protobuf.Timestamp started_at = 3;
+    repeated string published_page_ids = 4;
 }
 
 message RunningApplications {

@@ -730,6 +730,11 @@ export class RunningApplication extends jspb.Message {
   getStartedAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setStartedAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  clearPublishedPageIdsList(): void;
+  getPublishedPageIdsList(): Array<string>;
+  setPublishedPageIdsList(value: Array<string>): void;
+  addPublishedPageIds(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RunningApplication.AsObject;
   static toObject(includeInstance: boolean, msg: RunningApplication): RunningApplication.AsObject;
@@ -745,6 +750,7 @@ export namespace RunningApplication {
     applicationId: string,
     applicationVersion?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     startedAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    publishedPageIdsList: Array<string>,
   }
 }
 
