@@ -77,9 +77,9 @@
         selectedPrice = ticket.getEnqueuePrice();
         monitorTicket();
     });
-    function monitorTicket() {
+    async function monitorTicket() {
         updateTicketTimeRemaining();
-        monitorTicketRequest = apiClient.monitorTicket(ticket.getId(), handleTicketUpdated, (code, msg) => {
+        monitorTicketRequest = await apiClient.monitorTicket(ticket.getId(), handleTicketUpdated, (code, msg) => {
             setTimeout(monitorTicket, 5000);
         });
     }
@@ -183,7 +183,7 @@
                                     <span class="font-bold"
                                         >{formatPrice(
                                             paymentInfo.getEnqueuePrice(),
-                                            selectedCurrency
+                                            selectedCurrency,
                                         )}&nbsp;{selectedCurrency}</span
                                     >
                                 </td>
@@ -197,7 +197,7 @@
                                     <span class="font-bold"
                                         >{formatPrice(
                                             paymentInfo.getPlayNextPrice(),
-                                            selectedCurrency
+                                            selectedCurrency,
                                         )}&nbsp;{selectedCurrency}</span
                                     >
                                 </td>
@@ -215,7 +215,7 @@
                                     <span class="font-bold"
                                         >{formatPrice(
                                             paymentInfo.getPlayNowPrice(),
-                                            selectedCurrency
+                                            selectedCurrency,
                                         )}&nbsp;{selectedCurrency}</span
                                     >
                                 </td>

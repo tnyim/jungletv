@@ -111,9 +111,9 @@
 		"configurableState",
 	);
 
-	onMount(async () => {
-		// Use "Twemoji Mozilla" font-family name because emoji-picker-element places that first in the font-family list
-		polyfillCountryFlagEmojis("Twemoji Mozilla");
+	let updateBasicInfoTimeout: number;
+	async function updateBasicInfo() {
+		updateBasicInfoTimeout = undefined;
 		try {
 			let rewardInfo = await apiClient.rewardInfo();
 			rewardAddress.update((_) => rewardInfo.getRewardsAddress());
@@ -131,7 +131,20 @@
 			rewardBalance.update((_) => "");
 			$currentSubscription = null;
 			permissionLevel.update((_) => PermissionLevel.UNAUTHENTICATED);
+			updateBasicInfoTimeout = window.setTimeout(updateBasicInfo, 10000);
 		}
+	}
+
+	onDestroy(() => {
+		if (updateBasicInfoTimeout) {
+			window.clearTimeout(updateBasicInfoTimeout);
+		}
+	})
+
+	onMount(async () => {
+		// Use "Twemoji Mozilla" font-family name because emoji-picker-element places that first in the font-family list
+		polyfillCountryFlagEmojis("Twemoji Mozilla");
+		await updateBasicInfo();
 		refreshOnLineStatus();
 
 		darkMode.subscribe((newSetting) => {

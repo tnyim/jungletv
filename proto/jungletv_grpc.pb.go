@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JungleTVClient interface {
+	RPCConfiguration(ctx context.Context, in *RPCConfigurationRequest, opts ...grpc.CallOption) (*RPCConfigurationResponse, error)
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error)
 	VerifySignInSignature(ctx context.Context, in *VerifySignInSignatureRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	EnqueueMedia(ctx context.Context, in *EnqueueMediaRequest, opts ...grpc.CallOption) (*EnqueueMediaResponse, error)
@@ -113,6 +114,7 @@ type JungleTVClient interface {
 	TriggerClientReload(ctx context.Context, in *TriggerClientReloadRequest, opts ...grpc.CallOption) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error)
 	InvalidateUserAuthTokens(ctx context.Context, in *InvalidateUserAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateUserAuthTokensResponse, error)
+	SetRPCProxyEnabled(ctx context.Context, in *SetRPCProxyEnabledRequest, opts ...grpc.CallOption) (*SetRPCProxyEnabledResponse, error)
 	// application editor endpoints
 	Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error)
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
@@ -146,6 +148,15 @@ type jungleTVClient struct {
 
 func NewJungleTVClient(cc grpc.ClientConnInterface) JungleTVClient {
 	return &jungleTVClient{cc}
+}
+
+func (c *jungleTVClient) RPCConfiguration(ctx context.Context, in *RPCConfigurationRequest, opts ...grpc.CallOption) (*RPCConfigurationResponse, error) {
+	out := new(RPCConfigurationResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/RPCConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *jungleTVClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (JungleTV_SignInClient, error) {
@@ -1224,6 +1235,15 @@ func (c *jungleTVClient) InvalidateUserAuthTokens(ctx context.Context, in *Inval
 	return out, nil
 }
 
+func (c *jungleTVClient) SetRPCProxyEnabled(ctx context.Context, in *SetRPCProxyEnabledRequest, opts ...grpc.CallOption) (*SetRPCProxyEnabledResponse, error) {
+	out := new(SetRPCProxyEnabledResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/SetRPCProxyEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error) {
 	out := new(ApplicationsResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Applications", in, out, opts...)
@@ -1504,6 +1524,7 @@ func (c *jungleTVClient) TriggerApplicationEvent(ctx context.Context, in *Trigge
 // All implementations must embed UnimplementedJungleTVServer
 // for forward compatibility
 type JungleTVServer interface {
+	RPCConfiguration(context.Context, *RPCConfigurationRequest) (*RPCConfigurationResponse, error)
 	SignIn(*SignInRequest, JungleTV_SignInServer) error
 	VerifySignInSignature(context.Context, *VerifySignInSignatureRequest) (*SignInResponse, error)
 	EnqueueMedia(context.Context, *EnqueueMediaRequest) (*EnqueueMediaResponse, error)
@@ -1599,6 +1620,7 @@ type JungleTVServer interface {
 	TriggerClientReload(context.Context, *TriggerClientReloadRequest) (*TriggerClientReloadResponse, error)
 	SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error)
 	InvalidateUserAuthTokens(context.Context, *InvalidateUserAuthTokensRequest) (*InvalidateUserAuthTokensResponse, error)
+	SetRPCProxyEnabled(context.Context, *SetRPCProxyEnabledRequest) (*SetRPCProxyEnabledResponse, error)
 	// application editor endpoints
 	Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error)
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
@@ -1631,6 +1653,9 @@ type JungleTVServer interface {
 type UnimplementedJungleTVServer struct {
 }
 
+func (UnimplementedJungleTVServer) RPCConfiguration(context.Context, *RPCConfigurationRequest) (*RPCConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RPCConfiguration not implemented")
+}
 func (UnimplementedJungleTVServer) SignIn(*SignInRequest, JungleTV_SignInServer) error {
 	return status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
@@ -1913,6 +1938,9 @@ func (UnimplementedJungleTVServer) SetMulticurrencyPaymentsEnabled(context.Conte
 func (UnimplementedJungleTVServer) InvalidateUserAuthTokens(context.Context, *InvalidateUserAuthTokensRequest) (*InvalidateUserAuthTokensResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InvalidateUserAuthTokens not implemented")
 }
+func (UnimplementedJungleTVServer) SetRPCProxyEnabled(context.Context, *SetRPCProxyEnabledRequest) (*SetRPCProxyEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetRPCProxyEnabled not implemented")
+}
 func (UnimplementedJungleTVServer) Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Applications not implemented")
 }
@@ -1993,6 +2021,24 @@ type UnsafeJungleTVServer interface {
 
 func RegisterJungleTVServer(s grpc.ServiceRegistrar, srv JungleTVServer) {
 	s.RegisterService(&JungleTV_ServiceDesc, srv)
+}
+
+func _JungleTV_RPCConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RPCConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).RPCConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/RPCConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).RPCConfiguration(ctx, req.(*RPCConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _JungleTV_SignIn_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -3717,6 +3763,24 @@ func _JungleTV_InvalidateUserAuthTokens_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_SetRPCProxyEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetRPCProxyEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).SetRPCProxyEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/SetRPCProxyEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).SetRPCProxyEnabled(ctx, req.(*SetRPCProxyEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_Applications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplicationsRequest)
 	if err := dec(in); err != nil {
@@ -4148,6 +4212,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*JungleTVServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "RPCConfiguration",
+			Handler:    _JungleTV_RPCConfiguration_Handler,
+		},
+		{
 			MethodName: "VerifySignInSignature",
 			Handler:    _JungleTV_VerifySignInSignature_Handler,
 		},
@@ -4482,6 +4550,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InvalidateUserAuthTokens",
 			Handler:    _JungleTV_InvalidateUserAuthTokens_Handler,
+		},
+		{
+			MethodName: "SetRPCProxyEnabled",
+			Handler:    _JungleTV_SetRPCProxyEnabled_Handler,
 		},
 		{
 			MethodName: "Applications",

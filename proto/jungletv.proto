@@ -11,6 +11,7 @@ import "application_runtime.proto";
 package jungletv;
 
 service JungleTV {
+    rpc RPCConfiguration(RPCConfigurationRequest) returns (RPCConfigurationResponse) {}
     rpc SignIn (SignInRequest) returns (stream SignInProgress) {}
     rpc VerifySignInSignature(VerifySignInSignatureRequest) returns (SignInResponse) {}
     rpc EnqueueMedia (EnqueueMediaRequest) returns (EnqueueMediaResponse) {}
@@ -107,6 +108,7 @@ service JungleTV {
     rpc TriggerClientReload(TriggerClientReloadRequest) returns (TriggerClientReloadResponse) {}
     rpc SetMulticurrencyPaymentsEnabled(SetMulticurrencyPaymentsEnabledRequest) returns (SetMulticurrencyPaymentsEnabledResponse) {}
     rpc InvalidateUserAuthTokens(InvalidateUserAuthTokensRequest) returns (InvalidateUserAuthTokensResponse) {}
+    rpc SetRPCProxyEnabled(SetRPCProxyEnabledRequest) returns (SetRPCProxyEnabledResponse) {}
 
     // application editor endpoints
     rpc Applications(ApplicationsRequest) returns (ApplicationsResponse) {}
@@ -134,6 +136,14 @@ service JungleTV {
     rpc ConsumeApplicationEvents(ConsumeApplicationEventsRequest) returns (stream ApplicationEventUpdate) {}
     rpc ApplicationServerMethod(ApplicationServerMethodRequest) returns (ApplicationServerMethodResponse) {}
     rpc TriggerApplicationEvent(TriggerApplicationEventRequest) returns (TriggerApplicationEventResponse) {}
+}
+
+message RPCConfigurationRequest {}
+
+message RPCConfigurationResponse {
+    string endpoint = 1;
+    string rpc_auth_token = 2;
+    google.protobuf.Timestamp expiration = 3;
 }
 
 message SignInRequest {
@@ -1429,6 +1439,12 @@ message InvalidateUserAuthTokensRequest {
 }
 
 message InvalidateUserAuthTokensResponse {}
+
+message SetRPCProxyEnabledRequest {
+    bool enabled = 1;
+}
+
+message SetRPCProxyEnabledResponse {}
 
 message AuthorizeApplicationRequest {
     string application_name = 1;

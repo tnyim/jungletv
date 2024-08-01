@@ -11,6 +11,14 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "output": "debug"
+        },
+        {
+            "name": "Launch rpcproxy",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/rpcproxy",
+            "output": "rpcproxy/debug"
         }
     ]
 }

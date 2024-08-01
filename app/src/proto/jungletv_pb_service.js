@@ -12,6 +12,15 @@ var JungleTV = (function () {
   return JungleTV;
 }());
 
+JungleTV.RPCConfiguration = {
+  methodName: "RPCConfiguration",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.RPCConfigurationRequest,
+  responseType: jungletv_pb.RPCConfigurationResponse
+};
+
 JungleTV.SignIn = {
   methodName: "SignIn",
   service: JungleTV,
@@ -858,6 +867,15 @@ JungleTV.InvalidateUserAuthTokens = {
   responseType: jungletv_pb.InvalidateUserAuthTokensResponse
 };
 
+JungleTV.SetRPCProxyEnabled = {
+  methodName: "SetRPCProxyEnabled",
+  service: JungleTV,
+  requestStream: false,
+  responseStream: false,
+  requestType: jungletv_pb.SetRPCProxyEnabledRequest,
+  responseType: jungletv_pb.SetRPCProxyEnabledResponse
+};
+
 JungleTV.Applications = {
   methodName: "Applications",
   service: JungleTV,
@@ -1071,6 +1089,37 @@ function JungleTVClient(serviceHost, options) {
   this.serviceHost = serviceHost;
   this.options = options || {};
 }
+
+JungleTVClient.prototype.rPCConfiguration = function rPCConfiguration(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.RPCConfiguration, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
 
 JungleTVClient.prototype.signIn = function signIn(requestMessage, metadata) {
   var listeners = {
@@ -4040,6 +4089,37 @@ JungleTVClient.prototype.invalidateUserAuthTokens = function invalidateUserAuthT
     callback = arguments[1];
   }
   var client = grpc.unary(JungleTV.InvalidateUserAuthTokens, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+JungleTVClient.prototype.setRPCProxyEnabled = function setRPCProxyEnabled(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(JungleTV.SetRPCProxyEnabled, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

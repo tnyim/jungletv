@@ -55,7 +55,7 @@
     function buildConsumeChatRequest(
         onUpdate: (update: ChatUpdate) => void,
         onEnd: (code: grpc.Code, msg: string) => void,
-    ): Request {
+    ): Promise<Request> {
         return apiClient.consumeChat(50, onUpdate, onEnd);
     }
 

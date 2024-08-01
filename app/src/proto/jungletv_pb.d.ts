@@ -8,6 +8,52 @@ import * as common_pb from "./common_pb";
 import * as application_editor_pb from "./application_editor_pb";
 import * as application_runtime_pb from "./application_runtime_pb";
 
+export class RPCConfigurationRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RPCConfigurationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RPCConfigurationRequest): RPCConfigurationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RPCConfigurationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RPCConfigurationRequest;
+  static deserializeBinaryFromReader(message: RPCConfigurationRequest, reader: jspb.BinaryReader): RPCConfigurationRequest;
+}
+
+export namespace RPCConfigurationRequest {
+  export type AsObject = {
+  }
+}
+
+export class RPCConfigurationResponse extends jspb.Message {
+  getEndpoint(): string;
+  setEndpoint(value: string): void;
+
+  getRpcAuthToken(): string;
+  setRpcAuthToken(value: string): void;
+
+  hasExpiration(): boolean;
+  clearExpiration(): void;
+  getExpiration(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiration(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RPCConfigurationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: RPCConfigurationResponse): RPCConfigurationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RPCConfigurationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RPCConfigurationResponse;
+  static deserializeBinaryFromReader(message: RPCConfigurationResponse, reader: jspb.BinaryReader): RPCConfigurationResponse;
+}
+
+export namespace RPCConfigurationResponse {
+  export type AsObject = {
+    endpoint: string,
+    rpcAuthToken: string,
+    expiration?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
 export class SignInRequest extends jspb.Message {
   getRewardsAddress(): string;
   setRewardsAddress(value: string): void;
@@ -6380,6 +6426,42 @@ export class InvalidateUserAuthTokensResponse extends jspb.Message {
 }
 
 export namespace InvalidateUserAuthTokensResponse {
+  export type AsObject = {
+  }
+}
+
+export class SetRPCProxyEnabledRequest extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetRPCProxyEnabledRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetRPCProxyEnabledRequest): SetRPCProxyEnabledRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetRPCProxyEnabledRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetRPCProxyEnabledRequest;
+  static deserializeBinaryFromReader(message: SetRPCProxyEnabledRequest, reader: jspb.BinaryReader): SetRPCProxyEnabledRequest;
+}
+
+export namespace SetRPCProxyEnabledRequest {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
+
+export class SetRPCProxyEnabledResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetRPCProxyEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SetRPCProxyEnabledResponse): SetRPCProxyEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetRPCProxyEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetRPCProxyEnabledResponse;
+  static deserializeBinaryFromReader(message: SetRPCProxyEnabledResponse, reader: jspb.BinaryReader): SetRPCProxyEnabledResponse;
+}
+
+export namespace SetRPCProxyEnabledResponse {
   export type AsObject = {
   }
 }

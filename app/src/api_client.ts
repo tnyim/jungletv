@@ -2,6 +2,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import type { ProtobufMessage } from "@improbable-eng/grpc-web/dist/typings/message";
 import type { MethodDefinition } from "@improbable-eng/grpc-web/dist/typings/service";
+import { Mutex } from 'async-mutex';
 import type { Duration } from "google-protobuf/google/protobuf/duration_pb";
 import { DateTime } from "luxon";
 import { deleteCookie, getCookie, setCookie } from "./cookie_utils";
@@ -26,6 +27,8 @@ import {
     MarkAsActivelyModeratingResponse, MediaConsumptionCheckpoint, MediaEnqueuingPermissionStatus, ModerationStatusOverview,
     MonitorMediaEnqueuingPermissionRequest,
     MonitorModerationStatusRequest, MonitorQueueRequest, MonitorSkipAndTipRequest, MonitorTicketRequest, MoveQueueEntryRequest, MoveQueueEntryResponse, OngoingRaffleInfoRequest, OngoingRaffleInfoResponse, PlayedMediaHistoryRequest, PlayedMediaHistoryResponse, PointsInfoRequest, PointsInfoResponse, PointsTransactionsRequest, PointsTransactionsResponse, ProduceSegchaChallengeRequest, ProduceSegchaChallengeResponse, Queue,
+    RPCConfigurationRequest,
+    RPCConfigurationResponse,
     RaffleDrawingsRequest, RaffleDrawingsResponse, RedrawRaffleRequest, RedrawRaffleResponse, RemoveBanRequest,
     RemoveBanResponse, RemoveChatMessageRequest, RemoveChatMessageResponse, RemoveConnectionRequest,
     RemoveConnectionResponse, RemoveDisallowedMediaCollectionRequest,
@@ -37,6 +40,8 @@ import {
     SetMinimumPricesMultiplierResponse, SetMulticurrencyPaymentsEnabledRequest, SetMulticurrencyPaymentsEnabledResponse, SetNewQueueEntriesAlwaysUnskippableRequest, SetNewQueueEntriesAlwaysUnskippableResponse, SetOwnQueueEntryRemovalAllowedRequest, SetOwnQueueEntryRemovalAllowedResponse, SetPricesMultiplierRequest, SetPricesMultiplierResponse, SetProfileBiographyRequest, SetProfileBiographyResponse, SetProfileFeaturedMediaRequest,
     SetProfileFeaturedMediaResponse, SetQueueEntryReorderingAllowedRequest, SetQueueEntryReorderingAllowedResponse, SetQueueInsertCursorRequest,
     SetQueueInsertCursorResponse,
+    SetRPCProxyEnabledRequest,
+    SetRPCProxyEnabledResponse,
     SetSkipPriceMultiplierRequest,
     SetSkipPriceMultiplierResponse,
     SetSkippingEnabledRequest, SetSkippingEnabledResponse,
@@ -62,14 +67,22 @@ import {
 } from "./proto/jungletv_pb";
 import { JungleTV } from "./proto/jungletv_pb_service";
 
+const rpcConfigMaxIntervalBetweenRetryAttempts = 15 * 60 * 1000;
 class APIClient {
     private static instance: APIClient;
 
+    private originalHost: string;
     private host: string;
+    private rpcConfigObtained = false;
+    private rpcConfigAttempts = 0;
+    private rpcConfigMutex = new Mutex();
+    private rpcConfigExpiration = new Date(0);
+    private rpcAuthorization: string;
     private authNeededCallback = () => { };
     private versionHash: string;
 
     private constructor(host: string) {
+        this.originalHost = host;
         this.host = host;
     }
 
@@ -114,6 +127,10 @@ class APIClient {
     }
 
     private processHeaders(headers: grpc.Metadata): void {
+        if (this.rpcConfigObtained) {
+            this.rpcConfigAttempts = 0;
+        }
+
         if (headers.has("X-API-Version")) {
             this.handleVersionHeader(headers.get("X-API-Version")[0])
         }
@@ -141,36 +158,54 @@ class APIClient {
         }
         return [new Promise<TResponse>((resolve, reject) => {
             rej = reject;
-            r = grpc.invoke(operation, {
-                request: request,
-                host: this.host,
-                metadata: new grpc.Metadata({ "Authorization": this.getAuthToken() }),
-                onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
-                onMessage: (message: TResponse) => resolve(message),
-                onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
-                    if (code == grpc.Code.Unauthenticated) {
-                        this.authNeededCallback();
+
+            let p = Promise.resolve();
+            if (operation.methodName != JungleTV.RPCConfiguration.methodName) {
+                p = this.maybeUpdateRPCConfig();
+            }
+            p.then(() => {
+                r = grpc.invoke(operation, {
+                    request: request,
+                    host: this.host,
+                    metadata: this.buildRequestMetadata(),
+                    onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
+                    onMessage: (message: TResponse) => resolve(message),
+                    onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
+                        if (code == grpc.Code.Unknown && msg == "Response closed without headers") {
+                            this.handleConnectionFailure();
+                        }
+                        if (code == grpc.Code.Unauthenticated) {
+                            this.authNeededCallback();
+                        }
+                        if (code != grpc.Code.OK) {
+                            reject(msg);
+                        }
                     }
-                    if (code != grpc.Code.OK) {
-                        reject(msg);
-                    }
-                }
+                });
+            }).catch(() => {
+                reject("Failed to update RPC configuration");
             });
         }), cancel];
     }
 
-    serverStreamingRPC<TRequest extends ProtobufMessage, TResponseItem extends ProtobufMessage>(
+    async serverStreamingRPC<TRequest extends ProtobufMessage, TResponseItem extends ProtobufMessage>(
         operation: MethodDefinition<TRequest, TResponseItem>,
         request: TRequest,
         onMessage: (message: TResponseItem) => void,
-        onEnd: (code: grpc.Code, msg: string) => void): Request {
+        onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        await this.maybeUpdateRPCConfig();
         return grpc.invoke(operation, {
             request: request,
             host: this.host,
-            metadata: new grpc.Metadata({ "Authorization": this.getAuthToken() }),
-            onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
+            metadata: this.buildRequestMetadata(),
+            onHeaders: (headers: grpc.Metadata): void => {
+                this.processHeaders(headers);
+            },
             onMessage: onMessage,
             onEnd: (code: grpc.Code, msg: string | undefined, trailers: grpc.Metadata) => {
+                if (code == grpc.Code.Unknown && msg == "Response closed without headers") {
+                    this.handleConnectionFailure();
+                }
                 if (code == grpc.Code.Unauthenticated) {
                     this.authNeededCallback();
                 }
@@ -179,7 +214,54 @@ class APIClient {
         });
     }
 
-    signIn(address: string, viaSignature: boolean, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void, ongoingProcessID?: string, labOptions?: LabSignInOptions): Request {
+    private buildRequestMetadata(): grpc.Metadata {
+        let dict = { "Authorization": this.getAuthToken() };
+        if (this.rpcAuthorization) {
+            dict["RPC-Authorization"] = this.rpcAuthorization;
+        }
+        return new grpc.Metadata(dict);
+    }
+
+    private async maybeUpdateRPCConfig(): Promise<void> {
+        await this.rpcConfigMutex.runExclusive(async () => {
+            const timeNow = new Date().getTime();
+            if (timeNow < this.rpcConfigExpiration.getTime()) {
+                return;
+            }
+
+            console.log("Obtaining RPC configuration");
+            const request = new RPCConfigurationRequest();
+            try {
+                const response = await this.unaryRPC<RPCConfigurationRequest, RPCConfigurationResponse>(JungleTV.RPCConfiguration, request);
+
+                this.host = response.getEndpoint();
+                this.rpcAuthorization = response.getRpcAuthToken();
+                this.rpcConfigExpiration = response.getExpiration().toDate();
+                this.rpcConfigObtained = true;
+            } catch {
+                console.log("Falling back to the default RPC configuration");
+                this.rpcConfigAttempts += 1;
+                this.host = this.originalHost;
+                this.rpcAuthorization = "";
+                this.rpcConfigExpiration = new Date(timeNow + Math.min(rpcConfigMaxIntervalBetweenRetryAttempts, 30 * 1000 * this.rpcConfigAttempts));
+                this.rpcConfigObtained = false;
+            }
+        });
+    }
+
+    private async handleConnectionFailure(): Promise<void> {
+        if (this.rpcConfigObtained) {
+            console.log("Applying default RPC configuration following connection failure");
+            this.rpcConfigAttempts += 1;
+            this.host = this.originalHost;
+            this.rpcAuthorization = "";
+            this.rpcConfigExpiration = new Date(new Date().getTime() + Math.min(rpcConfigMaxIntervalBetweenRetryAttempts, 30 * 1000 * this.rpcConfigAttempts))
+            this.rpcConfigObtained = false;
+        }
+        await this.maybeUpdateRPCConfig();
+    }
+
+    async signIn(address: string, viaSignature: boolean, onProgress: (progress: SignInProgress) => void, onEnd: (code: grpc.Code, msg: string) => void, ongoingProcessID?: string, labOptions?: LabSignInOptions): Promise<Request> {
         const request = new SignInRequest();
         request.setRewardsAddress(address);
         request.setViaSignature(viaSignature);
@@ -189,7 +271,7 @@ class APIClient {
         if (typeof labOptions !== "undefined") {
             request.setLabSignInOptions(labOptions);
         }
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.SignIn,
             request,
             onProgress,
@@ -315,35 +397,35 @@ class APIClient {
         return this.unaryRPC(JungleTV.IncreaseOrReduceSkipThreshold, request);
     }
 
-    consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async consumeMedia(onCheckpoint: (checkpoint: MediaConsumptionCheckpoint) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new ConsumeMediaRequest();
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.ConsumeMedia,
             request,
             onCheckpoint,
             onEnd);
     }
 
-    monitorQueue(onQueueUpdated: (queue: Queue) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC(
+    async monitorQueue(onQueueUpdated: (queue: Queue) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        return await this.serverStreamingRPC(
             JungleTV.MonitorQueue,
             new MonitorQueueRequest(),
             onQueueUpdated,
             onEnd);
     }
 
-    monitorSkipAndTip(onSkipAndTipStatus: (skipAndTipStatus: SkipAndTipStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC(
+    async monitorSkipAndTip(onSkipAndTipStatus: (skipAndTipStatus: SkipAndTipStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        return await this.serverStreamingRPC(
             JungleTV.MonitorSkipAndTip,
             new MonitorSkipAndTipRequest(),
             onSkipAndTipStatus,
             onEnd);
     }
 
-    monitorTicket(ticketID: string, onTicketUpdated: (ticket: EnqueueMediaTicket) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async monitorTicket(ticketID: string, onTicketUpdated: (ticket: EnqueueMediaTicket) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new MonitorTicketRequest();
         request.setTicketId(ticketID);
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.MonitorTicket,
             request,
             onTicketUpdated,
@@ -381,10 +463,10 @@ class APIClient {
         return this.unaryRPC(JungleTV.ProduceSegchaChallenge, request);
     }
 
-    consumeChat(initialHistorySize: number, onUpdate: (update: ChatUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async consumeChat(initialHistorySize: number, onUpdate: (update: ChatUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new ConsumeChatRequest();
         request.setInitialHistorySize(initialHistorySize);
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.ConsumeChat,
             request,
             onUpdate,
@@ -717,8 +799,8 @@ class APIClient {
         return this.unaryRPC(JungleTV.ResetSpectatorStatus, request);
     }
 
-    monitorModerationStatus(onModerationStatus: (status: ModerationStatusOverview) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC(
+    async monitorModerationStatus(onModerationStatus: (status: ModerationStatusOverview) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        return await this.serverStreamingRPC(
             JungleTV.MonitorModerationStatus,
             new MonitorModerationStatusRequest(),
             onModerationStatus,
@@ -843,6 +925,12 @@ class APIClient {
     async triggerClientReload(): Promise<TriggerClientReloadResponse> {
         const request = new TriggerClientReloadRequest();
         return this.unaryRPC(JungleTV.TriggerClientReload, request);
+    }
+
+    async setRPCProxyEnabled(enabled: boolean): Promise<SetRPCProxyEnabledResponse> {
+        const request = new SetRPCProxyEnabledRequest();
+        request.setEnabled(enabled);
+        return this.unaryRPC(JungleTV.SetRPCProxyEnabled, request);
     }
 
     async adjustPointsBalance(rewardsAddress: string, value: number, reason: string): Promise<AdjustPointsBalanceResponse> {
@@ -974,7 +1062,7 @@ class APIClient {
         return this.unaryRPC(JungleTV.ImportApplication, request);
     }
 
-    consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, stayConnectedOnTermination: boolean, includeLogsSinceOffset: string | undefined, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async consumeApplicationLog(applicationID: string, levels: Array<ApplicationLogLevelMap[keyof ApplicationLogLevelMap]>, stayConnectedOnTermination: boolean, includeLogsSinceOffset: string | undefined, onUpdate: (update: ApplicationLogEntryContainer) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new ConsumeApplicationLogRequest();
         request.setApplicationId(applicationID);
         request.setLevelsList(levels);
@@ -982,16 +1070,16 @@ class APIClient {
         if (typeof includeLogsSinceOffset !== "undefined") {
             request.setIncludeLogsSinceOffset(includeLogsSinceOffset);
         }
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.ConsumeApplicationLog,
             request,
             onUpdate,
             onEnd);
     }
 
-    monitorRunningApplications(onUpdate: (update: RunningApplications) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async monitorRunningApplications(onUpdate: (update: RunningApplications) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new MonitorRunningApplicationsRequest();
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.MonitorRunningApplications,
             request,
             onUpdate,
@@ -1012,11 +1100,11 @@ class APIClient {
         return this.unaryRPC(JungleTV.ResolveApplicationPage, request);
     }
 
-    consumeApplicationEvents(applicationID: string, pageID: string, onUpdate: (update: ApplicationEventUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
+    async consumeApplicationEvents(applicationID: string, pageID: string, onUpdate: (update: ApplicationEventUpdate) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
         const request = new ConsumeApplicationEventsRequest();
         request.setApplicationId(applicationID);
         request.setPageId(pageID);
-        return this.serverStreamingRPC(
+        return await this.serverStreamingRPC(
             JungleTV.ConsumeApplicationEvents,
             request,
             onUpdate,
@@ -1041,8 +1129,8 @@ class APIClient {
         return this.unaryRPC(JungleTV.TriggerApplicationEvent, request);
     }
 
-    convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC(
+    async convertBananoToPoints(onStatusUpdated: (status: ConvertBananoToPointsStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        return await this.serverStreamingRPC(
             JungleTV.ConvertBananoToPoints,
             new ConvertBananoToPointsRequest(),
             onStatusUpdated,
@@ -1082,8 +1170,8 @@ class APIClient {
         return this.unaryRPC(JungleTV.ConsentOrDissentToAuthorization, request);
     }
 
-    monitorMediaEnqueuingPermission(onStatusUpdated: (status: MediaEnqueuingPermissionStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Request {
-        return this.serverStreamingRPC(
+    async monitorMediaEnqueuingPermission(onStatusUpdated: (status: MediaEnqueuingPermissionStatus) => void, onEnd: (code: grpc.Code, msg: string) => void): Promise<Request> {
+        return await this.serverStreamingRPC(
             JungleTV.MonitorMediaEnqueuingPermission,
             new MonitorMediaEnqueuingPermissionRequest(),
             onStatusUpdated,

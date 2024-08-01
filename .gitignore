@@ -3,6 +3,8 @@
 /app/public/emotes/
 /certs
 /captchatest
+/rpcproxy/config.json
+/rpcproxy/rpcproxy
 /segcha/pics
 /segcha/font.ttf
 /segcha/server/config.json

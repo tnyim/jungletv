@@ -6,6 +6,15 @@ import * as application_editor_pb from "./application_editor_pb";
 import * as application_runtime_pb from "./application_runtime_pb";
 import {grpc} from "@improbable-eng/grpc-web";
 
+type JungleTVRPCConfiguration = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.RPCConfigurationRequest;
+  readonly responseType: typeof jungletv_pb.RPCConfigurationResponse;
+};
+
 type JungleTVSignIn = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -852,6 +861,15 @@ type JungleTVInvalidateUserAuthTokens = {
   readonly responseType: typeof jungletv_pb.InvalidateUserAuthTokensResponse;
 };
 
+type JungleTVSetRPCProxyEnabled = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SetRPCProxyEnabledRequest;
+  readonly responseType: typeof jungletv_pb.SetRPCProxyEnabledResponse;
+};
+
 type JungleTVApplications = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1061,6 +1079,7 @@ type JungleTVTriggerApplicationEvent = {
 
 export class JungleTV {
   static readonly serviceName: string;
+  static readonly RPCConfiguration: JungleTVRPCConfiguration;
   static readonly SignIn: JungleTVSignIn;
   static readonly VerifySignInSignature: JungleTVVerifySignInSignature;
   static readonly EnqueueMedia: JungleTVEnqueueMedia;
@@ -1155,6 +1174,7 @@ export class JungleTV {
   static readonly TriggerClientReload: JungleTVTriggerClientReload;
   static readonly SetMulticurrencyPaymentsEnabled: JungleTVSetMulticurrencyPaymentsEnabled;
   static readonly InvalidateUserAuthTokens: JungleTVInvalidateUserAuthTokens;
+  static readonly SetRPCProxyEnabled: JungleTVSetRPCProxyEnabled;
   static readonly Applications: JungleTVApplications;
   static readonly GetApplication: JungleTVGetApplication;
   static readonly UpdateApplication: JungleTVUpdateApplication;
@@ -1212,6 +1232,15 @@ export class JungleTVClient {
   readonly serviceHost: string;
 
   constructor(serviceHost: string, options?: grpc.RpcOptions);
+  rPCConfiguration(
+    requestMessage: jungletv_pb.RPCConfigurationRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RPCConfigurationResponse|null) => void
+  ): UnaryResponse;
+  rPCConfiguration(
+    requestMessage: jungletv_pb.RPCConfigurationRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.RPCConfigurationResponse|null) => void
+  ): UnaryResponse;
   signIn(requestMessage: jungletv_pb.SignInRequest, metadata?: grpc.Metadata): ResponseStream<jungletv_pb.SignInProgress>;
   verifySignInSignature(
     requestMessage: jungletv_pb.VerifySignInSignatureRequest,
@@ -1977,6 +2006,15 @@ export class JungleTVClient {
   invalidateUserAuthTokens(
     requestMessage: jungletv_pb.InvalidateUserAuthTokensRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.InvalidateUserAuthTokensResponse|null) => void
+  ): UnaryResponse;
+  setRPCProxyEnabled(
+    requestMessage: jungletv_pb.SetRPCProxyEnabledRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetRPCProxyEnabledResponse|null) => void
+  ): UnaryResponse;
+  setRPCProxyEnabled(
+    requestMessage: jungletv_pb.SetRPCProxyEnabledRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetRPCProxyEnabledResponse|null) => void
   ): UnaryResponse;
   applications(
     requestMessage: application_editor_pb.ApplicationsRequest,

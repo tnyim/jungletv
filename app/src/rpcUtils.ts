@@ -2,10 +2,10 @@ import type { grpc } from "@improbable-eng/grpc-web";
 import type { Request } from "@improbable-eng/grpc-web/dist/typings/invoke";
 import { onDestroy, onMount } from "svelte";
 
-type RequestBuilder<T> = (onUpdate: (update: T) => void, onEnd: (code: grpc.Code, msg: string) => void) => Request;
+type RequestBuilder<T> = (onUpdate: (update: T) => void, onEnd: (code: grpc.Code, msg: string) => void) => Promise<Request>;
 
 export interface StreamRequestController {
-    rebuildAndReconnect: () => void;
+    rebuildAndReconnect: () => Promise<void>;
     disconnect: () => void;
 }
 export const consumeStreamRPC = function <T>(
@@ -27,9 +27,9 @@ export const consumeStreamRPC = function <T>(
         }
     }
 
-    function makeRequest() {
+    async function makeRequest() {
         disconnect();
-        request = requestBuilder(handleUpdate, handleClose);
+        request = await requestBuilder(handleUpdate, handleClose);
     }
 
     function disconnect() {

@@ -150,6 +150,11 @@ type grpcServer struct {
 	typeScriptTypeDefinitionsFile string
 
 	privilegedLabUserSecretKey string
+
+	rpcProxyTokensSecretKey []byte
+	rpcProxyIPV4Endpoint    string
+	rpcProxyIPV6Endpoint    string
+	disableRPCProxy         bool
 }
 
 // Options contains the required options to start the server
@@ -194,6 +199,10 @@ type Options struct {
 	TurnstileSecretKey string
 
 	PrivilegedLabUserSecretKey string
+
+	RPCProxyTokensSecretKey []byte
+	RPCProxyIPV4Endpoint    string
+	RPCProxyIPV6Endpoint    string
 }
 
 // NewServer returns a new JungleTVServer
@@ -270,6 +279,7 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetMulticurrencyPaymentsEnabled", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Documents", auth.AdminPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/InvalidateUserAuthTokens", auth.AdminPermissionLevel)
+	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/SetRPCProxyEnabled", auth.AdminPermissionLevel)
 
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/Applications", auth.AppEditorPermissionLevel)
 	authInterceptor.SetMinimumPermissionLevelForMethod("/jungletv.JungleTV/GetApplication", auth.AppEditorPermissionLevel)
@@ -370,6 +380,10 @@ func NewServer(ctx context.Context, options Options) (*grpcServer, error) {
 		typeScriptTypeDefinitionsFile: options.TypeScriptTypeDefinitionsFile,
 
 		privilegedLabUserSecretKey: options.PrivilegedLabUserSecretKey,
+
+		rpcProxyTokensSecretKey: options.RPCProxyTokensSecretKey,
+		rpcProxyIPV4Endpoint:    options.RPCProxyIPV4Endpoint,
+		rpcProxyIPV6Endpoint:    options.RPCProxyIPV6Endpoint,
 	}
 	s.ipReputationChecker, err = ipreputation.NewChecker(ctx, options.Log, options.IPCheckEndpoint)
 	if err != nil {

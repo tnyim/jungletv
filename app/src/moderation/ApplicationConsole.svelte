@@ -62,7 +62,7 @@
     function consumeApplicationLogRequestBuilder(
         onUpdate: (update: ApplicationLogEntryContainer) => void,
         onEnd: (code: grpc.Code, msg: string) => void,
-    ): Request {
+    ): Promise<Request> {
         return apiClient.consumeApplicationLog(applicationID, logLevels, true, latestLogCursor, onUpdate, onEnd);
     }
 
@@ -111,7 +111,7 @@
         if (logLevels.length > 0) {
             await fetchHistoricalLog(25);
             // force resubscription with new log levels
-            applicationLogRequestManager.rebuildAndReconnect();
+            await applicationLogRequestManager.rebuildAndReconnect();
         } else {
             applicationLogRequestManager.disconnect();
         }

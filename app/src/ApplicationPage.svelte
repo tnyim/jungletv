@@ -176,7 +176,7 @@
     function consumeApplicationEventsRequestBuilder(
         onUpdate: (update: ApplicationEventUpdate) => void,
         onEnd: (code: grpc.Code, msg: string) => void,
-    ): Request {
+    ): Promise<Request> {
         return apiClient.consumeApplicationEvents(applicationID, pageID, onUpdate, onEnd);
     }
 
@@ -282,7 +282,7 @@
             handleApplicationEventRequestStatusChanged,
         );
 
-        eventsRequestController.rebuildAndReconnect();
+        await eventsRequestController.rebuildAndReconnect();
     }
 
     onDestroy(() => {

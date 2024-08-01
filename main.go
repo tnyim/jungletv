@@ -27,6 +27,7 @@ import (
 	"github.com/tnyim/jungletv/buildconfig"
 	"github.com/tnyim/jungletv/httpserver"
 	"github.com/tnyim/jungletv/proto"
+	"github.com/tnyim/jungletv/rpcproxy/tokens"
 	"github.com/tnyim/jungletv/segcha"
 	"github.com/tnyim/jungletv/segcha/segchaproto"
 	"github.com/tnyim/jungletv/server"
@@ -384,6 +385,32 @@ func main() {
 		AppRunner:                     apprunner.New(ctx, apiLog, configManager, notifManager, appWalletBuilder),
 	}
 
+	rpcProxyKeybox, present := secrets.GetBox("rpcProxy")
+	if present {
+		rpcProxyTokensSecretKey, present := rpcProxyKeybox.Get("secret")
+		if !present {
+			mainLog.Fatalln("RPC Proxy tokens secret not present in RPC Proxy keybox")
+		}
+
+		options.RPCProxyTokensSecretKey, err = hex.DecodeString(rpcProxyTokensSecretKey)
+		if err != nil {
+			mainLog.Fatalln("error decoding RPC Proxy tokens secret:", err)
+		}
+		if len(options.RPCProxyTokensSecretKey) != 32 {
+			mainLog.Fatalln("RPC Proxy tokens secret must be 32 bytes (64 hex characters) long")
+		}
+
+		options.RPCProxyIPV4Endpoint, present = rpcProxyKeybox.Get("ipv4Endpoint")
+		if !present {
+			mainLog.Fatalln("RPC Proxy IPv4 endpoint not present in RPC Proxy keybox")
+		}
+
+		options.RPCProxyIPV6Endpoint, present = rpcProxyKeybox.Get("ipv6Endpoint")
+		if !present {
+			mainLog.Fatalln("RPC Proxy IPv6 endpoint not present in RPC Proxy keybox")
+		}
+	}
+
 	if buildconfig.LAB {
 		options.PrivilegedLabUserSecretKey, present = secrets.Get("privilegedLabUserSecretKey")
 		if !present {
@@ -478,7 +505,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 			}
 			return origin == options.WebsiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{
-			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "X-Grpc-Web",
+			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", tokens.HeaderName, "X-User-Agent", "X-Grpc-Web",
 		}))
 
 	cm, err := certman.New(certFile, keyFile)
@@ -490,6 +517,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "")
 	}
+	defer cm.Stop()
 
 	return &http.Server{
 		Addr: listenAddr,

@@ -51,8 +51,8 @@
     });
     let monitorProcessRequest: Request;
 
-    function monitorProcess() {
-        monitorProcessRequest = apiClient.signIn(
+    async function monitorProcess() {
+        monitorProcessRequest = await apiClient.signIn(
             rewardsAddress,
             viaSignature,
             handleUpdate,
