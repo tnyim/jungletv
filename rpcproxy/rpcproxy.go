@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/netip"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/dyson/certman"
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/rpcproxy/tokens"
 )
 
@@ -111,9 +113,11 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type countryCodeContextKey struct{}
 
 type config struct {
-	ListenAddr      string `json:"listenAddr"`
-	CertificateFile string `json:"certificateFile"`
-	KeyFile         string `json:"keyFile"`
+	ListenAddr string `json:"listenAddr"`
+	Hosts      map[string]struct {
+		CertificateFile string `json:"certificateFile"`
+		KeyFile         string `json:"keyFile"`
+	}
 
 	Target                string `json:"target"`
 	TLSHandshakeTimeout   int    `json:"tlsHandshakeTimeout"`
@@ -123,7 +127,6 @@ type config struct {
 
 	TokenSecret     string   `json:"tokenSecret"`
 	ExpectedOrigins []string `json:"expectedOrigins"`
-	ExpectedHosts   []string `json:"expectedHosts"`
 }
 
 func readConfig(file string) (config, error) {
@@ -161,28 +164,47 @@ func main() {
 		c.TLSServerName,
 		secret,
 		c.ExpectedOrigins,
-		c.ExpectedHosts,
+		lo.Keys(c.Hosts),
 	)
 
-	cm, err := certman.New(c.CertificateFile, c.KeyFile)
-	if err != nil {
-		mainLog.Fatalln(stacktrace.Propagate(err, ""))
+	cmForHosts := make(map[string]*certman.CertMan)
+	for host, hostConfig := range c.Hosts {
+		cm, err := certman.New(hostConfig.CertificateFile, hostConfig.KeyFile)
+		if err != nil {
+			mainLog.Fatalln(stacktrace.Propagate(err, ""))
+		}
+		err = cm.Watch()
+		if err != nil {
+			mainLog.Fatalln(stacktrace.Propagate(err, ""))
+		}
+		defer cm.Stop()
+
+		host, _, err := net.SplitHostPort(host)
+		if err != nil {
+			mainLog.Fatalln(stacktrace.Propagate(err, ""))
+		}
+		cmForHosts[host] = cm
 	}
-	err = cm.Watch()
-	if err != nil {
-		mainLog.Fatalln(stacktrace.Propagate(err, ""))
-	}
-	defer cm.Stop()
 
 	server := &http.Server{
 		Addr:    c.ListenAddr,
 		Handler: proxy,
 		TLSConfig: &tls.Config{
-			GetCertificate: cm.GetCertificate,
+			GetCertificate: func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
+				cm, ok := cmForHosts[chi.ServerName]
+				if !ok {
+					return nil, stacktrace.NewError("missing certificate")
+				}
+				cert, err := cm.GetCertificate(chi)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "")
+				}
+				return cert, nil
+			},
 		},
 	}
 
-	if err := server.ListenAndServeTLS(c.CertificateFile, c.KeyFile); err != nil {
+	if err := server.ListenAndServeTLS("", ""); err != nil {
 		mainLog.Fatalln(stacktrace.Propagate(err, "failed starting http2 server"))
 	}
 }
