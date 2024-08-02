@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/dyson/certman"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/palantir/stacktrace"
 	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/rpcproxy/tokens"
@@ -25,23 +26,40 @@ import (
 var mainLog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 type proxy struct {
-	tokenParser     *tokens.Parser
-	expectedOrigins []string
-	expectedHosts   []string
-	reverseProxy    *httputil.ReverseProxy
+	tokenParser               *tokens.Parser
+	expectedOrigins           []string
+	expectedHosts             []string
+	reverseProxy              *httputil.ReverseProxy
+	serveOptionsResponse      bool
+	handlerForOptionsRequests http.Handler
 }
 
-func NewProxy(target *url.URL, tlsHandshakeTimeout, responseHeaderTimeout time.Duration, insecureTLS bool, tlsServerName string, tokenSecret []byte, expectedOrigins, expectedHosts []string) *proxy {
+func NewProxy(target *url.URL, tlsHandshakeTimeout, responseHeaderTimeout time.Duration, insecureTLS bool, tlsServerName string, tokenSecret []byte, expectedOrigins, expectedHosts []string, serveOptionsResponse bool, allowedRequestsHeaders []string) *proxy {
+	wrappedServer := grpcweb.WrapServer(nil,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			return slices.Contains(expectedOrigins, origin)
+		}),
+		grpcweb.WithAllowedRequestHeaders(allowedRequestsHeaders),
+		// this allows us to use the wrapped server enough to support CORS OPTIONS requests despite not having a backing gRPC server:
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
+	)
+
 	return &proxy{
-		tokenParser:     tokens.NewParser(tokenSecret),
-		expectedOrigins: expectedOrigins,
-		expectedHosts:   expectedHosts,
+		tokenParser:               tokens.NewParser(tokenSecret),
+		expectedOrigins:           expectedOrigins,
+		expectedHosts:             expectedHosts,
+		serveOptionsResponse:      serveOptionsResponse,
+		handlerForOptionsRequests: wrappedServer,
 		reverseProxy: &httputil.ReverseProxy{
 			Rewrite: func(pr *httputil.ProxyRequest) {
 				pr.Out.URL.Scheme = target.Scheme
 				pr.Out.URL.Host = target.Host
 				if pr.Out.Method != http.MethodOptions {
 					pr.Out.Header.Add("cf-ipcountry", pr.Out.Context().Value(countryCodeContextKey{}).(string))
+				}
+				clientIP, _, err := net.SplitHostPort(pr.In.RemoteAddr)
+				if err == nil {
+					pr.Out.Header.Set("cf-connecting-ip", clientIP)
 				}
 				pr.SetXForwarded()
 			},
@@ -106,6 +124,9 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		newCtx := context.WithValue(r.Context(), countryCodeContextKey{}, countryCode)
 		r = r.WithContext(newCtx)
+	} else if p.serveOptionsResponse {
+		p.handlerForOptionsRequests.ServeHTTP(w, r)
+		return
 	}
 	p.reverseProxy.ServeHTTP(w, r)
 }
@@ -127,6 +148,9 @@ type config struct {
 
 	TokenSecret     string   `json:"tokenSecret"`
 	ExpectedOrigins []string `json:"expectedOrigins"`
+
+	ServeCORSResponseDirectly bool     `json:"serveCORSResponseDirectly"`
+	CORSAllowedRequestHeaders []string `json:"corsAllowedRequestHeaders"`
 }
 
 func readConfig(file string) (config, error) {
@@ -165,6 +189,8 @@ func main() {
 		secret,
 		c.ExpectedOrigins,
 		lo.Keys(c.Hosts),
+		c.ServeCORSResponseDirectly,
+		c.CORSAllowedRequestHeaders,
 	)
 
 	cmForHosts := make(map[string]*certman.CertMan)
