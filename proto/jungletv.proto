@@ -109,6 +109,7 @@ service JungleTV {
     rpc SetMulticurrencyPaymentsEnabled(SetMulticurrencyPaymentsEnabledRequest) returns (SetMulticurrencyPaymentsEnabledResponse) {}
     rpc InvalidateUserAuthTokens(InvalidateUserAuthTokensRequest) returns (InvalidateUserAuthTokensResponse) {}
     rpc SetRPCProxyEnabled(SetRPCProxyEnabledRequest) returns (SetRPCProxyEnabledResponse) {}
+    rpc Spectators(SpectatorsRequest) returns (SpectatorsResponse) {}
 
     // application editor endpoints
     rpc Applications(ApplicationsRequest) returns (ApplicationsResponse) {}
@@ -1035,7 +1036,7 @@ message SpectatorInfoRequest {
 }
 
 message Spectator {
-    string rewards_address = 1;
+    User user = 1;
     uint32 num_connections = 2;
     uint32 num_spectators_with_same_remote_address = 3;
     google.protobuf.Timestamp watching_since = 4;
@@ -1048,6 +1049,7 @@ message Spectator {
     bool client_integrity_checks_skipped = 11;
     bool ip_address_reputation_checks_skipped = 12;
     bool hard_challenge_frequency_reduced = 13;
+    optional uint32 as_number = 14;
 }
 
 message ResetSpectatorStatusRequest {
@@ -1487,3 +1489,9 @@ message ConsentOrDissentToAuthorizationRequest {
 }
 
 message ConsentOrDissentToAuthorizationResponse {}
+
+message SpectatorsRequest {}
+
+message SpectatorsResponse {
+    repeated Spectator spectators = 1;
+}

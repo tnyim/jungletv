@@ -870,6 +870,15 @@ type JungleTVSetRPCProxyEnabled = {
   readonly responseType: typeof jungletv_pb.SetRPCProxyEnabledResponse;
 };
 
+type JungleTVSpectators = {
+  readonly methodName: string;
+  readonly service: typeof JungleTV;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof jungletv_pb.SpectatorsRequest;
+  readonly responseType: typeof jungletv_pb.SpectatorsResponse;
+};
+
 type JungleTVApplications = {
   readonly methodName: string;
   readonly service: typeof JungleTV;
@@ -1175,6 +1184,7 @@ export class JungleTV {
   static readonly SetMulticurrencyPaymentsEnabled: JungleTVSetMulticurrencyPaymentsEnabled;
   static readonly InvalidateUserAuthTokens: JungleTVInvalidateUserAuthTokens;
   static readonly SetRPCProxyEnabled: JungleTVSetRPCProxyEnabled;
+  static readonly Spectators: JungleTVSpectators;
   static readonly Applications: JungleTVApplications;
   static readonly GetApplication: JungleTVGetApplication;
   static readonly UpdateApplication: JungleTVUpdateApplication;
@@ -2015,6 +2025,15 @@ export class JungleTVClient {
   setRPCProxyEnabled(
     requestMessage: jungletv_pb.SetRPCProxyEnabledRequest,
     callback: (error: ServiceError|null, responseMessage: jungletv_pb.SetRPCProxyEnabledResponse|null) => void
+  ): UnaryResponse;
+  spectators(
+    requestMessage: jungletv_pb.SpectatorsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SpectatorsResponse|null) => void
+  ): UnaryResponse;
+  spectators(
+    requestMessage: jungletv_pb.SpectatorsRequest,
+    callback: (error: ServiceError|null, responseMessage: jungletv_pb.SpectatorsResponse|null) => void
   ): UnaryResponse;
   applications(
     requestMessage: application_editor_pb.ApplicationsRequest,

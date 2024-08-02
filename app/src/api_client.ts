@@ -49,7 +49,7 @@ import {
     SetUserChatNicknameResponse, SignInProgress, SignInRequest,
     SignInResponse,
     SkipAndTipStatus, SoundCloudTrackDetailsRequest, SoundCloudTrackDetailsResponse, Spectator,
-    SpectatorInfoRequest, StartOrExtendSubscriptionRequest, StartOrExtendSubscriptionResponse, StopActivelyModeratingRequest,
+    SpectatorInfoRequest, SpectatorsRequest, SpectatorsResponse, StartOrExtendSubscriptionRequest, StartOrExtendSubscriptionResponse, StopActivelyModeratingRequest,
     StopActivelyModeratingResponse, SubmitActivityChallengeRequest,
     SubmitActivityChallengeResponse, TriggerAnnouncementsNotificationRequest,
     TriggerAnnouncementsNotificationResponse, TriggerClientReloadRequest, TriggerClientReloadResponse, UnblockUserRequest, UpdateDocumentResponse, UserBansRequest, UserBansResponse, UserChatMessagesRequest, UserChatMessagesResponse, UserPermissionLevelRequest, UserPermissionLevelResponse, UserProfileRequest,
@@ -785,6 +785,10 @@ class APIClient {
         const request = new SetMulticurrencyPaymentsEnabledRequest();
         request.setEnabled(enabled);
         return this.unaryRPC(JungleTV.SetMulticurrencyPaymentsEnabled, request);
+    }
+
+    async spectators(): Promise<SpectatorsResponse> {
+        return this.unaryRPC(JungleTV.Spectators, new SpectatorsRequest());
     }
 
     async spectatorInfo(rewardsAddress: string): Promise<Spectator> {

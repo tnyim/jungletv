@@ -4340,8 +4340,10 @@ export namespace SpectatorInfoRequest {
 }
 
 export class Spectator extends jspb.Message {
-  getRewardsAddress(): string;
-  setRewardsAddress(value: string): void;
+  hasUser(): boolean;
+  clearUser(): void;
+  getUser(): common_pb.User | undefined;
+  setUser(value?: common_pb.User): void;
 
   getNumConnections(): number;
   setNumConnections(value: number): void;
@@ -4387,6 +4389,11 @@ export class Spectator extends jspb.Message {
   getHardChallengeFrequencyReduced(): boolean;
   setHardChallengeFrequencyReduced(value: boolean): void;
 
+  hasAsNumber(): boolean;
+  clearAsNumber(): void;
+  getAsNumber(): number;
+  setAsNumber(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Spectator.AsObject;
   static toObject(includeInstance: boolean, msg: Spectator): Spectator.AsObject;
@@ -4399,7 +4406,7 @@ export class Spectator extends jspb.Message {
 
 export namespace Spectator {
   export type AsObject = {
-    rewardsAddress: string,
+    user?: common_pb.User.AsObject,
     numConnections: number,
     numSpectatorsWithSameRemoteAddress: number,
     watchingSince?: google_protobuf_timestamp_pb.Timestamp.AsObject,
@@ -4412,6 +4419,7 @@ export namespace Spectator {
     clientIntegrityChecksSkipped: boolean,
     ipAddressReputationChecksSkipped: boolean,
     hardChallengeFrequencyReduced: boolean,
+    asNumber: number,
   }
 }
 
@@ -6683,6 +6691,44 @@ export class ConsentOrDissentToAuthorizationResponse extends jspb.Message {
 
 export namespace ConsentOrDissentToAuthorizationResponse {
   export type AsObject = {
+  }
+}
+
+export class SpectatorsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SpectatorsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SpectatorsRequest): SpectatorsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SpectatorsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SpectatorsRequest;
+  static deserializeBinaryFromReader(message: SpectatorsRequest, reader: jspb.BinaryReader): SpectatorsRequest;
+}
+
+export namespace SpectatorsRequest {
+  export type AsObject = {
+  }
+}
+
+export class SpectatorsResponse extends jspb.Message {
+  clearSpectatorsList(): void;
+  getSpectatorsList(): Array<Spectator>;
+  setSpectatorsList(value: Array<Spectator>): void;
+  addSpectators(value?: Spectator, index?: number): Spectator;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SpectatorsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SpectatorsResponse): SpectatorsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SpectatorsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SpectatorsResponse;
+  static deserializeBinaryFromReader(message: SpectatorsResponse, reader: jspb.BinaryReader): SpectatorsResponse;
+}
+
+export namespace SpectatorsResponse {
+  export type AsObject = {
+    spectatorsList: Array<Spectator.AsObject>,
   }
 }
 

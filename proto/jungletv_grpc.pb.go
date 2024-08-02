@@ -115,6 +115,7 @@ type JungleTVClient interface {
 	SetMulticurrencyPaymentsEnabled(ctx context.Context, in *SetMulticurrencyPaymentsEnabledRequest, opts ...grpc.CallOption) (*SetMulticurrencyPaymentsEnabledResponse, error)
 	InvalidateUserAuthTokens(ctx context.Context, in *InvalidateUserAuthTokensRequest, opts ...grpc.CallOption) (*InvalidateUserAuthTokensResponse, error)
 	SetRPCProxyEnabled(ctx context.Context, in *SetRPCProxyEnabledRequest, opts ...grpc.CallOption) (*SetRPCProxyEnabledResponse, error)
+	Spectators(ctx context.Context, in *SpectatorsRequest, opts ...grpc.CallOption) (*SpectatorsResponse, error)
 	// application editor endpoints
 	Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error)
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
@@ -1244,6 +1245,15 @@ func (c *jungleTVClient) SetRPCProxyEnabled(ctx context.Context, in *SetRPCProxy
 	return out, nil
 }
 
+func (c *jungleTVClient) Spectators(ctx context.Context, in *SpectatorsRequest, opts ...grpc.CallOption) (*SpectatorsResponse, error) {
+	out := new(SpectatorsResponse)
+	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Spectators", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jungleTVClient) Applications(ctx context.Context, in *ApplicationsRequest, opts ...grpc.CallOption) (*ApplicationsResponse, error) {
 	out := new(ApplicationsResponse)
 	err := c.cc.Invoke(ctx, "/jungletv.JungleTV/Applications", in, out, opts...)
@@ -1621,6 +1631,7 @@ type JungleTVServer interface {
 	SetMulticurrencyPaymentsEnabled(context.Context, *SetMulticurrencyPaymentsEnabledRequest) (*SetMulticurrencyPaymentsEnabledResponse, error)
 	InvalidateUserAuthTokens(context.Context, *InvalidateUserAuthTokensRequest) (*InvalidateUserAuthTokensResponse, error)
 	SetRPCProxyEnabled(context.Context, *SetRPCProxyEnabledRequest) (*SetRPCProxyEnabledResponse, error)
+	Spectators(context.Context, *SpectatorsRequest) (*SpectatorsResponse, error)
 	// application editor endpoints
 	Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error)
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
@@ -1940,6 +1951,9 @@ func (UnimplementedJungleTVServer) InvalidateUserAuthTokens(context.Context, *In
 }
 func (UnimplementedJungleTVServer) SetRPCProxyEnabled(context.Context, *SetRPCProxyEnabledRequest) (*SetRPCProxyEnabledResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetRPCProxyEnabled not implemented")
+}
+func (UnimplementedJungleTVServer) Spectators(context.Context, *SpectatorsRequest) (*SpectatorsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Spectators not implemented")
 }
 func (UnimplementedJungleTVServer) Applications(context.Context, *ApplicationsRequest) (*ApplicationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Applications not implemented")
@@ -3781,6 +3795,24 @@ func _JungleTV_SetRPCProxyEnabled_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JungleTV_Spectators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpectatorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JungleTVServer).Spectators(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/jungletv.JungleTV/Spectators",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JungleTVServer).Spectators(ctx, req.(*SpectatorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JungleTV_Applications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplicationsRequest)
 	if err := dec(in); err != nil {
@@ -4554,6 +4586,10 @@ var JungleTV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetRPCProxyEnabled",
 			Handler:    _JungleTV_SetRPCProxyEnabled_Handler,
+		},
+		{
+			MethodName: "Spectators",
+			Handler:    _JungleTV_Spectators_Handler,
 		},
 		{
 			MethodName: "Applications",

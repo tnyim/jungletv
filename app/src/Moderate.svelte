@@ -13,6 +13,7 @@
     import Overview from "./moderation/Overview.svelte";
     import QueueModeration from "./moderation/QueueModeration.svelte";
     import Raffles from "./moderation/Raffles.svelte";
+    import Spectators from "./moderation/Spectators.svelte";
     import Technical from "./moderation/Technical.svelte";
     import UserBans from "./moderation/UserBans.svelte";
     import UserChatHistory from "./moderation/UserChatHistory.svelte";
@@ -85,6 +86,7 @@
                         }}
                     />
                 </li>
+                <li><NavbarLink iconClasses="fas fa-eye" label="Spectators" href="/moderate/users/spectators" /></li>
                 <li><NavbarLink iconClasses="fas fa-user-slash" label="Banned" href="/moderate/users/banned" /></li>
                 <li><NavbarLink iconClasses="fas fa-user-check" label="Verified" href="/moderate/users/verified" /></li>
                 <li><NavbarLink iconClasses="fas fa-crown" label="VIP" href="/moderate/users/vip" /></li>
@@ -112,6 +114,7 @@
             <Route path="/" component={Documents} />
             <Route path=":documentID" component={EditDocument} />
         </Route>
+        <Route path="users/spectators" component={Spectators} />
         <Route path="users/banned" component={UserBans} />
         <Route path="users/verified" component={UserVerifications} />
         <Route path="users/vip" component={VipUsers} />
