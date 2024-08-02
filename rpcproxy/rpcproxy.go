@@ -19,6 +19,8 @@ import (
 	"github.com/dyson/certman"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/palantir/stacktrace"
+	"github.com/quic-go/quic-go"
+	"github.com/quic-go/quic-go/http3"
 	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/rpcproxy/tokens"
 )
@@ -32,9 +34,19 @@ type proxy struct {
 	reverseProxy              *httputil.ReverseProxy
 	serveOptionsResponse      bool
 	handlerForOptionsRequests http.Handler
+	http3Server               *http3.Server
 }
 
-func NewProxy(target *url.URL, tlsHandshakeTimeout, responseHeaderTimeout time.Duration, insecureTLS bool, tlsServerName string, tokenSecret []byte, expectedOrigins, expectedHosts []string, serveOptionsResponse bool, allowedRequestsHeaders []string) *proxy {
+func NewProxy(
+	target *url.URL,
+	tlsHandshakeTimeout, responseHeaderTimeout time.Duration,
+	insecureTLS bool,
+	tlsServerName string,
+	tokenSecret []byte,
+	expectedOrigins, expectedHosts []string,
+	serveOptionsResponse bool,
+	allowedRequestsHeaders []string,
+	http3Server *http3.Server) *proxy {
 	wrappedServer := grpcweb.WrapServer(nil,
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			return slices.Contains(expectedOrigins, origin)
@@ -50,6 +62,7 @@ func NewProxy(target *url.URL, tlsHandshakeTimeout, responseHeaderTimeout time.D
 		expectedHosts:             expectedHosts,
 		serveOptionsResponse:      serveOptionsResponse,
 		handlerForOptionsRequests: wrappedServer,
+		http3Server:               http3Server,
 		reverseProxy: &httputil.ReverseProxy{
 			Rewrite: func(pr *httputil.ProxyRequest) {
 				pr.Out.URL.Scheme = target.Scheme
@@ -92,6 +105,13 @@ func (p *proxy) parseRemoteAddr(remoteAddr string) string {
 }
 
 func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if p.http3Server != nil && r.ProtoMajor < 3 {
+		err := p.http3Server.SetQUICHeaders(w.Header())
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
 	if origin := r.Header.Get("Origin"); !slices.Contains(p.expectedOrigins, origin) {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -151,6 +171,8 @@ type config struct {
 
 	ServeCORSResponseDirectly bool     `json:"serveCORSResponseDirectly"`
 	CORSAllowedRequestHeaders []string `json:"corsAllowedRequestHeaders"`
+
+	EnableHTTP3 bool `json:"enableHTTP3"`
 }
 
 func readConfig(file string) (config, error) {
@@ -181,6 +203,40 @@ func main() {
 		mainLog.Fatalln(stacktrace.Propagate(err, "failed to decode token secret"))
 	}
 
+	cmForHosts := make(map[string]*certman.CertMan)
+	tlsConfig := &tls.Config{
+		GetCertificate: func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			cm, ok := cmForHosts[chi.ServerName]
+			if !ok {
+				return nil, stacktrace.NewError("missing certificate")
+			}
+			cert, err := cm.GetCertificate(chi)
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "")
+			}
+			return cert, nil
+		},
+	}
+
+	var httpServer *http.Server
+	var http3Server *http3.Server
+	if c.EnableHTTP3 {
+		http3Server = &http3.Server{
+			ConnContext: func(ctx context.Context, c quic.Connection) context.Context {
+				// putting the http.ServerContextKey in the context makes it so that the httputil.ReverseProxy won't log the message
+				// "suppressing panic for copyResponse error in test; copy error: context canceled"
+				// every time a request is cancelled (which always happens at the end of gRPC-web streaming requests)
+				// see the implementation of shouldPanicOnCopyError inside the httputil.ReverseProxy and Go issue https://github.com/golang/go/issues/23643
+				// to understand why this happens and why this suppresses the message
+				return context.WithValue(ctx, http.ServerContextKey, httpServer)
+			},
+			Addr: c.ListenAddr,
+			// Handler is set after proxy is created
+			TLSConfig:  tlsConfig,
+			QUICConfig: &quic.Config{},
+		}
+	}
+
 	proxy := NewProxy(target,
 		time.Duration(c.TLSHandshakeTimeout)*time.Millisecond,
 		time.Duration(c.ResponseHeaderTimeout)*time.Millisecond,
@@ -191,9 +247,19 @@ func main() {
 		lo.Keys(c.Hosts),
 		c.ServeCORSResponseDirectly,
 		c.CORSAllowedRequestHeaders,
+		http3Server,
 	)
 
-	cmForHosts := make(map[string]*certman.CertMan)
+	if http3Server != nil {
+		http3Server.Handler = proxy
+
+		go func() {
+			if err := http3Server.ListenAndServe(); err != nil {
+				mainLog.Fatalln(stacktrace.Propagate(err, "failed starting http3 server"))
+			}
+		}()
+	}
+
 	for host, hostConfig := range c.Hosts {
 		cm, err := certman.New(hostConfig.CertificateFile, hostConfig.KeyFile)
 		if err != nil {
@@ -212,25 +278,12 @@ func main() {
 		cmForHosts[host] = cm
 	}
 
-	server := &http.Server{
-		Addr:    c.ListenAddr,
-		Handler: proxy,
-		TLSConfig: &tls.Config{
-			GetCertificate: func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
-				cm, ok := cmForHosts[chi.ServerName]
-				if !ok {
-					return nil, stacktrace.NewError("missing certificate")
-				}
-				cert, err := cm.GetCertificate(chi)
-				if err != nil {
-					return nil, stacktrace.Propagate(err, "")
-				}
-				return cert, nil
-			},
-		},
+	httpServer = &http.Server{
+		Addr:      c.ListenAddr,
+		Handler:   proxy,
+		TLSConfig: tlsConfig,
 	}
-
-	if err := server.ListenAndServeTLS("", ""); err != nil {
+	if err := httpServer.ListenAndServeTLS("", ""); err != nil {
 		mainLog.Fatalln(stacktrace.Propagate(err, "failed starting http2 server"))
 	}
 }
