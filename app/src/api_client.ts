@@ -166,7 +166,7 @@ class APIClient {
             p.then(() => {
                 r = grpc.invoke(operation, {
                     request: request,
-                    host: this.host,
+                    host: operation.methodName == JungleTV.RPCConfiguration.methodName ? this.originalHost : this.host,
                     metadata: this.buildRequestMetadata(),
                     onHeaders: (headers: grpc.Metadata): void => { this.processHeaders(headers); },
                     onMessage: (message: TResponse) => resolve(message),
