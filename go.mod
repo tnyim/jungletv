@@ -19,7 +19,7 @@ require (
 	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20240707163329-b1681fb2a2f5
+	github.com/dop251/goja v0.0.0-20240806095544-3491d4a58fbe
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
@@ -62,7 +62,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/image v0.18.0
 	golang.org/x/oauth2 v0.21.0
-	golang.org/x/sync v0.7.0
+	golang.org/x/sync v0.8.0
 	google.golang.org/api v0.189.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
@@ -92,7 +92,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/desertbit/timer v1.0.1 // indirect
-	github.com/dlclark/regexp2 v1.11.2 // indirect
+	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/flosch/pongo2/v4 v4.0.2 // indirect
@@ -173,7 +173,7 @@ require (
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240725223205-93522f1f2a9f // indirect
