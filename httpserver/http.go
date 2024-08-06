@@ -165,7 +165,7 @@ func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
 			panic(stacktrace.Propagate(err, ""))
 		}
 		if s.pprofPassword != "" {
-			r.Use(authMiddleware)
+			r = r.Use(authMiddleware)
 		}
 		r.Compat().GET("/ws", srv.Ws())
 		r.Compat().GET("/*anything", srv.Index())
