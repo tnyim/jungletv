@@ -236,7 +236,8 @@ class APIClient {
 
                 this.host = response.getEndpoint();
                 this.rpcAuthorization = response.getRpcAuthToken();
-                this.rpcConfigExpiration = response.getExpiration().toDate();
+                const diff = this.rpcConfigExpiration.getTime() - timeNow;
+                this.rpcConfigExpiration = new Date(response.getExpiration().toDate().getTime() - diff/5);
                 this.rpcConfigObtained = true;
             } catch {
                 console.log("Falling back to the default RPC configuration");
