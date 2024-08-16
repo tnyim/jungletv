@@ -236,7 +236,7 @@ class APIClient {
 
                 this.host = response.getEndpoint();
                 this.rpcAuthorization = response.getRpcAuthToken();
-                const diff = this.rpcConfigExpiration.getTime() - timeNow;
+                const diff = response.getExpiration().toDate().getTime() - timeNow;
                 this.rpcConfigExpiration = new Date(response.getExpiration().toDate().getTime() - diff/5);
                 this.rpcConfigObtained = true;
             } catch {

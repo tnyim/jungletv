@@ -505,7 +505,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 			}
 			return origin == options.WebsiteURL
 		}), grpcweb.WithAllowedRequestHeaders([]string{
-			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", tokens.HeaderName, "X-User-Agent", "X-Grpc-Web",
+			"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", tokens.HeaderName, "X-User-Agent", "User-Agent", "X-Grpc-Web",
 		}))
 
 	cm, err := certman.New(certFile, keyFile)
