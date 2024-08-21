@@ -19,7 +19,7 @@ require (
 	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20240815170236-7d18bf7df119
+	github.com/dop251/goja v0.0.0-20240816181238-8130cadc5774
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
@@ -60,7 +60,6 @@ require (
 	github.com/vechain/go-ecvrf v0.0.0-20220525125849-96fa0442e765
 	golang.org/x/crypto v0.25.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/image v0.18.0
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.8.0
 	google.golang.org/api v0.189.0
@@ -170,6 +169,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	golang.org/x/arch v0.9.0 // indirect
+	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
