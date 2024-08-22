@@ -19,7 +19,7 @@ require (
 	github.com/clarkmcc/go-typescript v0.7.0
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20240816181238-8130cadc5774
+	github.com/dop251/goja v0.0.0-20240822155948-fa6d1ed5e4b6
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc
 	github.com/dyson/certman v0.3.0
 	github.com/fogleman/gg v1.3.0
