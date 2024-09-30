@@ -117,6 +117,9 @@ func BenchmarkSubscribeUnsubscribe(b *testing.B) {
 			unsubFns = unsubFns[:newLen]
 		}
 	}
+	for _, fn := range unsubFns {
+		fn()
+	}
 }
 
 func BenchmarkNotifyAtLeastOnce(b *testing.B) {

@@ -49,6 +49,16 @@ func GetApplicationValueByIndex(ctx transaction.WrappingContext, applicationID s
 	return items[0], nil
 }
 
+// GetApplicationValuesAfterIndex returns up to `count` application values after the Nth `index` (zero-based)
+func GetApplicationValuesAfterIndex(ctx transaction.WrappingContext, applicationID string, index uint64, count uint64) ([]*ApplicationValue, error) {
+	s := sdb.Select().
+		Where(sq.Eq{"application_value.application_id": applicationID}).
+		OrderBy("application_value.application_id", "application_value.key").
+		Offset(index).Limit(count)
+	items, err := GetWithSelect[*ApplicationValue](ctx, s)
+	return items, stacktrace.Propagate(err, "")
+}
+
 // CountApplicationValuesForApplication returns the number of application values for the specified application
 func CountApplicationValuesForApplication(ctx transaction.WrappingContext, applicationID string) (int, error) {
 	ctx, err := transaction.Begin(ctx)
