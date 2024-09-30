@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"github.com/tnyim/jungletv/utils"
 )
 
 const tokenSizeDecodedBytes = 2 + 8 + sha256.Size
@@ -66,7 +67,7 @@ func (p *Parser) Parse(stringToken, expectedRemoteAddress, expectedUserAgent str
 
 	h.Write(tokenBytes[0:2])  // country code
 	h.Write(tokenBytes[2:10]) // expiration
-	h.Write([]byte(expectedRemoteAddress))
+	h.Write([]byte(utils.GetUniquifiedIP(expectedRemoteAddress)))
 	h.Write([]byte(expectedUserAgent))
 	sig := h.Sum(nil)
 	if !hmac.Equal(sig, tokenBytes[10:10+sha256.Size]) {
@@ -94,7 +95,7 @@ func GenerateToken(secretKey []byte, validFor time.Duration, remoteAddress, user
 
 	h.Write([]byte(countryCode))
 	h.Write(tokenBytes[2:10])
-	h.Write([]byte(remoteAddress))
+	h.Write([]byte(utils.GetUniquifiedIP(remoteAddress)))
 	h.Write([]byte(userAgent))
 
 	if len(countryCode) != 2 {
