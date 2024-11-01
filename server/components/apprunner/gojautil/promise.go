@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dop251/goja"
+	"github.com/palantir/stacktrace"
 	"github.com/tnyim/jungletv/server/components/apprunner/modules"
 )
 
@@ -43,12 +44,12 @@ func DoAsync[T any](appContext modules.ApplicationContext, runtime *goja.Runtime
 			})
 		}()
 
-		appContext.ScheduleNoError(func(r *goja.Runtime) {
+		appContext.Schedule(func(r *goja.Runtime) error {
 			defer cancelCtx() // if we never get scheduled because the execution paused, it's fine since the parent execution context gets cancelled too
 			if rejectReason == nil {
-				resolve(result)
+				return stacktrace.Propagate(resolve(result), "")
 			} else {
-				reject(convertRecoverResult(r, rejectReason))
+				return stacktrace.Propagate(reject(convertRecoverResult(r, rejectReason)), "")
 			}
 		})
 	}()
@@ -77,12 +78,12 @@ func DoAsyncWithTransformer[T any](appContext modules.ApplicationContext, runtim
 			})
 		}()
 
-		appContext.ScheduleNoError(func(r *goja.Runtime) {
+		appContext.Schedule(func(r *goja.Runtime) error {
 			defer cancelCtx() // if we never get scheduled because the execution paused, it's fine since the parent execution context gets cancelled too
 			if rejectReason == nil {
-				resolve(transformer(r, result))
+				return stacktrace.Propagate(resolve(transformer(r, result)), "")
 			} else {
-				reject(convertRecoverResult(r, rejectReason))
+				return stacktrace.Propagate(reject(convertRecoverResult(r, rejectReason)), "")
 			}
 		})
 	}()

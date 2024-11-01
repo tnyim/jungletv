@@ -44,6 +44,10 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
+
+	vtgrpc "github.com/planetscale/vtprotobuf/codec/grpc"
+	"google.golang.org/grpc/encoding"
+	_ "google.golang.org/grpc/encoding/proto"
 )
 
 var (
@@ -450,6 +454,7 @@ func main() {
 }
 
 func init() {
+	encoding.RegisterCodec(vtgrpc.Codec{})
 	if !buildconfig.DEBUG {
 		grpcLog = log.New(io.Discard, "grpc ", log.Ldate|log.Ltime)
 	}
