@@ -11,7 +11,7 @@ import (
 
 func (s *HTTPServer) VerifySignature(w http.ResponseWriter, r bunrouter.Request) error {
 	w.Header().Set("Access-Control-Allow-Origin", "https://thebananostand.com")
-	w.Header().Set("Access-Control-Allow-Methods", http.MethodPut)
+	w.Header().Set("Access-Control-Allow-Methods", http.MethodPost+", "+http.MethodPut) // TODO remove PUT once The Banano Stand, etc. migrates to Post
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	if r.Method == http.MethodOptions {
 		return nil

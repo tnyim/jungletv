@@ -122,7 +122,8 @@ func (s *HTTPServer) errorHandler(next bunrouter.HandlerFunc) bunrouter.HandlerF
 }
 
 func (s *HTTPServer) configureRoutes(router *bunrouter.Router) {
-	router.PUT("/verifysignature/:processID", s.VerifySignature)
+	router.POST("/verifysignature/:processID", s.VerifySignature)
+	router.PUT("/verifysignature/:processID", s.VerifySignature) // TODO remove once The Banano Stand, etc. migrates to Post
 	router.OPTIONS("/verifysignature/:processID", s.VerifySignature)
 	router.GET("/raffles/weekly/:year/:week/tickets", s.RaffleTickets)
 	router.GET("/raffles/weekly/:year/:week", s.RaffleInfo)
