@@ -174,7 +174,8 @@ func WeeklyRaffleParameters(year, week int) (string, time.Time, time.Time, bool)
 	periodEnd := timex.WeekStart(year, week+1)
 	raffleID := generateWeeklyRaffleID(periodStart)
 	firstRaffle := time.Date(2021, time.October, 17, 0, 0, 0, 0, time.UTC)
-	valid := !time.Now().Before(periodStart) && periodStart.After(firstRaffle)
+	weekAfterLastRaffle := time.Date(2025, time.January, 20, 0, 0, 0, 0, time.UTC)
+	valid := !time.Now().Before(periodStart) && periodStart.After(firstRaffle) && periodStart.Before(weekAfterLastRaffle)
 
 	return raffleID, periodStart, periodEnd, valid
 }
