@@ -8,6 +8,7 @@
     import TextInput from "./uielements/TextInput.svelte";
     import WarningMessage from "./uielements/WarningMessage.svelte";
     import Wizard from "./uielements/Wizard.svelte";
+    import { TLD_MAPPING } from "./utils";
 
     const dispatch = createEventDispatcher();
 
@@ -41,14 +42,26 @@
     }
 
     async function submit(viaSignature: boolean) {
+        const parts = rewardsAddress.split(".");
         if (rewardsAddress === "") {
-            failureReason = "A Banano address must be provided";
+            failureReason = "A Banano address or BNS domain must be provided";
             if ($rewardAddress != "") {
                 failureReason +=
                     ". If you wish to sign out, you can do so using the button at the bottom of the Rewards page.";
             }
             successful = false;
             return;
+        } else if (parts.length === 2 && Object.keys(TLD_MAPPING).includes(parts[1])) {
+            //is probably a BNS domain
+            //it seems like the combination of Svelte 3 and rollup does not care
+            //about window being here. Normally would need to do if (browser) or the like
+            const rpc = new window.bns.banani.RPC("https://kaliumapi.appditto.com/api");
+            const resolver = new window.bns.Resolver(rpc, TLD_MAPPING);
+            try {
+                rewardsAddress = (await resolver.resolve(parts[0], parts[1])).resolved_address;
+            } catch (e) {
+                failureReason = "That BNS domain does not exist or does not resolve to an address."
+            }
         }
 
         dispatch("addressInput", [rewardsAddress, privilegedLabUserCredential, viaSignature]);
@@ -58,6 +71,10 @@
         dispatch("userCanceled");
     }
 </script>
+
+<svelte:head>
+  <script src="/bns.js"></script>
+</svelte:head>
 
 <Wizard>
     <div slot="step-info">
@@ -86,7 +103,7 @@
                 </WarningMessage>
             {/if}
             <label for="rewards_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Banano address for rewards
+                Banano address or BNS Domain for rewards
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
                 <TextInput
