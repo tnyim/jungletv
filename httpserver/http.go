@@ -204,6 +204,7 @@ Disallow: /`))
 	router.GET("/apple-icon.png", bunrouter.HTTPHandler(appPublicFS))
 	router.GET("/banano.json", bunrouter.HTTPHandler(appPublicFS))
 	router.GET("/jungletv.webmanifest", bunrouter.HTTPHandler(appPublicFS))
+	router.GET("/bns.js", bunrouter.HTTPHandler(appPublicFS))
 }
 
 func addServiceWorkerHeaders(fn http.Handler) http.HandlerFunc {
