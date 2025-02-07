@@ -44,7 +44,7 @@
     async function submit(viaSignature: boolean) {
         const parts = rewardsAddress.split(".");
         if (rewardsAddress === "") {
-            failureReason = "A Banano address must be provided";
+            failureReason = "A Banano address or BNS domain must be provided";
             if ($rewardAddress != "") {
                 failureReason +=
                     ". If you wish to sign out, you can do so using the button at the bottom of the Rewards page.";
@@ -103,7 +103,7 @@
                 </WarningMessage>
             {/if}
             <label for="rewards_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Banano address for rewards
+                Banano address or BNS Domain for rewards
             </label>
             <div class="mt-1 flex rounded-md shadow-sm">
                 <TextInput
