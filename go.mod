@@ -1,8 +1,8 @@
 module github.com/tnyim/jungletv
 
-go 1.22.1
+go 1.24
 
-toolchain go1.22.5
+toolchain go1.24.2
 
 require (
 	github.com/DisgoOrg/disgohook v1.4.4
