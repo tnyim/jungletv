@@ -435,10 +435,11 @@ func main() {
 	var pprofPassword string
 	pprofPassword, _ = secrets.Get("pprofPassword")
 
-	httpServer, err := buildHTTPserver(apiServer, apiServer, listenAddr, certFile, keyFile, options, daClient, ssoCookieStore, basicAuthChecker, pprofPassword)
+	httpServer, cleanup, err := buildHTTPserver(apiServer, apiServer, listenAddr, certFile, keyFile, options, daClient, ssoCookieStore, basicAuthChecker, pprofPassword)
 	if err != nil {
 		mainLog.Fatalln(err)
 	}
+	defer cleanup()
 
 	go statsSender(ctx, statsClient)
 
@@ -476,7 +477,7 @@ func (s *combinedServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	s.handler.ServeHTTP(resp, req)
 }
 
-func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options, daClient *ssoclient.SSOClient, ssoCookieStore *sessions.CookieStore, basicAuthChecker func(ip, username, password string) bool, pprofPassword string) (*http.Server, error) {
+func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserver.SignatureVerifier, listenAddr, certFile, keyFile string, options server.Options, daClient *ssoclient.SSOClient, ssoCookieStore *sessions.CookieStore, basicAuthChecker func(ip, username, password string) bool, pprofPassword string) (*http.Server, func(), error) {
 	unaryInterceptor := grpc_middleware.ChainUnaryServer(options.VersionInterceptor.Unary(), options.AuthInterceptor.Unary())
 	streamInterceptor := grpc_middleware.ChainStreamServer(options.VersionInterceptor.Stream(), options.AuthInterceptor.Stream())
 	grpcServer := grpc.NewServer(
@@ -499,7 +500,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 		basicAuthChecker,
 		pprofPassword)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, func() {}, stacktrace.Propagate(err, "")
 	}
 
 	wrappedServer := grpcweb.WrapServer(grpcServer,
@@ -515,14 +516,13 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 
 	cm, err := certman.New(certFile, keyFile)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, func() {}, stacktrace.Propagate(err, "")
 	}
 	cm.Logger(webLog)
 	err = cm.Watch()
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "")
+		return nil, func() {}, stacktrace.Propagate(err, "")
 	}
-	defer cm.Stop()
 
 	return &http.Server{
 		Addr: listenAddr,
@@ -537,7 +537,7 @@ func buildHTTPserver(apiServer proto.JungleTVServer, signatureVerifier httpserve
 		BaseContext: func(l net.Listener) context.Context {
 			return transaction.ContextWithBaseSqalxNode(context.Background(), rootSqalxNode)
 		},
-	}, nil
+	}, cm.Stop, nil
 }
 
 func serve(httpServer *http.Server, certFile string, keyFile string) {
