@@ -15,11 +15,9 @@ Make sure to install the version of Go that is specified near the top of the go.
 The frontend requires Node.js and NPM. Specifically, it is in typescript Svelte. See [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) for installation instructions.
 
 ### Postgres
-The database that JungleTV uses. Download PostgreSQL, and set up the schema in `schema.sql`. Services like ElephantSQL provide free PostgreSQL databases as an alternative to running PostgreSQL locally.
+The database that JungleTV uses. Download PostgreSQL, and set up the schema in `schema.sql`.
 
 To set up schema in pgAdmin4, click on the database, go to "Tool" then "Query tools" and paste in the contents of `schema.sql` and execute.
-
-To set up schema in ElephantSQL, go to your instance, then "Browser" and paste in the contents of `schema.sql` and execute.
 
 ## secrets-debug.json
 Follow instructions and fill out fields in `secrets-debug.example.json`.
@@ -83,13 +81,15 @@ In the repo directory:
 
 `go build`
 
-Run the resulting `jungletv.exe`
+Run the resulting `jungletv.exe` (or just `./jungletv' for Unix-like systems)
 
 Then in the `app` directory:
 
 `npm install` then `npm run dev`
 
 If all goes well, you can access your local instance of JungleTV at https://localhost:9090 or whatever you set the `websiteURL` key in `secrets-debug.json` to.
+
+You will also need to change the `apiHost = "https://jungletv.live"` line in `app/src/api_client.ts` to whatever your `websiteURL` key was.
 
 # Integration points
 
