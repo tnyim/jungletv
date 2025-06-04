@@ -40,3 +40,45 @@ The Commons Clause came into effect in this project on September 12th 2021, and 
 this date.
 
 Made with :yellow_heart: and :banana: potassium in the BANANO Jungle :monkey::monkey:.
+
+---
+## Bem-vindo à JungleTV (Tradução Portuguesa)
+
+# Bem-vindo à JungleTV
+
+![](https://jungletv.live/assets/brand/logo.svg)
+
+![GitHub top language](https://img.shields.io/github/languages/top/tnyim/jungletv?style=plastic)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/tnyim/jungletv?style=plastic)
+![GitHub](https://img.shields.io/github/license/tnyim/jungletv?style=plastic)
+[![Discord](https://img.shields.io/badge/discord-join%20chat-orange.svg)](https://chat.banano.cc/)
+
+A [JungleTV](https://jungletv.live/) é um site de partilha de vídeos para a comunidade Banano. A [Banano](https://banano.cc/) é uma criptomoeda sem taxas, instantânea, amiga do ambiente e madura para memes.
+
+Na JungleTV, os utilizadores podem ganhar Banano ao assistir a vídeos do YouTube que são adicionados por outros utilizadores a uma espécie de lista de reprodução em contínua evolução - a **fila**. Os vídeos são reproduzidos em sincronia para todos, tornando a experiência semelhante a assistir TV ou a uma transmissão ao vivo.
+
+Terá de gastar alguma Banano para [colocar um vídeo na fila](https://jungletv.live/enqueue). Quanto terá de gastar é determinado por fatores como a quantidade de pessoas a assistir e o tamanho da fila.
+
+A Banano gasta para colocar cada vídeo na fila é distribuída entre os espectadores da JungleTV que os nossos macacos de prevenção de fraude considerem suficientemente maduros. Certifique-se de [definir o seu endereço para ganhar recompensas](https://jungletv.live/rewards/address)! Se assistir a vídeos suficientes, acabará por ganhar o suficiente para colocar os seus próprios vídeos na fila - ou para recuperar o seu gasto inicial!
+
+# :speech_balloon: Entre em contacto
+A JungleTV é um projeto de hobby sem fins lucrativos operado por [gbl08ma](https://twitter.com/gbl08ma/) (tag Discord: gbl08ma#3988), que pode encontrar no [Discord da Banano](https://chat.banano.cc/).
+
+# :heavy_plus_sign: Contribua
+Sinta-se à vontade para dar uma vista de olhos no código fonte, reportar problemas, ou talvez até mesmo fazer algumas contribuições!
+
+# :moneybag: Doações
+Se gostaria de ajudar a apoiar o desenvolvimento e operação da JungleTV, considere doar um pouco de potássio para o endereço abaixo:
+
+<img src="https://github.com/tnyim/jungletv/raw/master/docs/assets/donation_qr.png" width="200">
+
+ban_1hchsy8diurojzok64ymaaw5cthgwy4wa18r7dcim9wp4nfrz88pyrgcxbdt
+
+# :copyright: Licença
+
+A JungleTV é um software de código aberto licenciado sob a Apache License 2.0 com Commons Clause.
+Simplificando, isto dá-lhe todas as liberdades da Apache License 2.0 menos a capacidade de comercializar o projeto JungleTV, incluindo uma restrição de hospedar publicamente um serviço derivado da JungleTV sem obter aprovação prévia explícita dos autores da JungleTV. Consulte o ficheiro LICENSE para a formulação legalmente vinculativa.
+
+A Commons Clause entrou em vigor neste projeto em 12 de setembro de 2021 e aplica-se a todos os commits feitos nesta data ou após a mesma.
+
+Feito com :yellow_heart: e potássio :banana: na Selva BANANO :monkey::monkey:.
