@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/palantir/stacktrace"
+	"github.com/samber/lo"
 	"github.com/tnyim/jungletv/server/auth"
 	"github.com/tnyim/jungletv/server/components/chatmanager/tenorclient"
 	"github.com/tnyim/jungletv/server/stores/chat"
@@ -29,10 +30,9 @@ func (c *Manager) GifSearch(ctx context.Context, user auth.User, query string, p
 		return nil, "", stacktrace.NewError("rate limit reached")
 	}
 
-	medium := tenorclient.Medium
 	params := &tenorclient.SearchParams{
 		Q:             tenorclient.Q(query),
-		Contentfilter: (*tenorclient.SearchParamsContentfilter)(&medium),
+		Contentfilter: lo.ToPtr(tenorclient.SearchParamsContentfilterMedium),
 	}
 
 	if pos != "" {
